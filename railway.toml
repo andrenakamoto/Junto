@@ -1,6 +1,2 @@
-[build]
-buildCommand = "cd server && npm install && npx prisma generate && npm run build"
-
 [deploy]
-startCommand = "cd server && npx prisma db push --accept-data-loss && node dist/index.js"
 restartPolicyType = "ON_FAILURE"
