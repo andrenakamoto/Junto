@@ -1,0 +1,158 @@
+datasource db {
+  provider = env("DATABASE_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                   String   @id @default(cuid())
+  pseudo               String   @unique
+  password             String
+  status               String   @default("pending")
+  isAdmin              Boolean  @default(false)
+  acceptedTermsVersion Int      @default(0)
+  createdAt            DateTime @default(now())
+
+  memberships       CircleMember[]
+  planMemberships   PlanMember[]
+  messages          Message[]
+  createdCircles    Circle[]           @relation("CircleCreator")
+  createdPlans      Plan[]             @relation("PlanCreator")
+  pollVotes         PollVote[]
+  deleteVotes       CircleDeleteVote[]
+  planDeleteVotes   PlanDeleteVote[]
+}
+
+model Circle {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  creatorId String
+  creator     User                @relation("CircleCreator", fields: [creatorId], references: [id])
+  members     CircleMember[]
+  plans       Plan[]
+  deleteVotes CircleDeleteVote[]
+}
+
+model CircleDeleteVote {
+  userId   String
+  circleId String
+  votedAt  DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, circleId])
+}
+
+model CircleMember {
+  userId   String
+  circleId String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, circleId])
+}
+
+model Plan {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  eventDate   DateTime?
+  endDate     DateTime
+  location    String?
+  archived    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  creatorId String
+  creator   User       @relation("PlanCreator", fields: [creatorId], references: [id])
+  circleId  String
+  circle    Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  members     PlanMember[]
+  messages    Message[]
+  polls       Poll[]
+  items       BringItem[]
+  deleteVotes PlanDeleteVote[]
+}
+
+model PlanDeleteVote {
+  userId  String
+  planId  String
+  votedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([userId, planId])
+}
+
+model PlanMember {
+  userId   String
+  planId   String
+  rsvp     String   @default("in")
+  joinedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([userId, planId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+model Poll {
+  id        String   @id @default(cuid())
+  question  String
+  createdAt DateTime @default(now())
+
+  planId  String
+  plan    Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  options PollOption[]
+}
+
+model PollOption {
+  id   String @id @default(cuid())
+  text String
+
+  pollId String
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes  PollVote[]
+}
+
+model PollVote {
+  userId       String
+  pollOptionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pollOption PollOption @relation(fields: [pollOptionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, pollOptionId])
+}
+
+model BringItem {
+  id        String  @id @default(cuid())
+  label     String
+  claimedBy String?
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
