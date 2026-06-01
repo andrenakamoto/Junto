@@ -1,0 +1,7 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd server && npm install && npx prisma generate && npm run build"
+
+[deploy]
+startCommand = "cd server && npx prisma migrate deploy && node dist/index.js"
+restartPolicyType = "on-failure"
