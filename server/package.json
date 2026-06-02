@@ -4,8 +4,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "prisma generate --schema=prisma/schema.dev.prisma && ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "start": "npx prisma db push --accept-data-loss; node dist/index.js",
+    "build": "tsc && npx prisma db push --accept-data-loss",
+    "start": "node dist/index.js",
     "postinstall": "prisma generate"
   },
   "dependencies": {
