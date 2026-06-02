@@ -13,6 +13,10 @@ import prisma from './lib/prisma';
 
 dotenv.config();
 
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -29,6 +33,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/invitations', invitationsRoutes);
 
 setupSocketHandlers(io);
+
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[error]', err);
+  res.status(500).json({ error: 'Erreur serveur' });
+});
 
 async function deleteExpiredPlans() {
   try {

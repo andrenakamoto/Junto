@@ -28,33 +28,41 @@ function safeUser(user: { id: string; pseudo: string; status: string; isAdmin: b
 
 // Check if first-time setup is needed (no admin exists yet)
 router.get('/needs-setup', async (_req, res) => {
-  const admin = await prisma.user.findFirst({ where: { isAdmin: true } });
-  res.json({ needsSetup: !admin });
+  try {
+    const admin = await prisma.user.findFirst({ where: { isAdmin: true } });
+    res.json({ needsSetup: !admin });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // First-time admin setup (only works if no admin exists)
 router.post('/setup', async (req, res) => {
-  const admin = await prisma.user.findFirst({ where: { isAdmin: true } });
-  if (admin) {
-    res.status(409).json({ error: 'Un compte admin existe déjà' });
-    return;
+  try {
+    const admin = await prisma.user.findFirst({ where: { isAdmin: true } });
+    if (admin) {
+      res.status(409).json({ error: 'Un compte admin existe déjà' });
+      return;
+    }
+    const { pseudo, password } = req.body;
+    if (!pseudo || !password) {
+      res.status(400).json({ error: 'Pseudo et mot de passe requis' });
+      return;
+    }
+    const existing = await prisma.user.findUnique({ where: { pseudo } });
+    if (existing) {
+      res.status(409).json({ error: 'Ce pseudo est déjà pris' });
+      return;
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { pseudo, password: hashed, isAdmin: true, status: 'approved' },
+    });
+    const token = makeToken(user);
+    res.json({ token, user: safeUser(user) });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-  const { pseudo, password } = req.body;
-  if (!pseudo || !password) {
-    res.status(400).json({ error: 'Pseudo et mot de passe requis' });
-    return;
-  }
-  const existing = await prisma.user.findUnique({ where: { pseudo } });
-  if (existing) {
-    res.status(409).json({ error: 'Ce pseudo est déjà pris' });
-    return;
-  }
-  const hashed = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
-    data: { pseudo, password: hashed, isAdmin: true, status: 'approved' },
-  });
-  const token = makeToken(user);
-  res.json({ token, user: safeUser(user) });
 });
 
 // Register — account starts as pending
