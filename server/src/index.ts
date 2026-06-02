@@ -17,6 +17,10 @@ process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -52,6 +56,12 @@ deleteExpiredPlans();
 setInterval(deleteExpiredPlans, 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(Number(PORT), '0.0.0.0', () => {
+httpServer.listen(Number(PORT), '0.0.0.0', async () => {
   console.log(`Server running on 0.0.0.0:${PORT}`);
+  try {
+    await prisma.$connect();
+    console.log('[db] Connexion base de donnees OK');
+  } catch (e) {
+    console.error('[db] Echec connexion base de donnees:', e);
+  }
 });
