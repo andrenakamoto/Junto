@@ -30,13 +30,17 @@ router.put('/users/:id/approve', async (req: AuthRequest, res) => {
   res.json(user);
 });
 
-// Reject a user
+// Reject a user and remove them from all circles and plans
 router.put('/users/:id/reject', async (req: AuthRequest, res) => {
-  const user = await prisma.user.update({
-    where: { id: req.params.id },
-    data: { status: 'rejected' },
-    select: userSelect,
-  });
+  const [user] = await prisma.$transaction([
+    prisma.user.update({
+      where: { id: req.params.id },
+      data: { status: 'rejected' },
+      select: userSelect,
+    }),
+    prisma.circleMember.deleteMany({ where: { userId: req.params.id } }),
+    prisma.planMember.deleteMany({ where: { userId: req.params.id } }),
+  ]);
   res.json(user);
 });
 
