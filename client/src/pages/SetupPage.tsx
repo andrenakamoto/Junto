@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
@@ -12,6 +11,12 @@ export function SetupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.get('/auth/needs-setup').then(({ data }) => {
+      if (!data.needsSetup) navigate('/auth', { replace: true });
+    }).catch(() => navigate('/auth', { replace: true }));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
