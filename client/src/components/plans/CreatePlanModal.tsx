@@ -5,6 +5,13 @@ import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan } from '../../types';
 
+function localDateTimeToISO(str: string): string {
+  const [datePart, timePart] = str.split('T');
+  const [y, m, d] = datePart.split('-').map(Number);
+  const [h, min] = timePart.split(':').map(Number);
+  return new Date(y, m - 1, d, h, min).toISOString();
+}
+
 interface Props {
   circleId: string;
   onClose: () => void;
@@ -28,8 +35,8 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
       const { data } = await api.post(`/circles/${circleId}/plans`, {
         title,
         description,
-        eventDate: eventDate ? new Date(eventDate).toISOString() : null,
-        endDate: new Date(endDate).toISOString(),
+        eventDate: eventDate ? localDateTimeToISO(eventDate) : null,
+        endDate: localDateTimeToISO(endDate),
         location: location || null,
       });
       onCreated(data);
