@@ -28,8 +28,8 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
       const { data } = await api.post(`/circles/${circleId}/plans`, {
         title,
         description,
-        eventDate: eventDate || null,
-        endDate,
+        eventDate: eventDate ? new Date(eventDate).toISOString() : null,
+        endDate: new Date(endDate).toISOString(),
         location: location || null,
       });
       onCreated(data);
