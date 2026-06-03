@@ -44,6 +44,16 @@ router.put('/users/:id/reject', async (req: AuthRequest, res) => {
   res.json(user);
 });
 
+// Delete a user permanently
+router.delete('/users/:id', async (req: AuthRequest, res) => {
+  try {
+    await prisma.user.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Stats summary
 router.get('/stats', async (_req, res) => {
   const [pending, approved, rejected] = await Promise.all([
