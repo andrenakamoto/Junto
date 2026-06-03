@@ -56,7 +56,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
           <p className="px-3 py-2 text-sm text-slate-600 italic">Aucun Cercle pour l'instant</p>
         )}
         {circles.map((circle) => (
-          <div key={circle.id} className="relative">
+          <div key={circle.id}>
             <button
               onClick={() => onSelect(circle.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
@@ -78,22 +78,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
             </button>
 
             {membersPopover === circle.id && (
-              <div
-                ref={popoverRef}
-                className="absolute left-full top-0 ml-2 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-3 w-48"
-              >
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Membres</p>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {circle.members.map(m => (
-                    <div key={m.userId} className="flex items-center gap-2">
-                      <Avatar pseudo={m.user.pseudo} size="sm" />
-                      <span className="text-sm text-slate-200 truncate">@{m.user.pseudo}</span>
-                      {m.role === 'admin' && (
-                        <ShieldCheck size={12} className="text-indigo-400 flex-shrink-0" />
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <div ref={popoverRef} className="mx-2 mb-1 bg-slate-800 border border-slate-700/60 rounded-lg p-2 space-y-1">
+                {circle.members.map(m => (
+                  <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
+                    <Avatar pseudo={m.user.pseudo} size="sm" />
+                    <span className="text-xs text-slate-200 truncate flex-1">@{m.user.pseudo}</span>
+                    {m.role === 'admin' && <ShieldCheck size={11} className="text-indigo-400 flex-shrink-0" />}
+                  </div>
+                ))}
               </div>
             )}
           </div>
