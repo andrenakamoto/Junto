@@ -32,8 +32,8 @@ export function PlanCard({ plan, isSelected, onClick }: Props) {
       onClick={onClick}
       className={`w-full text-left p-4 rounded-xl transition-all border ${
         isSelected
-          ? 'bg-indigo-600/20 border-indigo-500/50'
-          : 'border-transparent hover:bg-slate-700/50 hover:border-slate-600/50'
+          ? 'bg-indigo-600/20 border-indigo-500/50 shadow-md shadow-indigo-900/20'
+          : 'bg-slate-700/40 border-slate-600/40 hover:bg-slate-700/70 hover:border-slate-500/60'
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-1.5">

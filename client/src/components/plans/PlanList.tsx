@@ -97,7 +97,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
         ) : plans.length === 0 ? (
