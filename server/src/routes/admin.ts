@@ -47,9 +47,16 @@ router.put('/users/:id/reject', async (req: AuthRequest, res) => {
 // Delete a user permanently
 router.delete('/users/:id', async (req: AuthRequest, res) => {
   try {
-    await prisma.user.delete({ where: { id: req.params.id } });
+    const id = req.params.id;
+    // Supprimer les cercles créés par l'utilisateur (cascade vers plans, messages, etc.)
+    await prisma.circle.deleteMany({ where: { creatorId: id } });
+    // Supprimer les plans créés par l'utilisateur dans d'autres cercles
+    await prisma.plan.deleteMany({ where: { creatorId: id } });
+    // Supprimer l'utilisateur (cascade vers memberships, votes, etc.)
+    await prisma.user.delete({ where: { id } });
     res.json({ ok: true });
-  } catch {
+  } catch (e) {
+    console.error('[delete user]', e);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
