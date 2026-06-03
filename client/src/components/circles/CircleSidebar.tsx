@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Users, ShieldCheck, LogOut, ScrollText } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
@@ -23,6 +23,18 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [membersPopover, setMembersPopover] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setMembersPopover(null);
+      }
+    }
+    if (membersPopover) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [membersPopover]);
 
   function handleLogout() {
     disconnectSocket();
@@ -44,21 +56,47 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
           <p className="px-3 py-2 text-sm text-slate-600 italic">Aucun Cercle pour l'instant</p>
         )}
         {circles.map((circle) => (
-          <button
-            key={circle.id}
-            onClick={() => onSelect(circle.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
-              selectedId === circle.id
-                ? 'bg-indigo-600 text-white shadow-md'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
-          >
-            <Avatar pseudo={circle.name} size="sm" />
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm truncate">{circle.name}</p>
-              <p className="text-xs opacity-60">{circle.members.length} membre{circle.members.length > 1 ? 's' : ''}</p>
-            </div>
-          </button>
+          <div key={circle.id} className="relative">
+            <button
+              onClick={() => onSelect(circle.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
+                selectedId === circle.id
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              <Avatar pseudo={circle.name} size="sm" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate">{circle.name}</p>
+                <button
+                  onClick={e => { e.stopPropagation(); setMembersPopover(membersPopover === circle.id ? null : circle.id); }}
+                  className="text-xs opacity-60 hover:opacity-100 hover:underline text-left"
+                >
+                  {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
+                </button>
+              </div>
+            </button>
+
+            {membersPopover === circle.id && (
+              <div
+                ref={popoverRef}
+                className="absolute left-full top-0 ml-2 z-50 bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-3 w-48"
+              >
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Membres</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {circle.members.map(m => (
+                    <div key={m.userId} className="flex items-center gap-2">
+                      <Avatar pseudo={m.user.pseudo} size="sm" />
+                      <span className="text-sm text-slate-200 truncate">@{m.user.pseudo}</span>
+                      {m.role === 'admin' && (
+                        <ShieldCheck size={12} className="text-indigo-400 flex-shrink-0" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
