@@ -44,7 +44,7 @@ export function DashboardPage() {
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
       setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
       if (data.circleId) markCircle(data.circleId);
-      if (data.type === 'new_message') markPlan(data.planId);
+      if (data.planId) markPlan(data.planId);
     }
     socket.on('notification', onNotification);
     return () => { socket.off('notification', onNotification); };
