@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Users, MessageSquare, ChevronLeft } from 'lucide-react';
+import { Calendar, Users, MessageSquare, ChevronLeft } from 'lucide-react';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -59,7 +59,6 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack }: Props) {
                   const date = plan.eventDate
                     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
                     : null;
-                  const endFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(plan.endDate));
 
                   return (
                     <button
@@ -86,7 +85,6 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack }: Props) {
                       <p className="text-slate-400 text-xs line-clamp-1 mb-2">{plan.description}</p>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-                        <span className="flex items-center gap-1 text-amber-500"><Clock size={10} />fin {endFmt}</span>
                         <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-400">{inCount} in</span></span>
                         {(plan._count?.messages ?? 0) > 0 && (
                           <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>

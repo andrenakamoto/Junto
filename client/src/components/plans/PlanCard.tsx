@@ -1,4 +1,4 @@
-import { Calendar, MapPin, MessageSquare, Users, Clock } from 'lucide-react';
+import { Calendar, MapPin, MessageSquare, Users } from 'lucide-react';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -25,7 +25,6 @@ export function PlanCard({ plan, isSelected, onClick }: Props) {
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
     : null;
 
-  const endDateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(plan.endDate));
 
   return (
     <button
@@ -53,7 +52,6 @@ export function PlanCard({ plan, isSelected, onClick }: Props) {
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-        <span className="flex items-center gap-1 text-amber-500"><Clock size={10} />fin {endDateFmt}</span>
         {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
         {myMember && (
           <span className="flex items-center gap-1">
