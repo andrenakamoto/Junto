@@ -29,6 +29,7 @@ export interface Circle {
   members: CircleMember[];
   deleteVotes?: CircleDeleteVote[];
   _count?: { plans: number };
+  plans?: { id: string; title: string; eventDate?: string | null; endDate: string }[];
 }
 
 export interface PlanMember {

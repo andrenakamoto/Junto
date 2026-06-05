@@ -18,9 +18,19 @@ const circleInclude = {
 
 // List circles of current user
 router.get('/', async (req: AuthRequest, res) => {
+  const now = new Date();
   const circles = await prisma.circle.findMany({
     where: { members: { some: { userId: req.userId } } },
-    include: { ...circleInclude, _count: { select: { plans: true } } },
+    include: {
+      ...circleInclude,
+      _count: { select: { plans: true } },
+      plans: {
+        where: { archived: false, endDate: { gt: now } },
+        orderBy: { eventDate: 'asc' },
+        take: 1,
+        select: { id: true, title: true, eventDate: true, endDate: true },
+      },
+    },
     orderBy: { createdAt: 'asc' },
   });
   res.json(circles);

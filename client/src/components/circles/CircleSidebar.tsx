@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { useNavigate } from 'react-router-dom';
@@ -86,6 +86,18 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
                 </div>
               </div>
             </button>
+
+            {circle.plans && circle.plans.length > 0 && (
+              <div className="mx-3 mb-1.5 -mt-0.5 flex items-center gap-1.5 text-xs text-indigo-300/70">
+                <Calendar size={10} className="flex-shrink-0" />
+                <span className="truncate">
+                  {circle.plans[0].eventDate
+                    ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(circle.plans[0].eventDate))
+                    : `fin ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(circle.plans[0].endDate))}`
+                  } — {circle.plans[0].title}
+                </span>
+              </div>
+            )}
 
             {membersPopover === circle.id && (
               <div ref={popoverRef} className="mx-2 mb-1 bg-slate-800 border border-slate-700/60 rounded-lg p-2 space-y-1">
