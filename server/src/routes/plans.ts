@@ -38,6 +38,33 @@ router.get('/:id', async (req: AuthRequest, res) => {
   res.json(plan);
 });
 
+// Update plan title and description (creator only)
+router.put('/:id', async (req: AuthRequest, res) => {
+  try {
+    const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+    if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+    const { title, description } = req.body;
+    if (!title?.trim() || !description?.trim()) {
+      res.status(400).json({ error: 'Titre et description requis' }); return;
+    }
+    const updated = await prisma.plan.update({
+      where: { id: req.params.id },
+      data: { title: title.trim(), description: description.trim() },
+      include: {
+        creator: { select: { id: true, pseudo: true } },
+        members: { include: { user: { select: { id: true, pseudo: true } } } },
+        deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
+        polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' } },
+        items: { orderBy: { id: 'asc' } },
+      },
+    });
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Join a plan
 router.post('/:id/join', async (req: AuthRequest, res) => {
   const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });

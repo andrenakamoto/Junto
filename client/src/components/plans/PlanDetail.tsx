@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft } from 'lucide-react';
+import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Avatar } from '../ui/Avatar';
@@ -10,6 +10,7 @@ import { MembresTab } from './MembresTab';
 import { VotesTab } from './VotesTab';
 import { InviteModal } from '../circles/InviteModal';
 import { DeletePlanModal } from './DeletePlanModal';
+import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
 
@@ -47,6 +48,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
+  const [showEditPlan, setShowEditPlan] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const myMember = plan.members.find(m => m.userId === user.id);
@@ -109,11 +111,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     getSocket(token).emit('send-message', { planId: plan.id, content });
   }
 
-  const date = plan.eventDate
+  const isCreator = plan.creatorId === user.id;
+
+  const eventDateFmt = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
     : null;
 
-  const endDateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.endDate));
+  const endDateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.endDate));
 
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
@@ -132,23 +136,34 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-slate-900 leading-tight">{plan.title}</h1>
-            <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{plan.description}</p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-              {date && (
-                <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Calendar size={13} className="text-indigo-500" />{date}
-                </span>
+              <div className="flex items-start gap-2">
+                <h1 className="text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
+                {isCreator && (
+                  <button
+                    onClick={() => setShowEditPlan(true)}
+                    title="Modifier le plan"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex-shrink-0 mt-0.5"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{plan.description}</p>
+
+              {/* Date de l'événement */}
+              {eventDateFmt && (
+                <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
+                  <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
+                </div>
               )}
-              <span className="flex items-center gap-1.5 text-xs text-amber-600">
-                <Clock size={13} />Expire le {endDateFmt}
-              </span>
-              {/* Infos supplémentaires visibles uniquement pour les membres */}
+
+              {/* Infos membres */}
               {isMember && (
-                <>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
                   {plan.location && (
                     <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <MapPin size={13} className="text-indigo-500" />{plan.location}
+                      <MapPin size={12} className="text-indigo-400" />{plan.location}
                     </span>
                   )}
                   <span className="text-xs text-slate-400">
@@ -157,9 +172,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                     <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
                     <span className="text-slate-400">{outCount} non</span>
                   </span>
-                </>
+                </div>
               )}
-            </div>
+
+              {/* Date d'expiration du plan — séparée visuellement */}
+              <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 border-t border-slate-100 pt-2">
+                <Clock size={11} />
+                <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span></span>
+              </div>
             </div>
           </div>
           <div className="flex gap-1 flex-shrink-0">
@@ -278,6 +298,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         />
       )}
 
+      {showEditPlan && (
+        <EditPlanModal
+          plan={plan}
+          onClose={() => setShowEditPlan(false)}
+          onUpdated={(updated) => { onPlanUpdated(updated); setShowEditPlan(false); }}
+        />
+      )}
       {showDeletePlan && (
         <DeletePlanModal
           plan={plan}
