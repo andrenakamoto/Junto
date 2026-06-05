@@ -119,17 +119,22 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 </div>
 
                 {nextPlan && (
-                  <div className={`flex items-center gap-1.5 px-3 pb-2.5 ${selected ? 'text-indigo-200/80' : 'text-slate-500'}`}>
-                    <Calendar size={10} className="flex-shrink-0" />
-                    <span className="text-xs truncate">
-                      {nextPlan.eventDate
-                        ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(nextPlan.eventDate))
-                        : `fin ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(nextPlan.endDate))}`
-                      }
-                      <span className={`ml-1 font-medium ${selected ? 'text-white/90' : 'text-slate-400'}`}>
-                        — {nextPlan.title}
+                  <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg ${selected ? 'bg-indigo-500/30' : 'bg-slate-700/50'}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${selected ? 'text-indigo-200/70' : 'text-slate-500'}`}>
+                      Prochain évènement
+                    </p>
+                    <p className={`text-xs font-semibold truncate ${selected ? 'text-white' : 'text-slate-200'}`}>
+                      {nextPlan.title}
+                    </p>
+                    <div className={`flex items-center gap-1 mt-0.5 ${selected ? 'text-indigo-200/80' : 'text-slate-400'}`}>
+                      <Calendar size={10} className="flex-shrink-0" />
+                      <span className="text-xs">
+                        {nextPlan.eventDate
+                          ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(nextPlan.eventDate))
+                          : `Clôture le ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(nextPlan.endDate))}`
+                        }
                       </span>
-                    </span>
+                    </div>
                   </div>
                 )}
               </button>
