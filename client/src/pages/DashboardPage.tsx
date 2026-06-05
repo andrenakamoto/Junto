@@ -6,6 +6,7 @@ import api from '../services/api';
 import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
+import { AllPlansView } from '../components/plans/AllPlansView';
 import { TermsModal } from '../components/ui/TermsModal';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -21,6 +22,7 @@ export function DashboardPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
+  const [allPlansActive, setAllPlansActive] = useState(false);
 
   useEffect(() => {
     api.get('/circles').then(res => {
@@ -64,6 +66,14 @@ export function DashboardPage() {
 
   function handleSelectCircle(id: string) {
     setSelectedCircleId(id);
+    setAllPlansActive(false);
+    setMobileView('plans');
+  }
+
+  function handleAllPlans() {
+    setAllPlansActive(true);
+    setSelectedCircleId(null);
+    setSelectedPlan(null);
     setMobileView('plans');
   }
 
@@ -107,18 +117,29 @@ export function DashboardPage() {
       <div className={`${showCircles ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
           circles={circles}
-          selectedId={selectedCircleId}
+          selectedId={allPlansActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={c => {
             setCircles(prev => [...prev, c]);
             setSelectedCircleId(c.id);
+            setAllPlansActive(false);
             setMobileView('plans');
           }}
+          onAllPlans={handleAllPlans}
+          allPlansActive={allPlansActive}
         />
       </div>
 
       {/* Colonne 2 — Plans */}
-      {selectedCircle ? (
+      {allPlansActive ? (
+        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+          <AllPlansView
+            onSelectPlan={handleSelectPlan}
+            selectedPlanId={selectedPlan?.id ?? null}
+            onBack={() => setMobileView('circles')}
+          />
+        </div>
+      ) : selectedCircle ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <PlanList
             circle={selectedCircle}

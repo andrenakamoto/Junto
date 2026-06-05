@@ -16,9 +16,11 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onCreated: (circle: Circle) => void;
+  onAllPlans: () => void;
+  allPlansActive: boolean;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -53,6 +55,19 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5">
+        <button
+          onClick={onAllPlans}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 text-left transition-all border text-sm font-semibold ${
+            allPlansActive
+              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/30'
+              : 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600/60'
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${allPlansActive ? 'bg-indigo-500' : 'bg-slate-700'}`}>
+            <Calendar size={15} />
+          </div>
+          Tous mes plans
+        </button>
         <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Mes Cercles</p>
         {circles.length === 0 && (
           <p className="px-3 py-2 text-sm text-slate-600 italic">Aucun Cercle pour l'instant</p>

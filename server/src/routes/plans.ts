@@ -12,6 +12,31 @@ async function assertPlanMember(userId: string, planId: string): Promise<boolean
   return !!m;
 }
 
+// Get all plans from all circles the user is a member of
+router.get('/', async (req: AuthRequest, res) => {
+  try {
+    const now = new Date();
+    const plans = await prisma.plan.findMany({
+      where: {
+        archived: false,
+        endDate: { gt: now },
+        circle: { members: { some: { userId: req.userId } } },
+      },
+      include: {
+        creator: { select: { id: true, pseudo: true } },
+        members: { include: { user: { select: { id: true, pseudo: true } } } },
+        deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
+        circle: { select: { id: true, name: true } },
+        _count: { select: { messages: true } },
+      },
+      orderBy: { endDate: 'asc' },
+    });
+    res.json(plans);
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Get plan detail (full)
 router.get('/:id', async (req: AuthRequest, res) => {
   const plan = await prisma.plan.findUnique({

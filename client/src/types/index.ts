@@ -81,6 +81,7 @@ export interface Plan {
   creatorId: string;
   creator: User;
   circleId: string;
+  circle?: { id: string; name: string };
   members: PlanMember[];
   deleteVotes?: PlanDeleteVote[];
   polls?: Poll[];
