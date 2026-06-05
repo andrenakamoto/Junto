@@ -83,6 +83,17 @@ model Plan {
   polls       Poll[]
   items       BringItem[]
   deleteVotes PlanDeleteVote[]
+  changeLogs  PlanChangeLog[]
+}
+
+model PlanChangeLog {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  changedAt DateTime @default(now())
 }
 
 model PlanDeleteVote {

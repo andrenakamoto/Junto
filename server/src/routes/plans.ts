@@ -12,6 +12,21 @@ async function assertPlanMember(userId: string, planId: string): Promise<boolean
   return !!m;
 }
 
+const planInclude = {
+  creator: { select: { id: true, pseudo: true } },
+  members: { include: { user: { select: { id: true, pseudo: true } } } },
+  deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
+  polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
+  items: { orderBy: { id: 'asc' as const } },
+  changeLogs: { orderBy: { changedAt: 'asc' as const } },
+};
+
+function sameMinute(a: Date | null, b: Date | null): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return Math.floor(a.getTime() / 60000) === Math.floor(b.getTime() / 60000);
+}
+
 // Get all plans from all circles the user is a member of
 router.get('/', async (req: AuthRequest, res) => {
   try {
@@ -41,13 +56,7 @@ router.get('/', async (req: AuthRequest, res) => {
 router.get('/:id', async (req: AuthRequest, res) => {
   const plan = await prisma.plan.findUnique({
     where: { id: req.params.id },
-    include: {
-      creator: { select: { id: true, pseudo: true } },
-      members: { include: { user: { select: { id: true, pseudo: true } } } },
-      deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
-      polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' } },
-      items: { orderBy: { id: 'asc' } },
-    },
+    include: planInclude,
   });
   if (!plan) {
     res.status(404).json({ error: 'Plan introuvable' });
@@ -63,27 +72,49 @@ router.get('/:id', async (req: AuthRequest, res) => {
   res.json(plan);
 });
 
-// Update plan title and description (creator only)
+// Update plan (creator only)
 router.put('/:id', async (req: AuthRequest, res) => {
   try {
     const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
     if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
-    const { title, description } = req.body;
+
+    const { title, description, eventDate, endDate } = req.body;
     if (!title?.trim() || !description?.trim()) {
       res.status(400).json({ error: 'Titre et description requis' }); return;
     }
-    const updated = await prisma.plan.update({
-      where: { id: req.params.id },
-      data: { title: title.trim(), description: description.trim() },
-      include: {
-        creator: { select: { id: true, pseudo: true } },
-        members: { include: { user: { select: { id: true, pseudo: true } } } },
-        deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
-        polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' } },
-        items: { orderBy: { id: 'asc' } },
-      },
+    if (!endDate) {
+      res.status(400).json({ error: 'Date de fin requise' }); return;
+    }
+
+    const newEventDate = eventDate ? new Date(eventDate) : null;
+    const newEndDate = new Date(endDate);
+    if (isNaN(newEndDate.getTime())) {
+      res.status(400).json({ error: 'Date de fin invalide' }); return;
+    }
+
+    const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
+    const planId = req.params.id;
+
+    if (title.trim() !== plan.title)
+      logs.push({ planId, field: 'title', oldValue: plan.title, newValue: title.trim() });
+    if (description.trim() !== plan.description)
+      logs.push({ planId, field: 'description', oldValue: plan.description, newValue: description.trim() });
+    if (!sameMinute(plan.eventDate, newEventDate))
+      logs.push({ planId, field: 'eventDate', oldValue: plan.eventDate?.toISOString() ?? null, newValue: newEventDate?.toISOString() ?? null });
+    if (!sameMinute(plan.endDate, newEndDate))
+      logs.push({ planId, field: 'endDate', oldValue: plan.endDate.toISOString(), newValue: newEndDate.toISOString() });
+
+    await prisma.plan.update({
+      where: { id: planId },
+      data: { title: title.trim(), description: description.trim(), eventDate: newEventDate, endDate: newEndDate },
     });
+
+    if (logs.length > 0) {
+      await prisma.planChangeLog.createMany({ data: logs });
+    }
+
+    const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
     res.json(updated);
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });

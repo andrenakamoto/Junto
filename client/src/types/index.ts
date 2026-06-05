@@ -70,6 +70,14 @@ export interface PlanDeleteVote {
   user: { id: string; pseudo: string };
 }
 
+export interface PlanChangeLog {
+  id: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  changedAt: string;
+}
+
 export interface Plan {
   id: string;
   title: string;
@@ -86,6 +94,7 @@ export interface Plan {
   deleteVotes?: PlanDeleteVote[];
   polls?: Poll[];
   items?: BringItem[];
+  changeLogs?: PlanChangeLog[];
   _count?: { messages: number };
 }
 

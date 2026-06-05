@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil } from 'lucide-react';
+import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Avatar } from '../ui/Avatar';
@@ -8,13 +8,14 @@ import { ChatInput } from '../chat/ChatInput';
 import { InfosTab } from './InfosTab';
 import { MembresTab } from './MembresTab';
 import { VotesTab } from './VotesTab';
+import { HistoriqueTab } from './HistoriqueTab';
 import { InviteModal } from '../circles/InviteModal';
 import { DeletePlanModal } from './DeletePlanModal';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
 
-type Tab = 'chat' | 'infos' | 'membres' | 'votes';
+type Tab = 'chat' | 'infos' | 'membres' | 'votes' | 'historique';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -23,10 +24,11 @@ const rsvpConfig = {
 };
 
 const tabs = [
-  { key: 'chat' as Tab,    Icon: MessageSquare, label: 'Chat' },
-  { key: 'infos' as Tab,   Icon: CheckSquare,   label: 'Infos' },
-  { key: 'membres' as Tab, Icon: Users,         label: 'Membres' },
-  { key: 'votes' as Tab,   Icon: BarChart2,     label: 'Votes' },
+  { key: 'chat' as Tab,       Icon: MessageSquare, label: 'Chat' },
+  { key: 'infos' as Tab,      Icon: CheckSquare,   label: 'Infos' },
+  { key: 'membres' as Tab,    Icon: Users,         label: 'Membres' },
+  { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
+  { key: 'historique' as Tab, Icon: History,       label: 'Historique' },
 ];
 
 interface Props {
@@ -286,6 +288,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           )}
           {tab === 'membres' && <MembresTab members={plan.members} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
+          {tab === 'historique' && <HistoriqueTab changeLogs={plan.changeLogs ?? []} />}
         </>
       )}
 
