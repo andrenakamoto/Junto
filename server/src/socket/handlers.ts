@@ -45,7 +45,7 @@ export function setupSocketHandlers(io: Server) {
       // Notifier les membres du plan qui ne sont pas dans la room
       const planData = await prisma.plan.findUnique({
         where: { id: planId },
-        select: { title: true, members: { select: { userId: true } } },
+        select: { title: true, circleId: true, members: { select: { userId: true } } },
       });
       if (planData) {
         const sockets = await io.in(`plan:${planId}`).fetchSockets();
@@ -56,6 +56,7 @@ export function setupSocketHandlers(io: Server) {
               type: 'new_message',
               planId,
               planTitle: planData.title,
+              circleId: planData.circleId,
               from: socket.data.pseudo,
               preview: content.trim().slice(0, 60),
             });
