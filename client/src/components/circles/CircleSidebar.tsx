@@ -68,12 +68,22 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated }: Prop
               <Avatar pseudo={circle.name} size="sm" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{circle.name}</p>
-                <button
-                  onClick={e => { e.stopPropagation(); setMembersPopover(membersPopover === circle.id ? null : circle.id); }}
-                  className="text-xs opacity-60 hover:opacity-100 hover:underline text-left"
-                >
-                  {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
-                </button>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <button
+                    onClick={e => { e.stopPropagation(); setMembersPopover(membersPopover === circle.id ? null : circle.id); }}
+                    className="text-xs opacity-60 hover:opacity-100 hover:underline text-left"
+                  >
+                    {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
+                  </button>
+                  {(circle._count?.plans ?? 0) > 0 && (
+                    <>
+                      <span className="text-xs opacity-30">·</span>
+                      <span className="text-xs opacity-60">
+                        {circle._count!.plans} plan{circle._count!.plans > 1 ? 's' : ''}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </button>
 
