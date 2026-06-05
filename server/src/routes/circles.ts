@@ -26,7 +26,7 @@ router.get('/', async (req: AuthRequest, res) => {
       _count: { select: { plans: true } },
       plans: {
         where: { archived: false, endDate: { gt: now } },
-        orderBy: { eventDate: 'asc' },
+        orderBy: { endDate: 'asc' },
         take: 1,
         select: { id: true, title: true, eventDate: true, endDate: true },
       },
