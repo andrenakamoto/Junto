@@ -19,9 +19,10 @@ interface Props {
   onAllPlans: () => void;
   allPlansActive: boolean;
   unreadCount: number;
+  unreadCircles: Set<string>;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, unreadCount }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, unreadCount, unreadCircles }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -76,16 +77,22 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         {circles.map((circle) => {
           const selected = selectedId === circle.id;
           const nextPlan = circle.plans?.[0];
+          const hasUnread = unreadCircles.has(circle.id);
           return (
             <div key={circle.id}>
               <button
                 onClick={() => onSelect(circle.id)}
-                className={`w-full text-left rounded-xl transition-all border ${
+                className={`w-full text-left rounded-xl transition-all border relative ${
                   selected
                     ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-900/30'
+                    : hasUnread
+                    ? 'bg-slate-800/60 border-orange-500/50 hover:bg-slate-800 hover:border-orange-400/60'
                     : 'bg-slate-800/60 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600/60'
                 }`}
               >
+                {hasUnread && !selected && (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-orange-500 rounded-full" />
+                )}
                 <div className="flex items-center gap-3 px-3 pt-3 pb-2">
                   <Avatar pseudo={circle.name} size="sm" />
                   <div className="flex-1 min-w-0">

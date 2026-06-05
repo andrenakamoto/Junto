@@ -6,6 +6,7 @@ export interface AppNotification {
   type: 'new_plan' | 'new_message';
   planId: string;
   planTitle: string;
+  circleId?: string;
   circleName?: string;
   from: string;
   preview?: string;
@@ -21,9 +22,7 @@ interface Props {
 export function NotificationToast({ notifications, onDismiss, onClickNotification }: Props) {
   useEffect(() => {
     if (notifications.length === 0) return;
-    const timers = notifications.map(n =>
-      setTimeout(() => onDismiss(n.id), 5000)
-    );
+    const timers = notifications.map(n => setTimeout(() => onDismiss(n.id), 5000));
     return () => timers.forEach(clearTimeout);
   }, [notifications.map(n => n.id).join(',')]);
 
@@ -46,7 +45,7 @@ export function NotificationToast({ notifications, onDismiss, onClickNotificatio
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-white">
-              {n.type === 'new_plan' ? `Nouveau plan dans ${n.circleName}` : `Nouveau message — ${n.planTitle}`}
+              {n.type === 'new_plan' ? `Nouveau plan — ${n.circleName}` : `Nouveau message — ${n.planTitle}`}
             </p>
             <p className="text-xs text-slate-400 mt-0.5 truncate">
               {n.type === 'new_plan'
@@ -54,10 +53,7 @@ export function NotificationToast({ notifications, onDismiss, onClickNotificatio
                 : `@${n.from} : ${n.preview}`}
             </p>
           </div>
-          <button
-            onClick={e => { e.stopPropagation(); onDismiss(n.id); }}
-            className="text-slate-500 hover:text-white transition-colors flex-shrink-0"
-          >
+          <button onClick={e => { e.stopPropagation(); onDismiss(n.id); }} className="text-slate-500 hover:text-white flex-shrink-0">
             <X size={13} />
           </button>
         </div>

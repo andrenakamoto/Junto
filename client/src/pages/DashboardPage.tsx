@@ -9,6 +9,7 @@ import { PlanDetail } from '../components/plans/PlanDetail';
 import { AllPlansView } from '../components/plans/AllPlansView';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
 import { getSocket } from '../lib/socket';
+import { useUnread } from '../hooks/useUnread';
 import { TermsModal } from '../components/ui/TermsModal';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -26,6 +27,7 @@ export function DashboardPage() {
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
 
   useEffect(() => {
     api.get('/circles').then(res => {
@@ -41,6 +43,8 @@ export function DashboardPage() {
     const socket = getSocket(token);
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
       setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
+      if (data.type === 'new_plan' && data.circleId) markCircle(data.circleId);
+      if (data.type === 'new_message') markPlan(data.planId);
     }
     socket.on('notification', onNotification);
     return () => { socket.off('notification', onNotification); };
@@ -83,6 +87,7 @@ export function DashboardPage() {
     setSelectedCircleId(id);
     setAllPlansActive(false);
     setMobileView('plans');
+    clearCircle(id);
   }
 
   function handleAllPlans() {
@@ -93,6 +98,7 @@ export function DashboardPage() {
   }
 
   function handleSelectPlan(plan: Plan) {
+    clearPlan(plan.id);
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
       setMobileView('detail');
@@ -150,7 +156,8 @@ export function DashboardPage() {
           }}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
-          unreadCount={notifications.length}
+          unreadCount={unreadCircles.size + unreadPlans.size}
+          unreadCircles={unreadCircles}
         />
       </div>
 
@@ -175,6 +182,7 @@ export function DashboardPage() {
             onCircleDeleted={handleCircleDeleted}
             onCircleUpdated={handleCircleUpdated}
             onBack={() => setMobileView('circles')}
+            unreadPlans={unreadPlans}
           />
         </div>
       ) : (

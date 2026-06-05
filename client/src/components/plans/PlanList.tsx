@@ -17,9 +17,10 @@ interface Props {
   onCircleDeleted: () => void;
   onCircleUpdated: (circle: Circle) => void;
   onBack: () => void;
+  unreadPlans: Set<string>;
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans }: Props) {
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -111,6 +112,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               key={plan.id}
               plan={plan}
               isSelected={plan.id === selectedPlanId}
+              isUnread={unreadPlans.has(plan.id)}
               onClick={() => onSelectPlan(plan)}
             />
           ))

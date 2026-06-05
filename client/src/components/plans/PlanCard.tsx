@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface Props {
   plan: Plan;
   isSelected: boolean;
+  isUnread?: boolean;
   onClick: () => void;
 }
 
@@ -15,7 +16,7 @@ const rsvpBadge = {
 };
 const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Je passe' };
 
-export function PlanCard({ plan, isSelected, onClick }: Props) {
+export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props) {
   const { user } = useAuth();
   const myMember = plan.members.find(m => m.userId === user?.id);
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
@@ -29,12 +30,17 @@ export function PlanCard({ plan, isSelected, onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-xl transition-all border ${
+      className={`w-full text-left p-4 rounded-xl transition-all border relative ${
         isSelected
           ? 'bg-indigo-600/20 border-indigo-500/50 shadow-md shadow-indigo-900/20'
+          : isUnread
+          ? 'bg-slate-700/40 border-orange-500/40 hover:bg-slate-700/70'
           : 'bg-slate-700/40 border-slate-600/40 hover:bg-slate-700/70 hover:border-slate-500/60'
       }`}
     >
+      {isUnread && !isSelected && (
+        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-orange-500 rounded-full" />
+      )}
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <h3 className="font-semibold text-white text-sm leading-tight">{plan.title}</h3>
         {myMember ? (

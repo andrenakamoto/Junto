@@ -177,6 +177,7 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
             type: 'new_plan',
             planId: plan.id,
             planTitle: plan.title,
+            circleId: req.params.id,
             circleName: circle.name,
             from: plan.creator.pseudo,
           });
