@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2 } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
@@ -24,6 +24,8 @@ export function AdminPage() {
   const [filter, setFilter] = useState<Filter>('pending');
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState<string | null>(null);
+  const [resetDone, setResetDone] = useState<string | null>(null);
 
   async function fetchData() {
     setLoading(true);
@@ -52,6 +54,13 @@ export function AdminPage() {
     await api.delete(`/admin/users/${id}`);
     setConfirmDelete(null);
     fetchData();
+  }
+
+  async function handleResetPassword(id: string) {
+    await api.put(`/admin/users/${id}/reset-password`);
+    setConfirmReset(null);
+    setResetDone(id);
+    setTimeout(() => setResetDone(null), 3000);
   }
 
   const filters: { key: Filter; label: string; icon: typeof Users; count?: number; color: string }[] = [
@@ -167,6 +176,24 @@ export function AdminPage() {
                     Approuver
                   </button>
                 )}
+                {resetDone === u.id ? (
+                  <span className="text-xs text-emerald-600 font-medium px-2">Mot de passe : 123 ✓</span>
+                ) : confirmReset === u.id ? (
+                  <div className="flex gap-1.5 items-center">
+                    <span className="text-xs text-amber-600 font-medium">Réinitialiser ?</span>
+                    <button onClick={() => handleResetPassword(u.id)} className="px-2.5 py-1.5 bg-amber-500 text-white hover:bg-amber-600 rounded-lg text-xs font-medium transition-colors">Oui</button>
+                    <button onClick={() => setConfirmReset(null)} className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Non</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmReset(u.id)}
+                    title="Réinitialiser le mot de passe"
+                    className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                  >
+                    <KeyRound size={15} />
+                  </button>
+                )}
+
                 {confirmDelete === u.id ? (
                   <div className="flex gap-1.5 items-center">
                     <span className="text-xs text-red-600 font-medium">Confirmer ?</span>

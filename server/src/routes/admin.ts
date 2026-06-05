@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
@@ -42,6 +43,20 @@ router.put('/users/:id/reject', async (req: AuthRequest, res) => {
     prisma.planMember.deleteMany({ where: { userId: req.params.id } }),
   ]);
   res.json(user);
+});
+
+// Reset a user's password to "123"
+router.put('/users/:id/reset-password', async (req: AuthRequest, res) => {
+  try {
+    const hashed = await bcrypt.hash('123', 10);
+    await prisma.user.update({
+      where: { id: req.params.id },
+      data: { password: hashed },
+    });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // Delete a user permanently
