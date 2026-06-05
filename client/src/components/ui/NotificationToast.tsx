@@ -21,19 +21,20 @@ interface Props {
 export function NotificationToast({ notifications, onDismiss, onClickNotification }: Props) {
   useEffect(() => {
     if (notifications.length === 0) return;
-    const latest = notifications[notifications.length - 1];
-    const timer = setTimeout(() => onDismiss(latest.id), 5000);
-    return () => clearTimeout(timer);
-  }, [notifications.length]);
+    const timers = notifications.map(n =>
+      setTimeout(() => onDismiss(n.id), 5000)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [notifications.map(n => n.id).join(',')]);
 
   if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-xs">
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 w-80">
       {notifications.slice(-3).map(n => (
         <div
           key={n.id}
-          className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-3 flex gap-3 items-start animate-slide-in cursor-pointer hover:bg-slate-750"
+          className="bg-slate-900 border border-slate-600 rounded-xl shadow-2xl p-3 flex gap-3 items-start cursor-pointer hover:bg-slate-800 transition-colors"
           onClick={() => { onClickNotification(n); onDismiss(n.id); }}
         >
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
