@@ -7,6 +7,8 @@ import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
 import { AllPlansView } from '../components/plans/AllPlansView';
+import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
+import { getSocket } from '../lib/socket';
 import { TermsModal } from '../components/ui/TermsModal';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -23,6 +25,7 @@ export function DashboardPage() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
     api.get('/circles').then(res => {
@@ -30,6 +33,18 @@ export function DashboardPage() {
       if (res.data.length > 0) setSelectedCircleId(res.data[0].id);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('junto_token');
+    if (!token) return;
+    const socket = getSocket(token);
+    function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
+      setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
+    }
+    socket.on('notification', onNotification);
+    return () => { socket.off('notification', onNotification); };
+  }, [user]);
 
   useEffect(() => {
     if (!selectedCircleId) { setPlans([]); return; }
@@ -112,6 +127,14 @@ export function DashboardPage() {
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
     )}
+    <NotificationToast
+      notifications={notifications}
+      onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
+      onClickNotification={n => {
+        setNotifications(prev => prev.filter(x => x.id !== n.id));
+        handleSelectPlan({ id: n.planId } as any);
+      }}
+    />
     <div className="flex h-dvh bg-slate-900 overflow-hidden">
       {/* Colonne 1 — Cercles */}
       <div className={`${showCircles ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-64 flex-shrink-0 h-full`}>
@@ -127,6 +150,7 @@ export function DashboardPage() {
           }}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
+          unreadCount={notifications.length}
         />
       </div>
 

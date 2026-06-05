@@ -162,6 +162,28 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
     },
   });
   res.json(plan);
+
+  // Notifier les membres du cercle (sauf le créateur)
+  try {
+    const io = req.app.get('io');
+    const circle = await prisma.circle.findUnique({
+      where: { id: req.params.id },
+      select: { name: true, members: { select: { userId: true } } },
+    });
+    if (io && circle) {
+      for (const m of circle.members) {
+        if (m.userId !== req.userId) {
+          io.to(`user:${m.userId}`).emit('notification', {
+            type: 'new_plan',
+            planId: plan.id,
+            planTitle: plan.title,
+            circleName: circle.name,
+            from: plan.creator.pseudo,
+          });
+        }
+      }
+    }
+  } catch {}
 });
 
 // Toggle delete vote — deletes circle if threshold reached

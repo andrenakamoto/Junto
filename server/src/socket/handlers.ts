@@ -17,6 +17,8 @@ export function setupSocketHandlers(io: Server) {
   });
 
   io.on('connection', (socket: Socket) => {
+    socket.join(`user:${socket.data.userId}`);
+
     socket.on('join-plan', async (planId: string) => {
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
@@ -39,6 +41,27 @@ export function setupSocketHandlers(io: Server) {
         include: { author: { select: { id: true, pseudo: true } } },
       });
       io.to(`plan:${planId}`).emit('message', message);
+
+      // Notifier les membres du plan qui ne sont pas dans la room
+      const planData = await prisma.plan.findUnique({
+        where: { id: planId },
+        select: { title: true, members: { select: { userId: true } } },
+      });
+      if (planData) {
+        const sockets = await io.in(`plan:${planId}`).fetchSockets();
+        const activeUserIds = new Set(sockets.map(s => s.data.userId));
+        for (const m of planData.members) {
+          if (m.userId !== socket.data.userId && !activeUserIds.has(m.userId)) {
+            io.to(`user:${m.userId}`).emit('notification', {
+              type: 'new_message',
+              planId,
+              planTitle: planData.title,
+              from: socket.data.pseudo,
+              preview: content.trim().slice(0, 60),
+            });
+          }
+        }
+      }
     });
   });
 }

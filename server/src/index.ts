@@ -38,6 +38,7 @@ app.use('/api/plans', plansRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/invitations', invitationsRoutes);
 
+app.set('io', io);
 setupSocketHandlers(io);
 
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

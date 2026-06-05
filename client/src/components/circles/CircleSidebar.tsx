@@ -18,9 +18,10 @@ interface Props {
   onCreated: (circle: Circle) => void;
   onAllPlans: () => void;
   allPlansActive: boolean;
+  unreadCount: number;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, unreadCount }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -187,6 +188,11 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       <div className="px-3 py-3 border-t border-slate-700/60 flex items-center gap-2">
         {user && <Avatar pseudo={user.pseudo} size="sm" />}
         <span className="flex-1 text-sm text-slate-300 font-medium truncate">@{user?.pseudo}</span>
+        {unreadCount > 0 && (
+          <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
         <button
           onClick={handleLogout}
           title="Se déconnecter"
