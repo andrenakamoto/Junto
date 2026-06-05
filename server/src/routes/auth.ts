@@ -126,6 +126,31 @@ router.get('/me', requireAuth, async (req: AuthRequest, res) => {
   res.json(safeUser(user));
 });
 
+// Change password
+router.put('/change-password', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Champs requis' });
+      return;
+    }
+    if (newPassword.length < 3) {
+      res.status(400).json({ error: 'Le mot de passe doit faire au moins 3 caractères' });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+      res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+      return;
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Accept current terms of use
 router.post('/accept-terms', requireAuth, async (req: AuthRequest, res) => {
   const user = await prisma.user.update({
