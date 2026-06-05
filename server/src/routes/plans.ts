@@ -29,7 +29,7 @@ router.get('/', async (req: AuthRequest, res) => {
         circle: { select: { id: true, name: true } },
         _count: { select: { messages: true } },
       },
-      orderBy: { endDate: 'asc' },
+      orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
     });
     res.json(plans);
   } catch {

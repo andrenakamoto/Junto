@@ -116,7 +116,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
   res.json(plans);
 });
