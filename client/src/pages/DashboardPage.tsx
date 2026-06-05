@@ -98,6 +98,11 @@ export function DashboardPage() {
 
   function handleSelectPlan(plan: Plan) {
     clearPlan(plan.id);
+    if (plan.circleId) {
+      clearCircle(plan.circleId);
+      setSelectedCircleId(plan.circleId);
+      setAllPlansActive(false);
+    }
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
       setMobileView('detail');
@@ -137,7 +142,7 @@ export function DashboardPage() {
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
       onClickNotification={n => {
         setNotifications(prev => prev.filter(x => x.id !== n.id));
-        handleSelectPlan({ id: n.planId } as any);
+        handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
       }}
     />
     <div className="flex h-dvh bg-slate-900 overflow-hidden">
@@ -155,7 +160,7 @@ export function DashboardPage() {
           }}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
-          unreadCount={unreadCircles.size + unreadPlans.size}
+          unreadCount={unreadCircles.size}
           unreadCircles={unreadCircles}
         />
       </div>
