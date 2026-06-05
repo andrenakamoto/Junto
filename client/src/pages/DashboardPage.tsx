@@ -32,7 +32,6 @@ export function DashboardPage() {
   useEffect(() => {
     api.get('/circles').then(res => {
       setCircles(res.data);
-      if (res.data.length > 0) setSelectedCircleId(res.data[0].id);
     });
   }, []);
 
