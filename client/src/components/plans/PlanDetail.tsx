@@ -248,19 +248,19 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {/* Tabs (only if member) */}
       {isMember && (
         <>
-          <div className="flex border-b border-slate-200 px-4 flex-shrink-0 bg-white">
+          <div className="flex border-b border-slate-200 flex-shrink-0 bg-white">
             {tabs.map(({ key, Icon, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors min-w-0 ${
                   tab === key
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
-                <Icon size={13} />
-                {label}
+                <Icon size={14} />
+                <span className="truncate leading-tight">{label}</span>
               </button>
             ))}
           </div>
