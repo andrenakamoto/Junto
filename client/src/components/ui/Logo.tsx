@@ -14,44 +14,51 @@ export function LogoIcon({ size = 40, className = '' }: IconProps) {
       className={className}
     >
       <defs>
-        <linearGradient id="junto-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#3730a3" />
+        <linearGradient id="estelle-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#e879a4" />
+          <stop offset="100%" stopColor="#7c3aed" />
         </linearGradient>
-        <filter id="junto-glow">
-          <feGaussianBlur stdDeviation="1.5" result="blur" />
+        <filter id="estelle-glow">
+          <feGaussianBlur stdDeviation="1" result="blur" />
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
 
-      {/* Fond arrondi avec dégradé */}
-      <rect width="64" height="64" rx="15" fill="url(#junto-bg)" />
+      {/* Fond arrondi */}
+      <rect width="64" height="64" rx="15" fill="url(#estelle-bg)" />
 
       {/* Reflet subtil en haut */}
-      <rect width="64" height="34" rx="15" fill="url(#junto-bg)" opacity="0" />
-      <ellipse cx="32" cy="5" rx="26" ry="11" fill="white" opacity="0.07" />
+      <ellipse cx="32" cy="5" rx="26" ry="10" fill="white" opacity="0.07" />
 
-      {/* Chemin J reliant les trois membres */}
+      {/*
+        Deux étriers superposés formant un E.
+        Chaque étrier est un D-shape (ouverture à gauche, courbure à droite).
+        Étrier du haut : barre en haut + arc droit + barre au milieu + barre gauche (Z)
+        Étrier du bas  : barre au milieu + arc droit + barre en bas + barre gauche (Z)
+        Les deux barres gauches forment le trait vertical du E.
+      */}
+
+      {/* Étrier du haut */}
       <path
-        d="M20 19 H44 V41 Q44 53 32 53 Q19 53 19 45"
+        d="M 15 12 L 39 12 A 10 10 0 0 1 39 32 L 15 32 Z"
         stroke="white"
-        strokeOpacity="0.35"
-        strokeWidth="5.5"
-        strokeLinecap="round"
+        strokeWidth="4"
+        fill="none"
         strokeLinejoin="round"
+        strokeLinecap="round"
+        filter="url(#estelle-glow)"
       />
 
-      {/* Membre 1 — gauche haut (rejoint) */}
-      <circle cx="20" cy="19" r="6.5" fill="white" fillOpacity="0.5" />
-      <circle cx="20" cy="19" r="3.5" fill="white" fillOpacity="0.5" />
-
-      {/* Membre 2 — droite haut (admin / créateur) */}
-      <circle cx="44" cy="19" r="7" fill="white" filter="url(#junto-glow)" />
-      <circle cx="44" cy="19" r="4" fill="white" fillOpacity="0.6" />
-
-      {/* Membre 3 — gauche bas (ancré) */}
-      <circle cx="19" cy="45" r="6.5" fill="white" fillOpacity="0.7" />
-      <circle cx="19" cy="45" r="3.5" fill="white" fillOpacity="0.5" />
+      {/* Étrier du bas */}
+      <path
+        d="M 15 32 L 39 32 A 10 10 0 0 1 39 52 L 15 52 Z"
+        stroke="white"
+        strokeWidth="4"
+        fill="none"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        filter="url(#estelle-glow)"
+      />
     </svg>
   );
 }
@@ -61,7 +68,12 @@ export function LogoFull({ iconSize = 32, className = '' }: { iconSize?: number;
     <div className={`flex items-center gap-2.5 ${className}`}>
       <LogoIcon size={iconSize} />
       <span
-        style={{ fontWeight: 900, letterSpacing: '-0.03em' }}
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontStyle: 'italic',
+          fontWeight: 700,
+          letterSpacing: '0.01em',
+        }}
         className="text-white text-xl leading-none"
       >
         Estelle

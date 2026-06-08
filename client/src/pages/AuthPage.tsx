@@ -67,7 +67,12 @@ export function AuthPage() {
           <div className="flex justify-center mb-4">
             <LogoIcon size={72} />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Estelle 🐴</h1>
+          <h1
+            style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700 }}
+            className="text-4xl text-white tracking-wide"
+          >
+            Estelle
+          </h1>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
         </div>
 
