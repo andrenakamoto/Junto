@@ -190,6 +190,7 @@ function AttachmentRow({
 }) {
   const [downloading, setDownloading] = useState(false);
   const [dlError, setDlError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const image = isImage(att.mimeType);
   const isPdf = att.mimeType === 'application/pdf';
 
@@ -235,29 +236,50 @@ function AttachmentRow({
         {/* Nom + ligne du bas : taille · auteur + boutons */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-slate-800 truncate leading-tight">{att.name}</p>
-          <div className="flex items-center justify-between mt-0.5 gap-2">
-            <p className="text-xs text-slate-400 truncate">{formatSize(att.size)} · @{att.uploadedBy}</p>
-            <div className="flex items-center gap-0.5 flex-shrink-0">
+
+          {confirmDelete ? (
+            /* Confirmation inline */
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-xs text-red-600 font-medium">Supprimer ce fichier ?</span>
               <button
-                onClick={handleDownload}
-                disabled={downloading}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
-                title="Télécharger"
+                onClick={() => { setConfirmDelete(false); onDelete(); }}
+                disabled={deleting}
+                className="px-2 py-0.5 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
               >
-                {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                {deleting ? <Loader2 size={12} className="animate-spin inline" /> : 'Oui, supprimer'}
               </button>
-              {canDelete && (
-                <button
-                  onClick={onDelete}
-                  disabled={deleting}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Supprimer"
-                >
-                  {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                </button>
-              )}
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                Annuler
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-between mt-0.5 gap-2">
+              <p className="text-xs text-slate-400 truncate">{formatSize(att.size)} · @{att.uploadedBy}</p>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                  title="Télécharger"
+                >
+                  {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                </button>
+                {canDelete && (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {dlError && <p className="text-xs text-red-500 mt-1">{dlError}</p>}
         </div>
       </div>
