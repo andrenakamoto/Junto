@@ -20,6 +20,14 @@ function isImage(mimeType: string) {
   return mimeType.startsWith('image/');
 }
 
+// Force Cloudinary à servir le fichier en téléchargement (contourne le viewer PDF du navigateur)
+function downloadUrl(url: string): string {
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', '/upload/fl_attachment/');
+  }
+  return url;
+}
+
 export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const [newItem, setNewItem] = useState('');
   const [addingItem, setAddingItem] = useState(false);
@@ -218,7 +226,7 @@ function AttachmentRow({
       {/* Actions */}
       <div className="flex items-center gap-1 flex-shrink-0">
         <a
-          href={att.url}
+          href={downloadUrl(att.url)}
           download={att.name}
           target="_blank"
           rel="noopener noreferrer"
