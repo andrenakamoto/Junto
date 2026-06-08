@@ -70,6 +70,16 @@ export interface PlanDeleteVote {
   user: { id: string; pseudo: string };
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  mimeType: string;
+  size: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
 export interface PlanChangeLog {
   id: string;
   field: string;
@@ -95,6 +105,7 @@ export interface Plan {
   polls?: Poll[];
   items?: BringItem[];
   changeLogs?: PlanChangeLog[];
+  attachments?: Attachment[];
   _count?: { messages: number };
 }
 

@@ -8,6 +8,7 @@ import circlesRoutes from './routes/circles';
 import plansRoutes from './routes/plans';
 import adminRoutes from './routes/admin';
 import invitationsRoutes from './routes/invitations';
+import attachmentsRoutes from './routes/attachments';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 
@@ -37,6 +38,7 @@ app.use('/api/circles', circlesRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/invitations', invitationsRoutes);
+app.use('/api/attachments', attachmentsRoutes);
 
 app.set('io', io);
 setupSocketHandlers(io);

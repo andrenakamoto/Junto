@@ -1,17 +1,32 @@
-import { useState } from 'react';
-import { MapPin, Plus, Check } from 'lucide-react';
-import { Plan, BringItem } from '../../types';
+import { useState, useRef } from 'react';
+import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2 } from 'lucide-react';
+import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
 
 interface Props {
   plan: Plan;
   onPlanUpdated: (plan: Plan) => void;
   pseudo: string;
+  userId: string;
 }
 
-export function InfosTab({ plan, onPlanUpdated, pseudo }: Props) {
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function isImage(mimeType: string) {
+  return mimeType.startsWith('image/');
+}
+
+export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const [newItem, setNewItem] = useState('');
   const [addingItem, setAddingItem] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function refresh() {
     const { data } = await api.get(`/plans/${plan.id}`);
@@ -31,7 +46,43 @@ export function InfosTab({ plan, onPlanUpdated, pseudo }: Props) {
     await refresh();
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('Fichier trop volumineux (max 10 Mo)');
+      return;
+    }
+    setUploading(true);
+    setUploadError('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      await api.post(`/attachments/plans/${plan.id}`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      await refresh();
+    } catch (err: any) {
+      setUploadError(err.response?.data?.error || "Erreur lors de l'envoi");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  async function handleDelete(att: Attachment) {
+    setDeletingId(att.id);
+    try {
+      await api.delete(`/attachments/${att.id}`);
+      await refresh();
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const items = plan.items || [];
+  const attachments = plan.attachments || [];
+  const isCreator = plan.creatorId === userId;
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-6">
@@ -45,6 +96,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo }: Props) {
         </div>
       )}
 
+      {/* Qui apporte quoi */}
       <div>
         <h3 className="font-semibold text-slate-800 text-sm mb-3">Qui apporte quoi ?</h3>
         <div className="space-y-2">
@@ -76,6 +128,113 @@ export function InfosTab({ plan, onPlanUpdated, pseudo }: Props) {
           >
             <Plus size={14} />
             Ajouter un élément
+          </button>
+        )}
+      </div>
+
+      {/* Pièces jointes */}
+      <div>
+        <h3 className="font-semibold text-slate-800 text-sm mb-3">Pièces jointes</h3>
+
+        {attachments.length > 0 && (
+          <div className="space-y-2 mb-3">
+            {attachments.map(att => (
+              <AttachmentRow
+                key={att.id}
+                att={att}
+                canDelete={isCreator || att.uploadedBy === pseudo}
+                deleting={deletingId === att.id}
+                onDelete={() => handleDelete(att)}
+              />
+            ))}
+          </div>
+        )}
+
+        {attachments.length === 0 && !uploading && (
+          <p className="text-sm text-slate-400 italic mb-3">Aucune pièce jointe pour l'instant.</p>
+        )}
+
+        {uploadError && (
+          <p className="text-xs text-red-500 mb-2">{uploadError}</p>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip"
+          onChange={handleFileChange}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium disabled:opacity-50"
+        >
+          {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
+          {uploading ? 'Envoi en cours…' : 'Ajouter une pièce jointe'}
+        </button>
+        <p className="text-xs text-slate-400 mt-1">PDF, images, Word, Excel… · max 10 Mo</p>
+      </div>
+    </div>
+  );
+}
+
+function AttachmentRow({
+  att, canDelete, deleting, onDelete,
+}: {
+  att: Attachment;
+  canDelete: boolean;
+  deleting: boolean;
+  onDelete: () => void;
+}) {
+  const image = isImage(att.mimeType);
+  const isPdf = att.mimeType === 'application/pdf';
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+      {/* Thumbnail ou icône */}
+      {image ? (
+        <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <img
+            src={att.url}
+            alt={att.name}
+            className="w-10 h-10 rounded-lg object-cover border border-slate-200"
+          />
+        </a>
+      ) : (
+        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+          {isPdf ? <FileText size={18} className="text-red-400" /> : <File size={18} className="text-slate-400" />}
+        </div>
+      )}
+
+      {/* Nom + infos */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-slate-800 truncate">{att.name}</p>
+        <p className="text-xs text-slate-400">
+          {formatSize(att.size)} · @{att.uploadedBy}
+        </p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <a
+          href={att.url}
+          download={att.name}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+          title="Télécharger"
+        >
+          <Download size={14} />
+        </a>
+        {canDelete && (
+          <button
+            onClick={onDelete}
+            disabled={deleting}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+            title="Supprimer"
+          >
+            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </button>
         )}
       </div>

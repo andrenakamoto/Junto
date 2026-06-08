@@ -84,6 +84,7 @@ model Plan {
   items       BringItem[]
   deleteVotes PlanDeleteVote[]
   changeLogs  PlanChangeLog[]
+  attachments Attachment[]
 }
 
 model PlanChangeLog {
@@ -94,6 +95,20 @@ model PlanChangeLog {
   oldValue  String?
   newValue  String?
   changedAt DateTime @default(now())
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  planId       String
+  plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name         String
+  url          String
+  publicId     String
+  resourceType String   @default("raw")
+  mimeType     String
+  size         Int
+  uploadedBy   String
+  createdAt    DateTime @default(now())
 }
 
 model PlanDeleteVote {

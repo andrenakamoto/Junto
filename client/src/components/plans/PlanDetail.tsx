@@ -284,7 +284,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           )}
 
           {tab === 'infos' && (
-            <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} />
+            <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
           {tab === 'membres' && <MembresTab members={plan.members} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}

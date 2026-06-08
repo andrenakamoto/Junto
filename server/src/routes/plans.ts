@@ -19,6 +19,7 @@ const planInclude = {
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
   items: { orderBy: { id: 'asc' as const } },
   changeLogs: { orderBy: { changedAt: 'asc' as const } },
+  attachments: { orderBy: { createdAt: 'asc' as const } },
 };
 
 function sameMinute(a: Date | null, b: Date | null): boolean {
