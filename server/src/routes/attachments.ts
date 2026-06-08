@@ -44,9 +44,12 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     });
     if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
+    // Les images → resource_type 'image' (optimisation CDN)
+    // PDF, Word, Excel, etc. → resource_type 'raw' (fichier brut, téléchargeable directement)
+    const isImageMime = req.file.mimetype.startsWith('image/');
     const result = await streamUpload(req.file.buffer, {
       folder: `estelle/${req.params.planId}`,
-      resource_type: 'auto',
+      resource_type: isImageMime ? 'image' : 'raw',
       use_filename: false,
     });
 
@@ -108,7 +111,22 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     });
     if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
-    const buffer = await fetchBuffer(att.url);
+    // Pour les PDFs anciens stockés comme 'image', ajouter fl_attachment aide le CDN
+    // à renvoyer le fichier brut plutôt qu'une image convertie
+    let fetchUrl = att.url;
+    if (att.resourceType === 'image' && att.url.includes('/upload/') && !att.url.includes('/upload/fl_attachment/')) {
+      fetchUrl = att.url.replace('/upload/', '/upload/fl_attachment/');
+    }
+
+    const buffer = await fetchBuffer(fetchUrl);
+
+    if (buffer.length === 0) {
+      res.status(502).json({
+        error: 'Fichier introuvable chez Cloudinary (0 octets). Supprimez cette pièce jointe et ré-uploadez-la.',
+      });
+      return;
+    }
+
     const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
     res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
     res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
