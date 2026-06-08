@@ -18,46 +18,53 @@ export function LogoIcon({ size = 40, className = '' }: IconProps) {
           <stop offset="0%" stopColor="#e879a4" />
           <stop offset="100%" stopColor="#7c3aed" />
         </linearGradient>
-        <filter id="estelle-glow">
-          <feGaussianBlur stdDeviation="1" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+
+        {/* Dégradé métal argenté vertical */}
+        <linearGradient id="metal-v" x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stopColor="#f5f5f5" />
+          <stop offset="35%"  stopColor="#d8d8d8" />
+          <stop offset="65%"  stopColor="#b0b0b0" />
+          <stop offset="100%" stopColor="#888888" />
+        </linearGradient>
+
+        {/* Halo rose autour des fers */}
+        <filter id="horse-glow" x="-25%" y="-25%" width="150%" height="150%">
+          <feDropShadow dx="0" dy="0" stdDeviation="1.8" floodColor="#e879a4" floodOpacity="0.9" />
         </filter>
       </defs>
 
-      {/* Fond arrondi */}
+      {/* Fond arrondi dégradé */}
       <rect width="64" height="64" rx="15" fill="url(#estelle-bg)" />
-
-      {/* Reflet subtil en haut */}
       <ellipse cx="32" cy="5" rx="26" ry="10" fill="white" opacity="0.07" />
 
       {/*
-        Deux étriers superposés formant un E.
-        Chaque étrier est un D-shape (ouverture à gauche, courbure à droite).
-        Étrier du haut : barre en haut + arc droit + barre au milieu + barre gauche (Z)
-        Étrier du bas  : barre au milieu + arc droit + barre en bas + barre gauche (Z)
-        Les deux barres gauches forment le trait vertical du E.
+        Fer à cheval du haut :
+          - arc (courbure) sur la GAUCHE
+          - deux bras s'étendant à DROITE
+          - extrémités carrées (strokeLinecap="square")
+          Trace : bras droit haut → arc gauche CCW → bras droit bas
       */}
-
-      {/* Étrier du haut */}
       <path
-        d="M 15 12 L 39 12 A 10 10 0 0 1 39 32 L 15 32 Z"
-        stroke="white"
-        strokeWidth="4"
+        d="M 47 12 L 27 12 A 10 10 0 0 0 27 32 L 47 32"
+        stroke="url(#metal-v)"
+        strokeWidth="5.5"
+        strokeLinecap="square"
         fill="none"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        filter="url(#estelle-glow)"
+        filter="url(#horse-glow)"
       />
 
-      {/* Étrier du bas */}
+      {/*
+        Fer à cheval du bas :
+          Même principe, positionné juste en dessous.
+          Les deux bras hauts se rejoignent au centre → barre du milieu du E.
+      */}
       <path
-        d="M 15 32 L 39 32 A 10 10 0 0 1 39 52 L 15 52 Z"
-        stroke="white"
-        strokeWidth="4"
+        d="M 47 32 L 27 32 A 10 10 0 0 0 27 52 L 47 52"
+        stroke="url(#metal-v)"
+        strokeWidth="5.5"
+        strokeLinecap="square"
         fill="none"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        filter="url(#estelle-glow)"
+        filter="url(#horse-glow)"
       />
     </svg>
   );
