@@ -20,12 +20,20 @@ function isImage(mimeType: string) {
   return mimeType.startsWith('image/');
 }
 
-// Force Cloudinary à servir le fichier en téléchargement (contourne le viewer PDF du navigateur)
-function downloadUrl(url: string): string {
-  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-    return url.replace('/upload/', '/upload/fl_attachment/');
-  }
-  return url;
+async function triggerDownload(attachmentId: string, filename: string) {
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const token = localStorage.getItem('junto_token');
+  const res = await fetch(`${base}/attachments/${attachmentId}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) return;
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
@@ -225,16 +233,13 @@ function AttachmentRow({
 
       {/* Actions */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        <a
-          href={downloadUrl(att.url)}
-          download={att.name}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => triggerDownload(att.id, att.name)}
           className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
           title="Télécharger"
         >
           <Download size={14} />
-        </a>
+        </button>
         {canDelete && (
           <button
             onClick={onDelete}

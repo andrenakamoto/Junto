@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
+import https from 'https';
+import http from 'http';
 import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -64,6 +66,37 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
   } catch (e) {
     console.error('[attachment upload]', e);
     res.status(500).json({ error: "Erreur lors de l'envoi du fichier" });
+  }
+});
+
+// GET /api/attachments/:id/download — proxy le fichier pour forcer le téléchargement
+router.get('/:id/download', async (req: AuthRequest, res) => {
+  try {
+    const att = await prisma.attachment.findUnique({ where: { id: req.params.id } });
+    if (!att) { res.status(404).json({ error: 'Pièce jointe introuvable' }); return; }
+
+    const plan = await prisma.plan.findUnique({ where: { id: att.planId } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+
+    const isMember = await prisma.circleMember.findUnique({
+      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
+    });
+    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+    const fileUrl = att.url;
+    const proto = fileUrl.startsWith('https') ? https : http;
+
+    proto.get(fileUrl, (upstream) => {
+      const filename = encodeURIComponent(att.name).replace(/'/g, "%27");
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${filename}`);
+      res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
+      upstream.pipe(res);
+    }).on('error', () => {
+      res.status(502).json({ error: 'Impossible de récupérer le fichier' });
+    });
+  } catch (e) {
+    console.error('[attachment download]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
