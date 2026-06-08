@@ -69,6 +69,27 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
   }
 });
 
+function proxyFetch(url: string, mimeType: string, filename: string, res: any, depth = 0): void {
+  if (depth > 5) { res.status(502).json({ error: 'Trop de redirections' }); return; }
+  const proto = url.startsWith('https') ? https : http;
+  proto.get(url, { headers: { 'Accept-Encoding': 'identity' } }, (upstream) => {
+    // Suivre les redirections (301/302/307/308)
+    if ((upstream.statusCode ?? 0) >= 300 && (upstream.statusCode ?? 0) < 400 && upstream.headers.location) {
+      upstream.resume();
+      return proxyFetch(upstream.headers.location, mimeType, filename, res, depth + 1);
+    }
+    const encoded = encodeURIComponent(filename).replace(/'/g, '%27');
+    res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+    res.setHeader('Content-Type', mimeType || 'application/octet-stream');
+    if (upstream.headers['content-length']) {
+      res.setHeader('Content-Length', upstream.headers['content-length']);
+    }
+    upstream.pipe(res);
+  }).on('error', () => {
+    if (!res.headersSent) res.status(502).json({ error: 'Impossible de récupérer le fichier' });
+  });
+}
+
 // GET /api/attachments/:id/download — proxy le fichier pour forcer le téléchargement
 router.get('/:id/download', async (req: AuthRequest, res) => {
   try {
@@ -83,20 +104,10 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     });
     if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
-    const fileUrl = att.url;
-    const proto = fileUrl.startsWith('https') ? https : http;
-
-    proto.get(fileUrl, (upstream) => {
-      const filename = encodeURIComponent(att.name).replace(/'/g, "%27");
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${filename}`);
-      res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
-      upstream.pipe(res);
-    }).on('error', () => {
-      res.status(502).json({ error: 'Impossible de récupérer le fichier' });
-    });
+    proxyFetch(att.url, att.mimeType, att.name, res);
   } catch (e) {
     console.error('[attachment download]', e);
-    res.status(500).json({ error: 'Erreur serveur' });
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
