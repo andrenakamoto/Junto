@@ -101,7 +101,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const isCreator = plan.creatorId === userId;
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-6">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6">
       {plan.location && (
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">
@@ -207,49 +207,49 @@ function AttachmentRow({
   const isPdf = att.mimeType === 'application/pdf';
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-      {/* Thumbnail ou icône */}
-      {image ? (
-        <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-          <img
-            src={att.url}
-            alt={att.name}
-            className="w-10 h-10 rounded-lg object-cover border border-slate-200"
-          />
-        </a>
-      ) : (
-        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-          {isPdf ? <FileText size={18} className="text-red-400" /> : <File size={18} className="text-slate-400" />}
-        </div>
-      )}
-
-      {/* Nom + infos */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 truncate">{att.name}</p>
-        <p className="text-xs text-slate-400">
-          {formatSize(att.size)} · @{att.uploadedBy}
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          onClick={() => triggerDownload(att.id, att.name)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-          title="Télécharger"
-        >
-          <Download size={14} />
-        </button>
-        {canDelete && (
-          <button
-            onClick={onDelete}
-            disabled={deleting}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-            title="Supprimer"
-          >
-            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-          </button>
+    <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex items-center gap-2.5">
+        {/* Thumbnail ou icône */}
+        {image ? (
+          <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+            <img
+              src={att.url}
+              alt={att.name}
+              className="w-9 h-9 rounded-lg object-cover border border-slate-200"
+            />
+          </a>
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+            {isPdf ? <FileText size={17} className="text-red-400" /> : <File size={17} className="text-slate-400" />}
+          </div>
         )}
+
+        {/* Nom + ligne du bas : taille · auteur + boutons */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-800 truncate leading-tight">{att.name}</p>
+          <div className="flex items-center justify-between mt-0.5 gap-2">
+            <p className="text-xs text-slate-400 truncate">{formatSize(att.size)} · @{att.uploadedBy}</p>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button
+                onClick={() => triggerDownload(att.id, att.name)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="Télécharger"
+              >
+                <Download size={14} />
+              </button>
+              {canDelete && (
+                <button
+                  onClick={onDelete}
+                  disabled={deleting}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  title="Supprimer"
+                >
+                  {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
