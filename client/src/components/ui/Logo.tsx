@@ -64,7 +64,7 @@ export function LogoFull({ iconSize = 32, className = '' }: { iconSize?: number;
         style={{ fontWeight: 900, letterSpacing: '-0.03em' }}
         className="text-white text-xl leading-none"
       >
-        Junto
+        Estelle
       </span>
     </div>
   );
