@@ -21,19 +21,19 @@ function isImage(mimeType: string) {
 }
 
 async function triggerDownload(attachmentId: string, filename: string) {
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-  const token = localStorage.getItem('junto_token');
-  const res = await fetch(`${base}/attachments/${attachmentId}/download`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) return;
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const res = await api.get(`/attachments/${attachmentId}/download`, { responseType: 'blob' });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch {
+    // silencieux — l'utilisateur verra qu'il ne se passe rien
+  }
 }
 
 export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
