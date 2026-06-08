@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
+import https from 'https';
+import http from 'http';
+import zlib from 'zlib';
 import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -67,6 +70,30 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
   }
 });
 
+function fetchBuffer(url: string, depth = 0): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    if (depth > 5) { reject(new Error('Trop de redirections')); return; }
+    const proto = url.startsWith('https') ? https : http;
+    proto.get(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: '*/*' } }, (upstream) => {
+      const code = upstream.statusCode ?? 0;
+      if (code >= 300 && code < 400 && upstream.headers.location) {
+        upstream.resume();
+        fetchBuffer(upstream.headers.location, depth + 1).then(resolve, reject);
+        return;
+      }
+      const chunks: Buffer[] = [];
+      const enc = upstream.headers['content-encoding'];
+      let stream: NodeJS.ReadableStream = upstream;
+      if (enc === 'gzip')    stream = upstream.pipe(zlib.createGunzip());
+      else if (enc === 'br') stream = upstream.pipe(zlib.createBrotliDecompress());
+      else if (enc === 'deflate') stream = upstream.pipe(zlib.createInflate());
+      stream.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
 // GET /api/attachments/:id/download — proxy le fichier pour forcer le téléchargement
 router.get('/:id/download', async (req: AuthRequest, res) => {
   try {
@@ -81,16 +108,7 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     });
     if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
-    // fetch() suit les redirections et décompresse gzip automatiquement
-    const cloudRes = await fetch(att.url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-    if (!cloudRes.ok) {
-      res.status(502).json({ error: 'Impossible de récupérer le fichier' });
-      return;
-    }
-
-    const buffer = Buffer.from(await cloudRes.arrayBuffer());
+    const buffer = await fetchBuffer(att.url);
     const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
     res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
     res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
@@ -98,7 +116,7 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     res.end(buffer);
   } catch (e) {
     console.error('[attachment download]', e);
-    if (!res.headersSent) res.status(500).json({ error: 'Erreur serveur' });
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur lors du téléchargement', details: String(e) });
   }
 });
 

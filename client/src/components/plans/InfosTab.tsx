@@ -20,21 +20,6 @@ function isImage(mimeType: string) {
   return mimeType.startsWith('image/');
 }
 
-async function triggerDownload(attachmentId: string, filename: string) {
-  try {
-    const res = await api.get(`/attachments/${attachmentId}/download`, { responseType: 'blob' });
-    const url = URL.createObjectURL(res.data);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch {
-    // silencieux — l'utilisateur verra qu'il ne se passe rien
-  }
-}
 
 export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const [newItem, setNewItem] = useState('');
@@ -203,8 +188,31 @@ function AttachmentRow({
   deleting: boolean;
   onDelete: () => void;
 }) {
+  const [downloading, setDownloading] = useState(false);
+  const [dlError, setDlError] = useState('');
   const image = isImage(att.mimeType);
   const isPdf = att.mimeType === 'application/pdf';
+
+  async function handleDownload() {
+    setDownloading(true);
+    setDlError('');
+    try {
+      const res = await api.get(`/attachments/${att.id}/download`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = att.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || 'Erreur inconnue';
+      setDlError(msg);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
@@ -231,11 +239,12 @@ function AttachmentRow({
             <p className="text-xs text-slate-400 truncate">{formatSize(att.size)} · @{att.uploadedBy}</p>
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
-                onClick={() => triggerDownload(att.id, att.name)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
                 title="Télécharger"
               >
-                <Download size={14} />
+                {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               </button>
               {canDelete && (
                 <button
@@ -249,6 +258,7 @@ function AttachmentRow({
               )}
             </div>
           </div>
+          {dlError && <p className="text-xs text-red-500 mt-1">{dlError}</p>}
         </div>
       </div>
     </div>
