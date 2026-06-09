@@ -19,12 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('junto_token');
+    const stored = localStorage.getItem('estelle_token');
     if (stored) {
       setToken(stored);
       api.get('/auth/me')
         .then(res => setUser(res.data))
-        .catch(() => localStorage.removeItem('junto_token'))
+        .catch(() => localStorage.removeItem('estelle_token'))
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -32,13 +32,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   function login(t: string, u: User) {
-    localStorage.setItem('junto_token', t);
+    localStorage.setItem('estelle_token', t);
     setToken(t);
     setUser(u);
   }
 
   function logout() {
-    localStorage.removeItem('junto_token');
+    localStorage.removeItem('estelle_token');
     setToken(null);
     setUser(null);
   }

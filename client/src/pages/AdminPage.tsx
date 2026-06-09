@@ -79,9 +79,9 @@ export function AdminPage() {
         </button>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-black text-xs">J</span>
+            <span className="text-white font-black text-xs">E</span>
           </div>
-          <span className="text-white font-bold">Junto</span>
+          <span className="text-white font-bold">Estelle</span>
           <span className="text-slate-500 mx-1">/</span>
           <span className="text-slate-300 text-sm flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-indigo-400" />

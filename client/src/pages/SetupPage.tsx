@@ -41,7 +41,7 @@ export function SetupPage() {
             <LogoIcon size={72} />
           </div>
           <h1 className="text-3xl font-black text-white">Configuration initiale</h1>
-          <p className="text-slate-400 mt-2 text-sm">Crée le compte administrateur de Junto.</p>
+          <p className="text-slate-400 mt-2 text-sm">Crée le compte administrateur de Estelle.</p>
           <p className="text-slate-500 text-xs mt-1">Cette page ne s'affiche qu'une seule fois.</p>
         </div>
 

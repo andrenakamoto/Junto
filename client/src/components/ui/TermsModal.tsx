@@ -57,7 +57,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">1. Présentation du service</h3>
             <p>
-              Junto est une application de planification sociale permettant à des groupes d'amis et de proches
+              Estelle est une application de planification sociale permettant à des groupes d'amis et de proches
               de s'organiser autour d'événements (appelés « Plans ») au sein de groupes privés (appelés « Cercles »).
               L'accès au service est réservé aux personnes dont l'inscription a été approuvée par un administrateur.
             </p>
@@ -66,7 +66,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">2. Inscription et compte</h3>
             <p>
-              Pour utiliser Junto, tu dois créer un compte avec un pseudo et un mot de passe.
+              Pour utiliser Estelle, tu dois créer un compte avec un pseudo et un mot de passe.
               Tu es responsable de la confidentialité de tes identifiants et de toutes les actions
               effectuées depuis ton compte. En cas de suspicion d'accès non autorisé, informe
               immédiatement un administrateur.
@@ -79,7 +79,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
 
           <section>
             <h3 className="font-bold text-slate-900 mb-2">3. Règles de bonne conduite</h3>
-            <p>En utilisant Junto, tu t'engages à :</p>
+            <p>En utilisant Estelle, tu t'engages à :</p>
             <ul className="mt-2 space-y-1.5 list-none">
               {[
                 'Ne pas publier de contenus haineux, discriminatoires, violents ou illégaux.',
@@ -108,7 +108,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">5. Données personnelles</h3>
             <p>
-              Junto collecte uniquement les données nécessaires au fonctionnement du service :
+              Estelle collecte uniquement les données nécessaires au fonctionnement du service :
               pseudo, mot de passe (chiffré), et les contenus que tu publies. Ces données ne sont
               pas vendues ni transmises à des tiers. Elles sont hébergées sur les serveurs de
               l'administrateur du service.
@@ -122,7 +122,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">6. Responsabilité</h3>
             <p>
-              Junto est fourni « en l'état », sans garantie de disponibilité continue.
+              Estelle est fourni « en l'état », sans garantie de disponibilité continue.
               L'administrateur du service ne saurait être tenu responsable des contenus publiés
               par les utilisateurs ni des dommages indirects liés à l'utilisation du service.
             </p>

@@ -22,13 +22,27 @@ process.on('uncaughtException', (err) => {
   console.error('[uncaughtException]', err);
 });
 
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:5173',
+  'capacitor://localhost',
+  'https://localhost',
+  'http://localhost',
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, cb: (e: Error | null, ok?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+    else cb(new Error(`CORS bloqué: ${origin}`));
+  },
+  credentials: true,
+};
+
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true },
-});
+const io = new Server(httpServer, { cors: corsOptions });
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/health', (_req, res) => res.status(200).json({ ok: true }));

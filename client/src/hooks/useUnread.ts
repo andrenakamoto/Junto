@@ -10,13 +10,13 @@ function save(key: string, set: Set<string>) {
 }
 
 export function useUnread() {
-  const [unreadCircles, setUnreadCircles] = useState<Set<string>>(() => load('junto_unread_circles'));
-  const [unreadPlans, setUnreadPlans] = useState<Set<string>>(() => load('junto_unread_plans'));
+  const [unreadCircles, setUnreadCircles] = useState<Set<string>>(() => load('estelle_unread_circles'));
+  const [unreadPlans, setUnreadPlans] = useState<Set<string>>(() => load('estelle_unread_plans'));
 
   const markCircle = useCallback((circleId: string) => {
     setUnreadCircles(prev => {
       const next = new Set(prev).add(circleId);
-      save('junto_unread_circles', next);
+      save('estelle_unread_circles', next);
       return next;
     });
   }, []);
@@ -24,7 +24,7 @@ export function useUnread() {
   const markPlan = useCallback((planId: string) => {
     setUnreadPlans(prev => {
       const next = new Set(prev).add(planId);
-      save('junto_unread_plans', next);
+      save('estelle_unread_plans', next);
       return next;
     });
   }, []);
@@ -33,7 +33,7 @@ export function useUnread() {
     setUnreadCircles(prev => {
       const next = new Set(prev);
       next.delete(circleId);
-      save('junto_unread_circles', next);
+      save('estelle_unread_circles', next);
       return next;
     });
   }, []);
@@ -42,7 +42,7 @@ export function useUnread() {
     setUnreadPlans(prev => {
       const next = new Set(prev);
       next.delete(planId);
-      save('junto_unread_plans', next);
+      save('estelle_unread_plans', next);
       return next;
     });
   }, []);

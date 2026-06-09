@@ -56,7 +56,7 @@ export function JoinPage() {
             <LogoIcon size={72} />
           </div>
           <h1 className="text-3xl font-black text-white">Invitation</h1>
-          <p className="text-slate-400 mt-1 text-sm">Tu as été invité(e) sur Junto</p>
+          <p className="text-slate-400 mt-1 text-sm">Tu as été invité(e) sur Estelle</p>
         </div>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50 space-y-5">
@@ -83,7 +83,7 @@ export function JoinPage() {
           {done ? (
             <div className="py-4 text-center">
               <p className="text-emerald-400 font-semibold text-sm">✓ Tu as rejoint le Cercle !</p>
-              <p className="text-slate-400 text-xs mt-1">Redirection vers Junto...</p>
+              <p className="text-slate-400 text-xs mt-1">Redirection vers Estelle...</p>
             </div>
           ) : (
             <>

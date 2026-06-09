@@ -37,7 +37,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    const token = localStorage.getItem('junto_token');
+    const token = localStorage.getItem('estelle_token');
     if (!token) return;
     const socket = getSocket(token);
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
@@ -191,7 +191,7 @@ export function DashboardPage() {
         </div>
       ) : (
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1`}>
-          <EmptyState message="Bienvenue dans Junto !" sub="Crée un Cercle ou rejoins-en un pour commencer" />
+          <EmptyState message="Bienvenue dans Estelle !" sub="Crée un Cercle ou rejoins-en un pour commencer" />
         </div>
       )}
 
