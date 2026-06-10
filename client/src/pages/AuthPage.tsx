@@ -51,7 +51,9 @@ export function AuthPage() {
         setPassword('');
         setMode('login');
       } else {
-        const { data } = await api.post('/auth/login', { email, password });
+        // Accepte email ou pseudo (les anciens comptes n'ont pas d'email)
+        const isEmail = email.includes('@');
+        const { data } = await api.post('/auth/login', isEmail ? { email, password } : { pseudo: email, password });
         login(data.token, data.user);
         navigate('/dashboard');
       }
@@ -183,12 +185,14 @@ export function AuthPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                {mode === 'login' ? 'Email ou pseudo' : 'Email'}
+              </label>
               <input
-                type="email"
+                type={mode === 'login' ? 'text' : 'email'}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="toi@example.com"
+                placeholder={mode === 'login' ? 'toi@example.com ou ton_pseudo' : 'toi@example.com'}
                 required
                 autoFocus={mode === 'login'}
                 className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
