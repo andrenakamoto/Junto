@@ -25,6 +25,9 @@ process.on('uncaughtException', (err) => {
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   'http://localhost:5173',
+  'https://junto-appli.vercel.app',
+  'https://estelle.fan',
+  'https://www.estelle.fan',
   'capacitor://localhost',
   'https://localhost',
   'http://localhost',
