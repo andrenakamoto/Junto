@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
 
@@ -198,15 +199,24 @@ function AttachmentRow({
     setDownloading(true);
     setDlError('');
     try {
-      const res = await api.get(`/attachments/${att.id}/download`, { responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = att.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      if (Capacitor.isNativePlatform()) {
+        // Sur Android/iOS, on obtient un token court (2 min) pour que le navigateur
+        // système puisse télécharger via notre serveur sans header Authorization.
+        const { data } = await api.get(`/attachments/${att.id}/download-token`);
+        const base = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
+        const downloadUrl = `${base}/attachments/${att.id}/download?token=${data.token}`;
+        window.open(downloadUrl, '_system');
+      } else {
+        const res = await api.get(`/attachments/${att.id}/download`, { responseType: 'blob' });
+        const url = URL.createObjectURL(res.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = att.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || 'Erreur inconnue';
       setDlError(msg);

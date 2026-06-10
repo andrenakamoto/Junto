@@ -3,12 +3,17 @@ import multer from 'multer';
 import https from 'https';
 import http from 'http';
 import zlib from 'zlib';
+import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
-router.use(requireAuth as any);
+// /download accepte aussi un token query param (mobile), donc exclu du middleware global
+router.use((req, res, next) => {
+  if (req.method === 'GET' && req.path.endsWith('/download') && req.query.token) return next();
+  return (requireAuth as any)(req, res, next);
+});
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -97,9 +102,51 @@ function fetchBuffer(url: string, depth = 0): Promise<Buffer> {
   });
 }
 
+// GET /api/attachments/:id/download-token — génère un token court (2 min) pour téléchargement mobile
+router.get('/:id/download-token', async (req: AuthRequest, res) => {
+  try {
+    const att = await prisma.attachment.findUnique({ where: { id: req.params.id } });
+    if (!att) { res.status(404).json({ error: 'Pièce jointe introuvable' }); return; }
+
+    const plan = await prisma.plan.findUnique({ where: { id: att.planId } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+
+    const isMember = await prisma.circleMember.findUnique({
+      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
+    });
+    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+    const token = jwt.sign(
+      { attachmentId: req.params.id, userId: req.userId },
+      process.env.JWT_SECRET!,
+      { expiresIn: '2m' },
+    );
+    res.json({ token });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur lors de la génération du token' });
+  }
+});
+
 // GET /api/attachments/:id/download — proxy le fichier pour forcer le téléchargement
+// Accepte Bearer header (web) ou ?token= query param (mobile, navigateur système)
 router.get('/:id/download', async (req: AuthRequest, res) => {
   try {
+    // Auth via query token (mobile) si pas de Bearer header
+    if (!req.userId && req.query.token) {
+      try {
+        const payload = jwt.verify(req.query.token as string, process.env.JWT_SECRET!) as {
+          attachmentId: string;
+          userId: string;
+        };
+        if (payload.attachmentId !== req.params.id) {
+          res.status(403).json({ error: 'Token invalide pour cette pièce jointe' }); return;
+        }
+        req.userId = payload.userId;
+      } catch {
+        res.status(401).json({ error: 'Token expiré ou invalide' }); return;
+      }
+    }
+
     const att = await prisma.attachment.findUnique({ where: { id: req.params.id } });
     if (!att) { res.status(404).json({ error: 'Pièce jointe introuvable' }); return; }
 
