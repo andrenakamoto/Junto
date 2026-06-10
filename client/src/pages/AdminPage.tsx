@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, CircleDot } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
@@ -10,6 +10,9 @@ interface AdminUser {
   status: string;
   isAdmin: boolean;
   createdAt: string;
+  email: string | null;
+  emailVerified: boolean;
+  _count: { createdCircles: number };
 }
 
 interface Stats { pending: number; approved: number; rejected: number; }
@@ -135,9 +138,26 @@ export function AdminPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-800">@{u.pseudo}</p>
-                  <p className="text-xs text-slate-400">
-                    Inscrit le {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(u.createdAt))}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                    <p className="text-xs text-slate-400">
+                      Inscrit le {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(u.createdAt))}
+                    </p>
+                    {u.email ? (
+                      <span className={`flex items-center gap-1 text-xs ${u.emailVerified ? 'text-emerald-600' : 'text-amber-500'}`}>
+                        {u.emailVerified ? <Mail size={11} /> : <MailX size={11} />}
+                        {u.email}
+                        {!u.emailVerified && <span className="text-amber-400">(non vérifié)</span>}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-slate-400 italic">
+                        <MailX size={11} /> Pas d'email
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1 text-xs text-slate-500">
+                      <CircleDot size={11} />
+                      {u._count.createdCircles} cercle{u._count.createdCircles !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                 </div>
                 <StatusBadge status={u.status} />
                 {u.status === 'pending' && (
