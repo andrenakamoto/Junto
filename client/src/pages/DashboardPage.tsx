@@ -11,6 +11,7 @@ import { NotificationToast, AppNotification } from '../components/ui/Notificatio
 import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
 import { TermsModal } from '../components/ui/TermsModal';
+import { EmailMigrationBanner } from '../components/ui/EmailMigrationBanner';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 
@@ -137,6 +138,7 @@ export function DashboardPage() {
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
     )}
+    <EmailMigrationBanner />
     <NotificationToast
       notifications={notifications}
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}

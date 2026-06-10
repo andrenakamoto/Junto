@@ -6,6 +6,10 @@ import { PendingPage } from './pages/PendingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { JoinPage } from './pages/JoinPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { ResendVerificationPage } from './pages/ResendVerificationPage';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -32,13 +36,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/auth"    element={<AuthPage />} />
-        <Route path="/setup"   element={<SetupPage />} />
-        <Route path="/pending" element={<PendingPage />} />
-        <Route path="/dashboard" element={<Protected><DashboardPage /></Protected>} />
-        <Route path="/admin"    element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
-        <Route path="/rejoindre" element={<JoinPage />} />
-        <Route path="*"         element={<Navigate to="/dashboard" replace />} />
+        <Route path="/auth"                  element={<AuthPage />} />
+        <Route path="/setup"                 element={<SetupPage />} />
+        <Route path="/pending"               element={<PendingPage />} />
+        <Route path="/verify-email"          element={<VerifyEmailPage />} />
+        <Route path="/forgot-password"       element={<ForgotPasswordPage />} />
+        <Route path="/reset-password"        element={<ResetPasswordPage />} />
+        <Route path="/resend-verification"   element={<ResendVerificationPage />} />
+        <Route path="/dashboard"             element={<Protected><DashboardPage /></Protected>} />
+        <Route path="/admin"                 element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
+        <Route path="/rejoindre"             element={<JoinPage />} />
+        <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -8,13 +8,20 @@ generator client {
 }
 
 model User {
-  id                   String   @id @default(cuid())
-  pseudo               String   @unique
-  password             String
-  status               String   @default("pending")
-  isAdmin              Boolean  @default(false)
-  acceptedTermsVersion Int      @default(0)
-  createdAt            DateTime @default(now())
+  id                   String    @id @default(cuid())
+  pseudo               String    @unique
+  password             String?
+  email                String?   @unique
+  emailVerified        Boolean   @default(false)
+  googleId             String?   @unique
+  emailVerifyToken     String?
+  emailVerifyExpires   DateTime?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  status               String    @default("approved")
+  isAdmin              Boolean   @default(false)
+  acceptedTermsVersion Int       @default(0)
+  createdAt            DateTime  @default(now())
 
   memberships       CircleMember[]
   planMemberships   PlanMember[]

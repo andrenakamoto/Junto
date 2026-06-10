@@ -4,6 +4,8 @@ export interface User {
   status: string;
   isAdmin: boolean;
   termsAccepted: boolean;
+  email: string | null;
+  emailVerified: boolean;
 }
 
 export interface CircleMember {
