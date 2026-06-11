@@ -192,7 +192,9 @@ export function DashboardPage() {
           />
         </div>
       ) : (
-        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1 bg-slate-50`} />
+        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1`}>
+          <EmptyState message="Bienvenue !" sub="Crée un Cercle ou rejoins-en un pour commencer" />
+        </div>
       )}
 
       {/* Colonne 3 — Détail */}
