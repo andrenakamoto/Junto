@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Send, MessageSquare, ExternalLink } from 'lucide-react';
+import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode } from 'lucide-react';
+import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 
@@ -9,20 +10,31 @@ interface Props {
   circleCode: string;
   /** Si on invite à un Plan spécifique */
   planTitle?: string;
+  /** Id du Plan, pour rediriger directement dessus après avoir rejoint le Cercle */
+  planId?: string;
   onClose: () => void;
 }
 
-export function InviteModal({ circleName, circleCode, planTitle, onClose }: Props) {
+export function InviteModal({ circleName, circleCode, planTitle, planId, onClose }: Props) {
   const [phone, setPhone] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [twilioEnabled, setTwilioEnabled] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
 
   const appUrl = window.location.origin;
 
-  const joinLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}`;
+  const joinLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}${planId ? `&planId=${planId}` : ''}`;
+
+  useEffect(() => {
+    if (!showQr) return;
+    QRCode.toDataURL(joinLink, { width: 240, margin: 1, color: { dark: '#1e1b4b', light: '#ffffff' } })
+      .then(setQrDataUrl)
+      .catch(() => {});
+  }, [showQr, joinLink]);
 
   const smsText = planTitle
     ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur Estelle 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
@@ -91,7 +103,25 @@ export function InviteModal({ circleName, circleCode, planTitle, onClose }: Prop
               {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? 'Copié !' : 'Copier'}
             </button>
+            <button
+              onClick={() => setShowQr(v => !v)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                showQr ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <QrCode size={14} />
+            </button>
           </div>
+          {showQr && (
+            <div className="mt-3 flex flex-col items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt="QR code d'invitation" className="w-40 h-40" />
+              ) : (
+                <div className="w-40 h-40 flex items-center justify-center text-xs text-slate-400">Génération...</div>
+              )}
+              <p className="text-xs text-slate-400 text-center">À scanner avec l'appareil photo</p>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-slate-100" />

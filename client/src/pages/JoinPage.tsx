@@ -13,6 +13,7 @@ export function JoinPage() {
   const circleName = params.get('name') ?? '';
   const circleCode = params.get('code') ?? '';
   const planTitle  = params.get('plan') ?? '';
+  const planId     = params.get('planId') ?? '';
 
   const [joining, setJoining] = useState(false);
   const [error, setError]     = useState('');
@@ -32,12 +33,13 @@ export function JoinPage() {
     try {
       await api.post('/circles/join', { name: circleName, code: circleCode });
       setDone(true);
-      setTimeout(() => navigate('/dashboard'), 1800);
+      const dest = planId ? `/dashboard?planId=${planId}` : '/dashboard';
+      setTimeout(() => navigate(dest), 1800);
     } catch (err: any) {
       const msg = err.response?.data?.error ?? 'Erreur';
       // Already a member → just go to dashboard
       if (msg === 'Tu es déjà dans ce Cercle') {
-        navigate('/dashboard');
+        navigate(planId ? `/dashboard?planId=${planId}` : '/dashboard');
       } else {
         setError(msg);
       }

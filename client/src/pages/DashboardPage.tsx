@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
 import api from '../services/api';
@@ -20,6 +20,7 @@ type MobileView = 'circles' | 'plans' | 'detail';
 export function DashboardPage() {
   const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [circles, setCircles] = useState<Circle[]>([]);
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -35,6 +36,16 @@ export function DashboardPage() {
       setCircles(res.data);
     });
   }, []);
+
+  // Deep-link depuis un lien d'invitation vers un Plan précis (?planId=...)
+  useEffect(() => {
+    const deepLinkPlanId = searchParams.get('planId');
+    if (!deepLinkPlanId || circles.length === 0) return;
+    setSearchParams(prev => { prev.delete('planId'); return prev; }, { replace: true });
+    api.get(`/plans/${deepLinkPlanId}`)
+      .then(res => handleSelectPlan(res.data))
+      .catch(() => {});
+  }, [circles, searchParams]);
 
   useEffect(() => {
     if (!user) return;
