@@ -100,6 +100,20 @@ Conséquences pratiques :
 
 - **Frontend** : React 18 + TypeScript + Vite + Tailwind CSS, react-router-dom,
   axios, socket.io-client, lucide-react (icônes)
+- **Charte couleur "Corail"** (2026-08-23) : la couleur de marque n'est
+  **pas** une classe Tailwind dédiée — `client/tailwind.config.js` redéfinit
+  directement l'échelle `indigo` (50→950) avec des tons corail. Toutes les
+  classes `bg-indigo-*`/`text-indigo-*`/`border-indigo-*`/`from-indigo-*`
+  du codebase en héritent automatiquement ; ne pas s'étonner de voir
+  "indigo" dans le nom des classes alors que le rendu est corail — c'est
+  volontaire, documenté ici pour éviter la confusion. Les couleurs
+  codées en dur en hexadécimal (hors classes Tailwind) ont aussi été
+  mises à jour à la main : `client/public/logo-evly.svg` (dégradé du
+  logo), la couleur du QR code dans `InviteModal.tsx`, et les boutons
+  dans les emails HTML côté serveur (`background:#ea5a2b`). Les couleurs
+  sémantiques (emerald/amber/red pour succès/attention/danger) et la
+  palette `CIRCLE_COLORS` (8 couleurs au choix pour un Cercle, dupliquée
+  côté client et serveur) sont restées inchangées.
 - **Backend** : Node.js + Express + TypeScript, ts-node-dev en dev
 - **Base de données** : PostgreSQL via Prisma ORM (migrations dans
   `server/prisma/migrations` — voir section base de données ci-dessus)

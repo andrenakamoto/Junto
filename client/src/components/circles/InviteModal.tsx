@@ -35,7 +35,7 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
 
   useEffect(() => {
     if (!showQr) return;
-    QRCode.toDataURL(joinLink, { width: 240, margin: 1, color: { dark: '#1e1b4b', light: '#ffffff' } })
+    QRCode.toDataURL(joinLink, { width: 240, margin: 1, color: { dark: '#431a11', light: '#ffffff' } })
       .then(setQrDataUrl)
       .catch(() => {});
   }, [showQr, joinLink]);

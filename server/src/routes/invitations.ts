@@ -70,7 +70,7 @@ router.post('/email', async (req: AuthRequest, res) => {
       ${planTitle
         ? `<p>Tu es invité(e) au Plan <strong>"${planTitle}"</strong>. Rejoins d'abord le Cercle <strong>"${circleName}"</strong> pour y accéder.</p>`
         : `<p>Tu es invité(e) à rejoindre le Cercle <strong>"${circleName}"</strong>.</p>`}
-      <a href="${joinLink}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+      <a href="${joinLink}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
         Rejoindre
       </a>
       <p style="color:#888;font-size:12px;margin-top:24px">

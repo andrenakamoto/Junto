@@ -48,7 +48,7 @@ async function sendVerificationEmail(email: string, pseudo: string, token: strin
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>Bienvenue sur EvLY, ${pseudo} 👋</h2>
         <p>Clique sur le bouton ci-dessous pour confirmer ton adresse email.</p>
-        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Confirmer mon email
         </a>
         <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 24h.</p>
@@ -66,7 +66,7 @@ async function sendPasswordResetEmail(email: string, pseudo: string, token: stri
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>Réinitialisation de mot de passe</h2>
         <p>Bonjour ${pseudo}, tu as demandé à réinitialiser ton mot de passe.</p>
-        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Réinitialiser mon mot de passe
         </a>
         <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 1h. Si tu n'as pas fait cette demande, ignore cet email.</p>

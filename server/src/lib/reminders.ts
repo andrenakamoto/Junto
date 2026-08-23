@@ -40,7 +40,7 @@ export async function sendPlanReminders() {
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
             <h2>Ça se passe demain, ${u.pseudo} 👋</h2>
             <p><strong>${plan.title}</strong> a lieu le ${eventDateFmt}${plan.location ? ` — ${plan.location}` : ''}.</p>
-            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>
           </div>`,
@@ -107,7 +107,7 @@ export async function sendWeeklyDigest() {
             <h2>Salut ${user.pseudo} 👋</h2>
             <p>Voici les Plans actifs dans tes Cercles :</p>
             <ul>${items}</ul>
-            <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+            <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Ouvrir EvLY
             </a>
             <p style="color:#888;font-size:12px;margin-top:24px">

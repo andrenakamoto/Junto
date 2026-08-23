@@ -150,7 +150,7 @@ router.post('/join', async (req: AuthRequest, res) => {
           <h2>Salut ${m.user.pseudo} 👋</h2>
           <p><strong>${requester?.pseudo}</strong> a demandé à rejoindre le Cercle <strong>"${circle.name}"</strong>.</p>
           <p>La majorité des membres doit valider la demande pour qu'elle soit acceptée.</p>
-          <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+          <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir la demande
           </a>
         </div>`,
@@ -222,7 +222,7 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
             <div style="font-family:sans-serif;max-width:480px;margin:auto">
               <h2>Bienvenue dans "${updatedCircle.name}" ${approvedUser.pseudo} 🎉</h2>
               <p>Les membres du Cercle ont validé ta demande.</p>
-              <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+              <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
                 Ouvrir EvLY
               </a>
             </div>`,
@@ -362,7 +362,7 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
             <h2>Salut ${m.user.pseudo} 👋</h2>
             <p><strong>${plan.creator.pseudo}</strong> a créé un nouveau Plan dans le Cercle <strong>"${circle.name}"</strong> :</p>
             <p style="font-size:16px;font-weight:600;margin:16px 0">${plan.title}</p>
-            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>
           </div>`,
