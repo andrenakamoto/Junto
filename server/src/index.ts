@@ -47,6 +47,11 @@ const corsOptions = {
 };
 
 const app = express();
+// Railway est un unique reverse proxy devant l'app — fait confiance au
+// premier hop pour X-Forwarded-For, sinon express-rate-limit ne peut pas
+// identifier les IP correctement (et applique la limite à tout le monde
+// comme si c'était une seule et même IP).
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: corsOptions });
 
