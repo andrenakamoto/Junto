@@ -61,12 +61,12 @@ router.post('/email', async (req: AuthRequest, res) => {
   }
 
   const subject = planTitle
-    ? `${req.pseudo} t'invite au Plan "${planTitle}" sur Estelle`
-    : `${req.pseudo} t'invite dans le Cercle "${circleName}" sur Estelle`;
+    ? `${req.pseudo} t'invite au Plan "${planTitle}" sur EvLY`
+    : `${req.pseudo} t'invite dans le Cercle "${circleName}" sur EvLY`;
 
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:auto">
-      <h2>${req.pseudo} t'invite sur Estelle 🎉</h2>
+      <h2>${req.pseudo} t'invite sur EvLY 🎉</h2>
       ${planTitle
         ? `<p>Tu es invité(e) au Plan <strong>"${planTitle}"</strong>. Rejoins d'abord le Cercle <strong>"${circleName}"</strong> pour y accéder.</p>`
         : `<p>Tu es invité(e) à rejoindre le Cercle <strong>"${circleName}"</strong>.</p>`}

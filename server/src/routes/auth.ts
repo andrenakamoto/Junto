@@ -43,10 +43,10 @@ async function sendVerificationEmail(email: string, pseudo: string, token: strin
   await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: 'Confirme ton adresse email — Estelle',
+    subject: 'Confirme ton adresse email — EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Bienvenue sur Estelle, ${pseudo} 👋</h2>
+        <h2>Bienvenue sur EvLY, ${pseudo} 👋</h2>
         <p>Clique sur le bouton ci-dessous pour confirmer ton adresse email.</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Confirmer mon email
@@ -61,7 +61,7 @@ async function sendPasswordResetEmail(email: string, pseudo: string, token: stri
   await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: 'Réinitialisation de ton mot de passe — Estelle',
+    subject: 'Réinitialisation de ton mot de passe — EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>Réinitialisation de mot de passe</h2>

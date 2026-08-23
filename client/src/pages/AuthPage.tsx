@@ -108,7 +108,7 @@ export function AuthPage() {
             style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700 }}
             className="text-4xl text-white tracking-wide"
           >
-            Estelle
+            EvLY
           </h1>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
         </div>

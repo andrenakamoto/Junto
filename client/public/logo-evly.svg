@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="evly-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#evly-bg)"/>
+  <ellipse cx="32" cy="4" rx="28" ry="12" fill="white" fill-opacity="0.06"/>
+
+  <!-- Trois personnes reliées : le Cercle, "Linked to You" -->
+  <path d="M32 21 L19 42" stroke="white" stroke-opacity="0.4" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M32 21 L45 42" stroke="white" stroke-opacity="0.4" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M19 42 L45 42" stroke="white" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+
+  <circle cx="32" cy="18" r="7.5" fill="white"/>
+  <circle cx="19" cy="43" r="6.5" fill="white" fill-opacity="0.85"/>
+  <circle cx="45" cy="43" r="6.5" fill="white" fill-opacity="0.85"/>
+
+  <!-- Étincelle "vibes" -->
+  <circle cx="49" cy="14" r="3" fill="white" fill-opacity="0.9"/>
+</svg>

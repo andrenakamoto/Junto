@@ -101,14 +101,14 @@ export async function sendWeeklyDigest() {
       const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: user.email!,
-        subject: `Cette semaine sur Estelle — ${plans.length} Plan${plans.length > 1 ? 's' : ''} actif${plans.length > 1 ? 's' : ''}`,
+        subject: `Cette semaine sur EvLY — ${plans.length} Plan${plans.length > 1 ? 's' : ''} actif${plans.length > 1 ? 's' : ''}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
             <h2>Salut ${user.pseudo} 👋</h2>
             <p>Voici les Plans actifs dans tes Cercles :</p>
             <ul>${items}</ul>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Ouvrir Estelle
+              Ouvrir EvLY
             </a>
             <p style="color:#888;font-size:12px;margin-top:24px">
               Tu reçois cet email chaque lundi. Tu peux le désactiver dans les paramètres de notifications.

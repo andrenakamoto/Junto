@@ -41,8 +41,8 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
   }, [showQr, joinLink]);
 
   const smsText = planTitle
-    ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur Estelle 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
-    : `Salut ! Rejoins mon Cercle "${circleName}" sur Estelle 🎉\nCode d'accès : ${circleCode}\n${joinLink}`;
+    ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
+    : `Salut ! Rejoins mon Cercle "${circleName}" sur EvLY 🎉\nCode d'accès : ${circleCode}\n${joinLink}`;
 
   useEffect(() => {
     api.get('/invitations/status').then(res => setTwilioEnabled(res.data.twilioEnabled)).catch(() => {});

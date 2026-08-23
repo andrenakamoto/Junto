@@ -460,7 +460,7 @@ router.get('/:id/ical', async (req: AuthRequest, res) => {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Estelle//Plan//FR',
+    'PRODID:-//EvLY//Plan//FR',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
     `UID:${plan.id}@estelle.fan`,

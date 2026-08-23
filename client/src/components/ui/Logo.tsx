@@ -6,12 +6,12 @@ interface IconProps {
 export function LogoIcon({ size = 40, className = '' }: IconProps) {
   return (
     <img
-      src="/logo_estelle.png"
+      src="/logo-evly.svg"
       width={size}
       height={size}
-      style={{ objectFit: 'contain', borderRadius: '23%' }}
+      style={{ objectFit: 'contain' }}
       className={className}
-      alt="Estelle"
+      alt="EvLY"
     />
   );
 }
@@ -29,7 +29,7 @@ export function LogoFull({ iconSize = 32, className = '' }: { iconSize?: number;
         }}
         className="text-white text-xl leading-none"
       >
-        Estelle
+        EvLY
       </span>
     </div>
   );

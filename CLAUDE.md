@@ -1,16 +1,23 @@
-# Estelle / Junto
+# EvLY / Junto
 
 Application web sociale nommée **Junto** en interne (repo, packages, sous-domaine
-API) mais rebrandée **Estelle** côté utilisateur final (titre de page, logo,
-textes UI). Les deux noms coexistent dans le code — ne pas essayer de
-"corriger" l'un ou l'autre sans demander.
+API) mais rebrandée **EvLY** côté utilisateur final (titre de page, logo,
+textes UI). Slogan : "Events Linked to You". Les deux noms (Junto/EvLY)
+coexistent dans le code — ne pas essayer de "corriger" l'un ou l'autre sans
+demander.
+
+L'app s'appelait "Estelle" jusqu'au 2026-08-23, date du rebranding vers
+"EvLY" (nom de domaine évly.com/evly.com acheté sur Infomaniak). Le
+changement de nom de domaine réel (Vercel, CORS, DNS, email FROM_EMAIL,
+appId Capacitor `com.estelle.app`) est **volontairement différé** — seul le
+texte/logo dans l'app a été changé pour l'instant. Voir section Déploiement.
 
 Repo GitHub : https://github.com/andrenakamoto/Junto (branche main)
 Toute la communication utilisateur (UI, commits, docs) est en **FRANÇAIS**.
 
 ## Concept
 
-Estelle sert aux groupes de proches qui veulent se retrouver facilement.
+EvLY sert aux groupes de proches qui veulent se retrouver facilement.
 Trois niveaux d'organisation :
 - **Cercle** = le groupe (ex. "Les amis du lundi"), rejoint via nom + code d'accès
 - **Plan** = le salon lié à un événement précis (ex. "Resto vendredi soir ?"),
@@ -231,10 +238,18 @@ l'utilisateur), `notification` (types: new_message, mention).
 
 ## Déploiement
 
-- **Frontend** : Vercel, domaine estelle.fan (+ www.estelle.fan), ancien
-  domaine junto-appli.vercel.app encore autorisé en CORS. Déploiement
-  probablement automatique sur push GitHub (non confirmé par CLI — vérifier
-  le dashboard si besoin).
+- **Frontend** : Vercel, domaine **estelle.fan** (+ www.estelle.fan) — pas
+  encore migré vers evly.com, acheté le 2026-08-23 sur Infomaniak mais pas
+  encore branché (DNS, Vercel, CORS). Ancien domaine junto-appli.vercel.app
+  encore autorisé en CORS. Déploiement probablement automatique sur push
+  GitHub (non confirmé par CLI — vérifier le dashboard si besoin).
+  **À faire lors de la migration de domaine** : ajouter evly.com/www.evly.com
+  au DNS + Vercel, ajouter ces origines à `allowedOrigins` dans
+  `server/src/index.ts`, mettre à jour `CLIENT_URL`/`APP_URL` sur Railway,
+  mettre à jour `FROM_EMAIL` (actuellement replié sur `noreply@estelle.app`
+  en fallback code), vérifier le domaine d'envoi sur Resend, et
+  éventuellement retirer les anciennes origines estelle.fan une fois la
+  transition terminée.
 - **Backend** : Railway, projet "radiant-spontaneity" (workspace
   andrenakamoto), services "Postgres" et "Junto".
   URL : https://junto-production-8ded.up.railway.app (health check /health).
@@ -255,11 +270,18 @@ l'utilisateur), `notification` (types: new_message, mention).
 ## Chantiers en cours / à ne pas toucher sans demander
 
 - **PWA/mobile inachevé** : `client/android/`, `client/ios/`, `client/icons/`,
-  `client/public/manifest.webmanifest`, `capacitor.config.ts` modifié —
-  fichiers non commités de l'utilisateur, générés mais pas branchés
-  (manifest pas lié dans `index.html`, chemins d'icônes probablement cassés
-  — `../icons/...` pointe hors de `public/`). Ne pas "corriger" ni committer
-  sans que l'utilisateur le demande explicitement.
+  `client/public/manifest.webmanifest` — fichiers non commités de
+  l'utilisateur, générés mais pas branchés (manifest pas lié dans
+  `index.html`, chemins d'icônes probablement cassés — `../icons/...`
+  pointe hors de `public/`). Ne pas "corriger" ni committer sans que
+  l'utilisateur le demande explicitement. `capacitor.config.ts` a son
+  `appName` mis à jour vers "EvLY" (rebranding du 2026-08-23), mais
+  `appId` reste `com.estelle.app` — le changer nécessiterait de
+  régénérer `android/`/`ios/` (`npx cap sync`), délibérément pas fait.
+  Anciens fichiers logo `client/public/logo_estelle.png` et
+  `client/public/logo.svg` : plus référencés nulle part depuis le
+  rebranding (le nouveau logo est `client/public/logo-evly.svg`), laissés
+  en place au cas où, à supprimer si l'utilisateur confirme.
 - **Notifications push** : explicitement mises de côté (session du
   2026-08-23) — nécessite de finir le PWA ci-dessus pour le Web Push
   (faisable sans credentials externes, clés VAPID auto-générables), et un
