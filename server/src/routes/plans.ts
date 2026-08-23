@@ -413,7 +413,14 @@ router.get('/:id/expenses', async (req: AuthRequest, res) => {
   }
   const [members, expenses, reimbursements] = await Promise.all([
     prisma.planMember.findMany({ where: { planId: req.params.id }, select: { userId: true, user: { select: { id: true, pseudo: true } } } }),
-    prisma.expense.findMany({ where: { planId: req.params.id }, include: { paidBy: { select: { id: true, pseudo: true } } }, orderBy: { createdAt: 'desc' } }),
+    prisma.expense.findMany({
+      where: { planId: req.params.id },
+      include: {
+        paidBy: { select: { id: true, pseudo: true } },
+        splitWith: { include: { user: { select: { id: true, pseudo: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
     prisma.reimbursement.findMany({ where: { planId: req.params.id }, orderBy: { createdAt: 'desc' } }),
   ]);
   const memberIds = members.map(m => m.userId);
@@ -432,15 +439,39 @@ router.post('/:id/expenses', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  const { description, amount } = req.body;
+  const { description, amount, splitWith } = req.body;
   const parsedAmount = parseFloat(amount);
   if (!description?.trim() || isNaN(parsedAmount) || parsedAmount <= 0) {
     res.status(400).json({ error: 'Description et montant valides requis' });
     return;
   }
+
+  const planMembers = await prisma.planMember.findMany({ where: { planId: req.params.id }, select: { userId: true } });
+  const memberIds = new Set(planMembers.map(m => m.userId));
+
+  let participantIds: string[];
+  if (Array.isArray(splitWith) && splitWith.length > 0) {
+    participantIds = splitWith.filter((id: unknown) => typeof id === 'string' && memberIds.has(id));
+    if (participantIds.length === 0) {
+      res.status(400).json({ error: 'Sélectionne au moins un membre pour partager la dépense' });
+      return;
+    }
+  } else {
+    participantIds = [...memberIds];
+  }
+
   const expense = await prisma.expense.create({
-    data: { description: description.trim(), amount: parsedAmount, planId: req.params.id, paidById: req.userId! },
-    include: { paidBy: { select: { id: true, pseudo: true } } },
+    data: {
+      description: description.trim(),
+      amount: parsedAmount,
+      planId: req.params.id,
+      paidById: req.userId!,
+      splitWith: { create: participantIds.map(userId => ({ userId })) },
+    },
+    include: {
+      paidBy: { select: { id: true, pseudo: true } },
+      splitWith: { include: { user: { select: { id: true, pseudo: true } } } },
+    },
   });
   res.json(expense);
 });

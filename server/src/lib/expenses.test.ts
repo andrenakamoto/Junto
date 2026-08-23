@@ -37,6 +37,30 @@ describe('computeBalances', () => {
     const balance = computeBalances([], [], []);
     expect(balance.size).toBe(0);
   });
+
+  it('ne répartit une dépense qu\'entre les participants sélectionnés', () => {
+    // d n'est pas dans splitWith, ne doit rien devoir sur cette dépense
+    const balance = computeBalances(
+      ['a', 'b', 'c', 'd'],
+      [{ amount: 30, paidById: 'a', splitWith: [{ userId: 'a' }, { userId: 'b' }, { userId: 'c' }] }],
+      []
+    );
+    expect(balance.get('a')).toBeCloseTo(20); // a payé 30, doit 10 -> +20
+    expect(balance.get('b')).toBeCloseTo(-10);
+    expect(balance.get('c')).toBeCloseTo(-10);
+    expect(balance.get('d')).toBeCloseTo(0);
+  });
+
+  it('répartit entre tous les membres si splitWith est vide (compatibilité anciennes dépenses)', () => {
+    const balance = computeBalances(
+      ['a', 'b', 'c'],
+      [{ amount: 30, paidById: 'a', splitWith: [] }],
+      []
+    );
+    expect(balance.get('a')).toBeCloseTo(20);
+    expect(balance.get('b')).toBeCloseTo(-10);
+    expect(balance.get('c')).toBeCloseTo(-10);
+  });
 });
 
 describe('suggestTransfers', () => {

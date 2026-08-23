@@ -1,15 +1,19 @@
 export function computeBalances(
   memberIds: string[],
-  expenses: { amount: number; paidById: string }[],
+  expenses: { amount: number; paidById: string; splitWith?: { userId: string }[] }[],
   reimbursements: { amount: number; fromUserId: string; toUserId: string }[]
 ) {
-  const n = memberIds.length;
   const balance = new Map<string, number>(memberIds.map(id => [id, 0]));
-  if (n === 0) return balance;
+  if (memberIds.length === 0) return balance;
 
   for (const e of expenses) {
-    const share = e.amount / n;
-    for (const id of memberIds) {
+    // Dépenses créées avant l'introduction du partage sélectif : réparties
+    // entre tous les membres du Plan (comportement historique préservé).
+    const participants = e.splitWith && e.splitWith.length > 0
+      ? e.splitWith.map(s => s.userId)
+      : memberIds;
+    const share = e.amount / participants.length;
+    for (const id of participants) {
       balance.set(id, (balance.get(id) ?? 0) - share);
     }
     balance.set(e.paidById, (balance.get(e.paidById) ?? 0) + e.amount);

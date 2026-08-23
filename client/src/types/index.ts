@@ -148,6 +148,7 @@ export interface Expense {
   createdAt: string;
   paidById: string;
   paidBy: { id: string; pseudo: string };
+  splitWith: { userId: string; user: { id: string; pseudo: string } }[];
 }
 
 export interface Reimbursement {

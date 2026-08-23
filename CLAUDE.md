@@ -175,7 +175,8 @@ Junto/
 │   │   ├── lib/
 │   │   │   ├── prisma.ts
 │   │   │   ├── mailer.ts     # client Resend mutualisé
-│   │   │   ├── reminders.ts  # cron rappels Plan + résumé hebdo
+│   │   │   ├── reminders.ts  # cron rappels Plan + résumé hebdo + suppression
+│   │   │   │                  des Plans expirés (avec email résumé dépenses)
 │   │   │   ├── expenses.ts   # calcul des soldes + simplification des dettes (testé)
 │   │   │   └── ical.ts       # génération .ics (testé)
 │   │   └── (fichiers *.test.ts à côté du code testé, ex. lib/expenses.test.ts)
@@ -220,9 +221,21 @@ Junto/
   resourceType, mimeType, size) — les images sont affichées en galerie
   séparée dans InfosTab, les autres types en liste de fichiers
 - **Expense** : description, amount, paidById, planId — réparti à parts
-  égales entre tous les membres du Plan
+  égales entre les membres listés dans `splitWith` (**ExpenseShare**,
+  sélectionnés à la création, pas forcément tous les membres du Plan).
+  Les dépenses créées avant cette fonctionnalité (2026-08-23) ont
+  `splitWith` vide : `computeBalances` retombe alors sur tous les membres
+  du Plan pour rester rétrocompatible.
+- **ExpenseShare** : userId+expenseId (clé composite), les participants
+  d'une dépense précise
 - **Reimbursement** : amount, fromUserId, toUserId, planId — enregistre un
   remboursement réel qui vient compenser les soldes calculés
+
+Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
+appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
+un email de résumé (dépenses + virements suggérés pour équilibrer les
+comptes) est envoyé à tous les membres avant suppression — sinon cette
+info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
 
 ## API (`server/src/routes`)
 

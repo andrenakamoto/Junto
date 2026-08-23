@@ -1,8 +1,67 @@
 import prisma from './prisma';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
+import { computeBalances, suggestTransfers } from './expenses';
 
 const REMINDER_WINDOW_START_H = 23;
 const REMINDER_WINDOW_END_H = 25;
+
+// Plans dont la date de fin est passée : envoie un résumé des dépenses aux
+// membres (s'il y en a) avant suppression, puis supprime le Plan. Fait au
+// cas par cas (pas de deleteMany en masse) pour pouvoir mailer chaque Plan.
+export async function deleteExpiredPlans() {
+  try {
+    const expiredPlans = await prisma.plan.findMany({
+      where: { endDate: { lt: new Date() } },
+      include: {
+        members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true } } } },
+        expenses: { include: { paidBy: { select: { id: true, pseudo: true } } } },
+        reimbursements: true,
+      },
+    });
+
+    for (const plan of expiredPlans) {
+      if (plan.expenses.length > 0) {
+        try {
+          const memberIds = plan.members.map(m => m.userId);
+          const balance = computeBalances(memberIds, plan.expenses, plan.reimbursements);
+          const transfers = suggestTransfers(balance);
+          const pseudoOf = (id: string) => plan.members.find(m => m.userId === id)?.user.pseudo ?? '?';
+
+          const expenseLines = plan.expenses
+            .map(e => `<li>${e.description} — ${e.amount.toFixed(2)} (payé par ${e.paidBy.pseudo})</li>`)
+            .join('');
+          const transferLines = transfers.length > 0
+            ? transfers.map(t => `<li>${pseudoOf(t.fromUserId)} doit ${t.amount.toFixed(2)} à ${pseudoOf(t.toUserId)}</li>`).join('')
+            : '<li>Tout le monde est déjà à l\'équilibre.</li>';
+
+          const recipients = plan.members.filter(m => m.user.email && m.user.emailVerified);
+          await Promise.all(recipients.map(m => resend.emails.send({
+            from: FROM_EMAIL,
+            to: m.user.email!,
+            subject: `Résumé des dépenses — "${plan.title}"`,
+            html: `
+              <div style="font-family:sans-serif;max-width:480px;margin:auto">
+                <h2>Le Plan "${plan.title}" est terminé, ${m.user.pseudo} 👋</h2>
+                <p>Voici un dernier résumé des dépenses avant que le Plan ne disparaisse :</p>
+                <p style="font-weight:600;margin-bottom:4px">Dépenses</p>
+                <ul>${expenseLines}</ul>
+                <p style="font-weight:600;margin-bottom:4px">Pour équilibrer les comptes</p>
+                <ul>${transferLines}</ul>
+              </div>`,
+          }).then(r => { if (r.error) console.error('[expense_summary email]', m.user.email, r.error); })
+            .catch(e => console.error('[expense_summary email]', m.user.email, e))));
+        } catch (e) {
+          console.error('[expense_summary] Erreur pour le plan', plan.id, e);
+        }
+      }
+    }
+
+    const { count } = await prisma.plan.deleteMany({ where: { id: { in: expiredPlans.map(p => p.id) } } });
+    if (count > 0) console.log(`[cleanup] ${count} plan(s) expiré(s) supprimé(s)`);
+  } catch (e: any) {
+    console.error('[cleanup] Erreur lors de la suppression des plans expirés:', e.message);
+  }
+}
 
 export async function sendPlanReminders() {
   try {

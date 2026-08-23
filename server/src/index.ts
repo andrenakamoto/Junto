@@ -11,7 +11,7 @@ import invitationsRoutes from './routes/invitations';
 import attachmentsRoutes from './routes/attachments';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
-import { sendPlanReminders, sendWeeklyDigest } from './lib/reminders';
+import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -74,15 +74,6 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   console.error('[error]', err);
   res.status(500).json({ error: 'Erreur serveur' });
 });
-
-async function deleteExpiredPlans() {
-  try {
-    const { count } = await prisma.plan.deleteMany({ where: { endDate: { lt: new Date() } } });
-    if (count > 0) console.log(`[cleanup] ${count} plan(s) expiré(s) supprimé(s)`);
-  } catch (e: any) {
-    console.error('[cleanup] Erreur lors de la suppression des plans expirés:', e.message);
-  }
-}
 
 // En local, une base pointée sur l'environnement partagé ne doit pas être
 // mutée à chaque démarrage du serveur (suppression de plans, envoi d'emails).

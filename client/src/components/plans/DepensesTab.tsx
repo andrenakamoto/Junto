@@ -19,6 +19,7 @@ export function DepensesTab({ planId, members, userId }: Props) {
   const [showAdd, setShowAdd] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [splitWith, setSplitWith] = useState<string[]>(members.map(m => m.userId));
   const [creating, setCreating] = useState(false);
   const [settling, setSettling] = useState<string | null>(null);
 
@@ -30,10 +31,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
   useEffect(() => { refresh(); }, [planId]);
 
   async function handleAddExpense() {
-    if (!description.trim() || !amount) return;
+    if (!description.trim() || !amount || splitWith.length === 0) return;
     setCreating(true);
     try {
-      await api.post(`/plans/${planId}/expenses`, { description: description.trim(), amount });
+      await api.post(`/plans/${planId}/expenses`, { description: description.trim(), amount, splitWith });
       setDescription('');
       setAmount('');
       setShowAdd(false);
@@ -41,6 +42,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
     } finally {
       setCreating(false);
     }
+  }
+
+  function toggleSplitMember(userId: string) {
+    setSplitWith(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]);
   }
 
   async function handleDeleteExpense(id: string) {
@@ -127,7 +132,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-slate-800 text-sm">Dépenses ({data.expenses.length})</h3>
           {!showAdd && (
-            <button onClick={() => setShowAdd(true)} className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+            <button
+              onClick={() => { setSplitWith(members.map(m => m.userId)); setShowAdd(true); }}
+              className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
               <Plus size={14} />Ajouter
             </button>
           )}
@@ -151,9 +159,32 @@ export function DepensesTab({ planId, members, userId }: Props) {
               placeholder="Montant en €"
               className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            <p className="text-xs text-slate-400">Réparti à parts égales entre les {members.length} membres du Plan.</p>
+            <div>
+              <p className="text-xs font-medium text-slate-500 mb-1.5">Partagée entre :</p>
+              <div className="flex flex-wrap gap-1.5">
+                {members.map(m => (
+                  <button
+                    key={m.userId}
+                    type="button"
+                    onClick={() => toggleSplitMember(m.userId)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      splitWith.includes(m.userId)
+                        ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    @{m.user.pseudo}
+                  </button>
+                ))}
+              </div>
+              {splitWith.length > 0 && (
+                <p className="text-xs text-slate-400 mt-1.5">
+                  Réparti à parts égales entre {splitWith.length} membre{splitWith.length > 1 ? 's' : ''}.
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
-              <Button onClick={handleAddExpense} disabled={creating} size="sm">{creating ? 'Ajout...' : 'Ajouter'}</Button>
+              <Button onClick={handleAddExpense} disabled={creating || splitWith.length === 0} size="sm">{creating ? 'Ajout...' : 'Ajouter'}</Button>
               <Button variant="ghost" onClick={() => setShowAdd(false)} size="sm">Annuler</Button>
             </div>
           </div>
@@ -167,7 +198,12 @@ export function DepensesTab({ planId, members, userId }: Props) {
               <div key={exp.id} className="flex items-center justify-between gap-2 bg-white rounded-xl border border-slate-200 shadow-sm p-3">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">{exp.description}</p>
-                  <p className="text-xs text-slate-400">payé par @{exp.paidBy.pseudo}</p>
+                  <p className="text-xs text-slate-400">
+                    payé par @{exp.paidBy.pseudo}
+                    {exp.splitWith.length > 0 && exp.splitWith.length !== members.length && (
+                      <> · partagé avec {exp.splitWith.map(s => `@${s.user.pseudo}`).join(', ')}</>
+                    )}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-sm font-semibold text-slate-800">{formatEuros(exp.amount)}</span>
