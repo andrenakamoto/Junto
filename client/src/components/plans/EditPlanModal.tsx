@@ -97,7 +97,7 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
             required
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
-          <p className="text-sm font-medium text-red-500 mt-1">Le Plan sera automatiquement supprimé après cette date.</p>
+          <p className="text-sm font-medium text-red-500 mt-1">Le Plan et toutes les données liées seront automatiquement supprimés après cette date.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Limite de participants (optionnel)</label>

@@ -67,7 +67,7 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
         </div>
         <Input label="Date et heure de l'événement (optionnel)" type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-        <p className="text-sm font-medium text-red-500 -mt-2">Le Plan sera automatiquement supprimé après cette date.</p>
+        <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date.</p>
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
         <Input
           label="Limite de participants (optionnel)"
