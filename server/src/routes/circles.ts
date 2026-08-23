@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -193,16 +194,21 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
   });
   res.json(plan);
 
-  // Notifier les membres du cercle (sauf le créateur)
+  // Notifier les membres du cercle (sauf le créateur) — temps réel + email
   try {
     const io = req.app.get('io');
     const circle = await prisma.circle.findUnique({
       where: { id: req.params.id },
-      select: { name: true, members: { select: { userId: true } } },
+      select: {
+        name: true,
+        members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
+      },
     });
-    if (io && circle) {
-      for (const m of circle.members) {
-        if (m.userId !== req.userId) {
+    if (circle) {
+      const otherMembers = circle.members.filter(m => m.userId !== req.userId);
+
+      if (io) {
+        for (const m of otherMembers) {
           io.to(`user:${m.userId}`).emit('notification', {
             type: 'new_plan',
             planId: plan.id,
@@ -213,8 +219,27 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
           });
         }
       }
+
+      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified);
+      await Promise.all(recipients.map(m => resend.emails.send({
+        from: FROM_EMAIL,
+        to: m.user.email!,
+        subject: `Nouveau Plan dans "${circle.name}" — ${plan.title}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <h2>Salut ${m.user.pseudo} 👋</h2>
+            <p><strong>${plan.creator.pseudo}</strong> a créé un nouveau Plan dans le Cercle <strong>"${circle.name}"</strong> :</p>
+            <p style="font-size:16px;font-weight:600;margin:16px 0">${plan.title}</p>
+            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#6366f1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+              Voir le Plan
+            </a>
+          </div>`,
+      }).then(r => { if (r.error) console.error('[new_plan email]', m.user.email, r.error); })
+        .catch(e => console.error('[new_plan email]', m.user.email, e))));
     }
-  } catch {}
+  } catch (e) {
+    console.error('[new_plan notify]', e);
+  }
 });
 
 // Toggle delete vote — deletes circle if threshold reached

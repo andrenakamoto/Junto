@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode } from 'lucide-react';
+import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
@@ -24,6 +24,10 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
   const [twilioEnabled, setTwilioEnabled] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [email, setEmail] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const appUrl = window.location.origin;
 
@@ -67,6 +71,22 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
       setError(err.response?.data?.error || 'Erreur lors de l\'envoi');
     } finally {
       setSending(false);
+    }
+  }
+
+  async function sendViaEmail() {
+    if (!email.trim()) return;
+    setSendingEmail(true);
+    setEmailError('');
+    try {
+      await api.post('/invitations/email', { to: email.trim(), circleName, circleCode, planTitle, joinLink });
+      setEmailSent(true);
+      setEmail('');
+      setTimeout(() => setEmailSent(false), 4000);
+    } catch (err: any) {
+      setEmailError(err.response?.data?.error || 'Erreur lors de l\'envoi');
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -122,6 +142,38 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
               <p className="text-xs text-slate-400 text-center">À scanner avec l'appareil photo</p>
             </div>
           )}
+        </div>
+
+        <div className="border-t border-slate-100" />
+
+        {/* Email section */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Envoyer par email</p>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="prenom@exemple.com"
+                className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onKeyDown={e => e.key === 'Enter' && sendViaEmail()}
+              />
+              <button
+                onClick={sendViaEmail}
+                disabled={sendingEmail || !email.trim()}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                {sendingEmail ? '...' : <><Mail size={14} />Envoyer</>}
+              </button>
+            </div>
+            {emailSent && (
+              <p className="text-xs text-emerald-600 flex items-center gap-1.5">
+                <Check size={12} />Email envoyé avec succès !
+              </p>
+            )}
+            {emailError && <p className="text-xs text-red-500">{emailError}</p>}
+          </div>
         </div>
 
         <div className="border-t border-slate-100" />
