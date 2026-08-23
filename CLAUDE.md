@@ -292,7 +292,10 @@ Chat + réactions + fils + présence gérés via socket.io
 `join-plan`/`leave-plan`, `send-message` (accepte parentId), `message`,
 `toggle-reaction`, `reactions-updated`, `presence` / `presence-snapshot`
 (rooms `circle:{id}` rejointes à la connexion selon les Cercles de
-l'utilisateur), `notification` (types: new_message, mention).
+l'utilisateur), `notification` (types: new_message, mention — les autres
+types de notification (new_plan, new_circle_poll, join_request,
+join_accepted) sont émis directement depuis les routes REST concernées
+dans `circles.ts`, pas depuis `handlers.ts`).
 
 ## Déploiement
 
