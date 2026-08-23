@@ -534,6 +534,53 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     include: circlePollInclude,
   });
   res.json(poll);
+
+  // Notifier les autres membres du cercle — temps réel + email
+  try {
+    const io = req.app.get('io');
+    const circle = await prisma.circle.findUnique({
+      where: { id: req.params.id },
+      select: {
+        name: true,
+        members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
+      },
+    });
+    if (circle) {
+      const otherMembers = circle.members.filter(m => m.userId !== req.userId);
+
+      if (io) {
+        for (const m of otherMembers) {
+          io.to(`user:${m.userId}`).emit('notification', {
+            type: 'new_circle_poll',
+            circleId: req.params.id,
+            circleName: circle.name,
+            from: poll.creator.pseudo,
+            planTitle: poll.question,
+          });
+        }
+      }
+
+      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified);
+      await Promise.all(recipients.map(m => resend.emails.send({
+        from: FROM_EMAIL,
+        to: m.user.email!,
+        subject: `Sondage de dates dans "${circle.name}" — ${poll.question}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <h2>Salut ${m.user.pseudo} 👋</h2>
+            <p><strong>${poll.creator.pseudo}</strong> propose plusieurs dates dans le Cercle <strong>"${circle.name}"</strong> :</p>
+            <p style="font-size:16px;font-weight:600;margin:16px 0">${poll.question}</p>
+            <p>Indique les dates qui te conviennent pour aider à trouver le meilleur créneau.</p>
+            <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+              Voir le sondage
+            </a>
+          </div>`,
+      }).then(r => { if (r.error) console.error('[circle_poll email]', m.user.email, r.error); })
+        .catch(e => console.error('[circle_poll email]', m.user.email, e))));
+    }
+  } catch (e) {
+    console.error('[circle_poll notify]', e);
+  }
 });
 
 router.delete('/polls/:pollId', async (req: AuthRequest, res) => {

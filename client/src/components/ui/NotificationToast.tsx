@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, X } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, X } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll';
   planId?: string;
   planTitle?: string;
   circleId?: string;
@@ -38,6 +38,11 @@ const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconCla
     icon: PartyPopper, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',
     title: () => 'Demande acceptée',
     body: n => `Tu as rejoint « ${n.circleName} »`,
+  },
+  new_circle_poll: {
+    icon: CalendarRange, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
+    title: n => `Sondage de dates — ${n.circleName}`,
+    body: n => `@${n.from} propose : ${n.planTitle}`,
   },
 };
 
