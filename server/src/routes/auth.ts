@@ -11,7 +11,7 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const CURRENT_TERMS_VERSION = 1;
+export const CURRENT_TERMS_VERSION = 2;
 
 function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
   return jwt.sign(
