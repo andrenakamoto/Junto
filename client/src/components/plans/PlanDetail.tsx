@@ -21,7 +21,7 @@ type Tab = 'chat' | 'infos' | 'membres' | 'votes' | 'depenses' | 'historique';
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
   maybe: { label: 'Peut-être',   active: 'bg-amber-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' },
-  out:   { label: 'Je passe',    active: 'bg-slate-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  out:   { label: 'Absent(e)',    active: 'bg-slate-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
 };
 
 const tabs = [

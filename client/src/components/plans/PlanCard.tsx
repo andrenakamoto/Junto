@@ -14,7 +14,7 @@ const rsvpBadge = {
   maybe: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   out: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
 };
-const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Je passe' };
+const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Absent(e)' };
 
 export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props) {
   const { user } = useAuth();
