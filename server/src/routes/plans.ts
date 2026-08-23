@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeBalances, suggestTransfers } from '../lib/expenses';
 import { icsEscape, icsDate } from '../lib/ical';
+import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -192,6 +193,36 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     },
   });
   res.json(anonymizePlanPolls(updatedPlan, req.userId!));
+
+  // Premier membre (hors créateur) qui rejoint le Plan : prévient le créateur
+  // par email — une seule fois, pas à chaque nouvelle personne qui rejoint.
+  if (updatedPlan && updatedPlan.members.length === 2 && updatedPlan.creatorId !== req.userId) {
+    try {
+      const creator = await prisma.user.findUnique({
+        where: { id: updatedPlan.creatorId },
+        select: { email: true, emailVerified: true, pseudo: true },
+      });
+      const joiner = updatedPlan.members.find(m => m.userId === req.userId)?.user;
+      if (creator?.email && creator.emailVerified && joiner) {
+        const result = await resend.emails.send({
+          from: FROM_EMAIL,
+          to: creator.email,
+          subject: `${joiner.pseudo} a rejoint "${updatedPlan.title}"`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:auto">
+              <h2>Ça bouge, ${creator.pseudo} 👋</h2>
+              <p><strong>${joiner.pseudo}</strong> vient de rejoindre ton Plan <strong>"${updatedPlan.title}"</strong>.</p>
+              <a href="${APP_URL}/dashboard?planId=${updatedPlan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+                Voir le Plan
+              </a>
+            </div>`,
+        });
+        if (result.error) console.error('[first_join email]', creator.email, result.error);
+      }
+    } catch (e) {
+      console.error('[first_join notify]', e);
+    }
+  }
 });
 
 // Update RSVP
