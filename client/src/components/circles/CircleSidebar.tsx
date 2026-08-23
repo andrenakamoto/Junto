@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
@@ -40,7 +40,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [requestsPopover, setRequestsPopover] = useState<string | null>(null);
   const [circleColors, setCircleColors] = useState<Record<string, string | null | undefined>>({});
   const [votingRequestId, setVotingRequestId] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   async function handleSetColor(circleId: string, color: string | null) {
     setColorPopover(null);
@@ -71,6 +73,16 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     if (membersPopover || colorPopover || requestsPopover) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [membersPopover, colorPopover, requestsPopover]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showMenu]);
 
   function handleLogout() {
     disconnectSocket();
@@ -267,56 +279,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         })}
       </div>
 
-      {/* Actions */}
-      <div className="px-2 py-3 border-t border-slate-700/60 space-y-0.5">
-        <button
-          onClick={() => setShowCreate(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm"
-        >
-          <Plus size={15} />
-          Créer un Cercle
-        </button>
-        <button
-          onClick={() => setShowJoin(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm"
-        >
-          <Users size={15} />
-          Rejoindre un Cercle
-        </button>
-        {user?.isAdmin && (
-          <button
-            onClick={() => navigate('/admin')}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 transition-colors text-sm"
-          >
-            <ShieldCheck size={15} />
-            Panneau admin
-          </button>
-        )}
-        <button
-          onClick={() => setShowChangePassword(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm"
-        >
-          <KeyRound size={15} />
-          Changer mon mot de passe
-        </button>
-        <button
-          onClick={() => setShowNotifSettings(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm"
-        >
-          <Bell size={15} />
-          Notifications
-        </button>
-        <button
-          onClick={() => setShowTerms(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-300/70 hover:text-indigo-200 hover:bg-slate-800 transition-colors text-sm"
-        >
-          <ScrollText size={15} />
-          Conditions d'utilisation
-        </button>
-      </div>
-
-      {/* User + logout */}
-      <div className="px-3 py-3 border-t border-slate-700/60 flex items-center gap-2">
+      {/* User + menu + logout */}
+      <div className="relative px-3 py-3 border-t border-slate-700/60 flex items-center gap-2">
         {user && <Avatar pseudo={user.pseudo} size="sm" />}
         <span className="flex-1 text-sm text-slate-300 font-medium truncate">@{user?.pseudo}</span>
         {unreadCount > 0 && (
@@ -324,6 +288,64 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
+
+        <button
+          onClick={() => setShowMenu(v => !v)}
+          title="Menu"
+          className={`p-1.5 rounded-lg transition-colors ${showMenu ? 'bg-slate-700 text-white' : 'text-indigo-300 hover:text-white hover:bg-slate-700'}`}
+        >
+          <Menu size={15} />
+        </button>
+
+        {showMenu && (
+          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-64 bg-slate-800 border border-slate-700/60 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
+            <button
+              onClick={() => { setShowMenu(false); setShowCreate(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <Plus size={15} />
+              Créer un Cercle
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); setShowJoin(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <Users size={15} />
+              Rejoindre un Cercle
+            </button>
+            {user?.isAdmin && (
+              <button
+                onClick={() => { setShowMenu(false); navigate('/admin'); }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-400 hover:text-indigo-300 hover:bg-slate-700 transition-colors text-sm"
+              >
+                <ShieldCheck size={15} />
+                Panneau admin
+              </button>
+            )}
+            <button
+              onClick={() => { setShowMenu(false); setShowChangePassword(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <KeyRound size={15} />
+              Changer mon mot de passe
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); setShowNotifSettings(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <Bell size={15} />
+              Notifications
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); setShowTerms(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-300/70 hover:text-indigo-200 hover:bg-slate-700 transition-colors text-sm"
+            >
+              <ScrollText size={15} />
+              Conditions d'utilisation
+            </button>
+          </div>
+        )}
+
         <button
           onClick={handleLogout}
           title="Se déconnecter"
