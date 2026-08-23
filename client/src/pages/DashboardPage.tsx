@@ -7,6 +7,7 @@ import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
 import { AllPlansView } from '../components/plans/AllPlansView';
+import { CalendarView } from '../components/plans/CalendarView';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
 import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
@@ -28,6 +29,7 @@ export function DashboardPage() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
+  const [calendarActive, setCalendarActive] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
@@ -117,12 +119,22 @@ export function DashboardPage() {
   function handleSelectCircle(id: string) {
     setSelectedCircleId(id);
     setAllPlansActive(false);
+    setCalendarActive(false);
     setMobileView('plans');
     clearCircle(id);
   }
 
   function handleAllPlans() {
     setAllPlansActive(true);
+    setCalendarActive(false);
+    setSelectedCircleId(null);
+    setSelectedPlan(null);
+    setMobileView('plans');
+  }
+
+  function handleCalendar() {
+    setCalendarActive(true);
+    setAllPlansActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
     setMobileView('plans');
@@ -134,6 +146,7 @@ export function DashboardPage() {
       clearCircle(plan.circleId);
       setSelectedCircleId(plan.circleId);
       setAllPlansActive(false);
+      setCalendarActive(false);
     }
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
@@ -189,17 +202,28 @@ export function DashboardPage() {
             setCircles(prev => [...prev, c]);
             setSelectedCircleId(c.id);
             setAllPlansActive(false);
+            setCalendarActive(false);
             setMobileView('plans');
           }}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
+          onCalendar={handleCalendar}
+          calendarActive={calendarActive}
           unreadCount={unreadCircles.size}
           unreadCircles={unreadCircles}
         />
       </div>
 
       {/* Colonne 2 — Plans */}
-      {allPlansActive ? (
+      {calendarActive ? (
+        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+          <CalendarView
+            onSelectPlan={handleSelectPlan}
+            selectedPlanId={selectedPlan?.id ?? null}
+            onBack={() => setMobileView('circles')}
+          />
+        </div>
+      ) : allPlansActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <AllPlansView
             onSelectPlan={handleSelectPlan}

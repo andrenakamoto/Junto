@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, KeyRound, Bell } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
@@ -20,11 +20,13 @@ interface Props {
   onCreated: (circle: Circle) => void;
   onAllPlans: () => void;
   allPlansActive: boolean;
+  onCalendar: () => void;
+  calendarActive: boolean;
   unreadCount: number;
   unreadCircles: Set<string>;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, unreadCount, unreadCircles }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, unreadCount, unreadCircles }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -83,6 +85,19 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
             <Calendar size={15} />
           </div>
           Tous mes plans
+        </button>
+        <button
+          onClick={onCalendar}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 text-left transition-all border text-sm font-semibold ${
+            calendarActive
+              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/30'
+              : 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600/60'
+          }`}
+        >
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${calendarActive ? 'bg-indigo-500' : 'bg-slate-700'}`}>
+            <CalendarDays size={15} />
+          </div>
+          Calendrier
         </button>
         <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Mes Cercles</p>
         {circles.length === 0 && (

@@ -371,4 +371,44 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   res.json({ deleted: false, plan: anonymizePlanPolls(full, userId) });
 });
 
+// Export iCal (.ics) d'un Plan
+function icsEscape(s: string): string {
+  return s.replace(/[\\,;]/g, m => `\\${m}`).replace(/\n/g, '\\n');
+}
+function icsDate(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+router.get('/:id/ical', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!(await assertPlanMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const start = plan.eventDate ?? plan.endDate;
+  const end = plan.eventDate ? new Date(plan.eventDate.getTime() + 2 * 60 * 60 * 1000) : plan.endDate;
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Estelle//Plan//FR',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${plan.id}@estelle.fan`,
+    `DTSTAMP:${icsDate(new Date())}`,
+    `DTSTART:${icsDate(start)}`,
+    `DTEND:${icsDate(end)}`,
+    `SUMMARY:${icsEscape(plan.title)}`,
+    `DESCRIPTION:${icsEscape(plan.description)}`,
+    ...(plan.location ? [`LOCATION:${icsEscape(plan.location)}`] : []),
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics"`);
+  res.send(ics);
+});
+
 export default router;

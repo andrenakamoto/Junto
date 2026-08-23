@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -156,6 +156,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     api.get(`/plans/messages/${message.id}/replies`).then(res => setThreadReplies(res.data));
   }
 
+  async function handleExportIcal() {
+    const res = await api.get(`/plans/${plan.id}/ical`, { responseType: 'blob' });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   const isCreator = plan.creatorId === user.id;
 
   const eventDateFmt = plan.eventDate
@@ -240,6 +252,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <UserPlus size={16} />
+                </button>
+                <button
+                  onClick={handleExportIcal}
+                  title="Exporter vers mon calendrier (.ics)"
+                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                >
+                  <CalendarPlus size={16} />
                 </button>
                 <button
                   onClick={() => setShowDeletePlan(true)}
