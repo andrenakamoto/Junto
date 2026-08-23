@@ -415,4 +415,53 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   res.json({ deleted: false, circle, votes: voteCount, threshold });
 });
 
+// Quitter un Cercle de son plein gré. Si le créateur part et qu'il reste
+// d'autres membres, le rôle de créateur passe au membre le plus ancien.
+// Si le créateur part et qu'il était seul, le Cercle est supprimé.
+router.post('/:id/leave', async (req: AuthRequest, res) => {
+  const circleId = req.params.id;
+  const userId = req.userId!;
+
+  const member = await prisma.circleMember.findUnique({
+    where: { userId_circleId: { userId, circleId } },
+  });
+  if (!member) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+  const circle = await prisma.circle.findUnique({ where: { id: circleId } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+
+  if (circle.creatorId === userId) {
+    const nextMember = await prisma.circleMember.findFirst({
+      where: { circleId, userId: { not: userId } },
+      orderBy: { joinedAt: 'asc' },
+    });
+
+    if (!nextMember) {
+      await prisma.circle.delete({ where: { id: circleId } });
+      res.json({ left: true, circleDeleted: true });
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.circle.update({ where: { id: circleId }, data: { creatorId: nextMember.userId } }),
+      prisma.circleMember.update({
+        where: { userId_circleId: { userId: nextMember.userId, circleId } },
+        data: { role: 'admin' },
+      }),
+      prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
+      prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+      prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
+    ]);
+    res.json({ left: true, circleDeleted: false });
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
+    prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+    prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
+  ]);
+  res.json({ left: true, circleDeleted: false });
+});
+
 export default router;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Plus, Copy, Check, Trash2, UserPlus, ChevronLeft } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan } from '../../types';
 import { PlanCard } from './PlanCard';
 import { CreatePlanModal } from './CreatePlanModal';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
+import { LeaveCircleModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
 
 interface Props {
@@ -24,6 +25,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -83,6 +85,15 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             }`}
           >
             <Trash2 size={14} />
+          </button>
+
+          {/* Leave circle button */}
+          <button
+            onClick={() => setShowLeave(true)}
+            title="Quitter ce Cercle"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-slate-700 transition-colors flex-shrink-0"
+          >
+            <LogOut size={14} />
           </button>
         </div>
 
@@ -151,6 +162,14 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           onClose={() => setShowDelete(false)}
           onDeleted={() => { setShowDelete(false); onCircleDeleted(); }}
           onUpdated={(c) => { onCircleUpdated(c); }}
+        />
+      )}
+
+      {showLeave && (
+        <LeaveCircleModal
+          circle={circle}
+          onClose={() => setShowLeave(false)}
+          onLeft={() => { setShowLeave(false); onCircleDeleted(); }}
         />
       )}
     </div>

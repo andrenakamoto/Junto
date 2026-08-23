@@ -223,7 +223,10 @@ Junto/
   données), /:id/join-requests/:requestId/vote (POST, toggle, accepte le
   membre au seuil — pas de route de refus, voir modèle de données),
   /:id/plans (list+create, avec maxParticipants),
-  /:id/vote-delete, /:id/color (PUT, créateur uniquement)
+  /:id/vote-delete, /:id/color (PUT, créateur uniquement), /:id/leave
+  (POST — un membre quitte de lui-même ; si c'est le créateur et qu'il
+  reste d'autres membres, le rôle de créateur passe au membre le plus
+  ancien ; si le créateur était seul, le Cercle est supprimé)
 - **plans.ts** : CRUD plans (+ maxParticipants), /:id/join (vérifie la
   capacité), /:id/rsvp, /:id/messages (top-level uniquement, parentId:null),
   /messages/:messageId/replies (fil), /:id/polls (+anonymous,
