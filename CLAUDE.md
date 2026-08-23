@@ -257,6 +257,10 @@ La création d'un Plan (`circles.ts` POST /:id/plans) envoie, en plus de la
 notification temps réel existante, un email à chaque membre du Cercle
 (hors créateur) ayant un email vérifié.
 
+`plans.ts` POST /:id/join envoie un email au créateur du Plan, mais
+uniquement quand le Plan passe de 1 à 2 membres (créateur + premier
+arrivant) — pas à chaque membre suivant, pour éviter le bruit.
+
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
 `join-plan`/`leave-plan`, `send-message` (accepte parentId), `message`,
