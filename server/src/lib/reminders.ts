@@ -32,7 +32,7 @@ export async function sendPlanReminders() {
         ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(plan.eventDate)
         : '';
 
-      await Promise.all(recipients.map(u => resend.emails.send({
+      const results = await Promise.all(recipients.map(u => resend.emails.send({
         from: FROM_EMAIL,
         to: u.email!,
         subject: `Rappel — "${plan.title}" c'est demain`,
@@ -44,10 +44,14 @@ export async function sendPlanReminders() {
               Voir le Plan
             </a>
           </div>`,
-      }).catch(e => console.error('[reminder email]', u.email, e))));
+      }).then(r => {
+        if (r.error) console.error('[reminder email]', u.email, r.error);
+        return !r.error;
+      }).catch(e => { console.error('[reminder email]', u.email, e); return false; })));
 
+      const sentCount = results.filter(Boolean).length;
       await prisma.plan.update({ where: { id: plan.id }, data: { reminderSentAt: now } });
-      if (recipients.length > 0) console.log(`[reminders] "${plan.title}" — ${recipients.length} email(s) envoyé(s)`);
+      if (sentCount > 0) console.log(`[reminders] "${plan.title}" — ${sentCount}/${recipients.length} email(s) envoyé(s)`);
     }
   } catch (e) {
     console.error('[reminders] Erreur:', e);
@@ -69,6 +73,7 @@ export async function sendWeeklyDigest() {
       },
       select: { id: true, pseudo: true, email: true },
     });
+    let sentCount = 0;
 
     for (const user of users) {
       const plans = await prisma.plan.findMany({
@@ -93,7 +98,7 @@ export async function sendWeeklyDigest() {
         return `<li><strong>${p.title}</strong> (${p.circle.name}) — ${dateStr}</li>`;
       }).join('');
 
-      await resend.emails.send({
+      const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: user.email!,
         subject: `Cette semaine sur Estelle — ${plans.length} Plan${plans.length > 1 ? 's' : ''} actif${plans.length > 1 ? 's' : ''}`,
@@ -109,12 +114,14 @@ export async function sendWeeklyDigest() {
               Tu reçois cet email chaque lundi. Tu peux le désactiver dans les paramètres de notifications.
             </p>
           </div>`,
-      }).catch(e => console.error('[digest email]', user.email, e));
+      }).catch(e => { console.error('[digest email]', user.email, e); return null; });
+      if (result?.error) console.error('[digest email]', user.email, result.error);
+      else if (result) sentCount++;
 
       await prisma.user.update({ where: { id: user.id }, data: { lastDigestSentAt: now } });
     }
 
-    if (users.length > 0) console.log(`[digest] ${users.length} résumé(s) hebdomadaire(s) envoyé(s)`);
+    if (sentCount > 0) console.log(`[digest] ${sentCount} résumé(s) hebdomadaire(s) envoyé(s)`);
   } catch (e) {
     console.error('[digest] Erreur:', e);
   }

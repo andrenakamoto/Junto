@@ -73,14 +73,24 @@ async function deleteExpiredPlans() {
   }
 }
 
-deleteExpiredPlans();
-setInterval(deleteExpiredPlans, 60 * 60 * 1000);
+// En local, une base pointée sur l'environnement partagé ne doit pas être
+// mutée à chaque démarrage du serveur (suppression de plans, envoi d'emails).
+// RAILWAY_ENVIRONMENT_NAME n'existe que sur un déploiement Railway réel — un
+// `npm run dev` local ne l'a jamais, quel que soit le DATABASE_URL pointé.
+const cronEnabled = !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.ENABLE_CRON === 'true';
 
-sendPlanReminders();
-setInterval(sendPlanReminders, 15 * 60 * 1000);
+if (cronEnabled) {
+  deleteExpiredPlans();
+  setInterval(deleteExpiredPlans, 60 * 60 * 1000);
 
-sendWeeklyDigest();
-setInterval(sendWeeklyDigest, 60 * 60 * 1000);
+  sendPlanReminders();
+  setInterval(sendPlanReminders, 15 * 60 * 1000);
+
+  sendWeeklyDigest();
+  setInterval(sendWeeklyDigest, 60 * 60 * 1000);
+} else {
+  console.log('[cron] Désactivé en local. Active avec ENABLE_CRON=true si besoin.');
+}
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(Number(PORT), '0.0.0.0', async () => {
