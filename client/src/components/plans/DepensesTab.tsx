@@ -161,7 +161,7 @@ export function DepensesTab({ planId, members, userId }: Props) {
               step="0.01"
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              placeholder="Montant en €"
+              placeholder="Montant"
               className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <div>
