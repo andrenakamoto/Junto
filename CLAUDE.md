@@ -59,6 +59,13 @@ Conséquences pratiques :
    il renvoie `{ data: null, error }` — toujours vérifier `result.error`,
    jamais supposer qu'un `await resend.emails.send()` qui ne throw pas a
    réussi.
+   Nuance importante : seuls les **jobs cron** (rappels 24h, résumé
+   hebdomadaire, suppression des Plans expirés) sont gated derrière
+   `RAILWAY_ENVIRONMENT_NAME`/`ENABLE_CRON`. Les emails **déclenchés
+   directement par une action utilisateur** (inscription, reset password,
+   nouveau Plan créé, invitation par email) s'exécutent toujours,
+   local ou prod — comme pour tout le reste, ils échoueront juste
+   silencieusement en local faute de vraie clé Resend.
 4. Avant de démarrer le serveur en local pour tester (`npm run dev` dans
    `server/`), garder à l'esprit que ça se connecte à la base réelle. C'est
    acceptable pour lire/tester des routes GET, mais réfléchir à deux fois
@@ -208,7 +215,12 @@ Junto/
 - **admin.ts** : /users, /users/:id/approve|reject|reset-password,
   DELETE /users/:id, /stats
 - **attachments.ts** : upload, /:id/download-token, /:id/download (proxy), DELETE
-- **invitations.ts** : /status, /sms (Twilio)
+- **invitations.ts** : /status (twilioEnabled), /sms (Twilio), /email (Resend
+  — toujours disponible, pas de flag "enabled" côté client contrairement au SMS)
+
+La création d'un Plan (`circles.ts` POST /:id/plans) envoie, en plus de la
+notification temps réel existante, un email à chaque membre du Cercle
+(hors créateur) ayant un email vérifié.
 
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
