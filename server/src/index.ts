@@ -21,10 +21,16 @@ process.on('uncaughtException', (err) => {
   console.error('[uncaughtException]', err);
 });
 
+// Migration de domaine en cours (estelle.fan -> evly.ch, 2026-08-23) :
+// les deux domaines restent autorisés tant que la transition n'est pas
+// terminée (DNS/Vercel côté evly.ch pas encore branchés). Retirer
+// estelle.fan une fois evly.ch pleinement opérationnel.
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   'http://localhost:5173',
   'https://junto-appli.vercel.app',
+  'https://evly.ch',
+  'https://www.evly.ch',
   'https://estelle.fan',
   'https://www.estelle.fan',
   'capacitor://localhost',
