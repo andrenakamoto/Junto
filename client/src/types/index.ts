@@ -132,3 +132,41 @@ export interface Message {
   reactions?: MessageReaction[];
   _count?: { replies: number };
 }
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  createdAt: string;
+  paidById: string;
+  paidBy: { id: string; pseudo: string };
+}
+
+export interface Reimbursement {
+  id: string;
+  amount: number;
+  createdAt: string;
+  fromUserId: string;
+  toUserId: string;
+}
+
+export interface ExpenseBalance {
+  userId: string;
+  pseudo: string;
+  balance: number;
+}
+
+export interface SuggestedTransfer {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  fromPseudo?: string;
+  toPseudo?: string;
+}
+
+export interface ExpensesData {
+  expenses: Expense[];
+  reimbursements: Reimbursement[];
+  balances: ExpenseBalance[];
+  suggestedTransfers: SuggestedTransfer[];
+}

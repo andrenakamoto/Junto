@@ -34,6 +34,9 @@ model User {
   pollVotes         PollVote[]
   deleteVotes       CircleDeleteVote[]
   planDeleteVotes   PlanDeleteVote[]
+  expensesPaid            Expense[]       @relation("ExpensePaidBy")
+  reimbursementsSent      Reimbursement[] @relation("ReimbursementFrom")
+  reimbursementsReceived  Reimbursement[] @relation("ReimbursementTo")
 }
 
 model Circle {
@@ -91,13 +94,40 @@ model Plan {
   circleId  String
   circle    Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
-  members     PlanMember[]
-  messages    Message[]
-  polls       Poll[]
-  items       BringItem[]
-  deleteVotes PlanDeleteVote[]
-  changeLogs  PlanChangeLog[]
-  attachments Attachment[]
+  members       PlanMember[]
+  messages      Message[]
+  polls         Poll[]
+  items         BringItem[]
+  deleteVotes   PlanDeleteVote[]
+  changeLogs    PlanChangeLog[]
+  attachments   Attachment[]
+  expenses      Expense[]
+  reimbursements Reimbursement[]
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  createdAt   DateTime @default(now())
+
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  paidById String
+  paidBy   User   @relation("ExpensePaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+}
+
+model Reimbursement {
+  id        String   @id @default(cuid())
+  amount    Float
+  createdAt DateTime @default(now())
+
+  planId     String
+  plan       Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User   @relation("ReimbursementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("ReimbursementTo", fields: [toUserId], references: [id], onDelete: Cascade)
 }
 
 model PlanChangeLog {

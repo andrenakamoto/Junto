@@ -371,6 +371,121 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   res.json({ deleted: false, plan: anonymizePlanPolls(full, userId) });
 });
 
+// ─── Dépenses ──────────────────────────────────────────────────────────────
+
+function computeBalances(memberIds: string[], expenses: { amount: number; paidById: string }[], reimbursements: { amount: number; fromUserId: string; toUserId: string }[]) {
+  const n = memberIds.length;
+  const balance = new Map<string, number>(memberIds.map(id => [id, 0]));
+  if (n === 0) return balance;
+
+  for (const e of expenses) {
+    const share = e.amount / n;
+    for (const id of memberIds) {
+      balance.set(id, (balance.get(id) ?? 0) - share);
+    }
+    balance.set(e.paidById, (balance.get(e.paidById) ?? 0) + e.amount);
+  }
+  for (const r of reimbursements) {
+    balance.set(r.fromUserId, (balance.get(r.fromUserId) ?? 0) + r.amount);
+    balance.set(r.toUserId, (balance.get(r.toUserId) ?? 0) - r.amount);
+  }
+  return balance;
+}
+
+// Simplifie les dettes en un nombre minimal de virements suggérés
+function suggestTransfers(balance: Map<string, number>) {
+  const EPS = 0.01;
+  const creditors = [...balance.entries()].filter(([, b]) => b > EPS).map(([id, b]) => ({ id, amount: b }));
+  const debtors = [...balance.entries()].filter(([, b]) => b < -EPS).map(([id, b]) => ({ id, amount: -b }));
+  creditors.sort((a, b) => b.amount - a.amount);
+  debtors.sort((a, b) => b.amount - a.amount);
+
+  const transfers: { fromUserId: string; toUserId: string; amount: number }[] = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const amount = Math.min(debtors[i].amount, creditors[j].amount);
+    if (amount > EPS) {
+      transfers.push({ fromUserId: debtors[i].id, toUserId: creditors[j].id, amount: Math.round(amount * 100) / 100 });
+    }
+    debtors[i].amount -= amount;
+    creditors[j].amount -= amount;
+    if (debtors[i].amount <= EPS) i++;
+    if (creditors[j].amount <= EPS) j++;
+  }
+  return transfers;
+}
+
+router.get('/:id/expenses', async (req: AuthRequest, res) => {
+  if (!(await assertPlanMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const [members, expenses, reimbursements] = await Promise.all([
+    prisma.planMember.findMany({ where: { planId: req.params.id }, select: { userId: true, user: { select: { id: true, pseudo: true } } } }),
+    prisma.expense.findMany({ where: { planId: req.params.id }, include: { paidBy: { select: { id: true, pseudo: true } } }, orderBy: { createdAt: 'desc' } }),
+    prisma.reimbursement.findMany({ where: { planId: req.params.id }, orderBy: { createdAt: 'desc' } }),
+  ]);
+  const memberIds = members.map(m => m.userId);
+  const balance = computeBalances(memberIds, expenses, reimbursements);
+  const balances = members.map(m => ({ userId: m.userId, pseudo: m.user.pseudo, balance: Math.round((balance.get(m.userId) ?? 0) * 100) / 100 }));
+  const suggestedTransfers = suggestTransfers(balance).map(t => ({
+    ...t,
+    fromPseudo: members.find(m => m.userId === t.fromUserId)?.user.pseudo,
+    toPseudo: members.find(m => m.userId === t.toUserId)?.user.pseudo,
+  }));
+  res.json({ expenses, reimbursements, balances, suggestedTransfers });
+});
+
+router.post('/:id/expenses', async (req: AuthRequest, res) => {
+  if (!(await assertPlanMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const { description, amount } = req.body;
+  const parsedAmount = parseFloat(amount);
+  if (!description?.trim() || isNaN(parsedAmount) || parsedAmount <= 0) {
+    res.status(400).json({ error: 'Description et montant valides requis' });
+    return;
+  }
+  const expense = await prisma.expense.create({
+    data: { description: description.trim(), amount: parsedAmount, planId: req.params.id, paidById: req.userId! },
+    include: { paidBy: { select: { id: true, pseudo: true } } },
+  });
+  res.json(expense);
+});
+
+router.delete('/expenses/:expenseId', async (req: AuthRequest, res) => {
+  const expense = await prisma.expense.findUnique({ where: { id: req.params.expenseId }, include: { plan: true } });
+  if (!expense) { res.status(404).json({ error: 'Dépense introuvable' }); return; }
+  if (expense.paidById !== req.userId && expense.plan.creatorId !== req.userId) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  await prisma.expense.delete({ where: { id: req.params.expenseId } });
+  res.json({ ok: true });
+});
+
+router.post('/:id/reimbursements', async (req: AuthRequest, res) => {
+  if (!(await assertPlanMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const { toUserId, amount } = req.body;
+  const parsedAmount = parseFloat(amount);
+  if (!toUserId || isNaN(parsedAmount) || parsedAmount <= 0) {
+    res.status(400).json({ error: 'Destinataire et montant valides requis' });
+    return;
+  }
+  if (!(await assertPlanMember(toUserId, req.params.id))) {
+    res.status(400).json({ error: 'Le destinataire doit être membre du Plan' });
+    return;
+  }
+  const reimbursement = await prisma.reimbursement.create({
+    data: { amount: parsedAmount, planId: req.params.id, fromUserId: req.userId!, toUserId },
+  });
+  res.json(reimbursement);
+});
+
 // Export iCal (.ics) d'un Plan
 function icsEscape(s: string): string {
   return s.replace(/[\\,;]/g, m => `\\${m}`).replace(/\n/g, '\\n');
