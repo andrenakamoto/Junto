@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail } from 'lucide-react';
+import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
@@ -44,6 +44,11 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
     ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
     : `Salut ! Rejoins mon Cercle "${circleName}" sur EvLY 🎉\nCode d'accès : ${circleCode}\n${joinLink}`;
 
+  const shareMessage = planTitle
+    ? `Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉`
+    : `Rejoins mon Cercle "${circleName}" sur EvLY 🎉`;
+  const canShare = typeof navigator !== 'undefined' && !!(navigator as any).share;
+
   useEffect(() => {
     api.get('/invitations/status').then(res => setTwilioEnabled(res.data.twilioEnabled)).catch(() => {});
   }, []);
@@ -56,6 +61,16 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
 
   function openSmsApp() {
     window.location.href = `sms:?body=${encodeURIComponent(smsText)}`;
+  }
+
+  function openWhatsApp() {
+    window.open(`https://wa.me/?text=${encodeURIComponent(smsText)}`, '_blank');
+  }
+
+  async function handleNativeShare() {
+    try {
+      await (navigator as any).share({ title, text: shareMessage, url: joinLink });
+    } catch { /* utilisateur a annulé, ou non supporté */ }
   }
 
   async function sendViaTwilio() {
@@ -142,6 +157,31 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
               <p className="text-xs text-slate-400 text-center">À scanner avec l'appareil photo</p>
             </div>
           )}
+        </div>
+
+        <div className="border-t border-slate-100" />
+
+        {/* Share section */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Partager</p>
+          <div className="flex gap-2">
+            {canShare && (
+              <button
+                onClick={handleNativeShare}
+                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <Share2 size={14} />
+                Partager
+              </button>
+            )}
+            <button
+              onClick={openWhatsApp}
+              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#25D366] hover:bg-[#1fb855] text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              <MessageSquare size={14} />
+              WhatsApp
+            </button>
+          </div>
         </div>
 
         <div className="border-t border-slate-100" />
