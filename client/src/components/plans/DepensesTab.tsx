@@ -72,12 +72,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5">
-      {data.expenses.length > 0 && (
-        <div className="flex items-start gap-2 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
-          <Mail size={13} className="flex-shrink-0 mt-0.5" />
-          <span>Un résumé de ces dépenses sera envoyé par email à tous les membres à la fin du Plan.</span>
-        </div>
-      )}
+      <div className="flex items-start gap-2 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+        <Mail size={13} className="flex-shrink-0 mt-0.5" />
+        <span>Un résumé des dépenses sera envoyé par email à tous les membres à la fin du Plan.</span>
+      </div>
 
       {/* Résumé des soldes */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
