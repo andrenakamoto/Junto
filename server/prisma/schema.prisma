@@ -40,6 +40,8 @@ model User {
   reimbursementsReceived  Reimbursement[] @relation("ReimbursementTo")
   circleJoinRequests      CircleJoinRequest[]
   circleJoinVotes         CircleJoinVote[]
+  circlePollsCreated      CirclePoll[]    @relation("CirclePollCreator")
+  circlePollVotes         CirclePollVote[]
 }
 
 model Circle {
@@ -56,6 +58,49 @@ model Circle {
   plans        Plan[]
   deleteVotes  CircleDeleteVote[]
   joinRequests CircleJoinRequest[]
+  polls        CirclePoll[]
+}
+
+// Sondage pour caler une date (ou autre choix) avant de créer un Plan.
+// Contrairement à Poll (qui appartient à un Plan déjà créé et n'autorise
+// qu'un choix par personne), CirclePoll vit au niveau du Cercle et permet
+// un vote multiple (ex. "je suis dispo le 12 ET le 15").
+model CirclePoll {
+  id         String    @id @default(cuid())
+  question   String
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  circleId String
+  circle   Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  creatorId String
+  creator   User   @relation("CirclePollCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdPlanId String? @unique
+  createdPlan   Plan?   @relation(fields: [createdPlanId], references: [id])
+
+  options CirclePollOption[]
+}
+
+model CirclePollOption {
+  id        String    @id @default(cuid())
+  label     String
+  eventDate DateTime?
+
+  pollId String
+  poll   CirclePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes  CirclePollVote[]
+}
+
+model CirclePollVote {
+  votedAt DateTime @default(now())
+
+  optionId String
+  option   CirclePollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([optionId, userId])
 }
 
 model CircleJoinRequest {
@@ -132,6 +177,7 @@ model Plan {
   attachments   Attachment[]
   expenses      Expense[]
   reimbursements Reimbursement[]
+  originCirclePoll CirclePoll?
 }
 
 model Expense {

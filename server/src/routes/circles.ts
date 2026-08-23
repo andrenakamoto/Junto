@@ -276,36 +276,33 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
 });
 
 // Create a plan in a circle
-router.post('/:id/plans', async (req: AuthRequest, res) => {
-  const member = await prisma.circleMember.findUnique({
-    where: { userId_circleId: { userId: req.userId!, circleId: req.params.id } },
-  });
-  if (!member) {
-    res.status(403).json({ error: 'Accès refusé' });
-    return;
-  }
-  const { title, description, eventDate, endDate, location, maxParticipants } = req.body;
-  if (!title?.trim() || !description?.trim()) {
-    res.status(400).json({ error: 'Titre et description requis' });
-    return;
-  }
-  if (!endDate) {
-    res.status(400).json({ error: 'Date de fin obligatoire' });
-    return;
-  }
+interface NewPlanInput {
+  title: string;
+  description: string;
+  eventDate?: string | null;
+  endDate: string;
+  location?: string | null;
+  maxParticipants?: string | number | null;
+}
+
+// Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
+// Partagé entre POST /:id/plans et la conversion d'un CirclePoll en Plan.
+async function createPlanInCircle(app: any, circleId: string, creatorId: string, input: NewPlanInput) {
+  const { title, description, eventDate, endDate, location, maxParticipants } = input;
+  if (!title?.trim() || !description?.trim()) return { error: 'Titre et description requis' as const };
+  if (!endDate) return { error: 'Date de fin obligatoire' as const };
   const parsedEndDate = new Date(endDate);
   if (isNaN(parsedEndDate.getTime()) || parsedEndDate <= new Date()) {
-    res.status(400).json({ error: 'La date de fin doit être dans le futur' });
-    return;
+    return { error: 'La date de fin doit être dans le futur' as const };
   }
   let parsedMaxParticipants: number | null = null;
   if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
-    parsedMaxParticipants = parseInt(maxParticipants, 10);
+    parsedMaxParticipants = parseInt(String(maxParticipants), 10);
     if (isNaN(parsedMaxParticipants) || parsedMaxParticipants < 1) {
-      res.status(400).json({ error: 'Limite de participants invalide' });
-      return;
+      return { error: 'Limite de participants invalide' as const };
     }
   }
+
   const plan = await prisma.plan.create({
     data: {
       title: title.trim(),
@@ -314,9 +311,9 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
       endDate: parsedEndDate,
       location: location?.trim() || null,
       maxParticipants: parsedMaxParticipants,
-      creatorId: req.userId!,
-      circleId: req.params.id,
-      members: { create: { userId: req.userId!, rsvp: 'in' } },
+      creatorId,
+      circleId,
+      members: { create: { userId: creatorId, rsvp: 'in' } },
     },
     include: {
       creator: { select: { id: true, pseudo: true } },
@@ -324,54 +321,67 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
       _count: { select: { messages: true } },
     },
   });
-  res.json(plan);
 
-  // Notifier les membres du cercle (sauf le créateur) — temps réel + email
-  try {
-    const io = req.app.get('io');
-    const circle = await prisma.circle.findUnique({
-      where: { id: req.params.id },
-      select: {
-        name: true,
-        members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
-      },
-    });
-    if (circle) {
-      const otherMembers = circle.members.filter(m => m.userId !== req.userId);
+  notifyNewPlan(app, circleId, plan).catch(e => console.error('[new_plan notify]', e));
 
-      if (io) {
-        for (const m of otherMembers) {
-          io.to(`user:${m.userId}`).emit('notification', {
-            type: 'new_plan',
-            planId: plan.id,
-            planTitle: plan.title,
-            circleId: req.params.id,
-            circleName: circle.name,
-            from: plan.creator.pseudo,
-          });
-        }
-      }
+  return { plan };
+}
 
-      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified);
-      await Promise.all(recipients.map(m => resend.emails.send({
-        from: FROM_EMAIL,
-        to: m.user.email!,
-        subject: `Nouveau Plan dans "${circle.name}" — ${plan.title}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${m.user.pseudo} 👋</h2>
-            <p><strong>${plan.creator.pseudo}</strong> a créé un nouveau Plan dans le Cercle <strong>"${circle.name}"</strong> :</p>
-            <p style="font-size:16px;font-weight:600;margin:16px 0">${plan.title}</p>
-            <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Voir le Plan
-            </a>
-          </div>`,
-      }).then(r => { if (r.error) console.error('[new_plan email]', m.user.email, r.error); })
-        .catch(e => console.error('[new_plan email]', m.user.email, e))));
+// Notifier les membres du cercle (sauf le créateur) — temps réel + email
+async function notifyNewPlan(app: any, circleId: string, plan: any) {
+  const io = app.get('io');
+  const circle = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: {
+      name: true,
+      members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
+    },
+  });
+  if (!circle) return;
+  const otherMembers = circle.members.filter(m => m.userId !== plan.creatorId);
+
+  if (io) {
+    for (const m of otherMembers) {
+      io.to(`user:${m.userId}`).emit('notification', {
+        type: 'new_plan',
+        planId: plan.id,
+        planTitle: plan.title,
+        circleId,
+        circleName: circle.name,
+        from: plan.creator.pseudo,
+      });
     }
-  } catch (e) {
-    console.error('[new_plan notify]', e);
   }
+
+  const recipients = otherMembers.filter((m: any) => m.user.email && m.user.emailVerified);
+  await Promise.all(recipients.map((m: any) => resend.emails.send({
+    from: FROM_EMAIL,
+    to: m.user.email!,
+    subject: `Nouveau Plan dans "${circle.name}" — ${plan.title}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto">
+        <h2>Salut ${m.user.pseudo} 👋</h2>
+        <p><strong>${plan.creator.pseudo}</strong> a créé un nouveau Plan dans le Cercle <strong>"${circle.name}"</strong> :</p>
+        <p style="font-size:16px;font-weight:600;margin:16px 0">${plan.title}</p>
+        <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+          Voir le Plan
+        </a>
+      </div>`,
+  }).then(r => { if (r.error) console.error('[new_plan email]', m.user.email, r.error); })
+    .catch(e => console.error('[new_plan email]', m.user.email, e))));
+}
+
+router.post('/:id/plans', async (req: AuthRequest, res) => {
+  const member = await prisma.circleMember.findUnique({
+    where: { userId_circleId: { userId: req.userId!, circleId: req.params.id } },
+  });
+  if (!member) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const result = await createPlanInCircle(req.app, req.params.id, req.userId!, req.body);
+  if ('error' in result) { res.status(400).json({ error: result.error }); return; }
+  res.json(result.plan);
 });
 
 // Toggle delete vote — deletes circle if threshold reached
@@ -462,6 +472,127 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
     prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
   ]);
   res.json({ left: true, circleDeleted: false });
+});
+
+// ─── Sondages de Cercle (caler une date avant de créer un Plan) ───────────
+// Contrairement aux sondages d'un Plan (choix unique), le vote y est
+// multiple : chaque membre coche toutes les options qui lui conviennent.
+
+const circlePollInclude = {
+  creator: { select: { id: true, pseudo: true } },
+  options: {
+    include: { votes: { include: { user: { select: { id: true, pseudo: true } } } } },
+  },
+};
+
+async function assertCircleMember(userId: string, circleId: string): Promise<boolean> {
+  const m = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId } } });
+  return !!m;
+}
+
+router.get('/:id/polls', async (req: AuthRequest, res) => {
+  if (!(await assertCircleMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const polls = await prisma.circlePoll.findMany({
+    where: { circleId: req.params.id, resolvedAt: null },
+    include: circlePollInclude,
+    orderBy: { createdAt: 'desc' },
+  });
+  res.json(polls);
+});
+
+router.post('/:id/polls', async (req: AuthRequest, res) => {
+  if (!(await assertCircleMember(req.userId!, req.params.id))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const { question, options } = req.body;
+  if (!question?.trim() || !Array.isArray(options)) {
+    res.status(400).json({ error: 'Question et options requises' });
+    return;
+  }
+  const validOptions = (options as { label?: string; eventDate?: string }[])
+    .filter(o => o?.label?.trim());
+  if (validOptions.length < 2) {
+    res.status(400).json({ error: 'Au moins 2 options valides requises' });
+    return;
+  }
+  const poll = await prisma.circlePoll.create({
+    data: {
+      question: question.trim(),
+      circleId: req.params.id,
+      creatorId: req.userId!,
+      options: {
+        create: validOptions.map(o => ({
+          label: o.label!.trim(),
+          eventDate: o.eventDate ? new Date(o.eventDate) : null,
+        })),
+      },
+    },
+    include: circlePollInclude,
+  });
+  res.json(poll);
+});
+
+router.delete('/polls/:pollId', async (req: AuthRequest, res) => {
+  const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId } });
+  if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
+  if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
+  await prisma.circlePoll.delete({ where: { id: req.params.pollId } });
+  res.json({ ok: true });
+});
+
+// Vote (bascule), plusieurs options possibles à la fois
+router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
+  const option = await prisma.circlePollOption.findUnique({
+    where: { id: req.params.optionId },
+    include: { poll: true },
+  });
+  if (!option) { res.status(404).json({ error: 'Option introuvable' }); return; }
+  if (option.poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
+  if (!(await assertCircleMember(req.userId!, option.poll.circleId))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+
+  const existing = await prisma.circlePollVote.findUnique({
+    where: { optionId_userId: { optionId: req.params.optionId, userId: req.userId! } },
+  });
+  if (existing) {
+    await prisma.circlePollVote.delete({ where: { optionId_userId: { optionId: req.params.optionId, userId: req.userId! } } });
+  } else {
+    await prisma.circlePollVote.create({ data: { optionId: req.params.optionId, userId: req.userId! } });
+  }
+
+  const updatedPoll = await prisma.circlePoll.findUnique({ where: { id: option.pollId }, include: circlePollInclude });
+  res.json(updatedPoll);
+});
+
+// Convertit l'option gagnante d'un sondage en Plan (créateur du sondage uniquement)
+router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
+  const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: { options: true } });
+  if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
+  if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
+  if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage a déjà été converti' }); return; }
+
+  const { optionId, title, description, endDate, location, maxParticipants } = req.body;
+  const option = poll.options.find(o => o.id === optionId);
+  if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
+
+  const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
+    title, description, endDate, location, maxParticipants,
+    eventDate: option.eventDate?.toISOString() ?? null,
+  });
+  if ('error' in result) { res.status(400).json({ error: result.error }); return; }
+
+  await prisma.circlePoll.update({
+    where: { id: poll.id },
+    data: { resolvedAt: new Date(), createdPlanId: result.plan.id },
+  });
+
+  res.json(result.plan);
 });
 
 export default router;

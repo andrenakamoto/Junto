@@ -179,3 +179,24 @@ export interface ExpensesData {
   balances: ExpenseBalance[];
   suggestedTransfers: SuggestedTransfer[];
 }
+
+export interface CirclePollVote {
+  userId: string;
+  user: { id: string; pseudo: string };
+}
+
+export interface CirclePollOption {
+  id: string;
+  label: string;
+  eventDate?: string | null;
+  votes: CirclePollVote[];
+}
+
+export interface CirclePoll {
+  id: string;
+  question: string;
+  createdAt: string;
+  resolvedAt?: string | null;
+  creator: { id: string; pseudo: string };
+  options: CirclePollOption[];
+}

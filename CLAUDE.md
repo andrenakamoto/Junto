@@ -201,6 +201,15 @@ Junto/
   CircleDeleteVote/PlanDeleteVote. Aucun refus unilatéral possible (pas
   même par le créateur) — seul le vote à la majorité fait foi, une demande
   reste en attente indéfiniment tant que le seuil n'est pas atteint.
+- **CirclePoll** / **CirclePollOption** / **CirclePollVote** : sondage pour
+  caler une date *avant* de créer un Plan (contrairement à Poll qui
+  appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
+  toutes les dates qui lui conviennent, pas de choix exclusif comme pour
+  Poll. `resolvedAt`/`createdPlanId` marquent le sondage comme converti
+  (une fois transformé en Plan via le créateur du sondage, il disparaît de
+  la liste des sondages actifs). `createPlanInCircle()`/`notifyNewPlan()`
+  dans `circles.ts` sont mutualisés entre la création normale d'un Plan et
+  cette conversion, pour ne pas dupliquer la notif temps réel + email.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), reminderSentAt? (anti-doublon rappel email), archived,
@@ -253,7 +262,11 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   /:id/vote-delete, /:id/color (PUT, créateur uniquement), /:id/leave
   (POST — un membre quitte de lui-même ; si c'est le créateur et qu'il
   reste d'autres membres, le rôle de créateur passe au membre le plus
-  ancien ; si le créateur était seul, le Cercle est supprimé)
+  ancien ; si le créateur était seul, le Cercle est supprimé), /:id/polls
+  (GET liste + POST créer un sondage de dates), /polls/options/:optionId/vote
+  (POST, toggle, vote multiple), /polls/:pollId (DELETE, créateur du
+  sondage uniquement), /polls/:pollId/convert (POST, créateur du sondage
+  uniquement — transforme l'option gagnante en Plan et clôt le sondage)
 - **plans.ts** : CRUD plans (+ maxParticipants), /:id/join (vérifie la
   capacité), /:id/rsvp, /:id/messages (top-level uniquement, parentId:null),
   /messages/:messageId/replies (fil), /:id/polls (+anonymous,

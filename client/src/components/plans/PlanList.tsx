@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Circle, Plan } from '../../types';
+import { Circle, Plan, CirclePoll, CirclePollOption } from '../../types';
 import { PlanCard } from './PlanCard';
 import { CreatePlanModal } from './CreatePlanModal';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
 import { LeaveCircleModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
+import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
+import { CirclePollCard } from '../circles/CirclePollCard';
+import api from '../../services/api';
 
 interface Props {
   circle: Circle;
@@ -28,11 +31,30 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [polls, setPolls] = useState<CirclePoll[]>([]);
+  const [showCreatePoll, setShowCreatePoll] = useState(false);
+  const [convertOption, setConvertOption] = useState<{ poll: CirclePoll; option: CirclePollOption } | null>(null);
 
   function copyCode() {
     navigator.clipboard.writeText(circle.code);
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
+  }
+
+  function refreshPolls() {
+    api.get(`/circles/${circle.id}/polls`).then(res => setPolls(res.data)).catch(() => {});
+  }
+
+  useEffect(() => { refreshPolls(); }, [circle.id]);
+
+  async function handleVotePoll(optionId: string) {
+    const { data } = await api.post(`/circles/polls/options/${optionId}/vote`);
+    setPolls(prev => prev.map(p => p.id === data.id ? data : p));
+  }
+
+  async function handleDeletePoll(pollId: string) {
+    await api.delete(`/circles/polls/${pollId}`);
+    setPolls(prev => prev.filter(p => p.id !== pollId));
   }
 
   const votes = circle.deleteVotes ?? [];
@@ -110,6 +132,32 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+        <div className="mb-1">
+          <div className="flex items-center justify-between px-1 mb-1.5">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
+            <button
+              onClick={() => setShowCreatePoll(true)}
+              className="flex items-center gap-1 text-xs text-indigo-300 hover:text-indigo-200 font-medium"
+            >
+              <CalendarRange size={12} />Proposer des dates
+            </button>
+          </div>
+          {polls.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {polls.map(poll => (
+                <CirclePollCard
+                  key={poll.id}
+                  poll={poll}
+                  userId={user!.id}
+                  onVote={handleVotePoll}
+                  onDelete={() => handleDeletePoll(poll.id)}
+                  onConvert={option => setConvertOption({ poll, option })}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
         ) : plans.length === 0 ? (
@@ -153,6 +201,32 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circleId={circle.id}
           onClose={() => setShowCreate(false)}
           onCreated={(plan) => { onPlanCreated(plan); setShowCreate(false); }}
+        />
+      )}
+
+      {showCreatePoll && (
+        <CreateCirclePollModal
+          circleId={circle.id}
+          onClose={() => setShowCreatePoll(false)}
+          onCreated={(poll) => { setPolls(prev => [poll, ...prev]); setShowCreatePoll(false); }}
+        />
+      )}
+
+      {convertOption && (
+        <CreatePlanModal
+          circleId={circle.id}
+          fromPoll={{
+            pollId: convertOption.poll.id,
+            optionId: convertOption.option.id,
+            suggestedTitle: convertOption.poll.question,
+            suggestedEventDateISO: convertOption.option.eventDate,
+          }}
+          onClose={() => setConvertOption(null)}
+          onCreated={(plan) => {
+            onPlanCreated(plan);
+            setPolls(prev => prev.filter(p => p.id !== convertOption.poll.id));
+            setConvertOption(null);
+          }}
         />
       )}
 

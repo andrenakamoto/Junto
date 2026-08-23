@@ -12,16 +12,25 @@ function localDateTimeToISO(str: string): string {
   return new Date(y, m - 1, d, h, min).toISOString();
 }
 
+function isoToLocal(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 interface Props {
   circleId: string;
   onClose: () => void;
   onCreated: (plan: Plan) => void;
+  /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
+  fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null };
 }
 
-export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
-  const [title, setTitle] = useState('');
+export function CreatePlanModal({ circleId, onClose, onCreated, fromPoll }: Props) {
+  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? '');
   const [description, setDescription] = useState('');
-  const [eventDate, setEventDate] = useState('');
+  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO));
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
@@ -32,15 +41,18 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
     e.preventDefault();
     setLoading(true);
     setError('');
+    const payload = {
+      title,
+      description,
+      eventDate: eventDate ? localDateTimeToISO(eventDate) : null,
+      endDate: localDateTimeToISO(endDate),
+      location: location || null,
+      maxParticipants: maxParticipants || null,
+    };
     try {
-      const { data } = await api.post(`/circles/${circleId}/plans`, {
-        title,
-        description,
-        eventDate: eventDate ? localDateTimeToISO(eventDate) : null,
-        endDate: localDateTimeToISO(endDate),
-        location: location || null,
-        maxParticipants: maxParticipants || null,
-      });
+      const { data } = fromPoll
+        ? await api.post(`/circles/polls/${fromPoll.pollId}/convert`, { ...payload, optionId: fromPoll.optionId })
+        : await api.post(`/circles/${circleId}/plans`, payload);
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -50,7 +62,7 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
   }
 
   return (
-    <Modal title="Créer un Plan" onClose={onClose}>
+    <Modal title={fromPoll ? 'Créer le Plan à partir du sondage' : 'Créer un Plan'} onClose={onClose}>
       <p className="text-sm text-slate-500 mb-4">Rejoindre un Plan = être d'accord avec sa description.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Titre" value={title} onChange={e => setTitle(e.target.value)} placeholder="Qui veut manger ce midi ?" required autoFocus />
