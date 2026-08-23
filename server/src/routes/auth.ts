@@ -6,9 +6,10 @@ import { Resend } from 'resend';
 import { OAuth2Client } from 'google-auth-library';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 'dev-placeholder');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const CURRENT_TERMS_VERSION = 1;
@@ -85,7 +86,7 @@ router.get('/needs-setup', async (_req, res) => {
   }
 });
 
-router.post('/setup', async (req, res) => {
+router.post('/setup', registerLimiter, async (req, res) => {
   try {
     const admin = await prisma.user.findFirst({ where: { isAdmin: true } });
     if (admin) { res.status(409).json({ error: 'Un compte admin existe déjà' }); return; }
@@ -105,7 +106,7 @@ router.post('/setup', async (req, res) => {
 
 // ─── Inscription email ────────────────────────────────────────────────────────
 
-router.post('/register', async (req, res) => {
+router.post('/register', registerLimiter, async (req, res) => {
   const { pseudo, password, email } = req.body;
 
   // Ancien flow (pseudo+password sans email) — maintenu pour compatibilité setup admin
@@ -178,7 +179,7 @@ router.post('/verify-email', async (req, res) => {
   }
 });
 
-router.post('/resend-verification', async (req, res) => {
+router.post('/resend-verification', emailActionLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) { res.status(400).json({ error: 'Email requis' }); return; }
   try {
@@ -199,7 +200,7 @@ router.post('/resend-verification', async (req, res) => {
 
 // ─── Connexion ────────────────────────────────────────────────────────────────
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { pseudo, password, email } = req.body;
 
   try {
@@ -230,7 +231,7 @@ router.post('/login', async (req, res) => {
 
 // ─── Google OAuth ─────────────────────────────────────────────────────────────
 
-router.post('/google', async (req, res) => {
+router.post('/google', loginLimiter, async (req, res) => {
   const { idToken } = req.body;
   if (!idToken) { res.status(400).json({ error: 'Token Google manquant' }); return; }
   try {
@@ -286,7 +287,7 @@ router.post('/google', async (req, res) => {
 
 // ─── Reset mot de passe ───────────────────────────────────────────────────────
 
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', emailActionLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) { res.status(400).json({ error: 'Email requis' }); return; }
   try {
