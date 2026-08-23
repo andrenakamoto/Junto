@@ -148,14 +148,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <button
                         onClick={e => { e.stopPropagation(); setMembersPopover(membersPopover === circle.id ? null : circle.id); }}
-                        className={`text-xs hover:underline ${selected ? 'text-indigo-200/80 hover:text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`text-xs hover:underline ${selected ? 'text-indigo-200/80 hover:text-white' : 'text-indigo-300 hover:text-indigo-200'}`}
                       >
                         {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
                       </button>
                       {(circle._count?.plans ?? 0) > 0 && (
                         <>
-                          <span className={`text-xs ${selected ? 'text-indigo-300/50' : 'text-slate-600'}`}>·</span>
-                          <span className={`text-xs ${selected ? 'text-indigo-200/80' : 'text-slate-500'}`}>
+                          <span className="text-xs text-indigo-300/50">·</span>
+                          <span className={`text-xs ${selected ? 'text-indigo-200/80' : 'text-indigo-300'}`}>
                             {circle._count!.plans} plan{circle._count!.plans > 1 ? 's' : ''}
                           </span>
                         </>
@@ -184,7 +184,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
                 {nextPlan && (
                   <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg ${selected ? 'bg-indigo-500/30' : 'bg-slate-700/50'}`}>
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${selected ? 'text-indigo-200/70' : 'text-slate-500'}`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${selected ? 'text-indigo-200/70' : 'text-indigo-300'}`}>
                       Prochain évènement
                     </p>
                     <p className={`text-xs font-semibold truncate ${selected ? 'text-white' : 'text-slate-200'}`}>
@@ -244,7 +244,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                           <Avatar pseudo={r.user.pseudo} size="sm" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-slate-200 truncate">@{r.user.pseudo}</p>
-                            <p className="text-xs text-slate-500">{r.votes.length}/{threshold} vote{threshold > 1 ? 's' : ''}</p>
+                            <p className="text-xs text-indigo-300">{r.votes.length}/{threshold} vote{threshold > 1 ? 's' : ''}</p>
                           </div>
                           <button
                             onClick={() => handleVoteRequest(circle.id, r.id)}
@@ -308,7 +308,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         </button>
         <button
           onClick={() => setShowTerms(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors text-sm"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-300/70 hover:text-indigo-200 hover:bg-slate-800 transition-colors text-sm"
         >
           <ScrollText size={15} />
           Conditions d'utilisation
@@ -327,7 +327,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         <button
           onClick={handleLogout}
           title="Se déconnecter"
-          className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+          className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-slate-700 transition-colors"
         >
           <LogOut size={15} />
         </button>

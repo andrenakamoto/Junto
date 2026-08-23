@@ -54,11 +54,11 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               <h2 className="font-bold text-white text-sm leading-tight truncate">{circle.name}</h2>
               <button
                 onClick={copyCode}
-                className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 hover:text-slate-300 transition-colors group"
+                className="flex items-center gap-1.5 mt-1 text-xs text-indigo-300 hover:text-indigo-200 transition-colors group"
               >
                 {codeCopied
                   ? <Check size={10} className="text-emerald-400" />
-                  : <Copy size={10} className="group-hover:text-slate-300" />}
+                  : <Copy size={10} className="group-hover:text-indigo-200" />}
                 <span>Code : <span className="font-mono tracking-widest">{circle.code}</span></span>
                 {codeCopied && <span className="text-emerald-400 ml-1">Copié !</span>}
               </button>
@@ -69,7 +69,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <button
             onClick={() => setShowInvite(true)}
             title="Inviter"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-400 hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-200 hover:bg-slate-700 transition-colors flex-shrink-0"
           >
             <UserPlus size={14} />
           </button>
@@ -81,7 +81,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               hasMyVote
                 ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20'
-                : 'text-slate-600 hover:text-red-400 hover:bg-slate-700'
+                : 'text-indigo-300 hover:text-red-400 hover:bg-slate-700'
             }`}
           >
             <Trash2 size={14} />
@@ -91,7 +91,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <button
             onClick={() => setShowLeave(true)}
             title="Quitter ce Cercle"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-indigo-300 hover:text-amber-400 hover:bg-slate-700 transition-colors flex-shrink-0"
           >
             <LogOut size={14} />
           </button>
