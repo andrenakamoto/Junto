@@ -15,6 +15,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingCircleName, setPendingCircleName] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +23,11 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     setError('');
     try {
       const { data } = await api.post('/circles/join', { name, code: code.toUpperCase() });
-      onJoined(data);
+      if (data.pending) {
+        setPendingCircleName(data.circleName);
+      } else {
+        onJoined(data);
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
     } finally {
@@ -30,9 +35,23 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     }
   }
 
+  if (pendingCircleName) {
+    return (
+      <Modal title="Demande envoyée" onClose={onClose}>
+        <p className="text-sm text-slate-600 mb-4">
+          Ta demande pour rejoindre <strong>"{pendingCircleName}"</strong> a été envoyée.
+          Les membres du Cercle doivent l'approuver (majorité requise) avant que tu puisses y accéder.
+        </p>
+        <div className="flex justify-end">
+          <Button onClick={onClose}>OK</Button>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal title="Rejoindre un Cercle" onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">Demande le nom et le code à quelqu'un qui en fait partie.</p>
+      <p className="text-sm text-slate-500 mb-4">Demande le nom et le code à quelqu'un qui en fait partie. Les membres devront valider ta demande.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Nom du Cercle" value={name} onChange={e => setName(e.target.value)} placeholder="Les amis du lundi" required autoFocus />
         <Input
@@ -47,7 +66,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-          <Button type="submit" disabled={loading}>{loading ? 'Recherche...' : 'Rejoindre'}</Button>
+          <Button type="submit" disabled={loading}>{loading ? 'Envoi...' : 'Demander à rejoindre'}</Button>
         </div>
       </form>
     </Modal>

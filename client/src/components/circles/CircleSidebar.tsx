@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
@@ -22,11 +22,12 @@ interface Props {
   allPlansActive: boolean;
   onCalendar: () => void;
   calendarActive: boolean;
+  onCircleUpdated: (circle: Circle) => void;
   unreadCount: number;
   unreadCircles: Set<string>;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, unreadCount, unreadCircles }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, unreadCircles }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -36,7 +37,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
   const [colorPopover, setColorPopover] = useState<string | null>(null);
+  const [requestsPopover, setRequestsPopover] = useState<string | null>(null);
   const [circleColors, setCircleColors] = useState<Record<string, string | null | undefined>>({});
+  const [votingRequestId, setVotingRequestId] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   async function handleSetColor(circleId: string, color: string | null) {
@@ -47,16 +50,35 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     } catch { /* ignore */ }
   }
 
+  async function handleVoteRequest(circleId: string, requestId: string) {
+    setVotingRequestId(requestId);
+    try {
+      const { data } = await api.post(`/circles/${circleId}/join-requests/${requestId}/vote`);
+      if (data.circle) onCircleUpdated(data.circle);
+    } finally {
+      setVotingRequestId(null);
+    }
+  }
+
+  async function handleRejectRequest(circleId: string, requestId: string) {
+    try {
+      await api.delete(`/circles/${circleId}/join-requests/${requestId}`);
+      const circle = circles.find(c => c.id === circleId);
+      if (circle) onCircleUpdated({ ...circle, joinRequests: (circle.joinRequests ?? []).filter(r => r.id !== requestId) });
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setMembersPopover(null);
         setColorPopover(null);
+        setRequestsPopover(null);
       }
     }
-    if (membersPopover || colorPopover) document.addEventListener('mousedown', handleClick);
+    if (membersPopover || colorPopover || requestsPopover) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [membersPopover, colorPopover]);
+  }, [membersPopover, colorPopover, requestsPopover]);
 
   function handleLogout() {
     disconnectSocket();
@@ -156,6 +178,16 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       )}
                     </div>
                   </div>
+                  {(circle.joinRequests?.length ?? 0) > 0 && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setRequestsPopover(requestsPopover === circle.id ? null : circle.id); }}
+                      title="Demandes en attente"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors flex-shrink-0 text-xs font-semibold"
+                    >
+                      <UserPlus size={12} />
+                      {circle.joinRequests!.length}
+                    </button>
+                  )}
                 </div>
 
                 {nextPlan && (
@@ -206,6 +238,45 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       className={`w-6 h-6 rounded-full flex-shrink-0 transition-transform ${circleColor === c ? 'ring-2 ring-offset-2 ring-offset-slate-800 ring-white scale-110' : ''}`}
                     />
                   ))}
+                </div>
+              )}
+
+              {requestsPopover === circle.id && (
+                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-slate-800 border border-slate-700/60 rounded-xl p-2.5 space-y-2">
+                  {(() => {
+                    const threshold = Math.ceil(circle.members.length / 2);
+                    return (circle.joinRequests ?? []).map(r => {
+                      const hasVoted = r.votes.some(v => v.userId === user?.id);
+                      return (
+                        <div key={r.id} className="flex items-center gap-2 px-1 py-0.5">
+                          <Avatar pseudo={r.user.pseudo} size="sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-slate-200 truncate">@{r.user.pseudo}</p>
+                            <p className="text-xs text-slate-500">{r.votes.length}/{threshold} vote{threshold > 1 ? 's' : ''}</p>
+                          </div>
+                          <button
+                            onClick={() => handleVoteRequest(circle.id, r.id)}
+                            disabled={votingRequestId === r.id}
+                            title={hasVoted ? 'Retirer mon vote' : 'Approuver'}
+                            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50 ${
+                              hasVoted ? 'bg-emerald-500/30 text-emerald-300' : 'bg-slate-700 text-slate-300 hover:bg-emerald-500/20 hover:text-emerald-300'
+                            }`}
+                          >
+                            <Check size={12} />
+                          </button>
+                          {circle.creatorId === user?.id && (
+                            <button
+                              onClick={() => handleRejectRequest(circle.id, r.id)}
+                              title="Refuser"
+                              className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition-colors flex-shrink-0"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>

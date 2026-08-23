@@ -18,6 +18,7 @@ export function JoinPage() {
   const [joining, setJoining] = useState(false);
   const [error, setError]     = useState('');
   const [done, setDone]       = useState(false);
+  const [pending, setPending] = useState(false);
 
   // Redirect to /auth if not logged in, preserving the join URL
   useEffect(() => {
@@ -31,10 +32,14 @@ export function JoinPage() {
     setJoining(true);
     setError('');
     try {
-      await api.post('/circles/join', { name: circleName, code: circleCode });
-      setDone(true);
-      const dest = planId ? `/dashboard?planId=${planId}` : '/dashboard';
-      setTimeout(() => navigate(dest), 1800);
+      const { data } = await api.post('/circles/join', { name: circleName, code: circleCode });
+      if (data.pending) {
+        setPending(true);
+      } else {
+        setDone(true);
+        const dest = planId ? `/dashboard?planId=${planId}` : '/dashboard';
+        setTimeout(() => navigate(dest), 1800);
+      }
     } catch (err: any) {
       const msg = err.response?.data?.error ?? 'Erreur';
       // Already a member → just go to dashboard
@@ -87,6 +92,17 @@ export function JoinPage() {
               <p className="text-emerald-400 font-semibold text-sm">✓ Tu as rejoint le Cercle !</p>
               <p className="text-slate-400 text-xs mt-1">Redirection vers EvLY...</p>
             </div>
+          ) : pending ? (
+            <div className="py-4 text-center space-y-3">
+              <p className="text-indigo-300 font-semibold text-sm">Demande envoyée</p>
+              <p className="text-slate-400 text-xs">Les membres du Cercle doivent valider ta demande (majorité requise) avant que tu puisses y accéder.</p>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors text-sm"
+              >
+                Retour à EvLY
+              </button>
+            </div>
           ) : (
             <>
               {error && (
@@ -97,9 +113,9 @@ export function JoinPage() {
                 disabled={joining || !circleName || !circleCode}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm"
               >
-                {joining ? 'Rejoindre...' : (
+                {joining ? 'Envoi...' : (
                   <>
-                    Rejoindre le Cercle
+                    Demander à rejoindre
                     <ArrowRight size={16} />
                   </>
                 )}

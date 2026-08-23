@@ -22,6 +22,13 @@ export interface CircleDeleteVote {
   user: { id: string; pseudo: string };
 }
 
+export interface CircleJoinRequest {
+  id: string;
+  createdAt: string;
+  user: { id: string; pseudo: string };
+  votes: { userId: string }[];
+}
+
 export interface Circle {
   id: string;
   name: string;
@@ -32,6 +39,7 @@ export interface Circle {
   creator: User;
   members: CircleMember[];
   deleteVotes?: CircleDeleteVote[];
+  joinRequests?: CircleJoinRequest[];
   _count?: { plans: number };
   plans?: { id: string; title: string; eventDate?: string | null; endDate: string }[];
 }

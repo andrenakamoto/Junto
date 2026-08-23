@@ -37,6 +37,8 @@ model User {
   expensesPaid            Expense[]       @relation("ExpensePaidBy")
   reimbursementsSent      Reimbursement[] @relation("ReimbursementFrom")
   reimbursementsReceived  Reimbursement[] @relation("ReimbursementTo")
+  circleJoinRequests      CircleJoinRequest[]
+  circleJoinVotes         CircleJoinVote[]
 }
 
 model Circle {
@@ -48,10 +50,36 @@ model Circle {
   createdAt   DateTime @default(now())
 
   creatorId String
-  creator     User                @relation("CircleCreator", fields: [creatorId], references: [id])
-  members     CircleMember[]
-  plans       Plan[]
-  deleteVotes CircleDeleteVote[]
+  creator      User                @relation("CircleCreator", fields: [creatorId], references: [id])
+  members      CircleMember[]
+  plans        Plan[]
+  deleteVotes  CircleDeleteVote[]
+  joinRequests CircleJoinRequest[]
+}
+
+model CircleJoinRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  circleId String
+  circle   Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  votes CircleJoinVote[]
+
+  @@unique([circleId, userId])
+}
+
+model CircleJoinVote {
+  votedAt DateTime @default(now())
+
+  requestId String
+  request   CircleJoinRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([requestId, userId])
 }
 
 model CircleDeleteVote {

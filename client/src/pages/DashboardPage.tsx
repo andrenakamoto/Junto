@@ -59,6 +59,9 @@ export function DashboardPage() {
       setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
       if (data.circleId) markCircle(data.circleId);
       if (data.planId) markPlan(data.planId);
+      if (data.type === 'join_accepted') {
+        api.get('/circles').then(res => setCircles(res.data));
+      }
     }
     socket.on('notification', onNotification);
 
@@ -188,7 +191,11 @@ export function DashboardPage() {
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
       onClickNotification={n => {
         setNotifications(prev => prev.filter(x => x.id !== n.id));
-        handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
+        if (n.planId) {
+          handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
+        } else if (n.circleId) {
+          handleSelectCircle(n.circleId);
+        }
       }}
     />
     <div className="flex h-dvh bg-slate-900 overflow-hidden">
@@ -209,6 +216,7 @@ export function DashboardPage() {
           allPlansActive={allPlansActive}
           onCalendar={handleCalendar}
           calendarActive={calendarActive}
+          onCircleUpdated={handleCircleUpdated}
           unreadCount={unreadCircles.size}
           unreadCircles={unreadCircles}
         />
