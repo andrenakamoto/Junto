@@ -2,9 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
-import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ChatInput } from '../chat/ChatInput';
+import { ChatMessage } from '../chat/ChatMessage';
 import { InfosTab } from './InfosTab';
 import { MembresTab } from './MembresTab';
 import { VotesTab } from './VotesTab';
@@ -51,7 +51,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [showInvite, setShowInvite] = useState(false);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
+  const [threadReplies, setThreadReplies] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const openThreadIdRef = useRef<string | null>(null);
+  useEffect(() => { openThreadIdRef.current = openThreadId; }, [openThreadId]);
 
   const myMember = plan.members.find(m => m.userId === user.id);
   const isMember = !!myMember;
@@ -72,19 +77,38 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     socket.emit('join-plan', plan.id);
 
     function onMessage(msg: Message) {
+      if (msg.parentId) {
+        setMessages(prev => prev.map(m => m.id === msg.parentId
+          ? { ...m, _count: { replies: (m._count?.replies ?? 0) + 1 } }
+          : m));
+        setThreadReplies(prev => msg.parentId === openThreadIdRef.current ? [...prev, msg] : prev);
+        return;
+      }
       setMessages(prev => [...prev, msg]);
       setTimeout(scrollToBottom, 50);
     }
     socket.on('message', onMessage);
 
+    function onReactionsUpdated({ messageId, reactions }: { messageId: string; reactions: Message['reactions'] }) {
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+      setThreadReplies(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+    }
+    socket.on('reactions-updated', onReactionsUpdated);
+
     return () => {
       socket.emit('leave-plan', plan.id);
       socket.off('message', onMessage);
+      socket.off('reactions-updated', onReactionsUpdated);
     };
   }, [plan.id, isMember, token, scrollToBottom]);
 
   // Reset tab to chat when plan changes
-  useEffect(() => { setTab('chat'); }, [plan.id]);
+  useEffect(() => {
+    setTab('chat');
+    setReplyTo(null);
+    setOpenThreadId(null);
+    setThreadReplies([]);
+  }, [plan.id]);
 
   async function handleJoin() {
     setJoining(true);
@@ -110,7 +134,25 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   function handleSend(content: string) {
     if (!token) return;
-    getSocket(token).emit('send-message', { planId: plan.id, content });
+    getSocket(token).emit('send-message', { planId: plan.id, content, parentId: replyTo?.id });
+  }
+
+  function handleReact(messageId: string, emoji: string) {
+    if (!token) return;
+    getSocket(token).emit('toggle-reaction', { messageId, emoji });
+  }
+
+  function handleOpenThread(message: Message) {
+    if (openThreadId === message.id) {
+      setOpenThreadId(null);
+      setThreadReplies([]);
+      setReplyTo(null);
+      return;
+    }
+    setOpenThreadId(message.id);
+    setThreadReplies([]);
+    setReplyTo(message);
+    api.get(`/plans/messages/${message.id}/replies`).then(res => setThreadReplies(res.data));
   }
 
   const isCreator = plan.creatorId === user.id;
@@ -274,12 +316,39 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   </div>
                 ) : (
                   messages.map(msg => (
-                    <ChatMessage key={msg.id} message={msg} isMe={msg.author.id === user.id} />
+                    <div key={msg.id}>
+                      <ChatMessage
+                        message={msg}
+                        isMe={msg.author.id === user.id}
+                        myUserId={user.id}
+                        onReact={handleReact}
+                        onReply={handleOpenThread}
+                        replyCount={msg._count?.replies}
+                      />
+                      {openThreadId === msg.id && (
+                        <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
+                          {threadReplies.map(reply => (
+                            <ChatMessage
+                              key={reply.id}
+                              message={reply}
+                              isMe={reply.author.id === user.id}
+                              myUserId={user.id}
+                              onReact={handleReact}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))
                 )}
                 <div ref={messagesEndRef} />
               </div>
-              <ChatInput onSend={handleSend} />
+              <ChatInput
+                onSend={handleSend}
+                members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
+                replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: replyTo.content.slice(0, 40) } : null}
+                onCancelReply={() => setReplyTo(null)}
+              />
             </div>
           )}
 
@@ -297,6 +366,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           circleName={circleName}
           circleCode={circleCode}
           planTitle={plan.title}
+          planId={plan.id}
           onClose={() => setShowInvite(false)}
         />
       )}
@@ -316,31 +386,6 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           onUpdated={(updated) => { onPlanUpdated(updated); }}
         />
       )}
-    </div>
-  );
-}
-
-function ChatMessage({ message, isMe }: { message: Message; isMe: boolean }) {
-  const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt));
-  return (
-    <div className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-      {!isMe && <Avatar pseudo={message.author.pseudo} size="sm" />}
-      <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
-        {!isMe && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-600">{message.author.pseudo}</span>
-            <span className="text-xs text-slate-400">{time}</span>
-          </div>
-        )}
-        <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-          isMe
-            ? 'bg-indigo-600 text-white rounded-tr-sm'
-            : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-        }`}>
-          {message.content}
-        </div>
-        {isMe && <span className="text-xs text-slate-400">{time}</span>}
-      </div>
     </div>
   );
 }

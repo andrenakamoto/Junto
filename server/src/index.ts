@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import circlesRoutes from './routes/circles';
 import plansRoutes from './routes/plans';
@@ -11,8 +11,6 @@ import invitationsRoutes from './routes/invitations';
 import attachmentsRoutes from './routes/attachments';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
-
-dotenv.config();
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);

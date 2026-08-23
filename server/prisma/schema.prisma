@@ -26,6 +26,7 @@ model User {
   memberships       CircleMember[]
   planMemberships   PlanMember[]
   messages          Message[]
+  messageReactions  MessageReaction[]
   createdCircles    Circle[]           @relation("CircleCreator")
   createdPlans      Plan[]             @relation("PlanCreator")
   pollVotes         PollVote[]
@@ -150,6 +151,25 @@ model Message {
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   planId   String
   plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  parentId String?
+  parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Message[] @relation("MessageReplies")
+
+  reactions MessageReaction[]
+}
+
+model MessageReaction {
+  id        String   @id @default(cuid())
+  emoji     String
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
 }
 
 model Poll {

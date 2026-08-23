@@ -176,18 +176,40 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
 });
 
 // Get messages
+const messageInclude = {
+  author: { select: { id: true, pseudo: true } },
+  reactions: { include: { user: { select: { id: true, pseudo: true } } } },
+  _count: { select: { replies: true } },
+};
+
 router.get('/:id/messages', async (req: AuthRequest, res) => {
   if (!(await assertPlanMember(req.userId!, req.params.id))) {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
   const messages = await prisma.message.findMany({
-    where: { planId: req.params.id },
-    include: { author: { select: { id: true, pseudo: true } } },
+    where: { planId: req.params.id, parentId: null },
+    include: messageInclude,
     orderBy: { createdAt: 'asc' },
     take: 200,
   });
   res.json(messages);
+});
+
+// Fil de réponses d'un message
+router.get('/messages/:messageId/replies', async (req: AuthRequest, res) => {
+  const parent = await prisma.message.findUnique({ where: { id: req.params.messageId } });
+  if (!parent) { res.status(404).json({ error: 'Message introuvable' }); return; }
+  if (!(await assertPlanMember(req.userId!, parent.planId))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+  const replies = await prisma.message.findMany({
+    where: { parentId: req.params.messageId },
+    include: messageInclude,
+    orderBy: { createdAt: 'asc' },
+  });
+  res.json(replies);
 });
 
 // Create poll

@@ -30,39 +30,98 @@ export function setupSocketHandlers(io: Server) {
       socket.leave(`plan:${planId}`);
     });
 
-    socket.on('send-message', async ({ planId, content }: { planId: string; content: string }) => {
+    socket.on('send-message', async ({ planId, content, parentId }: { planId: string; content: string; parentId?: string }) => {
       if (!content?.trim()) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
       });
       if (!member) return;
+
+      let validParentId: string | undefined;
+      if (parentId) {
+        const parent = await prisma.message.findFirst({ where: { id: parentId, planId } });
+        if (parent) validParentId = parentId;
+      }
+
       const message = await prisma.message.create({
-        data: { content: content.trim(), authorId: socket.data.userId, planId },
-        include: { author: { select: { id: true, pseudo: true } } },
+        data: { content: content.trim(), authorId: socket.data.userId, planId, parentId: validParentId },
+        include: {
+          author: { select: { id: true, pseudo: true } },
+          reactions: { include: { user: { select: { id: true, pseudo: true } } } },
+          _count: { select: { replies: true } },
+        },
       });
       io.to(`plan:${planId}`).emit('message', message);
 
-      // Notifier les membres du plan qui ne sont pas dans la room
       const planData = await prisma.plan.findUnique({
         where: { id: planId },
-        select: { title: true, circleId: true, members: { select: { userId: true } } },
+        select: {
+          title: true, circleId: true,
+          members: { select: { userId: true, user: { select: { pseudo: true } } } },
+        },
       });
-      if (planData) {
-        const sockets = await io.in(`plan:${planId}`).fetchSockets();
-        const activeUserIds = new Set(sockets.map(s => s.data.userId));
-        for (const m of planData.members) {
-          if (m.userId !== socket.data.userId && !activeUserIds.has(m.userId)) {
-            io.to(`user:${m.userId}`).emit('notification', {
-              type: 'new_message',
-              planId,
-              planTitle: planData.title,
-              circleId: planData.circleId,
-              from: socket.data.pseudo,
-              preview: content.trim().slice(0, 60),
-            });
-          }
+      if (!planData) return;
+
+      const sockets = await io.in(`plan:${planId}`).fetchSockets();
+      const activeUserIds = new Set(sockets.map(s => s.data.userId));
+
+      // Mentions @pseudo → notification ciblée, même hors room active
+      const mentioned = new Set<string>();
+      const trimmed = content.trim();
+      for (const m of planData.members) {
+        if (m.userId === socket.data.userId) continue;
+        const re = new RegExp(`@${m.user.pseudo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (re.test(trimmed)) mentioned.add(m.userId);
+      }
+      for (const userId of mentioned) {
+        io.to(`user:${userId}`).emit('notification', {
+          type: 'mention',
+          planId,
+          planTitle: planData.title,
+          circleId: planData.circleId,
+          from: socket.data.pseudo,
+          preview: trimmed.slice(0, 60),
+        });
+      }
+
+      // Notifier les autres membres du plan qui ne sont pas dans la room (et pas déjà notifiés pour la mention)
+      for (const m of planData.members) {
+        if (m.userId !== socket.data.userId && !activeUserIds.has(m.userId) && !mentioned.has(m.userId)) {
+          io.to(`user:${m.userId}`).emit('notification', {
+            type: 'new_message',
+            planId,
+            planTitle: planData.title,
+            circleId: planData.circleId,
+            from: socket.data.pseudo,
+            preview: trimmed.slice(0, 60),
+          });
         }
       }
+    });
+
+    socket.on('toggle-reaction', async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      if (!emoji || emoji.length > 8) return;
+      const message = await prisma.message.findUnique({ where: { id: messageId } });
+      if (!message) return;
+      const member = await prisma.planMember.findUnique({
+        where: { userId_planId: { userId: socket.data.userId, planId: message.planId } },
+      });
+      if (!member) return;
+
+      const existing = await prisma.messageReaction.findUnique({
+        where: { messageId_userId_emoji: { messageId, userId: socket.data.userId, emoji } },
+      });
+      if (existing) {
+        await prisma.messageReaction.delete({ where: { id: existing.id } });
+      } else {
+        await prisma.messageReaction.create({ data: { messageId, emoji, userId: socket.data.userId } });
+      }
+
+      const reactions = await prisma.messageReaction.findMany({
+        where: { messageId },
+        include: { user: { select: { id: true, pseudo: true } } },
+      });
+      io.to(`plan:${message.planId}`).emit('reactions-updated', { messageId, reactions });
     });
   });
 }

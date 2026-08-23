@@ -111,10 +111,20 @@ export interface Plan {
   _count?: { messages: number };
 }
 
+export interface MessageReaction {
+  id: string;
+  emoji: string;
+  userId: string;
+  user: User;
+}
+
 export interface Message {
   id: string;
   content: string;
   createdAt: string;
   author: User;
   planId: string;
+  parentId?: string | null;
+  reactions?: MessageReaction[];
+  _count?: { replies: number };
 }
