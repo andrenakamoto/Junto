@@ -250,7 +250,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <>
                 <button
                   onClick={() => setShowInvite(true)}
-                  title="Inviter par SMS"
+                  title="Inviter"
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <UserPlus size={16} />

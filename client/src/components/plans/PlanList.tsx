@@ -66,7 +66,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Invite button */}
           <button
             onClick={() => setShowInvite(true)}
-            title="Inviter par SMS"
+            title="Inviter"
             className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-400 hover:bg-slate-700 transition-colors flex-shrink-0"
           >
             <UserPlus size={14} />
