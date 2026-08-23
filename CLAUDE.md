@@ -180,6 +180,11 @@ Junto/
   8 couleurs, `CIRCLE_COLORS` côté client), creatorId
 - **CircleMember** : userId+circleId (clé composite), role
 - **CircleDeleteVote** : vote collectif pour supprimer un Cercle
+- **CircleJoinRequest** / **CircleJoinVote** : demande pour rejoindre un
+  Cercle (créée à la place d'un accès direct) + votes des membres actuels ;
+  seuil d'acceptation = ceil(nombre de membres / 2), même formule que
+  CircleDeleteVote/PlanDeleteVote. Le créateur peut aussi refuser une
+  demande directement.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), reminderSentAt? (anti-doublon rappel email), archived,
@@ -212,9 +217,12 @@ Junto/
   /notification-settings (PUT, toggle weeklyDigestEnabled).
   Rate limité : login/register/google (loginLimiter/registerLimiter),
   resend-verification/forgot-password (emailActionLimiter).
-- **circles.ts** : CRUD cercles (+ color à la création), /join, /:id/plans
-  (list+create, avec maxParticipants), /:id/vote-delete,
-  /:id/color (PUT, créateur uniquement)
+- **circles.ts** : CRUD cercles (+ color à la création), /join (crée une
+  CircleJoinRequest, n'ajoute plus directement le membre — voir modèle de
+  données), /:id/join-requests/:requestId/vote (POST, toggle, accepte le
+  membre au seuil), /:id/join-requests/:requestId (DELETE, refuser,
+  créateur uniquement), /:id/plans (list+create, avec maxParticipants),
+  /:id/vote-delete, /:id/color (PUT, créateur uniquement)
 - **plans.ts** : CRUD plans (+ maxParticipants), /:id/join (vérifie la
   capacité), /:id/rsvp, /:id/messages (top-level uniquement, parentId:null),
   /messages/:messageId/replies (fil), /:id/polls (+anonymous,
