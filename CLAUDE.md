@@ -183,8 +183,9 @@ Junto/
 - **CircleJoinRequest** / **CircleJoinVote** : demande pour rejoindre un
   Cercle (créée à la place d'un accès direct) + votes des membres actuels ;
   seuil d'acceptation = ceil(nombre de membres / 2), même formule que
-  CircleDeleteVote/PlanDeleteVote. Le créateur peut aussi refuser une
-  demande directement.
+  CircleDeleteVote/PlanDeleteVote. Aucun refus unilatéral possible (pas
+  même par le créateur) — seul le vote à la majorité fait foi, une demande
+  reste en attente indéfiniment tant que le seuil n'est pas atteint.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), reminderSentAt? (anti-doublon rappel email), archived,
@@ -220,8 +221,8 @@ Junto/
 - **circles.ts** : CRUD cercles (+ color à la création), /join (crée une
   CircleJoinRequest, n'ajoute plus directement le membre — voir modèle de
   données), /:id/join-requests/:requestId/vote (POST, toggle, accepte le
-  membre au seuil), /:id/join-requests/:requestId (DELETE, refuser,
-  créateur uniquement), /:id/plans (list+create, avec maxParticipants),
+  membre au seuil — pas de route de refus, voir modèle de données),
+  /:id/plans (list+create, avec maxParticipants),
   /:id/vote-delete, /:id/color (PUT, créateur uniquement)
 - **plans.ts** : CRUD plans (+ maxParticipants), /:id/join (vérifie la
   capacité), /:id/rsvp, /:id/messages (top-level uniquement, parentId:null),

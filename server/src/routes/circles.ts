@@ -240,21 +240,6 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
   res.json({ accepted: false, circle: updatedCircle, votes: voteCount, threshold });
 });
 
-// Refuser une demande (créateur uniquement)
-router.delete('/:id/join-requests/:requestId', async (req: AuthRequest, res) => {
-  const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
-  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
-  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
-
-  const request = await prisma.circleJoinRequest.findUnique({ where: { id: req.params.requestId } });
-  if (!request || request.circleId !== req.params.id) {
-    res.status(404).json({ error: 'Demande introuvable' });
-    return;
-  }
-  await prisma.circleJoinRequest.delete({ where: { id: request.id } });
-  res.json({ ok: true });
-});
-
 // Get circle details
 router.get('/:id', async (req: AuthRequest, res) => {
   const member = await prisma.circleMember.findUnique({

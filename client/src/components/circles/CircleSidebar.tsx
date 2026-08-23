@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
@@ -58,14 +58,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     } finally {
       setVotingRequestId(null);
     }
-  }
-
-  async function handleRejectRequest(circleId: string, requestId: string) {
-    try {
-      await api.delete(`/circles/${circleId}/join-requests/${requestId}`);
-      const circle = circles.find(c => c.id === circleId);
-      if (circle) onCircleUpdated({ ...circle, joinRequests: (circle.joinRequests ?? []).filter(r => r.id !== requestId) });
-    } catch { /* ignore */ }
   }
 
   useEffect(() => {
@@ -264,15 +256,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                           >
                             <Check size={12} />
                           </button>
-                          {circle.creatorId === user?.id && (
-                            <button
-                              onClick={() => handleRejectRequest(circle.id, r.id)}
-                              title="Refuser"
-                              className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition-colors flex-shrink-0"
-                            >
-                              <X size={12} />
-                            </button>
-                          )}
                         </div>
                       );
                     });
