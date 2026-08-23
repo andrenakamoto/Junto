@@ -27,6 +27,7 @@ export interface Circle {
   name: string;
   code: string;
   description?: string | null;
+  color?: string | null;
   creatorId: string;
   creator: User;
   members: CircleMember[];
@@ -63,6 +64,7 @@ export interface PollOption {
 export interface Poll {
   id: string;
   question: string;
+  anonymous: boolean;
   planId: string;
   options: PollOption[];
 }
@@ -98,6 +100,7 @@ export interface Plan {
   eventDate?: string | null;
   endDate: string;
   location?: string | null;
+  maxParticipants?: number | null;
   archived: boolean;
   creatorId: string;
   creator: User;

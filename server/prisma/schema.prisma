@@ -41,6 +41,7 @@ model Circle {
   name        String
   code        String   @unique
   description String?
+  color       String?
   createdAt   DateTime @default(now())
 
   creatorId String
@@ -83,6 +84,7 @@ model Plan {
   archived    Boolean   @default(false)
   createdAt   DateTime  @default(now())
   reminderSentAt DateTime?
+  maxParticipants Int?
 
   creatorId String
   creator   User       @relation("PlanCreator", fields: [creatorId], references: [id])
@@ -178,6 +180,7 @@ model MessageReaction {
 model Poll {
   id        String   @id @default(cuid())
   question  String
+  anonymous Boolean  @default(false)
   createdAt DateTime @default(now())
 
   planId  String

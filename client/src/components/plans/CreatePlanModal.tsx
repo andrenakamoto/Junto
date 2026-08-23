@@ -24,6 +24,7 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
   const [eventDate, setEventDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState('');
+  const [maxParticipants, setMaxParticipants] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,6 +39,7 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
         eventDate: eventDate ? localDateTimeToISO(eventDate) : null,
         endDate: localDateTimeToISO(endDate),
         location: location || null,
+        maxParticipants: maxParticipants || null,
       });
       onCreated(data);
     } catch (err: any) {
@@ -67,6 +69,14 @@ export function CreatePlanModal({ circleId, onClose, onCreated }: Props) {
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
         <p className="text-xs text-slate-400 -mt-2">Le Plan sera automatiquement supprimé après cette date.</p>
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
+        <Input
+          label="Limite de participants (optionnel)"
+          type="number"
+          min={1}
+          value={maxParticipants}
+          onChange={e => setMaxParticipants(e.target.value)}
+          placeholder="Ex : 8"
+        />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>

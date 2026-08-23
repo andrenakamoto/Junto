@@ -28,6 +28,23 @@ function sameMinute(a: Date | null, b: Date | null): boolean {
   return Math.floor(a.getTime() / 60000) === Math.floor(b.getTime() / 60000);
 }
 
+// Un sondage anonyme masque l'identité des votants (sauf la sienne propre)
+function anonymizePoll(poll: any, userId: string) {
+  if (!poll?.anonymous) return poll;
+  return {
+    ...poll,
+    options: poll.options.map((o: any) => ({
+      ...o,
+      votes: o.votes.map((v: any, i: number) => (v.userId === userId ? v : { ...v, userId: `anon-${i}` })),
+    })),
+  };
+}
+
+function anonymizePlanPolls(plan: any, userId: string) {
+  if (!plan?.polls) return plan;
+  return { ...plan, polls: plan.polls.map((p: any) => anonymizePoll(p, userId)) };
+}
+
 // Get all plans from all circles the user is a member of
 router.get('/', async (req: AuthRequest, res) => {
   try {
@@ -70,7 +87,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  res.json(plan);
+  res.json(anonymizePlanPolls(plan, req.userId!));
 });
 
 // Update plan (creator only)
@@ -80,7 +97,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
     if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
 
-    const { title, description, eventDate, endDate } = req.body;
+    const { title, description, eventDate, endDate, maxParticipants } = req.body;
     if (!title?.trim() || !description?.trim()) {
       res.status(400).json({ error: 'Titre et description requis' }); return;
     }
@@ -92,6 +109,17 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const newEndDate = new Date(endDate);
     if (isNaN(newEndDate.getTime())) {
       res.status(400).json({ error: 'Date de fin invalide' }); return;
+    }
+    let newMaxParticipants: number | null = null;
+    if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
+      newMaxParticipants = parseInt(maxParticipants, 10);
+      if (isNaN(newMaxParticipants) || newMaxParticipants < 1) {
+        res.status(400).json({ error: 'Limite de participants invalide' }); return;
+      }
+      const currentCount = await prisma.planMember.count({ where: { planId: req.params.id } });
+      if (newMaxParticipants < currentCount) {
+        res.status(400).json({ error: `Il y a déjà ${currentCount} membre(s), la limite doit être au moins ${currentCount}` }); return;
+      }
     }
 
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
@@ -108,7 +136,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: description.trim(), eventDate: newEventDate, endDate: newEndDate },
+      data: { title: title.trim(), description: description.trim(), eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants },
     });
 
     if (logs.length > 0) {
@@ -116,7 +144,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     }
 
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
-    res.json(updated);
+    res.json(anonymizePlanPolls(updated, req.userId!));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -143,6 +171,13 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     res.status(409).json({ error: 'Tu es déjà dans ce Plan' });
     return;
   }
+  if (plan.maxParticipants !== null) {
+    const currentCount = await prisma.planMember.count({ where: { planId: req.params.id } });
+    if (currentCount >= plan.maxParticipants) {
+      res.status(409).json({ error: 'Ce Plan est complet' });
+      return;
+    }
+  }
   await prisma.planMember.create({ data: { userId: req.userId!, planId: req.params.id, rsvp: 'in' } });
   const updatedPlan = await prisma.plan.findUnique({
     where: { id: req.params.id },
@@ -154,7 +189,7 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
       items: true,
     },
   });
-  res.json(updatedPlan);
+  res.json(anonymizePlanPolls(updatedPlan, req.userId!));
 });
 
 // Update RSVP
@@ -218,7 +253,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  const { question, options } = req.body;
+  const { question, options, anonymous } = req.body;
   if (!question?.trim() || !Array.isArray(options) || options.length < 2) {
     res.status(400).json({ error: 'Question et au moins 2 options requises' });
     return;
@@ -226,12 +261,13 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
   const poll = await prisma.poll.create({
     data: {
       question: question.trim(),
+      anonymous: !!anonymous,
       planId: req.params.id,
       options: { create: (options as string[]).map((text) => ({ text: text.trim() })) },
     },
     include: { options: { include: { votes: true } } },
   });
-  res.json(poll);
+  res.json(anonymizePoll(poll, req.userId!));
 });
 
 // Vote on a poll option
@@ -254,7 +290,7 @@ router.post('/polls/:optionId/vote', async (req: AuthRequest, res) => {
     where: { id: option.pollId },
     include: { options: { include: { votes: true } } },
   });
-  res.json(updatedPoll);
+  res.json(anonymizePoll(updatedPoll, req.userId!));
 });
 
 // Add bring item
@@ -332,7 +368,7 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
       items: true,
     },
   });
-  res.json({ deleted: false, plan: full });
+  res.json({ deleted: false, plan: anonymizePlanPolls(full, userId) });
 });
 
 export default router;

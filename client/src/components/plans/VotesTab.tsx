@@ -14,6 +14,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   const [showCreate, setShowCreate] = useState(false);
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
+  const [anonymous, setAnonymous] = useState(false);
   const [creating, setCreating] = useState(false);
 
   async function refresh() {
@@ -26,11 +27,12 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
     if (!question.trim() || valid.length < 2) return;
     setCreating(true);
     try {
-      await api.post(`/plans/${plan.id}/polls`, { question: question.trim(), options: valid });
+      await api.post(`/plans/${plan.id}/polls`, { question: question.trim(), options: valid, anonymous });
       await refresh();
       setShowCreate(false);
       setQuestion('');
       setOptions(['', '']);
+      setAnonymous(false);
     } finally {
       setCreating(false);
     }
@@ -81,6 +83,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
               <Plus size={13} />Ajouter une option
             </button>
           )}
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+            <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} className="rounded" />
+            Sondage anonyme (personne ne voit qui a voté quoi)
+          </label>
           <div className="flex gap-2 pt-1">
             <Button onClick={handleCreate} disabled={creating} size="sm">{creating ? 'Création...' : 'Créer le sondage'}</Button>
             <Button variant="ghost" onClick={() => setShowCreate(false)} size="sm">Annuler</Button>
@@ -104,7 +110,12 @@ function PollCard({ poll, userId, onVote }: { poll: Poll; userId: string; onVote
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-      <p className="font-semibold text-slate-800 text-sm mb-3">{poll.question}</p>
+      <p className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
+        {poll.question}
+        {poll.anonymous && (
+          <span className="text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">🔒 anonyme</span>
+        )}
+      </p>
       <div className="space-y-2">
         {poll.options.map(opt => {
           const count = opt.votes.length;

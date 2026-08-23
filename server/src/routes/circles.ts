@@ -36,9 +36,11 @@ router.get('/', async (req: AuthRequest, res) => {
   res.json(circles);
 });
 
+const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
+
 // Create a circle
 router.post('/', async (req: AuthRequest, res) => {
-  const { name, description } = req.body;
+  const { name, description, color } = req.body;
   if (!name?.trim()) {
     res.status(400).json({ error: 'Nom requis' });
     return;
@@ -51,6 +53,7 @@ router.post('/', async (req: AuthRequest, res) => {
     data: {
       name: name.trim(),
       description: description?.trim() || null,
+      color: CIRCLE_COLORS.includes(color) ? color : null,
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -58,6 +61,24 @@ router.post('/', async (req: AuthRequest, res) => {
     include: circleInclude,
   });
   res.json(circle);
+});
+
+// Changer la couleur du thème d'un Cercle (créateur uniquement)
+router.put('/:id/color', async (req: AuthRequest, res) => {
+  const { color } = req.body;
+  if (color !== null && !CIRCLE_COLORS.includes(color)) {
+    res.status(400).json({ error: 'Couleur invalide' });
+    return;
+  }
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+  const updated = await prisma.circle.update({
+    where: { id: req.params.id },
+    data: { color },
+    include: circleInclude,
+  });
+  res.json(updated);
 });
 
 // Join a circle
@@ -130,7 +151,7 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  const { title, description, eventDate, endDate, location } = req.body;
+  const { title, description, eventDate, endDate, location, maxParticipants } = req.body;
   if (!title?.trim() || !description?.trim()) {
     res.status(400).json({ error: 'Titre et description requis' });
     return;
@@ -144,6 +165,14 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'La date de fin doit être dans le futur' });
     return;
   }
+  let parsedMaxParticipants: number | null = null;
+  if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
+    parsedMaxParticipants = parseInt(maxParticipants, 10);
+    if (isNaN(parsedMaxParticipants) || parsedMaxParticipants < 1) {
+      res.status(400).json({ error: 'Limite de participants invalide' });
+      return;
+    }
+  }
   const plan = await prisma.plan.create({
     data: {
       title: title.trim(),
@@ -151,6 +180,7 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
       eventDate: eventDate ? new Date(eventDate) : null,
       endDate: parsedEndDate,
       location: location?.trim() || null,
+      maxParticipants: parsedMaxParticipants,
       creatorId: req.userId!,
       circleId: req.params.id,
       members: { create: { userId: req.userId!, rsvp: 'in' } },

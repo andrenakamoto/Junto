@@ -167,6 +167,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
   const outCount = plan.members.filter(m => m.rsvp === 'out').length;
+  const isFull = plan.maxParticipants != null && plan.members.length >= plan.maxParticipants;
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
@@ -216,6 +217,9 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                     <span className="text-emerald-600">{inCount} in</span>{' '}·{' '}
                     <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
                     <span className="text-slate-400">{outCount} non</span>
+                    {plan.maxParticipants != null && (
+                      <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{plan.members.length}/{plan.maxParticipants}</span></>
+                    )}
                   </span>
                 </div>
               )}
@@ -275,6 +279,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 {rsvpConfig[rsvp].label}
               </button>
             ))}
+          </div>
+        ) : isFull ? (
+          <div className="mt-3 p-4 bg-red-50 rounded-xl border border-red-100">
+            <p className="text-sm text-red-600 font-medium">
+              Ce Plan est complet ({plan.members.length}/{plan.maxParticipants} participants).
+            </p>
           </div>
         ) : (
           <div className="mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">

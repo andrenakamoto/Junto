@@ -29,6 +29,7 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
   const [description, setDescription] = useState(plan.description);
   const [eventDate, setEventDate] = useState(isoToLocal(plan.eventDate));
   const [endDate, setEndDate] = useState(isoToLocal(plan.endDate));
+  const [maxParticipants, setMaxParticipants] = useState(plan.maxParticipants?.toString() ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -42,6 +43,7 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
         description,
         eventDate: eventDate ? localToISO(eventDate) : null,
         endDate: localToISO(endDate),
+        maxParticipants: maxParticipants || null,
       });
       onUpdated(data);
       onClose();
@@ -96,6 +98,17 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
           <p className="text-xs text-slate-400 mt-1">Le Plan sera automatiquement supprimé après cette date.</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Limite de participants (optionnel)</label>
+          <input
+            type="number"
+            min={1}
+            value={maxParticipants}
+            onChange={e => setMaxParticipants(e.target.value)}
+            placeholder="Ex : 8"
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
+          />
         </div>
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">

@@ -84,6 +84,8 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
 
   const items = plan.items || [];
   const attachments = plan.attachments || [];
+  const imageAttachments = attachments.filter(a => isImage(a.mimeType));
+  const fileAttachments = attachments.filter(a => !isImage(a.mimeType));
   const isCreator = plan.creatorId === userId;
 
   return (
@@ -134,13 +136,30 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         )}
       </div>
 
+      {/* Galerie photo */}
+      {imageAttachments.length > 0 && (
+        <div>
+          <h3 className="font-semibold text-slate-800 text-sm mb-3">Galerie ({imageAttachments.length})</h3>
+          <div className="grid grid-cols-3 gap-2">
+            {imageAttachments.map(att => (
+              <GalleryThumb
+                key={att.id}
+                att={att}
+                canDelete={isCreator || att.uploadedBy === pseudo}
+                onDelete={() => handleDelete(att)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Pièces jointes */}
       <div>
         <h3 className="font-semibold text-slate-800 text-sm mb-3">Pièces jointes</h3>
 
-        {attachments.length > 0 && (
+        {fileAttachments.length > 0 && (
           <div className="space-y-2 mb-3">
-            {attachments.map(att => (
+            {fileAttachments.map(att => (
               <AttachmentRow
                 key={att.id}
                 att={att}
@@ -152,7 +171,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           </div>
         )}
 
-        {attachments.length === 0 && !uploading && (
+        {fileAttachments.length === 0 && !uploading && (
           <p className="text-sm text-slate-400 italic mb-3">Aucune pièce jointe pour l'instant.</p>
         )}
 
@@ -177,6 +196,44 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         </button>
         <p className="text-xs text-slate-400 mt-1">PDF, images, Word, Excel… · max 10 Mo</p>
       </div>
+    </div>
+  );
+}
+
+function GalleryThumb({ att, canDelete, onDelete }: { att: Attachment; canDelete: boolean; onDelete: () => void }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  return (
+    <div className="relative group aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+      <a href={att.url} target="_blank" rel="noopener noreferrer">
+        <img src={att.url} alt={att.name} className="w-full h-full object-cover" loading="lazy" />
+      </a>
+      {canDelete && (
+        <div className="absolute top-1 right-1">
+          {confirmDelete ? (
+            <div className="flex gap-1">
+              <button
+                onClick={onDelete}
+                className="p-1 bg-red-600 text-white rounded-md text-xs"
+              >
+                <Trash2 size={11} />
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="p-1 bg-white/90 text-slate-700 rounded-md text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="hidden group-hover:flex p-1 bg-black/50 text-white rounded-md"
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

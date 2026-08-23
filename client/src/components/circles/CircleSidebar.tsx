@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { disconnectSocket } from '../../lib/socket';
-import { CreateCircleModal } from './CreateCircleModal';
+import api from '../../services/api';
+import { CreateCircleModal, CIRCLE_COLORS } from './CreateCircleModal';
 import { JoinCircleModal } from './JoinCircleModal';
 import { Avatar } from '../ui/Avatar';
 
@@ -32,17 +33,28 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
+  const [colorPopover, setColorPopover] = useState<string | null>(null);
+  const [circleColors, setCircleColors] = useState<Record<string, string | null | undefined>>({});
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  async function handleSetColor(circleId: string, color: string | null) {
+    setColorPopover(null);
+    try {
+      const { data } = await api.put(`/circles/${circleId}/color`, { color });
+      setCircleColors(prev => ({ ...prev, [circleId]: data.color }));
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setMembersPopover(null);
+        setColorPopover(null);
       }
     }
-    if (membersPopover) document.addEventListener('mousedown', handleClick);
+    if (membersPopover || colorPopover) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [membersPopover]);
+  }, [membersPopover, colorPopover]);
 
   function handleLogout() {
     disconnectSocket();
@@ -80,10 +92,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           const selected = selectedId === circle.id;
           const nextPlan = circle.plans?.[0];
           const hasUnread = unreadCircles.has(circle.id);
+          const circleColor = circleColors[circle.id] !== undefined ? circleColors[circle.id] : circle.color;
+          const isCreator = circle.creatorId === user?.id;
           return (
             <div key={circle.id}>
               <button
                 onClick={() => onSelect(circle.id)}
+                style={circleColor ? { borderLeftColor: circleColor, borderLeftWidth: 3 } : undefined}
                 className={`w-full text-left rounded-xl transition-all border relative ${
                   selected
                     ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-900/30'
@@ -115,6 +130,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                             {circle._count!.plans} plan{circle._count!.plans > 1 ? 's' : ''}
                           </span>
                         </>
+                      )}
+                      {isCreator && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
+                          title="Couleur du Cercle"
+                          className="w-3 h-3 rounded-full border border-white/30 flex-shrink-0 ml-0.5"
+                          style={{ backgroundColor: circleColor || '#64748b' }}
+                        />
                       )}
                     </div>
                   </div>
@@ -149,6 +172,24 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       <span className="text-xs text-slate-200 truncate flex-1">@{m.user.pseudo}</span>
                       {m.role === 'admin' && <ShieldCheck size={11} className="text-indigo-400 flex-shrink-0" />}
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {colorPopover === circle.id && (
+                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-slate-800 border border-slate-700/60 rounded-xl p-2.5 flex items-center gap-1.5 flex-wrap">
+                  <button
+                    onClick={() => handleSetColor(circle.id, null)}
+                    title="Aucune couleur"
+                    className="w-6 h-6 rounded-full border-2 border-dashed border-slate-500 flex-shrink-0"
+                  />
+                  {CIRCLE_COLORS.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => handleSetColor(circle.id, c)}
+                      style={{ backgroundColor: c }}
+                      className={`w-6 h-6 rounded-full flex-shrink-0 transition-transform ${circleColor === c ? 'ring-2 ring-offset-2 ring-offset-slate-800 ring-white scale-110' : ''}`}
+                    />
                   ))}
                 </div>
               )}
