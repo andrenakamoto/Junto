@@ -29,6 +29,7 @@ export function DashboardPage() {
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
 
   useEffect(() => {
@@ -58,7 +59,26 @@ export function DashboardPage() {
       if (data.planId) markPlan(data.planId);
     }
     socket.on('notification', onNotification);
-    return () => { socket.off('notification', onNotification); };
+
+    function onPresence({ userId, online }: { userId: string; online: boolean }) {
+      setOnlineUserIds(prev => {
+        const next = new Set(prev);
+        if (online) next.add(userId); else next.delete(userId);
+        return next;
+      });
+    }
+    socket.on('presence', onPresence);
+
+    function onPresenceSnapshot(userIds: string[]) {
+      setOnlineUserIds(new Set(userIds));
+    }
+    socket.on('presence-snapshot', onPresenceSnapshot);
+
+    return () => {
+      socket.off('notification', onNotification);
+      socket.off('presence', onPresence);
+      socket.off('presence-snapshot', onPresenceSnapshot);
+    };
   }, [user]);
 
   useEffect(() => {
@@ -220,6 +240,7 @@ export function DashboardPage() {
             onLogout={handleLogout}
             onBack={() => setMobileView('plans')}
             user={user!}
+            onlineUserIds={onlineUserIds}
           />
         ) : (
           <EmptyState message="Sélectionne un Plan" sub="ou crée-en un nouveau dans ce Cercle" />

@@ -11,6 +11,7 @@ import invitationsRoutes from './routes/invitations';
 import attachmentsRoutes from './routes/attachments';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
+import { sendPlanReminders, sendWeeklyDigest } from './lib/reminders';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -74,6 +75,12 @@ async function deleteExpiredPlans() {
 
 deleteExpiredPlans();
 setInterval(deleteExpiredPlans, 60 * 60 * 1000);
+
+sendPlanReminders();
+setInterval(sendPlanReminders, 15 * 60 * 1000);
+
+sendWeeklyDigest();
+setInterval(sendWeeklyDigest, 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(Number(PORT), '0.0.0.0', async () => {

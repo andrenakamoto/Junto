@@ -9,10 +9,18 @@ function pickColor(pseudo: string) {
   return colors[s % colors.length];
 }
 
-export function Avatar({ pseudo, size = 'md' }: { pseudo: string; size?: 'sm' | 'md' | 'lg' }) {
+export function Avatar({ pseudo, size = 'md', online }: { pseudo: string; size?: 'sm' | 'md' | 'lg'; online?: boolean }) {
   return (
-    <div className={`${sizes[size]} ${pickColor(pseudo)} rounded-full flex items-center justify-center text-white font-bold flex-shrink-0`}>
-      {pseudo[0].toUpperCase()}
+    <div className="relative flex-shrink-0">
+      <div className={`${sizes[size]} ${pickColor(pseudo)} rounded-full flex items-center justify-center text-white font-bold`}>
+        {pseudo[0].toUpperCase()}
+      </div>
+      {online !== undefined && (
+        <span
+          className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${online ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          title={online ? 'En ligne' : 'Hors ligne'}
+        />
+      )}
     </div>
   );
 }

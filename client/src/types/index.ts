@@ -6,6 +6,7 @@ export interface User {
   termsAccepted: boolean;
   email: string | null;
   emailVerified: boolean;
+  weeklyDigestEnabled: boolean;
 }
 
 export interface CircleMember {

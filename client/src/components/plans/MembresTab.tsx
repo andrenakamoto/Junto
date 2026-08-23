@@ -9,7 +9,7 @@ const rsvpCfg = {
 
 const rsvpOrder: Record<string, number> = { in: 0, maybe: 1, out: 2 };
 
-export function MembresTab({ members }: { members: PlanMember[] }) {
+export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; onlineUserIds?: Set<string> }) {
   const sorted = [...members].sort((a, b) => rsvpOrder[a.rsvp] - rsvpOrder[b.rsvp]);
 
   return (
@@ -20,7 +20,7 @@ export function MembresTab({ members }: { members: PlanMember[] }) {
       <div className="space-y-2">
         {sorted.map(m => (
           <div key={m.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <Avatar pseudo={m.user.pseudo} size="sm" />
+            <Avatar pseudo={m.user.pseudo} size="sm" online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
             <span className="flex-1 text-sm font-medium text-slate-800">@{m.user.pseudo}</span>
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${rsvpCfg[m.rsvp].cls}`}>
               {rsvpCfg[m.rsvp].label}

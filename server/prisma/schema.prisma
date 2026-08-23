@@ -21,6 +21,8 @@ model User {
   status               String    @default("approved")
   isAdmin              Boolean   @default(false)
   acceptedTermsVersion Int       @default(0)
+  weeklyDigestEnabled  Boolean   @default(true)
+  lastDigestSentAt     DateTime?
   createdAt            DateTime  @default(now())
 
   memberships       CircleMember[]
@@ -80,6 +82,7 @@ model Plan {
   location    String?
   archived    Boolean   @default(false)
   createdAt   DateTime  @default(now())
+  reminderSentAt DateTime?
 
   creatorId String
   creator   User       @relation("PlanCreator", fields: [creatorId], references: [id])

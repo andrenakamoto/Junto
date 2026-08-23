@@ -40,9 +40,10 @@ interface Props {
   onLogout: () => void;
   onBack: () => void;
   user: User;
+  onlineUserIds?: Set<string>;
 }
 
-export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds }: Props) {
   const { token } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -355,7 +356,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {tab === 'infos' && (
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
-          {tab === 'membres' && <MembresTab members={plan.members} />}
+          {tab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {tab === 'historique' && <HistoriqueTab changeLogs={plan.changeLogs ?? []} />}
         </>

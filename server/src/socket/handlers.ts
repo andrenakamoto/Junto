@@ -2,6 +2,9 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 
+// userId -> nombre de connexions actives (plusieurs onglets/appareils)
+const onlineCounts = new Map<string, number>();
+
 export function setupSocketHandlers(io: Server) {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token as string;
@@ -16,8 +19,45 @@ export function setupSocketHandlers(io: Server) {
     }
   });
 
-  io.on('connection', (socket: Socket) => {
+  io.on('connection', async (socket: Socket) => {
     socket.join(`user:${socket.data.userId}`);
+
+    const memberships = await prisma.circleMember.findMany({
+      where: { userId: socket.data.userId },
+      select: { circleId: true },
+    });
+    const circleIds = memberships.map(m => m.circleId);
+    socket.data.circleIds = circleIds;
+    for (const circleId of circleIds) socket.join(`circle:${circleId}`);
+
+    const wasOffline = !onlineCounts.get(socket.data.userId);
+    onlineCounts.set(socket.data.userId, (onlineCounts.get(socket.data.userId) ?? 0) + 1);
+    if (wasOffline) {
+      for (const circleId of circleIds) {
+        io.to(`circle:${circleId}`).emit('presence', { userId: socket.data.userId, online: true });
+      }
+    }
+
+    if (circleIds.length > 0) {
+      const circleMembers = await prisma.circleMember.findMany({
+        where: { circleId: { in: circleIds } },
+        select: { userId: true },
+      });
+      const onlineUserIds = [...new Set(circleMembers.map(m => m.userId))].filter(id => (onlineCounts.get(id) ?? 0) > 0);
+      socket.emit('presence-snapshot', onlineUserIds);
+    }
+
+    socket.on('disconnect', () => {
+      const count = (onlineCounts.get(socket.data.userId) ?? 1) - 1;
+      if (count <= 0) {
+        onlineCounts.delete(socket.data.userId);
+        for (const circleId of circleIds) {
+          io.to(`circle:${circleId}`).emit('presence', { userId: socket.data.userId, online: false });
+        }
+      } else {
+        onlineCounts.set(socket.data.userId, count);
+      }
+    });
 
     socket.on('join-plan', async (planId: string) => {
       const member = await prisma.planMember.findUnique({

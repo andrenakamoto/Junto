@@ -2,19 +2,16 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { Resend } from 'resend';
 import { OAuth2Client } from 'google-auth-library';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
+import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 
 const router = Router();
-const resend = new Resend(process.env.RESEND_API_KEY || 'dev-placeholder');
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const CURRENT_TERMS_VERSION = 1;
-const APP_URL = process.env.APP_URL || 'http://localhost:5173';
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Estelle <noreply@estelle.app>';
 
 function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
   return jwt.sign(
@@ -27,6 +24,7 @@ function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
 function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
+  weeklyDigestEnabled?: boolean;
 }) {
   return {
     id: user.id,
@@ -36,6 +34,7 @@ function safeUser(user: {
     termsAccepted: user.acceptedTermsVersion >= CURRENT_TERMS_VERSION,
     email: user.email ?? null,
     emailVerified: user.emailVerified ?? false,
+    weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
   };
 }
 
@@ -329,12 +328,25 @@ router.post('/reset-password', async (req, res) => {
 
 // ─── Routes authentifiées ─────────────────────────────────────────────────────
 
+const meSelect = {
+  id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
+  email: true, emailVerified: true, weeklyDigestEnabled: true,
+};
+
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.userId },
-    select: { id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true, email: true, emailVerified: true },
-  });
+  const user = await prisma.user.findUnique({ where: { id: req.userId }, select: meSelect });
   if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+  res.json(safeUser(user));
+});
+
+router.put('/notification-settings', requireAuth, async (req: AuthRequest, res) => {
+  const { weeklyDigestEnabled } = req.body;
+  if (typeof weeklyDigestEnabled !== 'boolean') { res.status(400).json({ error: 'Champ invalide' }); return; }
+  const user = await prisma.user.update({
+    where: { id: req.userId },
+    data: { weeklyDigestEnabled },
+    select: meSelect,
+  });
   res.json(safeUser(user));
 });
 
@@ -387,7 +399,7 @@ router.post('/accept-terms', requireAuth, async (req: AuthRequest, res) => {
   const user = await prisma.user.update({
     where: { id: req.userId },
     data: { acceptedTermsVersion: CURRENT_TERMS_VERSION },
-    select: { id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true, email: true, emailVerified: true },
+    select: meSelect,
   });
   res.json(safeUser(user));
 });

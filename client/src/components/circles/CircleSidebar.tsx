@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, KeyRound } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, KeyRound, Bell } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
+import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { useNavigate } from 'react-router-dom';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -29,6 +30,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showJoin, setShowJoin] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -188,6 +190,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           Changer mon mot de passe
         </button>
         <button
+          onClick={() => setShowNotifSettings(true)}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors text-sm"
+        >
+          <Bell size={15} />
+          Notifications
+        </button>
+        <button
           onClick={() => setShowTerms(true)}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors text-sm"
         >
@@ -216,6 +225,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
       {showChangePassword && (
         <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
+      )}
+      {showNotifSettings && (
+        <NotificationSettingsModal onClose={() => setShowNotifSettings(false)} />
       )}
       {showTerms && (
         <TermsModal readOnly onClose={() => setShowTerms(false)} />
