@@ -7,10 +7,12 @@ coexistent dans le code — ne pas essayer de "corriger" l'un ou l'autre sans
 demander.
 
 L'app s'appelait "Estelle" jusqu'au 2026-08-23, date du rebranding vers
-"EvLY" (nom de domaine évly.com/evly.com acheté sur Infomaniak). Le
-changement de nom de domaine réel (Vercel, CORS, DNS, email FROM_EMAIL,
-appId Capacitor `com.estelle.app`) est **volontairement différé** — seul le
-texte/logo dans l'app a été changé pour l'instant. Voir section Déploiement.
+"EvLY" (nom de domaine **evly.ch** acheté sur Infomaniak). La migration de
+domaine est en cours (CORS déjà mis à jour côté code, DNS/Vercel/emails
+encore à faire) — voir section Déploiement pour le détail et ce qui reste
+à faire côté utilisateur (accès dashboards Vercel/Infomaniak que cette
+session n'a pas). L'`appId` Capacitor (`com.estelle.app`) et le dossier
+Cloudinary (`estelle/`) restent inchangés, non liés au nom de domaine.
 
 Repo GitHub : https://github.com/andrenakamoto/Junto (branche main)
 Toute la communication utilisateur (UI, commits, docs) est en **FRANÇAIS**.
@@ -238,18 +240,27 @@ l'utilisateur), `notification` (types: new_message, mention).
 
 ## Déploiement
 
-- **Frontend** : Vercel, domaine **estelle.fan** (+ www.estelle.fan) — pas
-  encore migré vers evly.com, acheté le 2026-08-23 sur Infomaniak mais pas
-  encore branché (DNS, Vercel, CORS). Ancien domaine junto-appli.vercel.app
-  encore autorisé en CORS. Déploiement probablement automatique sur push
-  GitHub (non confirmé par CLI — vérifier le dashboard si besoin).
-  **À faire lors de la migration de domaine** : ajouter evly.com/www.evly.com
-  au DNS + Vercel, ajouter ces origines à `allowedOrigins` dans
-  `server/src/index.ts`, mettre à jour `CLIENT_URL`/`APP_URL` sur Railway,
-  mettre à jour `FROM_EMAIL` (actuellement replié sur `noreply@estelle.app`
-  en fallback code), vérifier le domaine d'envoi sur Resend, et
-  éventuellement retirer les anciennes origines estelle.fan une fois la
-  transition terminée.
+- **Frontend** : Vercel, domaine **estelle.fan** (+ www.estelle.fan) —
+  migration en cours vers **evly.ch** (nom acheté le 2026-08-23 sur
+  Infomaniak). État au 2026-08-23 :
+  - ✅ `evly.ch`/`www.evly.ch` ajoutés à `allowedOrigins` dans
+    `server/src/index.ts` (estelle.fan conservé en parallèle, aucune
+    coupure de service)
+  - ❌ **Pas encore fait, nécessite l'utilisateur** (pas d'accès CLI
+    Vercel/Infomaniak depuis cette session) : configurer les
+    enregistrements DNS chez Infomaniak pour evly.ch (pointer vers
+    Vercel), ajouter le domaine evly.ch dans les Domain Settings du
+    projet Vercel
+  - ❌ **À faire une fois evly.ch confirmé opérationnel** (pas avant, pour
+    ne pas casser les liens dans les emails déjà en circulation) : mettre
+    à jour `CLIENT_URL`/`APP_URL` sur Railway, mettre à jour `FROM_EMAIL`
+    (actuellement replié sur `noreply@estelle.app` en fallback code) et
+    vérifier le domaine d'envoi sur Resend pour evly.ch, puis
+    éventuellement retirer les anciennes origines estelle.fan une fois la
+    transition terminée
+  Ancien domaine junto-appli.vercel.app encore autorisé en CORS.
+  Déploiement probablement automatique sur push GitHub (non confirmé par
+  CLI — vérifier le dashboard si besoin).
 - **Backend** : Railway, projet "radiant-spontaneity" (workspace
   andrenakamoto), services "Postgres" et "Junto".
   URL : https://junto-production-8ded.up.railway.app (health check /health).
