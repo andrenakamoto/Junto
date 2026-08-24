@@ -10,9 +10,11 @@ L'app s'appelait "Estelle" jusqu'au 2026-08-23, date du rebranding vers
 "EvLY" (nom de domaine **evly.ch** acheté sur Infomaniak). La migration de
 domaine est terminée le 2026-08-23 : DNS, Vercel, CORS et emails (Resend)
 pointent tous vers evly.ch, voir section Déploiement pour le détail.
-estelle.fan reste actif en parallèle (pas coupé). L'`appId` Capacitor
-(`com.estelle.app`) et le dossier
-Cloudinary (`estelle/`) restent inchangés, non liés au nom de domaine.
+**estelle.fan a été volontairement coupé le 2026-08-23** (CORS backend,
+OAuth Google, domaine retiré de Vercel — voir section Déploiement) ; ne
+pas le rebrancher sans demander. L'`appId` Capacitor (`com.estelle.app`)
+et le dossier Cloudinary (`estelle/`) restent inchangés, non liés au nom
+de domaine.
 
 Repo GitHub : https://github.com/andrenakamoto/Junto (branche main)
 Toute la communication utilisateur (UI, commits, docs) est en **FRANÇAIS**.
@@ -301,11 +303,15 @@ dans `circles.ts`, pas depuis `handlers.ts`).
 
 - **Frontend** : Vercel, domaine principal **www.evly.ch** (evly.ch redirige
   dessus en 308) — migration terminée le 2026-08-23 (nom acheté sur
-  Infomaniak). estelle.fan/www.estelle.fan restent actifs et autorisés en
-  CORS/Vercel en parallèle (pas de coupure), à retirer plus tard si
-  l'utilisateur le souhaite. Ancien domaine junto-appli.vercel.app encore
-  autorisé en CORS. Déploiement probablement automatique sur push GitHub
-  (non confirmé par CLI — vérifier le dashboard si besoin).
+  Infomaniak). **estelle.fan a été coupé** à la demande de l'utilisateur
+  (2026-08-23) : retiré de `allowedOrigins` dans `server/src/index.ts`, et
+  retiré des Origines JavaScript autorisées du client OAuth Google "Estelle
+  Web" (Google Cloud Console → le projet s'appelle encore "Estelle" côté
+  Google, pas renommé). Le domaine doit aussi être retiré manuellement du
+  projet Vercel (Settings → Domains) si ce n'est pas déjà fait — je n'ai
+  pas d'accès CLI pour le confirmer. Ancien domaine junto-appli.vercel.app
+  encore autorisé en CORS. Déploiement probablement automatique sur push
+  GitHub (non confirmé par CLI — vérifier le dashboard si besoin).
   DNS chez Infomaniak (nameservers ns11/ns12.infomaniak.ch) : `evly.ch` (A
   → 216.198.79.1), `www.evly.ch` (CNAME → Vercel), `resend._domainkey`,
   `rsend`, `send` (CNAME, pour Resend — voir plus bas). Le domaine a aussi
