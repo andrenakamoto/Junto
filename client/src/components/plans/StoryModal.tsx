@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { Camera, Loader2, Check, Download, ZoomOut, ZoomIn, Move, RectangleVertical, RectangleHorizontal } from 'lucide-react';
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
@@ -103,7 +103,12 @@ export function StoryModal({ plan, onClose }: Props) {
     dragState.current = null;
   }
 
-  const presentNames = plan.members.filter(m => m.rsvp === 'in').map(m => m.user.pseudo);
+  const isLandscape = orientation === 'landscape';
+  const allPresentNames = plan.members.filter(m => m.rsvp === 'in').map(m => m.user.pseudo);
+  const nameLimit = isLandscape ? 3 : 8;
+  const presentNames = allPresentNames.length > nameLimit
+    ? [...allPresentNames.slice(0, nameLimit), `+${allPresentNames.length - nameLimit}`]
+    : allPresentNames;
   const dateFmt = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(plan.eventDate))
     : null;
@@ -112,13 +117,16 @@ export function StoryModal({ plan, onClose }: Props) {
     if (!cardRef.current) return;
     setGenerating(true);
     try {
-      const dataUrl = await toPng(cardRef.current, { pixelRatio: 4, cacheBust: true });
+      const dataUrl = await toJpeg(cardRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.92, backgroundColor: '#431a11' });
+      const blob = await (await fetch(dataUrl)).blob();
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}_story.png`;
+      a.href = blobUrl;
+      a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}_story.jpg`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch (e) {
       console.error('[story generation]', e);
       alert("Erreur lors de la génération de la story. Réessaie.");
@@ -184,17 +192,20 @@ export function StoryModal({ plan, onClose }: Props) {
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,.15), rgba(15,10,8,.85))' }}
           />
 
-          <div className="absolute top-4 left-4 text-sm text-white pointer-events-none" style={{ fontFamily: "'Fraunces', serif" }}>
+          <div
+            className={`absolute text-white pointer-events-none ${isLandscape ? 'top-2 left-2.5 text-[11px]' : 'top-4 left-4 text-sm'}`}
+            style={{ fontFamily: "'Fraunces', serif" }}
+          >
             <span style={{ fontStyle: 'italic', fontWeight: 300 }}>Ev</span>
             <span style={{ fontWeight: 800, color: '#fb7a4d' }}>LY</span>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-white pointer-events-none">
-            <p className="text-xl font-bold leading-tight mb-1">{plan.title}</p>
-            {dateFmt && <p className="text-xs text-white/80 mb-1 capitalize">{dateFmt}</p>}
-            {plan.location && <p className="text-xs text-white/70 mb-2">{plan.location}</p>}
+          <div className={`absolute bottom-0 left-0 right-0 text-white pointer-events-none ${isLandscape ? 'p-2.5' : 'p-3.5'}`}>
+            <p className={`font-bold leading-tight ${isLandscape ? 'text-xs mb-0.5' : 'text-lg mb-1'}`}>{plan.title}</p>
+            {dateFmt && <p className={`text-white/80 capitalize ${isLandscape ? 'text-[9px] mb-0.5' : 'text-[11px] mb-1'}`}>{dateFmt}</p>}
+            {plan.location && <p className={`text-white/70 ${isLandscape ? 'text-[9px] mb-1' : 'text-[11px] mb-1.5'}`}>{plan.location}</p>}
             {presentNames.length > 0 && (
-              <p className="text-xs text-white/90 leading-snug">
+              <p className={`text-white/90 leading-snug ${isLandscape ? 'text-[9px]' : 'text-[11px]'}`}>
                 <span className="text-white/60">Présents : </span>
                 {presentNames.join(', ')}
               </p>
