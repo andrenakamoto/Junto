@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -11,6 +11,7 @@ import { VotesTab } from './VotesTab';
 import { DepensesTab } from './DepensesTab';
 import { HistoriqueTab } from './HistoriqueTab';
 import { InviteModal } from '../circles/InviteModal';
+import { StoryModal } from './StoryModal';
 import { DeletePlanModal } from './DeletePlanModal';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
@@ -52,6 +53,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [joining, setJoining] = useState(false);
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [showStory, setShowStory] = useState(false);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -263,6 +265,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   <CalendarPlus size={16} />
                 </button>
                 <button
+                  onClick={() => setShowStory(true)}
+                  title="Télécharger la story"
+                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                >
+                  <ImageDown size={16} />
+                </button>
+                <button
                   onClick={() => setShowDeletePlan(true)}
                   title="Voter pour supprimer ce Plan"
                   className={`p-2 rounded-lg transition-colors ${
@@ -402,6 +411,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           planId={plan.id}
           onClose={() => setShowInvite(false)}
         />
+      )}
+
+      {showStory && (
+        <StoryModal plan={plan} onClose={() => setShowStory(false)} />
       )}
 
       {showEditPlan && (
