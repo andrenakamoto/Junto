@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
-import { Camera, Loader2, Check, Download, ZoomOut, ZoomIn, Move } from 'lucide-react';
+import { Camera, Loader2, Check, Download, ZoomOut, ZoomIn, Move, RectangleVertical, RectangleHorizontal } from 'lucide-react';
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -14,30 +14,52 @@ function isImage(mimeType: string) {
   return mimeType.startsWith('image/');
 }
 
-const FRAME_W = 240;
-const FRAME_H = 426;
+type Orientation = 'portrait' | 'landscape';
+const FRAMES: Record<Orientation, { w: number; h: number }> = {
+  portrait: { w: 202, h: 360 },
+  landscape: { w: 260, h: 146 },
+};
 
 export function StoryModal({ plan, onClose }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const frameRef = useRef<HTMLDivElement>(null);
   const [coverSrc, setCoverSrc] = useState<string | null>(null);
-  const [scale, setScale] = useState(1);
+  const [orientation, setOrientation] = useState<Orientation>('portrait');
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragState = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const [generating, setGenerating] = useState(false);
 
   const imageAttachments = (plan.attachments || []).filter(a => isImage(a.mimeType));
+  const frame = FRAMES[orientation];
 
   useEffect(() => {
     if (!coverSrc && imageAttachments[0]) setCoverSrc(imageAttachments[0].url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Taille de l'image en mode "contenu entier visible" (contain) dans le cadre actuel
+  const baseSize = naturalSize
+    ? (naturalSize.w / naturalSize.h > frame.w / frame.h
+        ? { w: frame.w, h: frame.w * naturalSize.h / naturalSize.w }
+        : { h: frame.h, w: frame.h * naturalSize.w / naturalSize.h })
+    : null;
+  // Zoom nécessaire pour remplir tout le cadre (équivalent à l'ancien object-fit: cover)
+  const coverZoom = baseSize ? Math.max(frame.w / baseSize.w, frame.h / baseSize.h) : 1;
+  const maxZoom = Math.max(4, coverZoom + 1);
+
+  // Réinitialise le cadrage à chaque nouvelle photo ou changement de format
+  useEffect(() => {
+    if (!baseSize) return;
+    setZoom(Math.min(coverZoom, maxZoom));
+    setPos({ x: 0, y: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [naturalSize?.w, naturalSize?.h, orientation]);
+
   function selectCover(src: string) {
     setCoverSrc(src);
-    setScale(1);
-    setPos({ x: 0, y: 0 });
+    setNaturalSize(null);
   }
 
   function handleTakePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -49,21 +71,19 @@ export function StoryModal({ plan, onClose }: Props) {
     reader.readAsDataURL(file);
   }
 
-  function maxOffset(s: number) {
-    return { x: (s - 1) * FRAME_W / 2, y: (s - 1) * FRAME_H / 2 };
-  }
-
-  function clamp(p: { x: number; y: number }, s: number) {
-    const m = maxOffset(s);
+  function clampPos(p: { x: number; y: number }, z: number) {
+    if (!baseSize) return { x: 0, y: 0 };
+    const overflowX = Math.max(0, baseSize.w * z - frame.w);
+    const overflowY = Math.max(0, baseSize.h * z - frame.h);
     return {
-      x: Math.min(m.x, Math.max(-m.x, p.x)),
-      y: Math.min(m.y, Math.max(-m.y, p.y)),
+      x: Math.min(overflowX / 2, Math.max(-overflowX / 2, p.x)),
+      y: Math.min(overflowY / 2, Math.max(-overflowY / 2, p.y)),
     };
   }
 
-  function handleScaleChange(newScale: number) {
-    setScale(newScale);
-    setPos(p => clamp(p, newScale));
+  function handleZoomChange(newZoom: number) {
+    setZoom(newZoom);
+    setPos(p => clampPos(p, newZoom));
   }
 
   function handlePointerDown(e: React.PointerEvent) {
@@ -76,7 +96,7 @@ export function StoryModal({ plan, onClose }: Props) {
     if (!dragState.current) return;
     const dx = e.clientX - dragState.current.startX;
     const dy = e.clientY - dragState.current.startY;
-    setPos(clamp({ x: dragState.current.origX + dx, y: dragState.current.origY + dy }, scale));
+    setPos(clampPos({ x: dragState.current.origX + dx, y: dragState.current.origY + dy }, zoom));
   }
 
   function handlePointerUp() {
@@ -110,13 +130,30 @@ export function StoryModal({ plan, onClose }: Props) {
   return (
     <Modal title="Story du Plan" onClose={onClose}>
       <div className="flex flex-col items-center gap-4">
+        <div className="flex gap-1.5 bg-slate-100 rounded-lg p-1">
+          <button
+            onClick={() => setOrientation('portrait')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${orientation === 'portrait' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <RectangleVertical size={13} />
+            Portrait
+          </button>
+          <button
+            onClick={() => setOrientation('landscape')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${orientation === 'landscape' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <RectangleHorizontal size={13} />
+            Paysage
+          </button>
+        </div>
+
         <div
           ref={cardRef}
-          className="relative w-[240px] h-[426px] rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#431a11] to-[#c2410c]"
+          className="relative rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#431a11] to-[#c2410c]"
+          style={{ width: frame.w, height: frame.h }}
         >
           {coverSrc && (
             <div
-              ref={frameRef}
               className="absolute inset-0 overflow-hidden touch-none cursor-move"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
@@ -127,8 +164,18 @@ export function StoryModal({ plan, onClose }: Props) {
                 key={coverSrc}
                 src={coverSrc}
                 draggable={false}
-                className="absolute inset-0 w-full h-full object-cover select-none"
-                style={{ transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`, transformOrigin: 'center' }}
+                onLoad={e => setNaturalSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+                className="absolute top-1/2 left-1/2 select-none"
+                style={
+                  baseSize
+                    ? {
+                        width: baseSize.w,
+                        height: baseSize.h,
+                        transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) scale(${zoom})`,
+                        transformOrigin: 'center',
+                      }
+                    : { opacity: 0 }
+                }
               />
             </div>
           )}
@@ -155,16 +202,16 @@ export function StoryModal({ plan, onClose }: Props) {
           </div>
         </div>
 
-        {coverSrc && (
+        {coverSrc && baseSize && (
           <div className="w-full flex items-center gap-2">
             <ZoomOut size={15} className="text-slate-400 flex-shrink-0" />
             <input
               type="range"
               min={1}
-              max={3}
+              max={maxZoom}
               step={0.02}
-              value={scale}
-              onChange={e => handleScaleChange(Number(e.target.value))}
+              value={zoom}
+              onChange={e => handleZoomChange(Number(e.target.value))}
               className="flex-1 accent-indigo-600"
             />
             <ZoomIn size={15} className="text-slate-400 flex-shrink-0" />
