@@ -45,12 +45,18 @@ router.get('/', async (req: AuthRequest, res) => {
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
+const MAX_CIRCLES_PER_USER = 20;
 
 // Create a circle
 router.post('/', async (req: AuthRequest, res) => {
   const { name, description, color } = req.body;
   if (!name?.trim()) {
     res.status(400).json({ error: 'Nom requis' });
+    return;
+  }
+  const createdCount = await prisma.circle.count({ where: { creatorId: req.userId! } });
+  if (createdCount >= MAX_CIRCLES_PER_USER) {
+    res.status(400).json({ error: `Tu as atteint la limite de ${MAX_CIRCLES_PER_USER} Cercles créés.` });
     return;
   }
   let code = generateCode();
