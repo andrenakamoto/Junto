@@ -287,9 +287,10 @@ function EmptyState({ message, sub }: { message: string; sub: string }) {
   return (
     <div className="flex-1 flex items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2">
           <LogoIcon size={64} light />
         </div>
+        <p className="text-indigo-600 text-xs font-semibold uppercase tracking-widest mb-4">Events Linked to You</p>
         <p className="text-lg font-semibold text-slate-700 mb-1">{message}</p>
         <p className="text-sm text-slate-400">{sub}</p>
       </div>

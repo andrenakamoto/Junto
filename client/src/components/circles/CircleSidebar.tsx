@@ -343,6 +343,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               <ScrollText size={15} />
               Conditions d'utilisation
             </button>
+            <p className="text-center text-xs text-slate-500 pt-2 mt-1 border-t border-slate-700/60">info@evly.ch</p>
           </div>
         )}
 

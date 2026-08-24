@@ -104,6 +104,7 @@ export function AuthPage() {
           <div className="flex justify-center mb-3">
             <LogoIcon size={56} />
           </div>
+          <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Events Linked to You</p>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
         </div>
 
@@ -252,6 +253,7 @@ export function AuthPage() {
             </button>
           </p>
         )}
+        <p className="text-center text-xs text-slate-600 mt-4">info@evly.ch</p>
       </div>
     </div>
   );
