@@ -116,6 +116,19 @@ Conséquences pratiques :
   sémantiques (emerald/amber/red pour succès/attention/danger) et la
   palette `CIRCLE_COLORS` (8 couleurs au choix pour un Cercle, dupliquée
   côté client et serveur) sont restées inchangées.
+- **Logo / wordmark** (2026-08-24) : plus d'icône dans l'app — la marque
+  est un wordmark typographique pur, "**Ev**LY" avec "Ev" en italique fine
+  (police **Fraunces**, `ital,wght@1,300`, blanc sur fond sombre / `#1e293b`
+  sur fond clair via la prop `light`) et "LY" en gras (`wght@800`) dans le
+  corail de marque `#ea5a2b`. Composant unique `client/src/components/ui/Logo.tsx`
+  (`Wordmark`, exporté sous les noms historiques `LogoIcon`/`LogoFull` pour
+  ne pas casser les ~9 points d'usage — `size`/`iconSize` contrôlent la
+  taille en px, `light` inverse la couleur de "Ev" pour les fonds clairs,
+  ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
+  (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
+  `client/public/logo-evly.svg` (l'ancienne icône badge) ne sert plus
+  qu'au favicon — remplacé par un simple monogramme "EV" sur le dégradé
+  corail, lisible à 16px.
 - **Backend** : Node.js + Express + TypeScript, ts-node-dev en dev
 - **Base de données** : PostgreSQL via Prisma ORM (migrations dans
   `server/prisma/migrations` — voir section base de données ci-dessus)
