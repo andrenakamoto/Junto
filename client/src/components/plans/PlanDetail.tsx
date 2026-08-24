@@ -241,7 +241,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               {/* Date d'expiration du plan — séparée visuellement */}
               <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 border-t border-slate-100 pt-2">
                 <Clock size={11} />
-                <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span></span>
+                <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span> — toutes les données liées (messages, photos, dépenses) seront supprimées</span>
               </div>
             </div>
           </div>
