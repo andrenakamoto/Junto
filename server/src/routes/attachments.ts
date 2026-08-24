@@ -26,6 +26,8 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
 });
 
+const PLAN_ATTACHMENTS_LIMIT = 100 * 1024 * 1024; // 100 MB cumulés par plan
+
 function streamUpload(buffer: Buffer, options: Record<string, unknown>): Promise<any> {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -48,6 +50,19 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
       where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
     });
     if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+    const { _sum } = await prisma.attachment.aggregate({
+      where: { planId: req.params.planId },
+      _sum: { size: true },
+    });
+    const currentTotal = _sum.size ?? 0;
+    if (currentTotal + req.file.size > PLAN_ATTACHMENTS_LIMIT) {
+      const remainingMb = Math.max(0, (PLAN_ATTACHMENTS_LIMIT - currentTotal) / (1024 * 1024));
+      res.status(400).json({
+        error: `Limite de 100 Mo de pièces jointes atteinte pour ce plan (il reste ${remainingMb.toFixed(1)} Mo).`,
+      });
+      return;
+    }
 
     // Les images → resource_type 'image' (optimisation CDN)
     // PDF, Word, Excel, etc. → resource_type 'raw' (fichier brut, téléchargeable directement)
