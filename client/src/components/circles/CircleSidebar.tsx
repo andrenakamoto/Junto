@@ -93,8 +93,12 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   return (
     <div className="w-full bg-slate-900 flex flex-col h-full flex-shrink-0">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-slate-700/60">
+      <div className="px-4 py-4 border-b border-slate-700/60 flex items-center gap-2.5">
         <LogoFull iconSize={32} />
+        <div className="w-px self-stretch bg-slate-700/60" />
+        <p className="text-indigo-400 text-[10px] font-semibold uppercase tracking-wide leading-tight">
+          Events<br />Linked to You
+        </p>
       </div>
 
       {/* Circle list */}
