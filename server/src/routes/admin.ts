@@ -82,12 +82,21 @@ router.delete('/users/:id', async (req: AuthRequest, res) => {
 
 // Stats summary
 router.get('/stats', async (_req, res) => {
-  const [pending, approved, rejected] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [pending, approved, rejected, totalCircles, activePlans, messagesLast7Days, activeAuthors] = await Promise.all([
     prisma.user.count({ where: { status: 'pending', isAdmin: false } }),
     prisma.user.count({ where: { status: 'approved', isAdmin: false } }),
     prisma.user.count({ where: { status: 'rejected' } }),
+    prisma.circle.count(),
+    prisma.plan.count({ where: { endDate: { gt: new Date() } } }),
+    prisma.message.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+    prisma.message.groupBy({ by: ['authorId'], where: { createdAt: { gte: sevenDaysAgo } } }),
   ]);
-  res.json({ pending, approved, rejected });
+  res.json({
+    pending, approved, rejected,
+    totalCircles, activePlans, messagesLast7Days,
+    activeUsersLast7Days: activeAuthors.length,
+  });
 });
 
 export default router;
