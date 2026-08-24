@@ -4,7 +4,6 @@ import { Camera, Loader2, Check, Download } from 'lucide-react';
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import api from '../../services/api';
 
 interface Props {
   plan: Plan;
@@ -19,8 +18,6 @@ export function StoryModal({ plan, onClose }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [coverSrc, setCoverSrc] = useState<string | null>(null);
-  const [localPhotoUrl, setLocalPhotoUrl] = useState<string | null>(null);
-  const [totalSpent, setTotalSpent] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
 
   const imageAttachments = (plan.attachments || []).filter(a => isImage(a.mimeType));
@@ -30,27 +27,16 @@ export function StoryModal({ plan, onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    api.get(`/plans/${plan.id}/expenses`)
-      .then(({ data }) => {
-        const total = (data.expenses || []).reduce((sum: number, e: { amount: number }) => sum + e.amount, 0);
-        setTotalSpent(total);
-      })
-      .catch(() => {});
-    return () => { if (localPhotoUrl) URL.revokeObjectURL(localPhotoUrl); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan.id]);
-
   function handleTakePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (localPhotoUrl) URL.revokeObjectURL(localPhotoUrl);
-    const url = URL.createObjectURL(file);
-    setLocalPhotoUrl(url);
-    setCoverSrc(url);
+    // data: URL plutôt que blob: — html-to-image ne sait pas embarquer les blob: (fetch() les rejette)
+    const reader = new FileReader();
+    reader.onload = () => setCoverSrc(reader.result as string);
+    reader.readAsDataURL(file);
   }
 
-  const inCount = plan.members.filter(m => m.rsvp === 'in').length;
+  const presentNames = plan.members.filter(m => m.rsvp === 'in').map(m => m.user.pseudo);
   const dateFmt = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(plan.eventDate))
     : null;
@@ -79,29 +65,35 @@ export function StoryModal({ plan, onClose }: Props) {
       <div className="flex flex-col items-center gap-4">
         <div
           ref={cardRef}
-          className="relative w-[240px] h-[426px] rounded-xl overflow-hidden flex-shrink-0"
-          style={{
-            background: coverSrc
-              ? `linear-gradient(to bottom, rgba(0,0,0,.15), rgba(15,10,8,.85)), url(${coverSrc})`
-              : 'linear-gradient(135deg, #431a11, #c2410c)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          className="relative w-[240px] h-[426px] rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#431a11] to-[#c2410c]"
         >
-          <div className="absolute top-4 left-4 font-serif text-sm text-white" style={{ fontFamily: "'Fraunces', serif" }}>
+          {coverSrc && (
+            <img
+              key={coverSrc}
+              src={coverSrc}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,.15), rgba(15,10,8,.85))' }}
+          />
+
+          <div className="absolute top-4 left-4 text-sm text-white" style={{ fontFamily: "'Fraunces', serif" }}>
             <span style={{ fontStyle: 'italic', fontWeight: 300 }}>Ev</span>
             <span style={{ fontWeight: 800, color: '#fb7a4d' }}>LY</span>
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
             <p className="text-xl font-bold leading-tight mb-1">{plan.title}</p>
-            {dateFmt && <p className="text-xs text-white/80 mb-2 capitalize">{dateFmt}</p>}
-            {plan.location && <p className="text-xs text-white/70 mb-3">{plan.location}</p>}
-            <div className="flex items-center gap-2 text-[11px] font-medium">
-              <span className="bg-white/15 rounded-full px-2 py-1">{inCount} présent{inCount > 1 ? 's' : ''}</span>
-              {plan._count && <span className="bg-white/15 rounded-full px-2 py-1">{plan._count.messages} messages</span>}
-              {!!totalSpent && <span className="bg-white/15 rounded-full px-2 py-1">{totalSpent.toFixed(2)} CHF</span>}
-            </div>
+            {dateFmt && <p className="text-xs text-white/80 mb-1 capitalize">{dateFmt}</p>}
+            {plan.location && <p className="text-xs text-white/70 mb-2">{plan.location}</p>}
+            {presentNames.length > 0 && (
+              <p className="text-xs text-white/90 leading-snug">
+                <span className="text-white/60">Présents : </span>
+                {presentNames.join(', ')}
+              </p>
+            )}
           </div>
         </div>
 
