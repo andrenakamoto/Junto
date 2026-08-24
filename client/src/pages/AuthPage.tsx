@@ -101,15 +101,9 @@ export function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <LogoIcon size={72} />
+          <div className="flex justify-center mb-3">
+            <LogoIcon size={56} />
           </div>
-          <h1
-            style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontWeight: 700 }}
-            className="text-4xl text-white tracking-wide"
-          >
-            EvLY
-          </h1>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
         </div>
 

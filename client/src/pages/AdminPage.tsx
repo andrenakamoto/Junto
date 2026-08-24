@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, CircleDot } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { LogoIcon } from '../components/ui/Logo';
 import api from '../services/api';
 
 interface AdminUser {
@@ -81,10 +82,7 @@ export function AdminPage() {
           <ArrowLeft size={16} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-black text-xs">E</span>
-          </div>
-          <span className="text-white font-bold">EvLY</span>
+          <LogoIcon size={20} />
           <span className="text-slate-500 mx-1">/</span>
           <span className="text-slate-300 text-sm flex items-center gap-1.5">
             <ShieldCheck size={14} className="text-indigo-400" />

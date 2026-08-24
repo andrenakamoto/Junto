@@ -1,36 +1,26 @@
-interface IconProps {
+interface WordmarkProps {
   size?: number;
+  /** Pour une utilisation sur fond clair (par défaut : fond sombre, "Ev" en blanc) */
+  light?: boolean;
   className?: string;
 }
 
-export function LogoIcon({ size = 40, className = '' }: IconProps) {
+function Wordmark({ size = 40, light = false, className = '' }: WordmarkProps) {
   return (
-    <img
-      src="/logo-evly.svg"
-      width={size}
-      height={size}
-      style={{ objectFit: 'contain' }}
+    <span
       className={className}
-      alt="EvLY"
-    />
+      style={{ fontFamily: "'Fraunces', serif", fontSize: size, lineHeight: 1, whiteSpace: 'nowrap' }}
+    >
+      <span style={{ fontStyle: 'italic', fontWeight: 300, color: light ? '#1e293b' : '#ffffff' }}>Ev</span>
+      <span style={{ fontWeight: 800, color: '#ea5a2b' }}>LY</span>
+    </span>
   );
 }
 
-export function LogoFull({ iconSize = 32, className = '' }: { iconSize?: number; className?: string }) {
-  return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <LogoIcon size={iconSize} />
-      <span
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          fontStyle: 'italic',
-          fontWeight: 700,
-          letterSpacing: '0.01em',
-        }}
-        className="text-white text-xl leading-none"
-      >
-        EvLY
-      </span>
-    </div>
-  );
+export function LogoIcon({ size = 40, light, className = '' }: WordmarkProps) {
+  return <Wordmark size={size} light={light} className={className} />;
+}
+
+export function LogoFull({ iconSize = 32, light, className = '' }: { iconSize?: number; light?: boolean; className?: string }) {
+  return <Wordmark size={iconSize} light={light} className={className} />;
 }
