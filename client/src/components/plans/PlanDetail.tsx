@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -54,6 +54,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -114,6 +116,16 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     setOpenThreadId(null);
     setThreadReplies([]);
   }, [plan.id]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(e.target as Node)) {
+        setShowActionsMenu(false);
+      }
+    }
+    if (showActionsMenu) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showActionsMenu]);
 
   async function handleJoin() {
     setJoining(true);
@@ -247,7 +259,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               </div>
             </div>
           </div>
-          <div className="flex gap-1 flex-shrink-0">
+          {/* Actions — icônes en ligne sur desktop, menu compact sur mobile */}
+          <div className="hidden md:flex gap-1 flex-shrink-0">
             {isMember && (
               <>
                 <button
@@ -291,6 +304,61 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             >
               <LogOut size={16} />
             </button>
+          </div>
+
+          <div className="relative md:hidden flex-shrink-0" ref={actionsMenuRef}>
+            <button
+              onClick={() => setShowActionsMenu(v => !v)}
+              title="Menu"
+              className={`p-2 rounded-lg transition-colors ${showActionsMenu ? 'bg-slate-100 text-slate-700' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
+            >
+              <MoreVertical size={18} />
+            </button>
+            {showActionsMenu && (
+              <div className="absolute top-full right-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
+                {isMember && (
+                  <>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setShowInvite(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <UserPlus size={15} className="text-slate-400" />
+                      Inviter
+                    </button>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); handleExportIcal(); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <CalendarPlus size={15} className="text-slate-400" />
+                      Exporter vers mon calendrier
+                    </button>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setShowStory(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <ImageDown size={15} className="text-slate-400" />
+                      Télécharger la story
+                    </button>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setShowDeletePlan(true); }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm ${
+                        (plan.deleteVotes ?? []).some(v => v.userId === user.id) ? 'text-red-500' : 'text-slate-700'
+                      }`}
+                    >
+                      <Trash2 size={15} className={(plan.deleteVotes ?? []).some(v => v.userId === user.id) ? 'text-red-500' : 'text-slate-400'} />
+                      Voter pour supprimer ce Plan
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => { setShowActionsMenu(false); onLogout(); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                >
+                  <LogOut size={15} className="text-slate-400" />
+                  Se déconnecter
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
