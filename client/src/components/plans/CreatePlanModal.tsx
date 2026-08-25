@@ -67,19 +67,18 @@ export function CreatePlanModal({ circleId, onClose, onCreated, fromPoll }: Prop
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Titre" value={title} onChange={e => setTitle(e.target.value)} placeholder="Qui veut manger ce midi ?" required autoFocus />
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Description</label>
+          <label className="text-sm font-medium text-slate-700">Description (optionnel)</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="Décris l'événement. Les gens qui rejoignent ce Plan sont d'accord avec ce que tu écris ici."
-            required
             rows={3}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
         <Input label="Date et heure de l'événement (optionnel)" type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-        <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date.</p>
+        <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
         <Input
           label="Limite de participants (optionnel)"

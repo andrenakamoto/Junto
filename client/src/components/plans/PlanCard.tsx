@@ -58,7 +58,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
         )}
       </div>
 
-      <p className="text-indigo-300/80 text-xs line-clamp-2 mb-2.5">{plan.description}</p>
+      {plan.description && <p className="text-indigo-300/80 text-xs line-clamp-2 mb-2.5">{plan.description}</p>}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-indigo-300">
         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}

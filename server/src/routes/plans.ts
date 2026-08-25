@@ -8,6 +8,8 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 const router = Router();
 router.use(requireAuth as any);
 
+const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
+
 async function assertPlanMember(userId: string, planId: string): Promise<boolean> {
   const m = await prisma.planMember.findUnique({
     where: { userId_planId: { userId, planId } },
@@ -101,9 +103,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
     if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
 
     const { title, description, eventDate, endDate, maxParticipants } = req.body;
-    if (!title?.trim() || !description?.trim()) {
-      res.status(400).json({ error: 'Titre et description requis' }); return;
+    if (!title?.trim()) {
+      res.status(400).json({ error: 'Titre requis' }); return;
     }
+    const newDescription = description?.trim() || '';
     if (!endDate) {
       res.status(400).json({ error: 'Date de fin requise' }); return;
     }
@@ -112,6 +115,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const newEndDate = new Date(endDate);
     if (isNaN(newEndDate.getTime())) {
       res.status(400).json({ error: 'Date de fin invalide' }); return;
+    }
+    const planStart = newEventDate && !isNaN(newEventDate.getTime()) ? newEventDate : new Date();
+    if (newEndDate.getTime() - planStart.getTime() > MAX_PLAN_DURATION_MS) {
+      res.status(400).json({ error: 'Un Plan ne peut pas durer plus de 3 semaines' }); return;
     }
     let newMaxParticipants: number | null = null;
     if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
@@ -130,8 +137,8 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     if (title.trim() !== plan.title)
       logs.push({ planId, field: 'title', oldValue: plan.title, newValue: title.trim() });
-    if (description.trim() !== plan.description)
-      logs.push({ planId, field: 'description', oldValue: plan.description, newValue: description.trim() });
+    if (newDescription !== plan.description)
+      logs.push({ planId, field: 'description', oldValue: plan.description, newValue: newDescription });
     if (!sameMinute(plan.eventDate, newEventDate))
       logs.push({ planId, field: 'eventDate', oldValue: plan.eventDate?.toISOString() ?? null, newValue: newEventDate?.toISOString() ?? null });
     if (!sameMinute(plan.endDate, newEndDate))
@@ -139,7 +146,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: description.trim(), eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants },
     });
 
     if (logs.length > 0) {

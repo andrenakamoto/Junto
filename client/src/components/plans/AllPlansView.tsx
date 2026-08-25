@@ -82,7 +82,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack }: Props) {
                           </span>
                         )}
                       </div>
-                      <p className="text-indigo-300/80 text-xs line-clamp-1 mb-2">{plan.description}</p>
+                      {plan.description && <p className="text-indigo-300/80 text-xs line-clamp-1 mb-2">{plan.description}</p>}
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-indigo-300">
                         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
                         <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-400">{inCount} in</span></span>

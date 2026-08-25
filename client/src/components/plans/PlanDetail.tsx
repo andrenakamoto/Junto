@@ -222,7 +222,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   </button>
                 )}
               </div>
-              <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{plan.description}</p>
+              {plan.description && <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{plan.description}</p>}
 
               {/* Date de l'événement */}
               {eventDateFmt && (

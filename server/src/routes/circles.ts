@@ -46,6 +46,7 @@ router.get('/', async (req: AuthRequest, res) => {
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 const MAX_CIRCLES_PER_USER = 20;
+const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
 // Create a circle
 router.post('/', async (req: AuthRequest, res) => {
@@ -295,11 +296,16 @@ interface NewPlanInput {
 // Partagé entre POST /:id/plans et la conversion d'un CirclePoll en Plan.
 async function createPlanInCircle(app: any, circleId: string, creatorId: string, input: NewPlanInput) {
   const { title, description, eventDate, endDate, location, maxParticipants } = input;
-  if (!title?.trim() || !description?.trim()) return { error: 'Titre et description requis' as const };
+  if (!title?.trim()) return { error: 'Titre requis' as const };
   if (!endDate) return { error: 'Date de fin obligatoire' as const };
   const parsedEndDate = new Date(endDate);
   if (isNaN(parsedEndDate.getTime()) || parsedEndDate <= new Date()) {
     return { error: 'La date de fin doit être dans le futur' as const };
+  }
+  const parsedEventDate = eventDate ? new Date(eventDate) : null;
+  const planStart = parsedEventDate && !isNaN(parsedEventDate.getTime()) ? parsedEventDate : new Date();
+  if (parsedEndDate.getTime() - planStart.getTime() > MAX_PLAN_DURATION_MS) {
+    return { error: 'Un Plan ne peut pas durer plus de 3 semaines' as const };
   }
   let parsedMaxParticipants: number | null = null;
   if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
@@ -312,8 +318,8 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
   const plan = await prisma.plan.create({
     data: {
       title: title.trim(),
-      description: description.trim(),
-      eventDate: eventDate ? new Date(eventDate) : null,
+      description: description?.trim() || '',
+      eventDate: parsedEventDate,
       endDate: parsedEndDate,
       location: location?.trim() || null,
       maxParticipants: parsedMaxParticipants,
