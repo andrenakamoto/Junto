@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
@@ -32,7 +32,10 @@ export function DashboardPage() {
   const [calendarActive, setCalendarActive] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const [plansRefreshSignal, setPlansRefreshSignal] = useState(0);
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
+  const selectedCircleIdRef = useRef(selectedCircleId);
+  useEffect(() => { selectedCircleIdRef.current = selectedCircleId; }, [selectedCircleId]);
 
   useEffect(() => {
     api.get('/circles').then(res => {
@@ -61,6 +64,15 @@ export function DashboardPage() {
       if (data.planId) markPlan(data.planId);
       if (data.type === 'join_accepted') {
         api.get('/circles').then(res => setCircles(res.data));
+      }
+      if (data.type === 'new_plan') {
+        api.get('/circles').then(res => setCircles(res.data));
+        setPlansRefreshSignal(v => v + 1);
+        if (data.planId && data.circleId === selectedCircleIdRef.current) {
+          api.get(`/plans/${data.planId}`).then(res => {
+            setPlans(prev => prev.some(p => p.id === res.data.id) ? prev : [res.data, ...prev]);
+          }).catch(() => {});
+        }
       }
     }
     socket.on('notification', onNotification);
@@ -229,6 +241,7 @@ export function DashboardPage() {
             onSelectPlan={handleSelectPlan}
             selectedPlanId={selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
+            refreshSignal={plansRefreshSignal}
           />
         </div>
       ) : allPlansActive ? (
@@ -237,6 +250,7 @@ export function DashboardPage() {
             onSelectPlan={handleSelectPlan}
             selectedPlanId={selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
+            refreshSignal={plansRefreshSignal}
           />
         </div>
       ) : selectedCircle ? (

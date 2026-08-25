@@ -8,6 +8,7 @@ interface Props {
   onSelectPlan: (plan: Plan) => void;
   selectedPlanId: string | null;
   onBack: () => void;
+  refreshSignal?: number;
 }
 
 const rsvpBadge = {
@@ -17,14 +18,14 @@ const rsvpBadge = {
 };
 const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Absent(e)' };
 
-export function AllPlansView({ onSelectPlan, selectedPlanId, onBack }: Props) {
+export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
   const { user } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get('/plans').then(res => setPlans(res.data)).finally(() => setLoading(false));
-  }, []);
+  }, [refreshSignal]);
 
   // Grouper par cercle
   const byCircle = plans.reduce<Record<string, { name: string; plans: Plan[] }>>((acc, plan) => {

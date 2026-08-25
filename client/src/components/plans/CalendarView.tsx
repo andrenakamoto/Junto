@@ -7,6 +7,7 @@ interface Props {
   onSelectPlan: (plan: Plan) => void;
   selectedPlanId: string | null;
   onBack: () => void;
+  refreshSignal?: number;
 }
 
 const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
@@ -19,7 +20,7 @@ function dateKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-export function CalendarView({ onSelectPlan, selectedPlanId, onBack }: Props) {
+export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState(() => new Date());
@@ -27,7 +28,7 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack }: Props) {
 
   useEffect(() => {
     api.get('/plans').then(res => setPlans(res.data)).finally(() => setLoading(false));
-  }, []);
+  }, [refreshSignal]);
 
   const plansByDay = useMemo(() => {
     const map = new Map<string, Plan[]>();
