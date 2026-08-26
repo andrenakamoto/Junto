@@ -7,6 +7,7 @@ import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -91,8 +92,9 @@ router.post('/setup', registerLimiter, async (req, res) => {
     if (admin) { res.status(409).json({ error: 'Un compte admin existe déjà' }); return; }
     const { pseudo, password } = req.body;
     if (!pseudo || !password) { res.status(400).json({ error: 'Pseudo et mot de passe requis' }); return; }
-    const existing = await prisma.user.findUnique({ where: { pseudo } });
-    if (existing) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
+    const pseudoError = validatePseudo(pseudo);
+    if (pseudoError) { res.status(400).json({ error: pseudoError }); return; }
+    if (await isPseudoTaken(pseudo)) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { pseudo, password: hashed, isAdmin: true, status: 'approved' },
@@ -111,9 +113,10 @@ router.post('/register', registerLimiter, async (req, res) => {
   // Ancien flow (pseudo+password sans email) — maintenu pour compatibilité setup admin
   if (!email) {
     if (!pseudo || !password) { res.status(400).json({ error: 'Pseudo et mot de passe requis' }); return; }
+    const pseudoError = validatePseudo(pseudo);
+    if (pseudoError) { res.status(400).json({ error: pseudoError }); return; }
     try {
-      const existing = await prisma.user.findUnique({ where: { pseudo } });
-      if (existing) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
+      if (await isPseudoTaken(pseudo)) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
       const hashed = await bcrypt.hash(password, 10);
       const user = await prisma.user.create({ data: { pseudo, password: hashed, status: 'pending' } });
       res.json({ pending: true, user: safeUser(user) });
@@ -125,17 +128,19 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!pseudo || !password || !email) {
     res.status(400).json({ error: 'Pseudo, email et mot de passe requis' }); return;
   }
+  const pseudoError = validatePseudo(pseudo);
+  if (pseudoError) { res.status(400).json({ error: pseudoError }); return; }
   const emailLower = email.toLowerCase().trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(emailLower)) { res.status(400).json({ error: 'Email invalide' }); return; }
   if (password.length < 8) { res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères' }); return; }
 
   try {
-    const [existingPseudo, existingEmail] = await Promise.all([
-      prisma.user.findUnique({ where: { pseudo } }),
+    const [pseudoTaken, existingEmail] = await Promise.all([
+      isPseudoTaken(pseudo),
       prisma.user.findUnique({ where: { email: emailLower } }),
     ]);
-    if (existingPseudo) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
+    if (pseudoTaken) { res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return; }
     if (existingEmail) { res.status(409).json({ error: 'Cet email est déjà utilisé' }); return; }
 
     const hashed = await bcrypt.hash(password, 10);

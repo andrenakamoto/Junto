@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
+import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -28,10 +29,10 @@ router.get('/users', async (req: AuthRequest, res) => {
 // Change a user's pseudo (peut cibler n'importe quel compte, y compris celui de l'admin connecté)
 router.put('/users/:id/pseudo', async (req: AuthRequest, res) => {
   const pseudo = req.body?.pseudo?.trim();
-  if (!pseudo) { res.status(400).json({ error: 'Pseudo requis' }); return; }
+  const pseudoError = validatePseudo(pseudo);
+  if (pseudoError) { res.status(400).json({ error: pseudoError }); return; }
   try {
-    const existing = await prisma.user.findUnique({ where: { pseudo } });
-    if (existing && existing.id !== req.params.id) {
+    if (await isPseudoTaken(pseudo, req.params.id)) {
       res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return;
     }
     const user = await prisma.user.update({

@@ -174,6 +174,8 @@ export function AuthPage() {
                   onChange={e => setPseudo(e.target.value)}
                   placeholder="ton_pseudo"
                   required
+                  pattern="[a-zA-Z0-9_]{2,24}"
+                  title="Lettres non accentuées, chiffres et underscore uniquement (2 à 24 caractères)"
                   className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                 />
               </div>
