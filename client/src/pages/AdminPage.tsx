@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, CircleDot, Search, Calendar, MessageSquare, Activity } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
+import { disconnectSocket } from '../lib/socket';
 import api from '../services/api';
 
 interface AdminUser {
@@ -24,9 +25,10 @@ interface Stats {
 type Filter = 'pending' | 'approved' | 'rejected' | 'all';
 
 export function AdminPage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, totalCircles: 0, activePlans: 0, messagesLast7Days: 0, activeUsersLast7Days: 0 });
   const [filter, setFilter] = useState<Filter>('pending');
   const [search, setSearch] = useState('');
@@ -34,19 +36,49 @@ export function AdminPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   const [resetDone, setResetDone] = useState<string | null>(null);
+  const [editingPseudoId, setEditingPseudoId] = useState<string | null>(null);
+  const [pseudoInput, setPseudoInput] = useState('');
+  const [pseudoError, setPseudoError] = useState('');
 
   async function fetchData() {
     setLoading(true);
-    const [usersRes, statsRes] = await Promise.all([
+    const [usersRes, statsRes, allUsersRes] = await Promise.all([
       api.get(`/admin/users${filter !== 'all' ? `?status=${filter}` : ''}`),
       api.get('/admin/stats'),
+      api.get('/admin/users'),
     ]);
     setUsers(usersRes.data.filter((u: AdminUser) => !u.isAdmin));
+    setAdminUsers(allUsersRes.data.filter((u: AdminUser) => u.isAdmin));
     setStats(statsRes.data);
     setLoading(false);
   }
 
   useEffect(() => { fetchData(); }, [filter]);
+
+  function startEditPseudo(u: AdminUser) {
+    setEditingPseudoId(u.id);
+    setPseudoInput(u.pseudo);
+    setPseudoError('');
+  }
+
+  async function handleSavePseudo(u: AdminUser) {
+    const newPseudo = pseudoInput.trim();
+    if (!newPseudo || newPseudo === u.pseudo) { setEditingPseudoId(null); return; }
+    try {
+      await api.put(`/admin/users/${u.id}/pseudo`, { pseudo: newPseudo });
+      setEditingPseudoId(null);
+      if (u.id === user?.id) {
+        // Le pseudo est encodé dans le token JWT — il faut se reconnecter pour qu'il se mette à jour partout.
+        disconnectSocket();
+        logout();
+        navigate('/auth');
+        return;
+      }
+      fetchData();
+    } catch (err: any) {
+      setPseudoError(err.response?.data?.error || 'Erreur');
+    }
+  }
 
   async function handleApprove(id: string) {
     await api.put(`/admin/users/${id}/approve`);
@@ -69,6 +101,36 @@ export function AdminPage() {
     setConfirmReset(null);
     setResetDone(id);
     setTimeout(() => setResetDone(null), 3000);
+  }
+
+  function PseudoField({ u }: { u: AdminUser }) {
+    if (editingPseudoId === u.id) {
+      return (
+        <div className="flex items-center gap-1.5">
+          <input
+            autoFocus
+            value={pseudoInput}
+            onChange={e => setPseudoInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleSavePseudo(u); if (e.key === 'Escape') setEditingPseudoId(null); }}
+            className="font-semibold text-slate-800 border border-indigo-300 rounded-lg px-2 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-40"
+          />
+          <button onClick={() => handleSavePseudo(u)} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg"><Check size={14} /></button>
+          <button onClick={() => setEditingPseudoId(null)} className="p-1 text-slate-400 hover:bg-slate-100 rounded-lg"><X size={14} /></button>
+        </div>
+      );
+    }
+    return (
+      <p className="font-semibold text-slate-800 flex items-center gap-1.5 group">
+        @{u.pseudo}
+        <button
+          onClick={() => startEditPseudo(u)}
+          title="Modifier le pseudo"
+          className="p-0.5 text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Pencil size={12} />
+        </button>
+      </p>
+    );
   }
 
   const visibleUsers = users.filter(u => {
@@ -113,7 +175,28 @@ export function AdminPage() {
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
         </div>
 
+        {adminUsers.length > 0 && (
+          <>
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Comptes admin</h2>
+            <div className="space-y-3 mb-8">
+              {adminUsers.map(u => (
+                <div key={u.id} className="bg-white rounded-xl border border-indigo-200 shadow-sm p-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck size={16} className="text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <PseudoField u={u} />
+                    {u.id === user?.id && <span className="text-xs text-indigo-500">C'est toi</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {pseudoError && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-4">{pseudoError}</p>}
+          </>
+        )}
+
         <h2 className="text-lg font-bold text-slate-800 mb-4">Gestion des membres</h2>
+        {adminUsers.length === 0 && pseudoError && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-4">{pseudoError}</p>}
 
         {/* Search */}
         <div className="relative mb-4">
@@ -166,7 +249,7 @@ export function AdminPage() {
                   <span className="text-indigo-600 font-bold text-sm">{u.pseudo[0].toUpperCase()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800">@{u.pseudo}</p>
+                  <PseudoField u={u} />
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                     <p className="text-xs text-slate-400">
                       Inscrit le {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(u.createdAt))}

@@ -25,6 +25,26 @@ router.get('/users', async (req: AuthRequest, res) => {
   res.json(users);
 });
 
+// Change a user's pseudo (peut cibler n'importe quel compte, y compris celui de l'admin connecté)
+router.put('/users/:id/pseudo', async (req: AuthRequest, res) => {
+  const pseudo = req.body?.pseudo?.trim();
+  if (!pseudo) { res.status(400).json({ error: 'Pseudo requis' }); return; }
+  try {
+    const existing = await prisma.user.findUnique({ where: { pseudo } });
+    if (existing && existing.id !== req.params.id) {
+      res.status(409).json({ error: 'Ce pseudo est déjà pris' }); return;
+    }
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { pseudo },
+      select: userSelect,
+    });
+    res.json(user);
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Approve a user
 router.put('/users/:id/approve', async (req: AuthRequest, res) => {
   const user = await prisma.user.update({
