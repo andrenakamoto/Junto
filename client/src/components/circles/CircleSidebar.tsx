@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
+import { GuideModal } from '../ui/GuideModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +34,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
@@ -341,6 +343,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               Notifications
             </button>
             <button
+              onClick={() => { setShowMenu(false); setShowGuide(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <BookOpen size={15} />
+              Guide d'utilisation
+            </button>
+            <button
               onClick={() => { setShowMenu(false); setShowTerms(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-300/70 hover:text-indigo-200 hover:bg-slate-700 transition-colors text-sm"
             >
@@ -368,6 +377,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       )}
       {showTerms && (
         <TermsModal readOnly onClose={() => setShowTerms(false)} />
+      )}
+      {showGuide && (
+        <GuideModal onClose={() => setShowGuide(false)} />
       )}
       {showCreate && (
         <CreateCircleModal
