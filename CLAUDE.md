@@ -247,6 +247,33 @@ Junto/
   CircleDeleteVote/PlanDeleteVote. Aucun refus unilatéral possible (pas
   même par le créateur) — seul le vote à la majorité fait foi, une demande
   reste en attente indéfiniment tant que le seuil n'est pas atteint.
+  (Comportement par défaut — voir « Paramètres avancés » ci-dessous.)
+- **Paramètres avancés** (2026-09-27, pour associations/entreprises) —
+  constantes et validation dans `server/src/lib/settings.ts`, libellés
+  côté client dans `client/src/lib/settings.ts`, champs UI dans
+  `components/ui/AdvancedSettings.tsx`. Modifiables par le **créateur
+  seul**, visibles par tous (icône réglages : `CircleSettingsModal`,
+  `PlanSettingsModal`).
+  - `Circle.admissionMode` : `vote` (défaut, majorité) / `creator` (le
+    créateur accepte via la route de vote, et peut **refuser** via DELETE
+    /:id/join-requests/:requestId — refus interdit en mode vote) / `open`
+    (/join ajoute directement le membre, réponse `{pending:false, circle}`).
+    Passer en `open` accepte toutes les demandes en attente.
+  - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut) ou
+    `creator` (vote-delete supprime immédiatement si c'est le créateur, 403
+    sinon ; passer en `creator` efface les votes en cours).
+  - `Plan.disabledFeatures` (String[]) : `chat`, `trajets`, `votes`,
+    `depenses`, `fichiers`. Infos et Membres toujours actifs. Masquer ne
+    supprime aucune donnée ; le serveur bloque les **écritures** (socket
+    send-message, rides via `getMembership`, polls, expenses,
+    reimbursements, upload), les lectures restent possibles.
+  - `Plan.editMode` : `creator` (défaut) ou `all` — en `all`, tout membre
+    du Plan **hors invité externe** peut modifier via PUT /plans/:id les
+    **dates et le lieu uniquement** ; le serveur ignore les autres champs
+    (titre, description, limite, exclusions, paramètres) venant d'un
+    non-créateur. Le lieu est modifiable depuis le 2026-09-27 (il ne
+    l'était par personne avant). `PlanChangeLog.changedById` (SetNull à la
+    suppression du compte) trace l'auteur de chaque modification.
 - **CirclePoll** / **CirclePollOption** / **CirclePollVote** : sondage pour
   caler une date *avant* de créer un Plan (contrairement à Poll qui
   appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
@@ -258,7 +285,8 @@ Junto/
   cette conversion, pour ne pas dupliquer la notif temps réel + email.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
-  join si atteinte), reminderSentAt? (anti-doublon rappel email), archived,
+  join si atteinte), deletionMode, disabledFeatures (voir Paramètres
+  avancés), reminderSentAt? (anti-doublon rappel email), archived,
   circleId, creatorId
 - **PlanMember** : userId+planId, rsvp ("in" par défaut)
 - **PlanDeleteVote**, **PlanChangeLog**
@@ -351,7 +379,9 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   données), /:id/join-requests/:requestId/vote (POST, toggle, accepte le
   membre au seuil — pas de route de refus, voir modèle de données),
   /:id/plans (list+create, avec maxParticipants),
-  /:id/vote-delete, /:id/color (PUT, créateur uniquement), /:id/leave
+  /:id/vote-delete, /:id/color (PUT, créateur uniquement), /:id/settings
+  (PUT, créateur uniquement — paramètres avancés), DELETE
+  /:id/join-requests/:requestId (refus, mode `creator` uniquement), /:id/leave
   (POST — un membre quitte de lui-même ; si c'est le créateur et qu'il
   reste d'autres membres, le rôle de créateur passe au membre le plus
   ancien ; si le créateur était seul, le Cercle est supprimé), /:id/polls

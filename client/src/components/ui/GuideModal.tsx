@@ -37,9 +37,10 @@ export function GuideModal({ onClose }: Props) {
             <h3 className="font-bold text-slate-900 mb-2">2. Créer ou rejoindre un Cercle</h3>
             <p>
               Tu peux créer un Cercle (nom, description et couleur optionnels) ou en rejoindre un existant
-              avec son nom et son code d'accès. Rejoindre crée une demande : les membres actuels du Cercle
-              votent pour t'accepter, à la majorité — personne ne peut refuser une demande unilatéralement,
-              elle reste en attente tant que le seuil n'est pas atteint.
+              avec son nom et son code d'accès. Par défaut, rejoindre crée une demande : les membres actuels
+              du Cercle votent pour t'accepter, à la majorité — personne ne peut refuser une demande
+              unilatéralement, elle reste en attente tant que le seuil n'est pas atteint. Le créateur peut
+              choisir un autre mode d'admission (voir « Paramètres avancés »).
             </p>
           </section>
 
@@ -132,8 +133,31 @@ export function GuideModal({ onClose }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">11. Décisions collectives</h3>
             <p>
-              Accepter un nouveau membre, supprimer un Cercle ou supprimer un Plan : tout se décide{' '}
+              Par défaut, accepter un nouveau membre, supprimer un Cercle ou supprimer un Plan se décide{' '}
               <strong>à la majorité des membres</strong>, jamais par une seule personne (même le créateur).
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">11 bis. Paramètres avancés (associations, entreprises…)</h3>
+            <p>
+              À la création d'un Cercle ou d'un Plan, la section <strong>Paramètres avancés</strong> permet
+              d'adapter ces règles :
+            </p>
+            <ul className="list-disc pl-5 mt-1.5 space-y-1">
+              <li><strong>Admission dans le Cercle</strong> : vote à la majorité, validation par le créateur
+                (qui peut alors accepter ou refuser), ou entrée libre avec le nom et le code.</li>
+              <li><strong>Suppression</strong> du Cercle ou du Plan : vote à la majorité, ou créateur seul.</li>
+              <li><strong>Modification du Plan</strong> : créateur seul, ou tous les participants pour les dates
+                et le lieu (le titre et la description restent au créateur). Chaque modification apparaît dans
+                l'historique avec son auteur.</li>
+              <li><strong>Fonctions du Plan</strong> : masquer le chat, les trajets, les sondages, les dépenses
+                ou les photos et fichiers. Infos et Membres restent toujours actifs ; une fonction masquée
+                garde ses données et réapparaît si on la réactive.</li>
+            </ul>
+            <p className="mt-1.5">
+              Ces paramètres sont visibles par tous les membres (icône réglages) et modifiables ensuite par le
+              créateur seul.
             </p>
           </section>
 
