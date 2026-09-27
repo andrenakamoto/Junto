@@ -209,7 +209,12 @@ Junto/
 
 ## Modèle de données (Prisma — `server/prisma/schema.prisma`)
 
-- **User** : pseudo (unique), password?, email? (unique), emailVerified,
+- **User** : pseudo (unique), firstName?/lastName? (2026-09-27 : prénom
+  obligatoire à l'inscription par email — contrôlé par l'API, pas par la base —,
+  nom facultatif, pré-remplis depuis Google ; les comptes plus anciens sans
+  prénom voient `ProfileNameBanner` ; affichés « Prénom Nom » + @pseudo dans
+  les listes de membres, le chat et les mentions restent au pseudo),
+  password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt
 - **Circle** : name, code (unique), description?, color? (palette fixe de
@@ -314,7 +319,7 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
 
 - **auth.ts** : /needs-setup, /setup, /register, /verify-email,
   /resend-verification, /login, /google, /forgot-password, /reset-password,
-  /me, /change-password, /add-email, /accept-terms,
+  /me, /change-password, /add-email, /profile (PUT prénom/nom), /accept-terms,
   /notification-settings (PUT, toggle weeklyDigestEnabled).
   Rate limité : login/register/google (loginLimiter/registerLimiter),
   resend-verification/forgot-password (emailActionLimiter).
