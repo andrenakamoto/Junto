@@ -4,10 +4,12 @@ import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
+import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode } from '../lib/settings';
 
 const router = Router();
 router.use(requireAuth as any);
+router.use(broadcastWrites(resolveCircleWrite));
 
 function generateCode(length = 6): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -80,6 +82,7 @@ router.post('/', async (req: AuthRequest, res) => {
     },
     include: circleInclude,
   });
+  joinCircleRoom(req.app.get('io'), req.userId!, circle.id);
   res.json(circle);
 });
 
@@ -107,6 +110,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
     prisma.circleJoinRequest.delete({ where: { id: request.id } }),
     prisma.circleMember.create({ data: { userId: request.userId, circleId } }),
   ]);
+  joinCircleRoom(app.get('io'), request.userId, circleId);
 
   const updatedCircle = await prisma.circle.findUnique({ where: { id: circleId }, include: circleInclude });
 
@@ -197,6 +201,7 @@ router.post('/join', async (req: AuthRequest, res) => {
     // Entrée libre : le nom + le code suffisent
     await prisma.circleJoinRequest.deleteMany({ where: { circleId: circle.id, userId: req.userId! } });
     await prisma.circleMember.create({ data: { userId: req.userId!, circleId: circle.id } });
+    joinCircleRoom(req.app.get('io'), req.userId!, circle.id);
     const joined = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
     res.json({ pending: false, circle: joined, circleName: circle.name });
     return;
@@ -552,6 +557,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
 
   const circle = await prisma.circle.findUnique({ where: { id: circleId } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  leaveCircleRoom(req.app.get('io'), userId, circleId);
 
   if (circle.creatorId === userId) {
     const nextMember = await prisma.circleMember.findFirst({

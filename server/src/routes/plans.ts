@@ -9,10 +9,12 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
 import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 
 const router = Router();
 router.use(requireAuth as any);
+router.use(broadcastWrites(resolvePlanWrite));
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 

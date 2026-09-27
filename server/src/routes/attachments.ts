@@ -11,6 +11,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { cloudinary } from '../lib/cloudinary';
 import { verifyMediaToken } from '../lib/mediaToken';
 import { FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
 
 const router = Router();
 // /download accepte aussi un token query param (mobile), et /view un jeton média :
@@ -20,6 +21,7 @@ router.use((req, res, next) => {
   if (req.method === 'GET' && req.path.endsWith('/view') && req.query.t) return next();
   return (requireAuth as any)(req, res, next);
 });
+router.use(broadcastWrites(resolveAttachmentWrite));
 
 const upload = multer({
   storage: multer.memoryStorage(),
