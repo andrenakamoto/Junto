@@ -444,6 +444,28 @@ dans `circles.ts`, pas depuis `handlers.ts` ; le type `ride` vient de
 `lib/rides.ts`). Le covoiturage émet aussi `rides-updated` dans la room
 `plan:{id}` à chaque changement, pour que `CarpoolSection` se recharge.
 
+**Rafraîchissement temps réel générique** (2026-09-27) : `lib/realtime.ts`
+monte un middleware `broadcastWrites` sur les routeurs plans, circles et
+attachments. Après **toute écriture réussie** (non-GET, statut < 400), il
+émet `plan-updated {planId}` dans `plan:{id}` et/ou `circle-updated
+{circleId}` dans `circle:{id}` ; la cible est résolue **avant** la route
+(la ressource peut être supprimée par la requête). Les clients rechargent
+eux-mêmes via les GET, donc les règles d'accès (Plan surprise, invités)
+restent appliquées — ne jamais mettre de données dans ces événements.
+Une nouvelle route d'écriture est couverte automatiquement si son chemin
+suit les conventions (`/:id/...`) ; sinon, compléter les résolveurs.
+`joinCircleRoom`/`leaveCircleRoom` tiennent les rooms `circle:*` à jour
+pour les sockets déjà connectés (création, admission, départ). Côté
+client : `hooks/useSocketEvent.ts` ; `DashboardPage` recharge Cercles,
+liste de Plans et Plan ouvert (regroupés à 250 ms), aussi au retour sur
+l'onglet (max 1×/15 s) et après une reconnexion ; un Plan ouvert qui
+renvoie 404/403 se ferme avec la notification `plan_gone`. `PlanDetail`
+rejoint à nouveau `plan:{id}` et recharge les messages sur `connect`
+(avant, le chat restait muet après une coupure). `UpdateBanner` (monté
+dans `main.tsx`) compare le script `/assets/index-*.js` chargé à celui
+de la page servie (toutes les 5 min + retour sur l'onglet) et propose
+« Recharger » après une mise en prod.
+
 Dans `handlers.ts`, le handler `connection` n'est **pas** async : la
 préparation de la présence (requêtes Prisma) tourne dans une promesse à
 part (`presenceReady`) et les écouteurs (`join-plan`, `send-message`…)
