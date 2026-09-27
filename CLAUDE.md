@@ -116,6 +116,19 @@ Conséquences pratiques :
   sémantiques (emerald/amber/red pour succès/attention/danger) et la
   palette `CIRCLE_COLORS` (8 couleurs au choix pour un Cercle, dupliquée
   côté client et serveur) sont restées inchangées.
+- **Thème clair** (2026-09-27) : les colonnes de navigation (Cercles,
+  Plans, Tous mes plans, Calendrier) sont passées du sombre (slate-900/800)
+  au clair — fond `slate-100`/`slate-50`, cartes blanches `shadow-sm` +
+  bordure `slate-200`, liseré de couleur du Cercle à gauche, élément
+  sélectionné en corail plein (`bg-indigo-600`, texte blanc). Logo en
+  `LogoFull light`. Les pages d'authentification restent sombres.
+- **Écrans peu hauts** : variante Tailwind `short:` (`max-height: 500px`,
+  téléphone en paysage, définie dans `tailwind.config.js`). Colonnes et
+  fiches (Plan, sondage) y défilent d'un bloc (`short:overflow-y-auto` sur
+  la racine, `short:flex-none short:overflow-visible` sur les zones
+  défilantes internes), onglets `short:sticky top-0`, saisie du chat et
+  pieds de colonne `short:sticky bottom-0`. À appliquer à toute nouvelle
+  colonne/fiche avec en-tête fixe.
 - **Logo / wordmark** (2026-08-24) : plus d'icône dans l'app — la marque
   est un wordmark typographique pur, "**Ev**LY" avec "Ev" en italique fine
   (police **Fraunces**, `ital,wght@1,300`, blanc sur fond sombre / `#1e293b`
