@@ -3,6 +3,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      screens: {
+        // Écran peu haut (téléphone en paysage) : les fiches défilent d'un bloc
+        short: { raw: '(max-height: 500px)' },
+      },
       colors: {
         // Charte "Corail" (2026-08-23) — remplace la couleur de marque
         // indigo par un corail chaud. Toutes les classes indigo-* du

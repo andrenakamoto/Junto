@@ -59,7 +59,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply }: Prop
   }
 
   return (
-    <div className="px-6 py-4 border-t border-slate-200 bg-white relative">
+    <div className="px-6 py-4 border-t border-slate-200 bg-white relative short:sticky short:bottom-0 short:z-10">
       {replyTo && (
         <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg">
           <p className="text-xs text-indigo-700 truncate">

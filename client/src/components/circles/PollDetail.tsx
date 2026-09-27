@@ -110,7 +110,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col bg-white overflow-hidden short:overflow-y-auto">
       {/* En-tête */}
       <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0">
         <div className="flex items-start gap-2">
@@ -154,7 +154,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
       </div>
 
       {/* Onglets */}
-      <div className="flex border-b border-slate-200 flex-shrink-0 bg-white">
+      <div className="flex border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
         {([['dates', Calendar, 'Dates'], ['chat', MessageSquare, `Chat${messages.length ? ` (${messages.length})` : ''}`]] as const).map(([key, Icon, label]) => (
           <button
             key={key}
@@ -169,7 +169,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
       </div>
 
       {tab === 'dates' && (
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-5 bg-slate-50">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-5 bg-slate-50 short:flex-none short:overflow-visible">
           <div className="space-y-2">
             {poll.options.map(opt => {
               const iVoted = opt.votes.some(v => v.userId === user.id);
@@ -242,8 +242,8 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
       )}
 
       {tab === 'chat' && (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3 bg-slate-50">
+        <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
+          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
             {messages.length === 0 ? (
               <div className="text-center text-slate-400 text-sm pt-12">
                 Aucun message. Discutez ici des dates proposées !

@@ -120,7 +120,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const isCreator = plan.creatorId === userId;
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6">
+    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6 short:flex-none short:overflow-visible">
       {plan.location && (
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">

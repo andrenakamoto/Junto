@@ -238,7 +238,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const isFull = plan.maxParticipants != null && plan.members.length >= plan.maxParticipants;
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col bg-white overflow-hidden short:overflow-y-auto">
       {/* Header */}
       <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0">
         <div className="flex items-start justify-between gap-4">
@@ -483,7 +483,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {/* Tabs (only if member) */}
       {isMember && (
         <>
-          <div className="flex border-b border-slate-200 flex-shrink-0 bg-white">
+          <div className="flex border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
             {visibleTabs.map(({ key, Icon, label }) => (
               <button
                 key={key}
@@ -501,8 +501,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           </div>
 
           {tab === 'chat' && isEnabled(plan, 'chat') && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50">
+            <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
                 {messages.length === 0 ? (
                   <div className="text-center text-slate-400 text-sm pt-12">
                     Aucun message encore. Lance la conversation !
@@ -552,7 +552,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} />}
           {tab === 'trajets' && (
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
               <CarpoolSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} />
             </div>
           )}

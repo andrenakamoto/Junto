@@ -14,7 +14,7 @@ export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; 
   const sorted = [...members].sort((a, b) => rsvpOrder[a.rsvp] - rsvpOrder[b.rsvp]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50">
+    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
       <h3 className="font-semibold text-slate-800 text-sm mb-3">
         {members.length} membre{members.length > 1 ? 's' : ''}
       </h3>

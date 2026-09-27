@@ -46,7 +46,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   const polls = plan.polls || [];
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4">
+    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
       {polls.length === 0 && !showCreate && (
         <p className="text-sm text-slate-400 italic">Aucun sondage pour l'instant.</p>
       )}
