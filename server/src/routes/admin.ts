@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
+import { deleteUserAccount } from '../lib/accountDeletion';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
@@ -87,13 +88,8 @@ router.put('/users/:id/reset-password', async (req: AuthRequest, res) => {
 // Delete a user permanently
 router.delete('/users/:id', async (req: AuthRequest, res) => {
   try {
-    const id = req.params.id;
-    // Supprimer les cercles créés par l'utilisateur (cascade vers plans, messages, etc.)
-    await prisma.circle.deleteMany({ where: { creatorId: id } });
-    // Supprimer les plans créés par l'utilisateur dans d'autres cercles
-    await prisma.plan.deleteMany({ where: { creatorId: id } });
-    // Supprimer l'utilisateur (cascade vers memberships, votes, etc.)
-    await prisma.user.delete({ where: { id } });
+    // Cercles et Plans créés par l'utilisateur transférés à d'autres membres, pas effacés
+    await deleteUserAccount(req.params.id);
     res.json({ ok: true });
   } catch (e) {
     console.error('[delete user]', e);

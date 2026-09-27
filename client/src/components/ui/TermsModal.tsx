@@ -160,9 +160,11 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
               prestation.
             </p>
             <p className="mt-2">
-              Tu peux demander la suppression de ton compte et de tes données à tout moment en
-              contactant un administrateur. Certaines données peuvent être conservées au-delà en cas
-              d'obligation légale ou d'intérêt légitime (ex. lutte contre la fraude).
+              Tu peux supprimer ton compte et tes données à tout moment depuis le menu
+              (« Supprimer mon compte »). Les Cercles et Plans que tu as créés sont alors confiés à
+              d'autres membres, et les photos partagées restent dans les Plans. Certaines données
+              peuvent être conservées au-delà en cas d'obligation légale ou d'intérêt légitime (ex.
+              lutte contre la fraude).
             </p>
           </section>
 

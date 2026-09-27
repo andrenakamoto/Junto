@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen, UserRound } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen, UserRound, UserX } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
 import { ProfileModal } from '../ui/ProfileModal';
+import { DeleteAccountModal } from '../ui/DeleteAccountModal';
 import { fullName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
@@ -38,6 +39,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showTerms, setShowTerms] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
@@ -369,6 +371,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               <ScrollText size={15} />
               Conditions d'utilisation
             </button>
+            <button
+              onClick={() => { setShowMenu(false); setShowDeleteAccount(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400/80 hover:text-red-300 hover:bg-slate-700 transition-colors text-sm"
+            >
+              <UserX size={15} />
+              Supprimer mon compte
+            </button>
             <p className="text-center text-xs text-slate-500 pt-2 mt-1 border-t border-slate-700/60">info@evly.ch</p>
           </div>
         )}
@@ -396,6 +405,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       )}
       {showProfile && (
         <ProfileModal onClose={() => setShowProfile(false)} />
+      )}
+      {showDeleteAccount && (
+        <DeleteAccountModal onClose={() => setShowDeleteAccount(false)} />
       )}
       {showCreate && (
         <CreateCircleModal

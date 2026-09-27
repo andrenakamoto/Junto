@@ -3,6 +3,8 @@ export interface User {
   pseudo: string;
   firstName?: string | null;
   lastName?: string | null;
+  /** Faux pour un compte créé avec Google (pas de mot de passe) */
+  hasPassword?: boolean;
   status: string;
   isAdmin: boolean;
   termsAccepted: boolean;

@@ -7,6 +7,7 @@ import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { deleteUserAccount } from '../lib/accountDeletion';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 
 const router = Router();
@@ -26,12 +27,15 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
+  password?: string | null;
 }) {
   return {
     id: user.id,
     pseudo: user.pseudo,
     firstName: user.firstName ?? null,
     lastName: user.lastName ?? null,
+    // Indique seulement si un mot de passe existe (comptes Google : non) ; le hash ne sort jamais
+    hasPassword: !!user.password,
     status: user.status,
     isAdmin: user.isAdmin,
     termsAccepted: user.acceptedTermsVersion >= CURRENT_TERMS_VERSION,
@@ -359,7 +363,7 @@ router.post('/reset-password', async (req, res) => {
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true,
-  firstName: true, lastName: true,
+  firstName: true, lastName: true, password: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
@@ -381,6 +385,52 @@ router.put('/profile', requireAuth, async (req: AuthRequest, res) => {
     res.json(safeUser(user));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Supprimer son propre compte (mot de passe requis, ou « SUPPRIMER » pour un compte Google)
+router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+
+    if (user.password) {
+      const password = typeof req.body?.password === 'string' ? req.body.password : '';
+      if (!password || !(await bcrypt.compare(password, user.password))) {
+        res.status(400).json({ error: 'Mot de passe incorrect' }); return;
+      }
+    } else if (req.body?.confirmation !== 'SUPPRIMER') {
+      res.status(400).json({ error: 'Tape SUPPRIMER pour confirmer' }); return;
+    }
+
+    // Sans admin, /setup redeviendrait ouvert à n'importe qui
+    if (user.isAdmin) {
+      const otherAdmins = await prisma.user.count({ where: { isAdmin: true, id: { not: user.id } } });
+      if (otherAdmins === 0) {
+        res.status(400).json({ error: "Tu es le seul administrateur d'EvLY : ce compte ne peut pas être supprimé." }); return;
+      }
+    }
+
+    await deleteUserAccount(user.id);
+    res.json({ deleted: true });
+
+    if (user.email && user.emailVerified) {
+      const result = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: user.email,
+        subject: 'Ton compte EvLY a été supprimé',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <h2>Au revoir ${user.firstName || user.pseudo}</h2>
+            <p>Ton compte EvLY et tes données personnelles ont bien été supprimés. Les Cercles et Plans que tu avais créés ont été confiés à d'autres membres.</p>
+            <p style="color:#888;font-size:12px;margin-top:24px">Tu peux recréer un compte à tout moment sur evly.ch.</p>
+          </div>`,
+      });
+      if (result.error) console.error('[delete account email]', user.email, result.error);
+    }
+  } catch (e) {
+    console.error('[delete account]', e);
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de la suppression du compte' });
   }
 });
 
