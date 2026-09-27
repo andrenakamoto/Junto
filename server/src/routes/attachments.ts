@@ -4,6 +4,7 @@ import https from 'https';
 import http from 'http';
 import zlib from 'zlib';
 import jwt from 'jsonwebtoken';
+import archiver from 'archiver';
 import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -139,6 +140,107 @@ router.get('/:id/download-token', async (req: AuthRequest, res) => {
     res.json({ token });
   } catch (e) {
     res.status(500).json({ error: 'Erreur lors de la génération du token' });
+  }
+});
+
+// GET /api/attachments/plans/:planId/photos-token — token court (2 min) pour le ZIP des photos sur mobile
+router.get('/plans/:planId/photos-token', async (req: AuthRequest, res) => {
+  try {
+    const plan = await prisma.plan.findUnique({ where: { id: req.params.planId } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+
+    const isMember = await prisma.circleMember.findUnique({
+      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
+    });
+    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+    const token = jwt.sign(
+      { planId: plan.id, userId: req.userId, purpose: 'photos' },
+      process.env.JWT_SECRET!,
+      { expiresIn: '2m' },
+    );
+    res.json({ token });
+  } catch {
+    res.status(500).json({ error: 'Erreur lors de la génération du token' });
+  }
+});
+
+function uniqueZipEntryName(name: string, used: Set<string>): string {
+  const safe = name.replace(/[/\\]/g, '_') || 'photo.jpg';
+  if (!used.has(safe.toLowerCase())) { used.add(safe.toLowerCase()); return safe; }
+  const dot = safe.lastIndexOf('.');
+  const base = dot > 0 ? safe.slice(0, dot) : safe;
+  const ext = dot > 0 ? safe.slice(dot) : '';
+  let i = 2;
+  while (used.has(`${base} (${i})${ext}`.toLowerCase())) i++;
+  const candidate = `${base} (${i})${ext}`;
+  used.add(candidate.toLowerCase());
+  return candidate;
+}
+
+// GET /api/attachments/plans/:planId/photos/download — ZIP de toutes les photos du Plan
+// Accepte Bearer header (web) ou ?token= query param (mobile), comme /:id/download
+router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
+  try {
+    if (!req.userId && req.query.token) {
+      try {
+        const payload = jwt.verify(req.query.token as string, process.env.JWT_SECRET!) as {
+          planId?: string;
+          userId: string;
+          purpose?: string;
+        };
+        if (payload.purpose !== 'photos' || payload.planId !== req.params.planId) {
+          res.status(403).json({ error: 'Token invalide pour ce Plan' }); return;
+        }
+        req.userId = payload.userId;
+      } catch {
+        res.status(401).json({ error: 'Token expiré ou invalide' }); return;
+      }
+    }
+    if (!req.userId) { res.status(401).json({ error: 'Non authentifié' }); return; }
+
+    const plan = await prisma.plan.findUnique({ where: { id: req.params.planId } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+
+    const isMember = await prisma.circleMember.findUnique({
+      where: { userId_circleId: { userId: req.userId, circleId: plan.circleId } },
+    });
+    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+    const photos = await prisma.attachment.findMany({
+      where: { planId: plan.id, mimeType: { startsWith: 'image/' } },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (photos.length === 0) { res.status(404).json({ error: 'Aucune photo dans ce Plan' }); return; }
+
+    const zipName = `${plan.title.replace(/[/\\:*?"<>|]/g, '_')} - photos.zip`;
+    const encoded = encodeURIComponent(zipName).replace(/'/g, '%27');
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+
+    // store: les JPEG/PNG sont déjà compressés, recompresser ne fait que coûter du CPU
+    const archive = archiver('zip', { store: true });
+    archive.on('error', (err) => {
+      console.error('[photos zip]', err);
+      res.destroy(err);
+    });
+    archive.pipe(res);
+
+    const used = new Set<string>();
+    for (const photo of photos) {
+      try {
+        const buffer = await fetchBuffer(photo.url);
+        if (buffer.length === 0) continue;
+        archive.append(buffer, { name: uniqueZipEntryName(photo.name, used) });
+      } catch (e) {
+        console.error('[photos zip] fetch', photo.id, e);
+      }
+    }
+    await archive.finalize();
+  } catch (e) {
+    console.error('[photos zip]', e);
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de la création du ZIP' });
+    else res.destroy();
   }
 });
 

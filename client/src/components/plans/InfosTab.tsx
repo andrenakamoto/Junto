@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2, Images } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
@@ -28,7 +28,35 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [zipping, setZipping] = useState(false);
+  const [zipError, setZipError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleDownloadAllPhotos() {
+    setZipping(true);
+    setZipError('');
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const { data } = await api.get(`/attachments/plans/${plan.id}/photos-token`);
+        const base = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
+        window.open(`${base}/attachments/plans/${plan.id}/photos/download?token=${data.token}`, '_system');
+      } else {
+        const res = await api.get(`/attachments/plans/${plan.id}/photos/download`, { responseType: 'blob' });
+        const url = URL.createObjectURL(res.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${plan.title.replace(/[/\\:*?"<>|]/g, '_')} - photos.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch {
+      setZipError('Impossible de préparer le téléchargement. Réessaie.');
+    } finally {
+      setZipping(false);
+    }
+  }
 
   async function refresh() {
     const { data } = await api.get(`/plans/${plan.id}`);
@@ -140,6 +168,24 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
       {imageAttachments.length > 0 && (
         <div>
           <h3 className="font-semibold text-slate-800 text-sm mb-3">Galerie ({imageAttachments.length})</h3>
+          <div className="mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+            <button
+              onClick={handleDownloadAllPhotos}
+              disabled={zipping}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              {zipping ? <Loader2 size={16} className="animate-spin" /> : <Images size={16} />}
+              {zipping
+                ? 'Préparation du téléchargement…'
+                : `Télécharger toutes les photos (${imageAttachments.length})`}
+            </button>
+            <p className="text-xs text-indigo-700/80 text-center mt-2">
+              Les photos seront supprimées avec le Plan le{' '}
+              {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(new Date(plan.endDate))}.
+              Pense à les récupérer !
+            </p>
+            {zipError && <p className="text-xs text-red-500 text-center mt-1">{zipError}</p>}
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {imageAttachments.map(att => (
               <GalleryThumb

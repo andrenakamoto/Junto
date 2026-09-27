@@ -290,7 +290,13 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   /:id/reimbursements (POST), /:id/ical (GET, export .ics)
 - **admin.ts** : /users, /users/:id/approve|reject|reset-password,
   DELETE /users/:id, /stats
-- **attachments.ts** : upload, /:id/download-token, /:id/download (proxy), DELETE
+- **attachments.ts** : upload (100 Mo cumulés max par Plan), /:id/download-token,
+  /:id/download (proxy), DELETE, /plans/:planId/photos-token +
+  /plans/:planId/photos/download (ZIP de toutes les photos du Plan, généré à
+  la volée avec `archiver` — bouton "Télécharger toutes les photos" dans
+  InfosTab, pour récupérer les souvenirs avant la suppression automatique).
+  `archiver` est épinglé en v7 : la v8 est ESM-only, incompatible avec le
+  build CommonJS du serveur.
 - **invitations.ts** : /status (twilioEnabled), /sms (Twilio), /email (Resend
   — toujours disponible, pas de flag "enabled" côté client contrairement au SMS)
 

@@ -12,6 +12,7 @@
   "dependencies": {
     "@prisma/client": "^5.16.1",
     "@types/multer": "^2.1.0",
+    "archiver": "^7.0.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.5",
@@ -26,6 +27,7 @@
     "twilio": "^6.0.2"
   },
   "devDependencies": {
+    "@types/archiver": "^6.0.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
