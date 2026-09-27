@@ -97,7 +97,7 @@ export function JoinPage() {
               <p className="text-indigo-300 font-semibold text-sm">Demande envoyée</p>
               <p className="text-slate-400 text-xs">
                 {pending === 'creator'
-                  ? "Le créateur du Cercle doit valider ta demande avant que tu puisses y accéder."
+                  ? "Le créateur ou un organisateur du Cercle doit valider ta demande avant que tu puisses y accéder."
                   : 'Les membres du Cercle doivent valider ta demande (majorité requise) avant que tu puisses y accéder.'}
               </p>
               <button

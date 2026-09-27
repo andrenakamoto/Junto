@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { nextCircleCreator } from './circleRoles';
 import { purgePlanFiles, purgeCircleFiles } from './cloudinary';
 
 // Supprime un compte sans pénaliser les autres membres :
@@ -13,10 +14,7 @@ import { purgePlanFiles, purgeCircleFiles } from './cloudinary';
 export async function deleteUserAccount(userId: string) {
   const circles = await prisma.circle.findMany({ where: { creatorId: userId }, select: { id: true } });
   for (const { id: circleId } of circles) {
-    const next = await prisma.circleMember.findFirst({
-      where: { circleId, userId: { not: userId } },
-      orderBy: { joinedAt: 'asc' },
-    });
+    const next = await nextCircleCreator(circleId, userId);
     if (!next) {
       await purgeCircleFiles(circleId);
       await prisma.circle.delete({ where: { id: circleId } });

@@ -3,8 +3,8 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { AdmissionMode, Circle, DeletionMode } from '../../types';
-import { AdvancedSection, AdmissionModeField, DeletionModeField } from '../ui/AdvancedSettings';
+import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../types';
+import { AdvancedSection, AdmissionModeField, DeletionModeField, PlanCreationModeField } from '../ui/AdvancedSettings';
 
 export const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 
@@ -19,6 +19,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
   const [color, setColor] = useState<string | null>(null);
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
   const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('vote');
+  const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,7 +28,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode });
+      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode });
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -57,8 +58,9 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
         </div>
         <AdvancedSection>
           <AdmissionModeField value={admissionMode} onChange={setAdmissionMode} />
+          <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} />
           <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} />
-          <p className="text-xs text-slate-400">Modifiable plus tard par toi seul·e ; visible par tous les membres.</p>
+          <p className="text-xs text-slate-400">Modifiable plus tard par toi et les organisateurs que tu nommeras ; visible par tous les membres.</p>
         </AdvancedSection>
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">

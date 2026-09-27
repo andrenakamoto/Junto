@@ -36,6 +36,7 @@ export interface CircleJoinRequest {
 export type DeletionMode = 'vote' | 'creator';
 export type AdmissionMode = 'vote' | 'creator' | 'open';
 export type EditMode = 'creator' | 'all';
+export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 
 export interface Circle {
@@ -48,6 +49,8 @@ export interface Circle {
   deletionMode?: DeletionMode;
   /** Admission : vote à la majorité, validation par le créateur, ou entrée libre avec le code */
   admissionMode?: AdmissionMode;
+  /** Qui peut créer des Plans et des sondages de dates */
+  planCreationMode?: PlanCreationMode;
   creatorId: string;
   creator: User;
   members: CircleMember[];

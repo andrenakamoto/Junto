@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
-import { AdmissionMode, DeletionMode, EditMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, PLAN_FEATURES } from '../../lib/settings';
+import { AdmissionMode, DeletionMode, EditMode, PlanCreationMode, PlanFeature } from '../../types';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, PLAN_CREATION_OPTIONS, PLAN_FEATURES } from '../../lib/settings';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
 // `readOnly` : affichage pour les membres qui ne sont pas le créateur.
@@ -66,6 +66,10 @@ export function DeletionModeField(props: { value: DeletionMode; onChange: (v: De
 
 export function EditModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
   return <Choice label="Modification des dates et du lieu" options={EDIT_OPTIONS} {...props} />;
+}
+
+export function PlanCreationModeField(props: { value: PlanCreationMode; onChange: (v: PlanCreationMode) => void; readOnly?: boolean }) {
+  return <Choice label="Création des Plans" options={PLAN_CREATION_OPTIONS} {...props} />;
 }
 
 export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: AdmissionMode) => void; readOnly?: boolean }) {

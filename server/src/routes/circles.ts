@@ -4,8 +4,9 @@ import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
+import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, PLAN_CREATION_RESERVED_ERROR } from '../lib/settings';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -75,6 +76,7 @@ router.post('/', async (req: AuthRequest, res) => {
       description: description?.trim() || null,
       color: CIRCLE_COLORS.includes(color) ? color : null,
       deletionMode: parseDeletionMode(req.body.deletionMode) ?? 'vote',
+      planCreationMode: parsePlanCreationMode(req.body.planCreationMode) ?? 'all',
       admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
       code,
       creatorId: req.userId!,
@@ -95,7 +97,7 @@ router.put('/:id/color', async (req: AuthRequest, res) => {
   }
   const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
-  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+  if (!(await isCircleManager(req.userId!, circle.id))) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs' }); return; }
   const updated = await prisma.circle.update({
     where: { id: req.params.id },
     data: { color },
@@ -152,15 +154,22 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
 router.put('/:id/settings', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
-  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+  if (!(await isCircleManager(req.userId!, circle.id))) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs' }); return; }
   const deletionMode = req.body.deletionMode === undefined ? undefined : parseDeletionMode(req.body.deletionMode);
   const admissionMode = req.body.admissionMode === undefined ? undefined : parseAdmissionMode(req.body.admissionMode);
   if (deletionMode === undefined && req.body.deletionMode !== undefined) { res.status(400).json({ error: 'Mode de suppression invalide' }); return; }
   if (admissionMode === undefined && req.body.admissionMode !== undefined) { res.status(400).json({ error: "Mode d'admission invalide" }); return; }
+  const planCreationMode = req.body.planCreationMode === undefined ? undefined : parsePlanCreationMode(req.body.planCreationMode);
+  if (planCreationMode === undefined && req.body.planCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des Plans invalide' }); return; }
+  // La suppression du Cercle reste l'affaire du créateur : les organisateurs ne changent pas sa règle
+  if (deletionMode && deletionMode !== circle.deletionMode && circle.creatorId !== req.userId) {
+    res.status(403).json({ error: 'Seul le créateur peut changer la règle de suppression du Cercle' });
+    return;
+  }
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }) },
+    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }) },
   });
   // Les votes de suppression en cours n'ont plus de sens si c'est le créateur qui décide
   if (deletionMode === 'creator') await prisma.circleDeleteVote.deleteMany({ where: { circleId: circle.id } });
@@ -171,6 +180,21 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
       await acceptJoinRequest(req.app, r, circle.id, 'Le Cercle est désormais ouvert à toute personne qui a le code.');
     }
   }
+  const updated = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
+  res.json(updated);
+});
+
+// Nommer / retirer un organisateur — réservé au créateur du Cercle
+router.put('/:id/members/:userId/role', async (req: AuthRequest, res) => {
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Seul le créateur nomme les organisateurs' }); return; }
+  const { role } = req.body;
+  if (role !== ORGANIZER_ROLE && role !== 'member') { res.status(400).json({ error: 'Rôle invalide' }); return; }
+  if (req.params.userId === circle.creatorId) { res.status(400).json({ error: 'Le créateur garde son rôle' }); return; }
+  const member = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId: req.params.userId, circleId: circle.id } } });
+  if (!member) { res.status(404).json({ error: 'Membre introuvable' }); return; }
+  await prisma.circleMember.update({ where: { userId_circleId: { userId: member.userId, circleId: circle.id } }, data: { role } });
   const updated = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
   res.json(updated);
 });
@@ -223,7 +247,7 @@ router.post('/join', async (req: AuthRequest, res) => {
   try {
     const io = req.app.get('io');
     const members = await prisma.circleMember.findMany({
-      where: { circleId: circle.id, ...(byCreator && { userId: circle.creatorId }) },
+      where: { circleId: circle.id, ...(byCreator && { OR: [{ userId: circle.creatorId }, { role: ORGANIZER_ROLE }] }) },
       select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } },
     });
     if (io) {
@@ -245,7 +269,7 @@ router.post('/join', async (req: AuthRequest, res) => {
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
           <h2>Salut ${m.user.pseudo} 👋</h2>
           <p><strong>${requester?.pseudo}</strong> a demandé à rejoindre le Cercle <strong>"${circle.name}"</strong>.</p>
-          <p>${byCreator ? 'En tant que créateur du Cercle, c\'est toi qui valides la demande.' : 'La majorité des membres doit valider la demande pour qu\'elle soit acceptée.'}</p>
+          <p>${byCreator ? 'Dans ce Cercle, les demandes sont validées par le créateur et les organisateurs, dont tu fais partie.' : 'La majorité des membres doit valider la demande pour qu\'elle soit acceptée.'}</p>
           <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir la demande
           </a>
@@ -275,12 +299,12 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
 
   const circleSettings = await prisma.circle.findUnique({ where: { id: circleId }, select: { creatorId: true, admissionMode: true } });
   if (circleSettings?.admissionMode !== 'vote') {
-    // Validation par le créateur (ou entrée libre : demande restée d'avant le changement)
-    if (circleSettings?.creatorId !== userId) {
-      res.status(403).json({ error: 'Seul le créateur du Cercle valide les demandes' });
+    // Validation par le créateur ou un organisateur (ou entrée libre : demande restée d'avant le changement)
+    if (!(await isCircleManager(userId, circleId))) {
+      res.status(403).json({ error: 'Seuls le créateur et les organisateurs du Cercle valident les demandes' });
       return;
     }
-    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Le créateur du Cercle a validé ta demande.');
+    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Ta demande a été validée par les organisateurs du Cercle.');
     res.json({ accepted: true, circle: updatedCircle });
     return;
   }
@@ -316,8 +340,8 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
 router.delete('/:id/join-requests/:requestId', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
-  if (circle.creatorId !== req.userId || circle.admissionMode === 'vote') {
-    res.status(403).json({ error: 'Seul le créateur peut refuser une demande, hors mode vote' });
+  if (circle.admissionMode === 'vote' || !(await isCircleManager(req.userId!, circle.id))) {
+    res.status(403).json({ error: 'Seuls le créateur et les organisateurs peuvent refuser une demande, hors mode vote' });
     return;
   }
   const request = await prisma.circleJoinRequest.findUnique({ where: { id: req.params.requestId } });
@@ -360,6 +384,12 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
   });
   res.json(plans);
 });
+
+// Paramètre avancé : création des Plans / sondages réservée au créateur du Cercle
+async function canCreatePlans(userId: string, circleId: string): Promise<boolean> {
+  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { planCreationMode: true } });
+  return !!circle && (circle.planCreationMode !== 'creator' || await isCircleManager(userId, circleId));
+}
 
 // Create a plan in a circle
 interface NewPlanInput {
@@ -483,6 +513,7 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (!(await canCreatePlans(req.userId!, req.params.id))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   const result = await createPlanInCircle(req.app, req.params.id, req.userId!, req.body);
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }
   res.json(result.plan);
@@ -560,10 +591,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   leaveCircleRoom(req.app.get('io'), userId, circleId);
 
   if (circle.creatorId === userId) {
-    const nextMember = await prisma.circleMember.findFirst({
-      where: { circleId, userId: { not: userId } },
-      orderBy: { joinedAt: 'asc' },
-    });
+    const nextMember = await nextCircleCreator(circleId, userId);
 
     if (!nextMember) {
       await purgeCircleFiles(circleId);
@@ -668,6 +696,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (!(await canCreatePlans(req.userId!, req.params.id))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   const { question, options } = req.body;
   if (!question?.trim() || !Array.isArray(options)) {
     res.status(400).json({ error: 'Question et options requises' });
@@ -861,6 +890,8 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
   if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
   if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage a déjà été converti' }); return; }
+  // Sondage lancé par un membre avant que la création soit réservée au créateur du Cercle
+  if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
 
   const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode } = req.body;
   const option = poll.options.find(o => o.id === optionId);

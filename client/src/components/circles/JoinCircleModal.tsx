@@ -41,7 +41,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
         <p className="text-sm text-slate-600 mb-4">
           Ta demande pour rejoindre <strong>"{pending.circleName}"</strong> a été envoyée.
           {pending.byCreator
-            ? " Le créateur du Cercle doit l'approuver avant que tu puisses y accéder."
+            ? " Le créateur ou un organisateur du Cercle doit l'approuver avant que tu puisses y accéder."
             : " Les membres du Cercle doivent l'approuver (majorité requise) avant que tu puisses y accéder."}
         </p>
         <div className="flex justify-end">

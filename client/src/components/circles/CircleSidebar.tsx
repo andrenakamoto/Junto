@@ -16,6 +16,7 @@ import api from '../../services/api';
 import { CreateCircleModal, CIRCLE_COLORS } from './CreateCircleModal';
 import { JoinCircleModal } from './JoinCircleModal';
 import { Avatar } from '../ui/Avatar';
+import { isCircleManager } from '../../lib/settings';
 
 interface Props {
   circles: Circle[];
@@ -66,6 +67,18 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       if (data.circle) onCircleUpdated(data.circle);
     } finally {
       setVotingRequestId(null);
+    }
+  }
+
+  // Nommer / retirer un organisateur (créateur du Cercle uniquement)
+  const [roleBusy, setRoleBusy] = useState<string | null>(null);
+  async function handleSetRole(circleId: string, userId: string, role: 'organizer' | 'member') {
+    setRoleBusy(userId);
+    try {
+      const { data } = await api.put(`/circles/${circleId}/members/${userId}/role`, { role });
+      onCircleUpdated(data);
+    } catch { /* rechargé par le temps réel */ } finally {
+      setRoleBusy(null);
     }
   }
 
@@ -157,6 +170,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           const hasUnread = unreadCircles.has(circle.id);
           const circleColor = circleColors[circle.id] !== undefined ? circleColors[circle.id] : circle.color;
           const isCreator = circle.creatorId === user?.id;
+          const isManager = isCircleManager(circle, user?.id);
           return (
             <div key={circle.id}>
               <button
@@ -194,7 +208,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                           </span>
                         </>
                       )}
-                      {isCreator && (
+                      {isManager && (
                         <button
                           onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
                           title="Couleur du Cercle"
@@ -239,16 +253,44 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
               {membersPopover === circle.id && (
                 <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2 space-y-1">
-                  {circle.members.map(m => (
-                    <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
-                      <Avatar pseudo={m.user.pseudo} size="sm" />
-                      <span className="flex-1 min-w-0">
-                        <span className="block text-xs text-slate-800 truncate">{fullName(m.user) ?? `@${m.user.pseudo}`}</span>
-                        {fullName(m.user) && <span className="block text-[10px] text-slate-500 truncate">@{m.user.pseudo}</span>}
-                      </span>
-                      {m.role === 'admin' && <ShieldCheck size={11} className="text-indigo-600 flex-shrink-0" />}
-                    </div>
-                  ))}
+                  {circle.members.map(m => {
+                    const memberIsCreator = m.userId === circle.creatorId;
+                    const memberIsOrganizer = m.role === 'organizer';
+                    return (
+                      <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
+                        <Avatar pseudo={m.user.pseudo} size="sm" />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-xs text-slate-800 truncate">{fullName(m.user) ?? `@${m.user.pseudo}`}</span>
+                          <span className="block text-[10px] text-slate-500 truncate">
+                            {fullName(m.user) && `@${m.user.pseudo}`}
+                            {(memberIsCreator || memberIsOrganizer) && (
+                              <span className="text-indigo-600 font-semibold">{fullName(m.user) && ' · '}{memberIsCreator ? 'Créateur' : 'Organisateur'}</span>
+                            )}
+                          </span>
+                        </span>
+                        {isCreator && !memberIsCreator ? (
+                          <button
+                            onClick={() => handleSetRole(circle.id, m.userId, memberIsOrganizer ? 'member' : 'organizer')}
+                            disabled={roleBusy === m.userId}
+                            title={memberIsOrganizer ? 'Retirer le rôle d\'organisateur' : 'Nommer organisateur'}
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold flex-shrink-0 transition-colors disabled:opacity-50 ${
+                              memberIsOrganizer ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            <ShieldCheck size={11} />
+                            {memberIsOrganizer ? 'Organisateur' : 'Nommer'}
+                          </button>
+                        ) : (memberIsCreator || memberIsOrganizer) && (
+                          <ShieldCheck size={11} className="text-indigo-600 flex-shrink-0" />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {isCreator && circle.members.length > 1 && (
+                    <p className="text-[10px] text-slate-400 px-1 pt-1 border-t border-slate-100">
+                      Les organisateurs gèrent le Cercle avec toi (paramètres, admissions, création des Plans). Ils ne modifient pas les Plans des autres.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -275,7 +317,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                   {(() => {
                     const threshold = Math.ceil(circle.members.length / 2);
                     const byCreator = (circle.admissionMode ?? 'vote') !== 'vote';
-                    const iAmCreator = circle.creatorId === user?.id;
+                    const iAmCreator = isManager;
                     return (circle.joinRequests ?? []).map(r => {
                       const hasVoted = r.votes.some(v => v.userId === user?.id);
                       if (byCreator) return (
@@ -283,7 +325,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                           <Avatar pseudo={r.user.pseudo} size="sm" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-slate-800 truncate">@{r.user.pseudo}</p>
-                            <p className="text-xs text-indigo-600">{iAmCreator ? 'À toi de décider' : 'Validation par le créateur'}</p>
+                            <p className="text-xs text-indigo-600">{iAmCreator ? 'À toi de décider' : 'Validation par les organisateurs'}</p>
                           </div>
                           {iAmCreator && (
                             <>

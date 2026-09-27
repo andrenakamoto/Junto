@@ -66,6 +66,8 @@ model Circle {
   // Paramètres avancés : "vote" (majorité) ou "creator" ; admission aussi "open" (code seul)
   deletionMode  String @default("vote")
   admissionMode String @default("vote")
+  // Qui peut créer des Plans et des sondages de dates : "all" (tous les membres) ou "creator"
+  planCreationMode String @default("all")
 
   creatorId String
   creator      User                @relation("CircleCreator", fields: [creatorId], references: [id])

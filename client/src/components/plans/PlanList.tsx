@@ -10,6 +10,7 @@ import { InviteModal } from '../circles/InviteModal';
 import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
 import { CirclePollCard } from '../circles/CirclePollCard';
 import { CircleSettingsModal } from '../circles/CircleSettingsModal';
+import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 
@@ -69,6 +70,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   // Paramètre avancé : suppression par le créateur seul → bouton réservé au créateur
   const creatorDeletes = circle.deletionMode === 'creator';
   const canDelete = !creatorDeletes || circle.creatorId === user?.id;
+  // Paramètre avancé : création des Plans et des sondages de dates réservée au créateur
+  const canCreate = circle.planCreationMode !== 'creator' || isCircleManager(circle, user?.id);
 
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
@@ -153,12 +156,14 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         <div className="mb-1">
           <div className="flex items-center justify-between px-1 mb-1.5">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
-            <button
-              onClick={() => setShowCreatePoll(true)}
-              className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              <CalendarRange size={12} />Proposer des dates
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => setShowCreatePoll(true)}
+                className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                <CalendarRange size={12} />Proposer des dates
+              </button>
+            )}
           </div>
           {polls.length > 0 && (
             <div className="space-y-2 mb-3">
@@ -181,7 +186,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         ) : plans.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm px-4">
             Aucun Plan pour l'instant.<br />
-            <span className="text-slate-400">Crée le premier !</span>
+            <span className="text-slate-400">{canCreate ? 'Crée le premier !' : 'Les organisateurs du Cercle proposeront les prochains.'}</span>
           </div>
         ) : (
           plans.map(plan => (
@@ -197,13 +202,17 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       </div>
 
       <div className="px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
-        <button
-          onClick={() => setShowCreate(true)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm font-medium"
-        >
-          <Plus size={16} />
-          Créer un Plan
-        </button>
+        {canCreate ? (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm font-medium"
+          >
+            <Plus size={16} />
+            Créer un Plan
+          </button>
+        ) : (
+          <p className="px-3 py-2 text-xs text-slate-400">Dans ce Cercle, seuls le créateur et les organisateurs créent les Plans.</p>
+        )}
       </div>
 
       {showInvite && (

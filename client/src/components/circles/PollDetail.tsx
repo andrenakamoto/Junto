@@ -8,6 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
 import api from '../../services/api';
+import { isCircleManager } from '../../lib/settings';
 
 type Tab = 'dates' | 'chat';
 
@@ -76,6 +77,8 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   }
 
   const isCreator = poll.creator.id === user.id;
+  // Créer le Plan : créateur du sondage, sauf si la création est réservée au créateur du Cercle
+  const canConvert = isCreator && (circle.planCreationMode !== 'creator' || isCircleManager(circle, user.id));
   const declines = poll.declines ?? [];
   const exclusions = poll.exclusions ?? [];
   const iDeclined = declines.some(d => d.userId === user.id);
@@ -189,7 +192,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
                     </button>
                     <span className="flex-1 text-sm font-medium text-slate-800">{opt.label}</span>
                     <span className="text-sm font-bold text-slate-700">{opt.votes.length}</span>
-                    {isCreator && (
+                    {canConvert && (
                       <button
                         onClick={() => setConvertOption(opt)}
                         title="Créer le Plan avec cette date"
