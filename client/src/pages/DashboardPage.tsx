@@ -333,8 +333,6 @@ export function DashboardPage() {
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
     )}
-    <EmailMigrationBanner />
-    <ProfileNameBanner />
     <NotificationToast
       notifications={notifications}
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
@@ -350,7 +348,11 @@ export function DashboardPage() {
         }
       }}
     />
-    <div className="flex h-dvh bg-slate-900 overflow-hidden">
+    {/* Les bandeaux prennent leur place dans la hauteur de l'écran au lieu de pousser le bas hors de la vue */}
+    <div className="h-dvh flex flex-col bg-slate-100">
+    <EmailMigrationBanner />
+    <ProfileNameBanner />
+    <div className="flex flex-1 min-h-0 bg-slate-100 overflow-hidden">
       {/* Colonne 1 — Cercles */}
       <div className={`${showCircles ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
@@ -443,6 +445,7 @@ export function DashboardPage() {
           <EmptyState message="Sélectionne un Plan" sub="ou crée-en un nouveau dans ce Cercle" />
         )}
       </div>
+    </div>
     </div>
     </>
   );

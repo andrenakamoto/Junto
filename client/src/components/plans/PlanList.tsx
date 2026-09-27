@@ -71,27 +71,27 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const canDelete = !creatorDeletes || circle.creatorId === user?.id;
 
   return (
-    <div className="w-full bg-slate-800 flex flex-col h-full flex-shrink-0 border-r border-slate-700/50">
-      <div className="px-4 py-4 border-b border-slate-700/50">
+    <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
+      <div className="px-4 py-4 border-b border-slate-200">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <button
               onClick={onBack}
-              className="md:hidden p-1 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors flex-shrink-0"
+              className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0"
             >
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-white text-sm leading-tight truncate">{circle.name}</h2>
+              <h2 className="font-bold text-slate-900 text-sm leading-tight truncate">{circle.name}</h2>
               <button
                 onClick={copyCode}
-                className="flex items-center gap-1.5 mt-1 text-xs text-indigo-300 hover:text-indigo-200 transition-colors group"
+                className="flex items-center gap-1.5 mt-1 text-xs text-indigo-600 hover:text-indigo-700 transition-colors group"
               >
                 {codeCopied
-                  ? <Check size={10} className="text-emerald-400" />
-                  : <Copy size={10} className="group-hover:text-indigo-200" />}
+                  ? <Check size={10} className="text-emerald-600" />
+                  : <Copy size={10} className="group-hover:text-indigo-700" />}
                 <span>Code : <span className="font-mono tracking-widest">{circle.code}</span></span>
-                {codeCopied && <span className="text-emerald-400 ml-1">Copié !</span>}
+                {codeCopied && <span className="text-emerald-600 ml-1">Copié !</span>}
               </button>
             </div>
           </div>
@@ -100,7 +100,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <button
             onClick={() => setShowInvite(true)}
             title="Inviter"
-            className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-200 hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <UserPlus size={14} />
           </button>
@@ -109,7 +109,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <button
             onClick={() => setShowSettings(true)}
             title="Paramètres du Cercle"
-            className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-200 hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <SlidersHorizontal size={14} />
           </button>
@@ -120,8 +120,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             title={creatorDeletes ? 'Supprimer ce Cercle' : 'Voter pour supprimer ce Cercle'}
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               hasMyVote
-                ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20'
-                : 'text-indigo-300 hover:text-red-400 hover:bg-slate-700'
+                ? 'text-red-600 bg-red-500/10 hover:bg-red-100'
+                : 'text-indigo-600 hover:text-red-600 hover:bg-slate-100'
             }`}
           >
             <Trash2 size={14} />
@@ -131,7 +131,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <button
             onClick={() => setShowLeave(true)}
             title="Quitter ce Cercle"
-            className="p-1.5 rounded-lg text-indigo-300 hover:text-amber-400 hover:bg-slate-700 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-indigo-600 hover:text-amber-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <LogOut size={14} />
           </button>
@@ -141,7 +141,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         {votes.length > 0 && (
           <button
             onClick={() => setShowDelete(true)}
-            className="mt-2 flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+            className="mt-2 flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-800 transition-colors"
           >
             <Trash2 size={10} />
             {votes.length}/{threshold} vote{threshold > 1 ? 's' : ''} pour supprimer
@@ -149,13 +149,13 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 short:flex-none short:overflow-visible">
         <div className="mb-1">
           <div className="flex items-center justify-between px-1 mb-1.5">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
             <button
               onClick={() => setShowCreatePoll(true)}
-              className="flex items-center gap-1 text-xs text-indigo-300 hover:text-indigo-200 font-medium"
+              className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
             >
               <CalendarRange size={12} />Proposer des dates
             </button>
@@ -181,7 +181,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         ) : plans.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm px-4">
             Aucun Plan pour l'instant.<br />
-            <span className="text-slate-600">Crée le premier !</span>
+            <span className="text-slate-400">Crée le premier !</span>
           </div>
         ) : (
           plans.map(plan => (
@@ -196,10 +196,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      <div className="px-2 py-3 border-t border-slate-700/50">
+      <div className="px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
         <button
           onClick={() => setShowCreate(true)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm font-medium"
         >
           <Plus size={16} />
           Créer un Plan

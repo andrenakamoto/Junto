@@ -12,9 +12,9 @@ export function ProfileNameBanner() {
 
   return (
     <>
-      <div className="bg-indigo-500/10 border-b border-indigo-500/30 px-4 py-3 text-sm flex items-center gap-3">
-        <UserRound size={15} className="text-indigo-400 flex-shrink-0" />
-        <span className="text-indigo-300 flex-1">
+      <div className="bg-indigo-500/10 border-b border-indigo-500/30 px-4 py-3 short:py-1.5 text-sm flex items-center gap-3">
+        <UserRound size={15} className="text-indigo-600 flex-shrink-0" />
+        <span className="text-indigo-600 flex-1">
           Ajoute ton prénom pour que les membres de tes Cercles te reconnaissent.
         </span>
         <button

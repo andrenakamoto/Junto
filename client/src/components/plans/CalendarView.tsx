@@ -56,25 +56,25 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
   const selectedDayPlans = selectedDay ? (plansByDay.get(dateKey(selectedDay)) ?? []) : [];
 
   return (
-    <div className="w-full bg-slate-800 flex flex-col h-full flex-shrink-0 border-r border-slate-700/50">
-      <div className="px-4 py-4 border-b border-slate-700/50 flex items-center gap-2">
-        <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+    <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
+      <div className="px-4 py-4 border-b border-slate-200 flex items-center gap-2">
+        <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <h2 className="font-bold text-white text-sm">Calendrier</h2>
+        <h2 className="font-bold text-slate-900 text-sm">Calendrier</h2>
       </div>
 
       <div className="px-3 py-3 flex items-center justify-between">
         <button
           onClick={() => { setCursor(new Date(year, month - 1, 1)); setSelectedDay(null); }}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         >
           <ChevronLeft size={16} />
         </button>
-        <span className="text-sm font-semibold text-white">{MONTH_NAMES[month]} {year}</span>
+        <span className="text-sm font-semibold text-slate-900">{MONTH_NAMES[month]} {year}</span>
         <button
           onClick={() => { setCursor(new Date(year, month + 1, 1)); setSelectedDay(null); }}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
         >
           <ChevronRight size={16} />
         </button>
@@ -101,10 +101,10 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                   isSelected
                     ? 'bg-indigo-600 text-white font-semibold'
                     : isToday
-                    ? 'bg-slate-700 text-white font-semibold border border-indigo-500/50'
+                    ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-300'
                     : dayPlans.length > 0
-                    ? 'bg-slate-700/50 text-slate-200 hover:bg-slate-700'
-                    : 'text-slate-500 hover:bg-slate-700/40'
+                    ? 'bg-slate-50 text-slate-800 hover:bg-slate-100'
+                    : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
                 {d.getDate()}
@@ -117,12 +117,12 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 mt-2 border-t border-slate-700/50 space-y-2">
+      <div className="flex-1 overflow-y-auto px-3 py-3 mt-2 border-t border-slate-200 space-y-2 short:flex-none short:overflow-visible">
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
         ) : !selectedDay ? (
           <div className="text-center py-8 text-slate-500 text-sm flex flex-col items-center gap-2">
-            <CalendarIcon size={24} className="text-slate-600" />
+            <CalendarIcon size={24} className="text-slate-400" />
             Sélectionne un jour pour voir les Plans
           </div>
         ) : selectedDayPlans.length === 0 ? (
@@ -134,13 +134,13 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
               onClick={() => onSelectPlan(plan)}
               className={`w-full text-left p-3 rounded-xl transition-all border ${
                 selectedPlanId === plan.id
-                  ? 'bg-indigo-600/20 border-indigo-500/50 shadow-md'
-                  : 'bg-slate-700/40 border-slate-600/40 hover:bg-slate-700/70 hover:border-slate-500/60'
+                  ? 'bg-indigo-50 border-indigo-400 shadow-md'
+                  : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
               }`}
             >
-              <h3 className="font-semibold text-white text-sm leading-tight mb-1">{plan.title}</h3>
-              <p className="text-indigo-300/80 text-xs">{plan.isGuest ? 'Invitation' : plan.circle?.name}</p>
-              <p className="text-indigo-300 text-xs mt-1">
+              <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1">{plan.title}</h3>
+              <p className="text-slate-500 text-xs">{plan.isGuest ? 'Invitation' : plan.circle?.name}</p>
+              <p className="text-slate-500 text-xs mt-1">
                 {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
               </p>
             </button>

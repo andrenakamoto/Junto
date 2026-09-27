@@ -12,9 +12,9 @@ interface Props {
 }
 
 const rsvpBadge = {
-  in:    'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  maybe: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  out:   'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  in:    'bg-emerald-50 text-emerald-700 border-emerald-200',
+  maybe: 'bg-amber-50 text-amber-700 border-amber-200',
+  out:   'bg-slate-100 text-slate-500 border-slate-200',
 };
 const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Absent(e)' };
 
@@ -37,15 +37,15 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
   }, {});
 
   return (
-    <div className="w-full bg-slate-800 flex flex-col h-full flex-shrink-0 border-r border-slate-700/50">
-      <div className="px-4 py-4 border-b border-slate-700/50 flex items-center gap-2">
-        <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+    <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
+      <div className="px-4 py-4 border-b border-slate-200 flex items-center gap-2">
+        <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <h2 className="font-bold text-white text-sm">Tous mes plans</h2>
+        <h2 className="font-bold text-slate-900 text-sm">Tous mes plans</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 short:flex-none short:overflow-visible">
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
         ) : plans.length === 0 ? (
@@ -68,26 +68,26 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                       onClick={() => onSelectPlan(plan)}
                       className={`w-full text-left p-3 rounded-xl transition-all border ${
                         selectedPlanId === plan.id
-                          ? 'bg-indigo-600/20 border-indigo-500/50 shadow-md'
-                          : 'bg-slate-700/40 border-slate-600/40 hover:bg-slate-700/70 hover:border-slate-500/60'
+                          ? 'bg-indigo-50 border-indigo-400 shadow-md'
+                          : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h3 className="font-semibold text-white text-sm leading-tight">{plan.title}</h3>
+                        <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
                         {myMember ? (
                           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
                             {rsvpLabel[myMember.rsvp]}
                           </span>
                         ) : (
-                          <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                          <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-600 border border-indigo-500/30">
                             Rejoindre
                           </span>
                         )}
                       </div>
-                      {plan.description && <p className="text-indigo-300/80 text-xs line-clamp-1 mb-2">{plan.description}</p>}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-indigo-300">
+                      {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-                        <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-400">{inCount} in</span></span>
+                        <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{inCount} in</span></span>
                         {(plan._count?.messages ?? 0) > 0 && (
                           <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
                         )}

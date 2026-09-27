@@ -32,10 +32,10 @@ export function EmailMigrationBanner() {
 
   if (sent) {
     return (
-      <div className="bg-emerald-500/10 border-b border-emerald-500/30 px-4 py-3 flex items-center gap-3 text-sm text-emerald-400">
+      <div className="bg-emerald-500/10 border-b border-emerald-500/30 px-4 py-3 short:py-1.5 flex items-center gap-3 text-sm text-emerald-600">
         <CheckCircle size={16} className="flex-shrink-0" />
         <span>Email ajouté ! Vérifie ta boîte mail pour confirmer ton adresse.</span>
-        <button onClick={() => setDismissed(true)} className="ml-auto text-emerald-400 hover:text-emerald-300">
+        <button onClick={() => setDismissed(true)} className="ml-auto text-emerald-600 hover:text-emerald-700">
           <X size={15} />
         </button>
       </div>
@@ -43,11 +43,11 @@ export function EmailMigrationBanner() {
   }
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 text-sm">
+    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-3 short:py-1.5 text-sm">
       {!expanded ? (
         <div className="flex items-center gap-3">
-          <Mail size={15} className="text-amber-400 flex-shrink-0" />
-          <span className="text-amber-300 flex-1">
+          <Mail size={15} className="text-amber-600 flex-shrink-0" />
+          <span className="text-amber-800 flex-1">
             Ajoute un email à ton compte pour sécuriser ta connexion et récupérer ton mot de passe.
           </span>
           <button
@@ -56,20 +56,20 @@ export function EmailMigrationBanner() {
           >
             Ajouter
           </button>
-          <button onClick={() => setDismissed(true)} className="text-amber-400 hover:text-amber-200 flex-shrink-0">
+          <button onClick={() => setDismissed(true)} className="text-amber-600 hover:text-amber-200 flex-shrink-0">
             <X size={15} />
           </button>
         </div>
       ) : (
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Mail size={15} className="text-amber-400" />
-            <span className="text-amber-300 font-medium">Ajouter un email</span>
-            <button onClick={() => setExpanded(false)} className="ml-auto text-amber-400 hover:text-amber-200">
+            <Mail size={15} className="text-amber-600" />
+            <span className="text-amber-800 font-medium">Ajouter un email</span>
+            <button onClick={() => setExpanded(false)} className="ml-auto text-amber-600 hover:text-amber-200">
               <X size={15} />
             </button>
           </div>
-          {error && <p className="text-red-400 text-xs mb-2">{error}</p>}
+          {error && <p className="text-red-600 text-xs mb-2">{error}</p>}
           <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="email"
@@ -78,7 +78,7 @@ export function EmailMigrationBanner() {
               placeholder="toi@example.com"
               required
               autoFocus
-              className="flex-1 px-3 py-2 bg-slate-900/80 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+              className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
             />
             <button
               type="submit"
