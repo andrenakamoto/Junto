@@ -153,6 +153,8 @@ export function GuideModal({ onClose }: Props) {
             <ul className="list-disc pl-5 mt-1.5 space-y-1">
               <li><strong>Admission dans le Cercle</strong> : vote à la majorité, validation par le créateur
                 (qui peut alors accepter ou refuser), ou entrée libre avec le nom et le code.</li>
+              <li><strong>Création des Plans</strong> : par tous les membres, ou par le créateur du Cercle seul
+                (y compris les sondages de dates).</li>
               <li><strong>Suppression</strong> du Cercle ou du Plan : vote à la majorité, ou créateur seul.</li>
               <li><strong>Modification du Plan</strong> : créateur seul, ou tous les participants pour les dates
                 et le lieu (le titre et la description restent au créateur). Chaque modification apparaît dans
@@ -163,7 +165,13 @@ export function GuideModal({ onClose }: Props) {
             </ul>
             <p className="mt-1.5">
               Ces paramètres sont visibles par tous les membres (icône réglages) et modifiables ensuite par le
-              créateur seul.
+              créateur et les <strong>organisateurs</strong>.
+            </p>
+            <p className="mt-1.5">
+              <strong>Organisateurs</strong> : dans la liste des membres du Cercle (clic sur « N membres »), le
+              créateur peut nommer des organisateurs. Ils gèrent le Cercle avec lui (paramètres, demandes
+              d'adhésion, création des Plans quand elle est réservée), mais ne modifient pas les Plans des autres
+              et ne peuvent pas supprimer le Cercle. Si le créateur quitte le Cercle, un organisateur prend sa place.
             </p>
           </section>
 

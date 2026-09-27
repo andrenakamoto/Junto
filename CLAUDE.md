@@ -252,7 +252,17 @@ Junto/
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt
 - **Circle** : name, code (unique), description?, color? (palette fixe de
   8 couleurs, `CIRCLE_COLORS` côté client), creatorId
-- **CircleMember** : userId+circleId (clé composite), role
+- **CircleMember** : userId+circleId (clé composite), role — `admin` (le
+  créateur ; `Circle.creatorId` fait foi), `organizer` (**Organisateur**,
+  nommé/retiré par le créateur seul via PUT /:id/members/:userId/role),
+  `member`. Un organisateur a les mêmes droits que le créateur **sur le
+  Cercle** (paramètres, couleur, admissions en mode `creator`, création
+  réservée) mais ne nomme personne, ne change pas la règle de suppression,
+  ne supprime pas le Cercle et n'a **aucun droit sur les Plans des autres**.
+  Contrôle centralisé : `isCircleManager` (`server/src/lib/circleRoles.ts`,
+  miroir client dans `client/src/lib/settings.ts`). Quand le créateur part
+  (départ ou suppression de compte), `nextCircleCreator` choisit
+  l'organisateur le plus ancien, sinon le membre le plus ancien.
 - **CircleDeleteVote** : vote collectif pour supprimer un Cercle
 - **CircleJoinRequest** / **CircleJoinVote** : demande pour rejoindre un
   Cercle (créée à la place d'un accès direct) + votes des membres actuels ;
@@ -272,6 +282,11 @@ Junto/
     /:id/join-requests/:requestId — refus interdit en mode vote) / `open`
     (/join ajoute directement le membre, réponse `{pending:false, circle}`).
     Passer en `open` accepte toutes les demandes en attente.
+  - `Circle.planCreationMode` : `all` (défaut) ou `creator` — en `creator`,
+    seul le créateur du Cercle crée des Plans **et des sondages de dates**
+    (qui mènent à un Plan) ; la conversion d'un sondage lancé par un membre
+    avant le changement est aussi refusée (`canCreatePlans` dans
+    `circles.ts`). Voter reste ouvert à tous.
   - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut) ou
     `creator` (vote-delete supprime immédiatement si c'est le créateur, 403
     sinon ; passer en `creator` efface les votes en cours).
