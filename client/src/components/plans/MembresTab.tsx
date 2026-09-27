@@ -1,5 +1,6 @@
 import { PlanMember } from '../../types';
 import { Avatar } from '../ui/Avatar';
+import { fullName } from '../../lib/names';
 
 const rsvpCfg = {
   in: { label: 'In', cls: 'bg-emerald-100 text-emerald-700' },
@@ -21,13 +22,14 @@ export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; 
         {sorted.map(m => (
           <div key={m.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
             <Avatar pseudo={m.user.pseudo} size="sm" online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
-            <span className="flex-1 text-sm font-medium text-slate-800">
-              @{m.user.pseudo}
+            <span className="flex-1 min-w-0">
+              <span className="text-sm font-medium text-slate-800">{fullName(m.user) ?? `@${m.user.pseudo}`}</span>
               {m.isGuest && (
                 <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 align-middle">
                   Invité(e)
                 </span>
               )}
+              {fullName(m.user) && <span className="block text-xs text-slate-400 truncate">@{m.user.pseudo}</span>}
             </span>
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${rsvpCfg[m.rsvp].cls}`}>
               {rsvpCfg[m.rsvp].label}

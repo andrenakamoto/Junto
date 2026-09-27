@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen, UserRound } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
+import { ProfileModal } from '../ui/ProfileModal';
+import { fullName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +37,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showJoin, setShowJoin] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
@@ -226,7 +229,10 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                   {circle.members.map(m => (
                     <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
                       <Avatar pseudo={m.user.pseudo} size="sm" />
-                      <span className="text-xs text-slate-200 truncate flex-1">@{m.user.pseudo}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-xs text-slate-200 truncate">{fullName(m.user) ?? `@${m.user.pseudo}`}</span>
+                        {fullName(m.user) && <span className="block text-[10px] text-slate-500 truncate">@{m.user.pseudo}</span>}
+                      </span>
                       {m.role === 'admin' && <ShieldCheck size={11} className="text-indigo-400 flex-shrink-0" />}
                     </div>
                   ))}
@@ -329,6 +335,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               </button>
             )}
             <button
+              onClick={() => { setShowMenu(false); setShowProfile(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
+            >
+              <UserRound size={15} />
+              Mon profil
+            </button>
+            <button
               onClick={() => { setShowMenu(false); setShowChangePassword(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm"
             >
@@ -380,6 +393,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       )}
       {showGuide && (
         <GuideModal onClose={() => setShowGuide(false)} />
+      )}
+      {showProfile && (
+        <ProfileModal onClose={() => setShowProfile(false)} />
       )}
       {showCreate && (
         <CreateCircleModal

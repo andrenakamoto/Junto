@@ -22,7 +22,7 @@ async function assertPlanMember(userId: string, planId: string): Promise<boolean
 
 const planInclude = {
   creator: { select: { id: true, pseudo: true } },
-  members: { include: { user: { select: { id: true, pseudo: true } } } },
+  members: { include: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
   items: { orderBy: { id: 'asc' as const } },

@@ -13,7 +13,7 @@ function generateCode(length = 6): string {
 }
 
 const circleInclude = {
-  members: { include: { user: { select: { id: true, pseudo: true } } } },
+  members: { include: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } } },
   creator: { select: { id: true, pseudo: true } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   joinRequests: {

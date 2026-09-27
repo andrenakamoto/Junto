@@ -10,7 +10,7 @@ router.use(requireAuth as any);
 router.use(requireAdmin as any);
 
 const userSelect = {
-  id: true, pseudo: true, status: true, isAdmin: true, createdAt: true,
+  id: true, pseudo: true, firstName: true, lastName: true, status: true, isAdmin: true, createdAt: true,
   email: true, emailVerified: true,
   _count: { select: { createdCircles: true } },
 };

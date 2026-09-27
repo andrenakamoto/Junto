@@ -25,11 +25,13 @@ function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
 function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
-  weeklyDigestEnabled?: boolean;
+  weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
 }) {
   return {
     id: user.id,
     pseudo: user.pseudo,
+    firstName: user.firstName ?? null,
+    lastName: user.lastName ?? null,
     status: user.status,
     isAdmin: user.isAdmin,
     termsAccepted: user.acceptedTermsVersion >= CURRENT_TERMS_VERSION,
@@ -37,6 +39,15 @@ function safeUser(user: {
     emailVerified: user.emailVerified ?? false,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
   };
+}
+
+// Prénom obligatoire (1 à 50 caractères), nom facultatif (50 max)
+function parseNames(body: any): { firstName: string; lastName: string | null } | { error: string } {
+  const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : '';
+  const lastName = typeof body?.lastName === 'string' ? body.lastName.trim() : '';
+  if (!firstName) return { error: 'Le prénom est obligatoire' };
+  if (firstName.length > 50 || lastName.length > 50) return { error: 'Prénom et nom : 50 caractères maximum' };
+  return { firstName, lastName: lastName || null };
 }
 
 async function sendVerificationEmail(email: string, pseudo: string, token: string) {
@@ -128,6 +139,8 @@ router.post('/register', registerLimiter, async (req, res) => {
   if (!pseudo || !password || !email) {
     res.status(400).json({ error: 'Pseudo, email et mot de passe requis' }); return;
   }
+  const names = parseNames(req.body);
+  if ('error' in names) { res.status(400).json({ error: names.error }); return; }
   const pseudoError = validatePseudo(pseudo);
   if (pseudoError) { res.status(400).json({ error: pseudoError }); return; }
   const emailLower = email.toLowerCase().trim();
@@ -150,6 +163,7 @@ router.post('/register', registerLimiter, async (req, res) => {
     const user = await prisma.user.create({
       data: {
         pseudo, email: emailLower, password: hashed,
+        firstName: names.firstName, lastName: names.lastName,
         status: 'approved', emailVerified: false,
         emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires,
       },
@@ -264,6 +278,13 @@ router.post('/google', loginLimiter, async (req, res) => {
           data: { googleId: payload.sub, emailVerified: true },
         });
       }
+      // Compte créé avant l'ajout du prénom : on le complète depuis Google
+      if (!user.firstName && payload.given_name) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { firstName: payload.given_name.slice(0, 50), lastName: user.lastName ?? payload.family_name?.slice(0, 50) ?? null },
+        });
+      }
     } else {
       // Créer un pseudo unique basé sur le nom Google
       let pseudo = googleName.replace(/\s+/g, '').slice(0, 20);
@@ -273,6 +294,8 @@ router.post('/google', loginLimiter, async (req, res) => {
       user = await prisma.user.create({
         data: {
           pseudo, email: googleEmail, googleId: payload.sub,
+          firstName: payload.given_name?.slice(0, 50) ?? null,
+          lastName: payload.family_name?.slice(0, 50) ?? null,
           emailVerified: true, status: 'approved',
         },
       });
@@ -336,12 +359,29 @@ router.post('/reset-password', async (req, res) => {
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true,
+  firstName: true, lastName: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.userId }, select: meSelect });
   if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
   res.json(safeUser(user));
+});
+
+// Modifier son prénom et son nom
+router.put('/profile', requireAuth, async (req: AuthRequest, res) => {
+  const names = parseNames(req.body);
+  if ('error' in names) { res.status(400).json({ error: names.error }); return; }
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data: { firstName: names.firstName, lastName: names.lastName },
+      select: meSelect,
+    });
+    res.json(safeUser(user));
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.put('/notification-settings', requireAuth, async (req: AuthRequest, res) => {

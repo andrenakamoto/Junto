@@ -5,10 +5,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import api from '../services/api';
+import { fullName } from '../lib/names';
 
 interface AdminUser {
   id: string;
   pseudo: string;
+  firstName?: string | null;
+  lastName?: string | null;
   status: string;
   isAdmin: boolean;
   createdAt: string;
@@ -186,6 +189,7 @@ export function AdminPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <PseudoField u={u} />
+                  {fullName(u) && <p className="text-xs text-slate-500">{fullName(u)}</p>}
                     {u.id === user?.id && <span className="text-xs text-indigo-500">C'est toi</span>}
                   </div>
                 </div>
@@ -250,6 +254,7 @@ export function AdminPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <PseudoField u={u} />
+                  {fullName(u) && <p className="text-xs text-slate-500">{fullName(u)}</p>}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                     <p className="text-xs text-slate-400">
                       Inscrit le {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(u.createdAt))}

@@ -24,6 +24,8 @@ export function AuthPage() {
 
   const [email, setEmail] = useState('');
   const [pseudo, setPseudo] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -50,10 +52,12 @@ export function AuthPage() {
     setSuccess('');
     try {
       if (mode === 'register') {
-        await api.post('/auth/register', { pseudo, email, password });
+        await api.post('/auth/register', { pseudo, email, password, firstName, lastName });
         setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
         setEmail('');
         setPseudo('');
+        setFirstName('');
+        setLastName('');
         setPassword('');
         setMode('login');
       } else {
@@ -180,6 +184,40 @@ export function AuthPage() {
 
           {/* Formulaire email */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="firstName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Prénom</label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    placeholder="Léa"
+                    required
+                    maxLength={50}
+                    autoComplete="given-name"
+                    className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Nom <span className="normal-case tracking-normal font-normal text-slate-500">(facultatif)</span>
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    placeholder="Dupont"
+                    maxLength={50}
+                    autoComplete="family-name"
+                    className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                  />
+                </div>
+              </div>
+            )}
+
             {mode === 'register' && (
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Pseudo</label>

@@ -1,6 +1,8 @@
 export interface User {
   id: string;
   pseudo: string;
+  firstName?: string | null;
+  lastName?: string | null;
   status: string;
   isAdmin: boolean;
   termsAccepted: boolean;

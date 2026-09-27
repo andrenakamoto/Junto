@@ -13,6 +13,7 @@ import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
 import { TermsModal } from '../components/ui/TermsModal';
 import { EmailMigrationBanner } from '../components/ui/EmailMigrationBanner';
+import { ProfileNameBanner } from '../components/ui/ProfileNameBanner';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import { getPendingInvite } from '../lib/pendingInvite';
@@ -213,6 +214,7 @@ export function DashboardPage() {
       <TermsModal onAccept={handleAcceptTerms} />
     )}
     <EmailMigrationBanner />
+    <ProfileNameBanner />
     <NotificationToast
       notifications={notifications}
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
