@@ -270,6 +270,33 @@ Junto/
   déborde déjà sur mobile), l'onglet Historique a été retiré : l'historique
   des modifications s'ouvre maintenant dans une modale depuis les actions
   du Plan (icône sur desktop, menu ⋮ sur mobile).
+- **Invités externes et Plans surprise** (2026-09-27) — règles d'accès
+  centralisées dans `server/src/lib/planAccess.ts` (`getPlanAccess`,
+  `visiblePlansWhere`, `guestIdsAmong`, `validateExclusions`) : **toute
+  nouvelle route qui touche un Plan doit passer par `getPlanAccess`**
+  plutôt que de vérifier l'appartenance au Cercle à la main.
+  - **Invité externe** = `PlanMember` sans `CircleMember`. Il arrive via un
+    lien `/invitation?token=…` (**PlanGuestLink** : un jeton réutilisable
+    par Plan, table séparée pour que le jeton ne remonte jamais avec les
+    champs du Plan ; régénérable par le créateur). Il voit tout le Plan
+    mais rien du Cercle : ni nom (`circle: null` + `isGuest` dans GET
+    /plans, groupe « Invitations » côté client), ni code, ni autres Plans,
+    ni membres du Cercle. Pas de présence en ligne pour lui (les rooms de
+    présence sont par Cercle). Il n'a aucun Cercle : le client ne doit pas
+    supposer qu'un utilisateur a au moins un Cercle (cf. `circlesLoaded`
+    dans DashboardPage).
+  - **Plan surprise** = lignes **PlanExclusion** (membres du Cercle exclus,
+    jamais le créateur). Pour un exclu, le Plan n'existe pas : 404 sur le
+    détail et le lien d'invitation, et absent des listes, du compteur et de
+    l'aperçu de la barre latérale, de la notif/email « Nouveau Plan » et du
+    résumé hebdomadaire. Exclure après coup quelqu'un qui avait rejoint le
+    Plan l'en retire (et de son covoiturage).
+  - Parcours d'invitation : `GuestInvitePage` mémorise le jeton dans
+    `localStorage` (`lib/pendingInvite.ts`) avant d'envoyer vers la
+    connexion, pour y ramener l'utilisateur même après une inscription avec
+    validation d'email. `AuthPage` respecte maintenant `?redirect=` (chemin
+    interne uniquement) — ce qui répare aussi le retour après connexion des
+    invitations aux Cercles (`/rejoindre`).
 
 Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
 appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
@@ -303,7 +330,12 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   /messages/:messageId/replies (fil), /:id/polls (+anonymous,
   /polls/:id/vote), /:id/items (+claim), /:id/vote-delete,
   /:id/expenses (GET liste+soldes, POST créer), /expenses/:id (DELETE),
-  /:id/reimbursements (POST), /:id/ical (GET, export .ics)
+  /:id/reimbursements (POST), /:id/ical (GET, export .ics),
+  /:id/guest-link (POST, tout membre du Plan) + /:id/guest-link/reset
+  (POST, créateur), /guest-invite/:token (GET aperçu) +
+  /guest-invite/:token/accept (POST). PUT /:id accepte `excludedUserIds`
+  (Plan surprise) ; le vote de sondage et le claim « qui apporte quoi »
+  exigent désormais d'être membre du Plan (failles corrigées le 2026-09-27).
 - **admin.ts** : /users, /users/:id/approve|reject|reset-password,
   DELETE /users/:id, /stats
 - **rides.ts** (monté sur `/api/rides`) : GET/POST /plan/:planId (liste
@@ -341,10 +373,13 @@ dans `circles.ts`, pas depuis `handlers.ts` ; le type `ride` vient de
 `lib/rides.ts`). Le covoiturage émet aussi `rides-updated` dans la room
 `plan:{id}` à chaque changement, pour que `CarpoolSection` se recharge.
 
-Attention : dans `handlers.ts`, les écouteurs (`join-plan`, etc.) ne sont
-enregistrés qu'**après** les requêtes async du handler `connection`. Un
-`join-plan` émis immédiatement après la connexion est donc perdu —
-constaté en test le 2026-09-27, pas encore corrigé.
+Dans `handlers.ts`, le handler `connection` n'est **pas** async : la
+préparation de la présence (requêtes Prisma) tourne dans une promesse à
+part (`presenceReady`) et les écouteurs (`join-plan`, `send-message`…)
+sont enregistrés immédiatement. Ne pas remettre d'`await` avant eux : un
+`join-plan` émis juste après la connexion serait perdu (bug constaté et
+corrigé le 2026-09-27 — c'est le cas typique d'un invité qui arrive sur
+son Plan juste après avoir accepté l'invitation).
 
 ## Déploiement
 
