@@ -142,8 +142,15 @@ Conséquences pratiques :
 - **Tests** : Vitest côté serveur (`npm test` dans `server/`), limité pour
   l'instant aux fonctions pures (pas d'intégration DB, voir section tests)
 - **Auth** : JWT + bcrypt, connexion par pseudo OU email, + Google Sign-In
-  (google-auth-library côté serveur, @codetrix-studio/capacitor-google-auth
-  côté mobile). Rate limiting sur les routes sensibles (express-rate-limit).
+  (google-auth-library côté serveur, qui vérifie un ID token). Côté client :
+  **sur le web, Google Identity Services** (`GoogleWebButton.tsx`, script
+  `accounts.google.com/gsi/client?hl=fr`, bouton officiel rendu par Google) ;
+  **uniquement en natif**, @codetrix-studio/capacitor-google-auth. Ne pas
+  réutiliser ce plugin sur le web : il s'appuie sur `gapi.auth2`, abandonné
+  par Google, et la connexion Google du site était cassée pour cette raison
+  (corrigé le 2026-09-27). Les origines `https://www.evly.ch` et
+  `https://evly.ch` sont autorisées pour le client OAuth ; `localhost` ne
+  l'est pas (le bouton s'affiche en local mais Google refuse la connexion). Rate limiting sur les routes sensibles (express-rate-limit).
 - **Fichiers joints** : Cloudinary (upload, download via proxy backend + token
   JWT temporaire pour contourner les limitations mobile/Cloudinary)
 - **Emails** : Resend (vérification email, reset password, rappels de Plan,
