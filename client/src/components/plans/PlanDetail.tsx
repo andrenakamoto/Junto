@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car } from 'lucide-react';
 import { Plan, Message, User } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -12,12 +12,14 @@ import { DepensesTab } from './DepensesTab';
 import { HistoriqueTab } from './HistoriqueTab';
 import { InviteModal } from '../circles/InviteModal';
 import { StoryModal } from './StoryModal';
+import { CarpoolSection } from './CarpoolSection';
+import { Modal } from '../ui/Modal';
 import { DeletePlanModal } from './DeletePlanModal';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
 
-type Tab = 'chat' | 'infos' | 'membres' | 'votes' | 'depenses' | 'historique';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -28,10 +30,10 @@ const rsvpConfig = {
 const tabs = [
   { key: 'chat' as Tab,       Icon: MessageSquare, label: 'Chat' },
   { key: 'infos' as Tab,      Icon: CheckSquare,   label: 'Infos' },
+  { key: 'trajets' as Tab,    Icon: Car,           label: 'Trajets' },
   { key: 'membres' as Tab,    Icon: Users,         label: 'Membres' },
   { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
   { key: 'depenses' as Tab,   Icon: Euro,          label: 'Dépenses' },
-  { key: 'historique' as Tab, Icon: History,       label: 'Historique' },
 ];
 
 interface Props {
@@ -54,6 +56,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
@@ -285,6 +288,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   <ImageDown size={16} />
                 </button>
                 <button
+                  onClick={() => setShowHistory(true)}
+                  title="Historique des modifications"
+                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                >
+                  <History size={16} />
+                </button>
+                <button
                   onClick={() => setShowDeletePlan(true)}
                   title="Voter pour supprimer ce Plan"
                   className={`p-2 rounded-lg transition-colors ${
@@ -338,6 +348,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                     >
                       <ImageDown size={15} className="text-slate-400" />
                       Télécharger la story
+                    </button>
+                    <button
+                      onClick={() => { setShowActionsMenu(false); setShowHistory(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <History size={15} className="text-slate-400" />
+                      Historique des modifications
                     </button>
                     <button
                       onClick={() => { setShowActionsMenu(false); setShowDeletePlan(true); }}
@@ -467,7 +484,11 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {tab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} />}
-          {tab === 'historique' && <HistoriqueTab changeLogs={plan.changeLogs ?? []} />}
+          {tab === 'trajets' && (
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50">
+              <CarpoolSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} />
+            </div>
+          )}
         </>
       )}
 
@@ -479,6 +500,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           planId={plan.id}
           onClose={() => setShowInvite(false)}
         />
+      )}
+
+      {showHistory && (
+        <Modal title="Historique des modifications" onClose={() => setShowHistory(false)}>
+          <div className="-mx-6 -mb-6 max-h-[60vh] flex flex-col overflow-hidden rounded-b-2xl">
+            <HistoriqueTab changeLogs={plan.changeLogs ?? []} />
+          </div>
+        </Modal>
       )}
 
       {showStory && (

@@ -254,6 +254,22 @@ Junto/
   d'une dépense précise
 - **Reimbursement** : amount, fromUserId, toUserId, planId — enregistre un
   remboursement réel qui vient compenser les soldes calculés
+- **Ride** / **RidePassenger** / **RideRequest** (covoiturage, 2026-09-27,
+  trajet **aller** uniquement — le retour se précise dans `note`) : un
+  conducteur propose un trajet (departure texte libre, departureAt?, seats
+  1-8, note?), unique par (planId, driverId). `RidePassenger.planId` est
+  volontairement dupliqué pour que la base garantisse un seul trajet par
+  passager et par Plan (unique planId+userId). `RideRequest` = « Je cherche
+  une place » (fromLocation), une par membre et par Plan. Un conducteur
+  n'est jamais passager ni demandeur (nettoyé à la création du trajet) ;
+  monter dans un trajet supprime sa demande et bascule depuis un éventuel
+  autre trajet. Passer « Absent(e) » (`plans.ts` PUT /:id/rsvp) appelle
+  `removeUserFromRides` (`lib/rides.ts`) : trajet supprimé si conducteur,
+  place libérée si passager, demande retirée. UI : `CarpoolSection.tsx`
+  dans l'onglet **Trajets** du Plan. Pour garder 6 onglets (la barre
+  déborde déjà sur mobile), l'onglet Historique a été retiré : l'historique
+  des modifications s'ouvre maintenant dans une modale depuis les actions
+  du Plan (icône sur desktop, menu ⋮ sur mobile).
 
 Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
 appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
@@ -290,6 +306,11 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   /:id/reimbursements (POST), /:id/ical (GET, export .ics)
 - **admin.ts** : /users, /users/:id/approve|reject|reset-password,
   DELETE /users/:id, /stats
+- **rides.ts** (monté sur `/api/rides`) : GET/POST /plan/:planId (liste
+  trajets+demandes / proposer), POST|DELETE /plan/:planId/request,
+  PUT|DELETE /:rideId (conducteur uniquement, la suppression prévient les
+  passagers), POST|DELETE /:rideId/join. Réservé aux membres du Plan, et
+  aux non-absents pour les actions.
 - **attachments.ts** : upload (100 Mo cumulés max par Plan), /:id/download-token,
   /:id/download (proxy), DELETE, /plans/:planId/photos-token +
   /plans/:planId/photos/download (ZIP de toutes les photos du Plan, généré à
@@ -316,7 +337,14 @@ Chat + réactions + fils + présence gérés via socket.io
 l'utilisateur), `notification` (types: new_message, mention — les autres
 types de notification (new_plan, new_circle_poll, join_request,
 join_accepted) sont émis directement depuis les routes REST concernées
-dans `circles.ts`, pas depuis `handlers.ts`).
+dans `circles.ts`, pas depuis `handlers.ts` ; le type `ride` vient de
+`lib/rides.ts`). Le covoiturage émet aussi `rides-updated` dans la room
+`plan:{id}` à chaque changement, pour que `CarpoolSection` se recharge.
+
+Attention : dans `handlers.ts`, les écouteurs (`join-plan`, etc.) ne sont
+enregistrés qu'**après** les requêtes async du handler `connection`. Un
+`join-plan` émis immédiatement après la connexion est donc perdu —
+constaté en test le 2026-09-27, pas encore corrigé.
 
 ## Déploiement
 
@@ -385,8 +413,22 @@ dans `circles.ts`, pas depuis `handlers.ts`).
 - `cd server && npm test` (Vitest). Couvre uniquement la logique pure sans
   DB pour l'instant : répartition des dépenses + simplification des dettes
   (`lib/expenses.test.ts`), formatage iCal (`lib/ical.test.ts`). Pas de
-  tests d'intégration API/DB — bloqué tant qu'il n'existe pas de base de
-  test séparée de la production (voir section base de données).
+  tests d'intégration API/DB commités.
+- **Tester contre une base jetable (méthode validée le 2026-09-27)** :
+  Docker Desktop est installé sur le Mac (éteint par défaut — `open -a
+  Docker`). `docker run -d --rm --name evly-test-pg -e POSTGRES_PASSWORD=test
+  -e POSTGRES_DB=evly_test -p 55432:5432 postgres:16-alpine`, puis
+  **toujours** préfixer les commandes de
+  `DATABASE_URL=postgresql://postgres:test@localhost:55432/evly_test` (la
+  variable d'env prime sur `server/.env` — vérifier avec `npx prisma
+  migrate status` que la datasource affichée est bien `localhost:55432`
+  avant toute écriture). `npx prisma migrate deploy` applique tout
+  l'historique sur la base vierge. Serveur : même préfixe +
+  `JWT_SECRET=test-secret PORT=3999 npx ts-node-dev --transpile-only
+  src/index.ts` (tokens de test signés avec ce secret). Client :
+  `VITE_API_URL=http://localhost:3999/api VITE_SOCKET_URL=http://localhost:3999
+  npx vite` puis Playwright avec `estelle_token` injecté dans
+  localStorage. Arrêter le conteneur et quitter Docker ensuite.
 - Pas de tests côté client pour l'instant.
 
 ## Consignes de travail
