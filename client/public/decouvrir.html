@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EvLY ou WhatsApp ?</title>
+<meta name="description" content="Ce qu'EvLY fait mieux qu'un groupe WhatsApp pour organiser tes sorties, avant, pendant et après.">
+<meta property="og:title" content="EvLY ou WhatsApp ?">
+<meta property="og:description" content="Une sortie, une conversation, et tout ce qu'il faut pour l'organiser.">
+<link rel="icon" type="image/svg+xml" href="/logo-evly.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,800;1,300;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Fiche imprimable : un seul rendu, papier clair, fond peint explicitement */
+  :root {
+    color-scheme: light;
+    --coral-900: #431a11;
+    --coral-700: #c2410c;
+    --coral-600: #ea5a2b;
+    --coral-100: #ffeee6;
+    --coral-50: #fff6f2;
+    --ink: #1c1410;
+    --ink-dim: #6b5850;
+    --ink-faint: #a8958c;
+    --paper: #fffdfb;
+    --line: #f0ddd3;
+    --wa-bg: #f4f1ef;
+    --page-bg: #ded1c8;
+  }
+  * { box-sizing: border-box; }
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; background: var(--page-bg); }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    padding-inline: 16px;
+    padding-block: 24px;
+  }
+  .page {
+    width: 100%;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: var(--paper);
+    padding: 14mm 16mm 12mm;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(67, 26, 17, .22);
+  }
+  @media print {
+    html, body { background: var(--paper); }
+    body { padding: 0; }
+    .page { width: 210mm; max-width: none; box-shadow: none; }
+  }
+
+  /* Entête */
+  .head { text-align: center; }
+  .wordmark { font-family: 'Fraunces', Georgia, serif; font-size: 44px; line-height: 1; }
+  .wordmark .ev { font-style: italic; font-weight: 300; }
+  .wordmark .ly { font-weight: 800; color: var(--coral-600); }
+  .tagline {
+    margin-top: 4px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--coral-700);
+  }
+  .hero {
+    margin: 7mm auto 0;
+    max-width: 150mm;
+    font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700;
+    font-size: 21px; line-height: 1.25; text-wrap: balance;
+  }
+  .hero em { color: var(--coral-700); }
+  .sub { margin: 2.5mm 0 0; font-size: 12.5px; color: var(--ink-dim); }
+
+  /* Tableau comparatif */
+  .compare {
+    margin-top: 9mm;
+    border: 1px solid var(--line);
+    border-radius: 3mm;
+    overflow: hidden;
+  }
+  .row { display: grid; grid-template-columns: 1fr 1.25fr; }
+  .row > div { padding: 2.6mm 4.5mm; font-size: 12.5px; line-height: 1.35; display: flex; gap: 2mm; align-items: baseline; }
+  .cols > div {
+    align-items: center;
+    padding-block: 3mm;
+    font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .cols .wa { background: var(--wa-bg); color: var(--ink-dim); }
+  .cols .evly {
+    background: var(--coral-600); color: #fff;
+    font-family: 'Fraunces', Georgia, serif; font-size: 15px; letter-spacing: 0; text-transform: none;
+  }
+  .cols .evly .ev { font-style: italic; font-weight: 300; }
+  .cols .evly .ly { font-weight: 800; }
+  .when {
+    grid-column: 1 / -1;
+    padding: 1.9mm 4.5mm;
+    background: var(--coral-50);
+    border-top: 1px solid var(--line);
+    font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--coral-700);
+  }
+  .item { border-top: 1px solid var(--line); }
+  .item .wa { background: var(--wa-bg); color: var(--ink-dim); }
+  .item .wa::before { content: '✕'; color: #b0473a; opacity: .55; font-weight: 700; flex-shrink: 0; }
+  .item .evly::before { content: '✓'; color: var(--coral-600); font-weight: 800; flex-shrink: 0; }
+  .item .evly b { font-weight: 700; }
+
+  /* Bas de page */
+  .vote {
+    margin-top: 7mm;
+    text-align: center;
+    font-size: 13px; color: var(--ink-dim);
+  }
+  .vote b { color: var(--coral-700); }
+  .foot {
+    margin-top: auto;
+    padding-top: 5mm;
+    border-top: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 6mm;
+  }
+  .cta { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.2; }
+  .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11.5px; color: var(--ink-dim); }
+  .qr { display: flex; align-items: center; gap: 4mm; flex-shrink: 0; }
+  .qr-text { text-align: right; }
+  .qr-text .url { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 17px; }
+  .qr-text .mail { font-size: 10.5px; color: var(--ink-dim); margin-top: 1mm; }
+  .qr-box { padding: 1.5mm; background: #fff; border: 1px solid var(--line); border-radius: 2mm; line-height: 0; }
+  .qr-box svg { width: 21mm; height: 21mm; display: block; }
+
+  @media (max-width: 520px) {
+    .page { padding: 20px 14px; min-height: 0; }
+    .hero { font-size: 18px; }
+    .row > div { padding: 8px 10px; font-size: 12px; }
+    .foot { flex-direction: column; align-items: center; text-align: center; margin-top: 28px; }
+    .qr-text { text-align: left; }
+  }
+</style>
+<style>
+  .cta-btn {
+    display: inline-block; margin-top: 3mm;
+    padding: 10px 18px; border-radius: 10px;
+    background: var(--coral-600); color: #fff; text-decoration: none;
+    font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 14px;
+  }
+  .cta-btn:hover { background: var(--coral-700); }
+  .cta-btn:focus-visible, .qr-text a:focus-visible { outline: 2px solid var(--coral-700); outline-offset: 2px; }
+  .qr-text a { color: inherit; text-decoration: none; }
+  @media print { .cta-btn { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="head">
+    <div class="wordmark"><span class="ev">Ev</span><span class="ly">LY</span></div>
+    <div class="tagline">Events Linked to You</div>
+    <p class="hero">Le groupe WhatsApp familial mélange l'anniversaire de mamie et l'apéro de vendredi. <em>Pas EvLY.</em></p>
+    <p class="sub">Une sortie, une conversation, et tout ce qu'il faut pour l'organiser.</p>
+  </header>
+
+  <section class="compare" aria-label="Comparatif WhatsApp et EvLY">
+    <div class="row cols">
+      <div class="wa">Groupe WhatsApp</div>
+      <div class="evly"><span><span class="ev">Ev</span><span class="ly">LY</span></span></div>
+    </div>
+
+    <div class="row"><div class="when">Avant la sortie</div></div>
+    <div class="row item"><div class="wa">Tout se mélange dans un seul fil</div><div class="evly"><span><b>Un chat par sortie</b>, visible seulement par ceux qui viennent</span></div></div>
+    <div class="row item"><div class="wa">On ne sait jamais qui vient</div><div class="evly"><span><b>Oui, peut-être, non</b> : chacun répond en un tap</span></div></div>
+    <div class="row item"><div class="wa">Le sondage se perd dans le fil</div><div class="evly"><span><b>Sondages</b> rangés dans le Plan, anonymes si besoin</span></div></div>
+    <div class="row item"><div class="wa">Un deuxième groupe en cachette pour la surprise</div><div class="evly"><span><b>Plan surprise</b> : invisible pour la personne fêtée</span></div></div>
+    <div class="row item"><div class="wa">L'invité d'un soir reste dans le groupe pour toujours</div><div class="evly"><span><b>Invité extérieur</b> : accès à cette sortie seulement</span></div></div>
+    <div class="row item"><div class="wa">Personne ne pense à relancer</div><div class="evly"><span><b>Rappel automatique</b> et export vers ton agenda</span></div></div>
+
+    <div class="row"><div class="when">Le jour J</div></div>
+    <div class="row item"><div class="wa">L'adresse est perdue dans le scroll</div><div class="evly"><span><b>Infos épinglées</b> : lieu, heure, qui apporte quoi</span></div></div>
+    <div class="row item"><div class="wa">« Quelqu'un peut me prendre ? »</div><div class="evly"><span><b>Covoiturage</b> : places libres, « je cherche une place »</span></div></div>
+
+    <div class="row"><div class="when">Après la sortie</div></div>
+    <div class="row item"><div class="wa">« On se fait les comptes plus tard »</div><div class="evly"><span><b>Dépenses</b> : qui doit quoi, calculé tout seul</span></div></div>
+    <div class="row item"><div class="wa">Photos éparpillées et compressées</div><div class="evly"><span><b>Galerie</b> téléchargeable d'un clic, <b>story souvenir</b></span></div></div>
+    <div class="row item"><div class="wa">Le groupe traîne pendant des années</div><div class="evly"><span><b>Tout s'efface</b> après la sortie, résumé des dépenses par email</span></div></div>
+  </section>
+
+  <p class="vote">Et personne ne décide seul : accepter un membre ou supprimer un Plan se <b>vote à la majorité</b>.</p>
+
+  <footer class="foot">
+    <p class="cta">Organise ta prochaine sortie sur EvLY.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/auth">Créer mon compte</a></p>
+    <div class="qr">
+      <div class="qr-text">
+        <div class="url"><a href="https://www.evly.ch">evly.ch</a></div>
+        <div class="mail">info@evly.ch</div>
+      </div>
+      <div class="qr-box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#431a11" d="M1 1.5h7m2 0h1m1 0h1m2 0h2m2 0h7M1 2.5h1m5 0h1m1 0h1m1 0h3m2 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m5 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h5m1 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m2 0h1m1 0h1M1 9.5h1m1 0h1m1 0h1m1 0h1m4 0h2m1 0h2m4 0h1m2 0h1M1 10.5h2m3 0h1m3 0h2m5 0h1m1 0h1m5 0h1M1 11.5h1m2 0h1m1 0h2m2 0h1m3 0h1m2 0h4m2 0h3M1 12.5h1m2 0h2m2 0h3m1 0h2m2 0h2m1 0h1m4 0h1M2 13.5h4m1 0h1m5 0h1m2 0h5m1 0h1m1 0h2M4 14.5h3m1 0h1m3 0h3m2 0h1m1 0h1m2 0h1m2 0h1M1 15.5h1m1 0h1m1 0h3m3 0h3m1 0h1m1 0h4m2 0h3M2 16.5h5m2 0h3m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1M1 17.5h1m3 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h6M9 18.5h1m2 0h1m2 0h1m1 0h1m3 0h2m1 0h2M1 19.5h7m2 0h2m2 0h1m1 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m2 0h3m4 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m1 0h3m1 0h1m3 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m3 0h4m3 0h1m1 0h4M1 23.5h1m1 0h3m1 0h1m1 0h5m1 0h3m3 0h1m3 0h1M1 24.5h1m5 0h1m3 0h1m1 0h5m1 0h1m1 0h2m1 0h1M1 25.5h7m1 0h1m2 0h1m2 0h3m2 0h1m3 0h2"/></svg></div>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

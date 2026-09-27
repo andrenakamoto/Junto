@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -112,6 +112,15 @@ export function AuthPage() {
           </div>
           <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Events Linked to You</p>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
+          <a
+            href="/decouvrir.html"
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-4 decoration-indigo-400/50"
+          >
+            Découvrir EvLY en 1 minute
+            <ArrowRight size={14} />
+          </a>
         </div>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50">
