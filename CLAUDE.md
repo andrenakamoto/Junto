@@ -126,6 +126,12 @@ Conséquences pratiques :
   taille en px, `light` inverse la couleur de "Ev" pour les fonds clairs,
   ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
+- **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
+  quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
+  « Découvrir EvLY en 1 minute »). Page HTML autonome, copie de la
+  fiche promo (comparatif WhatsApp/EvLY), avec bouton « Créer mon compte »
+  masqué à l'impression. La tenir à jour quand une fonctionnalité
+  importante est ajoutée.
   `client/public/logo-evly.svg` (l'ancienne icône badge) ne sert plus
   qu'au favicon — remplacé par un simple monogramme "EV" sur le dégradé
   corail, lisible à 16px.
