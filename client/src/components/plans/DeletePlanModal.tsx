@@ -38,6 +38,34 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
     }
   }
 
+  // Paramètre avancé : le créateur supprime seul, sans vote
+  if (plan.deletionMode === 'creator') {
+    return (
+      <Modal title="Supprimer le Plan" onClose={onClose}>
+        <div className="space-y-5">
+          <div className="flex gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
+            <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">
+              La suppression est <strong>irréversible</strong> : messages, photos, fichiers, trajets et
+              dépenses seront perdus pour tous les membres.
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end pt-1 border-t border-slate-100">
+            <Button variant="ghost" onClick={onClose}>Annuler</Button>
+            <button
+              onClick={handleVote}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              {loading ? '...' : 'Supprimer définitivement'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal title="Supprimer le Plan" onClose={onClose}>
       <div className="space-y-5">

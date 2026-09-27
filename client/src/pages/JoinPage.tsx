@@ -18,7 +18,7 @@ export function JoinPage() {
   const [joining, setJoining] = useState(false);
   const [error, setError]     = useState('');
   const [done, setDone]       = useState(false);
-  const [pending, setPending] = useState(false);
+  const [pending, setPending] = useState<false | 'vote' | 'creator'>(false);
 
   // Redirect to /auth if not logged in, preserving the join URL
   useEffect(() => {
@@ -34,7 +34,7 @@ export function JoinPage() {
     try {
       const { data } = await api.post('/circles/join', { name: circleName, code: circleCode });
       if (data.pending) {
-        setPending(true);
+        setPending(data.admissionMode === 'creator' ? 'creator' : 'vote');
       } else {
         setDone(true);
         const dest = planId ? `/dashboard?planId=${planId}` : '/dashboard';
@@ -95,7 +95,11 @@ export function JoinPage() {
           ) : pending ? (
             <div className="py-4 text-center space-y-3">
               <p className="text-indigo-300 font-semibold text-sm">Demande envoyée</p>
-              <p className="text-slate-400 text-xs">Les membres du Cercle doivent valider ta demande (majorité requise) avant que tu puisses y accéder.</p>
+              <p className="text-slate-400 text-xs">
+                {pending === 'creator'
+                  ? "Le créateur du Cercle doit valider ta demande avant que tu puisses y accéder."
+                  : 'Les membres du Cercle doivent valider ta demande (majorité requise) avant que tu puisses y accéder.'}
+              </p>
               <button
                 onClick={() => navigate('/dashboard')}
                 className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors text-sm"

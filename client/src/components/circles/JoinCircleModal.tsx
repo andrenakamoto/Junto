@@ -15,7 +15,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pendingCircleName, setPendingCircleName] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ circleName: string; byCreator: boolean } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,9 +24,9 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     try {
       const { data } = await api.post('/circles/join', { name, code: code.toUpperCase() });
       if (data.pending) {
-        setPendingCircleName(data.circleName);
+        setPending({ circleName: data.circleName, byCreator: data.admissionMode === 'creator' });
       } else {
-        onJoined(data);
+        onJoined(data.circle);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -35,12 +35,14 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     }
   }
 
-  if (pendingCircleName) {
+  if (pending) {
     return (
       <Modal title="Demande envoyée" onClose={onClose}>
         <p className="text-sm text-slate-600 mb-4">
-          Ta demande pour rejoindre <strong>"{pendingCircleName}"</strong> a été envoyée.
-          Les membres du Cercle doivent l'approuver (majorité requise) avant que tu puisses y accéder.
+          Ta demande pour rejoindre <strong>"{pending.circleName}"</strong> a été envoyée.
+          {pending.byCreator
+            ? " Le créateur du Cercle doit l'approuver avant que tu puisses y accéder."
+            : " Les membres du Cercle doivent l'approuver (majorité requise) avant que tu puisses y accéder."}
         </p>
         <div className="flex justify-end">
           <Button onClick={onClose}>OK</Button>
@@ -51,7 +53,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
 
   return (
     <Modal title="Rejoindre un Cercle" onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">Demande le nom et le code à quelqu'un qui en fait partie. Les membres devront valider ta demande.</p>
+      <p className="text-sm text-slate-500 mb-4">Demande le nom et le code à quelqu'un qui en fait partie. Selon le Cercle, ta demande devra peut-être être validée.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Nom du Cercle" value={name} onChange={e => setName(e.target.value)} placeholder="Les amis du lundi" required autoFocus />
         <Input

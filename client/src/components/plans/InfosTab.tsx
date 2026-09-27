@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
+import { isEnabled } from '../../lib/settings';
 
 interface Props {
   plan: Plan;
@@ -112,6 +113,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   }
 
   const items = plan.items || [];
+  const showFiles = isEnabled(plan, 'fichiers');
   const attachments = plan.attachments || [];
   const imageAttachments = attachments.filter(a => isImage(a.mimeType));
   const fileAttachments = attachments.filter(a => !isImage(a.mimeType));
@@ -165,8 +167,8 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         )}
       </div>
 
-      {/* Galerie photo */}
-      {imageAttachments.length > 0 && (
+      {/* Galerie photo (masquée si « Photos et fichiers » est désactivé) */}
+      {showFiles && imageAttachments.length > 0 && (
         <div>
           <h3 className="font-semibold text-slate-800 text-sm mb-3">Galerie ({imageAttachments.length})</h3>
           <div className="mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
@@ -202,7 +204,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
       )}
 
       {/* Pièces jointes */}
-      <div>
+      {showFiles && <div>
         <h3 className="font-semibold text-slate-800 text-sm mb-3">Pièces jointes</h3>
 
         {fileAttachments.length > 0 && (
@@ -244,7 +246,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           {uploading ? 'Envoi en cours…' : 'Ajouter une pièce jointe'}
         </button>
         <p className="text-xs text-slate-400 mt-1">PDF, images, Word, Excel… · max 10 Mo</p>
-      </div>
+      </div>}
     </div>
   );
 }

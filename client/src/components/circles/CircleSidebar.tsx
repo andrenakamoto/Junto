@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, Menu, BookOpen, UserRound, UserX } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -64,6 +64,17 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     try {
       const { data } = await api.post(`/circles/${circleId}/join-requests/${requestId}/vote`);
       if (data.circle) onCircleUpdated(data.circle);
+    } finally {
+      setVotingRequestId(null);
+    }
+  }
+
+  // Mode « validation par le créateur » : refus possible (en mode vote, seule la majorité fait foi)
+  async function handleRefuseRequest(circleId: string, requestId: string) {
+    setVotingRequestId(requestId);
+    try {
+      const { data } = await api.delete(`/circles/${circleId}/join-requests/${requestId}`);
+      onCircleUpdated(data);
     } finally {
       setVotingRequestId(null);
     }
@@ -263,8 +274,39 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-slate-800 border border-slate-700/60 rounded-xl p-2.5 space-y-2">
                   {(() => {
                     const threshold = Math.ceil(circle.members.length / 2);
+                    const byCreator = (circle.admissionMode ?? 'vote') !== 'vote';
+                    const iAmCreator = circle.creatorId === user?.id;
                     return (circle.joinRequests ?? []).map(r => {
                       const hasVoted = r.votes.some(v => v.userId === user?.id);
+                      if (byCreator) return (
+                        <div key={r.id} className="flex items-center gap-2 px-1 py-0.5">
+                          <Avatar pseudo={r.user.pseudo} size="sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-slate-200 truncate">@{r.user.pseudo}</p>
+                            <p className="text-xs text-indigo-300">{iAmCreator ? 'À toi de décider' : 'Validation par le créateur'}</p>
+                          </div>
+                          {iAmCreator && (
+                            <>
+                              <button
+                                onClick={() => handleVoteRequest(circle.id, r.id)}
+                                disabled={votingRequestId === r.id}
+                                title="Accepter"
+                                className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors flex-shrink-0 disabled:opacity-50"
+                              >
+                                <Check size={12} />
+                              </button>
+                              <button
+                                onClick={() => handleRefuseRequest(circle.id, r.id)}
+                                disabled={votingRequestId === r.id}
+                                title="Refuser"
+                                className="p-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition-colors flex-shrink-0 disabled:opacity-50"
+                              >
+                                <X size={12} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      );
                       return (
                         <div key={r.id} className="flex items-center gap-2 px-1 py-0.5">
                           <Avatar pseudo={r.user.pseudo} size="sm" />

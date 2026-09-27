@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { emitRidesUpdated, notifyRide } from '../lib/rides';
+import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -24,9 +25,10 @@ type Membership =
 async function getMembership(planId: string, userId: string, active: boolean): Promise<Membership> {
   const member = await prisma.planMember.findUnique({
     where: { userId_planId: { userId, planId } },
-    include: { plan: { select: { id: true, title: true, circleId: true } } },
+    include: { plan: { select: { id: true, title: true, circleId: true, disabledFeatures: true } } },
   });
   if (!member) return { error: 'Tu dois rejoindre ce Plan pour accéder au covoiturage', status: 403 };
+  if (active && member.plan.disabledFeatures.includes('trajets')) return { error: FEATURE_DISABLED_ERROR, status: 403 };
   if (active && member.rsvp === 'out') {
     return { error: 'Tu es indiqué(e) absent(e) à ce Plan', status: 403 };
   }

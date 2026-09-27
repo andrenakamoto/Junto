@@ -83,8 +83,9 @@ export function setupSocketHandlers(io: Server) {
       if (!content?.trim()) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
+        include: { plan: { select: { disabledFeatures: true } } },
       });
-      if (!member) return;
+      if (!member || member.plan.disabledFeatures.includes('chat')) return;
 
       let validParentId: string | undefined;
       if (parentId) {

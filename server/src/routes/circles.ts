@@ -4,6 +4,7 @@ import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode } from '../lib/settings';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -71,6 +72,8 @@ router.post('/', async (req: AuthRequest, res) => {
       name: name.trim(),
       description: description?.trim() || null,
       color: CIRCLE_COLORS.includes(color) ? color : null,
+      deletionMode: parseDeletionMode(req.body.deletionMode) ?? 'vote',
+      admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -98,6 +101,76 @@ router.put('/:id/color', async (req: AuthRequest, res) => {
   res.json(updated);
 });
 
+// Accepte une demande d'adhésion : ajoute le membre, supprime la demande, prévient l'intéressé.
+async function acceptJoinRequest(app: any, request: { id: string; userId: string }, circleId: string, reason: string) {
+  await prisma.$transaction([
+    prisma.circleJoinRequest.delete({ where: { id: request.id } }),
+    prisma.circleMember.create({ data: { userId: request.userId, circleId } }),
+  ]);
+
+  const updatedCircle = await prisma.circle.findUnique({ where: { id: circleId }, include: circleInclude });
+
+  try {
+    const io = app.get('io');
+    if (io && updatedCircle) {
+      io.to(`user:${request.userId}`).emit('notification', {
+        type: 'join_accepted',
+        circleId,
+        circleName: updatedCircle.name,
+      });
+    }
+    const approvedUser = await prisma.user.findUnique({
+      where: { id: request.userId },
+      select: { email: true, emailVerified: true, pseudo: true },
+    });
+    if (updatedCircle && approvedUser?.email && approvedUser.emailVerified) {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: approvedUser.email,
+        subject: `Tu as rejoint "${updatedCircle.name}" !`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <h2>Bienvenue dans "${updatedCircle.name}" ${approvedUser.pseudo} 🎉</h2>
+            <p>${reason}</p>
+            <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+              Ouvrir EvLY
+            </a>
+          </div>`,
+      }).then(r => { if (r.error) console.error('[join_accepted email]', approvedUser.email, r.error); });
+    }
+  } catch (e) {
+    console.error('[join_accepted notify]', e);
+  }
+  return updatedCircle;
+}
+
+// Paramètres avancés du Cercle — modifiables par le créateur seul, visibles par tous
+router.put('/:id/settings', async (req: AuthRequest, res) => {
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+  const deletionMode = req.body.deletionMode === undefined ? undefined : parseDeletionMode(req.body.deletionMode);
+  const admissionMode = req.body.admissionMode === undefined ? undefined : parseAdmissionMode(req.body.admissionMode);
+  if (deletionMode === undefined && req.body.deletionMode !== undefined) { res.status(400).json({ error: 'Mode de suppression invalide' }); return; }
+  if (admissionMode === undefined && req.body.admissionMode !== undefined) { res.status(400).json({ error: "Mode d'admission invalide" }); return; }
+
+  await prisma.circle.update({
+    where: { id: circle.id },
+    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }) },
+  });
+  // Les votes de suppression en cours n'ont plus de sens si c'est le créateur qui décide
+  if (deletionMode === 'creator') await prisma.circleDeleteVote.deleteMany({ where: { circleId: circle.id } });
+  // Passage en entrée libre : les demandes en attente sont acceptées
+  if (admissionMode === 'open') {
+    const pending = await prisma.circleJoinRequest.findMany({ where: { circleId: circle.id } });
+    for (const r of pending) {
+      await acceptJoinRequest(req.app, r, circle.id, 'Le Cercle est désormais ouvert à toute personne qui a le code.');
+    }
+  }
+  const updated = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
+  res.json(updated);
+});
+
 // Demander à rejoindre un cercle — nécessite l'approbation d'au moins la
 // moitié des membres actuels (même principe que la suppression d'un Cercle/Plan)
 router.post('/join', async (req: AuthRequest, res) => {
@@ -120,23 +193,32 @@ router.post('/join', async (req: AuthRequest, res) => {
     res.status(409).json({ error: 'Tu es déjà dans ce Cercle' });
     return;
   }
+  if (circle.admissionMode === 'open') {
+    // Entrée libre : le nom + le code suffisent
+    await prisma.circleJoinRequest.deleteMany({ where: { circleId: circle.id, userId: req.userId! } });
+    await prisma.circleMember.create({ data: { userId: req.userId!, circleId: circle.id } });
+    const joined = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
+    res.json({ pending: false, circle: joined, circleName: circle.name });
+    return;
+  }
   const existingRequest = await prisma.circleJoinRequest.findUnique({
     where: { circleId_userId: { circleId: circle.id, userId: req.userId! } },
   });
   if (existingRequest) {
-    res.json({ pending: true, circleName: circle.name });
+    res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
     return;
   }
 
   const requester = await prisma.user.findUnique({ where: { id: req.userId! }, select: { pseudo: true } });
   await prisma.circleJoinRequest.create({ data: { circleId: circle.id, userId: req.userId! } });
-  res.json({ pending: true, circleName: circle.name });
+  res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
 
-  // Notifier les membres actuels — temps réel + email
+  // Notifier les membres actuels (ou le créateur seul s'il valide seul) — temps réel + email
+  const byCreator = circle.admissionMode === 'creator';
   try {
     const io = req.app.get('io');
     const members = await prisma.circleMember.findMany({
-      where: { circleId: circle.id },
+      where: { circleId: circle.id, ...(byCreator && { userId: circle.creatorId }) },
       select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } },
     });
     if (io) {
@@ -158,7 +240,7 @@ router.post('/join', async (req: AuthRequest, res) => {
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
           <h2>Salut ${m.user.pseudo} 👋</h2>
           <p><strong>${requester?.pseudo}</strong> a demandé à rejoindre le Cercle <strong>"${circle.name}"</strong>.</p>
-          <p>La majorité des membres doit valider la demande pour qu'elle soit acceptée.</p>
+          <p>${byCreator ? 'En tant que créateur du Cercle, c\'est toi qui valides la demande.' : 'La majorité des membres doit valider la demande pour qu\'elle soit acceptée.'}</p>
           <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir la demande
           </a>
@@ -186,6 +268,18 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
     return;
   }
 
+  const circleSettings = await prisma.circle.findUnique({ where: { id: circleId }, select: { creatorId: true, admissionMode: true } });
+  if (circleSettings?.admissionMode !== 'vote') {
+    // Validation par le créateur (ou entrée libre : demande restée d'avant le changement)
+    if (circleSettings?.creatorId !== userId) {
+      res.status(403).json({ error: 'Seul le créateur du Cercle valide les demandes' });
+      return;
+    }
+    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Le créateur du Cercle a validé ta demande.');
+    res.json({ accepted: true, circle: updatedCircle });
+    return;
+  }
+
   const existingVote = await prisma.circleJoinVote.findUnique({
     where: { requestId_userId: { requestId: request.id, userId } },
   });
@@ -202,45 +296,7 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
   const threshold = Math.ceil(memberCount / 2);
 
   if (voteCount >= threshold) {
-    await prisma.$transaction([
-      prisma.circleJoinRequest.delete({ where: { id: request.id } }),
-      prisma.circleMember.create({ data: { userId: request.userId, circleId } }),
-    ]);
-
-    const updatedCircle = await prisma.circle.findUnique({ where: { id: circleId }, include: circleInclude });
-
-    try {
-      const io = req.app.get('io');
-      if (io && updatedCircle) {
-        io.to(`user:${request.userId}`).emit('notification', {
-          type: 'join_accepted',
-          circleId,
-          circleName: updatedCircle.name,
-        });
-      }
-      const approvedUser = await prisma.user.findUnique({
-        where: { id: request.userId },
-        select: { email: true, emailVerified: true, pseudo: true },
-      });
-      if (updatedCircle && approvedUser?.email && approvedUser.emailVerified) {
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: approvedUser.email,
-          subject: `Tu as rejoint "${updatedCircle.name}" !`,
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:auto">
-              <h2>Bienvenue dans "${updatedCircle.name}" ${approvedUser.pseudo} 🎉</h2>
-              <p>Les membres du Cercle ont validé ta demande.</p>
-              <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-                Ouvrir EvLY
-              </a>
-            </div>`,
-        }).then(r => { if (r.error) console.error('[join_accepted email]', approvedUser.email, r.error); });
-      }
-    } catch (e) {
-      console.error('[join_accepted notify]', e);
-    }
-
+    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Les membres du Cercle ont validé ta demande.');
     res.json({ accepted: true, circle: updatedCircle });
     return;
   }
@@ -250,6 +306,22 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
 });
 
 // Get circle details
+// Refuser une demande — uniquement quand le Cercle est en validation par le créateur.
+// En mode vote, aucun refus unilatéral : seule la majorité fait foi.
+router.delete('/:id/join-requests/:requestId', async (req: AuthRequest, res) => {
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.creatorId !== req.userId || circle.admissionMode === 'vote') {
+    res.status(403).json({ error: 'Seul le créateur peut refuser une demande, hors mode vote' });
+    return;
+  }
+  const request = await prisma.circleJoinRequest.findUnique({ where: { id: req.params.requestId } });
+  if (!request || request.circleId !== circle.id) { res.status(404).json({ error: 'Demande introuvable' }); return; }
+  await prisma.circleJoinRequest.delete({ where: { id: request.id } });
+  const updated = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
+  res.json(updated);
+});
+
 router.get('/:id', async (req: AuthRequest, res) => {
   const member = await prisma.circleMember.findUnique({
     where: { userId_circleId: { userId: req.userId!, circleId: req.params.id } },
@@ -293,6 +365,9 @@ interface NewPlanInput {
   location?: string | null;
   maxParticipants?: string | number | null;
   excludedUserIds?: unknown;
+  deletionMode?: unknown;
+  disabledFeatures?: unknown;
+  editMode?: unknown;
 }
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
@@ -329,6 +404,9 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
       endDate: parsedEndDate,
       location: location?.trim() || null,
       maxParticipants: parsedMaxParticipants,
+      deletionMode: parseDeletionMode(input.deletionMode) ?? 'vote',
+      disabledFeatures: parseDisabledFeatures(input.disabledFeatures) ?? [],
+      editMode: parseEditMode(input.editMode) ?? 'creator',
       creatorId,
       circleId,
       members: { create: { userId: creatorId, rsvp: 'in' } },
@@ -415,6 +493,19 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   });
   if (!member) {
     res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
+
+  const target = await prisma.circle.findUnique({ where: { id: circleId }, select: { creatorId: true, deletionMode: true } });
+  if (target?.deletionMode === 'creator') {
+    // Paramètre avancé : le créateur supprime seul, sans vote
+    if (target.creatorId !== userId) {
+      res.status(403).json({ error: 'Seul le créateur peut supprimer ce Cercle' });
+      return;
+    }
+    await purgeCircleFiles(circleId);
+    await prisma.circle.delete({ where: { id: circleId } });
+    res.json({ deleted: true });
     return;
   }
 
@@ -647,12 +738,12 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
   if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage a déjà été converti' }); return; }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds,
+    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

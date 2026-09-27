@@ -8,6 +8,7 @@ import { icsEscape, icsDate } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
+import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import crypto from 'crypto';
 
 const router = Router();
@@ -28,7 +29,7 @@ const planInclude = {
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
   items: { orderBy: { id: 'asc' as const } },
-  changeLogs: { orderBy: { changedAt: 'asc' as const } },
+  changeLogs: { orderBy: { changedAt: 'asc' as const }, include: { changedBy: { select: { id: true, pseudo: true } } } },
   // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
   attachments: {
     select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
@@ -228,9 +229,23 @@ router.put('/:id', async (req: AuthRequest, res) => {
   try {
     const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
-    if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
 
-    const { title, description, eventDate, endDate, maxParticipants } = req.body;
+    // Créateur : tout. Paramètre « tous les participants » : les membres du Plan (hors invités
+    // externes) modifient seulement les dates et le lieu ; le reste garde sa valeur actuelle.
+    const isCreator = plan.creatorId === req.userId;
+    if (!isCreator) {
+      const member = plan.editMode === 'all' && await assertPlanMember(req.userId!, plan.id);
+      const isGuest = member && (await guestIdsAmong(plan.circleId, [req.userId!])).has(req.userId!);
+      if (!member || isGuest) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+    }
+
+    const { eventDate, endDate } = req.body;
+    const title: string = isCreator ? req.body.title : plan.title;
+    const description: string = isCreator ? req.body.description : plan.description;
+    const maxParticipants = isCreator ? req.body.maxParticipants : plan.maxParticipants;
+    const newLocation: string | null = req.body.location === undefined
+      ? plan.location
+      : (typeof req.body.location === 'string' && req.body.location.trim()) ? req.body.location.trim().slice(0, 200) : null;
     if (!title?.trim()) {
       res.status(400).json({ error: 'Titre requis' }); return;
     }
@@ -250,7 +265,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     }
     let newMaxParticipants: number | null = null;
     if (maxParticipants !== undefined && maxParticipants !== null && maxParticipants !== '') {
-      newMaxParticipants = parseInt(maxParticipants, 10);
+      newMaxParticipants = parseInt(String(maxParticipants), 10);
       if (isNaN(newMaxParticipants) || newMaxParticipants < 1) {
         res.status(400).json({ error: 'Limite de participants invalide' }); return;
       }
@@ -262,28 +277,41 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     // Plan surprise : `excludedUserIds` absent = liste inchangée
     let exclusions: string[] | null = null;
-    if (req.body.excludedUserIds !== undefined) {
+    if (isCreator && req.body.excludedUserIds !== undefined) {
       const v = await validateExclusions(plan.circleId, plan.creatorId, req.body.excludedUserIds);
       if ('error' in v) { res.status(400).json({ error: v.error }); return; }
       exclusions = v.ids;
     }
 
-    const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
+    // Paramètres avancés (créateur seul) : absents = inchangés
+    const settings = isCreator ? req.body : {};
+    const deletionMode = settings.deletionMode === undefined ? plan.deletionMode : parseDeletionMode(settings.deletionMode);
+    const disabledFeatures = settings.disabledFeatures === undefined ? plan.disabledFeatures : parseDisabledFeatures(settings.disabledFeatures);
+    const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
+    if (!deletionMode || !disabledFeatures || !editMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+
+    const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null; changedById: string }[] = [];
+    const changedById = req.userId!;
     const planId = req.params.id;
 
     if (title.trim() !== plan.title)
-      logs.push({ planId, field: 'title', oldValue: plan.title, newValue: title.trim() });
+      logs.push({ planId, field: 'title', oldValue: plan.title, newValue: title.trim(), changedById });
     if (newDescription !== plan.description)
-      logs.push({ planId, field: 'description', oldValue: plan.description, newValue: newDescription });
+      logs.push({ planId, field: 'description', oldValue: plan.description, newValue: newDescription, changedById });
     if (!sameMinute(plan.eventDate, newEventDate))
-      logs.push({ planId, field: 'eventDate', oldValue: plan.eventDate?.toISOString() ?? null, newValue: newEventDate?.toISOString() ?? null });
+      logs.push({ planId, field: 'eventDate', oldValue: plan.eventDate?.toISOString() ?? null, newValue: newEventDate?.toISOString() ?? null, changedById });
     if (!sameMinute(plan.endDate, newEndDate))
-      logs.push({ planId, field: 'endDate', oldValue: plan.endDate.toISOString(), newValue: newEndDate.toISOString() });
+      logs.push({ planId, field: 'endDate', oldValue: plan.endDate.toISOString(), newValue: newEndDate.toISOString(), changedById });
+    if (newLocation !== plan.location)
+      logs.push({ planId, field: 'location', oldValue: plan.location, newValue: newLocation, changedById });
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode },
     });
+    if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
+      await prisma.planDeleteVote.deleteMany({ where: { planId } });
+    }
 
     if (logs.length > 0) {
       await prisma.planChangeLog.createMany({ data: logs });
@@ -453,6 +481,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (await isFeatureDisabled(req.params.id, 'votes')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   const { question, options, anonymous } = req.body;
   if (!question?.trim() || !Array.isArray(options) || options.length < 2) {
     res.status(400).json({ error: 'Question et au moins 2 options requises' });
@@ -484,6 +513,7 @@ router.post('/polls/:optionId/vote', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (await isFeatureDisabled(option.poll.planId, 'votes')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   // Remove user's existing votes on this poll
   const siblings = await prisma.pollOption.findMany({ where: { pollId: option.pollId } });
   await prisma.pollVote.deleteMany({
@@ -543,6 +573,15 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
 
   const isMember = plan.members.some(m => m.userId === userId);
   if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+
+  if (plan.deletionMode === 'creator') {
+    // Paramètre avancé : le créateur supprime seul, sans vote
+    if (plan.creatorId !== userId) { res.status(403).json({ error: 'Seul le créateur peut supprimer ce Plan' }); return; }
+    await purgePlanFiles([planId]);
+    await prisma.plan.delete({ where: { id: planId } });
+    res.json({ deleted: true });
+    return;
+  }
 
   const existingVote = plan.deleteVotes.find(v => v.userId === userId);
 
@@ -615,6 +654,7 @@ router.post('/:id/expenses', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (await isFeatureDisabled(req.params.id, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   const { description, amount, splitWith } = req.body;
   const parsedAmount = parseFloat(amount);
   if (!description?.trim() || isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -668,6 +708,7 @@ router.post('/:id/reimbursements', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (await isFeatureDisabled(req.params.id, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   const { toUserId, amount } = req.body;
   const parsedAmount = parseFloat(amount);
   if (!toUserId || isNaN(parsedAmount) || parsedAmount <= 0) {

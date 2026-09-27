@@ -1,0 +1,44 @@
+import prisma from './prisma';
+
+
+// Paramètres avancés des Cercles et des Plans (associations, entreprises…).
+// Masquer une fonction ne supprime aucune donnée : elle réapparaît telle quelle si on la réactive.
+
+export const DELETION_MODES = ['vote', 'creator'] as const;
+export const ADMISSION_MODES = ['vote', 'creator', 'open'] as const;
+// Infos et Membres restent toujours actifs.
+export const PLAN_FEATURES = ['chat', 'trajets', 'votes', 'depenses', 'fichiers'] as const;
+
+export type PlanFeature = typeof PLAN_FEATURES[number];
+
+export function parseDeletionMode(v: unknown): string | undefined {
+  return typeof v === 'string' && (DELETION_MODES as readonly string[]).includes(v) ? v : undefined;
+}
+
+export function parseAdmissionMode(v: unknown): string | undefined {
+  return typeof v === 'string' && (ADMISSION_MODES as readonly string[]).includes(v) ? v : undefined;
+}
+
+export function parseDisabledFeatures(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return [...new Set(v.filter((f): f is string => typeof f === 'string' && (PLAN_FEATURES as readonly string[]).includes(f)))];
+}
+
+export function featureEnabled(plan: { disabledFeatures: string[] }, feature: PlanFeature): boolean {
+  return !plan.disabledFeatures.includes(feature);
+}
+
+export const FEATURE_DISABLED_ERROR = 'Cette fonction est désactivée pour ce Plan';
+
+// Vérification côté serveur (le client masque déjà la fonction, mais on ne s'y fie pas)
+export async function isFeatureDisabled(planId: string, feature: PlanFeature): Promise<boolean> {
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { disabledFeatures: true } });
+  return !!plan && plan.disabledFeatures.includes(feature);
+}
+
+// Qui peut modifier les dates et le lieu d'un Plan (titre, description et le reste : créateur seul)
+export const EDIT_MODES = ['creator', 'all'] as const;
+
+export function parseEditMode(v: unknown): string | undefined {
+  return typeof v === 'string' && (EDIT_MODES as readonly string[]).includes(v) ? v : undefined;
+}

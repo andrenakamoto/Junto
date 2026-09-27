@@ -6,6 +6,7 @@ const fieldLabel: Record<string, string> = {
   description: 'Description',
   eventDate: "Date de l'événement",
   endDate: 'Date de fin',
+  location: 'Lieu',
 };
 
 function formatValue(field: string, value: string | null): string {
@@ -47,7 +48,9 @@ export function HistoriqueTab({ changeLogs }: Props) {
               <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">
                 {fieldLabel[log.field] ?? log.field}
               </span>
-              <span className="text-xs text-slate-400">{date}</span>
+              <span className="text-xs text-slate-400">
+                {log.changedBy && <>@{log.changedBy.pseudo} · </>}{date}
+              </span>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-start gap-2">

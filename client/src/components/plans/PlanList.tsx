@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll, CirclePollOption } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -9,6 +9,7 @@ import { LeaveCircleModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
 import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
 import { CirclePollCard } from '../circles/CirclePollCard';
+import { CircleSettingsModal } from '../circles/CircleSettingsModal';
 import api from '../../services/api';
 
 interface Props {
@@ -30,6 +31,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showDelete, setShowDelete] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
   const [showCreatePoll, setShowCreatePoll] = useState(false);
@@ -60,6 +62,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const votes = circle.deleteVotes ?? [];
   const threshold = Math.ceil(circle.members.length / 2);
   const hasMyVote = votes.some(v => v.userId === user?.id);
+  // Paramètre avancé : suppression par le créateur seul → bouton réservé au créateur
+  const creatorDeletes = circle.deletionMode === 'creator';
+  const canDelete = !creatorDeletes || circle.creatorId === user?.id;
 
   return (
     <div className="w-full bg-slate-800 flex flex-col h-full flex-shrink-0 border-r border-slate-700/50">
@@ -96,10 +101,19 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             <UserPlus size={14} />
           </button>
 
-          {/* Delete vote button */}
+          {/* Paramètres avancés (lecture seule sauf pour le créateur) */}
           <button
+            onClick={() => setShowSettings(true)}
+            title="Paramètres du Cercle"
+            className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-200 hover:bg-slate-700 transition-colors flex-shrink-0"
+          >
+            <SlidersHorizontal size={14} />
+          </button>
+
+          {/* Delete vote button */}
+          {canDelete && <button
             onClick={() => setShowDelete(true)}
-            title="Voter pour supprimer ce Cercle"
+            title={creatorDeletes ? 'Supprimer ce Cercle' : 'Voter pour supprimer ce Cercle'}
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               hasMyVote
                 ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20'
@@ -107,7 +121,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             }`}
           >
             <Trash2 size={14} />
-          </button>
+          </button>}
 
           {/* Leave circle button */}
           <button
@@ -238,6 +252,14 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           onClose={() => setShowDelete(false)}
           onDeleted={() => { setShowDelete(false); onCircleDeleted(); }}
           onUpdated={(c) => { onCircleUpdated(c); }}
+        />
+      )}
+
+      {showSettings && (
+        <CircleSettingsModal
+          circle={circle}
+          onClose={() => setShowSettings(false)}
+          onUpdated={(c) => { onCircleUpdated(c); setShowSettings(false); }}
         />
       )}
 

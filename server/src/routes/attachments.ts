@@ -10,6 +10,7 @@ import { getPlanAccess } from '../lib/planAccess';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { cloudinary } from '../lib/cloudinary';
 import { verifyMediaToken } from '../lib/mediaToken';
+import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 
 const router = Router();
 // /download accepte aussi un token query param (mobile), et /view un jeton média :
@@ -47,6 +48,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
 
     const access = await getPlanAccess(req.userId!, plan.id);
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    if (plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },

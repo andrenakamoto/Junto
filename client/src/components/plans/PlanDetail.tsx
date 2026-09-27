@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car, Gift } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -15,6 +15,8 @@ import { StoryModal } from './StoryModal';
 import { CarpoolSection } from './CarpoolSection';
 import { Modal } from '../ui/Modal';
 import { DeletePlanModal } from './DeletePlanModal';
+import { PlanSettingsModal } from './PlanSettingsModal';
+import { isEnabled } from '../../lib/settings';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
@@ -59,6 +61,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
@@ -114,13 +117,24 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     };
   }, [plan.id, isMember, token, scrollToBottom]);
 
+  // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
+  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || isEnabled(plan, t.key));
+  const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
+  const disabledKey = (plan.disabledFeatures ?? []).join(',');
+
   // Reset tab to chat when plan changes
   useEffect(() => {
-    setTab('chat');
+    setTab(defaultTab);
     setReplyTo(null);
     setOpenThreadId(null);
     setThreadReplies([]);
   }, [plan.id]);
+
+  // Si le créateur masque l'onglet affiché, revenir sur un onglet visible
+  useEffect(() => {
+    if (!visibleTabs.some(t => t.key === tab)) setTab(defaultTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disabledKey]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -190,6 +204,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   }
 
   const isCreator = plan.creatorId === user.id;
+  // Paramètre avancé : suppression par le créateur seul → bouton réservé au créateur
+  const creatorDeletes = plan.deletionMode === 'creator';
+  const canDelete = !creatorDeletes || isCreator;
+  const deleteLabel = creatorDeletes ? 'Supprimer ce Plan' : 'Voter pour supprimer ce Plan';
+  // Paramètre avancé : les participants (hors invités externes) peuvent modifier dates et lieu
+  const canEdit = isCreator || (plan.editMode === 'all' && isMember && !plan.viewerIsGuest);
 
   const eventDateFmt = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
@@ -217,7 +237,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
                 <h1 className="text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
-                {isCreator && (
+                {canEdit && (
                   <button
                     onClick={() => setShowEditPlan(true)}
                     title="Modifier le plan"
@@ -313,8 +333,15 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   <History size={16} />
                 </button>
                 <button
+                  onClick={() => setShowSettings(true)}
+                  title="Paramètres du Plan"
+                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                >
+                  <SlidersHorizontal size={16} />
+                </button>
+                {canDelete && <button
                   onClick={() => setShowDeletePlan(true)}
-                  title="Voter pour supprimer ce Plan"
+                  title={deleteLabel}
                   className={`p-2 rounded-lg transition-colors ${
                     (plan.deleteVotes ?? []).some(v => v.userId === user.id)
                       ? 'text-red-500 bg-red-50 hover:bg-red-100'
@@ -322,7 +349,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   }`}
                 >
                   <Trash2 size={16} />
-                </button>
+                </button>}
               </>
             )}
             <button
@@ -375,14 +402,21 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                       Historique des modifications
                     </button>
                     <button
+                      onClick={() => { setShowActionsMenu(false); setShowSettings(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                    >
+                      <SlidersHorizontal size={15} className="text-slate-400" />
+                      Paramètres du Plan
+                    </button>
+                    {canDelete && <button
                       onClick={() => { setShowActionsMenu(false); setShowDeletePlan(true); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm ${
                         (plan.deleteVotes ?? []).some(v => v.userId === user.id) ? 'text-red-500' : 'text-slate-700'
                       }`}
                     >
                       <Trash2 size={15} className={(plan.deleteVotes ?? []).some(v => v.userId === user.id) ? 'text-red-500' : 'text-slate-400'} />
-                      Voter pour supprimer ce Plan
-                    </button>
+                      {deleteLabel}
+                    </button>}
                   </>
                 )}
                 <button
@@ -435,7 +469,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {isMember && (
         <>
           <div className="flex border-b border-slate-200 flex-shrink-0 bg-white">
-            {tabs.map(({ key, Icon, label }) => (
+            {visibleTabs.map(({ key, Icon, label }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -451,7 +485,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             ))}
           </div>
 
-          {tab === 'chat' && (
+          {tab === 'chat' && isEnabled(plan, 'chat') && (
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50">
                 {messages.length === 0 ? (
@@ -531,6 +565,15 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         </Modal>
       )}
 
+      {showSettings && (
+        <PlanSettingsModal
+          plan={plan}
+          isCreator={isCreator}
+          onClose={() => setShowSettings(false)}
+          onEdit={() => { setShowSettings(false); setShowEditPlan(true); }}
+        />
+      )}
+
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />
       )}
@@ -538,6 +581,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {showEditPlan && (
         <EditPlanModal
           plan={plan}
+          isCreator={isCreator}
           circleMembers={circleMembers}
           onClose={() => setShowEditPlan(false)}
           onUpdated={(updated) => { onPlanUpdated(updated); setShowEditPlan(false); }}

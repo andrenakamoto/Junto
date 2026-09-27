@@ -33,12 +33,21 @@ export interface CircleJoinRequest {
   votes: { userId: string }[];
 }
 
+export type DeletionMode = 'vote' | 'creator';
+export type AdmissionMode = 'vote' | 'creator' | 'open';
+export type EditMode = 'creator' | 'all';
+export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
+
 export interface Circle {
   id: string;
   name: string;
   code: string;
   description?: string | null;
   color?: string | null;
+  /** Paramètres avancés : suppression à la majorité ou par le créateur seul */
+  deletionMode?: DeletionMode;
+  /** Admission : vote à la majorité, validation par le créateur, ou entrée libre avec le code */
+  admissionMode?: AdmissionMode;
   creatorId: string;
   creator: User;
   members: CircleMember[];
@@ -104,6 +113,7 @@ export interface PlanChangeLog {
   oldValue: string | null;
   newValue: string | null;
   changedAt: string;
+  changedBy?: { id: string; pseudo: string } | null;
 }
 
 export interface Plan {
@@ -114,6 +124,11 @@ export interface Plan {
   endDate: string;
   location?: string | null;
   maxParticipants?: number | null;
+  deletionMode?: DeletionMode;
+  /** Fonctions masquées (les données sont conservées) */
+  disabledFeatures?: PlanFeature[];
+  /** Qui peut modifier les dates et le lieu (titre, description, etc. : créateur seul) */
+  editMode?: EditMode;
   archived: boolean;
   creatorId: string;
   creator: User;

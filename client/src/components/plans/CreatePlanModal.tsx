@@ -3,7 +3,8 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan, CircleMember } from '../../types';
+import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
+import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField } from '../ui/AdvancedSettings';
 import { useAuth } from '../../contexts/AuthContext';
 import { SurpriseSelector } from './SurpriseSelector';
 
@@ -40,6 +41,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
+  const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
+  const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
+  const [editMode, setEditMode] = useState<EditMode>('creator');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,6 +59,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
       location: location || null,
       maxParticipants: maxParticipants || null,
       excludedUserIds,
+      deletionMode,
+      disabledFeatures,
+      editMode,
     };
     try {
       const { data } = fromPoll
@@ -103,6 +110,11 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             onChange={setExcludedUserIds}
           />
         )}
+        <AdvancedSection>
+          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} />
+          <EditModeField value={editMode} onChange={setEditMode} />
+          <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
+        </AdvancedSection>
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
