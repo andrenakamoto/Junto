@@ -11,6 +11,7 @@ import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
 import { CirclePollCard } from '../circles/CirclePollCard';
 import { CircleSettingsModal } from '../circles/CircleSettingsModal';
 import api from '../../services/api';
+import { useSocketEvent } from '../../hooks/useSocketEvent';
 
 interface Props {
   circle: Circle;
@@ -48,6 +49,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   }
 
   useEffect(() => { refreshPolls(); }, [circle.id]);
+  // Sondage de dates créé, voté ou converti par un autre membre
+  useSocketEvent<{ circleId: string }>('circle-updated', p => { if (p.circleId === circle.id) refreshPolls(); });
 
   async function handleVotePoll(optionId: string) {
     const { data } = await api.post(`/circles/polls/options/${optionId}/vote`);

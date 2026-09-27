@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Plus, ArrowRight, Trash2, Check, Mail } from 'lucide-react';
 import { ExpensesData, PlanMember } from '../../types';
 import { Button } from '../ui/Button';
@@ -29,6 +30,8 @@ export function DepensesTab({ planId, members, userId }: Props) {
   }
 
   useEffect(() => { refresh(); }, [planId]);
+  // Dépense ou remboursement ajouté par un autre membre
+  useSocketEvent<{ planId: string }>('plan-updated', p => { if (p.planId === planId) refresh().catch(() => {}); });
 
   async function handleAddExpense() {
     if (!description.trim() || !amount || splitWith.length === 0) return;

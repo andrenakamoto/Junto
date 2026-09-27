@@ -17,6 +17,7 @@ import { ProfileNameBanner } from '../components/ui/ProfileNameBanner';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import { getPendingInvite } from '../lib/pendingInvite';
+import { useSocketEvent } from '../hooks/useSocketEvent';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -39,6 +40,106 @@ export function DashboardPage() {
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
   const selectedCircleIdRef = useRef(selectedCircleId);
   useEffect(() => { selectedCircleIdRef.current = selectedCircleId; }, [selectedCircleId]);
+  const selectedPlanRef = useRef(selectedPlan);
+  useEffect(() => { selectedPlanRef.current = selectedPlan; }, [selectedPlan]);
+
+  // ─── Rafraîchissement ────────────────────────────────────────────────────
+  // Le serveur signale les changements (plan-updated / circle-updated) ; on recharge aussi
+  // tout au retour sur l'onglet et après une coupure de connexion. Les appels sont regroupés
+  // (plusieurs événements rapprochés = un seul rechargement).
+  const pending = useRef<Record<string, number>>({});
+  function soon(key: string, fn: () => void) {
+    window.clearTimeout(pending.current[key]);
+    pending.current[key] = window.setTimeout(fn, 250);
+  }
+
+  function refreshCircles() {
+    soon('circles', () => api.get('/circles').then(res => setCircles(res.data)).catch(() => {}));
+  }
+
+  function refreshPlans() {
+    soon('plans', () => {
+      const circleId = selectedCircleIdRef.current;
+      if (!circleId) return;
+      api.get(`/circles/${circleId}/plans`)
+        .then(res => { if (selectedCircleIdRef.current === circleId) setPlans(res.data); })
+        .catch(() => {});
+    });
+    setPlansRefreshSignal(v => v + 1); // « Tous mes plans » et calendrier
+  }
+
+  function refreshSelectedPlan() {
+    soon('plan', () => {
+      const current = selectedPlanRef.current;
+      if (!current) return;
+      api.get(`/plans/${current.id}`)
+        .then(res => {
+          if (selectedPlanRef.current?.id !== current.id) return;
+          setSelectedPlan(res.data);
+          setPlans(prev => prev.map(p => p.id === res.data.id ? { ...p, ...res.data } : p));
+        })
+        .catch(err => {
+          const status = err.response?.status;
+          if ((status !== 404 && status !== 403) || selectedPlanRef.current?.id !== current.id) return;
+          // Plan supprimé (ou devenu inaccessible) pendant qu'il était ouvert
+          setSelectedPlan(null);
+          setPlans(prev => prev.filter(p => p.id !== current.id));
+          setMobileView('plans');
+          setNotifications(prev => [...prev, {
+            id: crypto.randomUUID(), at: Date.now(), type: 'plan_gone',
+            planTitle: current.title,
+          } as AppNotification]);
+        });
+    });
+  }
+
+  function refreshAll() {
+    refreshCircles();
+    refreshPlans();
+    refreshSelectedPlan();
+  }
+
+  useSocketEvent<{ circleId: string }>('circle-updated', ({ circleId }) => {
+    refreshCircles();
+    if (circleId === selectedCircleIdRef.current) refreshPlans();
+    else setPlansRefreshSignal(v => v + 1);
+    if (selectedPlanRef.current?.circleId === circleId) refreshSelectedPlan();
+  });
+
+  useSocketEvent<{ planId: string }>('plan-updated', ({ planId }) => {
+    if (selectedPlanRef.current?.id === planId) refreshSelectedPlan();
+  });
+
+  // Reconnexion après une coupure : des changements ont pu être manqués
+  const connectedOnce = useRef(false);
+  useSocketEvent('connect', () => {
+    if (connectedOnce.current) refreshAll();
+    connectedOnce.current = true;
+  });
+
+  // Retour sur l'onglet / téléphone déverrouillé (au plus une fois toutes les 15 s)
+  const lastVisibleRefresh = useRef(Date.now());
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastVisibleRefresh.current < 15_000) return;
+      lastVisibleRefresh.current = Date.now();
+      refreshAll();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cercle supprimé ou quitté ailleurs : on le désélectionne
+  useEffect(() => {
+    if (!circlesLoaded || !selectedCircleId) return;
+    if (!circles.some(c => c.id === selectedCircleId)) {
+      setSelectedCircleId(null);
+      setSelectedPlan(null);
+      setMobileView('circles');
+    }
+  }, [circles, circlesLoaded, selectedCircleId]);
 
   useEffect(() => {
     api.get('/circles').then(res => {

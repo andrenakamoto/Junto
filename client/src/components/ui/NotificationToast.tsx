@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, X } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, X } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone';
   planId?: string;
   planTitle?: string;
   circleId?: string;
@@ -48,6 +48,11 @@ const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconCla
     icon: Car, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Covoiturage — ${n.planTitle}`,
     body: n => n.preview ?? '',
+  },
+  plan_gone: {
+    icon: Trash2, iconClass: 'text-slate-300', bgClass: 'bg-slate-600/40',
+    title: () => 'Plan fermé',
+    body: n => `« ${n.planTitle} » a été supprimé ou n'est plus accessible.`,
   },
 };
 

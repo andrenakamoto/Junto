@@ -110,10 +110,25 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     }
     socket.on('reactions-updated', onReactionsUpdated);
 
+    // Après une coupure (veille, réseau, redémarrage du serveur), le serveur a oublié la room
+    // du Plan : on la rejoint à nouveau et on recharge les messages manqués.
+    function onReconnect() {
+      socket.emit('join-plan', plan.id);
+      api.get(`/plans/${plan.id}/messages`).then(res => setMessages(res.data)).catch(() => {});
+      const threadId = openThreadIdRef.current;
+      if (threadId) {
+        api.get(`/plans/messages/${threadId}/replies`)
+          .then(res => { if (openThreadIdRef.current === threadId) setThreadReplies(res.data); })
+          .catch(() => {});
+      }
+    }
+    socket.on('connect', onReconnect);
+
     return () => {
       socket.emit('leave-plan', plan.id);
       socket.off('message', onMessage);
       socket.off('reactions-updated', onReactionsUpdated);
+      socket.off('connect', onReconnect);
     };
   }, [plan.id, isMember, token, scrollToBottom]);
 

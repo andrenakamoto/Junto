@@ -3,6 +3,7 @@ import { Car, Hand, Loader2, Pencil, Trash2, X } from 'lucide-react';
 import { Ride, RideRequest } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSocket } from '../../lib/socket';
+import { useSocketEvent } from '../../hooks/useSocketEvent';
 import api from '../../services/api';
 
 interface Props {
@@ -67,6 +68,8 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
     socket.on('rides-updated', onRidesUpdated);
     return () => { socket.off('rides-updated', onRidesUpdated); };
   }, [token, planId, load]);
+  // Trajets modifiés pendant une coupure de connexion
+  useSocketEvent('connect', () => { load(); });
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);
