@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EvLY ou WhatsApp ?</title>
-<meta name="description" content="Ce qu'EvLY fait mieux qu'un groupe WhatsApp pour organiser tes sorties, avant, pendant et après.">
-<meta property="og:title" content="EvLY ou WhatsApp ?">
-<meta property="og:description" content="Une sortie, une conversation, et tout ce qu'il faut pour l'organiser.">
+<title>Découvrir EvLY</title>
+<meta name="description" content="EvLY organise les événements des familles, des entreprises et des associations : un Cercle pour le groupe, un Plan par événement, et tout ce qu'un groupe WhatsApp ne fait pas.">
+<meta property="og:title" content="Découvrir EvLY">
+<meta property="og:description" content="Un événement, une conversation, et tout ce qu'il faut pour l'organiser.">
 <link rel="icon" type="image/svg+xml" href="/logo-evly.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,6 @@
     --coral-50: #fff6f2;
     --ink: #1c1410;
     --ink-dim: #6b5850;
-    --ink-faint: #a8958c;
     --paper: #fffdfb;
     --line: #f0ddd3;
     --wa-bg: #f4f1ef;
@@ -43,7 +42,7 @@
     min-height: 297mm;
     margin: 0 auto;
     background: var(--paper);
-    padding: 14mm 16mm 12mm;
+    padding: 11mm 15mm 9mm;
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(67, 26, 17, .22);
@@ -56,50 +55,83 @@
 
   /* Entête */
   .head { text-align: center; }
-  .wordmark { font-family: 'Fraunces', Georgia, serif; font-size: 44px; line-height: 1; }
+  .wordmark { font-family: 'Fraunces', Georgia, serif; font-size: 40px; line-height: 1; }
   .wordmark .ev { font-style: italic; font-weight: 300; }
   .wordmark .ly { font-weight: 800; color: var(--coral-600); }
   .tagline {
     margin-top: 4px;
-    font-size: 11.5px; font-weight: 600; letter-spacing: .14em;
+    font-size: 11px; font-weight: 600; letter-spacing: .14em;
     text-transform: uppercase; color: var(--coral-700);
   }
   .hero {
-    margin: 7mm auto 0;
-    max-width: 150mm;
+    margin: 4mm auto 0;
+    max-width: 160mm;
     font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700;
-    font-size: 21px; line-height: 1.25; text-wrap: balance;
+    font-size: 19px; line-height: 1.25; text-wrap: balance;
   }
   .hero em { color: var(--coral-700); }
-  .sub { margin: 2.5mm 0 0; font-size: 12.5px; color: var(--ink-dim); }
+  .sub { margin: 2mm 0 0; font-size: 12px; color: var(--ink-dim); }
+
+  .label {
+    margin: 5mm 0 2.2mm;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--coral-700);
+  }
+
+  /* Comment ça marche */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .step {
+    background: var(--coral-50);
+    border: 1px solid var(--line);
+    border-radius: 3mm;
+    padding: 2.5mm 3.2mm;
+  }
+  .step h3 {
+    margin: 0 0 1.2mm;
+    display: flex; align-items: center; gap: 2mm;
+    font-size: 12.5px; font-weight: 800;
+  }
+  .num {
+    width: 5.5mm; height: 5.5mm; flex-shrink: 0;
+    border-radius: 50%; background: var(--coral-600); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 11px;
+  }
+  .step p { margin: 0; font-size: 10.5px; line-height: 1.4; color: var(--ink-dim); }
+
+  /* Pour qui */
+  .audiences { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .aud { border-left: 2px solid var(--coral-600); padding: .5mm 0 .5mm 3mm; }
+  .aud h4 { margin: 0; font-size: 12px; font-weight: 800; }
+  .aud p { margin: 1mm 0 0; font-size: 10.5px; line-height: 1.4; color: var(--ink-dim); }
+  .aud p b { color: var(--ink); font-weight: 600; }
 
   /* Tableau comparatif */
   .compare {
-    margin-top: 9mm;
     border: 1px solid var(--line);
     border-radius: 3mm;
     overflow: hidden;
   }
-  .row { display: grid; grid-template-columns: 1fr 1.25fr; }
-  .row > div { padding: 2.6mm 4.5mm; font-size: 12.5px; line-height: 1.35; display: flex; gap: 2mm; align-items: baseline; }
+  .row { display: grid; grid-template-columns: 1fr 1.1fr; }
+  .row > div { padding: 1.5mm 3.5mm; font-size: 11px; line-height: 1.35; display: flex; gap: 2mm; align-items: baseline; }
   .cols > div {
     align-items: center;
-    padding-block: 3mm;
-    font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    padding-block: 2.4mm;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
   }
   .cols .wa { background: var(--wa-bg); color: var(--ink-dim); }
   .cols .evly {
     background: var(--coral-600); color: #fff;
-    font-family: 'Fraunces', Georgia, serif; font-size: 15px; letter-spacing: 0; text-transform: none;
+    font-family: 'Fraunces', Georgia, serif; font-size: 14px; letter-spacing: 0; text-transform: none;
   }
   .cols .evly .ev { font-style: italic; font-weight: 300; }
   .cols .evly .ly { font-weight: 800; }
   .when {
     grid-column: 1 / -1;
-    padding: 1.9mm 4.5mm;
+    padding: 1.5mm 4mm;
     background: var(--coral-50);
     border-top: 1px solid var(--line);
-    font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
     color: var(--coral-700);
   }
   .item { border-top: 1px solid var(--line); }
@@ -109,32 +141,28 @@
   .item .evly b { font-weight: 700; }
 
   /* Bas de page */
-  .vote {
-    margin-top: 7mm;
-    text-align: center;
-    font-size: 13px; color: var(--ink-dim);
-  }
-  .vote b { color: var(--coral-700); }
   .foot {
     margin-top: auto;
     padding-top: 5mm;
     border-top: 1px solid var(--line);
     display: flex; align-items: center; justify-content: space-between; gap: 6mm;
   }
-  .cta { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.2; }
-  .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11.5px; color: var(--ink-dim); }
+  .cta { margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 18px; line-height: 1.2; }
+  .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11px; color: var(--ink-dim); }
   .qr { display: flex; align-items: center; gap: 4mm; flex-shrink: 0; }
   .qr-text { text-align: right; }
   .qr-text .url { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 17px; }
   .qr-text .mail { font-size: 10.5px; color: var(--ink-dim); margin-top: 1mm; }
   .qr-box { padding: 1.5mm; background: #fff; border: 1px solid var(--line); border-radius: 2mm; line-height: 0; }
-  .qr-box svg { width: 21mm; height: 21mm; display: block; }
+  .qr-box svg { width: 20mm; height: 20mm; display: block; }
+  .spacer { height: 3mm; }
 
-  @media (max-width: 520px) {
+  @media (max-width: 560px) {
     .page { padding: 20px 14px; min-height: 0; }
-    .hero { font-size: 18px; }
+    .hero { font-size: 17px; }
+    .steps, .audiences { grid-template-columns: 1fr; }
     .row > div { padding: 8px 10px; font-size: 12px; }
-    .foot { flex-direction: column; align-items: center; text-align: center; margin-top: 28px; }
+    .foot { flex-direction: column; align-items: center; text-align: center; margin-top: 24px; }
     .qr-text { text-align: left; }
   }
 </style>
@@ -157,38 +185,71 @@
   <header class="head">
     <div class="wordmark"><span class="ev">Ev</span><span class="ly">LY</span></div>
     <div class="tagline">Events Linked to You</div>
-    <p class="hero">Le groupe WhatsApp familial mélange l'anniversaire de mamie et l'apéro de vendredi. <em>Pas EvLY.</em></p>
-    <p class="sub">Une sortie, une conversation, et tout ce qu'il faut pour l'organiser.</p>
+    <p class="hero">Le groupe WhatsApp mélange l'apéro de l'équipe, l'AG de l'association et l'anniversaire de mamie. <em>Pas EvLY.</em></p>
+    <p class="sub">Un événement, une conversation, et tout ce qu'il faut pour l'organiser.</p>
   </header>
 
+  <h2 class="label">Comment ça marche</h2>
+  <div class="steps">
+    <div class="step">
+      <h3><span class="num">1</span>Le Cercle</h3>
+      <p>Ton groupe : la famille, une équipe, une association. On y entre avec un code, les membres valident à la majorité.</p>
+    </div>
+    <div class="step">
+      <h3><span class="num">2</span>Le Plan</h3>
+      <p>Un événement du Cercle : date, lieu, qui vient. Chacun répond oui, peut-être ou non en un tap.</p>
+    </div>
+    <div class="step">
+      <h3><span class="num">3</span>Tout dans le Plan</h3>
+      <p>Chat, infos, trajets, votes, dépenses, photos. Le Plan s'efface tout seul après l'événement.</p>
+    </div>
+  </div>
+
+  <h2 class="label">Pour qui ?</h2>
+  <div class="audiences">
+    <div class="aud">
+      <h4>Particuliers</h4>
+      <p>Cercle <b>« Les cousins »</b> : anniversaire de mamie, week-end au chalet.</p>
+    </div>
+    <div class="aud">
+      <h4>Entreprises</h4>
+      <p>Cercle <b>« Équipe marketing »</b> : afterwork, séminaire, pot de départ.</p>
+    </div>
+    <div class="aud">
+      <h4>Associations</h4>
+      <p>Cercle <b>« Club de rando »</b> : sortie du dimanche, assemblée générale.</p>
+    </div>
+  </div>
+
+  <h2 class="label">Tout ce qu'un groupe WhatsApp ne fait pas</h2>
   <section class="compare" aria-label="Comparatif WhatsApp et EvLY">
     <div class="row cols">
       <div class="wa">Groupe WhatsApp</div>
       <div class="evly"><span><span class="ev">Ev</span><span class="ly">LY</span></span></div>
     </div>
 
-    <div class="row"><div class="when">Avant la sortie</div></div>
-    <div class="row item"><div class="wa">Tout se mélange dans un seul fil</div><div class="evly"><span><b>Un chat par sortie</b>, visible seulement par ceux qui viennent</span></div></div>
+    <div class="row"><div class="when">Avant l'événement</div></div>
+    <div class="row item"><div class="wa">Tout se mélange dans un seul fil</div><div class="evly"><span><b>Un chat par événement</b>, visible seulement par ceux qui viennent</span></div></div>
     <div class="row item"><div class="wa">On ne sait jamais qui vient</div><div class="evly"><span><b>Oui, peut-être, non</b> : chacun répond en un tap</span></div></div>
     <div class="row item"><div class="wa">Le sondage se perd dans le fil</div><div class="evly"><span><b>Sondages</b> rangés dans le Plan, anonymes si besoin</span></div></div>
-    <div class="row item"><div class="wa">Un deuxième groupe en cachette pour la surprise</div><div class="evly"><span><b>Plan surprise</b> : invisible pour la personne fêtée</span></div></div>
-    <div class="row item"><div class="wa">L'invité d'un soir reste dans le groupe pour toujours</div><div class="evly"><span><b>Invité extérieur</b> : accès à cette sortie seulement</span></div></div>
-    <div class="row item"><div class="wa">Personne ne pense à relancer</div><div class="evly"><span><b>Rappel automatique</b> et export vers ton agenda</span></div></div>
+    <div class="row item"><div class="wa">Un groupe en cachette pour la surprise</div><div class="evly"><span><b>Plan surprise</b> : invisible pour la personne concernée</span></div></div>
+    <div class="row item"><div class="wa">L'invité d'un soir reste dans le groupe pour toujours</div><div class="evly"><span><b>Invité extérieur</b> : accès à cet événement seulement</span></div></div>
+    <div class="row item"><div class="wa">Personne ne pense à relancer</div><div class="evly"><span><b>Rappel automatique</b> et export vers l'agenda</span></div></div>
 
     <div class="row"><div class="when">Le jour J</div></div>
     <div class="row item"><div class="wa">L'adresse est perdue dans le scroll</div><div class="evly"><span><b>Infos épinglées</b> : lieu, heure, qui apporte quoi</span></div></div>
     <div class="row item"><div class="wa">« Quelqu'un peut me prendre ? »</div><div class="evly"><span><b>Covoiturage</b> : places libres, « je cherche une place »</span></div></div>
 
-    <div class="row"><div class="when">Après la sortie</div></div>
-    <div class="row item"><div class="wa">« On se fait les comptes plus tard »</div><div class="evly"><span><b>Dépenses</b> : qui doit quoi, calculé tout seul</span></div></div>
+    <div class="row"><div class="when">Après l'événement</div></div>
+    <div class="row item"><div class="wa">« On fera les comptes plus tard »</div><div class="evly"><span><b>Dépenses</b> : qui doit quoi, calculé tout seul</span></div></div>
     <div class="row item"><div class="wa">Photos éparpillées et compressées</div><div class="evly"><span><b>Galerie</b> téléchargeable d'un clic, <b>story souvenir</b></span></div></div>
-    <div class="row item"><div class="wa">Le groupe traîne pendant des années</div><div class="evly"><span><b>Tout s'efface</b> après la sortie, résumé des dépenses par email</span></div></div>
+    <div class="row item"><div class="wa">Le groupe traîne pendant des années</div><div class="evly"><span><b>Tout s'efface</b> après l'événement, résumé des dépenses par email</span></div></div>
   </section>
 
-  <p class="vote">Et personne ne décide seul : accepter un membre ou supprimer un Plan se <b>vote à la majorité</b>.</p>
+  <div class="spacer"></div>
 
   <footer class="foot">
-    <p class="cta">Organise ta prochaine sortie sur EvLY.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/auth">Créer mon compte</a></p>
+    <p class="cta">Organise ton prochain événement sur EvLY.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/auth">Créer mon compte</a></p>
     <div class="qr">
       <div class="qr-text">
         <div class="url"><a href="https://www.evly.ch">evly.ch</a></div>
