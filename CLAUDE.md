@@ -152,7 +152,20 @@ Conséquences pratiques :
   `https://evly.ch` sont autorisées pour le client OAuth ; `localhost` ne
   l'est pas (le bouton s'affiche en local mais Google refuse la connexion). Rate limiting sur les routes sensibles (express-rate-limit).
 - **Fichiers joints** : Cloudinary (upload, download via proxy backend + token
-  JWT temporaire pour contourner les limitations mobile/Cloudinary)
+  JWT temporaire pour contourner les limitations mobile/Cloudinary). Depuis le
+  2026-09-27 (conformité nLPD) : **l'URL Cloudinary ne sort jamais du serveur**
+  (ni dans GET /plans/:id, ni à l'upload). Le client affiche via
+  `GET /api/attachments/:id/view?t=<mediaToken>[&w=<largeur>]` (proxy, `w` =
+  miniature via transformation Cloudinary) ; `mediaToken` (JWT 12 h,
+  `lib/mediaToken.ts`) est fourni par GET/PUT /plans/:id aux seuls
+  utilisateurs qui voient le Plan. **Toute suppression de Plan ou de Cercle
+  doit appeler `purgePlanFiles`/`purgeCircleFiles` (`lib/cloudinary.ts`)
+  AVANT la suppression en base** — sinon les fichiers restent en ligne
+  indéfiniment (c'était le cas avant cette date : des fichiers orphelins de
+  Plans déjà supprimés existent donc chez Cloudinary). Les identifiants
+  Cloudinary de `server/.env` pointent vers un compte **désactivé**
+  (« cloud_name is disabled ») : les vrais sont sur Railway, impossible de
+  tester Cloudinary en local.
 - **Emails** : Resend (vérification email, reset password, rappels de Plan,
   résumé hebdomadaire)
 - **SMS** : Twilio (optionnel, invitations)
@@ -357,7 +370,9 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   /guest-invite/:token/accept (POST). PUT /:id accepte `excludedUserIds`
   (Plan surprise) ; le vote de sondage et le claim « qui apporte quoi »
   exigent désormais d'être membre du Plan (failles corrigées le 2026-09-27).
-- **admin.ts** : /users, /users/:id/approve|reject|reset-password,
+- **admin.ts** : /users, /users/:id/approve|reject, /users/:id/reset-password
+  (envoie un lien de réinitialisation par email via `lib/passwordReset.ts`,
+  partagé avec /forgot-password — ne fixe plus le mot de passe à « 123 »),
   DELETE /users/:id, /stats. La suppression d'un compte (par l'admin comme
   par l'utilisateur) passe par `lib/accountDeletion.ts` : Cercles et Plans
   créés **transférés** au membre le plus ancien (membre du Cercle préféré à
