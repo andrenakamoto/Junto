@@ -6,6 +6,7 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
+import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 
 type Mode = 'login' | 'register';
 
@@ -37,12 +38,14 @@ export function AuthPage() {
     api.get('/auth/needs-setup').then(res => {
       if (res.data.needsSetup) navigate('/setup');
     });
-    // Initialiser Google Auth
-    GoogleAuth.initialize({
-      clientId: GOOGLE_CLIENT_ID,
-      scopes: ['profile', 'email'],
-      grantOfflineAccess: false,
-    });
+    // Plugin natif uniquement : sur le web, voir GoogleWebButton (Google Identity Services)
+    if (Capacitor.isNativePlatform()) {
+      GoogleAuth.initialize({
+        clientId: GOOGLE_CLIENT_ID,
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: false,
+      });
+    }
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -96,6 +99,20 @@ export function AuthPage() {
       if (err?.error !== 'popup_closed_by_user' && err?.message !== 'User cancelled.') {
         setError('Connexion Google annulée ou échouée.');
       }
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
+  async function handleGoogleCredential(idToken: string) {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      const { data } = await api.post('/auth/google', { idToken });
+      login(data.token, data.user);
+      navigate(afterLogin);
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.response?.data?.error || 'Connexion Google échouée.');
     } finally {
       setGoogleLoading(false);
     }
@@ -155,7 +172,24 @@ export function AuthPage() {
             </div>
           )}
 
-          {/* Bouton Google */}
+          {/* Bouton Google : plugin natif sur mobile, Google Identity Services sur le web */}
+          {!Capacitor.isNativePlatform() ? (
+            GOOGLE_CLIENT_ID && (
+              <>
+                <GoogleWebButton
+                  clientId={GOOGLE_CLIENT_ID}
+                  text={mode === 'login' ? 'continue_with' : 'signup_with'}
+                  onCredential={handleGoogleCredential}
+                  onError={setError}
+                />
+                {googleLoading && (
+                  <p className="flex items-center justify-center gap-2 text-xs text-slate-400 -mt-2 mb-4">
+                    <Loader2 size={13} className="animate-spin" /> Connexion en cours...
+                  </p>
+                )}
+              </>
+            )
+          ) : (
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -175,6 +209,7 @@ export function AuthPage() {
             )}
             {mode === 'login' ? 'Continuer avec Google' : "S'inscrire avec Google"}
           </button>
+          )}
 
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-slate-700" />
