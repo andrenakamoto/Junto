@@ -5,6 +5,8 @@ import { computeBalances, suggestTransfers } from '../lib/expenses';
 import { icsEscape, icsDate } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
+import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
+import crypto from 'crypto';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -26,7 +28,14 @@ const planInclude = {
   items: { orderBy: { id: 'asc' as const } },
   changeLogs: { orderBy: { changedAt: 'asc' as const } },
   attachments: { orderBy: { createdAt: 'asc' as const } },
+  exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
 };
+
+// Ajoute `isGuest` à chaque membre (invité externe = pas membre du Cercle)
+async function withGuestFlags<T extends { circleId: string; members: { userId: string }[] }>(plan: T) {
+  const guests = await guestIdsAmong(plan.circleId, plan.members.map(m => m.userId));
+  return { ...plan, members: plan.members.map(m => ({ ...m, isGuest: guests.has(m.userId) })) };
+}
 
 function sameMinute(a: Date | null, b: Date | null): boolean {
   if (!a && !b) return true;
@@ -51,15 +60,17 @@ function anonymizePlanPolls(plan: any, userId: string) {
   return { ...plan, polls: plan.polls.map((p: any) => anonymizePoll(p, userId)) };
 }
 
-// Get all plans from all circles the user is a member of
+// Get all plans visible to the user: plans of their circles (minus surprises
+// they're excluded from) + plans they were invited to as an external guest
 router.get('/', async (req: AuthRequest, res) => {
   try {
     const now = new Date();
-    const plans = await prisma.plan.findMany({
+    const userId = req.userId!;
+    const [plans, myCircles] = await Promise.all([prisma.plan.findMany({
       where: {
         archived: false,
         endDate: { gt: now },
-        circle: { members: { some: { userId: req.userId } } },
+        ...visiblePlansWhere(userId),
       },
       include: {
         creator: { select: { id: true, pseudo: true } },
@@ -69,8 +80,11 @@ router.get('/', async (req: AuthRequest, res) => {
         _count: { select: { messages: true } },
       },
       orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
-    });
-    res.json(plans);
+    }), prisma.circleMember.findMany({ where: { userId }, select: { circleId: true } })]);
+
+    // Un invité externe ne doit rien savoir du Cercle : on masque son nom
+    const circleIds = new Set(myCircles.map(c => c.circleId));
+    res.json(plans.map(p => circleIds.has(p.circleId) ? p : { ...p, circle: null, isGuest: true }));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -78,6 +92,15 @@ router.get('/', async (req: AuthRequest, res) => {
 
 // Get plan detail (full)
 router.get('/:id', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!access || access.isExcluded) {
+    res.status(404).json({ error: 'Plan introuvable' });
+    return;
+  }
+  if (!access.canView) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
   const plan = await prisma.plan.findUnique({
     where: { id: req.params.id },
     include: planInclude,
@@ -86,14 +109,108 @@ router.get('/:id', async (req: AuthRequest, res) => {
     res.status(404).json({ error: 'Plan introuvable' });
     return;
   }
-  const circleMember = await prisma.circleMember.findUnique({
-    where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-  });
-  if (!circleMember) {
-    res.status(403).json({ error: 'Accès refusé' });
-    return;
+  const withGuests = await withGuestFlags(plan);
+  res.json({ ...anonymizePlanPolls(withGuests, req.userId!), viewerIsGuest: access.isGuest });
+});
+
+// ─── Invités externes : lien d'invitation donnant accès à ce seul Plan ───────
+
+function newGuestToken() {
+  return crypto.randomBytes(18).toString('base64url');
+}
+
+const INVALID_INVITE = "Ce lien d'invitation n'est plus valide";
+
+// POST /api/plans/:id/guest-link — obtenir le lien (tout membre du Plan)
+router.post('/:id/guest-link', async (req: AuthRequest, res) => {
+  try {
+    const access = await getPlanAccess(req.userId!, req.params.id);
+    if (!access || access.isExcluded) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+    if (!access.isPlanMember) { res.status(403).json({ error: 'Rejoins ce Plan pour pouvoir inviter' }); return; }
+    const link = await prisma.planGuestLink.upsert({
+      where: { planId: req.params.id },
+      create: { planId: req.params.id, token: newGuestToken() },
+      update: {},
+    });
+    res.json({ token: link.token });
+  } catch (e) {
+    console.error('[guest link]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-  res.json(anonymizePlanPolls(plan, req.userId!));
+});
+
+// POST /api/plans/:id/guest-link/reset — nouveau lien, l'ancien cesse de fonctionner (créateur uniquement)
+router.post('/:id/guest-link/reset', async (req: AuthRequest, res) => {
+  try {
+    const access = await getPlanAccess(req.userId!, req.params.id);
+    if (!access || access.isExcluded) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+    if (access.plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
+    const token = newGuestToken();
+    await prisma.planGuestLink.upsert({
+      where: { planId: req.params.id },
+      create: { planId: req.params.id, token },
+      update: { token, createdAt: new Date() },
+    });
+    res.json({ token });
+  } catch (e) {
+    console.error('[guest link reset]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+async function findActiveInvite(token: string) {
+  const link = await prisma.planGuestLink.findUnique({
+    where: { token },
+    include: {
+      plan: {
+        select: {
+          id: true, title: true, eventDate: true, endDate: true, maxParticipants: true,
+          creator: { select: { pseudo: true } },
+          _count: { select: { members: true } },
+        },
+      },
+    },
+  });
+  if (!link || link.plan.endDate <= new Date()) return null;
+  return link.plan;
+}
+
+// GET /api/plans/guest-invite/:token — aperçu de l'invitation
+router.get('/guest-invite/:token', async (req: AuthRequest, res) => {
+  try {
+    const plan = await findActiveInvite(req.params.token);
+    const access = plan && await getPlanAccess(req.userId!, plan.id);
+    if (!plan || !access || access.isExcluded) { res.status(404).json({ error: INVALID_INVITE }); return; }
+    res.json({
+      planId: plan.id,
+      title: plan.title,
+      eventDate: plan.eventDate,
+      creatorPseudo: plan.creator.pseudo,
+      alreadyMember: access.isPlanMember,
+      full: plan.maxParticipants !== null && plan._count.members >= plan.maxParticipants,
+    });
+  } catch (e) {
+    console.error('[guest invite preview]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /api/plans/guest-invite/:token/accept — rejoindre le Plan comme invité
+router.post('/guest-invite/:token/accept', async (req: AuthRequest, res) => {
+  try {
+    const plan = await findActiveInvite(req.params.token);
+    const access = plan && await getPlanAccess(req.userId!, plan.id);
+    if (!plan || !access || access.isExcluded) { res.status(404).json({ error: INVALID_INVITE }); return; }
+    if (access.isPlanMember) { res.json({ planId: plan.id }); return; }
+    if (plan.maxParticipants !== null && plan._count.members >= plan.maxParticipants) {
+      res.status(409).json({ error: 'Ce Plan est complet' }); return;
+    }
+    await prisma.planMember.create({ data: { userId: req.userId!, planId: plan.id, rsvp: 'in' } });
+    res.json({ planId: plan.id });
+  } catch (e) {
+    console.error('[guest invite accept]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // Update plan (creator only)
@@ -133,6 +250,14 @@ router.put('/:id', async (req: AuthRequest, res) => {
       }
     }
 
+    // Plan surprise : `excludedUserIds` absent = liste inchangée
+    let exclusions: string[] | null = null;
+    if (req.body.excludedUserIds !== undefined) {
+      const v = await validateExclusions(plan.circleId, plan.creatorId, req.body.excludedUserIds);
+      if ('error' in v) { res.status(400).json({ error: v.error }); return; }
+      exclusions = v.ids;
+    }
+
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
     const planId = req.params.id;
 
@@ -154,8 +279,26 @@ router.put('/:id', async (req: AuthRequest, res) => {
       await prisma.planChangeLog.createMany({ data: logs });
     }
 
+    if (exclusions) {
+      // Une personne nouvellement exclue qui avait rejoint le Plan en est retirée
+      const removed = await prisma.planMember.findMany({
+        where: { planId, userId: { in: exclusions } },
+        include: { user: { select: { pseudo: true } } },
+      });
+      for (const m of removed) {
+        await removeUserFromRides(req.app.get('io'), planId, m.userId, m.user.pseudo)
+          .catch(e => console.error('[exclusion rides cleanup]', e));
+      }
+      await prisma.$transaction([
+        prisma.planExclusion.deleteMany({ where: { planId } }),
+        prisma.planExclusion.createMany({ data: exclusions.map(userId => ({ planId, userId })) }),
+        prisma.planMember.deleteMany({ where: { planId, userId: { in: exclusions } } }),
+        prisma.planDeleteVote.deleteMany({ where: { planId, userId: { in: exclusions } } }),
+      ]);
+    }
+
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
-    res.json(anonymizePlanPolls(updated, req.userId!));
+    res.json(anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -164,14 +307,13 @@ router.put('/:id', async (req: AuthRequest, res) => {
 // Join a plan
 router.post('/:id/join', async (req: AuthRequest, res) => {
   const plan = await prisma.plan.findUnique({ where: { id: req.params.id } });
-  if (!plan) {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!plan || !access || access.isExcluded) {
     res.status(404).json({ error: 'Plan introuvable' });
     return;
   }
-  const circleMember = await prisma.circleMember.findUnique({
-    where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-  });
-  if (!circleMember) {
+  // Les invités externes arrivent par le lien d'invitation, pas par ici
+  if (!access.isCircleMember) {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
@@ -325,6 +467,10 @@ router.post('/polls/:optionId/vote', async (req: AuthRequest, res) => {
     res.status(404).json({ error: 'Option introuvable' });
     return;
   }
+  if (!(await assertPlanMember(req.userId!, option.poll.planId))) {
+    res.status(403).json({ error: 'Accès refusé' });
+    return;
+  }
   // Remove user's existing votes on this poll
   const siblings = await prisma.pollOption.findMany({ where: { pollId: option.pollId } });
   await prisma.pollVote.deleteMany({
@@ -358,6 +504,10 @@ router.put('/items/:itemId/claim', async (req: AuthRequest, res) => {
   const item = await prisma.bringItem.findUnique({ where: { id: req.params.itemId } });
   if (!item) {
     res.status(404).json({ error: 'Item introuvable' });
+    return;
+  }
+  if (!(await assertPlanMember(req.userId!, item.planId))) {
+    res.status(403).json({ error: 'Accès refusé' });
     return;
   }
   const updated = await prisma.bringItem.update({

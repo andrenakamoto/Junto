@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { validateExclusions } from '../lib/planAccess';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -31,9 +32,9 @@ router.get('/', async (req: AuthRequest, res) => {
     where: { members: { some: { userId: req.userId } } },
     include: {
       ...circleInclude,
-      _count: { select: { plans: true } },
+      _count: { select: { plans: { where: { exclusions: { none: { userId: req.userId } } } } } },
       plans: {
-        where: { archived: false, endDate: { gt: now } },
+        where: { archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
         orderBy: { endDate: 'asc' },
         take: 1,
         select: { id: true, title: true, eventDate: true, endDate: true },
@@ -270,7 +271,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     return;
   }
   const plans = await prisma.plan.findMany({
-    where: { circleId: req.params.id, archived: false, endDate: { gt: new Date() } },
+    where: { circleId: req.params.id, archived: false, endDate: { gt: new Date() }, exclusions: { none: { userId: req.userId! } } },
     include: {
       creator: { select: { id: true, pseudo: true } },
       members: { include: { user: { select: { id: true, pseudo: true } } } },
@@ -290,6 +291,7 @@ interface NewPlanInput {
   endDate: string;
   location?: string | null;
   maxParticipants?: string | number | null;
+  excludedUserIds?: unknown;
 }
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
@@ -314,6 +316,9 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
       return { error: 'Limite de participants invalide' as const };
     }
   }
+  const excl = await validateExclusions(circleId, creatorId, input.excludedUserIds);
+  if ('error' in excl) return { error: excl.error };
+  const exclusions = excl.ids;
 
   const plan = await prisma.plan.create({
     data: {
@@ -326,10 +331,12 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
       creatorId,
       circleId,
       members: { create: { userId: creatorId, rsvp: 'in' } },
+      exclusions: { create: exclusions.map(userId => ({ userId })) },
     },
     include: {
       creator: { select: { id: true, pseudo: true } },
       members: { include: { user: { select: { id: true, pseudo: true } } } },
+      exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
     },
   });
@@ -350,7 +357,8 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     },
   });
   if (!circle) return;
-  const otherMembers = circle.members.filter(m => m.userId !== plan.creatorId);
+  const excluded = new Set((plan.exclusions ?? []).map((e: { userId: string }) => e.userId));
+  const otherMembers = circle.members.filter(m => m.userId !== plan.creatorId && !excluded.has(m.userId));
 
   if (io) {
     for (const m of otherMembers) {
@@ -636,12 +644,12 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
   if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage a déjà été converti' }); return; }
 
-  const { optionId, title, description, endDate, location, maxParticipants } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants,
+    title, description, endDate, location, maxParticipants, excludedUserIds,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

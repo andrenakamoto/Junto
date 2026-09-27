@@ -21,7 +21,14 @@ export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; 
         {sorted.map(m => (
           <div key={m.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
             <Avatar pseudo={m.user.pseudo} size="sm" online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
-            <span className="flex-1 text-sm font-medium text-slate-800">@{m.user.pseudo}</span>
+            <span className="flex-1 text-sm font-medium text-slate-800">
+              @{m.user.pseudo}
+              {m.isGuest && (
+                <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 align-middle">
+                  Invité(e)
+                </span>
+              )}
+            </span>
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${rsvpCfg[m.rsvp].cls}`}>
               {rsvpCfg[m.rsvp].label}
             </span>

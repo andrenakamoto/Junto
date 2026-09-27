@@ -49,6 +49,8 @@ export interface PlanMember {
   planId: string;
   rsvp: 'in' | 'maybe' | 'out';
   user: User;
+  /** Invité externe : membre du Plan sans être membre du Cercle */
+  isGuest?: boolean;
 }
 
 export interface BringItem {
@@ -113,7 +115,7 @@ export interface Plan {
   creatorId: string;
   creator: User;
   circleId: string;
-  circle?: { id: string; name: string };
+  circle?: { id: string; name: string } | null;
   members: PlanMember[];
   deleteVotes?: PlanDeleteVote[];
   polls?: Poll[];
@@ -121,6 +123,12 @@ export interface Plan {
   changeLogs?: PlanChangeLog[];
   attachments?: Attachment[];
   _count?: { messages: number };
+  /** Plan surprise : membres du Cercle pour qui le Plan est invisible */
+  exclusions?: { userId: string; user: { id: string; pseudo: string } }[];
+  /** Liste « Tous mes plans » : Plan où je suis invité externe (nom du Cercle masqué) */
+  isGuest?: boolean;
+  /** Détail d'un Plan : l'utilisateur courant y est invité externe */
+  viewerIsGuest?: boolean;
 }
 
 export interface MessageReaction {

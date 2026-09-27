@@ -15,6 +15,7 @@ import { TermsModal } from '../components/ui/TermsModal';
 import { EmailMigrationBanner } from '../components/ui/EmailMigrationBanner';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
+import { getPendingInvite } from '../lib/pendingInvite';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -23,6 +24,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [circles, setCircles] = useState<Circle[]>([]);
+  const [circlesLoaded, setCirclesLoaded] = useState(false);
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -40,18 +42,26 @@ export function DashboardPage() {
   useEffect(() => {
     api.get('/circles').then(res => {
       setCircles(res.data);
+      setCirclesLoaded(true);
     });
   }, []);
+
+  // Invitation à un Plan ouverte avant la connexion / l'inscription : on y retourne
+  useEffect(() => {
+    const pending = getPendingInvite();
+    if (pending) navigate(`/invitation?token=${pending}`, { replace: true });
+  }, [navigate]);
 
   // Deep-link depuis un lien d'invitation vers un Plan précis (?planId=...)
   useEffect(() => {
     const deepLinkPlanId = searchParams.get('planId');
-    if (!deepLinkPlanId || circles.length === 0) return;
+    // Un invité externe peut n'être dans aucun Cercle : on attend le chargement, pas un Cercle
+    if (!deepLinkPlanId || !circlesLoaded) return;
     setSearchParams(prev => { prev.delete('planId'); return prev; }, { replace: true });
     api.get(`/plans/${deepLinkPlanId}`)
       .then(res => handleSelectPlan(res.data))
       .catch(() => {});
-  }, [circles, searchParams]);
+  }, [circles, circlesLoaded, searchParams]);
 
   useEffect(() => {
     if (!user) return;
@@ -157,10 +167,15 @@ export function DashboardPage() {
 
   function handleSelectPlan(plan: Plan) {
     clearPlan(plan.id);
-    if (plan.circleId) {
+    if (plan.circleId && circles.some(c => c.id === plan.circleId)) {
       clearCircle(plan.circleId);
       setSelectedCircleId(plan.circleId);
       setAllPlansActive(false);
+      setCalendarActive(false);
+    } else if (plan.circleId) {
+      // Invité externe : pas d'accès au Cercle, on affiche le Plan depuis « Tous mes plans »
+      setSelectedCircleId(null);
+      setAllPlansActive(true);
       setCalendarActive(false);
     }
     api.get(`/plans/${plan.id}`).then(res => {
@@ -287,6 +302,7 @@ export function DashboardPage() {
             onBack={() => setMobileView('plans')}
             user={user!}
             onlineUserIds={onlineUserIds}
+            circleMembers={selectedCircle?.members ?? []}
           />
         ) : (
           <EmptyState message="Sélectionne un Plan" sub="ou crée-en un nouveau dans ce Cercle" />

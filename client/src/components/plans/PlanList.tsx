@@ -199,6 +199,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       {showCreate && (
         <CreatePlanModal
           circleId={circle.id}
+          circleMembers={circle.members}
           onClose={() => setShowCreate(false)}
           onCreated={(plan) => { onPlanCreated(plan); setShowCreate(false); }}
         />
@@ -215,6 +216,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       {convertOption && (
         <CreatePlanModal
           circleId={circle.id}
+          circleMembers={circle.members}
           fromPoll={{
             pollId: convertOption.poll.id,
             optionId: convertOption.option.id,

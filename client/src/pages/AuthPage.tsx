@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -14,6 +14,12 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 export function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Retour après connexion (ex. lien d'invitation) — chemin interne uniquement, pas d'URL externe
+  const redirectParam = searchParams.get('redirect');
+  const afterLogin = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+    ? redirectParam
+    : '/dashboard';
   const [mode, setMode] = useState<Mode>('login');
 
   const [email, setEmail] = useState('');
@@ -55,7 +61,7 @@ export function AuthPage() {
         const isEmail = email.includes('@');
         const { data } = await api.post('/auth/login', isEmail ? { email, password } : { pseudo: email, password });
         login(data.token, data.user);
-        navigate('/dashboard');
+        navigate(afterLogin);
       }
     } catch (err: any) {
       const code = err.response?.data?.error;
@@ -81,7 +87,7 @@ export function AuthPage() {
       const idToken = googleUser.authentication.idToken;
       const { data } = await api.post('/auth/google', { idToken });
       login(data.token, data.user);
-      navigate('/dashboard');
+      navigate(afterLogin);
     } catch (err: any) {
       if (err?.error !== 'popup_closed_by_user' && err?.message !== 'User cancelled.') {
         setError('Connexion Google annulée ou échouée.');

@@ -29,8 +29,9 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
 
   // Grouper par cercle
   const byCircle = plans.reduce<Record<string, { name: string; plans: Plan[] }>>((acc, plan) => {
-    const id = plan.circleId;
-    if (!acc[id]) acc[id] = { name: plan.circle?.name ?? id, plans: [] };
+    // Plans où l'on est invité externe : regroupés à part, sans révéler le Cercle
+    const id = plan.isGuest ? '__invitations' : plan.circleId;
+    if (!acc[id]) acc[id] = { name: plan.isGuest ? 'Invitations' : plan.circle?.name ?? '', plans: [] };
     acc[id].plans.push(plan);
     return acc;
   }, {});

@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import archiver from 'archiver';
 import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
+import { getPlanAccess } from '../lib/planAccess';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -47,10 +48,8 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const plan = await prisma.plan.findUnique({ where: { id: req.params.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const isMember = await prisma.circleMember.findUnique({
-      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-    });
-    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const access = await getPlanAccess(req.userId!, plan.id);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -127,10 +126,8 @@ router.get('/:id/download-token', async (req: AuthRequest, res) => {
     const plan = await prisma.plan.findUnique({ where: { id: att.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const isMember = await prisma.circleMember.findUnique({
-      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-    });
-    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const access = await getPlanAccess(req.userId!, plan.id);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const token = jwt.sign(
       { attachmentId: req.params.id, userId: req.userId },
@@ -149,10 +146,8 @@ router.get('/plans/:planId/photos-token', async (req: AuthRequest, res) => {
     const plan = await prisma.plan.findUnique({ where: { id: req.params.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const isMember = await prisma.circleMember.findUnique({
-      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-    });
-    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const access = await getPlanAccess(req.userId!, plan.id);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const token = jwt.sign(
       { planId: plan.id, userId: req.userId, purpose: 'photos' },
@@ -202,10 +197,8 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     const plan = await prisma.plan.findUnique({ where: { id: req.params.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const isMember = await prisma.circleMember.findUnique({
-      where: { userId_circleId: { userId: req.userId, circleId: plan.circleId } },
-    });
-    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const access = await getPlanAccess(req.userId, plan.id);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const photos = await prisma.attachment.findMany({
       where: { planId: plan.id, mimeType: { startsWith: 'image/' } },
@@ -270,10 +263,8 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     const plan = await prisma.plan.findUnique({ where: { id: att.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const isMember = await prisma.circleMember.findUnique({
-      where: { userId_circleId: { userId: req.userId!, circleId: plan.circleId } },
-    });
-    if (!isMember) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const access = await getPlanAccess(req.userId!, plan.id);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     // Pour les PDFs anciens stockés comme 'image', ajouter fl_attachment aide le CDN
     // à renvoyer le fichier brut plutôt qu'une image convertie

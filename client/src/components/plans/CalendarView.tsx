@@ -139,7 +139,7 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
               }`}
             >
               <h3 className="font-semibold text-white text-sm leading-tight mb-1">{plan.title}</h3>
-              <p className="text-indigo-300/80 text-xs">{plan.circle?.name}</p>
+              <p className="text-indigo-300/80 text-xs">{plan.isGuest ? 'Invitation' : plan.circle?.name}</p>
               <p className="text-indigo-300 text-xs mt-1">
                 {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
               </p>

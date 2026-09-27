@@ -3,7 +3,9 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan } from '../../types';
+import { Plan, CircleMember } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import { SurpriseSelector } from './SurpriseSelector';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -21,13 +23,17 @@ function isoToLocal(iso: string | null | undefined): string {
 
 interface Props {
   circleId: string;
+  /** Membres du Cercle, pour choisir à qui cacher un Plan surprise */
+  circleMembers?: CircleMember[];
   onClose: () => void;
   onCreated: (plan: Plan) => void;
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
   fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null };
 }
 
-export function CreatePlanModal({ circleId, onClose, onCreated, fromPoll }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreated, fromPoll }: Props) {
+  const { user } = useAuth();
+  const [excludedUserIds, setExcludedUserIds] = useState<string[]>([]);
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? '');
   const [description, setDescription] = useState('');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO));
@@ -48,6 +54,7 @@ export function CreatePlanModal({ circleId, onClose, onCreated, fromPoll }: Prop
       endDate: localDateTimeToISO(endDate),
       location: location || null,
       maxParticipants: maxParticipants || null,
+      excludedUserIds,
     };
     try {
       const { data } = fromPoll
@@ -88,6 +95,14 @@ export function CreatePlanModal({ circleId, onClose, onCreated, fromPoll }: Prop
           onChange={e => setMaxParticipants(e.target.value)}
           placeholder="Ex : 8"
         />
+        {user && (
+          <SurpriseSelector
+            members={circleMembers}
+            currentUserId={user.id}
+            value={excludedUserIds}
+            onChange={setExcludedUserIds}
+          />
+        )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>

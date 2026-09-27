@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 import { computeBalances, suggestTransfers } from './expenses';
 
@@ -138,9 +139,9 @@ export async function sendWeeklyDigest() {
       const plans = await prisma.plan.findMany({
         where: {
           endDate: { gt: now },
-          circle: { members: { some: { userId: user.id } } },
+          ...visiblePlansWhere(user.id),
         },
-        include: { circle: { select: { name: true } } },
+        include: { circle: { select: { name: true, members: { where: { userId: user.id }, select: { userId: true } } } } },
         orderBy: { eventDate: 'asc' },
         take: 10,
       });
@@ -154,7 +155,9 @@ export async function sendWeeklyDigest() {
         const dateStr = p.eventDate
           ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(p.eventDate)
           : 'Date libre';
-        return `<li><strong>${p.title}</strong> (${p.circle.name}) — ${dateStr}</li>`;
+        // Invité externe : on ne révèle pas le nom du Cercle
+        const where = p.circle.members.length > 0 ? p.circle.name : 'invitation';
+        return `<li><strong>${p.title}</strong> (${where}) — ${dateStr}</li>`;
       }).join('');
 
       const result = await resend.emails.send({

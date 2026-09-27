@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail, Share2 } from 'lucide-react';
+import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail, Share2, Users, UserPlus, RefreshCw } from 'lucide-react';
 import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
@@ -12,10 +12,22 @@ interface Props {
   planTitle?: string;
   /** Id du Plan, pour rediriger directement dessus après avoir rejoint le Cercle */
   planId?: string;
+  /** Propose aussi d'inviter une personne extérieure au Cercle, avec accès à ce seul Plan */
+  allowGuest?: boolean;
+  /** Faux pour un invité externe : il ne doit jamais voir le code du Cercle */
+  canInviteToCircle?: boolean;
+  /** Le créateur du Plan peut régénérer le lien externe */
+  isPlanCreator?: boolean;
   onClose: () => void;
 }
 
-export function InviteModal({ circleName, circleCode, planTitle, planId, onClose }: Props) {
+type Mode = 'circle' | 'guest';
+
+export function InviteModal({ circleName, circleCode, planTitle, planId, allowGuest = false, canInviteToCircle = true, isPlanCreator = false, onClose }: Props) {
+  const [mode, setMode] = useState<Mode>(canInviteToCircle ? 'circle' : 'guest');
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+  const [guestError, setGuestError] = useState('');
+  const [resetting, setResetting] = useState(false);
   const [phone, setPhone] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -31,20 +43,45 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
 
   const appUrl = window.location.origin;
 
-  const joinLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}${planId ? `&planId=${planId}` : ''}`;
+  const circleLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}${planId ? `&planId=${planId}` : ''}`;
+  const guestLink = guestToken ? `${appUrl}/invitation?token=${guestToken}` : '';
+  const isGuestMode = mode === 'guest';
+  const joinLink = isGuestMode ? guestLink : circleLink;
 
   useEffect(() => {
-    if (!showQr) return;
+    if (!isGuestMode || guestToken || !planId) return;
+    api.post(`/plans/${planId}/guest-link`)
+      .then(res => setGuestToken(res.data.token))
+      .catch(err => setGuestError(err.response?.data?.error || 'Impossible de créer le lien'));
+  }, [isGuestMode, guestToken, planId]);
+
+  async function resetGuestLink() {
+    if (!planId) return;
+    setResetting(true);
+    try {
+      const { data } = await api.post(`/plans/${planId}/guest-link/reset`);
+      setGuestToken(data.token);
+    } catch (err: any) {
+      setGuestError(err.response?.data?.error || 'Erreur');
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!showQr || !joinLink) return;
     QRCode.toDataURL(joinLink, { width: 240, margin: 1, color: { dark: '#431a11', light: '#ffffff' } })
       .then(setQrDataUrl)
       .catch(() => {});
   }, [showQr, joinLink]);
 
-  const smsText = planTitle
+  const smsText = isGuestMode
+    ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nClique ici pour le rejoindre :\n${joinLink}`
+    : planTitle
     ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
     : `Salut ! Rejoins mon Cercle "${circleName}" sur EvLY 🎉\nCode d'accès : ${circleCode}\n${joinLink}`;
 
-  const shareMessage = planTitle
+  const shareMessage = isGuestMode || planTitle
     ? `Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉`
     : `Rejoins mon Cercle "${circleName}" sur EvLY 🎉`;
   const canShare = typeof navigator !== 'undefined' && !!(navigator as any).share;
@@ -111,9 +148,30 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
     <Modal title={title} onClose={onClose}>
       <div className="space-y-5">
 
+        {allowGuest && canInviteToCircle && (
+          <div className="flex gap-1.5 bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => { setMode('circle'); setShowQr(false); }}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'circle' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Users size={13} />
+              Au Cercle
+            </button>
+            <button
+              onClick={() => { setMode('guest'); setShowQr(false); }}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <UserPlus size={13} />
+              Personne extérieure
+            </button>
+          </div>
+        )}
+
         {/* Context */}
         <div className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 leading-relaxed">
-          {planTitle ? (
+          {isGuestMode ? (
+            <>La personne invitée rejoindra <strong className="text-slate-700">uniquement ce Plan</strong> : elle n'aura accès ni au Cercle, ni à ses autres Plans, ni à ses membres.</>
+          ) : planTitle ? (
             <>Le destinataire rejoindra le Cercle <strong className="text-slate-700">"{circleName}"</strong> (code : <span className="font-mono font-bold text-slate-700">{circleCode}</span>), puis pourra accéder au Plan.</>
           ) : (
             <>Partage le code <span className="font-mono font-bold text-slate-700">{circleCode}</span> pour inviter quelqu'un dans <strong className="text-slate-700">"{circleName}"</strong>.</>
@@ -131,6 +189,7 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
             />
             <button
               onClick={copyLink}
+              disabled={!joinLink}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
                 copied ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
@@ -147,6 +206,17 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
               <QrCode size={14} />
             </button>
           </div>
+          {isGuestMode && guestError && <p className="text-xs text-red-500 mt-1.5">{guestError}</p>}
+          {isGuestMode && isPlanCreator && guestToken && (
+            <button
+              onClick={resetGuestLink}
+              disabled={resetting}
+              className="mt-1.5 flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50"
+            >
+              <RefreshCw size={11} className={resetting ? 'animate-spin' : ''} />
+              Générer un nouveau lien (l'ancien ne fonctionnera plus)
+            </button>
+          )}
           {showQr && (
             <div className="mt-3 flex flex-col items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
               {qrDataUrl ? (
@@ -186,7 +256,8 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
 
         <div className="border-t border-slate-100" />
 
-        {/* Email section */}
+        {/* Email section (invitation au Cercle uniquement : le modèle d'email contient le code) */}
+        {!isGuestMode && <>
         <div>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Envoyer par email</p>
           <div className="space-y-2">
@@ -217,6 +288,7 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, onClose
         </div>
 
         <div className="border-t border-slate-100" />
+        </>}
 
         {/* SMS section */}
         <div>

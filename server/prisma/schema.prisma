@@ -45,6 +45,7 @@ model User {
   ridesDriven             Ride[]          @relation("RideDriver")
   ridePassengers          RidePassenger[]
   rideRequests            RideRequest[]
+  planExclusions          PlanExclusion[]
 }
 
 model Circle {
@@ -183,6 +184,27 @@ model Plan {
   originCirclePoll CirclePoll?
   rides         Ride[]
   rideRequests  RideRequest[]
+  exclusions    PlanExclusion[]
+  guestLink     PlanGuestLink?
+}
+
+// Lien d'invitation « invité externe » d'un Plan (réutilisable, régénérable par le
+// créateur). Table séparée pour que le jeton ne remonte jamais avec les champs du Plan.
+model PlanGuestLink {
+  planId    String   @id
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  createdAt DateTime @default(now())
+}
+
+// Plan surprise : membres du Cercle pour qui le Plan est totalement invisible
+model PlanExclusion {
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([planId, userId])
 }
 
 // Covoiturage : un conducteur propose un trajet aller (un seul par Plan)

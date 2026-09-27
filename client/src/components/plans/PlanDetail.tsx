@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car } from 'lucide-react';
-import { Plan, Message, User } from '../../types';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car, Gift } from 'lucide-react';
+import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { ChatInput } from '../chat/ChatInput';
@@ -46,9 +46,11 @@ interface Props {
   onBack: () => void;
   user: User;
   onlineUserIds?: Set<string>;
+  /** Membres du Cercle (vide pour un invité externe) — pour gérer un Plan surprise */
+  circleMembers?: CircleMember[];
 }
 
-export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [] }: Props) {
   const { token } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -260,6 +262,22 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 <Clock size={11} />
                 <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span> — toutes les données liées (messages, photos, dépenses) seront supprimées</span>
               </div>
+
+              {(plan.exclusions ?? []).length > 0 && (
+                <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800">
+                  <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Plan surprise</strong> pour {(plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ')} :
+                    {' '}{(plan.exclusions ?? []).length > 1 ? 'ils ne voient' : 'cette personne ne voit'} pas ce Plan. Chut, ne dis rien !
+                  </span>
+                </div>
+              )}
+
+              {plan.viewerIsGuest && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Tu es <strong>invité(e)</strong> à ce Plan : tu y as accès, sans faire partie du Cercle.
+                </p>
+              )}
             </div>
           </div>
           {/* Actions — icônes en ligne sur desktop, menu compact sur mobile */}
@@ -498,6 +516,9 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           circleCode={circleCode}
           planTitle={plan.title}
           planId={plan.id}
+          allowGuest
+          canInviteToCircle={!plan.viewerIsGuest}
+          isPlanCreator={isCreator}
           onClose={() => setShowInvite(false)}
         />
       )}
@@ -517,6 +538,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {showEditPlan && (
         <EditPlanModal
           plan={plan}
+          circleMembers={circleMembers}
           onClose={() => setShowEditPlan(false)}
           onUpdated={(updated) => { onPlanUpdated(updated); setShowEditPlan(false); }}
         />

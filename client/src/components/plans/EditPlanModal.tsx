@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan } from '../../types';
+import { Plan, CircleMember } from '../../types';
+import { SurpriseSelector } from './SurpriseSelector';
 
 function isoToLocal(iso: string | null | undefined): string {
   if (!iso) return '';
@@ -20,11 +21,14 @@ function localToISO(str: string): string {
 
 interface Props {
   plan: Plan;
+  /** Membres du Cercle, pour choisir à qui cacher un Plan surprise */
+  circleMembers?: CircleMember[];
   onClose: () => void;
   onUpdated: (plan: Plan) => void;
 }
 
-export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
+export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated }: Props) {
+  const [excludedUserIds, setExcludedUserIds] = useState<string[]>((plan.exclusions ?? []).map(e => e.userId));
   const [title, setTitle] = useState(plan.title);
   const [description, setDescription] = useState(plan.description);
   const [eventDate, setEventDate] = useState(isoToLocal(plan.eventDate));
@@ -44,6 +48,7 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
         eventDate: eventDate ? localToISO(eventDate) : null,
         endDate: localToISO(endDate),
         maxParticipants: maxParticipants || null,
+        excludedUserIds,
       });
       onUpdated(data);
       onClose();
@@ -109,6 +114,17 @@ export function EditPlanModal({ plan, onClose, onUpdated }: Props) {
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
+        <SurpriseSelector
+          members={circleMembers}
+          currentUserId={plan.creatorId}
+          value={excludedUserIds}
+          onChange={setExcludedUserIds}
+        />
+        {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
+          <p className="text-xs text-amber-600 -mt-2">
+            Une personne cochée a déjà rejoint ce Plan : elle en sera retirée.
+          </p>
+        )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
