@@ -106,6 +106,12 @@ export function GuideModal({ onClose }: Props) {
               créer un sondage (ex. « Sushi ou pizza ? »), avec l'option de le rendre anonyme. Dans un Cercle,
               un <strong>sondage de dates</strong> permet aussi de caler une date avant même de créer un Plan.
             </p>
+            <p className="mt-1.5">
+              Clique sur un sondage de dates pour l'ouvrir : tu vois qui est disponible à chaque date, qui
+              n'est <strong>pas intéressé</strong> (bouton dédié) et qui n'a pas encore répondu, et tu peux en
+              discuter dans son <strong>chat</strong>. Comme un Plan, il peut être caché à certains membres
+              (sondage surprise). Quand son créateur en fait un Plan, la conversation y est reprise.
+            </p>
           </section>
 
           <section>

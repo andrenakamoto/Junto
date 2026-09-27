@@ -283,6 +283,21 @@ Junto/
   la liste des sondages actifs). `createPlanInCircle()`/`notifyNewPlan()`
   dans `circles.ts` sont mutualisés entre la création normale d'un Plan et
   cette conversion, pour ne pas dupliquer la notif temps réel + email.
+  Depuis le 2026-09-27, le sondage s'ouvre dans le panneau de droite
+  (`components/circles/PollDetail.tsx`, exclusif avec le Plan ouvert —
+  `selectedPollId` dans DashboardPage) avec :
+  - **CirclePollExclusion** : sondage surprise, même principe que
+    PlanExclusion (`getVisiblePoll` dans `circles.ts` → 404 pour un exclu,
+    absent de la liste, des notifications, des emails et du chat).
+    La conversion pré-coche les mêmes exclus dans le Plan surprise.
+  - **CirclePollDecline** : « Pas intéressé(e) », exclusif avec les votes
+    (l'un efface l'autre). Votants, pas intéressés et « pas encore
+    répondu » sont visibles de tous les membres qui voient le sondage.
+  - **CirclePollMessage** : chat simple (sans réactions ni fils), en REST
+    (POST /polls/:pollId/messages) + événement `poll-message` et
+    notification `poll_message` envoyés aux rooms `user:*` de l'audience
+    (pas de room de sondage à rejoindre). Recopiés dans `Message` du Plan
+    (dates d'origine conservées) lors de la conversion.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), deletionMode, disabledFeatures (voir Paramètres
