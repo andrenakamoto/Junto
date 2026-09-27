@@ -326,7 +326,10 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
 
 - **auth.ts** : /needs-setup, /setup, /register, /verify-email,
   /resend-verification, /login, /google, /forgot-password, /reset-password,
-  /me, /change-password, /add-email, /profile (PUT prénom/nom), /accept-terms,
+  /me, /change-password, /add-email, /profile (PUT prénom/nom),
+  /delete-account (POST, mot de passe requis ou « SUPPRIMER » pour un compte
+  Google ; refusé pour le dernier admin, sinon /setup redeviendrait ouvert),
+  /accept-terms,
   /notification-settings (PUT, toggle weeklyDigestEnabled).
   Rate limité : login/register/google (loginLimiter/registerLimiter),
   resend-verification/forgot-password (emailActionLimiter).
@@ -355,7 +358,12 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   (Plan surprise) ; le vote de sondage et le claim « qui apporte quoi »
   exigent désormais d'être membre du Plan (failles corrigées le 2026-09-27).
 - **admin.ts** : /users, /users/:id/approve|reject|reset-password,
-  DELETE /users/:id, /stats
+  DELETE /users/:id, /stats. La suppression d'un compte (par l'admin comme
+  par l'utilisateur) passe par `lib/accountDeletion.ts` : Cercles et Plans
+  créés **transférés** au membre le plus ancien (membre du Cercle préféré à
+  un invité), supprimés seulement s'il n'y avait personne d'autre ; le reste
+  part en cascade. Circle.creator/Plan.creator n'ont pas de onDelete : ne
+  pas appeler `prisma.user.delete` directement.
 - **rides.ts** (monté sur `/api/rides`) : GET/POST /plan/:planId (liste
   trajets+demandes / proposer), POST|DELETE /plan/:planId/request,
   PUT|DELETE /:rideId (conducteur uniquement, la suppression prévient les
