@@ -20,35 +20,43 @@ export function setupSocketHandlers(io: Server) {
     }
   });
 
-  io.on('connection', async (socket: Socket) => {
+  io.on('connection', (socket: Socket) => {
     socket.join(`user:${socket.data.userId}`);
 
-    const memberships = await prisma.circleMember.findMany({
-      where: { userId: socket.data.userId },
-      select: { circleId: true },
-    });
-    const circleIds = memberships.map(m => m.circleId);
-    socket.data.circleIds = circleIds;
-    for (const circleId of circleIds) socket.join(`circle:${circleId}`);
-
-    const wasOffline = !onlineCounts.get(socket.data.userId);
-    onlineCounts.set(socket.data.userId, (onlineCounts.get(socket.data.userId) ?? 0) + 1);
-    if (wasOffline) {
-      for (const circleId of circleIds) {
-        io.to(`circle:${circleId}`).emit('presence', { userId: socket.data.userId, online: true });
-      }
-    }
-
-    if (circleIds.length > 0) {
-      const circleMembers = await prisma.circleMember.findMany({
-        where: { circleId: { in: circleIds } },
-        select: { userId: true },
+    // Pas d'`await` ici avant d'enregistrer les écouteurs ci-dessous : un événement émis
+    // par le client juste après la connexion (ex. `join-plan`) serait sinon perdu.
+    const presenceReady = (async () => {
+      const memberships = await prisma.circleMember.findMany({
+        where: { userId: socket.data.userId },
+        select: { circleId: true },
       });
-      const onlineUserIds = [...new Set(circleMembers.map(m => m.userId))].filter(id => (onlineCounts.get(id) ?? 0) > 0);
-      socket.emit('presence-snapshot', onlineUserIds);
-    }
+      const circleIds = memberships.map(m => m.circleId);
+      socket.data.circleIds = circleIds;
+      for (const circleId of circleIds) socket.join(`circle:${circleId}`);
 
-    socket.on('disconnect', () => {
+      const wasOffline = !onlineCounts.get(socket.data.userId);
+      onlineCounts.set(socket.data.userId, (onlineCounts.get(socket.data.userId) ?? 0) + 1);
+      if (wasOffline) {
+        for (const circleId of circleIds) {
+          io.to(`circle:${circleId}`).emit('presence', { userId: socket.data.userId, online: true });
+        }
+      }
+
+      if (circleIds.length > 0) {
+        const circleMembers = await prisma.circleMember.findMany({
+          where: { circleId: { in: circleIds } },
+          select: { userId: true },
+        });
+        const onlineUserIds = [...new Set(circleMembers.map(m => m.userId))].filter(id => (onlineCounts.get(id) ?? 0) > 0);
+        socket.emit('presence-snapshot', onlineUserIds);
+      }
+      return circleIds;
+    })();
+    presenceReady.catch(e => console.error('[socket presence setup]', e));
+
+    socket.on('disconnect', async () => {
+      const circleIds = await presenceReady.catch(() => null);
+      if (!circleIds) return;
       const count = (onlineCounts.get(socket.data.userId) ?? 1) - 1;
       if (count <= 0) {
         onlineCounts.delete(socket.data.userId);
