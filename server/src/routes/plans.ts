@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { purgePlanFiles } from '../lib/cloudinary';
+import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeBalances, suggestTransfers } from '../lib/expenses';
 import { icsEscape, icsDate } from '../lib/ical';
@@ -27,7 +29,11 @@ const planInclude = {
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
   items: { orderBy: { id: 'asc' as const } },
   changeLogs: { orderBy: { changedAt: 'asc' as const } },
-  attachments: { orderBy: { createdAt: 'asc' as const } },
+  // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
+  attachments: {
+    select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
+    orderBy: { createdAt: 'asc' as const },
+  },
   exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
 };
 
@@ -110,7 +116,11 @@ router.get('/:id', async (req: AuthRequest, res) => {
     return;
   }
   const withGuests = await withGuestFlags(plan);
-  res.json({ ...anonymizePlanPolls(withGuests, req.userId!), viewerIsGuest: access.isGuest });
+  res.json({
+    ...anonymizePlanPolls(withGuests, req.userId!),
+    viewerIsGuest: access.isGuest,
+    mediaToken: mintMediaToken(plan.id, req.userId!),
+  });
 });
 
 // ─── Invités externes : lien d'invitation donnant accès à ce seul Plan ───────
@@ -298,7 +308,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
     }
 
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
-    res.json(anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!));
+    res.json({
+      ...anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!),
+      mediaToken: mintMediaToken(planId, req.userId!),
+    });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -548,6 +561,7 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   const threshold = Math.ceil(updated!.members.length / 2);
 
   if (voteCount >= threshold) {
+    await purgePlanFiles([planId]);
     await prisma.plan.delete({ where: { id: planId } });
     res.json({ deleted: true });
     return;

@@ -4,6 +4,7 @@ import { Camera, Loader2, Check, Download, ZoomOut, ZoomIn, Move, RectangleVerti
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { mediaUrl } from '../../lib/media';
 
 interface Props {
   plan: Plan;
@@ -32,10 +33,12 @@ export function StoryModal({ plan, onClose }: Props) {
   const [generating, setGenerating] = useState(false);
 
   const imageAttachments = (plan.attachments || []).filter(a => isImage(a.mimeType));
+  // 1600 px suffisent pour l'export de la story (cadre ~400 px, rendu x4)
+  const coverUrl = (id: string) => mediaUrl(id, plan.mediaToken, 1600);
   const frame = FRAMES[orientation];
 
   useEffect(() => {
-    if (!coverSrc && imageAttachments[0]) setCoverSrc(imageAttachments[0].url);
+    if (!coverSrc && imageAttachments[0]) setCoverSrc(coverUrl(imageAttachments[0].id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -240,11 +243,11 @@ export function StoryModal({ plan, onClose }: Props) {
             {imageAttachments.slice(0, 6).map(att => (
               <button
                 key={att.id}
-                onClick={() => selectCover(att.url)}
-                className={`relative w-10 h-10 rounded-lg overflow-hidden border-2 ${coverSrc === att.url ? 'border-indigo-600' : 'border-transparent'}`}
+                onClick={() => selectCover(coverUrl(att.id))}
+                className={`relative w-10 h-10 rounded-lg overflow-hidden border-2 ${coverSrc === coverUrl(att.id) ? 'border-indigo-600' : 'border-transparent'}`}
               >
-                <img src={att.url} className="w-full h-full object-cover" />
-                {coverSrc === att.url && (
+                <img src={mediaUrl(att.id, plan.mediaToken, 120)} className="w-full h-full object-cover" />
+                {coverSrc === coverUrl(att.id) && (
                   <div className="absolute inset-0 bg-indigo-600/30 flex items-center justify-center">
                     <Check size={14} className="text-white" />
                   </div>

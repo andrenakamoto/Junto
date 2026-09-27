@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { purgePlanFiles } from './cloudinary';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 import { computeBalances, suggestTransfers } from './expenses';
@@ -57,6 +58,7 @@ export async function deleteExpiredPlans() {
       }
     }
 
+    await purgePlanFiles(expiredPlans.map(p => p.id));
     const { count } = await prisma.plan.deleteMany({ where: { id: { in: expiredPlans.map(p => p.id) } } });
     if (count > 0) console.log(`[cleanup] ${count} plan(s) expiré(s) supprimé(s)`);
   } catch (e: any) {

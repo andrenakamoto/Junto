@@ -92,7 +92,6 @@ export interface PlanDeleteVote {
 export interface Attachment {
   id: string;
   name: string;
-  url: string;
   mimeType: string;
   size: number;
   uploadedBy: string;
@@ -133,6 +132,8 @@ export interface Plan {
   isGuest?: boolean;
   /** Détail d'un Plan : l'utilisateur courant y est invité externe */
   viewerIsGuest?: boolean;
+  /** Jeton (12 h) pour afficher les photos/fichiers via /api/attachments/:id/view */
+  mediaToken?: string;
 }
 
 export interface MessageReaction {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
@@ -437,6 +438,7 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   const voteCount = circle.deleteVotes.length;
 
   if (voteCount >= threshold) {
+    await purgeCircleFiles(circleId);
     await prisma.circle.delete({ where: { id: circleId } });
     res.json({ deleted: true });
     return;
@@ -467,6 +469,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
     });
 
     if (!nextMember) {
+      await purgeCircleFiles(circleId);
       await prisma.circle.delete({ where: { id: circleId } });
       res.json({ left: true, circleDeleted: true });
       return;

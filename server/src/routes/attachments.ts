@@ -5,22 +5,19 @@ import http from 'http';
 import zlib from 'zlib';
 import jwt from 'jsonwebtoken';
 import archiver from 'archiver';
-import { v2 as cloudinary } from 'cloudinary';
 import prisma from '../lib/prisma';
 import { getPlanAccess } from '../lib/planAccess';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { cloudinary } from '../lib/cloudinary';
+import { verifyMediaToken } from '../lib/mediaToken';
 
 const router = Router();
-// /download accepte aussi un token query param (mobile), donc exclu du middleware global
+// /download accepte aussi un token query param (mobile), et /view un jeton média :
+// ces routes vérifient leur jeton elles-mêmes, donc exclues du middleware global
 router.use((req, res, next) => {
   if (req.method === 'GET' && req.path.endsWith('/download') && req.query.token) return next();
+  if (req.method === 'GET' && req.path.endsWith('/view') && req.query.t) return next();
   return (requireAuth as any)(req, res, next);
-});
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const upload = multer({
@@ -86,7 +83,8 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
       },
     });
 
-    res.json(attachment);
+    const { url: _url, publicId: _publicId, ...safe } = attachment;
+    res.json(safe);
   } catch (e) {
     console.error('[attachment upload]', e);
     res.status(500).json({ error: "Erreur lors de l'envoi du fichier" });
@@ -102,6 +100,11 @@ function fetchBuffer(url: string, depth = 0): Promise<Buffer> {
       if (code >= 300 && code < 400 && upstream.headers.location) {
         upstream.resume();
         fetchBuffer(upstream.headers.location, depth + 1).then(resolve, reject);
+        return;
+      }
+      if (code >= 400) {
+        upstream.resume();
+        reject(new Error(`HTTP ${code}`));
         return;
       }
       const chunks: Buffer[] = [];
@@ -234,6 +237,37 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     console.error('[photos zip]', e);
     if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de la création du ZIP' });
     else res.destroy();
+  }
+});
+
+// GET /api/attachments/:id/view?t=<jeton média>[&w=400] — affiche un fichier du Plan sans
+// jamais exposer son adresse Cloudinary au navigateur. `w` : miniature (images seulement).
+router.get('/:id/view', async (req, res) => {
+  try {
+    const payload = verifyMediaToken(String(req.query.t || ''));
+    if (!payload) { res.status(401).json({ error: 'Lien expiré, recharge la page' }); return; }
+
+    const att = await prisma.attachment.findUnique({ where: { id: req.params.id } });
+    if (!att || att.planId !== payload.planId) { res.status(404).json({ error: 'Fichier introuvable' }); return; }
+
+    const width = Number(req.query.w);
+    let buffer: Buffer | null = null;
+    if (width > 0 && att.resourceType === 'image' && att.mimeType.startsWith('image/') && att.url.includes('/upload/')) {
+      const w = Math.min(Math.max(Math.round(width), 64), 1600);
+      buffer = await fetchBuffer(att.url.replace('/upload/', `/upload/c_limit,w_${w},q_auto/`)).catch(() => null);
+    }
+    if (!buffer || buffer.length === 0) buffer = await fetchBuffer(att.url);
+    if (buffer.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
+
+    const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
+    res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.end(buffer);
+  } catch (e) {
+    console.error('[attachment view]', e);
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de l\'affichage' });
   }
 });
 

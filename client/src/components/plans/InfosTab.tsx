@@ -3,6 +3,7 @@ import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loade
 import { Capacitor } from '@capacitor/core';
 import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
+import { mediaUrl } from '../../lib/media';
 
 interface Props {
   plan: Plan;
@@ -191,6 +192,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
               <GalleryThumb
                 key={att.id}
                 att={att}
+                token={plan.mediaToken}
                 canDelete={isCreator || att.uploadedBy === pseudo}
                 onDelete={() => handleDelete(att)}
               />
@@ -209,6 +211,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
               <AttachmentRow
                 key={att.id}
                 att={att}
+                token={plan.mediaToken}
                 canDelete={isCreator || att.uploadedBy === pseudo}
                 deleting={deletingId === att.id}
                 onDelete={() => handleDelete(att)}
@@ -246,12 +249,12 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   );
 }
 
-function GalleryThumb({ att, canDelete, onDelete }: { att: Attachment; canDelete: boolean; onDelete: () => void }) {
+function GalleryThumb({ att, token, canDelete, onDelete }: { att: Attachment; token?: string; canDelete: boolean; onDelete: () => void }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   return (
     <div className="relative group aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-      <a href={att.url} target="_blank" rel="noopener noreferrer">
-        <img src={att.url} alt={att.name} className="w-full h-full object-cover" loading="lazy" />
+      <a href={mediaUrl(att.id, token)} target="_blank" rel="noopener noreferrer">
+        <img src={mediaUrl(att.id, token, 400)} alt={att.name} className="w-full h-full object-cover" loading="lazy" />
       </a>
       {canDelete && (
         <div className="absolute top-1 right-1">
@@ -285,9 +288,10 @@ function GalleryThumb({ att, canDelete, onDelete }: { att: Attachment; canDelete
 }
 
 function AttachmentRow({
-  att, canDelete, deleting, onDelete,
+  att, token, canDelete, deleting, onDelete,
 }: {
   att: Attachment;
+  token?: string;
   canDelete: boolean;
   deleting: boolean;
   onDelete: () => void;
@@ -333,9 +337,9 @@ function AttachmentRow({
       <div className="flex items-center gap-2.5">
         {/* Thumbnail ou icône */}
         {image ? (
-          <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <a href={mediaUrl(att.id, token)} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
             <img
-              src={att.url}
+              src={mediaUrl(att.id, token, 120)}
               alt={att.name}
               className="w-9 h-9 rounded-lg object-cover border border-slate-200"
             />

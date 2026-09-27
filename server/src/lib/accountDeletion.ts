@@ -1,11 +1,13 @@
 import prisma from './prisma';
+import { purgePlanFiles, purgeCircleFiles } from './cloudinary';
 
 // Supprime un compte sans pénaliser les autres membres :
 // - ses Cercles passent au membre le plus ancien (supprimés s'il était seul) ;
 // - ses Plans passent au participant le plus ancien, de préférence membre du
 //   Cercle plutôt qu'invité externe (supprimés s'il était seul) ;
 // - le reste (messages, votes, trajets, dépenses payées, adhésions…) part en
-//   cascade avec l'utilisateur. Les photos (Attachment) restent dans les Plans.
+//   cascade avec l'utilisateur. Les photos (Attachment) restent dans les Plans conservés ;
+//   celles des Cercles ou Plans supprimés sont effacées chez Cloudinary.
 // Circle.creator et Plan.creator n'ont pas de onDelete : sans ces transferts,
 // la suppression de l'utilisateur échouerait sur la contrainte de clé étrangère.
 export async function deleteUserAccount(userId: string) {
@@ -16,6 +18,7 @@ export async function deleteUserAccount(userId: string) {
       orderBy: { joinedAt: 'asc' },
     });
     if (!next) {
+      await purgeCircleFiles(circleId);
       await prisma.circle.delete({ where: { id: circleId } });
       continue;
     }
@@ -36,6 +39,7 @@ export async function deleteUserAccount(userId: string) {
       select: { userId: true },
     });
     if (others.length === 0) {
+      await purgePlanFiles([plan.id]);
       await prisma.plan.delete({ where: { id: plan.id } });
       continue;
     }
