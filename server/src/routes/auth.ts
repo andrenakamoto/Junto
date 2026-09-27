@@ -8,6 +8,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { deleteUserAccount } from '../lib/accountDeletion';
+import { sendPasswordReset } from '../lib/passwordReset';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 
 const router = Router();
@@ -68,24 +69,6 @@ async function sendVerificationEmail(email: string, pseudo: string, token: strin
           Confirmer mon email
         </a>
         <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 24h.</p>
-      </div>`,
-  });
-}
-
-async function sendPasswordResetEmail(email: string, pseudo: string, token: string) {
-  const link = `${APP_URL}/reset-password?token=${token}`;
-  await resend.emails.send({
-    from: FROM_EMAIL,
-    to: email,
-    subject: 'Réinitialisation de ton mot de passe — EvLY',
-    html: `
-      <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Réinitialisation de mot de passe</h2>
-        <p>Bonjour ${pseudo}, tu as demandé à réinitialiser ton mot de passe.</p>
-        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-          Réinitialiser mon mot de passe
-        </a>
-        <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 1h. Si tu n'as pas fait cette demande, ignore cet email.</p>
       </div>`,
   });
 }
@@ -323,14 +306,8 @@ router.post('/forgot-password', emailActionLimiter, async (req, res) => {
   if (!email) { res.status(400).json({ error: 'Email requis' }); return; }
   try {
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
-    if (user) {
-      const token = crypto.randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { resetPasswordToken: token, resetPasswordExpires: expires },
-      });
-      await sendPasswordResetEmail(user.email!, user.pseudo, token);
+    if (user?.email) {
+      await sendPasswordReset({ id: user.id, pseudo: user.pseudo, email: user.email });
     }
     res.json({ ok: true }); // toujours ok (évite l'énumération d'emails)
   } catch {

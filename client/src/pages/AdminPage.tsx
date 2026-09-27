@@ -38,7 +38,7 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
-  const [resetDone, setResetDone] = useState<string | null>(null);
+  const [resetDone, setResetDone] = useState<{ id: string; ok: boolean; message: string } | null>(null);
   const [editingPseudoId, setEditingPseudoId] = useState<string | null>(null);
   const [pseudoInput, setPseudoInput] = useState('');
   const [pseudoError, setPseudoError] = useState('');
@@ -100,10 +100,14 @@ export function AdminPage() {
   }
 
   async function handleResetPassword(id: string) {
-    await api.put(`/admin/users/${id}/reset-password`);
     setConfirmReset(null);
-    setResetDone(id);
-    setTimeout(() => setResetDone(null), 3000);
+    try {
+      await api.put(`/admin/users/${id}/reset-password`);
+      setResetDone({ id, ok: true, message: 'Lien envoyé par email ✓' });
+    } catch (err: any) {
+      setResetDone({ id, ok: false, message: err.response?.data?.error || 'Envoi impossible' });
+    }
+    setTimeout(() => setResetDone(null), 4000);
   }
 
   function PseudoField({ u }: { u: AdminUser }) {
@@ -313,18 +317,18 @@ export function AdminPage() {
                     Approuver
                   </button>
                 )}
-                {resetDone === u.id ? (
-                  <span className="text-xs text-emerald-600 font-medium px-2">Mot de passe : 123 ✓</span>
+                {resetDone?.id === u.id ? (
+                  <span className={`text-xs font-medium px-2 ${resetDone.ok ? 'text-emerald-600' : 'text-red-500'}`}>{resetDone.message}</span>
                 ) : confirmReset === u.id ? (
                   <div className="flex gap-1.5 items-center">
-                    <span className="text-xs text-amber-600 font-medium">Réinitialiser ?</span>
+                    <span className="text-xs text-amber-600 font-medium">Envoyer un lien de réinitialisation ?</span>
                     <button onClick={() => handleResetPassword(u.id)} className="px-2.5 py-1.5 bg-amber-500 text-white hover:bg-amber-600 rounded-lg text-xs font-medium transition-colors">Oui</button>
                     <button onClick={() => setConfirmReset(null)} className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Non</button>
                   </div>
                 ) : (
                   <button
                     onClick={() => setConfirmReset(u.id)}
-                    title="Réinitialiser le mot de passe"
+                    title="Envoyer un lien de réinitialisation du mot de passe"
                     className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                   >
                     <KeyRound size={15} />

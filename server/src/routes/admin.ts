@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { deleteUserAccount } from '../lib/accountDeletion';
+import { sendPasswordReset } from '../lib/passwordReset';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
@@ -71,14 +71,15 @@ router.put('/users/:id/reject', async (req: AuthRequest, res) => {
   res.json(user);
 });
 
-// Reset a user's password to "123"
+// Envoie au membre un lien pour choisir lui-même un nouveau mot de passe.
+// (L'admin ne fixe plus de mot de passe connu : l'ancien reset mettait « 123 ».)
 router.put('/users/:id/reset-password', async (req: AuthRequest, res) => {
   try {
-    const hashed = await bcrypt.hash('123', 10);
-    await prisma.user.update({
-      where: { id: req.params.id },
-      data: { password: hashed },
-    });
+    const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true, pseudo: true, email: true } });
+    if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    if (!user.email) { res.status(400).json({ error: "Ce compte n'a pas d'email : impossible d'envoyer un lien" }); return; }
+    const sent = await sendPasswordReset({ id: user.id, pseudo: user.pseudo, email: user.email }, true);
+    if (!sent) { res.status(502).json({ error: "L'email n'a pas pu être envoyé" }); return; }
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
