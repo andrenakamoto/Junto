@@ -29,12 +29,12 @@ interface Props {
   onClose: () => void;
   onCreated: (plan: Plan) => void;
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
-  fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null };
+  fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[] };
 }
 
 export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreated, fromPoll }: Props) {
   const { user } = useAuth();
-  const [excludedUserIds, setExcludedUserIds] = useState<string[]>([]);
+  const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? '');
   const [description, setDescription] = useState('');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO));

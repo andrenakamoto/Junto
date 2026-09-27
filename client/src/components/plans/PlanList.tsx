@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Circle, Plan, CirclePoll, CirclePollOption } from '../../types';
+import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
 import { CreatePlanModal } from './CreatePlanModal';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
@@ -24,9 +24,11 @@ interface Props {
   onCircleUpdated: (circle: Circle) => void;
   onBack: () => void;
   unreadPlans: Set<string>;
+  selectedPollId?: string | null;
+  onSelectPoll: (pollId: string) => void;
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll }: Props) {
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -36,7 +38,6 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
   const [showCreatePoll, setShowCreatePoll] = useState(false);
-  const [convertOption, setConvertOption] = useState<{ poll: CirclePoll; option: CirclePollOption } | null>(null);
 
   function copyCode() {
     navigator.clipboard.writeText(circle.code);
@@ -51,16 +52,16 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   useEffect(() => { refreshPolls(); }, [circle.id]);
   // Sondage de dates créé, voté ou converti par un autre membre
   useSocketEvent<{ circleId: string }>('circle-updated', p => { if (p.circleId === circle.id) refreshPolls(); });
+  // Compteur de messages des cartes de sondage
+  useSocketEvent<{ pollId: string }>('poll-message', p => {
+    setPolls(prev => prev.map(x => x.id === p.pollId ? { ...x, _count: { messages: (x._count?.messages ?? 0) + 1 } } : x));
+  });
 
   async function handleVotePoll(optionId: string) {
     const { data } = await api.post(`/circles/polls/options/${optionId}/vote`);
     setPolls(prev => prev.map(p => p.id === data.id ? data : p));
   }
 
-  async function handleDeletePoll(pollId: string) {
-    await api.delete(`/circles/polls/${pollId}`);
-    setPolls(prev => prev.filter(p => p.id !== pollId));
-  }
 
   const votes = circle.deleteVotes ?? [];
   const threshold = Math.ceil(circle.members.length / 2);
@@ -166,9 +167,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   key={poll.id}
                   poll={poll}
                   userId={user!.id}
+                  selected={poll.id === selectedPollId}
                   onVote={handleVotePoll}
-                  onDelete={() => handleDeletePoll(poll.id)}
-                  onConvert={option => setConvertOption({ poll, option })}
+                  onOpen={() => onSelectPoll(poll.id)}
                 />
               ))}
             </div>
@@ -225,27 +226,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       {showCreatePoll && (
         <CreateCirclePollModal
           circleId={circle.id}
-          onClose={() => setShowCreatePoll(false)}
-          onCreated={(poll) => { setPolls(prev => [poll, ...prev]); setShowCreatePoll(false); }}
-        />
-      )}
-
-      {convertOption && (
-        <CreatePlanModal
-          circleId={circle.id}
           circleMembers={circle.members}
-          fromPoll={{
-            pollId: convertOption.poll.id,
-            optionId: convertOption.option.id,
-            suggestedTitle: convertOption.poll.question,
-            suggestedEventDateISO: convertOption.option.eventDate,
-          }}
-          onClose={() => setConvertOption(null)}
-          onCreated={(plan) => {
-            onPlanCreated(plan);
-            setPolls(prev => prev.filter(p => p.id !== convertOption.poll.id));
-            setConvertOption(null);
-          }}
+          onClose={() => setShowCreatePoll(false)}
+          onCreated={(poll) => { setPolls(prev => [poll, ...prev]); setShowCreatePoll(false); onSelectPoll(poll.id); }}
         />
       )}
 

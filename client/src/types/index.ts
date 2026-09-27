@@ -248,4 +248,16 @@ export interface CirclePoll {
   resolvedAt?: string | null;
   creator: { id: string; pseudo: string };
   options: CirclePollOption[];
+  /** Sondage surprise : membres du Cercle à qui il est caché */
+  exclusions?: { userId: string; user: { id: string; pseudo: string } }[];
+  /** « Pas intéressé(e) » */
+  declines?: { userId: string; user: { id: string; pseudo: string } }[];
+  _count?: { messages: number };
+}
+
+export interface CirclePollMessage {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: { id: string; pseudo: string };
 }

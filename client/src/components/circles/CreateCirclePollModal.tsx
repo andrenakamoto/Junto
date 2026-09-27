@@ -4,7 +4,9 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { CirclePoll } from '../../types';
+import { CirclePoll, CircleMember } from '../../types';
+import { SurpriseSelector } from '../plans/SurpriseSelector';
+import { useAuth } from '../../contexts/AuthContext';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -22,11 +24,15 @@ function formatOptionLabel(localDateTime: string): string {
 
 interface Props {
   circleId: string;
+  /** Membres du Cercle, pour choisir à qui cacher le sondage */
+  circleMembers?: CircleMember[];
   onClose: () => void;
   onCreated: (poll: CirclePoll) => void;
 }
 
-export function CreateCirclePollModal({ circleId, onClose, onCreated }: Props) {
+export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, onCreated }: Props) {
+  const { user } = useAuth();
+  const [excludedUserIds, setExcludedUserIds] = useState<string[]>([]);
   const [question, setQuestion] = useState('');
   const [dates, setDates] = useState(['', '']);
   const [creating, setCreating] = useState(false);
@@ -40,7 +46,7 @@ export function CreateCirclePollModal({ circleId, onClose, onCreated }: Props) {
     setError('');
     try {
       const options = validDates.map(d => ({ label: formatOptionLabel(d), eventDate: localDateTimeToISO(d) }));
-      const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options });
+      const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds });
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -86,6 +92,16 @@ export function CreateCirclePollModal({ circleId, onClose, onCreated }: Props) {
           )}
         </div>
 
+        {user && (
+          <SurpriseSelector
+            members={circleMembers}
+            currentUserId={user.id}
+            value={excludedUserIds}
+            onChange={setExcludedUserIds}
+            label="Sondage surprise"
+            hint="Cacher ce sondage à (ils ne verront ni le sondage, ni ses notifications, ni son chat) :"
+          />
+        )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>

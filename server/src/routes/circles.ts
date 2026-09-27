@@ -603,11 +603,44 @@ const circlePollInclude = {
   options: {
     include: { votes: { include: { user: { select: { id: true, pseudo: true } } } } },
   },
+  exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
+  declines: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { createdAt: 'asc' as const } },
+  _count: { select: { messages: true } },
 };
 
 async function assertCircleMember(userId: string, circleId: string): Promise<boolean> {
   const m = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId } } });
   return !!m;
+}
+
+// Un sondage est visible par les membres du Cercle, sauf ceux à qui il est caché (surprise).
+// Pour un exclu, le sondage n'existe pas : 404, comme un Plan surprise.
+type VisiblePoll =
+  | { status: number; error: string }
+  | { poll: { id: string; circleId: string; resolvedAt: Date | null; question: string } };
+
+async function getVisiblePoll(pollId: string, userId: string): Promise<VisiblePoll> {
+  const poll = await prisma.circlePoll.findUnique({
+    where: { id: pollId },
+    include: { exclusions: { select: { userId: true } } },
+  });
+  if (!poll) return { status: 404, error: 'Sondage introuvable' };
+  if (poll.exclusions.some(e => e.userId === userId)) return { status: 404, error: 'Sondage introuvable' };
+  if (!(await assertCircleMember(userId, poll.circleId))) return { status: 403, error: 'Accès refusé' };
+  return { poll };
+}
+
+// Destinataires d'un sondage (temps réel, notifications) : membres du Cercle non exclus
+async function pollAudience(pollId: string, circleId: string) {
+  const [members, exclusions] = await Promise.all([
+    prisma.circleMember.findMany({
+      where: { circleId },
+      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } },
+    }),
+    prisma.circlePollExclusion.findMany({ where: { pollId }, select: { userId: true } }),
+  ]);
+  const excluded = new Set(exclusions.map(e => e.userId));
+  return members.filter(m => !excluded.has(m.userId));
 }
 
 router.get('/:id/polls', async (req: AuthRequest, res) => {
@@ -616,11 +649,18 @@ router.get('/:id/polls', async (req: AuthRequest, res) => {
     return;
   }
   const polls = await prisma.circlePoll.findMany({
-    where: { circleId: req.params.id, resolvedAt: null },
+    where: { circleId: req.params.id, resolvedAt: null, exclusions: { none: { userId: req.userId! } } },
     include: circlePollInclude,
     orderBy: { createdAt: 'desc' },
   });
   res.json(polls);
+});
+
+router.get('/polls/:pollId', async (req: AuthRequest, res) => {
+  const access = await getVisiblePoll(req.params.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
+  const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: circlePollInclude });
+  res.json(poll);
 });
 
 router.post('/:id/polls', async (req: AuthRequest, res) => {
@@ -639,6 +679,9 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'Au moins 2 options valides requises' });
     return;
   }
+  const excl = await validateExclusions(req.params.id, req.userId!, req.body.excludedUserIds);
+  if ('error' in excl) { res.status(400).json({ error: excl.error }); return; }
+
   const poll = await prisma.circlePoll.create({
     data: {
       question: question.trim(),
@@ -650,23 +693,18 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
           eventDate: o.eventDate ? new Date(o.eventDate) : null,
         })),
       },
+      exclusions: { create: excl.ids.map(userId => ({ userId })) },
     },
     include: circlePollInclude,
   });
   res.json(poll);
 
-  // Notifier les autres membres du cercle — temps réel + email
+  // Notifier les autres membres du cercle (hors exclus) — temps réel + email
   try {
     const io = req.app.get('io');
-    const circle = await prisma.circle.findUnique({
-      where: { id: req.params.id },
-      select: {
-        name: true,
-        members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
-      },
-    });
+    const circle = await prisma.circle.findUnique({ where: { id: req.params.id }, select: { name: true } });
     if (circle) {
-      const otherMembers = circle.members.filter(m => m.userId !== req.userId);
+      const otherMembers = (await pollAudience(poll.id, req.params.id)).filter(m => m.userId !== req.userId);
 
       if (io) {
         for (const m of otherMembers) {
@@ -676,6 +714,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
             circleName: circle.name,
             from: poll.creator.pseudo,
             planTitle: poll.question,
+            pollId: poll.id,
           });
         }
       }
@@ -711,18 +750,16 @@ router.delete('/polls/:pollId', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
-// Vote (bascule), plusieurs options possibles à la fois
+// Vote (bascule), plusieurs options possibles à la fois. Voter retire le « pas intéressé(e) ».
 router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   const option = await prisma.circlePollOption.findUnique({
     where: { id: req.params.optionId },
     include: { poll: true },
   });
   if (!option) { res.status(404).json({ error: 'Option introuvable' }); return; }
+  const access = await getVisiblePoll(option.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
   if (option.poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
-  if (!(await assertCircleMember(req.userId!, option.poll.circleId))) {
-    res.status(403).json({ error: 'Accès refusé' });
-    return;
-  }
 
   const existing = await prisma.circlePollVote.findUnique({
     where: { optionId_userId: { optionId: req.params.optionId, userId: req.userId! } },
@@ -730,14 +767,95 @@ router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   if (existing) {
     await prisma.circlePollVote.delete({ where: { optionId_userId: { optionId: req.params.optionId, userId: req.userId! } } });
   } else {
-    await prisma.circlePollVote.create({ data: { optionId: req.params.optionId, userId: req.userId! } });
+    await prisma.$transaction([
+      prisma.circlePollDecline.deleteMany({ where: { pollId: option.pollId, userId: req.userId! } }),
+      prisma.circlePollVote.create({ data: { optionId: req.params.optionId, userId: req.userId! } }),
+    ]);
   }
 
   const updatedPoll = await prisma.circlePoll.findUnique({ where: { id: option.pollId }, include: circlePollInclude });
   res.json(updatedPoll);
 });
 
-// Convertit l'option gagnante d'un sondage en Plan (créateur du sondage uniquement)
+// « Pas intéressé(e) » (bascule) — retire aussi les dates cochées
+router.post('/polls/:pollId/decline', async (req: AuthRequest, res) => {
+  const access = await getVisiblePoll(req.params.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
+  if (access.poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
+  const pollId = access.poll.id;
+  const userId = req.userId!;
+
+  const existing = await prisma.circlePollDecline.findUnique({ where: { pollId_userId: { pollId, userId } } });
+  if (existing) {
+    await prisma.circlePollDecline.delete({ where: { pollId_userId: { pollId, userId } } });
+  } else {
+    await prisma.$transaction([
+      prisma.circlePollVote.deleteMany({ where: { userId, option: { pollId } } }),
+      prisma.circlePollDecline.create({ data: { pollId, userId } }),
+    ]);
+  }
+  const updatedPoll = await prisma.circlePoll.findUnique({ where: { id: pollId }, include: circlePollInclude });
+  res.json(updatedPoll);
+});
+
+// ─── Chat du sondage ───────────────────────────────────────────────────────
+const pollMessageInclude = { author: { select: { id: true, pseudo: true } } };
+
+router.get('/polls/:pollId/messages', async (req: AuthRequest, res) => {
+  const access = await getVisiblePoll(req.params.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
+  const messages = await prisma.circlePollMessage.findMany({
+    where: { pollId: access.poll.id },
+    include: pollMessageInclude,
+    orderBy: { createdAt: 'asc' },
+    take: 300,
+  });
+  res.json(messages);
+});
+
+router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
+  const access = await getVisiblePoll(req.params.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
+  const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
+  if (!content || content.length > 2000) { res.status(400).json({ error: 'Message vide ou trop long (2000 caractères max)' }); return; }
+  const poll = access.poll;
+  if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
+
+  const message = await prisma.circlePollMessage.create({
+    data: { content, pollId: poll.id, authorId: req.userId! },
+    include: pollMessageInclude,
+  });
+  res.json(message);
+
+  // Diffusion aux seuls membres qui voient le sondage (room user:* — pas de room à rejoindre)
+  try {
+    const io = req.app.get('io');
+    if (!io) return;
+    const [audience, circle] = await Promise.all([
+      pollAudience(poll.id, poll.circleId),
+      prisma.circle.findUnique({ where: { id: poll.circleId }, select: { name: true } }),
+    ]);
+    for (const m of audience) {
+      io.to(`user:${m.userId}`).emit('poll-message', { pollId: poll.id, message });
+      if (m.userId !== req.userId) {
+        io.to(`user:${m.userId}`).emit('notification', {
+          type: 'poll_message',
+          circleId: poll.circleId,
+          circleName: circle?.name,
+          pollId: poll.id,
+          planTitle: poll.question,
+          from: message.author.pseudo,
+          preview: content.slice(0, 80),
+        });
+      }
+    }
+  } catch (e) {
+    console.error('[poll_message notify]', e);
+  }
+});
+
+// Convertit l'option gagnante d'un sondage en Plan (créateur du sondage uniquement).
+// Le chat du sondage est recopié au début du chat du Plan.
 router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: { options: true } });
   if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
@@ -754,10 +872,16 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }
 
-  await prisma.circlePoll.update({
-    where: { id: poll.id },
-    data: { resolvedAt: new Date(), createdPlanId: result.plan.id },
-  });
+  const messages = await prisma.circlePollMessage.findMany({ where: { pollId: poll.id }, orderBy: { createdAt: 'asc' } });
+  await prisma.$transaction([
+    prisma.message.createMany({
+      data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt })),
+    }),
+    prisma.circlePoll.update({
+      where: { id: poll.id },
+      data: { resolvedAt: new Date(), createdPlanId: result.plan.id },
+    }),
+  ]);
 
   res.json(result.plan);
 });

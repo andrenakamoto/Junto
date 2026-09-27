@@ -1,37 +1,31 @@
-import { useState } from 'react';
-import { Calendar, Check, Trash2, CalendarPlus } from 'lucide-react';
-import { CirclePoll, CirclePollOption } from '../../types';
+import { Calendar, Check, MessageSquare, Gift, ChevronRight } from 'lucide-react';
+import { CirclePoll } from '../../types';
 
 interface Props {
   poll: CirclePoll;
   userId: string;
+  selected?: boolean;
   onVote: (optionId: string) => void;
-  onDelete: () => void;
-  onConvert: (option: CirclePollOption) => void;
+  onOpen: () => void;
 }
 
-export function CirclePollCard({ poll, userId, onVote, onDelete, onConvert }: Props) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const isCreator = poll.creator.id === userId;
+// Aperçu d'un sondage de dates dans la colonne des Plans : vote rapide, et clic pour ouvrir
+// le détail (qui a voté quoi, pas intéressés, chat, création du Plan).
+export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props) {
   const maxVotes = Math.max(1, ...poll.options.map(o => o.votes.length));
+  const declined = (poll.declines ?? []).some(d => d.userId === userId);
+  const declineCount = poll.declines?.length ?? 0;
+  const messageCount = poll._count?.messages ?? 0;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
-      <div className="flex items-start justify-between gap-2 mb-2.5">
-        <p className="text-sm font-semibold text-white leading-tight">{poll.question}</p>
-        {isCreator && (
-          confirmDelete ? (
-            <div className="flex gap-1 flex-shrink-0">
-              <button onClick={onDelete} className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-300">Oui</button>
-              <button onClick={() => setConfirmDelete(false)} className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">Non</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmDelete(true)} title="Supprimer le sondage" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
-              <Trash2 size={13} />
-            </button>
-          )
-        )}
-      </div>
+    <div className={`bg-slate-900/60 border rounded-xl p-3 transition-colors ${selected ? 'border-indigo-400/70' : 'border-slate-700/50'}`}>
+      <button onClick={onOpen} className="w-full flex items-start justify-between gap-2 mb-2.5 text-left group">
+        <p className="text-sm font-semibold text-white leading-tight group-hover:text-indigo-200">
+          {(poll.exclusions?.length ?? 0) > 0 && <Gift size={12} className="inline mr-1 -mt-0.5 text-indigo-300" />}
+          {poll.question}
+        </p>
+        <ChevronRight size={14} className="text-slate-500 group-hover:text-indigo-300 flex-shrink-0 mt-0.5" />
+      </button>
 
       <div className="space-y-1.5">
         {poll.options.map(opt => {
@@ -39,36 +33,36 @@ export function CirclePollCard({ poll, userId, onVote, onDelete, onConvert }: Pr
           const pct = Math.round((count / maxVotes) * 100);
           const iVoted = opt.votes.some(v => v.userId === userId);
           return (
-            <div key={opt.id} className="flex items-center gap-2">
-              <button
-                onClick={() => onVote(opt.id)}
-                className={`flex-1 relative overflow-hidden rounded-lg border text-left text-xs transition-all ${
-                  iVoted ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:border-slate-600'
-                }`}
-              >
-                <div className={`absolute inset-y-0 left-0 ${iVoted ? 'bg-emerald-400/10' : 'bg-slate-600/20'}`} style={{ width: `${pct}%` }} />
-                <div className="relative flex items-center justify-between px-2.5 py-1.5">
-                  <span className={`flex items-center gap-1.5 ${iVoted ? 'text-emerald-300 font-medium' : 'text-slate-300'}`}>
-                    {iVoted && <Check size={11} />}
-                    <Calendar size={11} className="flex-shrink-0 opacity-70" />
-                    {opt.label}
-                  </span>
-                  <span className="text-slate-400 flex-shrink-0 ml-2">{count}</span>
-                </div>
-              </button>
-              {isCreator && (
-                <button
-                  onClick={() => onConvert(opt)}
-                  title="Créer le Plan avec cette date"
-                  className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-200 hover:bg-slate-700 transition-colors flex-shrink-0"
-                >
-                  <CalendarPlus size={14} />
-                </button>
-              )}
-            </div>
+            <button
+              key={opt.id}
+              onClick={() => onVote(opt.id)}
+              className={`w-full relative overflow-hidden rounded-lg border text-left text-xs transition-all ${
+                iVoted ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:border-slate-600'
+              }`}
+            >
+              <div className={`absolute inset-y-0 left-0 ${iVoted ? 'bg-emerald-400/10' : 'bg-slate-600/20'}`} style={{ width: `${pct}%` }} />
+              <div className="relative flex items-center justify-between px-2.5 py-1.5">
+                <span className={`flex items-center gap-1.5 ${iVoted ? 'text-emerald-300 font-medium' : 'text-slate-300'}`}>
+                  {iVoted && <Check size={11} />}
+                  <Calendar size={11} className="flex-shrink-0 opacity-70" />
+                  {opt.label}
+                </span>
+                <span className="text-slate-400 flex-shrink-0 ml-2">{count}</span>
+              </div>
+            </button>
           );
         })}
       </div>
+
+      <button onClick={onOpen} className="mt-2 w-full flex items-center gap-3 text-xs text-slate-400 hover:text-slate-200">
+        <span className="flex items-center gap-1"><MessageSquare size={11} />{messageCount}</span>
+        {declineCount > 0 && (
+          <span className={declined ? 'text-amber-300' : ''}>
+            {declined ? 'Tu n\'es pas intéressé(e)' : `${declineCount} pas intéressé${declineCount > 1 ? 's' : ''}`}
+          </span>
+        )}
+        <span className="ml-auto text-indigo-300">Ouvrir</span>
+      </button>
     </div>
   );
 }

@@ -3,7 +3,8 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message';
+  pollId?: string;
   planId?: string;
   planTitle?: string;
   circleId?: string;
@@ -48,6 +49,11 @@ const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconCla
     icon: Car, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Covoiturage — ${n.planTitle}`,
     body: n => n.preview ?? '',
+  },
+  poll_message: {
+    icon: MessageSquare, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',
+    title: n => `Sondage — ${n.planTitle}`,
+    body: n => `@${n.from} : ${n.preview}`,
   },
   plan_gone: {
     icon: Trash2, iconClass: 'text-slate-300', bgClass: 'bg-slate-600/40',

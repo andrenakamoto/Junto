@@ -6,9 +6,11 @@ interface Props {
   currentUserId: string;
   value: string[];
   onChange: (excludedUserIds: string[]) => void;
+  label?: string;
+  hint?: string;
 }
 
-export function SurpriseSelector({ members, currentUserId, value, onChange }: Props) {
+export function SurpriseSelector({ members, currentUserId, value, onChange, label = 'Plan surprise', hint = 'Cacher ce Plan à (ils ne verront ni le Plan, ni ses notifications, ni ses emails) :' }: Props) {
   const [enabled, setEnabled] = useState(value.length > 0);
   const candidates = members.filter(m => m.userId !== currentUserId);
 
@@ -28,14 +30,12 @@ export function SurpriseSelector({ members, currentUserId, value, onChange }: Pr
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input type="checkbox" checked={enabled} onChange={toggleEnabled} className="accent-indigo-600" />
         <Gift size={15} className="text-indigo-500" />
-        <span className="text-sm font-medium text-slate-700">Plan surprise</span>
+        <span className="text-sm font-medium text-slate-700">{label}</span>
       </label>
 
       {enabled && (
         <div className="mt-2.5">
-          <p className="text-xs text-slate-500 mb-2">
-            Cacher ce Plan à (ils ne verront ni le Plan, ni ses notifications, ni ses emails) :
-          </p>
+          <p className="text-xs text-slate-500 mb-2">{hint}</p>
           <div className="flex flex-wrap gap-1.5">
             {candidates.map(m => {
               const selected = value.includes(m.userId);
@@ -55,7 +55,7 @@ export function SurpriseSelector({ members, currentUserId, value, onChange }: Pr
             })}
           </div>
           {value.length === 0 && (
-            <p className="text-xs text-amber-600 mt-2">Choisis au moins une personne à qui cacher le Plan.</p>
+            <p className="text-xs text-amber-600 mt-2">Choisis au moins une personne à qui le cacher.</p>
           )}
         </div>
       )}

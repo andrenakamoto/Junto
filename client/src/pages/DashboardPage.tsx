@@ -6,6 +6,7 @@ import api from '../services/api';
 import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
+import { PollDetail } from '../components/circles/PollDetail';
 import { AllPlansView } from '../components/plans/AllPlansView';
 import { CalendarView } from '../components/plans/CalendarView';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
@@ -30,6 +31,10 @@ export function DashboardPage() {
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  // Sondage de dates ouvert dans le panneau de droite (exclusif avec selectedPlan)
+  const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
+  const selectedPollIdRef = useRef(selectedPollId);
+  useEffect(() => { selectedPollIdRef.current = selectedPollId; }, [selectedPollId]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
@@ -137,6 +142,7 @@ export function DashboardPage() {
     if (!circles.some(c => c.id === selectedCircleId)) {
       setSelectedCircleId(null);
       setSelectedPlan(null);
+      setSelectedPollId(null);
       setMobileView('circles');
     }
   }, [circles, circlesLoaded, selectedCircleId]);
@@ -171,6 +177,8 @@ export function DashboardPage() {
     if (!token) return;
     const socket = getSocket(token);
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
+      // Message dans le sondage déjà ouvert : pas de notification
+      if (data.type === 'poll_message' && data.pollId === selectedPollIdRef.current) return;
       setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
       if (data.circleId) markCircle(data.circleId);
       if (data.planId) markPlan(data.planId);
@@ -243,7 +251,14 @@ export function DashboardPage() {
     setMobileView('detail');
   }
 
+  function openPoll(pollId: string) {
+    setSelectedPlan(null);
+    setSelectedPollId(pollId);
+    setMobileView('detail');
+  }
+
   function handleSelectCircle(id: string) {
+    setSelectedPollId(null);
     setSelectedCircleId(id);
     setAllPlansActive(false);
     setCalendarActive(false);
@@ -252,6 +267,7 @@ export function DashboardPage() {
   }
 
   function handleAllPlans() {
+    setSelectedPollId(null);
     setAllPlansActive(true);
     setCalendarActive(false);
     setSelectedCircleId(null);
@@ -260,6 +276,7 @@ export function DashboardPage() {
   }
 
   function handleCalendar() {
+    setSelectedPollId(null);
     setCalendarActive(true);
     setAllPlansActive(false);
     setSelectedCircleId(null);
@@ -268,6 +285,7 @@ export function DashboardPage() {
   }
 
   function handleSelectPlan(plan: Plan) {
+    setSelectedPollId(null);
     clearPlan(plan.id);
     if (plan.circleId && circles.some(c => c.id === plan.circleId)) {
       clearCircle(plan.circleId);
@@ -291,6 +309,7 @@ export function DashboardPage() {
     setCircles(remaining);
     setSelectedCircleId(remaining.length > 0 ? remaining[0].id : null);
     setSelectedPlan(null);
+    setSelectedPollId(null);
     setMobileView('circles');
   }
 
@@ -323,6 +342,9 @@ export function DashboardPage() {
         setNotifications(prev => prev.filter(x => x.id !== n.id));
         if (n.planId) {
           handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
+        } else if (n.pollId && n.circleId) {
+          handleSelectCircle(n.circleId);
+          openPoll(n.pollId);
         } else if (n.circleId) {
           handleSelectCircle(n.circleId);
         }
@@ -384,6 +406,8 @@ export function DashboardPage() {
             onCircleUpdated={handleCircleUpdated}
             onBack={() => setMobileView('circles')}
             unreadPlans={unreadPlans}
+            selectedPollId={selectedPollId}
+            onSelectPoll={openPoll}
           />
         </div>
       ) : (
@@ -394,7 +418,15 @@ export function DashboardPage() {
 
       {/* Colonne 3 — Détail */}
       <div className={`${showDetail ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full`}>
-        {selectedPlan ? (
+        {selectedPollId && selectedCircle ? (
+          <PollDetail
+            pollId={selectedPollId}
+            circle={selectedCircle}
+            onBack={() => setMobileView('plans')}
+            onClosed={() => { setSelectedPollId(null); setMobileView('plans'); }}
+            onPlanCreated={plan => { setSelectedPollId(null); handlePlanCreated(plan); }}
+          />
+        ) : selectedPlan ? (
           <PlanDetail
             plan={selectedPlan}
             circleName={selectedCircle?.name ?? ''}
