@@ -55,7 +55,30 @@ export function GuideModal({ onClose }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">4. Répondre à un Plan</h3>
+            <h3 className="font-bold text-slate-900 mb-2">4. Plan surprise</h3>
+            <p>
+              Pour préparer un anniversaire ou une fête surprise, coche <strong>« Plan surprise »</strong>{' '}
+              à la création (ou plus tard en modifiant le Plan) et choisis les membres du Cercle à qui le
+              cacher. Pour eux, le Plan <strong>n'existe pas</strong> : il n'apparaît dans aucune liste, et ils
+              ne reçoivent ni notification ni email à son sujet. Les autres membres voient un bandeau
+              rappelant pour qui c'est une surprise — chut !
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">5. Inviter quelqu'un d'extérieur au Cercle</h3>
+            <p>
+              Depuis <strong>Inviter</strong> dans un Plan, l'onglet <strong>« Personne extérieure »</strong>{' '}
+              donne un lien à partager (WhatsApp, SMS, QR code). La personne rejoint{' '}
+              <strong>uniquement ce Plan</strong> : elle participe au chat, aux trajets, aux votes et aux
+              dépenses, mais n'a accès ni au Cercle, ni à ses autres Plans, ni à ses membres. Tout membre du
+              Plan peut partager ce lien ; le créateur peut en générer un nouveau pour désactiver l'ancien.
+              Tes Plans d'invité se retrouvent dans « Tous mes plans », rubrique « Invitations ».
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">6. Répondre à un Plan</h3>
             <p>
               Rejoindre un Plan, c'est dire que tu es d'accord avec sa description. Une fois membre, indique
               ta réponse en un tap : <strong>Je suis in</strong>, <strong>Peut-être</strong> ou{' '}
@@ -64,7 +87,7 @@ export function GuideModal({ onClose }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">5. Le Chat</h3>
+            <h3 className="font-bold text-slate-900 mb-2">7. Le Chat</h3>
             <p>
               Une messagerie en temps réel propre à chaque Plan. Tape <strong>@pseudo</strong> pour
               mentionner quelqu'un — s'il est hors ligne partout, il reçoit un email en plus de la
@@ -73,18 +96,31 @@ export function GuideModal({ onClose }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">6. Infos, photos et sondages</h3>
+            <h3 className="font-bold text-slate-900 mb-2">8. Infos, photos et sondages</h3>
             <p>
               L'onglet <strong>Infos</strong> regroupe le lieu, l'heure de rendez-vous, une liste « qui
-              apporte quoi », et une galerie photo — pratique pour retrouver les souvenirs après la sortie.
-              L'onglet <strong>Votes</strong> permet de créer un sondage (ex. « Sushi ou pizza ? »), avec
-              l'option de le rendre anonyme. Dans un Cercle, un <strong>sondage de dates</strong> permet
-              aussi de caler une date avant même de créer un Plan.
+              apporte quoi », les pièces jointes et une galerie photo. Le bouton{' '}
+              <strong>« Télécharger toutes les photos »</strong> récupère toute la galerie d'un coup (fichier
+              ZIP) — pense à le faire avant la date de fin du Plan. L'onglet <strong>Votes</strong> permet de
+              créer un sondage (ex. « Sushi ou pizza ? »), avec l'option de le rendre anonyme. Dans un Cercle,
+              un <strong>sondage de dates</strong> permet aussi de caler une date avant même de créer un Plan.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">7. Dépenses partagées</h3>
+            <h3 className="font-bold text-slate-900 mb-2">9. Covoiturage</h3>
+            <p>
+              Dans l'onglet <strong>Trajets</strong>, un conducteur propose un trajet aller (lieu et heure de
+              départ, nombre de places, note — par exemple l'heure du retour). Les passagers cliquent sur{' '}
+              <strong>« Je monte »</strong> ou <strong>« Je descends »</strong> ; le trajet affiche les places
+              libres puis « Complet ». Sans voiture ? Clique sur <strong>« Je cherche une place »</strong> en
+              indiquant d'où tu pars, pour que les conducteurs te voient. Si tu passes « Absent(e) », tu es
+              retiré(e) automatiquement de ton trajet (et ton trajet est annulé si tu conduisais).
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">10. Dépenses partagées</h3>
             <p>
               Enregistre qui a payé quoi et pour qui dans l'onglet <strong>Dépenses</strong> : EvLY calcule
               automatiquement qui doit combien à qui, et te suggère les virements les plus simples pour
@@ -94,7 +130,7 @@ export function GuideModal({ onClose }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">8. Décisions collectives</h3>
+            <h3 className="font-bold text-slate-900 mb-2">11. Décisions collectives</h3>
             <p>
               Accepter un nouveau membre, supprimer un Cercle ou supprimer un Plan : tout se décide{' '}
               <strong>à la majorité des membres</strong>, jamais par une seule personne (même le créateur).
@@ -102,37 +138,40 @@ export function GuideModal({ onClose }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">9. Story souvenir et export calendrier</h3>
+            <h3 className="font-bold text-slate-900 mb-2">12. Story souvenir, calendrier et historique</h3>
             <p>
-              Depuis un Plan, tu peux télécharger une <strong>story</strong> — une image souvenir avec le
-              titre, la date, le lieu et qui était présent, avec choix de la photo, recadrage et zoom.
-              L'icône calendrier exporte le Plan au format .ics pour l'ajouter directement à ton agenda.
+              Depuis les actions d'un Plan (menu ⋮ sur mobile), tu peux télécharger une{' '}
+              <strong>story</strong> — une image souvenir avec le titre, la date, le lieu et qui était présent,
+              au format portrait ou paysage, avec choix de la photo, recadrage et zoom. Tu peux aussi exporter
+              le Plan vers ton <strong>calendrier</strong> (fichier .ics) et consulter{' '}
+              l'<strong>historique des modifications</strong> (titre, dates, description).
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">10. Notifications</h3>
+            <h3 className="font-bold text-slate-900 mb-2">13. Notifications</h3>
             <p>
               Par email : création d'un nouveau Plan, rappel avant l'événement, mention @pseudo si tu es
               hors ligne, et un résumé hebdomadaire optionnel (désactivable dans les paramètres de
-              notification). En temps réel dans l'app : nouveaux messages, réactions, votes et demandes
-              pour rejoindre un Cercle.
+              notification). En temps réel dans l'app : nouveaux Plans et messages, réactions, votes,
+              demandes pour rejoindre un Cercle, et covoiturage (quelqu'un monte dans ta voiture, une place
+              se libère, un trajet est annulé).
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">11. Suppression automatique des Plans</h3>
+            <h3 className="font-bold text-slate-900 mb-2">14. Suppression automatique des Plans</h3>
             <p>
-              À sa date de fin, un Plan et toutes ses données (messages, photos, dépenses) sont{' '}
+              À sa date de fin, un Plan et toutes ses données (messages, photos, trajets, dépenses) sont{' '}
               <strong>supprimés automatiquement</strong> — c'est volontaire, pour garder l'app légère et
-              centrée sur l'instant présent. Si des dépenses avaient été enregistrées, un{' '}
-              <strong>résumé par email</strong> (montants et virements suggérés) est envoyé à chaque membre
-              avant la suppression, pour ne perdre aucune info.
+              centrée sur l'instant présent. Télécharge les photos avant (onglet Infos). Si des dépenses
+              avaient été enregistrées, un <strong>résumé par email</strong> (montants et virements suggérés)
+              est envoyé à chaque membre avant la suppression, pour ne perdre aucune info.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">12. Limites à connaître</h3>
+            <h3 className="font-bold text-slate-900 mb-2">15. Limites à connaître</h3>
             <ul className="mt-1 space-y-1.5 list-none">
               {[
                 'Pièces jointes : 10 Mo par fichier, 100 Mo cumulés par Plan.',
