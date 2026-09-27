@@ -4,6 +4,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeBalances, suggestTransfers } from '../lib/expenses';
 import { icsEscape, icsDate } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { removeUserFromRides } from '../lib/rides';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -244,6 +245,10 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
       data: { rsvp },
     });
+    if (rsvp === 'out') {
+      await removeUserFromRides(req.app.get('io'), req.params.id, req.userId!, req.pseudo!)
+        .catch(e => console.error('[rsvp rides cleanup]', e));
+    }
     res.json(member);
   } catch {
     res.status(404).json({ error: 'Tu n\'es pas membre de ce Plan' });

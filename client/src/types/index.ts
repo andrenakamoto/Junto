@@ -180,6 +180,27 @@ export interface ExpensesData {
   suggestedTransfers: SuggestedTransfer[];
 }
 
+export interface RidePassenger {
+  userId: string;
+  user: { id: string; pseudo: string };
+}
+
+export interface Ride {
+  id: string;
+  departure: string;
+  departureAt?: string | null;
+  seats: number;
+  note?: string | null;
+  driver: { id: string; pseudo: string };
+  passengers: RidePassenger[];
+}
+
+export interface RideRequest {
+  id: string;
+  fromLocation: string;
+  user: { id: string; pseudo: string };
+}
+
 export interface CirclePollVote {
   userId: string;
   user: { id: string; pseudo: string };

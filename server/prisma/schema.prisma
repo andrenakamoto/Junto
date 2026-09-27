@@ -42,6 +42,9 @@ model User {
   circleJoinVotes         CircleJoinVote[]
   circlePollsCreated      CirclePoll[]    @relation("CirclePollCreator")
   circlePollVotes         CirclePollVote[]
+  ridesDriven             Ride[]          @relation("RideDriver")
+  ridePassengers          RidePassenger[]
+  rideRequests            RideRequest[]
 }
 
 model Circle {
@@ -178,6 +181,54 @@ model Plan {
   expenses      Expense[]
   reimbursements Reimbursement[]
   originCirclePoll CirclePoll?
+  rides         Ride[]
+  rideRequests  RideRequest[]
+}
+
+// Covoiturage : un conducteur propose un trajet aller (un seul par Plan)
+model Ride {
+  id          String    @id @default(cuid())
+  departure   String
+  departureAt DateTime?
+  seats       Int
+  note        String?
+  createdAt   DateTime  @default(now())
+
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  driverId String
+  driver   User   @relation("RideDriver", fields: [driverId], references: [id], onDelete: Cascade)
+
+  passengers RidePassenger[]
+
+  @@unique([planId, driverId])
+}
+
+// planId dupliqué ici pour que la base garantisse un seul trajet par passager et par Plan
+model RidePassenger {
+  rideId    String
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    String
+  createdAt DateTime @default(now())
+
+  @@id([rideId, userId])
+  @@unique([planId, userId])
+}
+
+// « Je cherche une place » — une demande par membre et par Plan
+model RideRequest {
+  id           String   @id @default(cuid())
+  fromLocation String
+  createdAt    DateTime @default(now())
+
+  planId String
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, userId])
 }
 
 model Expense {
