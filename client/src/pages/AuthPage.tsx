@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowRight, FileText } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -142,6 +142,16 @@ export function AuthPage() {
           >
             Découvrir EvLY en 1 minute
             <ArrowRight size={14} />
+          </a>
+          <br />
+          <a
+            href="/evly-associations-entreprises.pdf"
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-400 hover:text-slate-200 underline underline-offset-4 decoration-slate-500/50"
+          >
+            <FileText size={13} />
+            Pour les associations et les entreprises (PDF)
           </a>
         </div>
 
