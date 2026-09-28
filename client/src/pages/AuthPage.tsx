@@ -21,7 +21,8 @@ export function AuthPage() {
   const afterLogin = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
     ? redirectParam
     : '/dashboard';
-  const [mode, setMode] = useState<Mode>('login');
+  // ?mode=inscription (lien depuis la fiche de présentation) ouvre directement l'inscription
+  const [mode, setMode] = useState<Mode>(searchParams.get('mode') === 'inscription' ? 'register' : 'login');
 
   const [email, setEmail] = useState('');
   const [pseudo, setPseudo] = useState('');
