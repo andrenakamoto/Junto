@@ -191,6 +191,19 @@ Conséquences pratiques :
   Cloudinary de `server/.env` pointent vers un compte **désactivé**
   (« cloud_name is disabled ») : les vrais sont sur Railway, impossible de
   tester Cloudinary en local.
+- **Chiffrement des messages** (2026-09-28) : `Message.content` et
+  `CirclePollMessage.content` sont chiffrés en base (AES-256-GCM,
+  `server/src/lib/messageCrypto.ts`, format `enc1:<base64>`), clé
+  `MESSAGE_ENCRYPTION_KEY` (32 octets base64) **sur Railway uniquement**.
+  **Toute nouvelle écriture d'un message passe par `encryptMessage`, toute
+  lecture renvoyée au client par `withPlainContent`.** Au démarrage,
+  `encryptLegacyMessages` (`lib/messageBackfill.ts`) chiffre ce qui est
+  encore en clair. Pas de bout en bout : le serveur déchiffre. En local
+  (pas de clé), les nouveaux messages sont écrits en clair et les messages
+  chiffrés s'affichent « [Message illisible] » — le serveur de prod les
+  rechiffre à son prochain démarrage. Perdre ou changer la clé rend les
+  messages existants illisibles (pas de rotation prévue). Les emails de
+  mention ne contiennent plus le texte du message.
 - **Emails** : Resend (vérification email, reset password, rappels de Plan,
   résumé hebdomadaire)
 - **SMS** : Twilio (optionnel, invitations)
