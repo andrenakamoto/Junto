@@ -344,7 +344,9 @@ export function AuthPage() {
             </button>
           </p>
         )}
-        <p className="text-center text-xs text-slate-600 mt-4">info@evly.ch</p>
+        <p className="text-center text-xs text-slate-600 mt-4">
+          info@evly.ch · <a href="/confidentialite" className="hover:text-slate-400 underline underline-offset-2">Confidentialité</a>
+        </p>
       </div>
     </div>
   );

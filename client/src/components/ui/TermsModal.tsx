@@ -160,7 +160,10 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
               prestation.
             </p>
             <p className="mt-2">
-              Tu peux supprimer ton compte et tes données à tout moment depuis le menu
+              Le détail de ces traitements figure dans la{' '}
+              <a href="/confidentialite" target="_blank" rel="noopener" className="text-indigo-600 underline">
+                politique de confidentialité
+              </a>. Tu peux supprimer ton compte et tes données à tout moment depuis le menu
               (« Supprimer mon compte »). Les Cercles et Plans que tu as créés sont alors confiés à
               d'autres membres, et les photos partagées restent dans les Plans. Certaines données
               peuvent être conservées au-delà en cas d'obligation légale ou d'intérêt légitime (ex.

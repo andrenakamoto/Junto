@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/admin"                 element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
         <Route path="/rejoindre"             element={<JoinPage />} />
         <Route path="/invitation"            element={<GuestInvitePage />} />
+        <Route path="/confidentialite"       element={<PrivacyPage />} />
         <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
