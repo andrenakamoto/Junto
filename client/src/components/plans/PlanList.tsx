@@ -141,6 +141,12 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           </button>
         </div>
 
+        {circle.description && (
+          <p className="mt-2 text-xs text-slate-500 leading-relaxed whitespace-pre-line break-words line-clamp-3" title={circle.description}>
+            {circle.description}
+          </p>
+        )}
+
         {/* Vote progress hint */}
         {votes.length > 0 && (
           <button

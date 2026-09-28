@@ -153,7 +153,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
   return updatedCircle;
 }
 
-// Paramètres avancés du Cercle — modifiables par le créateur seul, visibles par tous
+// Paramètres du Cercle (description comprise) — modifiables par le créateur et les organisateurs, visibles par tous
 router.put('/:id/settings', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: req.params.id } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
@@ -165,6 +165,7 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   const planCreationMode = req.body.planCreationMode === undefined ? undefined : parsePlanCreationMode(req.body.planCreationMode);
   if (planCreationMode === undefined && req.body.planCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des Plans invalide' }); return; }
   const pollCreationMode = req.body.pollCreationMode === undefined ? undefined : parsePollCreationMode(req.body.pollCreationMode);
+  const description = typeof req.body.description === 'string' ? req.body.description.trim().slice(0, 500) : undefined;
   if (pollCreationMode === undefined && req.body.pollCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des sondages invalide' }); return; }
   // La suppression du Cercle reste l'affaire du créateur : les organisateurs ne changent pas sa règle
   if (deletionMode && deletionMode !== circle.deletionMode && circle.creatorId !== req.userId) {
@@ -174,7 +175,7 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }) },
+    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(description !== undefined && { description: description || null }) },
   });
   // Les votes de suppression en cours n'ont plus de sens si c'est le créateur qui décide
   if (deletionMode === 'creator') await prisma.circleDeleteVote.deleteMany({ where: { circleId: circle.id } });

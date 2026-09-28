@@ -21,6 +21,9 @@ export function PlanSettingsModal({ plan, isCreator, onClose, onEdit }: Props) {
         <FeaturesField disabled={plan.disabledFeatures ?? []} onChange={noop} readOnly />
         <EditModeField value={plan.editMode ?? 'creator'} onChange={noop} readOnly />
         <DeletionModeField subject="Plan" value={plan.deletionMode ?? 'vote'} onChange={noop} readOnly />
+        {isCreator && (
+          <p className="text-xs text-slate-500">Le titre, la description, les dates et ces paramètres se modifient avec « Modifier ».</p>
+        )}
         <div className="flex gap-2 justify-end pt-1 border-t border-slate-100">
           {isCreator ? (
             <>
