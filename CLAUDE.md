@@ -339,9 +339,18 @@ Junto/
   caler une date *avant* de créer un Plan (contrairement à Poll qui
   appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
   toutes les dates qui lui conviennent, pas de choix exclusif comme pour
-  Poll. `resolvedAt`/`createdPlanId` marquent le sondage comme converti
-  (une fois transformé en Plan via le créateur du sondage, il disparaît de
-  la liste des sondages actifs). `createPlanInCircle()`/`notifyNewPlan()`
+  Poll. Depuis le 2026-09-28, un sondage converti en Plan est **supprimé**
+  (son chat est recopié dans le Plan avant) ; `resolvedAt`/`createdPlanId`
+  ne servent plus qu'aux anciens sondages convertis, purgés par le job.
+  **Échéance** (`lib/pollExpiry.ts`, calculée, renvoyée en `expiresAt`) :
+  lendemain de la dernière date proposée, 30 jours max après la création.
+  Un sondage expiré est traité comme inexistant (404 via `getVisiblePoll`,
+  absent de la liste) puis supprimé par le job horaire `deleteExpiredPolls`
+  (`lib/pollCleanup.ts`, gated comme les autres crons). La veille de
+  l'échéance, `sendPollReminders` envoie un rappel au créateur
+  (`CirclePoll.reminderSentAt` anti-doublon, lien
+  `/dashboard?circleId=…&pollId=…`). Une date passée ne se vote plus et
+  ne peut plus être convertie (serveur + UI). `createPlanInCircle()`/`notifyNewPlan()`
   dans `circles.ts` sont mutualisés entre la création normale d'un Plan et
   cette conversion, pour ne pas dupliquer la notif temps réel + email.
   Depuis le 2026-09-27, le sondage s'ouvre dans le panneau de droite
