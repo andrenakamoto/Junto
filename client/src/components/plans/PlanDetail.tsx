@@ -262,7 +262,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   </button>
                 )}
               </div>
-              {plan.description && <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{plan.description}</p>}
+              {/* Membre : la description est dans l'onglet Infos. Sinon, elle reste ici pour décider de rejoindre. */}
+              {!isMember && plan.description && (
+                <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
+              )}
 
               {/* Date de l'événement */}
               {eventDateFmt && (

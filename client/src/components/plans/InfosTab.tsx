@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2, Images } from 'lucide-react';
+import { AlignLeft, MapPin, Plus, Check, Paperclip, FileText, File, Trash2, Download, Loader2, Images } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Plan, BringItem, Attachment } from '../../types';
 import api from '../../services/api';
@@ -121,6 +121,16 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6 short:flex-none short:overflow-visible">
+      {plan.description && (
+        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">
+            <AlignLeft size={15} className="text-indigo-500" />
+            Description
+          </div>
+          <p className="text-slate-600 text-sm pl-5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
+        </div>
+      )}
+
       {plan.location && (
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">
