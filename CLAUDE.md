@@ -139,6 +139,14 @@ Conséquences pratiques :
   taille en px, `light` inverse la couleur de "Ev" pour les fonds clairs,
   ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
+- **Brochure associations & entreprises** (2026-09-28) :
+  `client/public/evly-associations-entreprises.pdf` (4 pages A4, vouvoiement),
+  liée sous « Découvrir EvLY en 1 minute » dans AuthPage. Générée hors repo
+  (HTML → PDF avec Playwright) ; sources et jeu de données fictif des
+  captures (club « Les Rayons », entreprise « Atelier Nova ») dans
+  `~/Desktop/EvLY - Brochure (sources)/` sur le Mac de l'utilisateur. La
+  régénérer puis recopier le PDF ici quand une fonctionnalité mise en avant
+  change.
 - **Politique de confidentialité** (nLPD, publiée le 2026-09-28) :
   `client/src/pages/PrivacyPage.tsx`, route publique `/confidentialite`,
   liée depuis AuthPage (pied de page), TermsModal et le menu de la barre
