@@ -141,9 +141,21 @@ Conséquences pratiques :
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
   quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
-  « Découvrir EvLY en 1 minute »). Page HTML autonome, copie de la
-  fiche promo (comparatif WhatsApp/EvLY), avec bouton « Créer mon compte »
-  masqué à l'impression. La tenir à jour quand une fonctionnalité
+  « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
+  une page A4, refaite le 2026-09-28 en version **visuelle** (~100 mots :
+  pictos Cercle → Plan → Chat, « avant/après » WhatsApp vs carte de Plan,
+  6 tuiles de fonctions, icônes Lucide inlinées en SVG), avec boutons
+  « Créer mon compte » en haut et en bas (masqués à l'impression), qui
+  pointent vers `/auth?mode=inscription` (AuthPage ouvre alors l'onglet
+  inscription). L'ancienne version texte
+  (comparatif en 10 lignes) est dans l'historique git. Elle inclut une
+  vraie capture de l'app, `client/public/decouvrir-app.jpg` (1440×860 @2x,
+  données **fictives** — Cercle « Les amis du lundi », Plan « Raclette chez
+  Léa » — générées sur la base jetable Docker, jamais de vraies données).
+  Imprimée, elle tient sur 2 pages A4 : en `@media print`, la capture et le
+  pied de page passent en page 2 (`order` + `break-before`). Pas d'ombres
+  portées (`box-shadow`) dans la fiche : les lecteurs PDF les rendent en
+  rectangles gris. La tenir à jour quand une fonctionnalité
   importante est ajoutée.
   `client/public/logo-evly.svg` (l'ancienne icône badge) ne sert plus
   qu'au favicon — remplacé par un simple monogramme "EV" sur le dégradé
