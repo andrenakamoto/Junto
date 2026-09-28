@@ -291,8 +291,10 @@ Junto/
   password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt
-- **Circle** : name, code (unique), description?, color? (palette fixe de
-  8 couleurs, `CIRCLE_COLORS` côté client), creatorId
+- **Circle** : name, code (unique), description? (affichée sous le nom en
+  tête de la liste des Plans, modifiable par le créateur et les
+  organisateurs dans `CircleSettingsModal` via PUT /:id/settings), color?
+  (palette fixe de 8 couleurs, `CIRCLE_COLORS` côté client), creatorId
 - **CircleMember** : userId+circleId (clé composite), role — `admin` (le
   créateur ; `Circle.creatorId` fait foi), `organizer` (**Organisateur**,
   nommé/retiré par le créateur seul via PUT /:id/members/:userId/role),
