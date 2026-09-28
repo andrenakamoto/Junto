@@ -11,6 +11,7 @@ import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } f
 import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
+import { withPlainContent } from '../lib/messageCrypto';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -458,7 +459,7 @@ router.get('/:id/messages', async (req: AuthRequest, res) => {
     orderBy: { createdAt: 'asc' },
     take: 200,
   });
-  res.json(messages);
+  res.json(messages.map(withPlainContent));
 });
 
 // Fil de réponses d'un message
@@ -474,7 +475,7 @@ router.get('/messages/:messageId/replies', async (req: AuthRequest, res) => {
     include: messageInclude,
     orderBy: { createdAt: 'asc' },
   });
-  res.json(replies);
+  res.json(replies.map(withPlainContent));
 });
 
 // Create poll

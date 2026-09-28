@@ -13,6 +13,7 @@ import ridesRoutes from './routes/rides';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
+import { encryptLegacyMessages } from './lib/messageBackfill';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -99,6 +100,7 @@ httpServer.listen(Number(PORT), '0.0.0.0', async () => {
   try {
     await prisma.$connect();
     console.log('[db] Connexion base de donnees OK');
+    encryptLegacyMessages().catch(e => console.error('[messageCrypto] chiffrement des anciens messages', e));
   } catch (e) {
     console.error('[db] Echec connexion base de donnees:', e);
   }

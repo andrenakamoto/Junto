@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
@@ -94,14 +95,14 @@ export function setupSocketHandlers(io: Server) {
       }
 
       const message = await prisma.message.create({
-        data: { content: content.trim(), authorId: socket.data.userId, planId, parentId: validParentId },
+        data: { content: encryptMessage(content.trim()), authorId: socket.data.userId, planId, parentId: validParentId },
         include: {
           author: { select: { id: true, pseudo: true } },
           reactions: { include: { user: { select: { id: true, pseudo: true } } } },
           _count: { select: { replies: true } },
         },
       });
-      io.to(`plan:${planId}`).emit('message', message);
+      io.to(`plan:${planId}`).emit('message', withPlainContent(message));
 
       const planData = await prisma.plan.findUnique({
         where: { id: planId },
@@ -145,8 +146,7 @@ export function setupSocketHandlers(io: Server) {
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
             <h2>Salut ${m.user.pseudo} 👋</h2>
-            <p><strong>${socket.data.pseudo}</strong> t'a mentionné dans le Plan <strong>"${planData.title}"</strong> :</p>
-            <p style="font-size:15px;color:#475569;margin:16px 0;padding:12px 16px;background:#f8fafc;border-radius:8px">${trimmed.slice(0, 200)}</p>
+            <p><strong>${socket.data.pseudo}</strong> t'a mentionné dans le Plan <strong>"${planData.title}"</strong>.</p>
             <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le message
             </a>

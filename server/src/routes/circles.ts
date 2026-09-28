@@ -7,6 +7,7 @@ import { validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, PLAN_CREATION_RESERVED_ERROR } from '../lib/settings';
+import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -839,7 +840,7 @@ router.get('/polls/:pollId/messages', async (req: AuthRequest, res) => {
     orderBy: { createdAt: 'asc' },
     take: 300,
   });
-  res.json(messages);
+  res.json(messages.map(withPlainContent));
 });
 
 router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
@@ -850,10 +851,10 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
   const poll = access.poll;
   if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
 
-  const message = await prisma.circlePollMessage.create({
-    data: { content, pollId: poll.id, authorId: req.userId! },
+  const message = withPlainContent(await prisma.circlePollMessage.create({
+    data: { content: encryptMessage(content), pollId: poll.id, authorId: req.userId! },
     include: pollMessageInclude,
-  });
+  }));
   res.json(message);
 
   // Diffusion aux seuls membres qui voient le sondage (room user:* — pas de room à rejoindre)
@@ -906,6 +907,7 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   const messages = await prisma.circlePollMessage.findMany({ where: { pollId: poll.id }, orderBy: { createdAt: 'asc' } });
   await prisma.$transaction([
     prisma.message.createMany({
+      // Contenu recopié tel quel : déjà chiffré avec la même clé
       data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt })),
     }),
     prisma.circlePoll.update({
