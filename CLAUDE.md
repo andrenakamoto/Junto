@@ -139,6 +139,14 @@ Conséquences pratiques :
   taille en px, `light` inverse la couleur de "Ev" pour les fonds clairs,
   ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
+- **Politique de confidentialité** (nLPD, publiée le 2026-09-28) :
+  `client/src/pages/PrivacyPage.tsx`, route publique `/confidentialite`,
+  liée depuis AuthPage (pied de page), TermsModal et le menu de la barre
+  latérale. Tableau des prestataires (`processors`) avec pays et garantie
+  de transfert (DPF ou clauses contractuelles). **La mettre à jour** (et
+  sa constante `VERSION`) à chaque nouveau prestataire, nouvelle donnée
+  collectée ou changement de région d'hébergement (Railway est en `sfo`,
+  États-Unis ; journaux conservés 7 jours en abonnement Hobby).
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
   quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
