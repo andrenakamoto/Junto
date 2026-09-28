@@ -8,6 +8,7 @@ import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circl
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, PLAN_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -651,9 +652,11 @@ type VisiblePoll =
 async function getVisiblePoll(pollId: string, userId: string): Promise<VisiblePoll> {
   const poll = await prisma.circlePoll.findUnique({
     where: { id: pollId },
-    include: { exclusions: { select: { userId: true } } },
+    include: { exclusions: { select: { userId: true } }, options: { select: { eventDate: true } } },
   });
   if (!poll) return { status: 404, error: 'Sondage introuvable' };
+  // Expiré mais pas encore supprimé par le job horaire : déjà considéré comme disparu
+  if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) return { status: 404, error: 'Sondage terminé' };
   if (poll.exclusions.some(e => e.userId === userId)) return { status: 404, error: 'Sondage introuvable' };
   if (!(await assertCircleMember(userId, poll.circleId))) return { status: 403, error: 'Accès refusé' };
   return { poll };
@@ -682,14 +685,15 @@ router.get('/:id/polls', async (req: AuthRequest, res) => {
     include: circlePollInclude,
     orderBy: { createdAt: 'desc' },
   });
-  res.json(polls);
+  const now = new Date();
+  res.json(polls.map(withExpiry).filter(p => p.expiresAt > now));
 });
 
 router.get('/polls/:pollId', async (req: AuthRequest, res) => {
   const access = await getVisiblePoll(req.params.pollId, req.userId!);
   if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
   const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: circlePollInclude });
-  res.json(poll);
+  res.json(poll && withExpiry(poll));
 });
 
 router.post('/:id/polls', async (req: AuthRequest, res) => {
@@ -727,7 +731,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     },
     include: circlePollInclude,
   });
-  res.json(poll);
+  res.json(withExpiry(poll));
 
   // Notifier les autres membres du cercle (hors exclus) — temps réel + email
   try {
@@ -790,6 +794,7 @@ router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   const access = await getVisiblePoll(option.pollId, req.userId!);
   if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
   if (option.poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
+  if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
 
   const existing = await prisma.circlePollVote.findUnique({
     where: { optionId_userId: { optionId: req.params.optionId, userId: req.userId! } },
@@ -804,7 +809,7 @@ router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   }
 
   const updatedPoll = await prisma.circlePoll.findUnique({ where: { id: option.pollId }, include: circlePollInclude });
-  res.json(updatedPoll);
+  res.json(updatedPoll && withExpiry(updatedPoll));
 });
 
 // « Pas intéressé(e) » (bascule) — retire aussi les dates cochées
@@ -825,7 +830,7 @@ router.post('/polls/:pollId/decline', async (req: AuthRequest, res) => {
     ]);
   }
   const updatedPoll = await prisma.circlePoll.findUnique({ where: { id: pollId }, include: circlePollInclude });
-  res.json(updatedPoll);
+  res.json(updatedPoll && withExpiry(updatedPoll));
 });
 
 // ─── Chat du sondage ───────────────────────────────────────────────────────
@@ -885,7 +890,8 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
 });
 
 // Convertit l'option gagnante d'un sondage en Plan (créateur du sondage uniquement).
-// Le chat du sondage est recopié au début du chat du Plan.
+// Le chat du sondage est recopié au début du chat du Plan, puis le sondage est
+// supprimé (il n'a plus d'utilité et ses données seraient conservées en double).
 router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: { options: true } });
   if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
@@ -897,6 +903,8 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
+  if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
+  if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
     title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode,
@@ -910,10 +918,7 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
       // Contenu recopié tel quel : déjà chiffré avec la même clé
       data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt })),
     }),
-    prisma.circlePoll.update({
-      where: { id: poll.id },
-      data: { resolvedAt: new Date(), createdPlanId: result.plan.id },
-    }),
+    prisma.circlePoll.delete({ where: { id: poll.id } }),
   ]);
 
   res.json(result.plan);

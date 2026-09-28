@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, CalendarPlus, Check, ChevronLeft, Gift, MessageSquare, ThumbsDown, Trash2, Users } from 'lucide-react';
+import { Calendar, CalendarPlus, Check, ChevronLeft, Gift, Hourglass, MessageSquare, ThumbsDown, Trash2, Users } from 'lucide-react';
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
@@ -90,6 +90,9 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   ]);
   const pending = audience.filter(m => !answered.has(m.userId));
   const maxVotes = Math.max(1, ...poll.options.map(o => o.votes.length));
+  const now = Date.now();
+  const isPast = (o: CirclePollOption) => !!o.eventDate && new Date(o.eventDate).getTime() < now;
+  const endsLabel = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(poll.expiresAt));
   const nameOf = (userId: string, pseudo: string) => {
     const m = circle.members.find(x => x.userId === userId);
     return m ? displayName(m.user) : `@${pseudo}`;
@@ -128,6 +131,10 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
             <h1 className="text-lg font-bold text-slate-900 leading-tight">{poll.question}</h1>
             <p className="text-xs text-slate-500 mt-1">
               Proposé par @{poll.creator.pseudo} · {answered.size}/{audience.length} ont répondu
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1" title="Sans Plan créé d'ici là, le sondage est supprimé avec ses votes et son chat">
+              <Hourglass size={11} className="flex-shrink-0" />
+              Se termine {endsLabel}
             </p>
           </div>
           {isCreator && (
@@ -177,22 +184,26 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
             {poll.options.map(opt => {
               const iVoted = opt.votes.some(v => v.userId === user.id);
               const pct = Math.round((opt.votes.length / maxVotes) * 100);
+              const past = isPast(opt);
               return (
-                <div key={opt.id} className={`bg-white rounded-xl border p-3 ${iVoted ? 'border-emerald-300' : 'border-slate-200'}`}>
+                <div key={opt.id} className={`bg-white rounded-xl border p-3 ${past ? 'opacity-50' : ''} ${iVoted ? 'border-emerald-300' : 'border-slate-200'}`}>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => run(() => api.post(`/circles/polls/options/${opt.id}/vote`))}
-                      disabled={busy}
-                      title={iVoted ? 'Retirer ma disponibilité' : 'Je suis disponible'}
+                      disabled={busy || past}
+                      title={past ? 'Date passée' : iVoted ? 'Retirer ma disponibilité' : 'Je suis disponible'}
                       className={`w-6 h-6 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50 ${
                         iVoted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-emerald-400'
                       }`}
                     >
                       {iVoted && <Check size={14} />}
                     </button>
-                    <span className="flex-1 text-sm font-medium text-slate-800">{opt.label}</span>
+                    <span className="flex-1 text-sm font-medium text-slate-800">
+                      {opt.label}
+                      {past && <span className="ml-2 text-xs font-normal text-slate-500">Date passée</span>}
+                    </span>
                     <span className="text-sm font-bold text-slate-700">{opt.votes.length}</span>
-                    {canConvert && (
+                    {canConvert && !past && (
                       <button
                         onClick={() => setConvertOption(opt)}
                         title="Créer le Plan avec cette date"

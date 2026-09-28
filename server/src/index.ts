@@ -14,6 +14,7 @@ import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
 import { encryptLegacyMessages } from './lib/messageBackfill';
+import { deleteExpiredPolls, sendPollReminders } from './lib/pollCleanup';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -90,6 +91,12 @@ if (cronEnabled) {
 
   sendWeeklyDigest();
   setInterval(sendWeeklyDigest, 60 * 60 * 1000);
+
+  deleteExpiredPolls();
+  setInterval(deleteExpiredPolls, 60 * 60 * 1000);
+
+  sendPollReminders();
+  setInterval(sendPollReminders, 15 * 60 * 1000);
 } else {
   console.log('[cron] Désactivé en local. Active avec ENABLE_CRON=true si besoin.');
 }

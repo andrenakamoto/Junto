@@ -72,8 +72,14 @@ export function GuideModal({ onClose }: Props) {
             </p>
             <p className="mt-1.5">
               Quand la bonne date se dégage, le créateur du sondage clique sur{' '}
-              <strong>« Créer le Plan »</strong> : le Plan est créé à cette date et la conversation du sondage
-              est reprise dans son chat.
+              <strong>« Créer le Plan »</strong> : le Plan est créé à cette date, la conversation du sondage
+              est reprise dans son chat, et le sondage disparaît.
+            </p>
+            <p className="mt-1.5">
+              Un sondage ne dure pas indéfiniment : il se termine le lendemain de la dernière date proposée,
+              et au plus tard <strong>30 jours</strong> après sa création (l'échéance est affichée en haut du
+              sondage). Les dates passées ne se votent plus. La veille de l'échéance, son créateur reçoit un
+              rappel par email ; sans Plan créé, le sondage est ensuite supprimé avec ses votes et son chat.
             </p>
           </section>
 
@@ -206,7 +212,7 @@ export function GuideModal({ onClose }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">15. Notifications et mises à jour</h3>
             <p>
-              Par email : nouveau Plan, nouveau sondage de dates, rappel avant l'événement, mention @pseudo si
+              Par email : nouveau Plan, nouveau sondage de dates, rappel la veille de la fin d'un sondage que tu as lancé, rappel avant l'événement, mention @pseudo si
               tu es hors ligne, et un résumé hebdomadaire optionnel (désactivable dans « Notifications »). Dans
               l'app : nouveaux Plans, messages, sondages, demandes pour rejoindre un Cercle et covoiturage.
             </p>

@@ -32,11 +32,15 @@ export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props
           const count = opt.votes.length;
           const pct = Math.round((count / maxVotes) * 100);
           const iVoted = opt.votes.some(v => v.userId === userId);
+          // Une date passée ne se vote plus
+          const past = !!opt.eventDate && new Date(opt.eventDate).getTime() < Date.now();
           return (
             <button
               key={opt.id}
               onClick={() => onVote(opt.id)}
-              className={`w-full relative overflow-hidden rounded-lg border text-left text-xs transition-all ${
+              disabled={past}
+              title={past ? 'Date passée' : undefined}
+              className={`w-full relative overflow-hidden rounded-lg border text-left text-xs transition-all disabled:opacity-50 disabled:cursor-default ${
                 iVoted ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
             >

@@ -249,6 +249,8 @@ export interface CirclePoll {
   question: string;
   createdAt: string;
   resolvedAt?: string | null;
+  /** Supprimé à cette date s'il n'a pas été converti en Plan (dernière date + 1 jour, 30 jours max) */
+  expiresAt: string;
   creator: { id: string; pseudo: string };
   options: CirclePollOption[];
   /** Sondage surprise : membres du Cercle à qui il est caché */

@@ -171,6 +171,17 @@ export function DashboardPage() {
       .catch(() => {});
   }, [circles, circlesLoaded, searchParams]);
 
+  // Deep-link vers un sondage de dates (?circleId=...&pollId=..., ex. email de rappel)
+  useEffect(() => {
+    const deepLinkPollId = searchParams.get('pollId');
+    const deepLinkCircleId = searchParams.get('circleId');
+    if (!deepLinkPollId || !deepLinkCircleId || !circlesLoaded) return;
+    setSearchParams(prev => { prev.delete('pollId'); prev.delete('circleId'); return prev; }, { replace: true });
+    if (!circles.some(c => c.id === deepLinkCircleId)) return;
+    handleSelectCircle(deepLinkCircleId);
+    openPoll(deepLinkPollId);
+  }, [circles, circlesLoaded, searchParams]);
+
   useEffect(() => {
     if (!user) return;
     const token = localStorage.getItem('estelle_token');

@@ -128,6 +128,9 @@ export function PrivacyPage() {
                 après leur début), avec tout leur contenu — messages, photos, fichiers, trajets, dépenses.
                 Si des dépenses avaient été enregistrées, un résumé est envoyé par email aux membres juste
                 avant.</li>
+              <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur
+                conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
+                proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
               <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
               <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
             </ul>
