@@ -72,6 +72,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const canDelete = !creatorDeletes || circle.creatorId === user?.id;
   // Paramètre avancé : création des Plans et des sondages de dates réservée au créateur
   const canCreate = circle.planCreationMode !== 'creator' || isCircleManager(circle, user?.id);
+  const canCreatePoll = circle.pollCreationMode !== 'creator' || isCircleManager(circle, user?.id);
 
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
@@ -156,7 +157,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         <div className="mb-1">
           <div className="flex items-center justify-between px-1 mb-1.5">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
-            {canCreate && (
+            {canCreatePoll && (
               <button
                 onClick={() => setShowCreatePoll(true)}
                 className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"

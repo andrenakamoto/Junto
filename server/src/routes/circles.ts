@@ -6,7 +6,7 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, PLAN_CREATION_RESERVED_ERROR } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 
@@ -79,6 +79,7 @@ router.post('/', async (req: AuthRequest, res) => {
       color: CIRCLE_COLORS.includes(color) ? color : null,
       deletionMode: parseDeletionMode(req.body.deletionMode) ?? 'vote',
       planCreationMode: parsePlanCreationMode(req.body.planCreationMode) ?? 'all',
+      pollCreationMode: parsePollCreationMode(req.body.pollCreationMode) ?? 'all',
       admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
       code,
       creatorId: req.userId!,
@@ -163,6 +164,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   if (admissionMode === undefined && req.body.admissionMode !== undefined) { res.status(400).json({ error: "Mode d'admission invalide" }); return; }
   const planCreationMode = req.body.planCreationMode === undefined ? undefined : parsePlanCreationMode(req.body.planCreationMode);
   if (planCreationMode === undefined && req.body.planCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des Plans invalide' }); return; }
+  const pollCreationMode = req.body.pollCreationMode === undefined ? undefined : parsePollCreationMode(req.body.pollCreationMode);
+  if (pollCreationMode === undefined && req.body.pollCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des sondages invalide' }); return; }
   // La suppression du Cercle reste l'affaire du créateur : les organisateurs ne changent pas sa règle
   if (deletionMode && deletionMode !== circle.deletionMode && circle.creatorId !== req.userId) {
     res.status(403).json({ error: 'Seul le créateur peut changer la règle de suppression du Cercle' });
@@ -171,7 +174,7 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }) },
+    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }) },
   });
   // Les votes de suppression en cours n'ont plus de sens si c'est le créateur qui décide
   if (deletionMode === 'creator') await prisma.circleDeleteVote.deleteMany({ where: { circleId: circle.id } });
@@ -387,10 +390,15 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
   res.json(plans);
 });
 
-// Paramètre avancé : création des Plans / sondages réservée au créateur du Cercle
+// Paramètres avancés : création des Plans, et des sondages de dates, réservée au créateur et aux organisateurs
 async function canCreatePlans(userId: string, circleId: string): Promise<boolean> {
   const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { planCreationMode: true } });
   return !!circle && (circle.planCreationMode !== 'creator' || await isCircleManager(userId, circleId));
+}
+
+async function canCreatePolls(userId: string, circleId: string): Promise<boolean> {
+  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { pollCreationMode: true } });
+  return !!circle && (circle.pollCreationMode !== 'creator' || await isCircleManager(userId, circleId));
 }
 
 // Create a plan in a circle
@@ -701,7 +709,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  if (!(await canCreatePlans(req.userId!, req.params.id))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
+  if (!(await canCreatePolls(req.userId!, req.params.id))) { res.status(403).json({ error: POLL_CREATION_RESERVED_ERROR }); return; }
   const { question, options } = req.body;
   if (!question?.trim() || !Array.isArray(options)) {
     res.status(400).json({ error: 'Question et options requises' });
@@ -889,16 +897,20 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
   }
 });
 
-// Convertit l'option gagnante d'un sondage en Plan (créateur du sondage uniquement).
+// Convertit l'option gagnante d'un sondage en Plan (créateur du sondage, ou créateur/organisateurs du Cercle).
 // Le chat du sondage est recopié au début du chat du Plan, puis le sondage est
 // supprimé (il n'a plus d'utilité et ses données seraient conservées en double).
 router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   const poll = await prisma.circlePoll.findUnique({ where: { id: req.params.pollId }, include: { options: true } });
   if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
-  if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
   if (poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage a déjà été converti' }); return; }
-  // Sondage lancé par un membre avant que la création soit réservée au créateur du Cercle
-  if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
+  // Le créateur du sondage le convertit s'il peut créer des Plans ; sinon (sondages ouverts à
+  // tous, Plans réservés), le créateur du Cercle ou un organisateur le fait à sa place.
+  const isManager = await isCircleManager(req.userId!, poll.circleId);
+  if (!isManager) {
+    if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage et aux organisateurs du Cercle' }); return; }
+    if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
+  }
 
   const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode } = req.body;
   const option = poll.options.find(o => o.id === optionId);

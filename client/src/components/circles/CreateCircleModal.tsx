@@ -4,7 +4,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../types';
-import { AdvancedSection, AdmissionModeField, DeletionModeField, PlanCreationModeField } from '../ui/AdvancedSettings';
+import { AdvancedSection, AdmissionModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
 
 export const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 
@@ -20,6 +20,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
   const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('vote');
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>('all');
+  const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +29,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode });
+      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode, pollCreationMode });
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -59,6 +60,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
         <AdvancedSection>
           <AdmissionModeField value={admissionMode} onChange={setAdmissionMode} />
           <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} />
+          <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} />
           <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} />
           <p className="text-xs text-slate-400">Modifiable plus tard par toi et les organisateurs que tu nommeras ; visible par tous les membres.</p>
         </AdvancedSection>

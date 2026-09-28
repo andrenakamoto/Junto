@@ -43,11 +43,15 @@ export function parseEditMode(v: unknown): string | undefined {
   return typeof v === 'string' && (EDIT_MODES as readonly string[]).includes(v) ? v : undefined;
 }
 
-// Qui peut créer des Plans (et des sondages de dates, qui en créent) dans un Cercle
+// Qui peut créer des Plans, et séparément des sondages de dates, dans un Cercle :
+// 'all' (tous les membres) ou 'creator' (créateur et organisateurs)
 export const PLAN_CREATION_MODES = ['all', 'creator'] as const;
 
 export function parsePlanCreationMode(v: unknown): string | undefined {
   return typeof v === 'string' && (PLAN_CREATION_MODES as readonly string[]).includes(v) ? v : undefined;
 }
 
-export const PLAN_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent créer des Plans et des sondages de dates';
+export const parsePollCreationMode = parsePlanCreationMode;
+
+export const PLAN_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent créer des Plans';
+export const POLL_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent lancer des sondages de dates';

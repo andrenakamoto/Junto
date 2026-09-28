@@ -182,7 +182,9 @@ export function GuideModal({ onClose }: Props) {
               <li><strong>Admission dans le Cercle</strong> : vote à la majorité, validation par les organisateurs
                 (qui peuvent alors accepter ou refuser), ou entrée libre avec le nom et le code.</li>
               <li><strong>Création des Plans</strong> : par tous les membres, ou par le créateur et les organisateurs
-                seulement (sondages de dates compris).</li>
+                seulement.</li>
+              <li><strong>Création des sondages de dates</strong> : même choix, réglé à part. Si les sondages sont
+                ouverts à tous mais les Plans réservés, le créateur ou un organisateur transforme le sondage en Plan.</li>
               <li><strong>Suppression</strong> du Cercle ou du Plan : vote à la majorité, ou par son créateur seul.</li>
               <li><strong>Modification du Plan</strong> : créateur seul, ou tous les participants pour les dates
                 et le lieu (le titre et la description restent au créateur).</li>

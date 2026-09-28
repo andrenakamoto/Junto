@@ -49,8 +49,10 @@ export interface Circle {
   deletionMode?: DeletionMode;
   /** Admission : vote à la majorité, validation par le créateur, ou entrée libre avec le code */
   admissionMode?: AdmissionMode;
-  /** Qui peut créer des Plans et des sondages de dates */
+  /** Qui peut créer des Plans */
   planCreationMode?: PlanCreationMode;
+  /** Qui peut lancer des sondages de dates (mêmes valeurs) */
+  pollCreationMode?: PlanCreationMode;
   creatorId: string;
   creator: User;
   members: CircleMember[];

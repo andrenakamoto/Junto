@@ -3,7 +3,7 @@ import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../typ
 import { useAuth } from '../../contexts/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { AdmissionModeField, DeletionModeField, PlanCreationModeField } from '../ui/AdvancedSettings';
+import { AdmissionModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
 import api from '../../services/api';
 import { isCircleManager } from '../../lib/settings';
 
@@ -21,19 +21,20 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(circle.deletionMode ?? 'vote');
   const [admissionMode, setAdmissionMode] = useState<AdmissionMode>(circle.admissionMode ?? 'vote');
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>(circle.planCreationMode ?? 'all');
+  const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>(circle.pollCreationMode ?? 'all');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const pendingCount = circle.joinRequests?.length ?? 0;
   const willOpen = admissionMode === 'open' && circle.admissionMode !== 'open' && pendingCount > 0;
   const changed = deletionMode !== (circle.deletionMode ?? 'vote') || admissionMode !== (circle.admissionMode ?? 'vote')
-    || planCreationMode !== (circle.planCreationMode ?? 'all');
+    || planCreationMode !== (circle.planCreationMode ?? 'all') || pollCreationMode !== (circle.pollCreationMode ?? 'all');
 
   async function handleSave() {
     setSaving(true);
     setError('');
     try {
-      const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode });
+      const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode });
       onUpdated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Erreur');
@@ -52,6 +53,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
           </p>
         )}
         <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} readOnly={!canEdit} />
+        <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} readOnly={!canEdit} />
         <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} readOnly={!isCreator} />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1 border-t border-slate-100">

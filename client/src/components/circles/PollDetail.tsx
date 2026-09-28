@@ -77,8 +77,10 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   }
 
   const isCreator = poll.creator.id === user.id;
-  // Créer le Plan : créateur du sondage, sauf si la création est réservée au créateur du Cercle
-  const canConvert = isCreator && (circle.planCreationMode !== 'creator' || isCircleManager(circle, user.id));
+  // Créer le Plan : le créateur du sondage s'il peut créer des Plans, ou le créateur/un organisateur
+  // du Cercle (cas d'un sondage lancé par un membre alors que les Plans sont réservés)
+  const isManager = isCircleManager(circle, user.id);
+  const canConvert = isManager || (isCreator && circle.planCreationMode !== 'creator');
   const declines = poll.declines ?? [];
   const exclusions = poll.exclusions ?? [];
   const iDeclined = declines.some(d => d.userId === user.id);

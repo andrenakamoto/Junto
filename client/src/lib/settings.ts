@@ -14,8 +14,13 @@ export const ADMISSION_OPTIONS: { value: AdmissionMode; label: string; hint: str
 ];
 
 export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = [
-  { value: 'all', label: 'Tous les membres', hint: 'Chaque membre peut créer des Plans et proposer des dates' },
-  { value: 'creator', label: 'Créateur et organisateurs', hint: 'Seuls eux créent des Plans et des sondages de dates' },
+  { value: 'all', label: 'Tous les membres', hint: 'Chaque membre peut créer des Plans' },
+  { value: 'creator', label: 'Créateur et organisateurs', hint: 'Seuls eux créent des Plans' },
+];
+
+export const POLL_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = [
+  { value: 'all', label: 'Tous les membres', hint: 'Chaque membre peut proposer des dates' },
+  { value: 'creator', label: 'Créateur et organisateurs', hint: 'Seuls eux lancent des sondages de dates' },
 ];
 
 export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = [

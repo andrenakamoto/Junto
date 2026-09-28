@@ -68,6 +68,8 @@ model Circle {
   admissionMode    String   @default("vote")
   // Qui peut créer des Plans et des sondages de dates : "all" (tous les membres) ou "creator"
   planCreationMode String   @default("all")
+  // Qui peut lancer des sondages de dates : 'all' ou 'creator' (créateur et organisateurs)
+  pollCreationMode String   @default("all")
 
   creatorId    String
   creator      User                @relation("CircleCreator", fields: [creatorId], references: [id])
