@@ -165,7 +165,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               </button>
             )}
           </div>
-          {polls.length > 0 && (
+          {polls.length === 0 ? (
+            <p className="px-1 mb-3 text-xs text-slate-400 italic">Aucun sondage en cours.</p>
+          ) : (
             <div className="space-y-2 mb-3">
               {polls.map(poll => (
                 <CirclePollCard
@@ -181,6 +183,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           )}
         </div>
 
+        <p className="px-1 pt-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Plans</p>
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
         ) : plans.length === 0 ? (
