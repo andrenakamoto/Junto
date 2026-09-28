@@ -323,11 +323,15 @@ Junto/
     /:id/join-requests/:requestId — refus interdit en mode vote) / `open`
     (/join ajoute directement le membre, réponse `{pending:false, circle}`).
     Passer en `open` accepte toutes les demandes en attente.
-  - `Circle.planCreationMode` : `all` (défaut) ou `creator` — en `creator`,
-    seul le créateur du Cercle crée des Plans **et des sondages de dates**
-    (qui mènent à un Plan) ; la conversion d'un sondage lancé par un membre
-    avant le changement est aussi refusée (`canCreatePlans` dans
-    `circles.ts`). Voter reste ouvert à tous.
+  - `Circle.planCreationMode` / `Circle.pollCreationMode` (séparés depuis
+    le 2026-09-28) : `all` (défaut) ou `creator` (créateur + organisateurs)
+    — `canCreatePlans` / `canCreatePolls` dans `circles.ts`. La migration a
+    recopié `creator` dans `pollCreationMode` pour les Cercles qui
+    réservaient déjà les Plans (avant, un seul réglage couvrait les deux).
+    Conversion d'un sondage en Plan : son créateur s'il peut créer des
+    Plans, ou **n'importe quel gestionnaire du Cercle** (créateur ou
+    organisateur), pour débloquer un sondage lancé par un membre quand les
+    Plans sont réservés. Voter reste ouvert à tous.
   - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut) ou
     `creator` (vote-delete supprime immédiatement si c'est le créateur, 403
     sinon ; passer en `creator` efface les votes en cours).
