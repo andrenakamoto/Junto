@@ -17,6 +17,7 @@ import { CreateCircleModal, CIRCLE_COLORS } from './CreateCircleModal';
 import { JoinCircleModal } from './JoinCircleModal';
 import { Avatar } from '../ui/Avatar';
 import { isCircleManager } from '../../lib/settings';
+import { JoinRequestList } from './JoinRequestList';
 
 interface Props {
   circles: Circle[];
@@ -47,7 +48,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [colorPopover, setColorPopover] = useState<string | null>(null);
   const [requestsPopover, setRequestsPopover] = useState<string | null>(null);
   const [circleColors, setCircleColors] = useState<Record<string, string | null | undefined>>({});
-  const [votingRequestId, setVotingRequestId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -60,16 +60,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     } catch { /* ignore */ }
   }
 
-  async function handleVoteRequest(circleId: string, requestId: string) {
-    setVotingRequestId(requestId);
-    try {
-      const { data } = await api.post(`/circles/${circleId}/join-requests/${requestId}/vote`);
-      if (data.circle) onCircleUpdated(data.circle);
-    } finally {
-      setVotingRequestId(null);
-    }
-  }
-
   // Nommer / retirer un organisateur (créateur du Cercle uniquement)
   const [roleBusy, setRoleBusy] = useState<string | null>(null);
   async function handleSetRole(circleId: string, userId: string, role: 'organizer' | 'member') {
@@ -79,17 +69,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       onCircleUpdated(data);
     } catch { /* rechargé par le temps réel */ } finally {
       setRoleBusy(null);
-    }
-  }
-
-  // Mode « validation par le créateur » : refus possible (en mode vote, seule la majorité fait foi)
-  async function handleRefuseRequest(circleId: string, requestId: string) {
-    setVotingRequestId(requestId);
-    try {
-      const { data } = await api.delete(`/circles/${circleId}/join-requests/${requestId}`);
-      onCircleUpdated(data);
-    } finally {
-      setVotingRequestId(null);
     }
   }
 
@@ -337,63 +316,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               )}
 
               {requestsPopover === circle.id && (
-                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5 space-y-2">
-                  {(() => {
-                    const threshold = Math.ceil(circle.members.length / 2);
-                    const byCreator = (circle.admissionMode ?? 'vote') !== 'vote';
-                    const iAmCreator = isManager;
-                    return (circle.joinRequests ?? []).map(r => {
-                      const hasVoted = r.votes.some(v => v.userId === user?.id);
-                      if (byCreator) return (
-                        <div key={r.id} className="flex items-center gap-2 px-1 py-0.5">
-                          <Avatar pseudo={r.user.pseudo} size="sm" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-slate-800 truncate">@{r.user.pseudo}</p>
-                            <p className="text-xs text-indigo-600">{iAmCreator ? 'À toi de décider' : 'Validation par les organisateurs'}</p>
-                          </div>
-                          {iAmCreator && (
-                            <>
-                              <button
-                                onClick={() => handleVoteRequest(circle.id, r.id)}
-                                disabled={votingRequestId === r.id}
-                                title="Accepter"
-                                className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700 transition-colors flex-shrink-0 disabled:opacity-50"
-                              >
-                                <Check size={12} />
-                              </button>
-                              <button
-                                onClick={() => handleRefuseRequest(circle.id, r.id)}
-                                disabled={votingRequestId === r.id}
-                                title="Refuser"
-                                className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-red-100 hover:text-red-700 transition-colors flex-shrink-0 disabled:opacity-50"
-                              >
-                                <X size={12} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      );
-                      return (
-                        <div key={r.id} className="flex items-center gap-2 px-1 py-0.5">
-                          <Avatar pseudo={r.user.pseudo} size="sm" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-slate-800 truncate">@{r.user.pseudo}</p>
-                            <p className="text-xs text-indigo-600">{r.votes.length}/{threshold} vote{threshold > 1 ? 's' : ''}</p>
-                          </div>
-                          <button
-                            onClick={() => handleVoteRequest(circle.id, r.id)}
-                            disabled={votingRequestId === r.id}
-                            title={hasVoted ? 'Retirer mon vote' : 'Approuver'}
-                            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50 ${
-                              hasVoted ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700'
-                            }`}
-                          >
-                            <Check size={12} />
-                          </button>
-                        </div>
-                      );
-                    });
-                  })()}
+                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5">
+                  <JoinRequestList circle={circle} onCircleUpdated={onCircleUpdated} />
                 </div>
               )}
             </div>

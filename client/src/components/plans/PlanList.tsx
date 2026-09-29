@@ -13,6 +13,7 @@ import { CircleSettingsModal } from '../circles/CircleSettingsModal';
 import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
+import { JoinRequestList } from '../circles/JoinRequestList';
 
 interface Props {
   circle: Circle;
@@ -160,6 +161,17 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 short:flex-none short:overflow-visible">
+        {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
+        {(circle.joinRequests?.length ?? 0) > 0 && (
+          <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
+            <p className="px-1 mb-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+              <UserPlus size={12} />
+              {circle.joinRequests!.length > 1 ? `${circle.joinRequests!.length} personnes veulent` : '1 personne veut'} rejoindre le Cercle
+            </p>
+            <JoinRequestList circle={circle} onCircleUpdated={onCircleUpdated} />
+          </div>
+        )}
+
         <div className="mb-1">
           <div className="flex items-center justify-between px-1 mb-1.5">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
