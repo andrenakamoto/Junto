@@ -45,7 +45,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
             </div>
             <h2 className="text-lg font-bold text-slate-900">Conditions d'utilisation</h2>
           </div>
-          <p className="text-sm text-slate-500">Version 2 — 23 août 2026</p>
+          <p className="text-sm text-slate-500">Version 3 — 29 septembre 2026</p>
         </div>
 
         {/* Contenu scrollable */}
@@ -57,10 +57,11 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">1. Présentation du service</h3>
             <p>
-              EvLY (« le Service ») est une application de planification sociale éditée à titre
-              indépendant (« l'Éditeur »), permettant à des groupes d'amis et de proches de
-              s'organiser autour d'événements (« Plans ») au sein de groupes privés (« Cercles »).
-              L'accès au Service peut être soumis à validation préalable par un administrateur.
+              EvLY (« le Service ») est une application d'organisation d'événements, éditée depuis
+              Genève (« l'Éditeur »). Elle permet à des groupes — proches, amis, familles, associations,
+              clubs, équipes ou entreprises — de se retrouver au sein de groupes privés (« Cercles »)
+              et de s'organiser autour d'événements (« Plans ») : réponses des participants, sondages
+              de dates, conversation, covoiturage, partage de fichiers et de dépenses.
             </p>
           </section>
 
@@ -77,24 +78,53 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">3. Inscription et compte</h3>
             <p>
-              Tu dois créer un compte avec un pseudo et un mot de passe (ou via Google Sign-In). Tu es
-              seul(e) responsable de la confidentialité de tes identifiants et de toutes les actions
-              effectuées depuis ton compte, y compris si elles sont effectuées par un tiers ayant eu
-              accès à celui-ci. En cas de suspicion d'accès non autorisé, informe immédiatement un
-              administrateur ; l'Éditeur ne saurait être tenu responsable des conséquences d'un usage
-              non autorisé de ton compte survenu avant cette notification.
+              Pour créer un compte, tu indiques un <strong>pseudo</strong>, ton <strong>prénom</strong>,
+              une <strong>adresse email</strong> — que tu confirmes via le lien reçu — et un mot de passe ;
+              ton nom est facultatif. Tu peux aussi t'inscrire avec un compte Google. Les informations
+              fournies doivent être exactes : ton prénom et ton nom sont visibles des membres des Cercles
+              et des Plans que tu rejoins.
+            </p>
+            <p className="mt-2">
+              Tu es seul(e) responsable de la confidentialité de tes identifiants et des actions
+              effectuées depuis ton compte. En cas de suspicion d'accès non autorisé, change ton mot de
+              passe et écris sans tarder à <strong>info@evly.ch</strong> ; l'Éditeur ne saurait être tenu
+              responsable d'un usage non autorisé de ton compte survenu avant cette notification.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">4. Règles de bonne conduite</h3>
+            <h3 className="font-bold text-slate-900 mb-2">4. Cercles, rôles et invités</h3>
+            <p>
+              La personne qui crée un Cercle (le « Créateur ») en fixe les règles : admission des
+              nouveaux membres (vote des membres, validation par le Créateur et les organisateurs, ou
+              entrée libre avec le code), création des Plans et des sondages de dates, suppression du
+              Cercle. Elle peut nommer des <strong>organisateurs</strong>, qui partagent la gestion du
+              Cercle. Quand le Créateur quitte le Cercle ou supprime son compte, le Cercle est confié
+              à un autre membre (ou supprimé s'il était le seul).
+            </p>
+            <p className="mt-2">
+              Un membre peut inviter une personne extérieure à <strong>un seul Plan</strong> au moyen
+              d'un lien : cette personne voit ce Plan, mais rien d'autre du Cercle. Un Plan ou un
+              sondage peut aussi être caché à certains membres (« Plan surprise »). Tu es responsable
+              des personnes que tu invites et du partage des liens d'invitation.
+            </p>
+            <p className="mt-2">
+              Lorsqu'un Cercle est utilisé par une association, un club ou une entreprise, la personne
+              qui le crée déclare agir avec l'accord de cette organisation. L'organisation reste
+              responsable de l'usage qu'elle fait du Service avec ses membres, bénévoles, collaborateurs
+              ou invités.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">5. Règles de bonne conduite</h3>
             <p>En utilisant EvLY, tu t'engages à :</p>
             <ul className="mt-2 space-y-1.5 list-none">
               {[
                 'Ne pas publier de contenus haineux, discriminatoires, violents, illégaux ou trompeurs.',
-                'Respecter la vie privée des autres membres.',
-                "Ne pas usurper l'identité d'une autre personne.",
-                "Ne pas utiliser le Service à des fins commerciales, frauduleuses ou de spam.",
+                'Respecter la vie privée des autres membres, notamment en ne partageant des photos de personnes qu\'avec leur accord.',
+                "Ne pas usurper l'identité d'une autre personne ou d'une organisation.",
+                "Ne pas utiliser le Service pour du démarchage, de la publicité non sollicitée, du spam ou toute activité frauduleuse.",
                 "Ne pas tenter d'accéder à des données ou fonctionnalités auxquelles tu n'as pas droit, ni de perturber le fonctionnement du Service (y compris par ingénierie inverse, extraction automatisée ou surcharge délibérée).",
               ].map((rule, i) => (
                 <li key={i} className="flex items-start gap-2">
@@ -103,10 +133,14 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
                 </li>
               ))}
             </ul>
+            <p className="mt-2">
+              Pour signaler un contenu ou un comportement contraire à ces règles, écris à{' '}
+              <strong>info@evly.ch</strong>.
+            </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">5. Événements organisés via le Service</h3>
+            <h3 className="font-bold text-slate-900 mb-2">6. Événements organisés via le Service</h3>
             <p>
               EvLY est un outil de coordination : il facilite l'organisation de rencontres et
               d'événements réels, mais <strong>l'Éditeur n'est ni organisateur, ni partie prenante,
@@ -118,16 +152,27 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
               organisés via EvLY, y compris — sans s'y limiter — les accidents, blessures, dommages
               matériels, comportements d'un membre envers un autre, annulations, désistements ou
               litiges entre participants. Ces situations relèvent exclusivement des relations entre
-              les membres concernés.
+              les membres concernés, ou de l'organisation qui a mis en place l'événement.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">6. Partage des dépenses</h3>
+            <h3 className="font-bold text-slate-900 mb-2">7. Covoiturage</h3>
+            <p>
+              La fonction de covoiturage permet seulement aux participants d'un Plan de se mettre en
+              relation. <strong>L'Éditeur n'est pas transporteur</strong> et n'intervient pas dans les
+              trajets : chaque conducteur reste seul responsable de son véhicule, de son assurance, du
+              respect du code de la route et des conditions convenues avec ses passagers.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-bold text-slate-900 mb-2">8. Partage des dépenses</h3>
             <p>
               La fonctionnalité de partage des dépenses permet aux membres d'un Plan de tenir un
-              registre indicatif de qui a payé quoi. <strong>EvLY ne traite, ne détient ni ne
-              transfère aucun fonds</strong> : les calculs affichés sont purement informatifs et les
+              registre indicatif de qui a payé quoi, en francs suisses ou en euros, chaque devise faisant
+              l'objet de comptes séparés, sans conversion. <strong>EvLY ne traite, ne détient ni ne transfère
+              aucun fonds</strong> : les calculs affichés sont purement informatifs et les
               remboursements entre membres s'effectuent en dehors du Service, sous leur seule
               responsabilité. L'Éditeur n'est pas responsable des erreurs, désaccords ou défauts de
               paiement liés à ces échanges.
@@ -135,35 +180,39 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">7. Contenu publié par les utilisateurs</h3>
+            <h3 className="font-bold text-slate-900 mb-2">9. Contenu publié et durée de conservation</h3>
             <p>
-              Tu restes propriétaire des contenus que tu publies (messages, photos, descriptions de
-              Plans, etc.), mais tu accordes à l'Éditeur une licence non exclusive, gratuite et
-              mondiale pour héberger, afficher et transmettre ces contenus dans la mesure nécessaire
-              au fonctionnement du Service. Tu es seul(e) responsable des contenus que tu publies et
-              garantis détenir les droits nécessaires pour les partager.
+              Tu restes propriétaire des contenus que tu publies (messages, photos, fichiers,
+              descriptions de Plans, etc.), mais tu accordes à l'Éditeur une licence non exclusive,
+              gratuite et mondiale pour héberger, afficher et transmettre ces contenus dans la mesure
+              nécessaire au fonctionnement du Service. Tu es seul(e) responsable des contenus que tu
+              publies et garantis détenir les droits nécessaires pour les partager.
             </p>
             <p className="mt-2">
-              L'Éditeur peut, sans obligation de le faire, retirer tout contenu ou supprimer tout
-              Plan qu'il estime contraire aux présentes conditions ou à la loi. Les Plans sont par
-              ailleurs éphémères et supprimés automatiquement à leur date de fin.
+              EvLY n'est pas un outil d'archivage. Les Plans sont <strong>supprimés automatiquement à
+              leur date de fin</strong>, avec leur conversation, leurs photos, leurs fichiers et leurs
+              dépenses ; les sondages de dates le sont à leur échéance (30 jours au plus). Pense à
+              télécharger ce que tu souhaites conserver. L'Éditeur peut aussi, sans obligation de le
+              faire, retirer tout contenu ou supprimer tout Plan contraire aux présentes conditions ou
+              à la loi.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">8. Données personnelles</h3>
+            <h3 className="font-bold text-slate-900 mb-2">10. Données personnelles</h3>
             <p>
-              EvLY collecte les données nécessaires au fonctionnement du Service (pseudo, email le
-              cas échéant, mot de passe chiffré, et les contenus que tu publies). Ces données ne sont
-              pas vendues à des tiers ; certains prestataires techniques (hébergement, envoi d'emails,
-              stockage de fichiers) peuvent y avoir accès dans la stricte mesure nécessaire à leur
-              prestation.
+              EvLY traite les données nécessaires au fonctionnement du Service : celles de ton compte
+              (pseudo, prénom, nom facultatif, email, mot de passe chiffré ou compte Google), ce que tu
+              publies et quelques données techniques. Elles ne sont ni vendues, ni utilisées à des fins
+              publicitaires ; les messages sont chiffrés dans la base de données. Certains prestataires
+              techniques (hébergement, envoi d'emails, stockage de fichiers) y ont accès dans la stricte
+              mesure nécessaire à leur prestation.
             </p>
             <p className="mt-2">
-              Le détail de ces traitements figure dans la{' '}
+              Le détail de ces traitements, tes droits et les durées de conservation figurent dans la{' '}
               <a href="/confidentialite" target="_blank" rel="noopener" className="text-indigo-600 underline">
                 politique de confidentialité
-              </a>. Tu peux supprimer ton compte et tes données à tout moment depuis le menu
+              </a>, qui fait foi. Tu peux supprimer ton compte et tes données à tout moment depuis le menu
               (« Supprimer mon compte »). Les Cercles et Plans que tu as créés sont alors confiés à
               d'autres membres, et les photos partagées restent dans les Plans. Certaines données
               peuvent être conservées au-delà en cas d'obligation légale ou d'intérêt légitime (ex.
@@ -172,7 +221,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">9. Disponibilité et évolution du Service</h3>
+            <h3 className="font-bold text-slate-900 mb-2">11. Disponibilité et évolution du Service</h3>
             <p>
               L'Éditeur s'efforce d'assurer la disponibilité du Service mais ne garantit aucune
               continuité, exactitude ou absence d'erreur. Le Service peut être modifié, suspendu,
@@ -182,19 +231,20 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">10. Évolution tarifaire</h3>
+            <h3 className="font-bold text-slate-900 mb-2">12. Évolution tarifaire</h3>
             <p>
               EvLY est actuellement proposé gratuitement. <strong>L'Éditeur se réserve le droit
               d'introduire, à l'avenir, des fonctionnalités payantes, des abonnements ou tout autre
-              modèle tarifaire</strong>, pour tout ou partie du Service. Les utilisateurs existants
-              seront informés dans un délai raisonnable avant l'entrée en vigueur de toute
-              tarification affectant des fonctionnalités qu'ils utilisent déjà. La gratuité actuelle
-              ne constitue pas un engagement à titre définitif.
+              modèle tarifaire</strong>, pour tout ou partie du Service, notamment pour les
+              associations et les entreprises. Les utilisateurs existants seront informés dans un délai
+              raisonnable avant l'entrée en vigueur de toute tarification affectant des fonctionnalités
+              qu'ils utilisent déjà. La gratuité actuelle ne constitue pas un engagement à titre
+              définitif.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">11. Limitation de responsabilité</h3>
+            <h3 className="font-bold text-slate-900 mb-2">13. Limitation de responsabilité</h3>
             <p>
               EvLY est fourni « en l'état » et « selon disponibilité », sans garantie d'aucune sorte,
               explicite ou implicite. Dans toute la mesure permise par la loi applicable, l'Éditeur
@@ -208,7 +258,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">12. Indemnisation</h3>
+            <h3 className="font-bold text-slate-900 mb-2">14. Indemnisation</h3>
             <p>
               Tu acceptes de garantir et d'indemniser l'Éditeur contre toute réclamation, perte,
               responsabilité ou dépense (y compris les frais de défense raisonnables) résultant de ton
@@ -218,27 +268,27 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">13. Suspension et résiliation</h3>
+            <h3 className="font-bold text-slate-900 mb-2">15. Suspension et résiliation</h3>
             <p>
               L'Éditeur peut suspendre ou supprimer un compte, à sa seule discrétion et sans préavis,
               en cas de violation des présentes conditions, de comportement préjudiciable au Service
               ou à ses membres, ou pour toute autre raison légitime. Tu peux à tout moment cesser
-              d'utiliser le Service et demander la suppression de ton compte.
+              d'utiliser le Service et supprimer ton compte.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">14. Droit applicable</h3>
+            <h3 className="font-bold text-slate-900 mb-2">16. Droit applicable</h3>
             <p>
               Les présentes conditions sont régies par le droit suisse. Tout litige relatif à leur
-              interprétation ou leur exécution relève de la compétence exclusive des tribunaux
-              suisses du domicile de l'Éditeur, sous réserve des dispositions légales impératives
-              applicables aux consommateurs.
+              interprétation ou leur exécution relève de la compétence exclusive des tribunaux de
+              Genève, sous réserve des dispositions légales impératives applicables aux
+              consommateurs.
             </p>
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">15. Divisibilité</h3>
+            <h3 className="font-bold text-slate-900 mb-2">17. Divisibilité</h3>
             <p>
               Si une clause des présentes conditions devait être jugée invalide ou inapplicable, les
               autres clauses resteraient pleinement en vigueur.
@@ -246,12 +296,12 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
           </section>
 
           <section>
-            <h3 className="font-bold text-slate-900 mb-2">16. Modification des conditions</h3>
+            <h3 className="font-bold text-slate-900 mb-2">18. Modification des conditions</h3>
             <p>
               Ces conditions peuvent être mises à jour. En cas de modification substantielle, tu
               seras invité(e) à les relire et à les accepter lors de ta prochaine connexion. La
               poursuite de l'utilisation du Service après acceptation de la nouvelle version vaut
-              consentement.
+              consentement. Pour toute question : <strong>info@evly.ch</strong>.
             </p>
           </section>
 

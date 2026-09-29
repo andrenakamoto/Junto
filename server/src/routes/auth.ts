@@ -14,7 +14,7 @@ import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const CURRENT_TERMS_VERSION = 2;
+export const CURRENT_TERMS_VERSION = 3;
 
 function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
   return jwt.sign(
