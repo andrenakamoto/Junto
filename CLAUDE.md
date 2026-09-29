@@ -435,6 +435,19 @@ Junto/
 - **Attachment** : fichiers Cloudinary liés à un Plan (url, publicId,
   resourceType, mimeType, size) — les images sont affichées en galerie
   séparée dans InfosTab, les autres types en liste de fichiers
+- **Devises des dépenses** (2026-09-29) : `Expense.currency` et
+  `Reimbursement.currency` = `CHF` (défaut) ou `EUR`, choisie à chaque
+  saisie (le formulaire propose la devise de la dernière dépense du Plan,
+  `defaultCurrency` dans GET /:id/expenses). **Aucune conversion** : les
+  comptes sont tenus séparément par devise (`computeByCurrency` dans
+  `lib/expenses.ts`) — un solde par devise et par membre (`balances[].amounts`),
+  des virements suggérés avec leur `currency`, un remboursement enregistré
+  dans la devise du virement. L'email de résumé de fin de Plan affiche
+  chaque montant dans sa devise (`formatAmount`, format `fr-CH`). La
+  migration a mis `EUR` sur toutes les dépenses et remboursements
+  existants (tout s'affichait en € avant cette date). Le bouton
+  « Ajouter une dépense » est un bouton corail pleine largeur en haut de
+  l'onglet.
 - **Expense** : description, amount, paidById, planId — réparti à parts
   égales entre les membres listés dans `splitWith` (**ExpenseShare**,
   sélectionnés à la création, pas forcément tous les membres du Plan).
