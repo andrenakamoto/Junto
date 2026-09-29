@@ -325,6 +325,16 @@ Junto/
   password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt,
+  pendingEmail/pendingEmailToken/pendingEmailExpires (2026-09-29, changement
+  d'email : `lib/emailChange.ts`. POST /auth/change-email exige le mot de
+  passe — sauf compte Google sans mot de passe —, envoie un lien
+  `/confirmer-email?token=…` (24 h) à la nouvelle adresse ; l'ancienne reste
+  active jusqu'à POST /auth/confirm-email-change, qui prévient l'ancienne
+  adresse. Renvoyer/annuler : POST /change-email/resend, DELETE
+  /change-email. Secours admin : PUT /admin/users/:id/email (même lien,
+  jamais d'attribution directe). /auth/add-email est désormais refusé pour
+  un compte dont l'email est déjà vérifié — il permettait de remplacer
+  l'adresse sans mot de passe),
   lastActiveAt (2026-09-29, indexé : dernière utilisation de l'app, mise à
   jour par `touchUser` — `lib/activity.ts` — dans `requireAuth` et à la
   connexion socket, **au plus 1×/h par personne** via une Map en mémoire,
