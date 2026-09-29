@@ -36,8 +36,8 @@ export function GuideModal({ onClose }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">2. Créer ou rejoindre un Cercle</h3>
             <p>
-              Crée un Cercle (nom, description et couleur optionnels) depuis le menu ☰ en bas à gauche, ou
-              rejoins-en un avec son <strong>nom</strong> et son <strong>code d'accès</strong> (ou via un lien
+              Crée un Cercle (nom, description et couleur optionnels) avec le bouton{' '}
+              <strong>« Créer un Cercle »</strong> sous « Mes Cercles », ou <strong>« Rejoindre »</strong> un Cercle avec son <strong>nom</strong> et son <strong>code d'accès</strong> (ou via un lien
               d'invitation / QR code). Selon le Cercle, ta demande est validée par un{' '}
               <strong>vote à la majorité</strong> des membres (par défaut), par les{' '}
               <strong>organisateurs</strong>, ou tu entres directement avec le code. En mode vote, personne ne
@@ -48,7 +48,8 @@ export function GuideModal({ onClose }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">3. Créer et modifier un Plan</h3>
             <p>
-              Par défaut, tout membre du Cercle peut créer un Plan : titre, description, date et heure de
+              Par défaut, tout membre du Cercle peut créer un Plan (bouton <strong>« Créer un Plan »</strong> en bas
+              de la liste des Plans) : titre, description, date et heure de
               l'événement, lieu et limite de participants (tous optionnels sauf le titre). Une{' '}
               <strong>date de fin est obligatoire</strong> : c'est elle qui déclenche la suppression automatique,
               et un Plan ne peut pas durer plus de <strong>3 semaines</strong>. Les membres du Cercle reçoivent

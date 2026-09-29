@@ -130,6 +130,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         <p className="text-indigo-600 text-[10px] font-semibold uppercase tracking-wide leading-tight">
           Events<br />Linked to You
         </p>
+        <button
+          onClick={handleLogout}
+          title="Se déconnecter"
+          aria-label="Se déconnecter"
+          className="ml-auto p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <LogOut size={17} />
+        </button>
       </div>
 
       {/* Circle list */}
@@ -160,7 +168,23 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           </div>
           Calendrier
         </button>
-        <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Mes Cercles</p>
+        <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Mes Cercles</p>
+        <div className="space-y-1.5 pb-2">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={15} />
+            Créer un Cercle
+          </button>
+          <button
+            onClick={() => setShowJoin(true)}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
+          >
+            <Users size={14} />
+            Rejoindre un Cercle
+          </button>
+        </div>
         {circles.length === 0 && (
           <p className="px-3 py-2 text-sm text-slate-400 italic">Aucun Cercle pour l'instant</p>
         )}
@@ -377,7 +401,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         })}
       </div>
 
-      {/* User + menu + logout */}
+      {/* Utilisateur + menu */}
       <div className="relative px-3 py-3 border-t border-slate-200 flex items-center gap-2 short:sticky short:bottom-0 short:z-10 short:bg-slate-100">
         {user && <Avatar pseudo={user.pseudo} size="sm" />}
         <span className="flex-1 text-sm text-slate-700 font-medium truncate">@{user?.pseudo}</span>
@@ -397,20 +421,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
         {showMenu && (
           <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
-            <button
-              onClick={() => { setShowMenu(false); setShowCreate(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <Plus size={15} />
-              Créer un Cercle
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowJoin(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <Users size={15} />
-              Rejoindre un Cercle
-            </button>
             {user?.isAdmin && (
               <button
                 onClick={() => { setShowMenu(false); navigate('/admin'); }}
@@ -475,14 +485,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
             <p className="text-center text-xs text-slate-500 pt-2 mt-1 border-t border-slate-200">info@evly.ch</p>
           </div>
         )}
-
-        <button
-          onClick={handleLogout}
-          title="Se déconnecter"
-          className="p-1.5 rounded-lg text-indigo-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-        >
-          <LogOut size={15} />
-        </button>
       </div>
 
       {showChangePassword && (
