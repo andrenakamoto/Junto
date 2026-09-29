@@ -21,6 +21,10 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
   const myMember = plan.members.find(m => m.userId === user?.id);
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
+  // Limite de places : même calcul que le serveur (toutes les personnes ayant rejoint le Plan)
+  const max = plan.maxParticipants ?? null;
+  const isFull = max != null && plan.members.length >= max;
+  const placesLeft = max != null ? Math.max(0, max - plan.members.length) : null;
 
   const date = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
@@ -47,7 +51,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
             {rsvpLabel[myMember.rsvp]}
           </span>
-        ) : plan.maxParticipants != null && plan.members.length >= plan.maxParticipants ? (
+        ) : isFull ? (
           <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-600 border border-red-500/30">
             Complet
           </span>
@@ -69,6 +73,19 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
             <span className="text-emerald-600">{inCount} in</span>
             {maybeCount > 0 && <span className="text-amber-600">· {maybeCount} ?</span>}
           </span>
+        )}
+        {max != null && (
+          isFull ? (
+            myMember ? (
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-semibold">Complet · {plan.members.length}/{max}</span>
+            ) : (
+              <span className="text-red-600 font-medium">{plan.members.length}/{max} places</span>
+            )
+          ) : (
+            <span className={placesLeft === 1 ? 'text-amber-600 font-medium' : ''}>
+              {placesLeft} place{placesLeft! > 1 ? 's' : ''} restante{placesLeft! > 1 ? 's' : ''}
+            </span>
+          )
         )}
         {myMember && (plan._count?.messages ?? 0) > 0 && (
           <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
