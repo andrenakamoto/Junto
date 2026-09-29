@@ -145,7 +145,7 @@ export function AuthPage() {
           </a>
           <br />
           <a
-            href="/evly-associations-entreprises.pdf"
+            href="/brochure"
             target="_blank"
             rel="noopener"
             className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-400 hover:text-slate-200 underline underline-offset-4 decoration-slate-500/50"

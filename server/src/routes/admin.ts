@@ -5,7 +5,7 @@ import { sendPasswordReset } from '../lib/passwordReset';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
-import { fillDays, visitDay } from '../lib/pageVisits';
+import { fillDays, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -99,13 +99,14 @@ router.delete('/users/:id', async (req: AuthRequest, res) => {
   }
 });
 
-// Visites de la page publique « Découvrir » (compteur anonyme, 30 derniers jours)
-router.get('/page-visits', async (_req, res) => {
+// Visites d'une page publique (?page=decouvrir|brochure — compteur anonyme, 30 derniers jours)
+router.get('/page-visits', async (req, res) => {
+  const page = (TRACKED_PAGES as readonly string[]).includes(String(req.query.page)) ? String(req.query.page) : 'decouvrir';
   const today = visitDay();
   const since = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
   const [rows, total] = await Promise.all([
-    prisma.pageVisit.findMany({ where: { page: 'decouvrir', day: { gte: since } } }),
-    prisma.pageVisit.aggregate({ where: { page: 'decouvrir' }, _sum: { count: true } }),
+    prisma.pageVisit.findMany({ where: { page, day: { gte: since } } }),
+    prisma.pageVisit.aggregate({ where: { page }, _sum: { count: true } }),
   ]);
   const days = fillDays(rows, 30, today);
   const sum = (list: { count: number }[]) => list.reduce((n, d) => n + d.count, 0);

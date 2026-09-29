@@ -183,7 +183,17 @@ export function AdminPage() {
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
         </div>
 
-        <PageVisitsPanel />
+        <PageVisitsPanel
+          page="decouvrir"
+          title="Page « Découvrir »"
+          description="Visites de evly.ch/decouvrir.html par jour. Comptage anonyme : ni cookie, ni adresse IP ; robots et personnes connectées à EvLY exclus."
+        />
+        <PageVisitsPanel
+          page="brochure"
+          title="Brochure associations & entreprises (PDF)"
+          description="Ouvertures du PDF par jour, via evly.ch/brochure, l'ancienne adresse du PDF et le lien de la page de connexion. Comptage anonyme : ni cookie, ni adresse IP ; robots exclus."
+          unit="ouverture"
+        />
 
         {adminUsers.length > 0 && (
           <>

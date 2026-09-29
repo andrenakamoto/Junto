@@ -9,15 +9,15 @@ const dayFmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeri
 const shortFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 const label = (d: string, fmt = dayFmt) => fmt.format(new Date(`${d}T00:00:00Z`));
 
-// Visites de la page publique « Découvrir » : compteur anonyme (un total par jour,
-// sans cookie ni donnée personnelle), 30 derniers jours.
-export function PageVisitsPanel() {
+// Visites d'une page publique (fiche Découvrir, brochure PDF) : compteur anonyme
+// (un total par jour, sans cookie ni donnée personnelle), 30 derniers jours.
+export function PageVisitsPanel({ page, title, description, unit = 'visite' }: { page: string; title: string; description: string; unit?: string }) {
   const [stats, setStats] = useState<VisitStats | null>(null);
   const [hover, setHover] = useState<number | null>(null);
 
   useEffect(() => {
-    api.get('/admin/page-visits').then(res => setStats(res.data)).catch(() => {});
-  }, []);
+    api.get(`/admin/page-visits?page=${page}`).then(res => setStats(res.data)).catch(() => {});
+  }, [page]);
 
   if (!stats) return null;
   const max = Math.max(1, ...stats.days.map(d => d.count));
@@ -25,9 +25,9 @@ export function PageVisitsPanel() {
 
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2"><Eye size={17} className="text-slate-400" />Page « Découvrir »</h2>
+      <h2 className="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2"><Eye size={17} className="text-slate-400" />{title}</h2>
       <p className="text-xs text-slate-500 mb-3">
-        Visites de evly.ch/decouvrir.html par jour. Comptage anonyme : ni cookie, ni adresse IP ; robots et personnes connectées à EvLY exclus.
+        {description}
       </p>
 
       <div className="grid grid-cols-3 gap-3 mb-3">
@@ -41,9 +41,9 @@ export function PageVisitsPanel() {
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
         <div className="flex items-baseline justify-between mb-2 h-5">
-          <p className="text-xs text-slate-500">Visites par jour</p>
+          <p className="text-xs text-slate-500">{unit[0].toUpperCase() + unit.slice(1)}s par jour</p>
           <p className="text-xs text-slate-700 tabular-nums">
-            {shown ? <><span className="font-semibold">{shown.count}</span> visite{shown.count > 1 ? 's' : ''} · {label(shown.day)}</> : <span className="text-slate-400">max. {max}</span>}
+            {shown ? <><span className="font-semibold">{shown.count}</span> {unit}{shown.count > 1 ? 's' : ''} · {label(shown.day)}</> : <span className="text-slate-400">max. {max}</span>}
           </p>
         </div>
         <div className="relative h-32 border-b border-slate-200" onMouseLeave={() => setHover(null)}>
@@ -56,7 +56,7 @@ export function PageVisitsPanel() {
                 onMouseEnter={() => setHover(i)}
                 onFocus={() => setHover(i)}
                 onBlur={() => setHover(null)}
-                aria-label={`${label(d.day)} : ${d.count} visite${d.count > 1 ? 's' : ''}`}
+                aria-label={`${label(d.day)} : ${d.count} ${unit}${d.count > 1 ? 's' : ''}`}
                 className="flex-1 h-full flex items-end focus:outline-none group"
               >
                 <span

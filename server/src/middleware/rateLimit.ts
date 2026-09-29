@@ -1,4 +1,5 @@
 import rateLimit from 'express-rate-limit';
+import { TRACKED_FILES } from '../lib/pageVisits';
 
 // Tentatives de connexion : limite stricte, par IP
 export const loginLimiter = rateLimit({
@@ -35,4 +36,16 @@ export const visitLimiter = rateLimit({
   standardHeaders: false,
   legacyHeaders: false,
   handler: (_req, res) => { res.status(204).end(); },
+});
+
+// Téléchargements comptés : au-delà de la limite, le fichier s'ouvre quand même, sans être compté
+export const downloadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: false,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    const target = TRACKED_FILES[req.params.page];
+    if (target) res.redirect(302, target); else res.status(404).end();
+  },
 });

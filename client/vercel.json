@@ -1,4 +1,8 @@
 {
+  "redirects": [
+    { "source": "/brochure", "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure", "permanent": false },
+    { "source": "/evly-associations-entreprises.pdf", "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

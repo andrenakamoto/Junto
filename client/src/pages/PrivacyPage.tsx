@@ -133,7 +133,7 @@ export function PrivacyPage() {
                 proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
               <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
               <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
-              <li><strong>Visites de la page de présentation</strong> : uniquement des totaux par jour,
+              <li><strong>Visites de la page de présentation et de la brochure</strong> : uniquement des totaux par jour,
                 qui ne contiennent aucune donnée personnelle.</li>
             </ul>
           </Section>
@@ -168,9 +168,10 @@ export function PrivacyPage() {
               Google peut déposer ses propres cookies.
             </p>
             <p className="mt-2">
-              La page de présentation (evly.ch/decouvrir.html) compte ses visites de façon anonyme : seul
-              un total par jour est enregistré, sans cookie, sans adresse IP et sans aucun identifiant. Les
-              personnes déjà connectées à EvLY ne sont pas comptées.
+              La page de présentation (evly.ch/decouvrir.html) et la brochure PDF (evly.ch/brochure)
+              comptent leurs visites de façon anonyme : seul un total par jour est enregistré, sans cookie,
+              sans adresse IP et sans aucun identifiant. Sur la page de présentation, les personnes déjà
+              connectées à EvLY ne sont pas comptées.
             </p>
           </Section>
 
