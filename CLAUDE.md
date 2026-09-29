@@ -144,8 +144,15 @@ Conséquences pratiques :
   ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
 - **Brochure associations & entreprises** (2026-09-28) :
-  `client/public/evly-associations-entreprises.pdf` (4 pages A4, vouvoiement),
-  liée sous « Découvrir EvLY en 1 minute » dans AuthPage. Générée hors repo
+  `client/public/fichiers/evly-associations-entreprises.pdf` (4 pages A4,
+  vouvoiement), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
+  **`/brochure`**. Téléchargements comptés (2026-09-29) : `client/vercel.json`
+  redirige `/brochure` et l'ancienne adresse `/evly-associations-entreprises.pdf`
+  vers `GET /api/stats/go/brochure` (Railway), qui compte +1 dans PageVisit
+  (`page = 'brochure'`, mêmes règles que ci-dessous, sans exclusion des
+  personnes connectées) puis redirige vers le fichier dans `/fichiers/`
+  (`TRACKED_FILES` dans `lib/pageVisits.ts`). Ne pas remettre le PDF à la
+  racine de `public/` : la redirection de l'ancienne adresse bouclerait. Générée hors repo
   (HTML → PDF avec Playwright) ; sources et jeu de données fictif des
   captures (club « Les Rayons », entreprise « Atelier Nova ») dans
   `~/Desktop/EvLY - Brochure (sources)/` sur le Mac de l'utilisateur. La
@@ -187,7 +194,8 @@ Conséquences pratiques :
   ni identifiant ; robots écartés par user-agent (y compris HeadlessChrome,
   donc Playwright ne compte pas sans `userAgent` forcé) ; `visitLimiter`
   (10/h par connexion, en mémoire). Affiché dans AdminPage
-  (`components/admin/PageVisitsPanel.tsx`, GET /admin/page-visits, 30 jours).
+  (`components/admin/PageVisitsPanel.tsx`, GET /admin/page-visits?page=…,
+  30 jours, un panneau pour la fiche et un pour la brochure).
   La politique de confidentialité le mentionne : le garder « anonyme » —
   toute donnée par visiteur supplémentaire imposerait de la réécrire.
   `client/public/logo-evly.svg` (l'ancienne icône badge) ne sert plus
