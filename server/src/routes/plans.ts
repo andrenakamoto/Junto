@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { purgePlanFiles } from '../lib/cloudinary';
 import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { computeBalances, suggestTransfers } from '../lib/expenses';
+import { computeByCurrency, parseCurrency } from '../lib/expenses';
 import { icsEscape, icsDate } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
@@ -641,15 +641,20 @@ router.get('/:id/expenses', async (req: AuthRequest, res) => {
     }),
     prisma.reimbursement.findMany({ where: { planId: req.params.id }, orderBy: { createdAt: 'desc' } }),
   ]);
-  const memberIds = members.map(m => m.userId);
-  const balance = computeBalances(memberIds, expenses, reimbursements);
-  const balances = members.map(m => ({ userId: m.userId, pseudo: m.user.pseudo, balance: Math.round((balance.get(m.userId) ?? 0) * 100) / 100 }));
-  const suggestedTransfers = suggestTransfers(balance).map(t => ({
-    ...t,
-    fromPseudo: members.find(m => m.userId === t.fromUserId)?.user.pseudo,
-    toPseudo: members.find(m => m.userId === t.toUserId)?.user.pseudo,
+  // Comptes tenus séparément par devise (CHF, EUR), sans conversion
+  const byCurrency = computeByCurrency(members.map(m => m.userId), expenses, reimbursements);
+  const pseudoOf = (id: string) => members.find(m => m.userId === id)?.user.pseudo;
+  const balances = members.map(m => ({
+    userId: m.userId,
+    pseudo: m.user.pseudo,
+    amounts: byCurrency.map(c => ({ currency: c.currency, balance: Math.round((c.balance.get(m.userId) ?? 0) * 100) / 100 })),
   }));
-  res.json({ expenses, reimbursements, balances, suggestedTransfers });
+  const suggestedTransfers = byCurrency.flatMap(c => c.transfers.map(t => ({
+    ...t, currency: c.currency, fromPseudo: pseudoOf(t.fromUserId), toPseudo: pseudoOf(t.toUserId),
+  })));
+  // Devise proposée par défaut dans le formulaire : celle de la dernière dépense du Plan
+  const defaultCurrency = expenses[0]?.currency ?? 'CHF';
+  res.json({ defaultCurrency, expenses, reimbursements, balances, suggestedTransfers });
 });
 
 router.post('/:id/expenses', async (req: AuthRequest, res) => {
@@ -664,6 +669,8 @@ router.post('/:id/expenses', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'Description et montant valides requis' });
     return;
   }
+  const currency = req.body.currency === undefined ? 'CHF' : parseCurrency(req.body.currency);
+  if (!currency) { res.status(400).json({ error: 'Devise invalide (CHF ou EUR)' }); return; }
 
   const planMembers = await prisma.planMember.findMany({ where: { planId: req.params.id }, select: { userId: true } });
   const memberIds = new Set(planMembers.map(m => m.userId));
@@ -683,6 +690,7 @@ router.post('/:id/expenses', async (req: AuthRequest, res) => {
     data: {
       description: description.trim(),
       amount: parsedAmount,
+      currency,
       planId: req.params.id,
       paidById: req.userId!,
       splitWith: { create: participantIds.map(userId => ({ userId })) },
@@ -718,12 +726,14 @@ router.post('/:id/reimbursements', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'Destinataire et montant valides requis' });
     return;
   }
+  const currency = req.body.currency === undefined ? 'CHF' : parseCurrency(req.body.currency);
+  if (!currency) { res.status(400).json({ error: 'Devise invalide (CHF ou EUR)' }); return; }
   if (!(await assertPlanMember(toUserId, req.params.id))) {
     res.status(400).json({ error: 'Le destinataire doit être membre du Plan' });
     return;
   }
   const reimbursement = await prisma.reimbursement.create({
-    data: { amount: parsedAmount, planId: req.params.id, fromUserId: req.userId!, toUserId },
+    data: { amount: parsedAmount, currency, planId: req.params.id, fromUserId: req.userId!, toUserId },
   });
   res.json(reimbursement);
 });

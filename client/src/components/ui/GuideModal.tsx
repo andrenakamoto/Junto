@@ -156,6 +156,11 @@ export function GuideModal({ onClose }: Props) {
               équilibrer les comptes. Aucun argent ne transite par l'application — c'est purement
               indicatif.
             </p>
+            <p className="mt-1.5">
+              Chaque dépense se saisit en <strong>CHF</strong> ou en <strong>euros</strong>. Les deux devises
+              sont comptées séparément, sans conversion : soldes et remboursements s'affichent par devise
+              (par exemple « 20.00 CHF et 15.00 € »).
+            </p>
           </section>
 
           <section>

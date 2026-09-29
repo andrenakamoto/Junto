@@ -321,6 +321,8 @@ model Expense {
   id          String   @id @default(cuid())
   description String
   amount      Float
+  // Devise de la dépense : 'CHF' (défaut) ou 'EUR'. Soldes calculés séparément par devise, sans conversion
+  currency    String   @default("CHF")
   createdAt   DateTime @default(now())
 
   planId   String
@@ -343,6 +345,7 @@ model ExpenseShare {
 model Reimbursement {
   id        String   @id @default(cuid())
   amount    Float
+  currency  String   @default("CHF")
   createdAt DateTime @default(now())
 
   planId     String

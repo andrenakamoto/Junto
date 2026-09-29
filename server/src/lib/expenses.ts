@@ -47,3 +47,33 @@ export function suggestTransfers(balance: Map<string, number>) {
   }
   return transfers;
 }
+
+// Devises des dépenses. Pas de conversion : les comptes sont tenus séparément
+// pour chaque devise (un solde et des virements suggérés par devise).
+export const CURRENCIES = ['CHF', 'EUR'] as const;
+export type Currency = typeof CURRENCIES[number];
+
+export function parseCurrency(v: unknown): Currency | undefined {
+  return typeof v === 'string' && (CURRENCIES as readonly string[]).includes(v) ? v as Currency : undefined;
+}
+
+export function formatAmount(amount: number, currency: string): string {
+  return amount.toLocaleString('fr-CH', { style: 'currency', currency: parseCurrency(currency) ?? 'CHF' });
+}
+
+// Soldes et virements suggérés, devise par devise (seulement les devises utilisées)
+export function computeByCurrency(
+  memberIds: string[],
+  expenses: { amount: number; currency: string; paidById: string; splitWith?: { userId: string }[] }[],
+  reimbursements: { amount: number; currency: string; fromUserId: string; toUserId: string }[],
+) {
+  const used = CURRENCIES.filter(c => expenses.some(e => e.currency === c) || reimbursements.some(r => r.currency === c));
+  return used.map(currency => {
+    const balance = computeBalances(
+      memberIds,
+      expenses.filter(e => e.currency === currency),
+      reimbursements.filter(r => r.currency === currency),
+    );
+    return { currency, balance, transfers: suggestTransfers(balance) };
+  });
+}

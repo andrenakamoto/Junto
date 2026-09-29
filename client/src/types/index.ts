@@ -174,10 +174,13 @@ export interface Message {
   _count?: { replies: number };
 }
 
+export type Currency = 'CHF' | 'EUR';
+
 export interface Expense {
   id: string;
   description: string;
   amount: number;
+  currency: Currency;
   createdAt: string;
   paidById: string;
   paidBy: { id: string; pseudo: string };
@@ -187,6 +190,7 @@ export interface Expense {
 export interface Reimbursement {
   id: string;
   amount: number;
+  currency: Currency;
   createdAt: string;
   fromUserId: string;
   toUserId: string;
@@ -195,18 +199,22 @@ export interface Reimbursement {
 export interface ExpenseBalance {
   userId: string;
   pseudo: string;
-  balance: number;
+  /** Un solde par devise utilisée dans le Plan (pas de conversion) */
+  amounts: { currency: Currency; balance: number }[];
 }
 
 export interface SuggestedTransfer {
   fromUserId: string;
   toUserId: string;
   amount: number;
+  currency: Currency;
   fromPseudo?: string;
   toPseudo?: string;
 }
 
 export interface ExpensesData {
+  /** Devise proposée pour une nouvelle dépense : celle de la dernière saisie */
+  defaultCurrency: Currency;
   expenses: Expense[];
   reimbursements: Reimbursement[];
   balances: ExpenseBalance[];

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Euro, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -35,7 +35,7 @@ const tabs = [
   { key: 'trajets' as Tab,    Icon: Car,           label: 'Trajets' },
   { key: 'membres' as Tab,    Icon: Users,         label: 'Membres' },
   { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
-  { key: 'depenses' as Tab,   Icon: Euro,          label: 'Dépenses' },
+  { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
 ];
 
 interface Props {

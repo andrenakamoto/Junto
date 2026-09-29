@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeBalances, suggestTransfers } from './expenses';
+import { computeBalances, suggestTransfers, formatAmount, computeByCurrency } from './expenses';
 
 describe('computeBalances', () => {
   it('répartit une dépense unique à parts égales', () => {
@@ -87,5 +87,34 @@ describe('suggestTransfers', () => {
   it('ignore les écarts négligeables (arrondis)', () => {
     const balance = new Map([['a', 0.001], ['b', -0.001]]);
     expect(suggestTransfers(balance)).toEqual([]);
+  });
+});
+
+describe('formatAmount', () => {
+  it('affiche la monnaie du Plan, CHF par défaut', () => {
+    expect(formatAmount(24.5, 'CHF')).toContain('CHF');
+    expect(formatAmount(24.5, 'EUR')).toContain('€');
+    expect(formatAmount(24.5, 'USD')).toContain('CHF');
+    expect(formatAmount(24.5, 'EUR')).toMatch(/24[.,]50/);
+  });
+});
+
+describe('computeByCurrency', () => {
+  it('tient des comptes séparés par devise, sans conversion', () => {
+    const res = computeByCurrency(
+      ['a', 'b'],
+      [
+        { amount: 40, currency: 'CHF', paidById: 'a', splitWith: [{ userId: 'a' }, { userId: 'b' }] },
+        { amount: 30, currency: 'EUR', paidById: 'b', splitWith: [{ userId: 'a' }, { userId: 'b' }] },
+      ],
+      [{ amount: 5, currency: 'EUR', fromUserId: 'a', toUserId: 'b' }],
+    );
+    expect(res.map(r => r.currency)).toEqual(['CHF', 'EUR']);
+    expect(res[0].transfers).toEqual([{ fromUserId: 'b', toUserId: 'a', amount: 20 }]);
+    expect(res[1].transfers).toEqual([{ fromUserId: 'a', toUserId: 'b', amount: 10 }]);
+  });
+
+  it('n\'affiche que les devises utilisées', () => {
+    expect(computeByCurrency(['a'], [{ amount: 10, currency: 'CHF', paidById: 'a' }], []).map(r => r.currency)).toEqual(['CHF']);
   });
 });

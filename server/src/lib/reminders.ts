@@ -2,7 +2,7 @@ import prisma from './prisma';
 import { purgePlanFiles } from './cloudinary';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
-import { computeBalances, suggestTransfers } from './expenses';
+import { computeByCurrency, formatAmount } from './expenses';
 
 const REMINDER_WINDOW_START_H = 23;
 const REMINDER_WINDOW_END_H = 25;
@@ -25,15 +25,15 @@ export async function deleteExpiredPlans() {
       if (plan.expenses.length > 0) {
         try {
           const memberIds = plan.members.map(m => m.userId);
-          const balance = computeBalances(memberIds, plan.expenses, plan.reimbursements);
-          const transfers = suggestTransfers(balance);
+          const transfers = computeByCurrency(memberIds, plan.expenses, plan.reimbursements)
+            .flatMap(c => c.transfers.map(t => ({ ...t, currency: c.currency })));
           const pseudoOf = (id: string) => plan.members.find(m => m.userId === id)?.user.pseudo ?? '?';
 
           const expenseLines = plan.expenses
-            .map(e => `<li>${e.description} — ${e.amount.toFixed(2)} (payé par ${e.paidBy.pseudo})</li>`)
+            .map(e => `<li>${e.description} — ${formatAmount(e.amount, e.currency)} (payé par ${e.paidBy.pseudo})</li>`)
             .join('');
           const transferLines = transfers.length > 0
-            ? transfers.map(t => `<li>${pseudoOf(t.fromUserId)} doit ${t.amount.toFixed(2)} à ${pseudoOf(t.toUserId)}</li>`).join('')
+            ? transfers.map(t => `<li>${pseudoOf(t.fromUserId)} doit ${formatAmount(t.amount, t.currency)} à ${pseudoOf(t.toUserId)}</li>`).join('')
             : '<li>Tout le monde est déjà à l\'équilibre.</li>';
 
           const recipients = plan.members.filter(m => m.user.email && m.user.emailVerified);
