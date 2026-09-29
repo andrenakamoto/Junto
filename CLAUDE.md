@@ -315,7 +315,15 @@ Junto/
   les listes de membres, le chat et les mentions restent au pseudo),
   password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
-  acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt
+  acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt,
+  lastActiveAt (2026-09-29, indexé : dernière utilisation de l'app, mise à
+  jour par `touchUser` — `lib/activity.ts` — dans `requireAuth` et à la
+  connexion socket, **au plus 1×/h par personne** via une Map en mémoire,
+  en arrière-plan ; sert au total « Membres actifs (7j) » du panneau admin,
+  mentionné dans la politique de confidentialité). « Messages (7j) » lit
+  un compteur quotidien anonyme (`PageVisit`, `page = 'messages'`,
+  `countMessageSent`) : avant, il comptait les messages encore en base et
+  baissait à chaque suppression de Plan.
 - **Circle** : name, code (unique), description? (affichée sous le nom en
   tête de la liste des Plans, modifiable par le créateur et les
   organisateurs dans `CircleSettingsModal` via PUT /:id/settings), color?
