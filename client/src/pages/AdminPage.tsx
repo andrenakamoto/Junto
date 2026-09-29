@@ -6,6 +6,7 @@ import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import api from '../services/api';
 import { fullName } from '../lib/names';
+import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
 
 interface AdminUser {
   id: string;
@@ -181,6 +182,8 @@ export function AdminPage() {
           <StatCard icon={MessageSquare} label="Messages (7j)" value={stats.messagesLast7Days} />
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
         </div>
+
+        <PageVisitsPanel />
 
         {adminUsers.length > 0 && (
           <>

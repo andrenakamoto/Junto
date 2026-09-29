@@ -26,3 +26,13 @@ export const emailActionLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Trop de demandes, réessaie dans quelques minutes.' },
 });
+
+// Compteur de visites des pages publiques : au-delà, les rechargements en
+// rafale d'une même connexion ne gonflent plus le total (rien n'est stocké)
+export const visitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: false,
+  legacyHeaders: false,
+  handler: (_req, res) => { res.status(204).end(); },
+});

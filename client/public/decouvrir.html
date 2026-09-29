@@ -232,5 +232,18 @@
     </div>
   </footer>
 </div>
+<script>
+/* Compteur anonyme de visites (un total par jour, sans cookie ni donnée personnelle).
+   Les personnes déjà connectées à EvLY ne sont pas comptées. */
+(function () {
+  try {
+    var host = location.hostname;
+    var api = /(^|\.)evly\.ch$/.test(host) ? 'https://junto-production-8ded.up.railway.app'
+      : host === 'localhost' ? 'http://localhost:3999' : null;
+    if (!api || localStorage.getItem('estelle_token') || !navigator.sendBeacon) return;
+    navigator.sendBeacon(api + '/api/stats/visit?page=decouvrir');
+  } catch (e) { /* le comptage ne doit jamais gêner la page */ }
+})();
+</script>
 </body>
 </html>

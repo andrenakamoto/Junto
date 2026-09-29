@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '28 septembre 2026';
+const VERSION = '29 septembre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -133,6 +133,8 @@ export function PrivacyPage() {
                 proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
               <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
               <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
+              <li><strong>Visites de la page de présentation</strong> : uniquement des totaux par jour,
+                qui ne contiennent aucune donnée personnelle.</li>
             </ul>
           </Section>
 
@@ -164,6 +166,11 @@ export function PrivacyPage() {
               EvLY n'utilise aucun cookie publicitaire ni de mesure d'audience. Ton navigateur conserve
               seulement ta session de connexion et quelques préférences. Si tu te connectes avec Google,
               Google peut déposer ses propres cookies.
+            </p>
+            <p className="mt-2">
+              La page de présentation (evly.ch/decouvrir.html) compte ses visites de façon anonyme : seul
+              un total par jour est enregistré, sans cookie, sans adresse IP et sans aucun identifiant. Les
+              personnes déjà connectées à EvLY ne sont pas comptées.
             </p>
           </Section>
 

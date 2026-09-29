@@ -466,3 +466,13 @@ model BringItem {
   planId String
   plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
 }
+
+// Compteur anonyme de visites des pages publiques (ex. decouvrir.html) :
+// uniquement un total par jour et par page — ni cookie, ni IP, ni identifiant.
+model PageVisit {
+  page  String
+  day   DateTime @db.Date
+  count Int      @default(0)
+
+  @@id([page, day])
+}

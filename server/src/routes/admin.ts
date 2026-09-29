@@ -5,6 +5,7 @@ import { sendPasswordReset } from '../lib/passwordReset';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
+import { fillDays, visitDay } from '../lib/pageVisits';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -96,6 +97,19 @@ router.delete('/users/:id', async (req: AuthRequest, res) => {
     console.error('[delete user]', e);
     res.status(500).json({ error: 'Erreur serveur' });
   }
+});
+
+// Visites de la page publique « Découvrir » (compteur anonyme, 30 derniers jours)
+router.get('/page-visits', async (_req, res) => {
+  const today = visitDay();
+  const since = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000);
+  const [rows, total] = await Promise.all([
+    prisma.pageVisit.findMany({ where: { page: 'decouvrir', day: { gte: since } } }),
+    prisma.pageVisit.aggregate({ where: { page: 'decouvrir' }, _sum: { count: true } }),
+  ]);
+  const days = fillDays(rows, 30, today);
+  const sum = (list: { count: number }[]) => list.reduce((n, d) => n + d.count, 0);
+  res.json({ days, last7: sum(days.slice(-7)), last30: sum(days), total: total._sum.count ?? 0 });
 });
 
 // Stats summary
