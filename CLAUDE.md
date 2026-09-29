@@ -420,6 +420,13 @@ Junto/
     notification `poll_message` envoyés aux rooms `user:*` de l'audience
     (pas de room de sondage à rejoindre). Recopiés dans `Message` du Plan
     (dates d'origine conservées) lors de la conversion.
+- **Ordre d'affichage** (2026-09-29) : Plans du plus proche au plus
+  lointain (date de début ; les Plans sans date à la fin, par date de fin)
+  et Cercles selon leur prochain Plan (ceux sans Plan à venir à la fin).
+  Règle unique dans `server/src/lib/planOrder.ts` (GET /circles, testée) et
+  son miroir `client/src/lib/order.ts` (appliqué dans DashboardPage, pour
+  que l'ordre reste juste juste après une création) — garder les deux
+  identiques.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), deletionMode, disabledFeatures (voir Paramètres
