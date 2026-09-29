@@ -182,6 +182,11 @@ export function AdminPage() {
           <StatCard icon={MessageSquare} label="Messages (7j)" value={stats.messagesLast7Days} />
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
         </div>
+        <p className="-mt-6 mb-8 text-xs text-slate-500">
+          Membres actifs : personnes qui ont utilisé EvLY ces 7 derniers jours. Messages : envoyés ces 7 derniers
+          jours dans les chats des Plans et des sondages, même si le Plan a été supprimé depuis. Comptés depuis
+          le 29 septembre 2026.
+        </p>
 
         <PageVisitsPanel
           page="decouvrir"

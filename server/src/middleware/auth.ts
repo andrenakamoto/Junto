@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { touchUser } from '../lib/activity';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -22,6 +23,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
     req.userId = payload.userId;
     req.pseudo = payload.pseudo;
     req.isAdmin = payload.isAdmin;
+    touchUser(payload.userId);
     next();
   } catch {
     res.status(401).json({ error: 'Token invalide' });

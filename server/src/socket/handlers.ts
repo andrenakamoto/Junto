@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { countMessageSent, touchUser } from '../lib/activity';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
@@ -15,6 +16,7 @@ export function setupSocketHandlers(io: Server) {
       const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; pseudo: string };
       socket.data.userId = payload.userId;
       socket.data.pseudo = payload.pseudo;
+      touchUser(payload.userId);
       next();
     } catch {
       next(new Error('Token invalide'));
@@ -103,6 +105,7 @@ export function setupSocketHandlers(io: Server) {
         },
       });
       io.to(`plan:${planId}`).emit('message', withPlainContent(message));
+      countMessageSent();
 
       const planData = await prisma.plan.findUnique({
         where: { id: planId },

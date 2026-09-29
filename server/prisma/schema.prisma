@@ -28,6 +28,9 @@ model User {
   weeklyDigestEnabled  Boolean   @default(true)
   lastDigestSentAt     DateTime?
   createdAt            DateTime  @default(now())
+  // Dernière utilisation de l'app (au plus une mise à jour par heure, lib/activity.ts) —
+  // sert uniquement au total « membres actifs » du panneau admin
+  lastActiveAt         DateTime?
 
   memberships            CircleMember[]
   planMemberships        PlanMember[]
@@ -54,6 +57,8 @@ model User {
   circlePollExclusions   CirclePollExclusion[] @relation("CirclePollExclusions")
   circlePollDeclines     CirclePollDecline[]   @relation("CirclePollDeclines")
   circlePollMessages     CirclePollMessage[]   @relation("CirclePollMessages")
+
+  @@index([lastActiveAt])
 }
 
 model Circle {
@@ -467,8 +472,9 @@ model BringItem {
   plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
 }
 
-// Compteur anonyme de visites des pages publiques (ex. decouvrir.html) :
-// uniquement un total par jour et par page — ni cookie, ni IP, ni identifiant.
+// Compteurs anonymes par jour : visites des pages publiques (page = 'decouvrir',
+// 'brochure') et messages envoyés (page = 'messages', lib/activity.ts) — uniquement
+// un total par jour, ni cookie, ni IP, ni identifiant, ni contenu.
 model PageVisit {
   page  String
   day   DateTime @db.Date

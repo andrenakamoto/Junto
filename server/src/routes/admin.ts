@@ -116,19 +116,24 @@ router.get('/page-visits', async (req, res) => {
 // Stats summary
 router.get('/stats', async (_req, res) => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const [pending, approved, rejected, totalCircles, activePlans, messagesLast7Days, activeAuthors] = await Promise.all([
+  // Jours civils suisses : aujourd'hui compris, 7 jours au total
+  const since7Days = new Date(visitDay().getTime() - 6 * 24 * 60 * 60 * 1000);
+  const [pending, approved, rejected, totalCircles, activePlans, messagesAgg, activeUsersLast7Days] = await Promise.all([
     prisma.user.count({ where: { status: 'pending', isAdmin: false } }),
     prisma.user.count({ where: { status: 'approved', isAdmin: false } }),
     prisma.user.count({ where: { status: 'rejected' } }),
     prisma.circle.count(),
     prisma.plan.count({ where: { endDate: { gt: new Date() } } }),
-    prisma.message.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-    prisma.message.groupBy({ by: ['authorId'], where: { createdAt: { gte: sevenDaysAgo } } }),
+    // Compteur quotidien anonyme (lib/activity.ts) : ne baisse pas quand un Plan est supprimé
+    prisma.pageVisit.aggregate({ where: { page: 'messages', day: { gte: since7Days } }, _sum: { count: true } }),
+    // Personnes ayant utilisé l'app ces 7 derniers jours (lastActiveAt, mis à jour au plus 1×/h)
+    prisma.user.count({ where: { lastActiveAt: { gte: sevenDaysAgo } } }),
   ]);
   res.json({
     pending, approved, rejected,
-    totalCircles, activePlans, messagesLast7Days,
-    activeUsersLast7Days: activeAuthors.length,
+    totalCircles, activePlans,
+    messagesLast7Days: messagesAgg._sum.count ?? 0,
+    activeUsersLast7Days,
   });
 });
 

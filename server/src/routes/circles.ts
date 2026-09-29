@@ -9,6 +9,7 @@ import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } 
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
+import { countMessageSent } from '../lib/activity';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -869,6 +870,7 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
     data: { content: encryptMessage(content), pollId: poll.id, authorId: req.userId! },
     include: pollMessageInclude,
   }));
+  countMessageSent();
   res.json(message);
 
   // Diffusion aux seuls membres qui voient le sondage (room user:* — pas de room à rejoindre)

@@ -61,8 +61,9 @@ export function PrivacyPage() {
                 peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
                 dépenses et remboursements.</li>
               <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
-                connexion (conservée dans ton navigateur), et l'adresse IP enregistrée dans les journaux du
-                serveur pour la sécurité.</li>
+                connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
+                l'heure près, pour compter les membres actifs) et l'adresse IP enregistrée dans les journaux
+                du serveur pour la sécurité.</li>
             </ul>
             <p>Nous ne collectons ni date de naissance, ni localisation, ni carnet d'adresses.</p>
           </Section>
@@ -133,7 +134,7 @@ export function PrivacyPage() {
                 proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
               <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
               <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
-              <li><strong>Visites de la page de présentation et de la brochure</strong> : uniquement des totaux par jour,
+              <li><strong>Visites de la page de présentation et de la brochure, nombre de messages envoyés</strong> : uniquement des totaux par jour,
                 qui ne contiennent aucune donnée personnelle.</li>
             </ul>
           </Section>
