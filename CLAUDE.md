@@ -158,6 +158,15 @@ Conséquences pratiques :
   `~/Desktop/EvLY - Brochure (sources)/` sur le Mac de l'utilisateur. La
   régénérer puis recopier le PDF ici quand une fonctionnalité mise en avant
   change.
+- **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
+  (version 3 du 2026-09-29 : public élargi aux associations/entreprises,
+  inscription pseudo + prénom + email, rôles et invités, covoiturage,
+  devises, durée de conservation). La version acceptée est
+  `User.acceptedTermsVersion`, comparée à `CURRENT_TERMS_VERSION`
+  (`server/src/routes/auth.ts`) : l'incrémenter redemande l'acceptation à
+  tout le monde à la prochaine ouverture de l'app — à faire pour toute
+  modification substantielle, en même temps que la date affichée dans la
+  modale.
 - **Politique de confidentialité** (nLPD, publiée le 2026-09-28) :
   `client/src/pages/PrivacyPage.tsx`, route publique `/confidentialite`,
   liée depuis AuthPage (pied de page), TermsModal et le menu de la barre
