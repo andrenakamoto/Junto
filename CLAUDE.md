@@ -177,6 +177,19 @@ Conséquences pratiques :
   portées (`box-shadow`) dans la fiche : les lecteurs PDF les rendent en
   rectangles gris. La tenir à jour quand une fonctionnalité
   importante est ajoutée.
+  **Compteur de visites** (2026-09-29) : un petit script en bas de
+  `decouvrir.html` fait `navigator.sendBeacon` vers `POST
+  /api/stats/visit?page=decouvrir` (`routes/stats.ts`, public, URL de l'API
+  Railway codée en dur dans la page ; rien n'est envoyé hors evly.ch, sauf
+  vers localhost:3999 en local ; ignoré si `estelle_token` est présent, donc
+  pour les personnes connectées). Le serveur n'enregistre qu'un +1 dans
+  **PageVisit** (page + jour à l'heure suisse + total) : ni cookie, ni IP,
+  ni identifiant ; robots écartés par user-agent (y compris HeadlessChrome,
+  donc Playwright ne compte pas sans `userAgent` forcé) ; `visitLimiter`
+  (10/h par connexion, en mémoire). Affiché dans AdminPage
+  (`components/admin/PageVisitsPanel.tsx`, GET /admin/page-visits, 30 jours).
+  La politique de confidentialité le mentionne : le garder « anonyme » —
+  toute donnée par visiteur supplémentaire imposerait de la réécrire.
   `client/public/logo-evly.svg` (l'ancienne icône badge) ne sert plus
   qu'au favicon — remplacé par un simple monogramme "EV" sur le dégradé
   corail, lisible à 16px.
