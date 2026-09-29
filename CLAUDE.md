@@ -347,6 +347,11 @@ Junto/
   même par le créateur) — seul le vote à la majorité fait foi, une demande
   reste en attente indéfiniment tant que le seuil n'est pas atteint.
   (Comportement par défaut — voir « Paramètres avancés » ci-dessous.)
+  Affichage (2026-09-29) : `components/circles/JoinRequestList.tsx`
+  (vote, ou accepter/refuser selon `admissionMode`) sert à la fois dans la
+  pastille du Cercle (bouton ambre avec le nombre de demandes) et dans un
+  bloc ambre en tête de `PlanList`, au-dessus des sondages, affiché
+  seulement s'il y a des demandes.
 - **Paramètres avancés** (2026-09-27, pour associations/entreprises) —
   constantes et validation dans `server/src/lib/settings.ts`, libellés
   côté client dans `client/src/lib/settings.ts`, champs UI dans
