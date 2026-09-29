@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
@@ -19,6 +19,7 @@ import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import { getPendingInvite } from '../lib/pendingInvite';
 import { useSocketEvent } from '../hooks/useSocketEvent';
+import { sortCircles, sortPlans } from '../lib/order';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -334,6 +335,9 @@ export function DashboardPage() {
   }
 
   const selectedCircle = circles.find(c => c.id === selectedCircleId) ?? null;
+  // Le plus proche d'abord, y compris juste après une création (avant le rechargement)
+  const sortedCircles = useMemo(() => sortCircles(circles), [circles]);
+  const sortedPlans = useMemo(() => sortPlans(plans), [plans]);
 
   const showCircles = mobileView === 'circles';
   const showPlans   = mobileView === 'plans';
@@ -367,7 +371,7 @@ export function DashboardPage() {
       {/* Colonne 1 — Cercles */}
       <div className={`${showCircles ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
-          circles={circles}
+          circles={sortedCircles}
           selectedId={allPlansActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={c => {
@@ -410,7 +414,7 @@ export function DashboardPage() {
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <PlanList
             circle={selectedCircle}
-            plans={plans}
+            plans={sortedPlans}
             loading={loadingPlans}
             selectedPlanId={selectedPlan?.id ?? null}
             onSelectPlan={handleSelectPlan}

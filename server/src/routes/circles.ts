@@ -10,6 +10,7 @@ import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEdit
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
+import { sortCircles } from '../lib/planOrder';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -43,14 +44,16 @@ router.get('/', async (req: AuthRequest, res) => {
       _count: { select: { plans: { where: { exclusions: { none: { userId: req.userId } } } } } },
       plans: {
         where: { archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
-        orderBy: { endDate: 'asc' },
+        // Prochain Plan : même ordre que la liste des Plans (lib/planOrder.ts)
+        orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
         take: 1,
         select: { id: true, title: true, eventDate: true, endDate: true },
       },
     },
     orderBy: { createdAt: 'asc' },
   });
-  res.json(circles);
+  // Le Cercle dont le prochain Plan est le plus proche en premier
+  res.json(sortCircles(circles));
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
