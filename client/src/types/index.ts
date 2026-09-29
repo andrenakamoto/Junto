@@ -10,6 +10,8 @@ export interface User {
   termsAccepted: boolean;
   email: string | null;
   emailVerified: boolean;
+  /** Nouvelle adresse en attente de confirmation (changement d'email) */
+  pendingEmail?: string | null;
   weeklyDigestEnabled: boolean;
 }
 

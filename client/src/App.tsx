@@ -9,6 +9,7 @@ import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
+import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ResendVerificationPage } from './pages/ResendVerificationPage';
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/setup"                 element={<SetupPage />} />
         <Route path="/pending"               element={<PendingPage />} />
         <Route path="/verify-email"          element={<VerifyEmailPage />} />
+        <Route path="/confirmer-email"       element={<ConfirmEmailChangePage />} />
         <Route path="/forgot-password"       element={<ForgotPasswordPage />} />
         <Route path="/reset-password"        element={<ResetPasswordPage />} />
         <Route path="/resend-verification"   element={<ResendVerificationPage />} />

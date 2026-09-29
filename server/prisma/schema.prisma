@@ -20,6 +20,11 @@ model User {
   googleId             String?   @unique
   emailVerifyToken     String?
   emailVerifyExpires   DateTime?
+  // Changement d'email en attente : l'ancienne adresse reste active jusqu'au clic sur le lien
+  // envoyé à la nouvelle (24 h) — lib/emailChange.ts
+  pendingEmail         String?
+  pendingEmailToken    String?   @unique
+  pendingEmailExpires  DateTime?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   status               String    @default("approved")

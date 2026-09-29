@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -18,6 +18,7 @@ interface AdminUser {
   createdAt: string;
   email: string | null;
   emailVerified: boolean;
+  pendingEmail?: string | null;
   _count: { createdCircles: number };
 }
 
@@ -98,6 +99,22 @@ export function AdminPage() {
     await api.delete(`/admin/users/${id}`);
     setConfirmDelete(null);
     fetchData();
+  }
+
+  // Secours : proposer une nouvelle adresse email (la personne confirme via le lien reçu)
+  const [emailEditId, setEmailEditId] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailMsg, setEmailMsg] = useState<{ id: string; ok: boolean; text: string } | null>(null);
+  async function handleChangeEmail(id: string) {
+    try {
+      await api.put(`/admin/users/${id}/email`, { email: emailInput });
+      setEmailMsg({ id, ok: true, text: `Lien de confirmation envoyé à ${emailInput.trim().toLowerCase()}` });
+      setEmailEditId(null); setEmailInput('');
+      fetchData();
+    } catch (err: any) {
+      setEmailMsg({ id, ok: false, text: err.response?.data?.error || 'Envoi impossible' });
+    }
+    setTimeout(() => setEmailMsg(null), 6000);
   }
 
   async function handleResetPassword(id: string) {
@@ -292,6 +309,9 @@ export function AdminPage() {
                         <MailX size={11} /> Pas d'email
                       </span>
                     )}
+                    {u.pendingEmail && (
+                      <span className="text-xs text-amber-600">→ {u.pendingEmail} (en attente de confirmation)</span>
+                    )}
                     <span className="flex items-center gap-1 text-xs text-slate-500">
                       <CircleDot size={11} />
                       {u._count.createdCircles} cercle{u._count.createdCircles !== 1 ? 's' : ''}
@@ -335,6 +355,32 @@ export function AdminPage() {
                     Approuver
                   </button>
                 )}
+                {emailMsg?.id === u.id ? (
+                  <span className={`text-xs font-medium px-2 ${emailMsg.ok ? 'text-emerald-600' : 'text-red-500'}`}>{emailMsg.text}</span>
+                ) : emailEditId === u.id ? (
+                  <div className="flex gap-1.5 items-center">
+                    <input
+                      autoFocus
+                      type="email"
+                      value={emailInput}
+                      onChange={e => setEmailInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && emailInput.trim()) handleChangeEmail(u.id); if (e.key === 'Escape') setEmailEditId(null); }}
+                      placeholder="Nouvelle adresse"
+                      className="w-48 px-2 py-1 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button onClick={() => handleChangeEmail(u.id)} disabled={!emailInput.trim()} className="px-2.5 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-xs font-medium transition-colors disabled:opacity-50">Envoyer le lien</button>
+                    <button onClick={() => setEmailEditId(null)} className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Annuler</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setEmailEditId(u.id); setEmailInput(''); }}
+                    title="Changer l'adresse email (un lien de confirmation est envoyé à la nouvelle adresse)"
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  >
+                    <AtSign size={15} />
+                  </button>
+                )}
+
                 {resetDone?.id === u.id ? (
                   <span className={`text-xs font-medium px-2 ${resetDone.ok ? 'text-emerald-600' : 'text-red-500'}`}>{resetDone.message}</span>
                 ) : confirmReset === u.id ? (

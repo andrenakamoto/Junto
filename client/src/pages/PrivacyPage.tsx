@@ -55,8 +55,9 @@ export function PrivacyPage() {
           <Section title="2. Les données traitées">
             <ul className="list-disc pl-5 space-y-1.5">
               <li><strong>Ton compte</strong> : pseudo, prénom, nom (facultatif), adresse email, mot de passe
-                (conservé uniquement sous forme chiffrée, jamais lisible), et ton identifiant Google si tu te
-                connectes avec Google.</li>
+                (conservé uniquement sous forme chiffrée, jamais lisible), ton identifiant Google si tu te
+                connectes avec Google et, pendant un changement d'adresse, la nouvelle adresse en attente de
+                confirmation (24 h au plus).</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
                 peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
                 dépenses et remboursements.</li>

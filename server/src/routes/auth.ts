@@ -10,6 +10,7 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
+import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailChange } from '../lib/emailChange';
 
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -28,7 +29,7 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
-  password?: string | null;
+  password?: string | null; pendingEmail?: string | null;
 }) {
   return {
     id: user.id,
@@ -42,6 +43,8 @@ function safeUser(user: {
     termsAccepted: user.acceptedTermsVersion >= CURRENT_TERMS_VERSION,
     email: user.email ?? null,
     emailVerified: user.emailVerified ?? false,
+    // Nouvelle adresse en attente de confirmation (changement d'email)
+    pendingEmail: user.pendingEmail ?? null,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
   };
 }
@@ -340,7 +343,7 @@ router.post('/reset-password', async (req, res) => {
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true,
-  firstName: true, lastName: true, password: true,
+  firstName: true, lastName: true, password: true, pendingEmail: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
@@ -453,6 +456,10 @@ router.put('/add-email', requireAuth, async (req: AuthRequest, res) => {
     }
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    // Remplacer une adresse déjà vérifiée passe par /change-email (mot de passe + confirmation)
+    if (user.email && user.emailVerified) {
+      res.status(409).json({ error: 'Pour changer ton adresse, utilise « Changer mon email » dans ton profil' }); return;
+    }
 
     const verifyToken = crypto.randomBytes(32).toString('hex');
     const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -463,6 +470,52 @@ router.put('/add-email', requireAuth, async (req: AuthRequest, res) => {
     await sendVerificationEmail(emailLower, user.pseudo, verifyToken);
     res.json({ ok: true });
   } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Changer son adresse email : mot de passe requis (sauf compte Google, sans mot de passe),
+// puis confirmation par le lien envoyé à la nouvelle adresse — lib/emailChange.ts
+router.post('/change-email', emailActionLimiter, requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    if (user.password) {
+      const password = typeof req.body?.password === 'string' ? req.body.password : '';
+      if (!password || !(await bcrypt.compare(password, user.password))) {
+        res.status(400).json({ error: 'Mot de passe incorrect' }); return;
+      }
+    }
+    const result = await requestEmailChange(user, req.body?.email);
+    if (!result.ok) { res.status(result.status).json({ error: result.error }); return; }
+    const fresh = await prisma.user.findUnique({ where: { id: user.id }, select: meSelect });
+    res.json(safeUser(fresh!));
+  } catch (e) {
+    console.error('[change email]', e);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.post('/change-email/resend', emailActionLimiter, requireAuth, async (req: AuthRequest, res) => {
+  const result = await resendEmailChange(req.userId!);
+  if (!result.ok) { res.status(result.status).json({ error: result.error }); return; }
+  res.json({ ok: true });
+});
+
+router.delete('/change-email', requireAuth, async (req: AuthRequest, res) => {
+  await cancelEmailChange(req.userId!);
+  const user = await prisma.user.findUnique({ where: { id: req.userId }, select: meSelect });
+  res.json(safeUser(user!));
+});
+
+// Clic sur le lien reçu à la nouvelle adresse (pas besoin d'être connecté)
+router.post('/confirm-email-change', emailActionLimiter, async (req, res) => {
+  try {
+    const result = await confirmEmailChange(req.body?.token);
+    if (!result.ok) { res.status(result.status).json({ error: result.error }); return; }
+    res.json({ ok: true, email: result.email });
+  } catch (e) {
+    console.error('[confirm email change]', e);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

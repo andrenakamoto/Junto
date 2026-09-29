@@ -234,8 +234,9 @@ export function GuideModal({ onClose }: Props) {
           <section>
             <h3 className="font-bold text-slate-900 mb-2">16. Ton compte</h3>
             <p>
-              Depuis le menu ☰ en bas à gauche : <strong>Mon profil</strong> (prénom, nom, et ton email en
-              lecture seule), changer ton mot de passe, gérer tes notifications, et{' '}
+              Depuis le menu ☰ en bas à gauche : <strong>Mon profil</strong> (prénom, nom, et ton email :
+              « Changer » envoie un lien de confirmation à la nouvelle adresse, l'ancienne restant active
+              jusqu'au clic), changer ton mot de passe, gérer tes notifications, et{' '}
               <strong>supprimer ton compte</strong> à tout moment. Les Cercles et Plans que tu as créés sont
               alors confiés à d'autres membres plutôt que supprimés.
             </p>

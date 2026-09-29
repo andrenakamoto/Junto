@@ -6,6 +6,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 import { fillDays, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
+import { requestEmailChange } from '../lib/emailChange';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -13,7 +14,7 @@ router.use(requireAdmin as any);
 
 const userSelect = {
   id: true, pseudo: true, firstName: true, lastName: true, status: true, isAdmin: true, createdAt: true,
-  email: true, emailVerified: true,
+  email: true, emailVerified: true, pendingEmail: true,
   _count: { select: { createdCircles: true } },
 };
 
@@ -81,6 +82,20 @@ router.put('/users/:id/reset-password', async (req: AuthRequest, res) => {
     if (!user.email) { res.status(400).json({ error: "Ce compte n'a pas d'email : impossible d'envoyer un lien" }); return; }
     const sent = await sendPasswordReset({ id: user.id, pseudo: user.pseudo, email: user.email }, true);
     if (!sent) { res.status(502).json({ error: "L'email n'a pas pu être envoyé" }); return; }
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Secours : l'admin propose une nouvelle adresse pour un compte (la personne n'a plus accès
+// à l'ancienne). Un lien de confirmation part à la nouvelle adresse : rien ne change sans clic.
+router.put('/users/:id/email', async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true, pseudo: true, firstName: true, email: true } });
+    if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    const result = await requestEmailChange(user, req.body?.email, true);
+    if (!result.ok) { res.status(result.status).json({ error: result.error }); return; }
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
