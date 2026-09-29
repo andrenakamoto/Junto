@@ -122,6 +122,10 @@ Conséquences pratiques :
   bordure `slate-200`, liseré de couleur du Cercle à gauche, élément
   sélectionné en corail plein (`bg-indigo-600`, texte blanc). Logo en
   `LogoFull light`. Les pages d'authentification restent sombres.
+  Depuis le 2026-09-29 : déconnexion en haut à droite de la barre latérale
+  (à côté du logo, plus à côté du menu ☰), boutons « Créer un Cercle » /
+  « Rejoindre un Cercle » sous « Mes Cercles » (retirés du menu), et
+  « Créer un Plan » en bouton corail plein en bas de la liste des Plans.
 - **Écrans peu hauts** : variante Tailwind `short:` (`max-height: 500px`,
   téléphone en paysage, définie dans `tailwind.config.js`). Colonnes et
   fiches (Plan, sondage) y défilent d'un bloc (`short:overflow-y-auto` sur
