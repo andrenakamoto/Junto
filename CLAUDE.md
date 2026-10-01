@@ -471,7 +471,18 @@ Junto/
   section rafraîchit aussi la liste du Cercle (`circleWide`).
 - **PlanDeleteVote**, **PlanChangeLog**
 - **Message** : content, authorId, planId, parentId? (fils de réponse,
-  self-relation "MessageReplies", cascade)
+  self-relation "MessageReplies", cascade), editedAt?, deletedAt?
+  (2026-10-01) : l'auteur modifie ou supprime son message **pendant 15
+  minutes** (`lib/messageEdit.ts`, miroir client
+  `components/chat/MessageEditing.tsx`). Chat des Plans : événements socket
+  `edit-message` / `delete-message` → `message-updated` dans `plan:{id}` ;
+  une mention ajoutée en modifiant notifie dans l'app (pas d'email).
+  Chat des sondages : PUT/DELETE /circles/polls/messages/:id →
+  `poll-message-updated` vers l'audience. Suppression : `content` vidé en
+  base (plus aucun texte conservé), le message reste affiché « Message
+  supprimé » ; `withPlainContent` renvoie un contenu vide pour un message
+  supprimé. Mêmes colonnes sur **CirclePollMessage**, recopiées à la
+  conversion en Plan.
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
   emoji temps réel
 - **Poll** / **PollOption** / **PollVote** : sondages ; `Poll.anonymous`
