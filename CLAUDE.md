@@ -485,6 +485,11 @@ Junto/
   Les dépenses créées avant cette fonctionnalité (2026-08-23) ont
   `splitWith` vide : `computeBalances` retombe alors sur tous les membres
   du Plan pour rester rétrocompatible.
+  **Toute requête qui calcule des soldes doit charger `splitWith`** : le
+  champ est obligatoire dans la signature de `computeBalances` /
+  `computeByCurrency` depuis le 2026-10-01, après un bug où l'email de
+  résumé de fin de Plan (`reminders.ts`) ne le chargeait pas et partageait
+  chaque dépense entre tous les membres.
 - **ExpenseShare** : userId+expenseId (clé composite), les participants
   d'une dépense précise
 - **Reimbursement** : amount, fromUserId, toUserId, planId — enregistre un
