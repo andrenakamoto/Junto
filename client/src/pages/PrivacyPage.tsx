@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '29 septembre 2026';
+const VERSION = '1er octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -20,7 +20,8 @@ const processors: { name: string; role: string; where: string; safeguard: string
   { name: 'Vercel', role: 'hébergement du site evly.ch', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Cloudinary', role: 'stockage des photos et fichiers partagés dans les Plans', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Resend', role: 'envoi des emails (validation, rappels, notifications)', where: 'États-Unis', safeguard: 'clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)' },
-  { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis) et polices de caractères du site', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
+  { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
+  { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 export function PrivacyPage() {
@@ -66,6 +67,10 @@ export function PrivacyPage() {
                 l'heure près, pour compter les membres actifs), la date à laquelle tu as consulté chaque
                 onglet d'un Plan (pour signaler les nouveautés, effacée avec le Plan) et l'adresse IP enregistrée dans les journaux
                 du serveur pour la sécurité.</li>
+              <li><strong>Notifications des apps Android et iPhone</strong> : si tu les autorises, l'identifiant
+                de notification de ton téléphone, effacé quand tu te déconnectes. Une notification indique
+                seulement qui a écrit et dans quel Plan, Cercle ou sondage — jamais le contenu d'un message.
+                Tu peux les couper à tout moment dans les réglages de ton téléphone.</li>
             </ul>
             <p>Nous ne collectons ni date de naissance, ni localisation, ni carnet d'adresses.</p>
           </Section>
