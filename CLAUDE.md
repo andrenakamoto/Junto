@@ -552,9 +552,13 @@ Junto/
   (`CircleSidebar`, nombre = Cercles avec du nouveau), ouvre
   `components/ui/NotificationCenter.tsx` : Plans avec onglets non vus (GET
   /plans, `unseen` — couvre ce qui s'est passé app fermée), demandes
-  d'adhésion en attente, et « Récemment » = historique des notifications
-  reçues dans l'app (`localStorage` `evly_notif_history_<userId>`, 30
-  dernières, 7 jours, DashboardPage). Bouton retour Android : ferme le panneau.
+  d'adhésion en attente, et « À voir » = notifications reçues dans l'app
+  (`localStorage` `evly_notif_history_<userId>`, 30 dernières, 7 jours,
+  DashboardPage), retirées dès que le Plan / sondage / Cercle concerné est
+  ouvert (`dismissHistory`). Bouton retour Android : ferme le panneau. Apps :
+  à l'ouverture et à chaque retour, les notifications EvLY du volet du
+  téléphone sont effacées (`clearDeliveredNotifications`), **sans** être
+  importées dans la cloche (essayé : doublons avec la copie reçue par socket).
 - **PlanDeleteVote**, **PlanChangeLog**
 - **Message** : content, authorId, planId, parentId? (fils de réponse,
   self-relation "MessageReplies", cascade), editedAt?, deletedAt?
