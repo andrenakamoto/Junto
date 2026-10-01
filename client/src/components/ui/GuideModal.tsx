@@ -123,6 +123,12 @@ export function GuideModal({ onClose }: Props) {
               mentionner quelqu'un — s'il est hors ligne partout, il reçoit un email en plus de la
               notification. Tu peux réagir aux messages avec des emojis et répondre dans un fil dédié.
             </p>
+            <p className="mt-1.5">
+              Pendant <strong>15 minutes</strong> après l'envoi, tu peux <strong>modifier</strong> ou{' '}
+              <strong>supprimer</strong> ton message (liens sous le message). Un message modifié porte la
+              mention « (modifié) », un message supprimé est remplacé par « Message supprimé ». Pareil dans
+              le chat des sondages de dates.
+            </p>
           </section>
 
           <section>

@@ -174,6 +174,10 @@ export interface Message {
   author: User;
   planId: string;
   parentId?: string | null;
+  /** Modifié par son auteur (dans les 15 min) */
+  editedAt?: string | null;
+  /** Supprimé par son auteur : contenu vide, affiché « Message supprimé » */
+  deletedAt?: string | null;
   reactions?: MessageReaction[];
   _count?: { replies: number };
 }
@@ -278,5 +282,7 @@ export interface CirclePollMessage {
   id: string;
   content: string;
   createdAt: string;
+  editedAt?: string | null;
+  deletedAt?: string | null;
   author: { id: string; pseudo: string };
 }

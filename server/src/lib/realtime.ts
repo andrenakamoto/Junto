@@ -96,7 +96,8 @@ export async function resolveCircleWrite(req: Request): Promise<WriteTarget> {
     return circle ? { circleId: circle.id } : null;
   }
   if (a === 'polls') {
-    if (c === 'messages') return null; // diffusé à part (poll-message), pas besoin de recharger les listes
+    // Chat du sondage (envoi, modification, suppression) : diffusé à part (poll-message*)
+    if (c === 'messages' || b === 'messages') return null;
     if (b === 'options') {
       const option = await prisma.circlePollOption.findUnique({ where: { id: c }, select: { poll: { select: { circleId: true } } } });
       return option ? { circleId: option.poll.circleId } : null;

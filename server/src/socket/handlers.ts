@@ -2,7 +2,8 @@ import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
-import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { decryptMessage, encryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { countMessageSent, touchUser } from '../lib/activity';
 import { touchPlanSection } from '../lib/planActivity';
 
@@ -172,6 +173,61 @@ export function setupSocketHandlers(io: Server) {
           });
         }
       }
+    });
+
+    // Modifier / supprimer son message dans les 15 minutes (lib/messageEdit.ts)
+    async function editableMessage(messageId: unknown) {
+      if (typeof messageId !== 'string') return null;
+      const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        include: { plan: { select: { disabledFeatures: true, title: true, circleId: true } } },
+      });
+      if (!message || message.plan.disabledFeatures.includes('chat')) return null;
+      return checkMessageEdit(message, socket.data.userId) ? null : message;
+    }
+    const messageInclude = {
+      author: { select: { id: true, pseudo: true } },
+      reactions: { include: { user: { select: { id: true, pseudo: true } } } },
+      _count: { select: { replies: true } },
+    };
+
+    socket.on('edit-message', async ({ messageId, content }: { messageId: string; content: string }) => {
+      const text = cleanContent(content);
+      const message = text && await editableMessage(messageId);
+      if (!message || !text) return;
+      const before = decryptMessage(message.content);
+      const updated = await prisma.message.update({
+        where: { id: message.id },
+        data: { content: encryptMessage(text), editedAt: new Date() },
+        include: messageInclude,
+      });
+      io.to(`plan:${message.planId}`).emit('message-updated', withPlainContent(updated));
+
+      // Seule une mention ajoutée par la modification notifie (dans l'app, sans email)
+      const members = await prisma.planMember.findMany({
+        where: { planId: message.planId, userId: { not: socket.data.userId } },
+        select: { userId: true, user: { select: { pseudo: true } } },
+      });
+      const mentions = (t: string, pseudo: string) => new RegExp(`@${pseudo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t);
+      for (const m of members) {
+        if (mentions(text, m.user.pseudo) && !mentions(before, m.user.pseudo)) {
+          io.to(`user:${m.userId}`).emit('notification', {
+            type: 'mention', planId: message.planId, planTitle: message.plan.title, circleId: message.plan.circleId,
+            from: socket.data.pseudo, preview: text.slice(0, 60),
+          });
+        }
+      }
+    });
+
+    socket.on('delete-message', async ({ messageId }: { messageId: string }) => {
+      const message = await editableMessage(messageId);
+      if (!message) return;
+      const updated = await prisma.message.update({
+        where: { id: message.id },
+        data: { content: '', deletedAt: new Date() },
+        include: messageInclude,
+      });
+      io.to(`plan:${message.planId}`).emit('message-updated', withPlainContent(updated));
     });
 
     socket.on('toggle-reaction', async ({ messageId, emoji }: { messageId: string; emoji: string }) => {

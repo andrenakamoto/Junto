@@ -1,7 +1,8 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
+import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -12,6 +13,9 @@ interface Props {
   onReact: (messageId: string, emoji: string) => void;
   onReply?: (message: Message) => void;
   replyCount?: number;
+  /** Modifier / supprimer son propre message (15 minutes après l'envoi) */
+  onEdit?: (messageId: string, content: string) => void;
+  onDelete?: (messageId: string) => void;
 }
 
 function renderContent(content: string) {
@@ -23,8 +27,12 @@ function renderContent(content: string) {
   ));
 }
 
-export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount }: Props) {
-  const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt));
+export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete }: Props) {
+  const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
+    + (message.editedAt && !message.deletedAt ? ' (modifié)' : '');
+  const deleted = !!message.deletedAt;
+  const editable = useEditWindow(message.createdAt, message.deletedAt, isMe && !!onEdit && !!onDelete);
+  const [editing, setEditing] = useState(false);
 
   const reactionGroups = (message.reactions ?? []).reduce<Record<string, { count: number; mine: boolean }>>((acc, r) => {
     acc[r.emoji] = acc[r.emoji] || { count: 0, mine: false };
@@ -45,16 +53,26 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
         )}
 
         <div className="relative">
-          <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-            isMe
-              ? 'bg-indigo-600 text-white rounded-tr-sm'
-              : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-          }`}>
-            {renderContent(message.content)}
-          </div>
+          {deleted ? (
+            <DeletedBubble isMe={isMe} />
+          ) : editing ? (
+            <MessageEditor
+              initial={message.content}
+              onCancel={() => setEditing(false)}
+              onSave={text => { setEditing(false); onEdit?.(message.id, text); }}
+            />
+          ) : (
+            <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+              isMe
+                ? 'bg-indigo-600 text-white rounded-tr-sm'
+                : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
+            }`}>
+              {renderContent(message.content)}
+            </div>
+          )}
 
           {/* Quick-react toolbar, visible on hover */}
-          <div className={`hidden group-hover:flex absolute -top-3 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-md px-1 py-0.5 gap-0.5 z-10`}>
+          {!deleted && !editing && <div className={`hidden group-hover:flex absolute -top-3 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-md px-1 py-0.5 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}
@@ -64,7 +82,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 {emoji}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         {Object.keys(reactionGroups).length > 0 && (
@@ -93,7 +111,14 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           </button>
         )}
 
-        {isMe && <span className="text-xs text-slate-400">{time}</span>}
+        {isMe && (
+          <span className="flex items-center gap-2">
+            {editable && !editing && (
+              <OwnMessageActions onEdit={() => setEditing(true)} onDelete={() => onDelete?.(message.id)} />
+            )}
+            <span className="text-xs text-slate-400">{time}</span>
+          </span>
+        )}
       </div>
     </div>
   );

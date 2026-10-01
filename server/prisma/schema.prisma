@@ -142,6 +142,8 @@ model CirclePollMessage {
   id        String     @id @default(cuid())
   content   String
   createdAt DateTime   @default(now())
+  editedAt  DateTime?
+  deletedAt DateTime?
   pollId    String
   poll      CirclePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
   authorId  String
@@ -427,9 +429,13 @@ model PlanActivity {
 }
 
 model Message {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  // Modifiable / supprimable par son auteur pendant 15 min (lib/messageEdit.ts). Supprimé :
+  // le contenu est effacé, le message reste pour garder le fil lisible (« Message supprimé »)
+  editedAt  DateTime?
+  deletedAt DateTime?
 
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)

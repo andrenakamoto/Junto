@@ -115,6 +115,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     }
     socket.on('reactions-updated', onReactionsUpdated);
 
+    // Message modifié ou supprimé par son auteur
+    function onMessageUpdated(msg: Message) {
+      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
+      setThreadReplies(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
+    }
+    socket.on('message-updated', onMessageUpdated);
+
     // Après une coupure (veille, réseau, redémarrage du serveur), le serveur a oublié la room
     // du Plan : on la rejoint à nouveau et on recharge les messages manqués.
     function onReconnect() {
@@ -133,6 +140,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       socket.emit('leave-plan', plan.id);
       socket.off('message', onMessage);
       socket.off('reactions-updated', onReactionsUpdated);
+      socket.off('message-updated', onMessageUpdated);
       socket.off('connect', onReconnect);
     };
   }, [plan.id, isMember, token, scrollToBottom]);
@@ -207,6 +215,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   function handleReact(messageId: string, emoji: string) {
     if (!token) return;
     getSocket(token).emit('toggle-reaction', { messageId, emoji });
+  }
+
+  function handleEditMessage(messageId: string, content: string) {
+    if (token) getSocket(token).emit('edit-message', { messageId, content });
+  }
+
+  function handleDeleteMessage(messageId: string) {
+    if (token) getSocket(token).emit('delete-message', { messageId });
   }
 
   function handleOpenThread(message: Message) {
@@ -541,6 +557,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                         onReact={handleReact}
                         onReply={handleOpenThread}
                         replyCount={msg._count?.replies}
+                        onEdit={handleEditMessage}
+                        onDelete={handleDeleteMessage}
                       />
                       {openThreadId === msg.id && (
                         <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
@@ -551,6 +569,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                               isMe={reply.author.id === user.id}
                               myUserId={user.id}
                               onReact={handleReact}
+                              onEdit={handleEditMessage}
+                              onDelete={handleDeleteMessage}
                             />
                           ))}
                         </div>

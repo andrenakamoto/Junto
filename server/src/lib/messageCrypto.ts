@@ -60,6 +60,7 @@ export function decryptMessage(stored: string): string {
 }
 
 // Déchiffre le champ content d'un message (ou d'une liste) avant envoi au client
-export function withPlainContent<T extends { content: string }>(message: T): T {
-  return { ...message, content: decryptMessage(message.content) };
+export function withPlainContent<T extends { content: string; deletedAt?: Date | null }>(message: T): T {
+  // Message supprimé : plus aucun contenu ne sort du serveur
+  return { ...message, content: message.deletedAt ? '' : decryptMessage(message.content) };
 }

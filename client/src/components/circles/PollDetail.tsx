@@ -6,6 +6,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { fullName } from '../../lib/names';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
+import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
 import api from '../../services/api';
 import { isCircleManager } from '../../lib/settings';
@@ -70,6 +71,11 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
     setMessages(prev => prev.some(m => m.id === p.message.id) ? prev : [...prev, p.message]);
   });
   useSocketEvent('connect', () => { loadPoll(); loadMessages(); });
+  // Message modifié ou supprimé par son auteur
+  const replaceMessage = (msg: CirclePollMessage) => setMessages(prev => prev.map(m => m.id === msg.id ? msg : m));
+  useSocketEvent<{ pollId: string; message: CirclePollMessage }>('poll-message-updated', p => {
+    if (p.pollId === pollId) replaceMessage(p.message);
+  });
 
   if (!user) return null;
   if (!poll) {
@@ -265,26 +271,15 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
                 Aucun message. Discutez ici des dates proposées !
                 <p className="text-xs mt-1">La conversation sera reprise dans le chat du Plan créé.</p>
               </div>
-            ) : messages.map(m => {
-              const isMe = m.author.id === user.id;
-              const time = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(m.createdAt));
-              return (
-                <div key={m.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-                  {!isMe && <Avatar pseudo={m.author.pseudo} size="sm" />}
-                  <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                    <div className="flex items-center gap-2">
-                      {!isMe && <span className="text-xs font-semibold text-slate-600">{m.author.pseudo}</span>}
-                      <span className="text-xs text-slate-400">{time}</span>
-                    </div>
-                    <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-                      isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-                    }`}>
-                      {m.content}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            ) : messages.map(m => (
+              <PollChatMessage
+                key={m.id}
+                message={m}
+                isMe={m.author.id === user.id}
+                onEdit={content => api.put(`/circles/polls/messages/${m.id}`, { content }).then(r => replaceMessage(r.data)).catch(() => {})}
+                onDelete={() => api.delete(`/circles/polls/messages/${m.id}`).then(r => replaceMessage(r.data)).catch(() => {})}
+              />
+            ))}
             <div ref={endRef} />
           </div>
           <ChatInput onSend={handleSend} members={audience.map(m => ({ pseudo: m.user.pseudo }))} />
@@ -324,6 +319,39 @@ function PeopleGroup({ title, tone, people, empty }: { title: string; tone: 'amb
             {people.map((p, i) => <span key={i} className={`text-xs px-2.5 py-1 rounded-full font-medium ${chip}`}>{p}</span>)}
           </div>
         )}
+    </div>
+  );
+}
+
+// Message du chat d'un sondage, modifiable / supprimable par son auteur pendant 15 minutes
+function PollChatMessage({ message: m, isMe, onEdit, onDelete }: {
+  message: CirclePollMessage; isMe: boolean; onEdit: (content: string) => void; onDelete: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const editable = useEditWindow(m.createdAt, m.deletedAt, isMe);
+  const time = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(m.createdAt))
+    + (m.editedAt && !m.deletedAt ? ' (modifié)' : '');
+  return (
+    <div className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
+      {!isMe && <Avatar pseudo={m.author.pseudo} size="sm" />}
+      <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+        <div className="flex items-center gap-2">
+          {!isMe && <span className="text-xs font-semibold text-slate-600">{m.author.pseudo}</span>}
+          <span className="text-xs text-slate-400">{time}</span>
+        </div>
+        {m.deletedAt ? (
+          <DeletedBubble isMe={isMe} />
+        ) : editing ? (
+          <MessageEditor initial={m.content} onCancel={() => setEditing(false)} onSave={text => { setEditing(false); onEdit(text); }} />
+        ) : (
+          <div className={`px-4 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+            isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
+          }`}>
+            {m.content}
+          </div>
+        )}
+        {editable && !editing && <OwnMessageActions onEdit={() => setEditing(true)} onDelete={onDelete} />}
+      </div>
     </div>
   );
 }

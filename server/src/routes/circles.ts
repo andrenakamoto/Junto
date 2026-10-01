@@ -8,6 +8,7 @@ import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circl
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
 import { sortCircles } from '../lib/planOrder';
@@ -905,6 +906,33 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
   }
 });
 
+// Modifier / supprimer son message dans le chat d'un sondage (15 minutes, lib/messageEdit.ts)
+async function editPollMessage(req: AuthRequest, res: any, change: (text: string | null) => object | null) {
+  const message = await prisma.circlePollMessage.findUnique({ where: { id: req.params.messageId } });
+  const access = message && await getVisiblePoll(message.pollId, req.userId!);
+  if (!message || !access || 'error' in access) { res.status(404).json({ error: 'Message introuvable' }); return; }
+  const refused = checkMessageEdit(message, req.userId!);
+  if (refused) { res.status(403).json({ error: refused }); return; }
+  const data = change(cleanContent(req.body?.content));
+  if (!data) { res.status(400).json({ error: 'Message vide ou trop long (2000 caractères max)' }); return; }
+  const updated = withPlainContent(await prisma.circlePollMessage.update({ where: { id: message.id }, data, include: pollMessageInclude }));
+  res.json(updated);
+  try {
+    const io = req.app.get('io');
+    for (const m of await pollAudience(message.pollId, access.poll.circleId)) {
+      io?.to(`user:${m.userId}`).emit('poll-message-updated', { pollId: message.pollId, message: updated });
+    }
+  } catch (e) {
+    console.error('[poll message update]', e);
+  }
+}
+
+router.put('/polls/messages/:messageId', (req: AuthRequest, res) =>
+  editPollMessage(req, res, text => text ? { content: encryptMessage(text), editedAt: new Date() } : null));
+
+router.delete('/polls/messages/:messageId', (req: AuthRequest, res) =>
+  editPollMessage(req, res, () => ({ content: '', deletedAt: new Date() })));
+
 // Convertit l'option gagnante d'un sondage en Plan (créateur du sondage, ou créateur/organisateurs du Cercle).
 // Le chat du sondage est recopié au début du chat du Plan, puis le sondage est
 // supprimé (il n'a plus d'utilité et ses données seraient conservées en double).
@@ -936,7 +964,7 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   await prisma.$transaction([
     prisma.message.createMany({
       // Contenu recopié tel quel : déjà chiffré avec la même clé
-      data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt })),
+      data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt, editedAt: m.editedAt, deletedAt: m.deletedAt })),
     }),
     prisma.circlePoll.delete({ where: { id: poll.id } }),
   ]);
