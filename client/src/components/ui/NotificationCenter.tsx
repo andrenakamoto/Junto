@@ -9,8 +9,8 @@ import type { Circle, Plan } from '../../types';
 //  - Nouveautés dans tes Plans : onglets non consultés (serveur, `unseen`), donc aussi ce
 //    qui s'est passé pendant que l'app était fermée ;
 //  - Demandes pour rejoindre un Cercle en attente ;
-//  - Récemment : historique des notifications reçues pendant l'utilisation de l'app,
-//    gardé sur l'appareil (DashboardPage).
+//  - À voir : notifications reçues dans l'app, gardées sur l'appareil jusqu'à ce que ce
+//    qu'elles concernent soit ouvert (DashboardPage, dismissHistory).
 
 const SECTION_LABELS: Record<string, string> = {
   chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
@@ -103,21 +103,19 @@ export function NotificationCenter({ circles, history, onClose, onOpenPlan, onOp
         {history.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Récemment</h3>
-              <button onClick={onClearHistory} className="text-xs text-slate-400 hover:text-slate-700">Effacer</button>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">À voir</h3>
+              <button onClick={onClearHistory} className="text-xs text-slate-400 hover:text-slate-700">Tout effacer</button>
             </div>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
               {history.map(n => {
                 const cfg = NOTIF_CONFIG[n.type];
                 if (!cfg) return null;
                 const Icon = cfg.icon;
-                const clickable = !!(n.planId || n.circleId);
                 return (
                   <button
                     key={n.id}
-                    disabled={!clickable}
                     onClick={() => { onClose(); onOpenNotification(n); }}
-                    className="w-full flex items-start gap-3 px-3 py-2.5 bg-white hover:bg-slate-50 disabled:hover:bg-white text-left"
+                    className="w-full flex items-start gap-3 px-3 py-2.5 bg-white hover:bg-slate-50 text-left"
                   >
                     <Icon size={16} className="text-indigo-600 mt-0.5 flex-shrink-0" />
                     <span className="flex-1 min-w-0">

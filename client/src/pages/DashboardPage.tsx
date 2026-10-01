@@ -21,6 +21,7 @@ import { getPendingInvite } from '../lib/pendingInvite';
 import { useSocketEvent } from '../hooks/useSocketEvent';
 import { sortCircles, sortPlans } from '../lib/order';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
+import { clearDeliveredNotifications, pushAvailable } from '../lib/push';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -52,6 +53,15 @@ export function DashboardPage() {
     } catch { return []; }
   });
   const [showNotifCenter, setShowNotifCenter] = useState(false);
+  // Apps : à l'ouverture (et à chaque retour dans l'app), les notifications du volet du
+  // téléphone disparaissent
+  useEffect(() => {
+    if (!pushAvailable || !user) return;
+    function clear() { if (!document.hidden) clearDeliveredNotifications(); }
+    clear();
+    document.addEventListener('visibilitychange', clear);
+    return () => document.removeEventListener('visibilitychange', clear);
+  }, [user?.id]);
   useEffect(() => {
     try { localStorage.setItem(historyKey, JSON.stringify(notifHistory)); } catch { /* stockage indisponible */ }
   }, [notifHistory, historyKey]);
@@ -300,7 +310,14 @@ export function DashboardPage() {
     }
   }
 
+  // Cloche : une notification disparaît de la liste dès que ce qu'elle concerne est ouvert
+  // (Plan, sondage, ou Cercle pour les demandes d'adhésion)
+  function dismissHistory(match: (n: AppNotification) => boolean) {
+    setNotifHistory(prev => (prev.some(match) ? prev.filter(n => !match(n)) : prev));
+  }
+
   function openPoll(pollId: string) {
+    dismissHistory(n => n.pollId === pollId);
     setSelectedPlan(null);
     setSelectedPollId(pollId);
     setMobileView('detail');
@@ -313,6 +330,7 @@ export function DashboardPage() {
     setCalendarActive(false);
     setMobileView('plans');
     clearCircle(id);
+    dismissHistory(n => n.circleId === id && !n.planId && !n.pollId);
   }
 
   function handleAllPlans() {
@@ -336,6 +354,7 @@ export function DashboardPage() {
   function handleSelectPlan(plan: Plan) {
     setSelectedPollId(null);
     clearPlan(plan.id);
+    dismissHistory(n => n.planId === plan.id);
     if (plan.circleId && circles.some(c => c.id === plan.circleId)) {
       clearCircle(plan.circleId);
       setSelectedCircleId(plan.circleId);
@@ -440,7 +459,7 @@ export function DashboardPage() {
         onClose={() => setShowNotifCenter(false)}
         onOpenPlan={handleSelectPlan}
         onOpenCircle={handleSelectCircle}
-        onOpenNotification={openNotification}
+        onOpenNotification={n => { dismissHistory(x => x.id === n.id); openNotification(n); }}
         onClearHistory={() => setNotifHistory([])}
       />
     )}

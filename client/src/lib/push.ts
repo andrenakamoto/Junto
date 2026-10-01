@@ -72,3 +72,11 @@ export function listenPush(openUrl: (url: string) => void) {
   ];
   return () => { subs.forEach(s => s.then(h => h.remove())); };
 }
+
+// À l'ouverture de l'app (et à chaque retour dedans) : les notifications EvLY affichées dans
+// le volet du téléphone disparaissent — ce qu'elles annoncent se retrouve dans l'app (cloche,
+// pastilles des Plans)
+export function clearDeliveredNotifications() {
+  if (!pushAvailable) return;
+  FirebaseMessaging.removeAllDeliveredNotifications().catch(() => {});
+}
