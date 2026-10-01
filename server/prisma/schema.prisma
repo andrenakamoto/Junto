@@ -31,6 +31,9 @@ model User {
   isAdmin              Boolean   @default(false)
   acceptedTermsVersion Int       @default(0)
   weeklyDigestEnabled  Boolean   @default(true)
+  // Canal des notifications (lib/notificationPrefs.ts) : push | both | email. N'affecte ni les
+  // emails indispensables (validation, mot de passe…) ni les notifications dans l'app.
+  notificationChannel  String    @default("both")
   lastDigestSentAt     DateTime?
   createdAt            DateTime  @default(now())
   // Dernière utilisation de l'app (au plus une mise à jour par heure, lib/activity.ts) —

@@ -13,7 +13,11 @@ export interface User {
   /** Nouvelle adresse en attente de confirmation (changement d'email) */
   pendingEmail?: string | null;
   weeklyDigestEnabled: boolean;
+  /** Canal des notifications : push, push + email (défaut) ou email */
+  notificationChannel?: NotificationChannel;
 }
+
+export type NotificationChannel = 'push' | 'both' | 'email';
 
 export interface CircleMember {
   userId: string;

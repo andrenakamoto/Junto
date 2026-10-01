@@ -1,6 +1,8 @@
 import prisma from './prisma';
-import { resend, FROM_EMAIL, APP_URL } from './mailer';
+import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { pollExpiresAt } from './pollExpiry';
+import { wantsEmail } from './notificationPrefs';
+import { sendPush } from './push';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -34,7 +36,7 @@ export async function sendPollReminders() {
       where: { resolvedAt: null, reminderSentAt: null, createdAt: { lt: new Date(now - 12 * HOUR) } },
       include: {
         options: { include: { votes: { select: { userId: true } } } },
-        creator: { select: { pseudo: true, email: true, emailVerified: true } },
+        creator: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } },
         circle: { select: { id: true, name: true } },
       },
     });
@@ -45,7 +47,9 @@ export async function sendPollReminders() {
 
       // Marqué avant l'envoi : un échec d'email ne doit pas provoquer un rappel toutes les 15 min
       await prisma.circlePoll.update({ where: { id: poll.id }, data: { reminderSentAt: new Date() } });
-      if (!poll.creator.email || !poll.creator.emailVerified) continue;
+      sendPush(poll.creator.id, { type: 'poll_reminder', circleId: poll.circle.id, pollId: poll.id, planTitle: poll.question })
+        .catch(e => console.error('[poll_reminder push]', e));
+      if (!poll.creator.email || !poll.creator.emailVerified || !wantsEmail(poll.creator.notificationChannel)) continue;
 
       const voters = new Set(poll.options.flatMap(o => o.votes.map(v => v.userId))).size;
       const open = poll.options.filter(o => !o.eventDate || o.eventDate.getTime() > now);
@@ -67,6 +71,7 @@ export async function sendPollReminders() {
             <a href="${APP_URL}/dashboard?circleId=${poll.circle.id}&pollId=${poll.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Créer le Plan
             </a>
+          ${notificationFooter()}
           </div>`,
       }).catch(e => ({ data: null, error: e }));
       if (r.error) console.error('[poll_reminder email]', poll.id, r.error);

@@ -1,8 +1,10 @@
 import prisma from './prisma';
 import { purgePlanFiles } from './cloudinary';
 import { visiblePlansWhere } from './planAccess';
-import { resend, FROM_EMAIL, APP_URL } from './mailer';
+import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { computeByCurrency, formatAmount } from './expenses';
+import { wantsEmail } from './notificationPrefs';
+import { sendPush } from './push';
 
 const REMINDER_WINDOW_START_H = 23;
 const REMINDER_WINDOW_END_H = 25;
@@ -86,7 +88,7 @@ export async function sendPlanReminders() {
       include: {
         members: {
           where: { rsvp: { in: ['in', 'maybe'] } },
-          include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true } } },
+          include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } } },
         },
       },
     });
@@ -94,7 +96,13 @@ export async function sendPlanReminders() {
     for (const plan of plans) {
       const recipients = plan.members
         .map(m => m.user)
-        .filter(u => u.email && u.emailVerified);
+        .filter(u => u.email && u.emailVerified && wantsEmail(u.notificationChannel));
+
+      // Rappel aussi en push, pour ceux qui l'ont choisi (filtré dans sendPush)
+      for (const m of plan.members) {
+        sendPush(m.user.id, { type: 'plan_reminder', planId: plan.id, planTitle: plan.title, circleId: plan.circleId })
+          .catch(e => console.error('[reminder push]', e));
+      }
 
       const eventDateFmt = plan.eventDate
         ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(plan.eventDate)
@@ -111,6 +119,7 @@ export async function sendPlanReminders() {
             <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>
+          ${notificationFooter()}
           </div>`,
       }).then(r => {
         if (r.error) console.error('[reminder email]', u.email, r.error);
@@ -180,9 +189,7 @@ export async function sendWeeklyDigest() {
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Ouvrir EvLY
             </a>
-            <p style="color:#888;font-size:12px;margin-top:24px">
-              Tu reçois cet email chaque lundi. Tu peux le désactiver dans les paramètres de notifications.
-            </p>
+          ${notificationFooter('digest')}
           </div>`,
       }).catch(e => { console.error('[digest email]', user.email, e); return null; });
       if (result?.error) console.error('[digest email]', user.email, result.error);

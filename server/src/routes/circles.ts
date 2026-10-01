@@ -2,7 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
@@ -14,6 +14,7 @@ import { countMessageSent } from '../lib/activity';
 import { sortCircles } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
+import { wantsEmail } from '../lib/notificationPrefs';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -147,9 +148,9 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
     }
     const approvedUser = await prisma.user.findUnique({
       where: { id: request.userId },
-      select: { email: true, emailVerified: true, pseudo: true },
+      select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true },
     });
-    if (updatedCircle && approvedUser?.email && approvedUser.emailVerified) {
+    if (updatedCircle && approvedUser?.email && approvedUser.emailVerified && wantsEmail(approvedUser.notificationChannel)) {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: approvedUser.email,
@@ -161,6 +162,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Ouvrir EvLY
             </a>
+          ${notificationFooter()}
           </div>`,
       }).then(r => { if (r.error) console.error('[join_accepted email]', approvedUser.email, r.error); });
     }
@@ -271,7 +273,7 @@ router.post('/join', async (req: AuthRequest, res) => {
     const io = req.app.get('io');
     const members = await prisma.circleMember.findMany({
       where: { circleId: circle.id, ...(byCreator && { OR: [{ userId: circle.creatorId }, { role: ORGANIZER_ROLE }] }) },
-      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } },
+      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } },
     });
     if (io) {
       for (const m of members) {
@@ -283,7 +285,7 @@ router.post('/join', async (req: AuthRequest, res) => {
         });
       }
     }
-    const recipients = members.filter(m => m.user.email && m.user.emailVerified);
+    const recipients = members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
     await Promise.all(recipients.map(m => resend.emails.send({
       from: FROM_EMAIL,
       to: m.user.email!,
@@ -296,7 +298,8 @@ router.post('/join', async (req: AuthRequest, res) => {
           <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir la demande
           </a>
-        </div>`,
+        ${notificationFooter()}
+          </div>`,
     }).then(r => { if (r.error) console.error('[join_request email]', m.user.email, r.error); })
       .catch(e => console.error('[join_request email]', m.user.email, e))));
   } catch (e) {
@@ -496,7 +499,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     where: { id: circleId },
     select: {
       name: true,
-      members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } } },
+      members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } } },
     },
   });
   if (!circle) return;
@@ -516,7 +519,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     }
   }
 
-  const recipients = otherMembers.filter((m: any) => m.user.email && m.user.emailVerified);
+  const recipients = otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
   await Promise.all(recipients.map((m: any) => resend.emails.send({
     from: FROM_EMAIL,
     to: m.user.email!,
@@ -529,7 +532,8 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
         <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Voir le Plan
         </a>
-      </div>`,
+      ${notificationFooter()}
+          </div>`,
   }).then(r => { if (r.error) console.error('[new_plan email]', m.user.email, r.error); })
     .catch(e => console.error('[new_plan email]', m.user.email, e))));
 }
@@ -694,7 +698,7 @@ async function pollAudience(pollId: string, circleId: string) {
   const [members, exclusions] = await Promise.all([
     prisma.circleMember.findMany({
       where: { circleId },
-      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true } } },
+      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } },
     }),
     prisma.circlePollExclusion.findMany({ where: { pollId }, select: { userId: true } }),
   ]);
@@ -780,7 +784,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
         }
       }
 
-      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified);
+      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
       await Promise.all(recipients.map(m => resend.emails.send({
         from: FROM_EMAIL,
         to: m.user.email!,
@@ -794,6 +798,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le sondage
             </a>
+          ${notificationFooter()}
           </div>`,
       }).then(r => { if (r.error) console.error('[circle_poll email]', m.user.email, r.error); })
         .catch(e => console.error('[circle_poll email]', m.user.email, e))));

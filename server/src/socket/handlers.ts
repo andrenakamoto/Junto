@@ -1,12 +1,13 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
-import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { decryptMessage, encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { countMessageSent, touchUser } from '../lib/activity';
 import { touchPlanSection } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
+import { wantsEmail } from '../lib/notificationPrefs';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
@@ -115,7 +116,7 @@ export function setupSocketHandlers(io: Server) {
         where: { id: planId },
         select: {
           title: true, circleId: true,
-          members: { select: { userId: true, user: { select: { pseudo: true, email: true, emailVerified: true } } } },
+          members: { select: { userId: true, user: { select: { pseudo: true, email: true, emailVerified: true, notificationChannel: true } } } },
         },
       });
       if (!planData) return;
@@ -144,7 +145,7 @@ export function setupSocketHandlers(io: Server) {
 
       // Email aux membres mentionnés hors ligne (pas de connexion active du tout)
       const offlineMentioned = planData.members.filter(
-        m => mentioned.has(m.userId) && (onlineCounts.get(m.userId) ?? 0) === 0 && m.user.email && m.user.emailVerified,
+        m => mentioned.has(m.userId) && (onlineCounts.get(m.userId) ?? 0) === 0 && m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel),
       );
       await Promise.all(offlineMentioned.map(m => resend.emails.send({
         from: FROM_EMAIL,
@@ -157,6 +158,7 @@ export function setupSocketHandlers(io: Server) {
             <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le message
             </a>
+          ${notificationFooter()}
           </div>`,
       }).then(r => { if (r.error) console.error('[mention email]', m.user.email, r.error); })
         .catch(e => console.error('[mention email]', m.user.email, e))));

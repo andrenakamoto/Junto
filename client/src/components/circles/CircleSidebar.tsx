@@ -8,7 +8,7 @@ import { DeleteAccountModal } from '../ui/DeleteAccountModal';
 import { fullName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { disconnectSocket } from '../../lib/socket';
@@ -45,6 +45,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  // Lien « Gérer mes notifications » des emails : /dashboard?reglages=notifications
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('reglages') !== 'notifications') return;
+    setShowNotifSettings(true);
+    setSearchParams(prev => { prev.delete('reglages'); return prev; }, { replace: true });
+  }, [searchParams]);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
   const [colorPopover, setColorPopover] = useState<string | null>(null);
   const [requestsPopover, setRequestsPopover] = useState<string | null>(null);

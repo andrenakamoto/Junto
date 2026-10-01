@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import prisma from '../lib/prisma';
+import { parseNotificationChannel } from '../lib/notificationPrefs';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { loginLimiter, registerLimiter, emailActionLimiter } from '../middleware/rateLimit';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
@@ -29,7 +30,7 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
-  password?: string | null; pendingEmail?: string | null;
+  password?: string | null; pendingEmail?: string | null; notificationChannel?: string;
 }) {
   return {
     id: user.id,
@@ -46,6 +47,7 @@ function safeUser(user: {
     // Nouvelle adresse en attente de confirmation (changement d'email)
     pendingEmail: user.pendingEmail ?? null,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
+    notificationChannel: user.notificationChannel ?? 'both',
   };
 }
 
@@ -342,7 +344,7 @@ router.post('/reset-password', async (req, res) => {
 
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
-  email: true, emailVerified: true, weeklyDigestEnabled: true,
+  email: true, emailVerified: true, weeklyDigestEnabled: true, notificationChannel: true,
   firstName: true, lastName: true, password: true, pendingEmail: true,
 };
 
@@ -415,11 +417,16 @@ router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthReques
 });
 
 router.put('/notification-settings', requireAuth, async (req: AuthRequest, res) => {
+  // Chaque champ est facultatif : on ne modifie que ceux envoyés
   const { weeklyDigestEnabled } = req.body;
-  if (typeof weeklyDigestEnabled !== 'boolean') { res.status(400).json({ error: 'Champ invalide' }); return; }
+  const notificationChannel = req.body.notificationChannel === undefined ? undefined : parseNotificationChannel(req.body.notificationChannel);
+  if ((weeklyDigestEnabled !== undefined && typeof weeklyDigestEnabled !== 'boolean') || notificationChannel === null
+    || (weeklyDigestEnabled === undefined && notificationChannel === undefined)) {
+    res.status(400).json({ error: 'Champ invalide' }); return;
+  }
   const user = await prisma.user.update({
     where: { id: req.userId },
-    data: { weeklyDigestEnabled },
+    data: { weeklyDigestEnabled, notificationChannel },
     select: meSelect,
   });
   res.json(safeUser(user));

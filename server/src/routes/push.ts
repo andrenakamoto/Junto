@@ -12,6 +12,13 @@ function readToken(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 && value.length <= 4096 ? value : null;
 }
 
+// Nombre d'appareils (téléphones avec l'app) qui reçoivent les notifications de ce compte —
+// affiché dans les réglages des notifications
+router.get('/devices', async (req: AuthRequest, res) => {
+  const count = await prisma.pushToken.count({ where: { userId: req.userId! } });
+  res.json({ count });
+});
+
 // Enregistre l'appareil pour le compte connecté (un appareil passe au dernier compte connecté)
 router.post('/token', async (req: AuthRequest, res) => {
   const token = readToken(req.body?.token);
