@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { NativeChrome } from './components/NativeChrome';
 import { useAuth } from './contexts/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { SetupPage } from './pages/SetupPage';
@@ -38,6 +39,7 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <NativeChrome />
       <Routes>
         <Route path="/auth"                  element={<AuthPage />} />
         <Route path="/setup"                 element={<SetupPage />} />

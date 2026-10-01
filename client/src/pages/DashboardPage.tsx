@@ -172,15 +172,16 @@ export function DashboardPage() {
       .catch(() => {});
   }, [circles, circlesLoaded, searchParams]);
 
-  // Deep-link vers un sondage de dates (?circleId=...&pollId=..., ex. email de rappel)
+  // Deep-link vers un Cercle (?circleId=...) ou un sondage de dates (&pollId=..., ex. email
+  // de rappel, notification push)
   useEffect(() => {
     const deepLinkPollId = searchParams.get('pollId');
     const deepLinkCircleId = searchParams.get('circleId');
-    if (!deepLinkPollId || !deepLinkCircleId || !circlesLoaded) return;
+    if (!deepLinkCircleId || !circlesLoaded) return;
     setSearchParams(prev => { prev.delete('pollId'); prev.delete('circleId'); return prev; }, { replace: true });
     if (!circles.some(c => c.id === deepLinkCircleId)) return;
     handleSelectCircle(deepLinkCircleId);
-    openPoll(deepLinkPollId);
+    if (deepLinkPollId) openPoll(deepLinkPollId);
   }, [circles, circlesLoaded, searchParams]);
 
   useEffect(() => {
@@ -357,6 +358,30 @@ export function DashboardPage() {
     return set;
   }, [unreadCircles, circles, plans, selectedCircleId]);
 
+  // Bouton retour Android (événement « evly-back » de NativeChrome) : écran étroit →
+  // Plan/sondage → Plans → Cercles ; écran large → fermer le Plan ou le sondage ouvert.
+  const backState = useRef({ mobileView, open: false });
+  backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId };
+  useEffect(() => {
+    function onBack(e: Event) {
+      const { mobileView: view, open } = backState.current;
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        if (!open) return;
+        setSelectedPlan(null);
+        setSelectedPollId(null);
+      } else if (view === 'detail') {
+        setMobileView('plans');
+      } else if (view === 'plans') {
+        setMobileView('circles');
+      } else {
+        return; // déjà sur les Cercles : l'app passe en arrière-plan
+      }
+      e.preventDefault();
+    }
+    window.addEventListener('evly-back', onBack);
+    return () => window.removeEventListener('evly-back', onBack);
+  }, []);
+
   const showCircles = mobileView === 'circles';
   const showPlans   = mobileView === 'plans';
   const showDetail  = mobileView === 'detail';
@@ -382,7 +407,7 @@ export function DashboardPage() {
       }}
     />
     {/* Les bandeaux prennent leur place dans la hauteur de l'écran au lieu de pousser le bas hors de la vue */}
-    <div className="h-dvh flex flex-col bg-slate-100">
+    <div className="app-screen flex flex-col bg-slate-100">
     <EmailMigrationBanner />
     <ProfileNameBanner />
     <div className="flex flex-1 min-h-0 bg-slate-100 overflow-hidden">

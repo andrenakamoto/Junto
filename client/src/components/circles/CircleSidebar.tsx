@@ -18,6 +18,7 @@ import { JoinCircleModal } from './JoinCircleModal';
 import { Avatar } from '../ui/Avatar';
 import { isCircleManager } from '../../lib/settings';
 import { JoinRequestList } from './JoinRequestList';
+import { siteUrl } from '../../lib/siteUrl';
 
 interface Props {
   circles: Circle[];
@@ -390,7 +391,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               Conditions d'utilisation
             </button>
             <a
-              href="/confidentialite"
+              href={siteUrl('/confidentialite')}
               target="_blank"
               rel="noopener"
               onClick={() => setShowMenu(false)}

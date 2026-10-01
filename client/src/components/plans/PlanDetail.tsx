@@ -158,6 +158,15 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     setThreadReplies([]);
   }, [plan.id]);
 
+  // Clavier ouvert (ou fermé) : l'écran se redimensionne, on garde les derniers messages
+  // visibles au-dessus du champ de saisie
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const onResize = () => { if (tabRef.current === 'chat') setTimeout(scrollToBottom, 60); };
+    (vv ?? window).addEventListener('resize', onResize);
+    return () => (vv ?? window).removeEventListener('resize', onResize);
+  }, [scrollToBottom]);
+
   // Pastilles « nouveau » : l'onglet affiché est marqué comme vu (côté serveur, pour tous
   // les appareils) dès qu'il a du nouveau, y compris quand le Plan se recharge en direct
   const unseenKey = (plan.unseen ?? []).join(',');

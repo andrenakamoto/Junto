@@ -2,15 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, ArrowRight, FileText } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
+import { siteUrl } from '../lib/siteUrl';
 
 type Mode = 'login' | 'register';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+// Connexion Google dans les apps : nécessite un client OAuth iOS (VITE_GOOGLE_IOS_CLIENT_ID) et,
+// pour Android, l'empreinte SHA-1 de la clé de signature déclarée dans la console Google Cloud.
+// Tant que VITE_GOOGLE_NATIVE n'est pas à « 1 », le bouton est masqué dans les apps.
+const GOOGLE_IOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID || '';
+const NATIVE_GOOGLE_ENABLED = Capacitor.isNativePlatform() && import.meta.env.VITE_GOOGLE_NATIVE === '1' && !!GOOGLE_CLIENT_ID;
 
 export function AuthPage() {
   const { login } = useAuth();
@@ -39,13 +45,18 @@ export function AuthPage() {
     api.get('/auth/needs-setup').then(res => {
       if (res.data.needsSetup) navigate('/setup');
     });
-    // Plugin natif uniquement : sur le web, voir GoogleWebButton (Google Identity Services)
-    if (Capacitor.isNativePlatform()) {
-      GoogleAuth.initialize({
-        clientId: GOOGLE_CLIENT_ID,
-        scopes: ['profile', 'email'],
-        grantOfflineAccess: false,
-      });
+    // Plugin natif uniquement : sur le web, voir GoogleWebButton (Google Identity Services).
+    // Le jeton est émis pour le client web (webClientId / iOSServerClientId) : le serveur
+    // le vérifie comme celui du site.
+    if (NATIVE_GOOGLE_ENABLED) {
+      SocialLogin.initialize({
+        google: {
+          webClientId: GOOGLE_CLIENT_ID,
+          iOSClientId: GOOGLE_IOS_CLIENT_ID,
+          iOSServerClientId: GOOGLE_CLIENT_ID,
+          mode: 'online',
+        },
+      }).catch(() => {});
     }
   }, [navigate]);
 
@@ -69,7 +80,7 @@ export function AuthPage() {
         const isEmail = email.includes('@');
         const { data } = await api.post('/auth/login', isEmail ? { email, password } : { pseudo: email, password });
         login(data.token, data.user);
-        navigate(afterLogin);
+        navigate(afterLogin, { replace: true });
       }
     } catch (err: any) {
       const code = err.response?.data?.error;
@@ -91,11 +102,12 @@ export function AuthPage() {
     setGoogleLoading(true);
     setError('');
     try {
-      const googleUser = await GoogleAuth.signIn();
-      const idToken = googleUser.authentication.idToken;
+      const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+      const idToken = res.provider === 'google' && 'idToken' in res.result ? res.result.idToken : null;
+      if (!idToken) throw new Error('Pas de jeton Google');
       const { data } = await api.post('/auth/google', { idToken });
       login(data.token, data.user);
-      navigate(afterLogin);
+      navigate(afterLogin, { replace: true });
     } catch (err: any) {
       if (err?.error !== 'popup_closed_by_user' && err?.message !== 'User cancelled.') {
         setError('Connexion Google annulée ou échouée.');
@@ -111,7 +123,7 @@ export function AuthPage() {
     try {
       const { data } = await api.post('/auth/google', { idToken });
       login(data.token, data.user);
-      navigate(afterLogin);
+      navigate(afterLogin, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || err.response?.data?.error || 'Connexion Google échouée.');
     } finally {
@@ -135,7 +147,7 @@ export function AuthPage() {
           <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Events Linked to You</p>
           <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
           <a
-            href="/decouvrir.html"
+            href={siteUrl('/decouvrir.html')}
             target="_blank"
             rel="noopener"
             className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-4 decoration-indigo-400/50"
@@ -145,7 +157,7 @@ export function AuthPage() {
           </a>
           <br />
           <a
-            href="/brochure"
+            href={siteUrl('/brochure')}
             target="_blank"
             rel="noopener"
             className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-400 hover:text-slate-200 underline underline-offset-4 decoration-slate-500/50"
@@ -200,7 +212,7 @@ export function AuthPage() {
                 )}
               </>
             )
-          ) : (
+          ) : NATIVE_GOOGLE_ENABLED && (
           <button
             type="button"
             onClick={handleGoogleSignIn}
@@ -222,11 +234,13 @@ export function AuthPage() {
           </button>
           )}
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-slate-700" />
-            <span className="text-xs text-slate-500 font-medium">ou</span>
-            <div className="flex-1 h-px bg-slate-700" />
-          </div>
+          {(!Capacitor.isNativePlatform() ? !!GOOGLE_CLIENT_ID : NATIVE_GOOGLE_ENABLED) && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-slate-700" />
+              <span className="text-xs text-slate-500 font-medium">ou</span>
+              <div className="flex-1 h-px bg-slate-700" />
+            </div>
+          )}
 
           {/* Formulaire email */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -290,7 +304,7 @@ export function AuthPage() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder={mode === 'login' ? 'toi@example.com ou ton_pseudo' : 'toi@example.com'}
                 required
-                autoFocus={mode === 'login'}
+                autoFocus={mode === 'login' && !Capacitor.isNativePlatform()}
                 className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
               />
             </div>
@@ -355,7 +369,7 @@ export function AuthPage() {
           </p>
         )}
         <p className="text-center text-xs text-slate-600 mt-4">
-          info@evly.ch · <a href="/confidentialite" className="hover:text-slate-400 underline underline-offset-2">Confidentialité</a>
+          info@evly.ch · <a href={siteUrl('/confidentialite')} className="hover:text-slate-400 underline underline-offset-2">Confidentialité</a>
         </p>
       </div>
     </div>

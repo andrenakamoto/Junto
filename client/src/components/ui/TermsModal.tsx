@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ScrollText } from 'lucide-react';
 import { Button } from './Button';
+import { siteUrl } from '../../lib/siteUrl';
 
 interface Props {
   onAccept?: () => Promise<void>;
@@ -210,7 +211,7 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
             </p>
             <p className="mt-2">
               Le détail de ces traitements, tes droits et les durées de conservation figurent dans la{' '}
-              <a href="/confidentialite" target="_blank" rel="noopener" className="text-indigo-600 underline">
+              <a href={siteUrl('/confidentialite')} target="_blank" rel="noopener" className="text-indigo-600 underline">
                 politique de confidentialité
               </a>, qui fait foi. Tu peux supprimer ton compte et tes données à tout moment depuis le menu
               (« Supprimer mon compte »). Les Cercles et Plans que tu as créés sont alors confiés à

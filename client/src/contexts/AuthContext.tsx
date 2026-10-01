@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { registerPush, unregisterPush } from '../lib/push';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -31,6 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Apps : enregistre l'appareil pour les notifications push une fois connecté
+  const userId = user?.id;
+  useEffect(() => {
+    if (userId) registerPush();
+  }, [userId]);
+
   function login(t: string, u: User) {
     localStorage.setItem('estelle_token', t);
     setToken(t);
@@ -38,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function logout() {
+    unregisterPush(localStorage.getItem('estelle_token'));
     localStorage.removeItem('estelle_token');
     setToken(null);
     setUser(null);
