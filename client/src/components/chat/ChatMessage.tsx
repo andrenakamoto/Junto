@@ -72,13 +72,15 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
             </div>
           )}
 
-          {/* Quick-react toolbar, visible on hover */}
-          {!deleted && !editing && <div className={`hidden group-hover:flex absolute -top-3 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-md px-1 py-0.5 gap-0.5 z-10`}>
+          {/* Réactions rapides (survol sur ordinateur, appui sur mobile) : grands emojis,
+              posés juste au-dessus de la bulle pour ne pas la masquer */}
+          {!deleted && !editing && <div className={`hidden group-hover:flex absolute bottom-full mb-1 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}
                 onClick={() => onReact(message.id, emoji)}
-                className="text-sm hover:scale-125 transition-transform px-0.5"
+                aria-label={`Réagir avec ${emoji}`}
+                className="text-2xl leading-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform"
               >
                 {emoji}
               </button>
@@ -171,7 +173,7 @@ function ReactionChip({ emoji, count, mine, who, alignRight, onToggle }: {
           if (longPressed.current) { e.preventDefault(); longPressed.current = false; return; }
           onToggle();
         }}
-        className={`text-xs px-1.5 py-0.5 rounded-full border transition-colors select-none ${
+        className={`text-sm px-2 py-0.5 rounded-full border transition-colors select-none ${
           mine ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
         }`}
       >
