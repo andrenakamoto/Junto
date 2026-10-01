@@ -548,6 +548,13 @@ Junto/
   drapeau, les notifications reçues (`useUnread`) et, pour le Cercle ouvert,
   les cartes de ses Plans (`circlesWithNews`) ; `handlePlanUpdated` remet
   le drapeau à jour dès qu'un onglet est marqué vu.
+  **Cloche des notifications** (2026-10-02) : en bas de la barre latérale
+  (`CircleSidebar`, nombre = Cercles avec du nouveau), ouvre
+  `components/ui/NotificationCenter.tsx` : Plans avec onglets non vus (GET
+  /plans, `unseen` — couvre ce qui s'est passé app fermée), demandes
+  d'adhésion en attente, et « Récemment » = historique des notifications
+  reçues dans l'app (`localStorage` `evly_notif_history_<userId>`, 30
+  dernières, 7 jours, DashboardPage). Bouton retour Android : ferme le panneau.
 - **PlanDeleteVote**, **PlanChangeLog**
 - **Message** : content, authorId, planId, parentId? (fils de réponse,
   self-relation "MessageReplies", cascade), editedAt?, deletedAt?
