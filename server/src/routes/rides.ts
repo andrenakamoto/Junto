@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { notifyPlanActivity, PlanActivityKind } from '../lib/planNotifications';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { emitRidesUpdated, notifyRide } from '../lib/rides';
 import { touchPlanSection } from '../lib/planActivity';
@@ -77,6 +78,12 @@ router.get('/plan/:planId', async (req: AuthRequest, res) => {
   }
 });
 
+// Les autres participants du Plan sont prévenus (dans l'app + push)
+function notifyRideActivity(req: AuthRequest, planId: string, kind: PlanActivityKind, skipUserIds: string[] = []) {
+  notifyPlanActivity(req.app.get('io'), planId, { id: req.userId!, pseudo: req.pseudo! }, kind, skipUserIds)
+    .catch(e => console.error('[ride activity notify]', e));
+}
+
 // POST /api/rides/plan/:planId — proposer un trajet (un seul par conducteur et par Plan)
 router.post('/plan/:planId', async (req: AuthRequest, res) => {
   try {
@@ -101,6 +108,7 @@ router.post('/plan/:planId', async (req: AuthRequest, res) => {
     emitRidesUpdated(req.app.get('io'), planId);
     touchPlanSection(planId, 'trajets', req.userId);
     res.json(ride);
+    notifyRideActivity(req, planId, 'ride_offered');
   } catch (e) {
     console.error('[ride create]', e);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -136,6 +144,7 @@ router.post('/plan/:planId/request', async (req: AuthRequest, res) => {
     emitRidesUpdated(req.app.get('io'), planId);
     touchPlanSection(planId, 'trajets', req.userId);
     res.json(request);
+    notifyRideActivity(req, planId, 'ride_requested');
   } catch (e) {
     console.error('[ride request]', e);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -176,6 +185,7 @@ router.put('/:rideId', async (req: AuthRequest, res) => {
     emitRidesUpdated(req.app.get('io'), ride.planId);
     touchPlanSection(ride.planId, 'trajets', req.userId);
     res.json(updated);
+    notifyRideActivity(req, ride.planId, 'ride_updated');
   } catch (e) {
     console.error('[ride update]', e);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -203,6 +213,8 @@ router.delete('/:rideId', async (req: AuthRequest, res) => {
     }
     emitRidesUpdated(io, ride.planId);
     res.json({ deleted: true });
+    // Les passagers ont déjà leur propre notification (trajet annulé)
+    notifyRideActivity(req, ride.planId, 'ride_cancelled', ride.passengers.map(p => p.userId));
   } catch (e) {
     console.error('[ride delete]', e);
     res.status(500).json({ error: 'Erreur serveur' });

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import prisma from './prisma';
 import { PlanSection, touchPlanSection } from './planActivity';
+import { notifyPlanActivity, PlanActivityKind } from './planNotifications';
 
 // Rafraîchissement en temps réel : après chaque écriture réussie, on prévient les écrans
 // concernés, qui rechargent eux-mêmes ce qu'ils affichent (les règles d'accès restent donc
@@ -10,7 +11,12 @@ import { PlanSection, touchPlanSection } from './planActivity';
 //   circle-updated { circleId } → room circle:{id} (listes de Plans, demandes, sondages…)
 
 // section : onglet du Plan concerné, pour les pastilles « nouveau » (lib/planActivity.ts)
-export type WriteTarget = { planId?: string; circleId?: string; circleWide?: boolean; section?: PlanSection } | null;
+// activity : notification aux participants (lib/planNotifications.ts) — « file » devient
+// photo ou fichier selon le fichier envoyé
+export type WriteTarget = {
+  planId?: string; circleId?: string; circleWide?: boolean; section?: PlanSection;
+  activity?: PlanActivityKind | 'file';
+} | null;
 
 export function broadcastWrites(resolve: (req: Request) => Promise<WriteTarget>) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -28,6 +34,13 @@ export function broadcastWrites(resolve: (req: Request) => Promise<WriteTarget>)
         const io = req.app.get('io');
         if (!io) return;
         if (target.planId && target.section) touchPlanSection(target.planId, target.section, (req as any).userId);
+        const actor = { id: (req as any).userId as string, pseudo: (req as any).pseudo as string };
+        if (target.planId && target.activity && actor.id && actor.pseudo) {
+          const kind = target.activity === 'file'
+            ? ((req as any).file?.mimetype?.startsWith('image/') ? 'photo_added' : 'file_added')
+            : target.activity;
+          notifyPlanActivity(io, target.planId, actor, kind).catch(e => console.error('[plan activity notify]', e));
+        }
         if (target.planId) io.to(`plan:${target.planId}`).emit('plan-updated', { planId: target.planId });
         if (target.circleId && target.circleWide !== false) {
           io.to(`circle:${target.circleId}`).emit('circle-updated', { circleId: target.circleId });
@@ -40,12 +53,19 @@ export function broadcastWrites(resolve: (req: Request) => Promise<WriteTarget>)
 
 const segments = (req: Request) => req.path.split('/').filter(Boolean);
 
-async function planTarget(planId: string | undefined, circleWide: boolean, section?: PlanSection): Promise<WriteTarget> {
+async function planTarget(planId: string | undefined, circleWide: boolean, section?: PlanSection, activity?: PlanActivityKind | 'file'): Promise<WriteTarget> {
   if (!planId) return null;
   const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, circleId: true } });
   // Une activité dans un onglet rafraîchit aussi la liste du Cercle, pour la pastille de la carte
-  return plan ? { planId: plan.id, circleId: plan.circleId, circleWide: circleWide || !!section, section } : null;
+  return plan ? { planId: plan.id, circleId: plan.circleId, circleWide: circleWide || !!section, section, activity } : null;
 }
+
+// Notification d'activité pour POST|PUT /api/plans/:id/<b>. Pas pour join / rsvp / lien
+// invité (notifications d'arrivée et de désistement, lib/planNotifications.ts), ni pour
+// les votes, les demandes de suppression ou le « vu ».
+const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
+  items: 'item_added', polls: 'poll_created', expenses: 'expense_added', reimbursements: 'reimbursement_added',
+};
 
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
@@ -67,19 +87,20 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   }
   if (a === 'items') {
     const item = await prisma.bringItem.findUnique({ where: { id: b }, select: { planId: true } });
-    return planTarget(item?.planId, false, 'infos');
+    return planTarget(item?.planId, false, 'infos', 'items_updated');
   }
   if (a === 'expenses') {
     const expense = await prisma.expense.findUnique({ where: { id: b }, select: { planId: true } });
-    return planTarget(expense?.planId, false, 'depenses');
+    return planTarget(expense?.planId, false, 'depenses', req.method === 'DELETE' ? 'expense_deleted' : undefined);
   }
   // « seen » ne concerne que la personne : surtout pas de diffusion (chaque écran
   // rechargerait puis marquerait « vu » à son tour, en boucle)
   if (a === 'messages' || b === 'guest-link' || b === 'seen') return null;
   // PUT /:id (modification du Plan) → onglet Infos ; DELETE /:id → aucun
   const section = !b ? (req.method === 'PUT' ? 'infos' : undefined) : PLAN_SUBROUTE_SECTION[b];
+  const activity = !b ? (req.method === 'PUT' ? 'plan_edited' : undefined) : (req.method === 'POST' ? PLAN_SUBROUTE_ACTIVITY[b] : undefined);
   // /:id (modification) et /:id/{join,rsvp,vote-delete} changent aussi la liste du Cercle
-  return planTarget(a, !b || ['join', 'rsvp', 'vote-delete'].includes(b), section);
+  return planTarget(a, !b || ['join', 'rsvp', 'vote-delete'].includes(b), section, activity);
 }
 
 // Routes /api/circles
@@ -111,7 +132,8 @@ export async function resolveCircleWrite(req: Request): Promise<WriteTarget> {
 // Routes /api/attachments
 export async function resolveAttachmentWrite(req: Request): Promise<WriteTarget> {
   const [a, b] = segments(req);
-  if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos') : null;
+  // POST /plans/:planId = envoi d'un fichier (photo ou autre)
+  if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos', req.method === 'POST' ? 'file' : undefined) : null;
   const att = await prisma.attachment.findUnique({ where: { id: a }, select: { planId: true } });
   return planTarget(att?.planId, false, 'infos');
 }

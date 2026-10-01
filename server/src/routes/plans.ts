@@ -5,7 +5,7 @@ import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeByCurrency, parseCurrency } from '../lib/expenses';
 import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
-import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
+import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
 import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
@@ -13,6 +13,8 @@ import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
 import { isPlanSection, markAllSeen, markSectionSeen, unseenByPlan } from '../lib/planActivity';
+import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
+import { wantsEmail } from '../lib/notificationPrefs';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -238,6 +240,8 @@ router.post('/guest-invite/:token/accept', async (req: AuthRequest, res) => {
     await prisma.planMember.create({ data: { userId: req.userId!, planId: plan.id, rsvp: 'in' } });
     await markAllSeen(plan.id, req.userId!);
     res.json({ planId: plan.id });
+    notifyMembershipChange(req.app.get('io'), plan.id, { id: req.userId!, pseudo: req.pseudo! }, 'join')
+      .catch(e => console.error('[guest join notify]', e));
   } catch (e) {
     console.error('[guest invite accept]', e);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -407,16 +411,20 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
   });
   res.json(anonymizePlanPolls(updatedPlan, req.userId!));
 
+  // Les participants sont prévenus de chaque arrivée (dans l'app + push)
+  notifyMembershipChange(req.app.get('io'), req.params.id, { id: req.userId!, pseudo: req.pseudo! }, 'join')
+    .catch(e => console.error('[join notify]', e));
+
   // Premier membre (hors créateur) qui rejoint le Plan : prévient le créateur
   // par email — une seule fois, pas à chaque nouvelle personne qui rejoint.
   if (updatedPlan && updatedPlan.members.length === 2 && updatedPlan.creatorId !== req.userId) {
     try {
       const creator = await prisma.user.findUnique({
         where: { id: updatedPlan.creatorId },
-        select: { email: true, emailVerified: true, pseudo: true },
+        select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true },
       });
       const joiner = updatedPlan.members.find(m => m.userId === req.userId)?.user;
-      if (creator?.email && creator.emailVerified && joiner) {
+      if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel) && joiner) {
         const result = await resend.emails.send({
           from: FROM_EMAIL,
           to: creator.email,
@@ -428,7 +436,8 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
               <a href="${APP_URL}/dashboard?planId=${updatedPlan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
                 Voir le Plan
               </a>
-            </div>`,
+            ${notificationFooter()}
+          </div>`,
         });
         if (result.error) console.error('[first_join email]', creator.email, result.error);
       }
@@ -446,10 +455,20 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
     return;
   }
   try {
+    const before = await prisma.planMember.findUnique({
+      where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
+      select: { rsvp: true },
+    });
     const member = await prisma.planMember.update({
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
       data: { rsvp },
     });
+    // Désistement (« Je passe ») ou retour : les autres participants sont prévenus
+    const change = before && rsvpChange(before.rsvp, rsvp);
+    if (change) {
+      notifyMembershipChange(req.app.get('io'), req.params.id, { id: req.userId!, pseudo: req.pseudo! }, change)
+        .catch(e => console.error('[rsvp notify]', e));
+    }
     if (rsvp === 'out') {
       await removeUserFromRides(req.app.get('io'), req.params.id, req.userId!, req.pseudo!)
         .catch(e => console.error('[rsvp rides cleanup]', e));

@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, X } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -54,6 +54,16 @@ const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconCla
     icon: MessageSquare, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',
     title: n => `Sondage — ${n.planTitle}`,
     body: n => `@${n.from} : ${n.preview}`,
+  },
+  plan_member: {
+    icon: Users, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
+    title: n => `Participants — ${n.planTitle}`,
+    body: n => n.preview ?? '',
+  },
+  plan_activity: {
+    icon: Bell, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
+    title: n => `Du nouveau — ${n.planTitle}`,
+    body: n => n.preview ?? '',
   },
   plan_gone: {
     icon: Trash2, iconClass: 'text-slate-300', bgClass: 'bg-slate-600/40',
