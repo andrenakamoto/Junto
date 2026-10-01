@@ -9,6 +9,12 @@ const FirebaseMessaging = registerPlugin<FirebaseMessagingPlugin>('FirebaseMessa
 
 export const pushAvailable = Capacitor.isNativePlatform();
 
+// Canal Android de priorité haute : sans lui, Android range les notifications dans le canal
+// par défaut de Firebase (son, mais pas de bannière en haut de l'écran). Même identifiant que
+// le serveur (server/src/lib/push.ts) et le manifeste Android. Une fois créé, Android garde
+// ses réglages : changer de priorité impose un nouvel identifiant.
+const ANDROID_CHANNEL_ID = 'evly_activity';
+
 let currentToken: string | null = null;
 
 async function sendToken(token: string) {
@@ -26,6 +32,15 @@ export async function registerPush() {
       ({ receive } = await FirebaseMessaging.requestPermissions());
     }
     if (receive !== 'granted') return;
+    if (Capacitor.getPlatform() === 'android') {
+      await FirebaseMessaging.createChannel({
+        id: ANDROID_CHANNEL_ID,
+        name: 'Messages et Plans',
+        description: 'Nouveaux messages, mentions, Plans, sondages et covoiturage',
+        importance: 4, // Importance.High : bannière, son et vibration
+        vibration: true,
+      });
+    }
     const { token } = await FirebaseMessaging.getToken();
     if (token) await sendToken(token);
   } catch (e) {

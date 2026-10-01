@@ -54,6 +54,14 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
       return { title: n.planTitle ?? 'EvLY', body: `${from} t'a mentionné(e)`, url: planUrl, group: `chat:${n.planId}` };
     case 'new_plan':
       return { title: n.circleName ?? 'Nouveau Plan', body: `${from} propose un nouveau Plan : ${n.planTitle}`, url: planUrl, group: `plan:${n.planId}` };
+    case 'plan_activity':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? 'Du nouveau dans le Plan', url: planUrl, group: `activity:${n.planId}` };
+    case 'plan_member':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? 'Du changement chez les participants', url: planUrl, group: `members:${n.planId}` };
+    case 'plan_reminder':
+      return { title: n.planTitle ?? 'EvLY', body: 'C\'est demain ! Pense à vérifier les détails du Plan', url: planUrl, group: `plan:${n.planId}` };
+    case 'poll_reminder':
+      return { title: n.planTitle ?? 'Sondage', body: 'Ton sondage se termine demain : crée le Plan tant qu\'il est temps', url: pollUrl, group: `poll:${n.pollId}` };
     case 'ride':
       return { title: n.planTitle ?? 'Covoiturage', body: n.preview ?? 'Du nouveau dans le covoiturage', url: planUrl, group: `ride:${n.planId}` };
     case 'new_circle_poll':
@@ -78,7 +86,11 @@ export async function sendPush(userId: string, n: AppNotification): Promise<void
   const client = getClient();
   const content = pushContent(n);
   if (!client || !content) return;
-  const tokens = (await prisma.pushToken.findMany({ where: { userId }, select: { token: true } })).map(t => t.token);
+  // Personne qui a choisi « email uniquement » (lib/notificationPrefs.ts) : aucun appareil retenu
+  const tokens = (await prisma.pushToken.findMany({
+    where: { userId, user: { notificationChannel: { not: 'email' } } },
+    select: { token: true },
+  })).map(t => t.token);
   if (tokens.length === 0) return;
 
   const result = await client.sendEachForMulticast({
@@ -87,7 +99,9 @@ export async function sendPush(userId: string, n: AppNotification): Promise<void
     data: { url: content.url },
     android: {
       collapseKey: content.group,
-      notification: { tag: content.group, color: '#ea5a2b', icon: 'ic_stat_evly', sound: 'default' },
+      priority: 'high',
+      // Canal créé par l'app (client/src/lib/push.ts) : priorité haute → bannière en haut de l'écran
+      notification: { channelId: 'evly_activity', tag: content.group, color: '#ea5a2b', icon: 'ic_stat_evly', sound: 'default' },
     },
     apns: {
       headers: { 'apns-collapse-id': content.group.slice(0, 64) },
@@ -99,6 +113,8 @@ export async function sendPush(userId: string, n: AppNotification): Promise<void
     .map((r, i) => (!r.success && r.error && EXPIRED_TOKEN_ERRORS.has(r.error.code) ? tokens[i] : null))
     .filter((t): t is string => t !== null);
   if (expired.length > 0) await prisma.pushToken.deleteMany({ where: { token: { in: expired } } });
+  // Diagnostic dans les journaux Railway : type et nombre d'appareils, aucun contenu
+  console.log(`[push] ${n.type} → ${result.successCount}/${tokens.length} appareil(s)${expired.length ? `, ${expired.length} jeton(s) expiré(s) retiré(s)` : ''}`);
 }
 
 // Notification dans l'app (temps réel) + push sur les téléphones, en arrière-plan
