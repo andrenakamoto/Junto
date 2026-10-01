@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
@@ -34,10 +34,11 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   const editable = useEditWindow(message.createdAt, message.deletedAt, isMe && !!onEdit && !!onDelete);
   const [editing, setEditing] = useState(false);
 
-  const reactionGroups = (message.reactions ?? []).reduce<Record<string, { count: number; mine: boolean }>>((acc, r) => {
-    acc[r.emoji] = acc[r.emoji] || { count: 0, mine: false };
+  const reactionGroups = (message.reactions ?? []).reduce<Record<string, { count: number; mine: boolean; names: string[] }>>((acc, r) => {
+    acc[r.emoji] = acc[r.emoji] || { count: 0, mine: false, names: [] };
     acc[r.emoji].count += 1;
     if (r.userId === myUserId) acc[r.emoji].mine = true;
+    else acc[r.emoji].names.push(`@${r.user?.pseudo ?? '?'}`);
     return acc;
   }, {});
 
@@ -87,16 +88,16 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
 
         {Object.keys(reactionGroups).length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {Object.entries(reactionGroups).map(([emoji, { count, mine }]) => (
-              <button
+            {Object.entries(reactionGroups).map(([emoji, { count, mine, names }]) => (
+              <ReactionChip
                 key={emoji}
-                onClick={() => onReact(message.id, emoji)}
-                className={`text-xs px-1.5 py-0.5 rounded-full border transition-colors ${
-                  mine ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {emoji} {count}
-              </button>
+                emoji={emoji}
+                count={count}
+                mine={mine}
+                who={[...(mine ? ['Toi'] : []), ...names]}
+                alignRight={isMe}
+                onToggle={() => onReact(message.id, emoji)}
+              />
             ))}
           </div>
         )}
@@ -121,5 +122,69 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
         )}
       </div>
     </div>
+  );
+}
+
+// « Tu as réagi », « @marc a réagi », « @marc et @léa ont réagi », « Toi et @marc avez réagi »
+export function reactionLabel(who: string[], emoji: string) {
+  const list = who.length > 1 ? `${who.slice(0, -1).join(', ')} et ${who[who.length - 1]}` : who[0] ?? '';
+  const withMe = who[0] === 'Toi';
+  const verb = who.length === 1 ? (withMe ? 'as' : 'a') : (withMe ? 'avez' : 'ont');
+  return `${who.length === 1 && withMe ? 'Tu' : list} ${verb} réagi avec ${emoji}`;
+}
+
+// Pastille de réaction : un clic ajoute/retire la sienne ; survol (ordinateur) ou appui
+// prolongé (mobile) affiche qui a réagi
+function ReactionChip({ emoji, count, mine, who, alignRight, onToggle }: {
+  emoji: string; count: number; mine: boolean; who: string[]; alignRight: boolean; onToggle: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const pressTimer = useRef<number | null>(null);
+  const longPressed = useRef(false);
+  const closeTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (pressTimer.current) window.clearTimeout(pressTimer.current);
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+  }, []);
+
+  const label = reactionLabel(who, emoji);
+
+  return (
+    <span className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button
+        type="button"
+        aria-label={label}
+        onTouchStart={() => {
+          longPressed.current = false;
+          pressTimer.current = window.setTimeout(() => {
+            longPressed.current = true;
+            setOpen(true);
+            closeTimer.current = window.setTimeout(() => setOpen(false), 2500);
+          }, 450);
+        }}
+        onTouchEnd={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); }}
+        onTouchMove={() => { if (pressTimer.current) window.clearTimeout(pressTimer.current); }}
+        onContextMenu={e => e.preventDefault()}
+        onClick={e => {
+          // Après un appui prolongé, on montre seulement les noms
+          if (longPressed.current) { e.preventDefault(); longPressed.current = false; return; }
+          onToggle();
+        }}
+        className={`text-xs px-1.5 py-0.5 rounded-full border transition-colors select-none ${
+          mine ? 'bg-indigo-100 border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+        }`}
+      >
+        {emoji} {count}
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          className={`absolute top-full mt-1.5 ${alignRight ? 'right-0' : 'left-0'} z-20 w-max max-w-[16rem] rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-white shadow-lg`}
+        >
+          {label}
+        </span>
+      )}
+    </span>
   );
 }
