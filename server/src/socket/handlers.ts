@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { countMessageSent, touchUser } from '../lib/activity';
+import { touchPlanSection } from '../lib/planActivity';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
@@ -106,6 +107,7 @@ export function setupSocketHandlers(io: Server) {
       });
       io.to(`plan:${planId}`).emit('message', withPlainContent(message));
       countMessageSent();
+      touchPlanSection(planId, 'chat', socket.data.userId);
 
       const planData = await prisma.plan.findUnique({
         where: { id: planId },

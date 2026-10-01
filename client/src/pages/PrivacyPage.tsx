@@ -63,7 +63,8 @@ export function PrivacyPage() {
                 dépenses et remboursements.</li>
               <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
                 connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
-                l'heure près, pour compter les membres actifs) et l'adresse IP enregistrée dans les journaux
+                l'heure près, pour compter les membres actifs), la date à laquelle tu as consulté chaque
+                onglet d'un Plan (pour signaler les nouveautés, effacée avec le Plan) et l'adresse IP enregistrée dans les journaux
                 du serveur pour la sécurité.</li>
             </ul>
             <p>Nous ne collectons ni date de naissance, ni localisation, ni carnet d'adresses.</p>

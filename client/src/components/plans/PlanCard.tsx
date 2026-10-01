@@ -42,7 +42,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
           : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
       }`}
     >
-      {isUnread && !isSelected && (
+      {(isUnread || (plan.unseen?.length ?? 0) > 0) && !isSelected && (
         <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-orange-500 rounded-full" />
       )}
       <div className="flex items-start justify-between gap-2 mb-1.5">

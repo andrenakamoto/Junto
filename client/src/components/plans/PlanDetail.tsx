@@ -55,6 +55,10 @@ interface Props {
 export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [] }: Props) {
   const { token } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
+  const tabRef = useRef<Tab>('chat');
+  tabRef.current = tab;
+  // Message reçu en direct pendant qu'un autre onglet est affiché (le chat ne recharge pas le Plan)
+  const [chatUnseen, setChatUnseen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [joining, setJoining] = useState(false);
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
@@ -101,6 +105,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       }
       setMessages(prev => [...prev, msg]);
       setTimeout(scrollToBottom, 50);
+      if (tabRef.current !== 'chat' && msg.author?.id !== user.id) setChatUnseen(true);
     }
     socket.on('message', onMessage);
 
@@ -144,6 +149,17 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     setOpenThreadId(null);
     setThreadReplies([]);
   }, [plan.id]);
+
+  // Pastilles « nouveau » : l'onglet affiché est marqué comme vu (côté serveur, pour tous
+  // les appareils) dès qu'il a du nouveau, y compris quand le Plan se recharge en direct
+  const unseenKey = (plan.unseen ?? []).join(',');
+  useEffect(() => {
+    if (tab === 'chat') setChatUnseen(false);
+    if (!isMember || !(plan.unseen ?? []).includes(tab)) return;
+    api.post(`/plans/${plan.id}/seen`, { section: tab }).catch(() => {});
+    onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== tab) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan.id, tab, isMember, unseenKey]);
 
   // Si le créateur masque l'onglet affiché, revenir sur un onglet visible
   useEffect(() => {
@@ -497,7 +513,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
-                <Icon size={14} />
+                <span className="relative">
+                  <Icon size={14} />
+                  {tab !== key && ((plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen)) && (
+                    <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-white" aria-label="Nouveau" />
+                  )}
+                </span>
                 <span className="truncate leading-tight">{label}</span>
               </button>
             ))}

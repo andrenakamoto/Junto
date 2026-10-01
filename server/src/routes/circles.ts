@@ -11,6 +11,7 @@ import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
 import { sortCircles } from '../lib/planOrder';
+import { unseenByPlan } from '../lib/planActivity';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -392,7 +393,8 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     },
     orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
-  res.json(plans);
+  const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
+  res.json(plans.map(p => ({ ...p, unseen: unseen.get(p.id) ?? [] })));
 });
 
 // Paramètres avancés : création des Plans, et des sondages de dates, réservée au créateur et aux organisateurs

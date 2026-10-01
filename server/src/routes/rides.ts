@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { emitRidesUpdated, notifyRide } from '../lib/rides';
+import { touchPlanSection } from '../lib/planActivity';
 import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 
 const router = Router();
@@ -98,6 +99,7 @@ router.post('/plan/:planId', async (req: AuthRequest, res) => {
     ]);
 
     emitRidesUpdated(req.app.get('io'), planId);
+    touchPlanSection(planId, 'trajets', req.userId);
     res.json(ride);
   } catch (e) {
     console.error('[ride create]', e);
@@ -132,6 +134,7 @@ router.post('/plan/:planId/request', async (req: AuthRequest, res) => {
     });
 
     emitRidesUpdated(req.app.get('io'), planId);
+    touchPlanSection(planId, 'trajets', req.userId);
     res.json(request);
   } catch (e) {
     console.error('[ride request]', e);
@@ -144,6 +147,7 @@ router.delete('/plan/:planId/request', async (req: AuthRequest, res) => {
   try {
     await prisma.rideRequest.deleteMany({ where: { planId: req.params.planId, userId: req.userId! } });
     emitRidesUpdated(req.app.get('io'), req.params.planId);
+    touchPlanSection(req.params.planId, 'trajets', req.userId);
     res.json({ ok: true });
   } catch (e) {
     console.error('[ride request delete]', e);
@@ -170,6 +174,7 @@ router.put('/:rideId', async (req: AuthRequest, res) => {
 
     const updated = await prisma.ride.update({ where: { id: ride.id }, data: input.data, include: rideInclude });
     emitRidesUpdated(req.app.get('io'), ride.planId);
+    touchPlanSection(ride.planId, 'trajets', req.userId);
     res.json(updated);
   } catch (e) {
     console.error('[ride update]', e);

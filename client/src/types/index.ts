@@ -126,6 +126,8 @@ export interface PlanChangeLog {
 export interface Plan {
   id: string;
   title: string;
+  /** Onglets avec du nouveau depuis ma dernière visite (chat, infos, trajets, membres, votes, depenses) */
+  unseen?: string[];
   description: string;
   eventDate?: string | null;
   endDate: string;

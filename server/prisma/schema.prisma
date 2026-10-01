@@ -242,6 +242,7 @@ model Plan {
   circle    Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
   members          PlanMember[]
+  activities       PlanActivity[]
   messages         Message[]
   polls            Poll[]
   items            BringItem[]
@@ -404,11 +405,25 @@ model PlanMember {
   planId   String
   rsvp     String   @default("in")
   joinedAt DateTime @default(now())
+  // Dernière consultation de chaque onglet du Plan : { chat: ISO, infos: ISO, … } — lib/planActivity.ts
+  seen     Json     @default("{}")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@id([userId, planId])
+}
+
+// Dernière activité de chaque onglet d'un Plan (chat, infos, trajets, membres, votes,
+// depenses) : seulement une date, pour afficher les pastilles « nouveau »
+model PlanActivity {
+  planId  String
+  section String
+  at      DateTime
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([planId, section])
 }
 
 model Message {

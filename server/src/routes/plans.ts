@@ -12,6 +12,7 @@ import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisab
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
+import { isPlanSection, markAllSeen, markSectionSeen, unseenByPlan } from '../lib/planActivity';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -94,7 +95,11 @@ router.get('/', async (req: AuthRequest, res) => {
 
     // Un invité externe ne doit rien savoir du Cercle : on masque son nom
     const circleIds = new Set(myCircles.map(c => c.circleId));
-    res.json(plans.map(p => circleIds.has(p.circleId) ? p : { ...p, circle: null, isGuest: true }));
+    const unseen = await unseenByPlan(userId, plans.map(p => p.id));
+    res.json(plans.map(p => {
+      const withUnseen = { ...p, unseen: unseen.get(p.id) ?? [] };
+      return circleIds.has(p.circleId) ? withUnseen : { ...withUnseen, circle: null, isGuest: true };
+    }));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -120,11 +125,22 @@ router.get('/:id', async (req: AuthRequest, res) => {
     return;
   }
   const withGuests = await withGuestFlags(plan);
+  const unseen = await unseenByPlan(req.userId!, [plan.id]);
   res.json({
     ...anonymizePlanPolls(withGuests, req.userId!),
+    // Onglets avec du nouveau depuis la dernière visite (pastilles)
+    unseen: unseen.get(plan.id) ?? [],
     viewerIsGuest: access.isGuest,
     mediaToken: mintMediaToken(plan.id, req.userId!),
   });
+});
+
+// Onglet consulté : efface sa pastille « nouveau » (pas de diffusion, voir lib/realtime.ts)
+router.post('/:id/seen', async (req: AuthRequest, res) => {
+  const section = req.body?.section;
+  if (!isPlanSection(section)) { res.status(400).json({ error: 'Onglet invalide' }); return; }
+  await markSectionSeen(req.params.id, req.userId!, section);
+  res.json({ ok: true });
 });
 
 // ─── Invités externes : lien d'invitation donnant accès à ce seul Plan ───────
@@ -220,6 +236,7 @@ router.post('/guest-invite/:token/accept', async (req: AuthRequest, res) => {
       res.status(409).json({ error: 'Ce Plan est complet' }); return;
     }
     await prisma.planMember.create({ data: { userId: req.userId!, planId: plan.id, rsvp: 'in' } });
+    await markAllSeen(plan.id, req.userId!);
     res.json({ planId: plan.id });
   } catch (e) {
     console.error('[guest invite accept]', e);
@@ -376,6 +393,8 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     }
   }
   await prisma.planMember.create({ data: { userId: req.userId!, planId: req.params.id, rsvp: 'in' } });
+  // Ce qui existait avant l'arrivée n'est pas « nouveau » pour le nouveau participant
+  await markAllSeen(req.params.id, req.userId!);
   const updatedPlan = await prisma.plan.findUnique({
     where: { id: req.params.id },
     include: {
