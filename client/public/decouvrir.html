@@ -95,10 +95,7 @@
   .line .ico { color: var(--coral-600); font-size: 4mm; }
 
   /* Capture de l'app */
-  .shot { margin: 0; }
-  .shot img { display: block; width: 100%; height: auto; border-radius: 3mm; border: 1px solid var(--line); }
-  .shot figcaption { margin-top: 2mm; text-align: center; font-size: 10.5px; color: var(--ink-dim); }
-  section, .duo, .shot, .tiles, .who, .steps { break-inside: avoid; }
+  section, .duo, .tiles, .who, .steps { break-inside: avoid; }
 
   /* Fonctions : tuiles */
   .tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 2.5mm; }
@@ -116,7 +113,7 @@
 
   /* Bas de page */
   .foot { margin-top: auto; padding-top: 5mm; }
-  .app-shot { margin-bottom: 8mm; }
+  .who { margin-bottom: 8mm; }
   .foot { border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 6mm; }
   .cta { margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.2; }
   .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11px; color: var(--ink-dim); }
@@ -133,10 +130,10 @@
   .qr-box svg { width: 20mm; height: 20mm; display: block; }
   @media print {
     .cta-btn { display: none; }
-    /* Impression sur 2 pages A4 : la capture de l'app et l'appel à l'action passent en page 2 */
-    .app-shot { break-before: page; padding-top: 2mm; }
-    .foot { margin-top: 10mm; }
     .who { margin-bottom: 0; }
+    /* Tient sur une seule page A4 */
+    .page { padding-top: 9mm; }
+    .label { margin-top: 7mm; }
   }
 
   @media (max-width: 560px) {
@@ -212,14 +209,6 @@
     <div class="aud"><span class="ico"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path><rect width="20" height="14" x="2" y="6" rx="2"></rect></svg></span><div><b>Entreprises</b><span>L'afterwork d'équipe</span></div></div>
     <div class="aud"><span class="ico"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg></span><div><b>Associations</b><span>L'AG du club</span></div></div>
   </div>
-
-  <section class="app-shot">
-  <h2 class="label">Dans l'app</h2>
-  <figure class="shot">
-    <img src="/decouvrir-app.jpg" width="1440" height="860" alt="EvLY sur ordinateur : le Cercle « Les amis du lundi », ses Plans et un sondage de dates, et le Plan « Raclette chez Léa » ouvert avec les réponses et le chat">
-    <figcaption>Un Cercle, ses Plans, et le Plan ouvert avec qui vient et sa conversation.</figcaption>
-  </figure>
-  </section>
 
   <footer class="foot">
     <p class="cta">Organise ton prochain événement.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/auth?mode=inscription">Créer mon compte</a></p>
