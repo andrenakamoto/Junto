@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -80,17 +80,28 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const myMember = plan.members.find(m => m.userId === user.id);
   const isMember = !!myMember;
 
+  // Chat « collé en bas » : tant que la personne est au bas de la conversation, chaque
+  // chargement, nouveau message ou redimensionnement (clavier, ouverture depuis une
+  // notification, reconnexion) la garde sur le dernier message ; si elle remonte lire
+  // l'historique, on ne bouge plus.
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = chatScrollRef.current;
+    if (!stickToBottomRef.current) return;
+    if (el && el.scrollHeight > el.clientHeight) el.scrollTop = el.scrollHeight;
+    else messagesEndRef.current?.scrollIntoView({ block: 'end' }); // écran peu haut : la colonne défile d'un bloc
   }, []);
+  function onChatScroll() {
+    const el = chatScrollRef.current;
+    if (el) stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  }
 
   useEffect(() => {
     if (!isMember || !token) return;
     setMessages([]);
-    api.get(`/plans/${plan.id}/messages`).then(res => {
-      setMessages(res.data);
-      setTimeout(scrollToBottom, 100);
-    });
+    stickToBottomRef.current = true;
+    api.get(`/plans/${plan.id}/messages`).then(res => setMessages(res.data));
 
     const socket = getSocket(token);
     socket.emit('join-plan', plan.id);
@@ -103,8 +114,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         setThreadReplies(prev => msg.parentId === openThreadIdRef.current ? [...prev, msg] : prev);
         return;
       }
+      if (msg.author?.id === user.id) stickToBottomRef.current = true;
       setMessages(prev => [...prev, msg]);
-      setTimeout(scrollToBottom, 50);
       if (tabRef.current !== 'chat' && msg.author?.id !== user.id) setChatUnseen(true);
     }
     socket.on('message', onMessage);
@@ -126,7 +137,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     // du Plan : on la rejoint à nouveau et on recharge les messages manqués.
     function onReconnect() {
       socket.emit('join-plan', plan.id);
-      api.get(`/plans/${plan.id}/messages`).then(res => setMessages(res.data)).catch(() => {});
+      api.get(`/plans/${plan.id}/messages`).then(res => {
+        // Messages arrivés pendant la coupure : on les montre
+        setMessages(prev => {
+          if (res.data.length > prev.length) stickToBottomRef.current = true;
+          return res.data;
+        });
+      }).catch(() => {});
       const threadId = openThreadIdRef.current;
       if (threadId) {
         api.get(`/plans/messages/${threadId}/replies`)
@@ -136,7 +153,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     }
     socket.on('connect', onReconnect);
 
+    // App en arrière-plan (ou onglet masqué) : on quitte la room du Plan, sinon le serveur
+    // croit qu'on lit le chat et n'envoie pas la notification (push sur téléphone). La
+    // connexion d'une app en arrière-plan peut rester ouverte plusieurs minutes. Au retour,
+    // on rejoint la room et on recharge les messages, comme après une coupure.
+    function onVisibility() {
+      if (document.hidden) socket.emit('leave-plan', plan.id);
+      else onReconnect();
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
       socket.emit('leave-plan', plan.id);
       socket.off('message', onMessage);
       socket.off('reactions-updated', onReactionsUpdated);
@@ -157,6 +185,44 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     setOpenThreadId(null);
     setThreadReplies([]);
   }, [plan.id]);
+
+  useLayoutEffect(() => {
+    if (tab === 'chat') scrollToBottom();
+  }, [messages, tab, scrollToBottom]);
+
+  // Zone de chat redimensionnée (mise en place de l'écran, clavier) : on reste en bas.
+  // Chat qui réapparaît (sur téléphone, le Plan reste chargé mais masqué quand on revient
+  // aux Cercles ; on y revient par exemple en touchant une notification) : dernier message.
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    let lastHeight = el.clientHeight;
+    const ro = new ResizeObserver(() => {
+      if (lastHeight === 0 && el.clientHeight > 0) stickToBottomRef.current = true;
+      lastHeight = el.clientHeight;
+      scrollToBottom();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [tab, isMember, scrollToBottom]);
+
+  // Retour dans l'app (ou sur l'onglet du navigateur) après des messages reçus entre-temps :
+  // on affiche le dernier message
+  const unseenWhileHiddenRef = useRef(false);
+  useEffect(() => {
+    if (document.hidden) unseenWhileHiddenRef.current = true;
+  }, [messages.length]);
+  useEffect(() => {
+    function onVisible() {
+      if (document.hidden) { unseenWhileHiddenRef.current = false; return; }
+      if (!unseenWhileHiddenRef.current) return;
+      unseenWhileHiddenRef.current = false;
+      stickToBottomRef.current = true;
+      setTimeout(scrollToBottom, 50);
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [scrollToBottom]);
 
   // Clavier ouvert (ou fermé) : l'écran se redimensionne, on garde les derniers messages
   // visibles au-dessus du champ de saisie
@@ -551,7 +617,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
           {tab === 'chat' && isEnabled(plan, 'chat') && (
             <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
+              <div ref={chatScrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
                 {messages.length === 0 ? (
                   <div className="text-center text-slate-400 text-sm pt-12">
                     Aucun message encore. Lance la conversation !
