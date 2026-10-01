@@ -1,5 +1,6 @@
 import type { Server } from 'socket.io';
 import prisma from './prisma';
+import { notifyUser } from './push';
 
 type PlanInfo = { id: string; title: string; circleId: string };
 
@@ -8,7 +9,7 @@ export function emitRidesUpdated(io: Server | undefined, planId: string) {
 }
 
 export function notifyRide(io: Server | undefined, userId: string, plan: PlanInfo, from: string, preview: string) {
-  io?.to(`user:${userId}`).emit('notification', {
+  notifyUser(io, userId, {
     type: 'ride',
     planId: plan.id,
     planTitle: plan.title,

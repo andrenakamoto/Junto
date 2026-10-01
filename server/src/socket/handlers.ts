@@ -6,6 +6,7 @@ import { decryptMessage, encryptMessage, withPlainContent } from '../lib/message
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { countMessageSent, touchUser } from '../lib/activity';
 import { touchPlanSection } from '../lib/planActivity';
+import { notifyUser } from '../lib/push';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
@@ -131,7 +132,7 @@ export function setupSocketHandlers(io: Server) {
         if (re.test(trimmed)) mentioned.add(m.userId);
       }
       for (const userId of mentioned) {
-        io.to(`user:${userId}`).emit('notification', {
+        notifyUser(io, userId, {
           type: 'mention',
           planId,
           planTitle: planData.title,
@@ -163,7 +164,7 @@ export function setupSocketHandlers(io: Server) {
       // Notifier les autres membres du plan qui ne sont pas dans la room (et pas déjà notifiés pour la mention)
       for (const m of planData.members) {
         if (m.userId !== socket.data.userId && !activeUserIds.has(m.userId) && !mentioned.has(m.userId)) {
-          io.to(`user:${m.userId}`).emit('notification', {
+          notifyUser(io, m.userId, {
             type: 'new_message',
             planId,
             planTitle: planData.title,
@@ -211,7 +212,7 @@ export function setupSocketHandlers(io: Server) {
       const mentions = (t: string, pseudo: string) => new RegExp(`@${pseudo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(t);
       for (const m of members) {
         if (mentions(text, m.user.pseudo) && !mentions(before, m.user.pseudo)) {
-          io.to(`user:${m.userId}`).emit('notification', {
+          notifyUser(io, m.userId, {
             type: 'mention', planId: message.planId, planTitle: message.plan.title, circleId: message.plan.circleId,
             from: socket.data.pseudo, preview: text.slice(0, 60),
           });

@@ -13,6 +13,7 @@ import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
 import { sortCircles } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
+import { notifyUser } from '../lib/push';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -138,7 +139,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
   try {
     const io = app.get('io');
     if (io && updatedCircle) {
-      io.to(`user:${request.userId}`).emit('notification', {
+      notifyUser(io, request.userId, {
         type: 'join_accepted',
         circleId,
         circleName: updatedCircle.name,
@@ -274,7 +275,7 @@ router.post('/join', async (req: AuthRequest, res) => {
     });
     if (io) {
       for (const m of members) {
-        io.to(`user:${m.userId}`).emit('notification', {
+        notifyUser(io, m.userId, {
           type: 'join_request',
           circleId: circle.id,
           circleName: circle.name,
@@ -504,7 +505,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
 
   if (io) {
     for (const m of otherMembers) {
-      io.to(`user:${m.userId}`).emit('notification', {
+      notifyUser(io, m.userId, {
         type: 'new_plan',
         planId: plan.id,
         planTitle: plan.title,
@@ -768,7 +769,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
 
       if (io) {
         for (const m of otherMembers) {
-          io.to(`user:${m.userId}`).emit('notification', {
+          notifyUser(io, m.userId, {
             type: 'new_circle_poll',
             circleId: req.params.id,
             circleName: circle.name,
@@ -900,7 +901,7 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
     for (const m of audience) {
       io.to(`user:${m.userId}`).emit('poll-message', { pollId: poll.id, message });
       if (m.userId !== req.userId) {
-        io.to(`user:${m.userId}`).emit('notification', {
+        notifyUser(io, m.userId, {
           type: 'poll_message',
           circleId: poll.circleId,
           circleName: circle?.name,
