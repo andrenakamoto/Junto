@@ -4,7 +4,7 @@ import { purgePlanFiles } from '../lib/cloudinary';
 import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeByCurrency, parseCurrency } from '../lib/expenses';
-import { icsEscape, icsDate } from '../lib/ical';
+import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
@@ -765,8 +765,7 @@ router.get('/:id/ical', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
-  const start = plan.eventDate ?? plan.endDate;
-  const end = plan.eventDate ? new Date(plan.eventDate.getTime() + 2 * 60 * 60 * 1000) : plan.endDate;
+  const { start, end } = icsEventTimes(plan.eventDate, plan.endDate);
 
   const ics = [
     'BEGIN:VCALENDAR',
