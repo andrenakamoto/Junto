@@ -20,6 +20,7 @@ import { disconnectSocket } from '../lib/socket';
 import { getPendingInvite } from '../lib/pendingInvite';
 import { useSocketEvent } from '../hooks/useSocketEvent';
 import { sortCircles, sortPlans } from '../lib/order';
+import { NotificationCenter } from '../components/ui/NotificationCenter';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -41,6 +42,19 @@ export function DashboardPage() {
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [calendarActive, setCalendarActive] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  // Historique des notifications reçues (panneau de la cloche), gardé sur l'appareil pour ce
+  // compte : 30 dernières, 7 jours au plus
+  const historyKey = `evly_notif_history_${user?.id}`;
+  const [notifHistory, setNotifHistory] = useState<AppNotification[]>(() => {
+    try {
+      const list: AppNotification[] = JSON.parse(localStorage.getItem(historyKey) || '[]');
+      return list.filter(n => Date.now() - n.at < 7 * 864e5);
+    } catch { return []; }
+  });
+  const [showNotifCenter, setShowNotifCenter] = useState(false);
+  useEffect(() => {
+    try { localStorage.setItem(historyKey, JSON.stringify(notifHistory)); } catch { /* stockage indisponible */ }
+  }, [notifHistory, historyKey]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [plansRefreshSignal, setPlansRefreshSignal] = useState(0);
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
@@ -192,7 +206,9 @@ export function DashboardPage() {
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
       // Message dans le sondage déjà ouvert : pas de notification
       if (data.type === 'poll_message' && data.pollId === selectedPollIdRef.current) return;
-      setNotifications(prev => [...prev, { ...data, id: crypto.randomUUID(), at: Date.now() }]);
+      const notification = { ...data, id: crypto.randomUUID(), at: Date.now() };
+      setNotifications(prev => [...prev, notification]);
+      setNotifHistory(prev => [notification, ...prev].slice(0, 30));
       if (data.circleId) markCircle(data.circleId);
       if (data.planId) markPlan(data.planId);
       if (data.type === 'join_accepted') {
@@ -270,6 +286,18 @@ export function DashboardPage() {
     setPlans(prev => [plan, ...prev]);
     setSelectedPlan(plan);
     setMobileView('detail');
+  }
+
+  // Ouvre ce que concerne une notification (bulle ou panneau de la cloche)
+  function openNotification(n: AppNotification) {
+    if (n.planId) {
+      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
+    } else if (n.pollId && n.circleId) {
+      handleSelectCircle(n.circleId);
+      openPoll(n.pollId);
+    } else if (n.circleId) {
+      handleSelectCircle(n.circleId);
+    }
   }
 
   function openPoll(pollId: string) {
@@ -360,11 +388,17 @@ export function DashboardPage() {
 
   // Bouton retour Android (événement « evly-back » de NativeChrome) : écran étroit →
   // Plan/sondage → Plans → Cercles ; écran large → fermer le Plan ou le sondage ouvert.
-  const backState = useRef({ mobileView, open: false });
-  backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId };
+  const backState = useRef({ mobileView, open: false, notifCenter: false });
+  backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId, notifCenter: showNotifCenter };
   useEffect(() => {
     function onBack(e: Event) {
-      const { mobileView: view, open } = backState.current;
+      const { mobileView: view, open, notifCenter } = backState.current;
+      // Panneau des notifications ouvert : le retour le ferme
+      if (notifCenter) {
+        e.preventDefault();
+        setShowNotifCenter(false);
+        return;
+      }
       if (window.matchMedia('(min-width: 768px)').matches) {
         if (!open) return;
         setSelectedPlan(null);
@@ -396,16 +430,20 @@ export function DashboardPage() {
       onDismiss={id => setNotifications(prev => prev.filter(n => n.id !== id))}
       onClickNotification={n => {
         setNotifications(prev => prev.filter(x => x.id !== n.id));
-        if (n.planId) {
-          handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
-        } else if (n.pollId && n.circleId) {
-          handleSelectCircle(n.circleId);
-          openPoll(n.pollId);
-        } else if (n.circleId) {
-          handleSelectCircle(n.circleId);
-        }
+        openNotification(n);
       }}
     />
+    {showNotifCenter && (
+      <NotificationCenter
+        circles={circles}
+        history={notifHistory}
+        onClose={() => setShowNotifCenter(false)}
+        onOpenPlan={handleSelectPlan}
+        onOpenCircle={handleSelectCircle}
+        onOpenNotification={openNotification}
+        onClearHistory={() => setNotifHistory([])}
+      />
+    )}
     {/* Les bandeaux prennent leur place dans la hauteur de l'écran au lieu de pousser le bas hors de la vue */}
     <div className="app-screen flex flex-col bg-slate-100">
     <EmailMigrationBanner />
@@ -430,6 +468,7 @@ export function DashboardPage() {
           calendarActive={calendarActive}
           onCircleUpdated={handleCircleUpdated}
           unreadCount={circlesWithNews.size}
+          onOpenNotifications={() => setShowNotifCenter(true)}
           unreadCircles={circlesWithNews}
         />
       </div>

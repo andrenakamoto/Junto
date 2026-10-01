@@ -14,7 +14,7 @@ export interface AppNotification {
   at: number;
 }
 
-const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconClass: string; bgClass: string; title: (n: AppNotification) => string; body: (n: AppNotification) => string }> = {
+export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; iconClass: string; bgClass: string; title: (n: AppNotification) => string; body: (n: AppNotification) => string }> = {
   new_plan: {
     icon: Bell, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Nouveau plan — ${n.circleName}`,

@@ -31,10 +31,11 @@ interface Props {
   calendarActive: boolean;
   onCircleUpdated: (circle: Circle) => void;
   unreadCount: number;
+  onOpenNotifications: () => void;
   unreadCircles: Set<string>;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, unreadCircles }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles }: Props) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -337,18 +338,31 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       <div className="relative px-3 py-3 border-t border-slate-200 flex items-center gap-2 short:sticky short:bottom-0 short:z-10 short:bg-slate-100">
         {user && <Avatar pseudo={user.pseudo} size="sm" />}
         <span className="flex-1 text-sm text-slate-700 font-medium truncate">@{user?.pseudo}</span>
-        {unreadCount > 0 && (
-          <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
+        {/* Cloche : panneau des notifications (NotificationCenter), avec le nombre de Cercles
+            qui ont du nouveau */}
+        <button
+          onClick={onOpenNotifications}
+          title="Notifications"
+          aria-label={unreadCount > 0 ? `Notifications (${unreadCount})` : 'Notifications'}
+          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 shadow-sm text-indigo-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+        >
+          <Bell size={18} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1 rounded-full min-w-[16px] leading-4 text-center">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+
+        {/* Séparation nette entre la cloche et le menu (cibles distinctes au doigt) */}
+        <span className="w-px h-6 bg-slate-300 mx-1.5" aria-hidden />
 
         <button
           onClick={() => setShowMenu(v => !v)}
           title="Menu"
-          className={`p-1.5 rounded-lg transition-colors ${showMenu ? 'bg-slate-200 text-slate-900' : 'text-indigo-600 hover:text-slate-900 hover:bg-slate-100'}`}
+          className={`w-9 h-9 flex items-center justify-center rounded-xl border shadow-sm transition-colors ${showMenu ? 'bg-slate-200 border-slate-300 text-slate-900' : 'bg-white border-slate-200 text-indigo-600 hover:text-slate-900 hover:bg-slate-50'}`}
         >
-          <Menu size={15} />
+          <Menu size={18} />
         </button>
 
         {showMenu && (
