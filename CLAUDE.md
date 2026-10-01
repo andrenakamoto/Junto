@@ -719,6 +719,36 @@ notification temps réel existante, un email à chaque membre du Cercle
 `plans.ts` POST /:id/join envoie un email au créateur du Plan, mais
 uniquement quand le Plan passe de 1 à 2 membres (créateur + premier
 arrivant) — pas à chaque membre suivant, pour éviter le bruit.
+Depuis le 2026-10-01, **chaque** arrivée (POST /:id/join, acceptation d'un
+lien invité) et chaque désistement ou retour (PUT /:id/rsvp vers ou depuis
+`out` ; rien entre `in` et `maybe`) notifie tous les autres participants du
+Plan, hors ceux qui ont répondu « Je passe » (type `plan_member`, dans l'app
++ push, `lib/planNotifications.ts`).
+**Activité dans un Plan** (2026-10-02) : chaque modification notifie aussi les
+participants (type `plan_activity`, **push + app uniquement, jamais d'email**),
+hors auteur, hors « Je passe » et hors personnes qui regardent le Plan (room
+`plan:{id}`) : infos modifiées (PUT /:id), « qui apporte quoi » (ajout,
+claim), sondage créé, dépense ajoutée/supprimée, remboursement, fichier ou
+photo ajouté, covoiturage (trajet proposé/modifié/annulé, place cherchée —
+monter/descendre reste une notification ciblée au conducteur). Déclenché par
+`broadcastWrites` via le champ `activity` du WriteTarget (`lib/realtime.ts`) :
+une nouvelle route d'écriture doit y déclarer son activité ; covoiturage via
+`notifyRideActivity` dans `routes/rides.ts`. Pas de notification pour les
+votes, réactions, « vu », demandes de suppression.
+**Canal des notifications** (2026-10-02) : `User.notificationChannel` =
+`push` / `both` (défaut) / `email`, choisi dans `NotificationSettingsModal`
+(PUT /auth/notification-settings, GET /api/push/devices pour le nombre de
+téléphones). `lib/notificationPrefs.ts` (`wantsEmail`/`wantsPush`) : **tout
+email de notification doit filtrer avec `wantsEmail`** (nouveau Plan,
+mention, demande/acceptation d'adhésion, sondage, premier arrivant, rappel
+24 h, rappel de sondage) ; `sendPush` ignore les comptes `email`. Toujours
+envoyés : emails de compte (validation, mot de passe, changement d'adresse,
+suppression), résumé des dépenses de fin de Plan, invitations ; le résumé
+hebdomadaire garde son propre réglage. Les rappels (veille du Plan, fin de
+sondage) partent aussi en push. Chaque email de notification se termine par
+`notificationFooter()` (`lib/mailer.ts`, variante `'digest'` pour le résumé
+hebdomadaire) : comment les désactiver + lien `/dashboard?reglages=notifications`,
+qui ouvre la fenêtre Notifications (`CircleSidebar`).
 
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
@@ -729,7 +759,8 @@ l'utilisateur), `notification` (types: new_message, mention — les autres
 types de notification (new_plan, new_circle_poll, join_request,
 join_accepted) sont émis directement depuis les routes REST concernées
 dans `circles.ts`, pas depuis `handlers.ts` ; le type `ride` vient de
-`lib/rides.ts`). Le covoiturage émet aussi `rides-updated` dans la room
+`lib/rides.ts`, `plan_member`/`plan_activity` de `lib/planNotifications.ts` ; toutes passent par
+`notifyUser` de `lib/push.ts`). Le covoiturage émet aussi `rides-updated` dans la room
 `plan:{id}` à chaque changement, pour que `CarpoolSection` se recharge.
 
 **Rafraîchissement temps réel générique** (2026-09-27) : `lib/realtime.ts`
