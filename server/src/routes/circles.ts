@@ -54,8 +54,18 @@ router.get('/', async (req: AuthRequest, res) => {
     },
     orderBy: { createdAt: 'asc' },
   });
+  // Pastille « nouveau » du Cercle : un de ses Plans (dont je suis participant) a un onglet non vu
+  const myPlans = await prisma.planMember.findMany({
+    where: {
+      userId: req.userId!,
+      plan: { circleId: { in: circles.map(c => c.id) }, archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
+    },
+    select: { planId: true, plan: { select: { circleId: true } } },
+  });
+  const unseen = await unseenByPlan(req.userId!, myPlans.map(m => m.planId));
+  const circlesWithNews = new Set(myPlans.filter(m => (unseen.get(m.planId)?.length ?? 0) > 0).map(m => m.plan.circleId));
   // Le Cercle dont le prochain Plan est le plus proche en premier
-  res.json(sortCircles(circles));
+  res.json(sortCircles(circles).map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id) })));
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];

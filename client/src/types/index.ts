@@ -60,6 +60,8 @@ export interface Circle {
   members: CircleMember[];
   deleteVotes?: CircleDeleteVote[];
   joinRequests?: CircleJoinRequest[];
+  /** Un de mes Plans dans ce Cercle a du nouveau depuis ma dernière visite */
+  hasUnseen?: boolean;
   _count?: { plans: number };
   plans?: { id: string; title: string; eventDate?: string | null; endDate: string }[];
 }

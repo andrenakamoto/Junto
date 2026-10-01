@@ -246,7 +246,15 @@ export function DashboardPage() {
   }
 
   function handlePlanUpdated(updated: Plan) {
-    setPlans(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+    setPlans(prev => {
+      const next = prev.map(p => p.id === updated.id ? { ...p, ...updated } : p);
+      // Onglet consulté : la pastille du Cercle suit sans attendre un rechargement de la liste
+      if (updated.unseen && updated.circleId) {
+        const news = next.some(p => p.circleId === updated.circleId && (p.unseen?.length ?? 0) > 0);
+        setCircles(cs => cs.map(c => c.id === updated.circleId ? { ...c, hasUnseen: news } : c));
+      }
+      return next;
+    });
     setSelectedPlan(updated);
   }
 
@@ -338,6 +346,16 @@ export function DashboardPage() {
   // Le plus proche d'abord, y compris juste après une création (avant le rechargement)
   const sortedCircles = useMemo(() => sortCircles(circles), [circles]);
   const sortedPlans = useMemo(() => sortPlans(plans), [plans]);
+  // Pastille des Cercles : notifications reçues + Plans avec du nouveau (serveur). Pour le Cercle
+  // ouvert, on suit directement ses cartes, qui se mettent à jour dès qu'un onglet est consulté.
+  const circlesWithNews = useMemo(() => {
+    const set = new Set(unreadCircles);
+    for (const c of circles) {
+      const news = c.id === selectedCircleId ? plans.some(p => (p.unseen?.length ?? 0) > 0) : !!c.hasUnseen;
+      if (news) set.add(c.id);
+    }
+    return set;
+  }, [unreadCircles, circles, plans, selectedCircleId]);
 
   const showCircles = mobileView === 'circles';
   const showPlans   = mobileView === 'plans';
@@ -386,8 +404,8 @@ export function DashboardPage() {
           onCalendar={handleCalendar}
           calendarActive={calendarActive}
           onCircleUpdated={handleCircleUpdated}
-          unreadCount={unreadCircles.size}
-          unreadCircles={unreadCircles}
+          unreadCount={circlesWithNews.size}
+          unreadCircles={circlesWithNews}
         />
       </div>
 
