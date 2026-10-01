@@ -155,7 +155,8 @@ export function PrivacyPage() {
                 (« Supprimer mon compte »). Tes données personnelles sont alors effacées ; les Cercles et Plans
                 que tu as créés sont confiés à d'autres membres, et les photos que tu y as partagées restent
                 visibles pour eux jusqu'à la fin du Plan.</li>
-              <li><strong>Emails</strong> : désactiver le résumé hebdomadaire dans « Notifications ».</li>
+              <li><strong>Notifications</strong> : choisir dans « Notifications » de les recevoir en push, par
+                email ou les deux, et désactiver le résumé hebdomadaire.</li>
               <li><strong>Réclamation</strong> : tu peux t'adresser au Préposé fédéral à la protection des
                 données et à la transparence (PFPDT, edoeb.admin.ch).</li>
             </ul>
