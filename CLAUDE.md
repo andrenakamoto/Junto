@@ -184,12 +184,13 @@ Conséquences pratiques :
   « Créer mon compte » en haut et en bas (masqués à l'impression), qui
   pointent vers `/auth?mode=inscription` (AuthPage ouvre alors l'onglet
   inscription). L'ancienne version texte
-  (comparatif en 10 lignes) est dans l'historique git. Elle inclut une
-  vraie capture de l'app, `client/public/decouvrir-app.jpg` (1440×860 @2x,
-  données **fictives** — Cercle « Les amis du lundi », Plan « Raclette chez
-  Léa » — générées sur la base jetable Docker, jamais de vraies données).
-  Imprimée, elle tient sur 2 pages A4 : en `@media print`, la capture et le
-  pied de page passent en page 2 (`order` + `break-before`). Pas d'ombres
+  (comparatif en 10 lignes) est dans l'historique git. **Plus de capture de
+  l'app** depuis le 2026-10-01, à la demande de l'utilisateur (« garder la
+  surprise ») : la section « Dans l'app » et `decouvrir-app.jpg` ont été
+  retirées ; seule la carte de Plan dessinée de « La même soirée » donne un
+  aperçu. Ne pas en remettre sans demander. Imprimée, elle tient sur
+  **une page A4** (`@media print` resserre la marge du haut et les titres
+  de section). Pas d'ombres
   portées (`box-shadow`) dans la fiche : les lecteurs PDF les rendent en
   rectangles gris. La tenir à jour quand une fonctionnalité
   importante est ajoutée.
