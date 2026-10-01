@@ -1,6 +1,8 @@
 export function computeBalances(
   memberIds: string[],
-  expenses: { amount: number; paidById: string; splitWith?: { userId: string }[] }[],
+  // splitWith obligatoire : une requête qui oublierait de le charger ne compile pas
+  // (sinon chaque dépense serait silencieusement partagée entre tous les membres)
+  expenses: { amount: number; paidById: string; splitWith: { userId: string }[] }[],
   reimbursements: { amount: number; fromUserId: string; toUserId: string }[]
 ) {
   const balance = new Map<string, number>(memberIds.map(id => [id, 0]));
@@ -9,7 +11,7 @@ export function computeBalances(
   for (const e of expenses) {
     // Dépenses créées avant l'introduction du partage sélectif : réparties
     // entre tous les membres du Plan (comportement historique préservé).
-    const participants = e.splitWith && e.splitWith.length > 0
+    const participants = e.splitWith.length > 0
       ? e.splitWith.map(s => s.userId)
       : memberIds;
     const share = e.amount / participants.length;
@@ -64,7 +66,7 @@ export function formatAmount(amount: number, currency: string): string {
 // Soldes et virements suggérés, devise par devise (seulement les devises utilisées)
 export function computeByCurrency(
   memberIds: string[],
-  expenses: { amount: number; currency: string; paidById: string; splitWith?: { userId: string }[] }[],
+  expenses: { amount: number; currency: string; paidById: string; splitWith: { userId: string }[] }[],
   reimbursements: { amount: number; currency: string; fromUserId: string; toUserId: string }[],
 ) {
   const used = CURRENCIES.filter(c => expenses.some(e => e.currency === c) || reimbursements.some(r => r.currency === c));

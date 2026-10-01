@@ -16,7 +16,8 @@ export async function deleteExpiredPlans() {
       where: { endDate: { lt: new Date() } },
       include: {
         members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true } } } },
-        expenses: { include: { paidBy: { select: { id: true, pseudo: true } } } },
+        // splitWith indispensable : sans lui, chaque dépense serait répartie entre tous les membres
+        expenses: { include: { paidBy: { select: { id: true, pseudo: true } }, splitWith: { select: { userId: true } } } },
         reimbursements: true,
       },
     });
@@ -30,7 +31,12 @@ export async function deleteExpiredPlans() {
           const pseudoOf = (id: string) => plan.members.find(m => m.userId === id)?.user.pseudo ?? '?';
 
           const expenseLines = plan.expenses
-            .map(e => `<li>${e.description} — ${formatAmount(e.amount, e.currency)} (payé par ${e.paidBy.pseudo})</li>`)
+            .map(e => {
+              const shared = e.splitWith.length > 0 && e.splitWith.length < memberIds.length
+                ? `, partagé entre ${e.splitWith.map(s => pseudoOf(s.userId)).join(', ')}`
+                : '';
+              return `<li>${e.description} — ${formatAmount(e.amount, e.currency)} (payé par ${e.paidBy.pseudo}${shared})</li>`;
+            })
             .join('');
           const transferLines = transfers.length > 0
             ? transfers.map(t => `<li>${pseudoOf(t.fromUserId)} doit ${formatAmount(t.amount, t.currency)} à ${pseudoOf(t.toUserId)}</li>`).join('')

@@ -5,7 +5,7 @@ describe('computeBalances', () => {
   it('répartit une dépense unique à parts égales', () => {
     const balance = computeBalances(
       ['a', 'b', 'c'],
-      [{ amount: 30, paidById: 'a' }],
+      [{ amount: 30, paidById: 'a', splitWith: [] }],
       []
     );
     expect(balance.get('a')).toBeCloseTo(20); // a payé 30, doit 10 -> +20
@@ -16,7 +16,7 @@ describe('computeBalances', () => {
   it('le total des soldes est toujours nul', () => {
     const balance = computeBalances(
       ['a', 'b', 'c', 'd'],
-      [{ amount: 47, paidById: 'a' }, { amount: 12.5, paidById: 'c' }],
+      [{ amount: 47, paidById: 'a', splitWith: [] }, { amount: 12.5, paidById: 'c', splitWith: [] }],
       []
     );
     const total = [...balance.values()].reduce((s, v) => s + v, 0);
@@ -26,7 +26,7 @@ describe('computeBalances', () => {
   it('un remboursement réduit la dette du payeur et le crédit du receveur', () => {
     const balance = computeBalances(
       ['a', 'b'],
-      [{ amount: 20, paidById: 'a' }],
+      [{ amount: 20, paidById: 'a', splitWith: [] }],
       [{ amount: 10, fromUserId: 'b', toUserId: 'a' }]
     );
     expect(balance.get('a')).toBeCloseTo(0); // +10 initial, -10 remboursé reçu
@@ -115,6 +115,21 @@ describe('computeByCurrency', () => {
   });
 
   it('n\'affiche que les devises utilisées', () => {
-    expect(computeByCurrency(['a'], [{ amount: 10, currency: 'CHF', paidById: 'a' }], []).map(r => r.currency)).toEqual(['CHF']);
+    expect(computeByCurrency(['a'], [{ amount: 10, currency: 'CHF', paidById: 'a', splitWith: [] }], []).map(r => r.currency)).toEqual(['CHF']);
+  });
+});
+
+describe('partage sur une sélection de membres', () => {
+  it('une dépense en euros partagée entre 4 personnes sur 6 ne divise que par 4', () => {
+    const res = computeByCurrency(
+      ['a', 'b', 'c', 'd', 'e', 'f'],
+      [{ amount: 40, currency: 'EUR', paidById: 'a', splitWith: ['a', 'b', 'c', 'd'].map(userId => ({ userId })) }],
+      [],
+    );
+    const bal = res[0].balance;
+    expect(bal.get('a')).toBe(30);
+    expect([bal.get('b'), bal.get('c'), bal.get('d')]).toEqual([-10, -10, -10]);
+    expect([bal.get('e'), bal.get('f')]).toEqual([0, 0]);
+    expect(res[0].transfers.reduce((n, t) => n + t.amount, 0)).toBe(30);
   });
 });
