@@ -258,8 +258,82 @@ Conséquences pratiques :
 - **Emails** : Resend (vérification email, reset password, rappels de Plan,
   résumé hebdomadaire)
 - **SMS** : Twilio (optionnel, invitations)
-- **Mobile** : Capacitor (dossiers `client/android` et `client/ios` générés,
-  PWA avec manifest.webmanifest) — **chantier inachevé, voir section dédiée**
+- **Apps Android / iOS** (2026-10-01) : Capacitor 8, identifiant **`ch.evly.app`**
+  (définitif une fois publié ; remplace `com.estelle.app`, jamais publié — anciens
+  dossiers sauvegardés dans `~/Desktop/EvLY - Sauvegarde projets mobiles (avant
+  ch.evly.app)/`). L'app web (`dist`) est embarquée et appelle l'API de prod
+  (`.env.production`) ; CORS autorise déjà `https://localhost` (Android) et
+  `capacitor://localhost` (iOS). Points clés :
+  - **Le CLI Capacitor 8 exige Node ≥ 22** (le Mac a Node 20) : lancer
+    `npx -y node@22 node_modules/@capacitor/cli/bin/capacitor sync|run …`
+    depuis `client/` (sans changer le Node du système).
+  - **Gradle : utiliser le JDK d'Android Studio** (`JAVA_HOME="/Applications/
+    Android Studio.app/Contents/jbr/Contents/Home"`), le Java du système (26)
+    est trop récent. `./gradlew assembleDebug` (APK de test) /
+    `bundleRelease` (AAB signé pour le Play Store).
+  - **Signature Android** : clé `~/Documents/estelle-keystore.jks`, mots de
+    passe dans `client/android/keystore.properties` (ignoré par git, ne jamais
+    le commiter) ; `app/build.gradle` ne signe que si ce fichier existe.
+  - **Icônes / écran de démarrage** : sources dans `client/assets/`
+    (`icon-only.png`, `icon-foreground.png`, `icon-background.png`,
+    `splash*.png`, rendues en Fraunces), générées avec
+    `npx -y -p node@22 -p @capacitor/assets@3 capacitor-assets generate
+    --iconBackgroundColor '#ea5a2b' --splashBackgroundColor '#0f172a' …`.
+    Après génération, **repasser `mipmap-anydpi-v26/ic_launcher*.xml` sans
+    inset sur le fond** (l'outil ajoute 16,7 % → anneau pâle autour de
+    l'icône) — inset de 8 % sur le premier plan seulement. L'outil réécrit
+    aussi `client/icons/` et `public/manifest.webmanifest` (PWA, non branchée).
+  - **Encoche / barres système** : `viewport-fit=cover` + marges sur `#root`
+    (`index.css`) via `--sa-top|right|bottom|left` = `var(--safe-area-inset-*,
+    env(safe-area-inset-*))` — **sur Android, Capacitor fournit les vraies
+    valeurs dans `--safe-area-inset-*` et `env()` vaut 0** (constaté sur un
+    Galaxy Z Fold6, WebView 154). Tableau de bord en `.app-screen` (100dvh
+    moins les marges). Dans les apps, `components/NativeChrome.tsx` peint
+    **toujours en bleu nuit** les bandes derrière la barre d'état et les
+    boutons de navigation, avec icônes claires (`SystemBars`, Capacitor 8) :
+    Android remet son style d'icônes par défaut après l'écran de démarrage,
+    impossible de garder des icônes sombres de façon fiable. Sur le site, la
+    couleur des marges suit la page. WebView < 140 : marges natives (fond de
+    fenêtre `evly_night`). Bouton retour Android : `NativeChrome` émet
+    `evly-back`, DashboardPage remonte Plan → Plans → Cercles (ou ferme le
+    Plan sur écran large), sinon page précédente ou arrière-plan.
+  - **Liens vers le site** (fiche Découvrir, brochure, confidentialité) :
+    `lib/siteUrl.ts` → URL absolue www.evly.ch dans les apps (ouverte dans le
+    navigateur du téléphone), relative sur le web.
+  - **Connexion Google dans les apps** : `@capgo/capacitor-social-login`
+    (remplace `@codetrix-studio/capacitor-google-auth`, abandonné, prévu pour
+    Capacitor 6). Bouton **masqué dans les apps** tant que `VITE_GOOGLE_NATIVE`
+    ≠ `1` : il faut d'abord un client OAuth iOS (`VITE_GOOGLE_IOS_CLIENT_ID`,
+    + schéma d'URL inversé dans Info.plist) et l'empreinte SHA-1 Android
+    (clé d'upload et clé de signature Play) dans la console Google Cloud.
+    Apple exigera alors aussi « Sign in with Apple » (règle 4.8).
+  - **Notifications push** (2026-10-01) : Firebase Cloud Messaging, projet
+    Firebase **`evly-23d40`** (« EvLY »), clé APNs `.p8` (Key ID `3C84P5R6S4`)
+    importée dans Firebase. Fichiers de config **non commités** :
+    `android/app/google-services.json` et `ios/App/App/GoogleService-Info.plist`
+    (à re-télécharger depuis la console Firebase si besoin). Serveur :
+    `lib/push.ts` — **toute notification passe par `notifyUser(io, userId, n)`**
+    (événement socket `notification` + push), jamais `io.to('user:…').emit
+    ('notification')` directement. Texte construit par `pushContent` (testé) :
+    **jamais le contenu d'un message**, seulement qui / où ; `data.url` = lien
+    interne (`/dashboard?planId=…`, `?circleId=…&pollId=…`, `?circleId=…`),
+    regroupement par Plan/sondage (tag Android, `apns-collapse-id`). Clé du
+    compte de service dans `FIREBASE_SERVICE_ACCOUNT_B64` (JSON en base64, sur
+    Railway uniquement : en local, rien n'est envoyé). Table **PushToken**
+    (jeton unique, rattaché au dernier compte connecté sur l'appareil) ; routes
+    POST/DELETE `/api/push/token` ; jetons expirés supprimés à l'envoi. Client :
+    `lib/push.ts` appelle le plugin natif via `registerPlugin` (la version web de
+    `@capacitor-firebase/messaging` importerait le SDK Firebase dans le site) ;
+    autorisation demandée à la connexion (`AuthContext`), jeton retiré à la
+    déconnexion, toucher une notification navigue vers `data.url`
+    (`NativeChrome`). App ouverte : pas de bannière système
+    (`presentationOptions: []`), la notification s'affiche dans l'app. Android :
+    petite icône `drawable/ic_stat_evly`, couleur `evly_coral`. iOS :
+    `App.entitlements` (`aps-environment`), mode d'arrière-plan
+    `remote-notification`, relais APNs dans `AppDelegate.swift`.
+  - Tester : simulateur iOS (`… capacitor run ios --target <id>`), émulateur
+    Android `EvLY_Pixel` (Android 16, créé le 2026-10-01 ; outils
+    `~/Library/Android/sdk/cmdline-tools/latest`).
 
 ## Structure du repo (monorepo, deux dossiers, pas de workspace tool)
 
@@ -731,24 +805,15 @@ son Plan juste après avoir accepté l'invitation).
 
 ## Chantiers en cours / à ne pas toucher sans demander
 
-- **PWA/mobile inachevé** : `client/android/`, `client/ios/`, `client/icons/`,
-  `client/public/manifest.webmanifest` — fichiers non commités de
-  l'utilisateur, générés mais pas branchés (manifest pas lié dans
-  `index.html`, chemins d'icônes probablement cassés — `../icons/...`
-  pointe hors de `public/`). Ne pas "corriger" ni committer sans que
-  l'utilisateur le demande explicitement. `capacitor.config.ts` a son
-  `appName` mis à jour vers "EvLY" (rebranding du 2026-08-23), mais
-  `appId` reste `com.estelle.app` — le changer nécessiterait de
-  régénérer `android/`/`ios/` (`npx cap sync`), délibérément pas fait.
-  Anciens fichiers logo `client/public/logo_estelle.png` et
-  `client/public/logo.svg` : plus référencés nulle part depuis le
-  rebranding (le nouveau logo est `client/public/logo-evly.svg`), laissés
-  en place au cas où, à supprimer si l'utilisateur confirme.
-- **Notifications push** : explicitement mises de côté (session du
-  2026-08-23) — nécessite de finir le PWA ci-dessus pour le Web Push
-  (faisable sans credentials externes, clés VAPID auto-générables), et un
-  projet Firebase + compte Apple Developer pour le push natif Android/iOS
-  (credentials à obtenir de l'utilisateur).
+- **PWA (version installable du site)** : `client/icons/`,
+  `client/public/manifest.webmanifest` — non branchée (manifest pas lié dans
+  `index.html`, chemins d'icônes `../icons/...` hors de `public/`). Ne pas
+  la brancher sans demander. Anciens fichiers logo `client/public/logo_estelle.png`
+  et `client/public/logo.svg` : plus référencés nulle part depuis le
+  rebranding, laissés en place au cas où, à supprimer si l'utilisateur confirme.
+- **Notifications push des apps** : en place depuis le 2026-10-01 (voir
+  « Apps Android / iOS »). Pas de Web Push sur le site (il faudrait brancher
+  la PWA ci-dessus).
 
 ## Tests
 
