@@ -469,6 +469,11 @@ Junto/
   vu automatiquement, y compris après un rechargement en direct) et sur la
   carte (`PlanCard`, `unseen` non vide ou notification). Une écriture avec
   section rafraîchit aussi la liste du Cercle (`circleWide`).
+  Cercles (2026-10-01) : GET /circles renvoie `hasUnseen` (un de mes Plans
+  à venir du Cercle a un onglet non vu) ; `DashboardPage` combine ce
+  drapeau, les notifications reçues (`useUnread`) et, pour le Cercle ouvert,
+  les cartes de ses Plans (`circlesWithNews`) ; `handlePlanUpdated` remet
+  le drapeau à jour dès qu'un onglet est marqué vu.
 - **PlanDeleteVote**, **PlanChangeLog**
 - **Message** : content, authorId, planId, parentId? (fils de réponse,
   self-relation "MessageReplies", cascade), editedAt?, deletedAt?
