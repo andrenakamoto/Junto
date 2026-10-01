@@ -452,7 +452,23 @@ Junto/
   join si atteinte), deletionMode, disabledFeatures (voir Paramètres
   avancés), reminderSentAt? (anti-doublon rappel email), archived,
   circleId, creatorId
-- **PlanMember** : userId+planId, rsvp ("in" par défaut)
+- **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
+  2026-10-01 : date de dernière consultation de chaque onglet).
+- **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
+  **PlanActivity** (planId+section → date de dernière activité ; sections
+  `chat`, `infos`, `trajets`, `membres`, `votes`, `depenses`). Mise à jour
+  par `touchPlanSection` : dans `broadcastWrites` (`lib/realtime.ts`, le
+  champ `section` du WriteTarget, déduit de la route), dans le handler
+  socket `send-message` et dans les routes du covoiturage. L'auteur est
+  marqué « vu » pour l'onglet touché ; un nouveau participant (join, lien
+  invité) est marqué « vu » partout (`markAllSeen`). GET /plans, GET
+  /plans/:id et GET /circles/:id/plans renvoient `unseen` (onglets non vus
+  par la personne). POST /plans/:id/seen {section} efface — **exclu de la
+  diffusion temps réel** (sinon boucle de rechargements). Client :
+  pastille orange sur l'onglet (`PlanDetail`, l'onglet affiché est marqué
+  vu automatiquement, y compris après un rechargement en direct) et sur la
+  carte (`PlanCard`, `unseen` non vide ou notification). Une écriture avec
+  section rafraîchit aussi la liste du Cercle (`circleWide`).
 - **PlanDeleteVote**, **PlanChangeLog**
 - **Message** : content, authorId, planId, parentId? (fils de réponse,
   self-relation "MessageReplies", cascade)
