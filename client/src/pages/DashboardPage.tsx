@@ -535,7 +535,7 @@ export function DashboardPage() {
       )}
 
       {/* Colonne 3 — Détail */}
-      <div className={`${showDetail ? 'flex' : 'hidden'} md:flex flex-1 flex-col h-full`}>
+      <div className={`${showDetail ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
         {selectedPollId && selectedCircle ? (
           <PollDetail
             pollId={selectedPollId}

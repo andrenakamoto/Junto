@@ -345,7 +345,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const isFull = plan.maxParticipants != null && plan.members.length >= plan.maxParticipants;
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden short:overflow-y-auto">
+    <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden short:overflow-y-auto">
       {/* Header */}
       <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0">
         <div className="flex items-start justify-between gap-4">

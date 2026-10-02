@@ -211,10 +211,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
               const involvesMe = t.fromUserId === userId || t.toUserId === userId;
               return (
                 <div key={key} className={`flex items-center justify-between gap-2 p-2.5 rounded-lg ${involvesMe ? 'bg-indigo-50' : 'bg-slate-50'}`}>
-                  <div className="flex items-center gap-1.5 text-sm text-slate-700 min-w-0">
-                    <span className="truncate">@{t.fromPseudo}</span>
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-slate-700 min-w-0">
+                    <span className="break-all">@{t.fromPseudo}</span>
                     <ArrowRight size={12} className="text-slate-400 flex-shrink-0" />
-                    <span className="truncate">@{t.toPseudo}</span>
+                    <span className="break-all">@{t.toPseudo}</span>
                     <span className="font-semibold text-slate-800 flex-shrink-0">{money(t.amount, t.currency)}</span>
                   </div>
                   {t.fromUserId === userId && (
