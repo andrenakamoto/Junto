@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '1er octobre 2026';
+const VERSION = '2 octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -59,6 +59,10 @@ export function PrivacyPage() {
                 (conservé uniquement sous forme chiffrée, jamais lisible), ton identifiant Google si tu te
                 connectes avec Google et, pendant un changement d'adresse, la nouvelle adresse en attente de
                 confirmation (24 h au plus).</li>
+              <li><strong>Réponse à une invitation sans compte</strong> : ton prénom et ta réponse (je viens /
+                peut-être / je passe), ainsi qu'un identifiant gardé dans ton navigateur pour retrouver ta
+                réponse. Effacés à la fin du Plan, ou tout de suite avec « Retirer ma réponse ». Si tu crées
+                ensuite un compte ou te connectes, ta réponse y est rattachée.</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
                 peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
                 dépenses et remboursements.</li>
@@ -89,6 +93,11 @@ export function PrivacyPage() {
               <li>Les membres d'un Cercle voient ses Plans et ses membres ; le contenu d'un Plan (chat,
                 photos, dépenses…) est réservé aux personnes qui l'ont rejoint.</li>
               <li>Une personne invitée à un seul Plan ne voit que ce Plan, rien du Cercle.</li>
+              <li>Toute personne qui a le <strong>lien d'invitation</strong> d'un Plan voit son titre, sa date,
+                son lieu, sa description et le nombre de participants ; les prénoms des participants seulement
+                après avoir répondu. L'aperçu du lien dans les messageries (WhatsApp…) montre uniquement le
+                titre, la date, le nombre de participants et le prénom de l'organisateur. Le créateur du Plan
+                peut renouveler le lien à tout moment, l'ancien cesse alors de fonctionner.</li>
               <li>Un Plan surprise est invisible pour les personnes à qui il est caché.</li>
               <li>Les photos et fichiers ne sont accessibles que depuis EvLY, par des liens temporaires
                 réservés aux membres.</li>
