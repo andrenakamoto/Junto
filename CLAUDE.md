@@ -647,6 +647,16 @@ Junto/
   supprimé » ; `withPlainContent` renvoie un contenu vide pour un message
   supprimé. Mêmes colonnes sur **CirclePollMessage**, recopiées à la
   conversion en Plan.
+  **Photos dans le chat** (2026-10-03) : `Message.attachmentId` (unique,
+  SetNull). Le client envoie la photo par POST
+  `/attachments/plans/:id?via=chat` (images seulement, chat **et** fichiers
+  actifs ; pas de notification `plan_activity` « fichier », le message suffit),
+  puis `send-message` avec `attachmentId` (texte facultatif = légende ; le
+  serveur vérifie même Plan, même auteur, image, pas déjà publiée). La photo
+  est un fichier du Plan comme un autre (visible dans Infos) ; supprimer le
+  message supprime la photo (Cloudinary compris), supprimer la photo dans
+  Infos laisse le message affiché « Photo retirée ». Includes partagés dans
+  `lib/messageInclude.ts`. Chat des sondages : pas de photos.
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
   emoji temps réel
 - **Poll** / **PollOption** / **PollVote** : sondages ; `Poll.anonymous`
