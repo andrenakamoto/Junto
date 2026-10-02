@@ -63,6 +63,10 @@ export function PrivacyPage() {
                 peut-être / je passe), ainsi qu'un identifiant gardé dans ton navigateur pour retrouver ta
                 réponse. Effacés à la fin du Plan, ou tout de suite avec « Retirer ma réponse ». Si tu crées
                 ensuite un compte ou te connectes, ta réponse y est rattachée.</li>
+              <li><strong>Signalements et personnes masquées</strong> : si tu signales un message, une copie
+                chiffrée du message, ton motif éventuel et ton pseudo sont transmis à l'administrateur d'EvLY,
+                puis la copie est effacée dès que le signalement est traité. La personne signalée ne sait pas
+                qui l'a signalée. La liste des personnes que tu masques n'est visible que par toi.</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
                 peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
                 dépenses et remboursements.</li>
