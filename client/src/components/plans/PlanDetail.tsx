@@ -374,64 +374,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   </button>
                 )}
               </div>
-              {/* Membre : la description est dans l'onglet Infos. Sinon, elle reste ici pour décider de rejoindre. */}
-              {!isMember && plan.description && (
-                <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
-              )}
-
-              {/* Date de l'événement */}
-              {eventDateFmt && (
-                <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
-                  <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
-                  <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
-                </div>
-              )}
-
-              {/* Infos membres */}
-              {isMember && (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                  {plan.location && (
-                    <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <MapPin size={12} className="text-indigo-400" />{plan.location}
-                    </span>
-                  )}
-                  <span className="text-xs text-slate-400">
-                    par @{plan.creator.pseudo} ·{' '}
-                    <span className="text-emerald-600">{inCount} in</span>{' '}·{' '}
-                    <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
-                    <span className="text-slate-400">{outCount} non</span>
-                    {plan.maxParticipants != null && (
-                      <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{plan.members.length}/{plan.maxParticipants}</span></>
-                    )}
-                  </span>
-                </div>
-              )}
-
-              {/* Date d'expiration du plan — séparée visuellement */}
-              <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 border-t border-slate-100 pt-2">
-                <Clock size={11} />
-                <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span> — toutes les données liées (messages, photos, dépenses) seront supprimées</span>
-              </div>
-
-              {(plan.exclusions ?? []).length > 0 && (
-                <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800">
-                  <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Plan surprise</strong> pour {(plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ')} :
-                    {' '}{(plan.exclusions ?? []).length > 1 ? 'ils ne voient' : 'cette personne ne voit'} pas ce Plan. Chut, ne dis rien !
-                  </span>
-                </div>
-              )}
-
-              {plan.viewerIsGuest && (
-                <p className="mt-2 text-xs text-slate-500">
-                  Tu es <strong>invité(e)</strong> à ce Plan : tu y as accès, sans faire partie du Cercle.
-                </p>
-              )}
             </div>
           </div>
-          {/* Actions — icônes en ligne sur desktop, menu compact sur mobile */}
-          <div className="hidden md:flex gap-1 flex-shrink-0">
+          {/* Actions — icônes en ligne sur grand écran, menu compact sinon (colonne étroite) */}
+          <div className="hidden xl:flex gap-1 flex-shrink-0">
             {isMember && (
               <>
                 <button
@@ -491,7 +437,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             </button>
           </div>
 
-          <div className="relative md:hidden flex-shrink-0" ref={actionsMenuRef}>
+          <div className="relative xl:hidden flex-shrink-0" ref={actionsMenuRef}>
             <button
               onClick={() => setShowActionsMenu(v => !v)}
               title="Menu"
@@ -561,6 +507,64 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           </div>
         </div>
 
+        {/* Infos du Plan : sous le titre, sur toute la largeur */}
+        <div>
+        {/* Membre : la description est dans l'onglet Infos. Sinon, elle reste ici pour décider de rejoindre. */}
+        {!isMember && plan.description && (
+          <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
+        )}
+
+        {/* Date de l'événement */}
+        {eventDateFmt && (
+          <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
+            <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
+            <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
+          </div>
+        )}
+
+        {/* Infos membres */}
+        {isMember && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+            {plan.location && (
+              <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                <MapPin size={12} className="text-indigo-400" />{plan.location}
+              </span>
+            )}
+            <span className="text-xs text-slate-400">
+              par @{plan.creator.pseudo} ·{' '}
+              <span className="text-emerald-600">{inCount} in</span>{' '}·{' '}
+              <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
+              <span className="text-slate-400">{outCount} non</span>
+              {plan.maxParticipants != null && (
+                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{plan.members.length}/{plan.maxParticipants}</span></>
+              )}
+            </span>
+          </div>
+        )}
+
+        {/* Date d'expiration du plan — séparée visuellement */}
+        <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 border-t border-slate-100 pt-2">
+          <Clock size={11} />
+          <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span> — toutes les données liées (messages, photos, dépenses) seront supprimées</span>
+        </div>
+
+        {(plan.exclusions ?? []).length > 0 && (
+          <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800">
+            <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
+            <span>
+              <strong>Plan surprise</strong> pour {(plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ')} :
+              {' '}{(plan.exclusions ?? []).length > 1 ? 'ils ne voient' : 'cette personne ne voit'} pas ce Plan. Chut, ne dis rien !
+            </span>
+          </div>
+        )}
+
+        {plan.viewerIsGuest && (
+          <p className="mt-2 text-xs text-slate-500">
+            Tu es <strong>invité(e)</strong> à ce Plan : tu y as accès, sans faire partie du Cercle.
+          </p>
+        )}
+        </div>
+
         {isMember ? (
           <div className="flex items-center gap-2 mt-3 flex-wrap">
             <span className="text-xs text-slate-400 font-medium">Mon RSVP :</span>
@@ -603,7 +607,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors min-w-0 ${
+                className={`flex-1 flex flex-col xl:flex-row items-center justify-center gap-0.5 xl:gap-1.5 px-1 py-2 xl:px-4 xl:py-3 text-xs xl:text-sm font-medium border-b-2 transition-colors min-w-0 ${
                   tab === key
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
