@@ -367,6 +367,22 @@ Conséquences pratiques :
     non signée exportée telle quelle perd `aps-environment` (plus de push).
     Le certificat « Apple Distribution » est dans le trousseau du Mac (créé
     dans Xcode → Réglages → Comptes → Gérer les certificats).
+  - **Liens d'application** (2026-10-03) : les liens `https://www.evly.ch` vers
+    `/rejoindre`, `/invitation`, `/dashboard`, `/verify-email`, `/reset-password`,
+    `/confirmer-email` ouvrent l'app si elle est installée. Android : intent-filter
+    `autoVerify` dans `AndroidManifest.xml` + `client/public/.well-known/assetlinks.json`
+    (empreintes SHA-256 : **clé de signature Google Play** — lue sur l'APK installé
+    depuis le Play Store avec `apksigner verify --print-certs`, signataire V3.0 —,
+    clé d'envoi `~/Documents/estelle-keystore.jks` et clé de debug ; toute nouvelle
+    clé doit y être ajoutée). iPhone : `.well-known/apple-app-site-association`
+    (appID `LDRKKV8GR7.ch.evly.app`) déjà publié, mais il faut encore activer
+    « Associated Domains » sur l'identifiant `ch.evly.app` chez Apple et ajouter
+    `com.apple.developer.associated-domains` (`applinks:www.evly.ch`) aux droits de
+    l'app (`App.entitlements` et ceux de la signature manuelle). `evly.ch` sans www
+    redirige (308) : vérification impossible, seuls les liens www sont déclarés.
+    Côté app : `NativeChrome` (`appUrlOpen` + `getLaunchUrl`) navigue vers le
+    chemin du lien. Revérifier sur un téléphone : `adb shell pm verify-app-links
+    --re-verify ch.evly.app`, puis `pm get-app-links ch.evly.app`.
   - Tester : simulateur iOS (`… capacitor run ios --target <id>`), émulateur
     Android `EvLY_Pixel` (Android 16, créé le 2026-10-01 ; outils
     `~/Library/Android/sdk/cmdline-tools/latest`).
@@ -469,6 +485,20 @@ Junto/
   miroir client dans `client/src/lib/settings.ts`). Quand le créateur part
   (départ ou suppression de compte), `nextCircleCreator` choisit
   l'organisateur le plus ancien, sinon le membre le plus ancien.
+- **CircleInvitation** (2026-10-03) : inviter un **compte EvLY existant** dans
+  un Cercle par pseudo ou email exact (`InviteModal`, section « Déjà sur EvLY ? »,
+  POST /circles/:id/invitations, réservé aux membres). La personne reçoit une
+  notification `circle_invite` (app + push + email selon ses réglages, lien
+  `/dashboard?invitations=1` qui ouvre la cloche) et accepte ou refuse dans
+  `NotificationCenter` (GET /circles/invitations/mine, POST
+  /invitations/:id/accept, DELETE /invitations/:id). **Mêmes règles qu'avec le
+  code** : Cercle `open` → entrée directe ; `creator` → directe si l'invitation
+  vient d'un gestionnaire, sinon demande d'adhésion ; `vote` → demande avec la
+  voix de la personne qui invite déjà comptée (entrée directe si elle suffit
+  au seuil). `notifyJoinRequest` (circles.ts) est partagé avec /join.
+  Liens d'invitation : `publicOrigin()` (`lib/siteUrl.ts`) — **jamais
+  `window.location.origin`**, qui vaut `https://localhost` dans les apps (le lien
+  WhatsApp restait du texte).
 - **CircleDeleteVote** : vote collectif pour supprimer un Cercle
 - **CircleJoinRequest** / **CircleJoinVote** : demande pour rejoindre un
   Cercle (créée à la place d'un accès direct) + votes des membres actuels ;
