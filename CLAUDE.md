@@ -655,6 +655,34 @@ Junto/
     validation d'email. `AuthPage` respecte maintenant `?redirect=` (chemin
     interne uniquement) — ce qui répare aussi le retour après connexion des
     invitations aux Cercles (`/rejoindre`).
+  - **Réponse sans compte** (2026-10-02, `lib/lightGuest.ts`) : sur
+    `/invitation?token=…`, une personne non connectée voit le Plan (titre,
+    date, lieu, description, nombre de participants ; les prénoms seulement
+    après avoir répondu) et répond avec son **prénom** (in / peut-être / je
+    passe) via les routes publiques **`/api/invite`** (`routes/invite.ts`).
+    C'est un vrai `User` avec **`isLight = true`** (pseudo généré
+    `prenom.invite` — le point est interdit dans les pseudos choisis), membre
+    du Plan comme un invité externe : il compte dans les participants et
+    déclenche les notifications d'arrivée/désistement. Son jeton (JWT
+    `light: true`, gardé côté client dans `evly_light_token`, `lib/lightGuest.ts`)
+    est **refusé par `requireAuth` et par le socket** : il ne peut rien faire
+    d'autre que répondre. `/auth/login`, `/auth/google` reçoivent `lightToken` et
+    transfèrent ses réponses au compte (`absorbLightUser`, parts de dépenses et
+    remboursements compris) ; `/auth/register` avec `lightToken` transforme le
+    même User en compte normal (`isLight` passe à false à la validation de
+    l'email). « Retirer ma réponse » (DELETE) efface tout ; le cron horaire
+    `deleteOrphanLightUsers` supprime les invités sans plus aucun Plan. Exclus de
+    la liste des comptes de l'admin, comptés à part (`lightGuests`).
+  - **Aperçu des liens d'invitation** (2026-10-02, `routes/share.ts`) :
+    `client/vercel.json` renvoie `/invitation` vers `GET /api/share/invitation`
+    (Railway), qui sert l'`index.html` du site (relu au plus 1×/min) avec les
+    balises `og:*` du Plan et `noindex` ; `/apercu/<jeton>.png` → image
+    1200×630 dessinée en SVG puis PNG (`lib/shareImage.ts`, `@resvg/resvg-js`,
+    polices dans `server/assets/fonts`). **Ni lieu ni description dans
+    l'aperçu** (gardé en cache par les messageries). Secours si le site est
+    injoignable : redirection vers `/invitation-plan` (même page, sans
+    aperçu). Balises génériques + `public/og-evly.png` dans `index.html`
+    pour les autres liens evly.ch.
 
 Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
 appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
