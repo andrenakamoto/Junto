@@ -347,6 +347,26 @@ Conséquences pratiques :
     Cloudinary envoyées par un vérificateur). Textes des fiches, captures,
     icône, bannière, AAB et identifiants de démo : dossier
     `~/Desktop/EvLY - Publication stores/` sur le Mac de l'utilisateur.
+    **Envoi iPhone (équipe Apple `LDRKKV8GR7`)** — validé le 2026-10-02 (build 1
+    envoyé) : aucun iPhone n'est enregistré dans le compte, donc la signature
+    automatique (« développement ») échoue à l'archive, et la signature
+    manuelle refuse le profil App Store géré par Xcode. Procédure :
+    1. `xcodebuild -project App.xcodeproj -scheme App -configuration Release
+       -destination 'generic/platform=iOS' -archivePath … CODE_SIGNING_ALLOWED=NO archive` ;
+    2. copier le profil « iOS Team Store Provisioning Profile: ch.evly.app »
+       (`~/Library/Developer/Xcode/UserData/Provisioning Profiles/`) en
+       `App.app/embedded.mobileprovision` ;
+    3. `codesign --force --timestamp --generate-entitlement-der --sign "Apple
+       Distribution: André Martins (LDRKKV8GR7)"` sur chaque `Frameworks/*.framework`,
+       puis sur `App.app` avec `--entitlements` (application-identifier
+       `LDRKKV8GR7.ch.evly.app`, team-identifier, **`aps-environment` =
+       production**, `get-task-allow` false, `beta-reports-active` true) ;
+    4. `xcodebuild -exportArchive -allowProvisioningUpdates` avec `method
+       app-store-connect`, `signingStyle automatic`, `destination upload`.
+    Une signature locale « - » (ad hoc) est refusée à l'envoi ; une archive
+    non signée exportée telle quelle perd `aps-environment` (plus de push).
+    Le certificat « Apple Distribution » est dans le trousseau du Mac (créé
+    dans Xcode → Réglages → Comptes → Gérer les certificats).
   - Tester : simulateur iOS (`… capacitor run ios --target <id>`), émulateur
     Android `EvLY_Pixel` (Android 16, créé le 2026-10-01 ; outils
     `~/Library/Android/sdk/cmdline-tools/latest`).
@@ -804,6 +824,19 @@ sondage) partent aussi en push. Chaque email de notification se termine par
 `notificationFooter()` (`lib/mailer.ts`, variante `'digest'` pour le résumé
 hebdomadaire) : comment les désactiver + lien `/dashboard?reglages=notifications`,
 qui ouvre la fenêtre Notifications (`CircleSidebar`).
+
+**Signaler / masquer** (2026-10-02, exigence Apple 1.2 et Google pour le contenu
+des utilisateurs, `lib/moderation.ts`, `routes/moderation.ts`) : « Signaler »
+sur le message d'un autre membre (chat des Plans et des sondages,
+`ReportMessageModal`) → **MessageReport** (copie chiffrée du texte, motif),
+email d'alerte sans contenu aux admins, traitement dans AdminPage
+(`ReportsPanel` : supprimer le message pour tous ou classer ; la copie est
+effacée dans les deux cas). « Masquer » (**UserBlock**, case du signalement,
+annulable dans « Mon profil ») : messages cachés côté client
+(`user.blockedUserIds` de /auth/me) et **aucune notification de cette
+personne** — `notifyUser` ignore les notifications dont l'`actorId` est masqué
+par le destinataire (renseigner `actorId` pour toute nouvelle notification
+déclenchée par quelqu'un ; covoiturage volontairement exclu).
 
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
