@@ -829,7 +829,7 @@ qui ouvre la fenêtre Notifications (`CircleSidebar`).
 des utilisateurs, `lib/moderation.ts`, `routes/moderation.ts`) : « Signaler »
 sur le message d'un autre membre (chat des Plans et des sondages,
 `ReportMessageModal`) → **MessageReport** (copie chiffrée du texte, motif),
-email d'alerte sans contenu aux admins, traitement dans AdminPage
+email d’alerte sans contenu à info@evly.ch (`REPORTS_EMAIL`), traitement dans AdminPage
 (`ReportsPanel` : supprimer le message pour tous ou classer ; la copie est
 effacée dans les deux cas). « Masquer » (**UserBlock**, case du signalement,
 annulable dans « Mon profil ») : messages cachés côté client

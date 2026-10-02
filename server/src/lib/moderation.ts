@@ -6,7 +6,7 @@ import { decryptMessage, encryptMessage } from './messageCrypto';
 // utilisateurs échangent du contenu : Apple 1.2, Google « contenu généré par les utilisateurs »).
 //
 // - Signalement : copie chiffrée du message (MessageReport), alerte email aux administrateurs
-//   (sans le contenu), traitement dans le panneau admin (supprimer le message ou classer).
+//   (sans le contenu) à info@evly.ch, traitement dans le panneau admin (supprimer le message ou classer).
 // - Masquage (UserBlock) : les messages de la personne masquée ne sont plus affichés à celle
 //   qui l'a masquée (filtrage côté client avec user.blockedUserIds) et elle ne lui envoie plus
 //   de notifications (notifyUser, lib/push.ts). La personne masquée n'en sait rien.
@@ -54,14 +54,13 @@ export async function createReport(target: ReportTarget, reporterId: string, rea
   return report;
 }
 
+// Alerte de signalement : une seule adresse (pas les comptes administrateurs)
+const REPORTS_EMAIL = process.env.REPORTS_EMAIL || 'info@evly.ch';
+
 async function notifyAdmins() {
-  const admins = await prisma.user.findMany({
-    where: { isAdmin: true, email: { not: null }, emailVerified: true },
-    select: { email: true },
-  });
-  await Promise.all(admins.map(a => resend.emails.send({
+  const r = await resend.emails.send({
     from: FROM_EMAIL,
-    to: a.email!,
+    to: REPORTS_EMAIL,
     subject: 'Nouveau signalement sur EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
@@ -71,7 +70,8 @@ async function notifyAdmins() {
           Ouvrir le panneau admin
         </a>
       </div>`,
-  }).then(r => { if (r.error) console.error('[report email]', a.email, r.error); })));
+  });
+  if (r.error) console.error('[report email]', r.error);
 }
 
 export async function isBlockedBy(recipientId: string, actorId: string): Promise<boolean> {
