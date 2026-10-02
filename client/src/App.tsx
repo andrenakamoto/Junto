@@ -10,6 +10,7 @@ import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
+import { ChildSafetyPage } from './pages/ChildSafetyPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -58,6 +59,7 @@ export default function App() {
         <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />
         <Route path="/supprimer-mon-compte"  element={<DeleteAccountInfoPage />} />
+        <Route path="/securite-enfants"      element={<ChildSafetyPage />} />
         <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

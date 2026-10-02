@@ -340,7 +340,7 @@ Conséquences pratiques :
     Première version **sans connexion Google** (donc sans « Sign in with
     Apple »). Compte Google Play **personnel récent** : test fermé obligatoire
     (12 testeurs, 14 jours) avant la production. Page publique exigée par
-    Google : `/supprimer-mon-compte` (`DeleteAccountInfoPage`). Compte de
+    Google : `/supprimer-mon-compte` (`DeleteAccountInfoPage`). Normes de sécurité des enfants (déclaration Google obligatoire pour les applis « Réseaux sociaux ») : `/securite-enfants` (`ChildSafetyPage`, contact info@evly.ch). Compte de
     démonstration pour les vérificateurs : `server/scripts/demoAccount.ts`
     (écrit en **production**, `--confirm` obligatoire ; à relancer avant chaque
     soumission, les Plans expirent ; ne nettoie pas les éventuelles photos
