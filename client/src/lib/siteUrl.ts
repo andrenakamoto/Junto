@@ -5,3 +5,10 @@ import { Capacitor } from '@capacitor/core';
 export function siteUrl(path: string): string {
   return Capacitor.isNativePlatform() ? `https://www.evly.ch${path}` : path;
 }
+
+// Adresse publique du site, pour les liens envoyés à d'autres personnes (invitations, QR code) :
+// dans les apps, window.location.origin vaut https://localhost (Android) ou capacitor://localhost
+// (iPhone), inutilisable hors de l'app.
+export function publicOrigin(): string {
+  return Capacitor.isNativePlatform() ? 'https://www.evly.ch' : window.location.origin;
+}

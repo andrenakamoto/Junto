@@ -3,11 +3,14 @@ import { Copy, Check, Send, MessageSquare, ExternalLink, QrCode, Mail, Share2, U
 import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
+import { publicOrigin } from '../../lib/siteUrl';
 
 interface Props {
   /** Nom du Cercle */
   circleName: string;
   circleCode: string;
+  /** Id du Cercle : permet d'inviter directement un compte EvLY existant (pseudo ou email) */
+  circleId?: string;
   /** Si on invite à un Plan spécifique */
   planTitle?: string;
   /** Id du Plan, pour rediriger directement dessus après avoir rejoint le Cercle */
@@ -23,7 +26,7 @@ interface Props {
 
 type Mode = 'circle' | 'guest';
 
-export function InviteModal({ circleName, circleCode, planTitle, planId, allowGuest = false, canInviteToCircle = true, isPlanCreator = false, onClose }: Props) {
+export function InviteModal({ circleName, circleCode, circleId, planTitle, planId, allowGuest = false, canInviteToCircle = true, isPlanCreator = false, onClose }: Props) {
   const [mode, setMode] = useState<Mode>(canInviteToCircle ? 'circle' : 'guest');
   const [guestToken, setGuestToken] = useState<string | null>(null);
   const [guestError, setGuestError] = useState('');
@@ -41,7 +44,8 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, allowGu
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState('');
 
-  const appUrl = window.location.origin;
+  // Toujours une adresse evly.ch : dans les apps, l'origine locale (localhost) ne marche pas hors de l'app
+  const appUrl = publicOrigin();
 
   const circleLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}${planId ? `&planId=${planId}` : ''}`;
   const guestLink = guestToken ? `${appUrl}/invitation?token=${guestToken}` : '';
@@ -178,6 +182,9 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, allowGu
           )}
         </div>
 
+        {/* Compte EvLY existant : invitation directe, la personne accepte ou refuse dans l'app */}
+        {!isGuestMode && circleId && <MemberInvite circleId={circleId} />}
+
         {/* Copy link */}
         <div>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Lien d'invitation</p>
@@ -185,7 +192,7 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, allowGu
             <input
               readOnly
               value={joinLink}
-              className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 font-mono truncate focus:outline-none"
+              className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 font-mono truncate focus:outline-none"
             />
             <button
               onClick={copyLink}
@@ -349,5 +356,55 @@ export function InviteModal({ circleName, circleCode, planTitle, planId, allowGu
         </div>
       </div>
     </Modal>
+  );
+}
+
+function MemberInvite({ circleId }: { circleId: string }) {
+  const [identifier, setIdentifier] = useState('');
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState('');
+  const [error, setError] = useState('');
+
+  async function invite() {
+    if (!identifier.trim() || sending) return;
+    setSending(true);
+    setError('');
+    setDone('');
+    try {
+      const { data } = await api.post(`/circles/${circleId}/invitations`, { identifier: identifier.trim() });
+      setDone(`Invitation envoyée à @${data.pseudo}. Elle pourra l'accepter dans EvLY.`);
+      setIdentifier('');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erreur, réessaie');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Déjà sur EvLY ?</p>
+      <div className="flex gap-2">
+        <input
+          value={identifier}
+          onChange={e => { setIdentifier(e.target.value); setDone(''); setError(''); }}
+          onKeyDown={e => e.key === 'Enter' && invite()}
+          placeholder="Son pseudo ou son email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <button
+          onClick={invite}
+          disabled={!identifier.trim() || sending}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 flex-shrink-0"
+        >
+          <UserPlus size={14} />
+          {sending ? '…' : 'Inviter'}
+        </button>
+      </div>
+      {done && <p className="text-xs text-emerald-600 mt-1.5">{done}</p>}
+      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+    </div>
   );
 }
