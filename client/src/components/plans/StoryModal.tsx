@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { saveImage } from '../../lib/saveFile';
 import { toJpeg } from 'html-to-image';
 import { Camera, Loader2, Check, Download, ZoomOut, ZoomIn, Move, RectangleVertical, RectangleHorizontal } from 'lucide-react';
 import { Plan } from '../../types';
@@ -121,15 +122,9 @@ export function StoryModal({ plan, onClose }: Props) {
     setGenerating(true);
     try {
       const dataUrl = await toJpeg(cardRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.92, backgroundColor: '#431a11' });
-      const blob = await (await fetch(dataUrl)).blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}_story.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      // Apps : enregistrée dans la galerie du téléphone ; site : téléchargement
+      const where = await saveImage(dataUrl, `${plan.title.replace(/[^a-z0-9]/gi, '_')}_story.jpg`);
+      if (where === 'gallery') alert('Story enregistrée dans tes photos (album « EvLY »).');
     } catch (e) {
       console.error('[story generation]', e);
       alert("Erreur lors de la génération de la story. Réessaie.");
