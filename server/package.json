@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.16.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/multer": "^2.1.0",
     "archiver": "^7.0.1",
     "bcryptjs": "^2.4.3",

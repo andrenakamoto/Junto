@@ -53,6 +53,8 @@ export default function App() {
         <Route path="/admin"                 element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
         <Route path="/rejoindre"             element={<JoinPage />} />
         <Route path="/invitation"            element={<GuestInvitePage />} />
+        {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}
+        <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />
         <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>

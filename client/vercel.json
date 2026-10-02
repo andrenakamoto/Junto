@@ -1,9 +1,28 @@
 {
   "redirects": [
-    { "source": "/brochure", "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure", "permanent": false },
-    { "source": "/evly-associations-entreprises.pdf", "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure", "permanent": false }
+    {
+      "source": "/brochure",
+      "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure",
+      "permanent": false
+    },
+    {
+      "source": "/evly-associations-entreprises.pdf",
+      "destination": "https://junto-production-8ded.up.railway.app/api/stats/go/brochure",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/invitation",
+      "destination": "https://junto-production-8ded.up.railway.app/api/share/invitation"
+    },
+    {
+      "source": "/apercu/:file",
+      "destination": "https://junto-production-8ded.up.railway.app/api/share/image/:file"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

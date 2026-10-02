@@ -12,11 +12,14 @@ import attachmentsRoutes from './routes/attachments';
 import ridesRoutes from './routes/rides';
 import statsRoutes from './routes/stats';
 import pushRoutes from './routes/push';
+import inviteRoutes from './routes/invite';
+import shareRoutes from './routes/share';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
 import { encryptLegacyMessages } from './lib/messageBackfill';
 import { deleteExpiredPolls, sendPollReminders } from './lib/pollCleanup';
+import { deleteOrphanLightUsers } from './lib/lightGuest';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -71,6 +74,8 @@ app.use('/api/attachments', attachmentsRoutes);
 app.use('/api/rides', ridesRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/invite', inviteRoutes);
+app.use('/api/share', shareRoutes);
 
 app.set('io', io);
 setupSocketHandlers(io);
@@ -98,6 +103,8 @@ if (cronEnabled) {
 
   deleteExpiredPolls();
   setInterval(deleteExpiredPolls, 60 * 60 * 1000);
+  deleteOrphanLightUsers();
+  setInterval(deleteOrphanLightUsers, 60 * 60 * 1000);
 
   sendPollReminders();
   setInterval(sendPollReminders, 15 * 60 * 1000);
