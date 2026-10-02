@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["LDRKKV8GR7.ch.evly.app"],
+        "components": [
+          { "/": "/rejoindre*" },
+          { "/": "/invitation*" },
+          { "/": "/dashboard*" },
+          { "/": "/verify-email*" },
+          { "/": "/reset-password*" },
+          { "/": "/confirmer-email*" }
+        ]
+      }
+    ]
+  }
+}

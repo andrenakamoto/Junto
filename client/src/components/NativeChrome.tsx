@@ -32,6 +32,23 @@ export function NativeChrome() {
     return () => { sub.then(h => h.remove()); };
   }, [navigate]);
 
+  // Liens d'application (Android : assetlinks.json ; iPhone : apple-app-site-association) :
+  // un lien www.evly.ch touché dans WhatsApp, un email… ouvre l'app sur la page concernée
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const open = (raw?: string) => {
+      if (!raw) return;
+      try {
+        const url = new URL(raw);
+        if (!/(^|\.)evly\.ch$/.test(url.hostname)) return;
+        navigate(`${url.pathname}${url.search}`, { replace: true });
+      } catch { /* adresse invalide : on reste où l'on est */ }
+    };
+    CapApp.getLaunchUrl().then(r => open(r?.url)).catch(() => {});
+    const sub = CapApp.addListener('appUrlOpen', e => open(e.url));
+    return () => { sub.then(h => h.remove()); };
+  }, [navigate]);
+
   // Toucher une notification push ouvre le Plan / sondage / Cercle concerné
   useEffect(() => listenPush(url => navigate(url)), [navigate]);
 

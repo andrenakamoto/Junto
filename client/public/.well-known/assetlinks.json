@@ -1,0 +1,17 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ch.evly.app",
+      "sha256_cert_fingerprints": [
+        "66:46:77:2F:8A:69:4B:80:11:10:C7:98:74:41:3B:5C:ED:67:CE:D8:C2:A2:49:C0:13:CD:88:3A:4F:4D:4A:D7",
+        "1C:40:10:78:CA:94:B1:0E:41:C9:E2:FA:A7:97:D9:15:3B:82:90:80:34:A2:EE:8E:8D:5E:50:C8:20:20:F6:72",
+        "02:7B:F2:C0:8D:11:72:A5:20:4D:16:E0:8E:8F:AA:85:B5:02:3D:EB:68:14:95:B9:70:C2:C1:AB:1C:9D:BE:74",
+        "27:F3:01:87:B8:D4:5E:19:67:39:3A:27:96:6F:65:A4:3B:EF:F6:C8:B1:21:0A:D4:D3:E0:6D:01:D0:DC:9F:18"
+      ]
+    }
+  }
+]
