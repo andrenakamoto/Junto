@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('estelle_token', t);
     setToken(t);
     setUser(u);
+    // Profil complet (personnes masquées…), absent des réponses de connexion
+    api.get('/auth/me').then(res => setUser(res.data)).catch(() => {});
   }
 
   function logout() {

@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { ChatInput } from '../chat/ChatInput';
 import { ChatMessage } from '../chat/ChatMessage';
+import { ReportMessageModal } from '../chat/ReportMessageModal';
 import { InfosTab } from './InfosTab';
 import { MembresTab } from './MembresTab';
 import { VotesTab } from './VotesTab';
@@ -53,7 +54,7 @@ interface Props {
 }
 
 export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [] }: Props) {
-  const { token } = useAuth();
+  const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   const tabRef = useRef<Tab>('chat');
   tabRef.current = tab;
@@ -74,6 +75,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
   const [threadReplies, setThreadReplies] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Signalement en cours, et messages des personnes masquées (lib/moderation.ts) cachés
+  const [reporting, setReporting] = useState<Message | null>(null);
+  const blocked = new Set(me?.blockedUserIds ?? []);
+  const visibleMessages = messages.filter(m => !blocked.has(m.author.id));
   const openThreadIdRef = useRef<string | null>(null);
   useEffect(() => { openThreadIdRef.current = openThreadId; }, [openThreadId]);
 
@@ -618,12 +623,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {tab === 'chat' && isEnabled(plan, 'chat') && (
             <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
               <div ref={chatScrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
-                {messages.length === 0 ? (
+                {visibleMessages.length === 0 ? (
                   <div className="text-center text-slate-400 text-sm pt-12">
                     Aucun message encore. Lance la conversation !
                   </div>
                 ) : (
-                  messages.map(msg => (
+                  visibleMessages.map(msg => (
                     <div key={msg.id}>
                       <ChatMessage
                         message={msg}
@@ -634,10 +639,11 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                         replyCount={msg._count?.replies}
                         onEdit={handleEditMessage}
                         onDelete={handleDeleteMessage}
+                        onReport={setReporting}
                       />
                       {openThreadId === msg.id && (
                         <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
-                          {threadReplies.map(reply => (
+                          {threadReplies.filter(r => !blocked.has(r.author.id)).map(reply => (
                             <ChatMessage
                               key={reply.id}
                               message={reply}
@@ -646,6 +652,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                               onReact={handleReact}
                               onEdit={handleEditMessage}
                               onDelete={handleDeleteMessage}
+                              onReport={setReporting}
                             />
                           ))}
                         </div>
@@ -689,6 +696,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           isPlanCreator={isCreator}
           onClose={() => setShowInvite(false)}
         />
+      )}
+
+      {reporting && (
+        <ReportMessageModal kind="plan" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />
       )}
 
       {showHistory && (

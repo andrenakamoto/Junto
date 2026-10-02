@@ -7,6 +7,7 @@ import { disconnectSocket } from '../lib/socket';
 import api from '../services/api';
 import { fullName } from '../lib/names';
 import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
+import { ReportsPanel } from '../components/admin/ReportsPanel';
 
 interface AdminUser {
   id: string;
@@ -205,6 +206,8 @@ export function AdminPage() {
           le 29 septembre 2026. Réponses sans compte en cours (invités qui ont répondu à un Plan sans
           s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
         </p>
+
+        <ReportsPanel />
 
         <PageVisitsPanel
           page="decouvrir"

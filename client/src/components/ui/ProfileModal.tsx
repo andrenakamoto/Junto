@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail } from 'lucide-react';
 import { Modal } from './Modal';
 import { Input } from './Input';
@@ -41,6 +41,7 @@ export function ProfileModal({ onClose }: Props) {
         <Input id="profile-firstName" label="Prénom" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={50} autoComplete="given-name" autoFocus />
         <Input id="profile-lastName" label="Nom (facultatif)" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
         <EmailSection />
+        <BlockedSection />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
@@ -146,6 +147,39 @@ function EmailSection() {
       )}
 
       {msg && <p className={`text-xs ${msg.ok ? 'text-emerald-600' : 'text-red-500'}`}>{msg.text}</p>}
+    </div>
+  );
+}
+
+// Personnes masquées (lib/moderation.ts) : leurs messages ne s'affichent plus pour moi
+function BlockedSection() {
+  const { user, setUser } = useAuth();
+  const [people, setPeople] = useState<{ id: string; pseudo: string; firstName: string | null; lastName: string | null }[]>([]);
+  const count = user?.blockedUserIds?.length ?? 0;
+
+  useEffect(() => {
+    api.get('/moderation/blocks').then(res => setPeople(res.data)).catch(() => {});
+  }, [count]);
+
+  async function unblock(id: string) {
+    const { data } = await api.delete(`/moderation/blocks/${id}`);
+    setPeople(prev => prev.filter(p => p.id !== id));
+    if (user) setUser({ ...user, blockedUserIds: data.blockedUserIds });
+  }
+
+  if (people.length === 0) return null;
+  return (
+    <div className="pt-1">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Personnes masquées</p>
+      <ul className="space-y-1.5">
+        {people.map(p => (
+          <li key={p.id} className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            <span className="text-slate-700 truncate">{[p.firstName, p.lastName].filter(Boolean).join(' ') || p.pseudo} <span className="text-slate-400">@{p.pseudo}</span></span>
+            <button type="button" onClick={() => unblock(p.id)} className="text-xs text-indigo-600 hover:text-indigo-800 flex-shrink-0">Ne plus masquer</button>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-slate-400 mt-1.5">Leurs messages ne te sont pas affichés et ils ne t'envoient pas de notifications. Ils n'en savent rien.</p>
     </div>
   );
 }

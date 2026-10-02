@@ -46,6 +46,7 @@ export async function notifyMembershipChange(
       planTitle: plan.title,
       circleId: plan.circleId,
       from: actor.pseudo,
+      actorId: actor.id,
       preview: membershipText(change, actor.pseudo),
     });
   }
@@ -100,6 +101,7 @@ export async function notifyPlanActivity(
       planTitle: plan.title,
       circleId: plan.circleId,
       from: actor.pseudo,
+      actorId: actor.id,
       preview: activityText(kind, actor.pseudo),
     });
   }

@@ -32,6 +32,7 @@ function safeUser(user: {
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
   password?: string | null; pendingEmail?: string | null; notificationChannel?: string;
+  blocking?: { blockedId: string }[];
 }) {
   return {
     id: user.id,
@@ -49,6 +50,8 @@ function safeUser(user: {
     pendingEmail: user.pendingEmail ?? null,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
     notificationChannel: user.notificationChannel ?? 'both',
+    // Personnes masquées (lib/moderation.ts) : leurs messages sont cachés côté client
+    ...(user.blocking && { blockedUserIds: user.blocking.map(b => b.blockedId) }),
   };
 }
 
@@ -362,6 +365,7 @@ router.post('/reset-password', async (req, res) => {
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true, notificationChannel: true,
+  blocking: { select: { blockedId: true } },
   firstName: true, lastName: true, password: true, pendingEmail: true,
 };
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, CalendarPlus, Check, ChevronLeft, Gift, Hourglass, MessageSquare, ThumbsDown, Trash2, Users } from 'lucide-react';
+import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, ThumbsDown, Trash2, Users } from 'lucide-react';
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
@@ -8,6 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
+import { ReportMessageModal } from '../chat/ReportMessageModal';
 import api from '../../services/api';
 import { isCircleManager } from '../../lib/settings';
 
@@ -30,6 +31,10 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   const { user } = useAuth();
   const [poll, setPoll] = useState<CirclePoll | null>(null);
   const [messages, setMessages] = useState<CirclePollMessage[]>([]);
+  // Signalement en cours ; messages des personnes masquées cachés (lib/moderation.ts)
+  const [reporting, setReporting] = useState<CirclePollMessage | null>(null);
+  const blocked = new Set(user?.blockedUserIds ?? []);
+  const visibleMessages = messages.filter(m => !blocked.has(m.author.id));
   const [tab, setTab] = useState<Tab>('dates');
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -266,16 +271,17 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
       {tab === 'chat' && (
         <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
           <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
-            {messages.length === 0 ? (
+            {visibleMessages.length === 0 ? (
               <div className="text-center text-slate-400 text-sm pt-12">
                 Aucun message. Discutez ici des dates proposées !
                 <p className="text-xs mt-1">La conversation sera reprise dans le chat du Plan créé.</p>
               </div>
-            ) : messages.map(m => (
+            ) : visibleMessages.map(m => (
               <PollChatMessage
                 key={m.id}
                 message={m}
                 isMe={m.author.id === user.id}
+                onReport={() => setReporting(m)}
                 onEdit={content => api.put(`/circles/polls/messages/${m.id}`, { content }).then(r => replaceMessage(r.data)).catch(() => {})}
                 onDelete={() => api.delete(`/circles/polls/messages/${m.id}`).then(r => replaceMessage(r.data)).catch(() => {})}
               />
@@ -284,6 +290,10 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
           </div>
           <ChatInput onSend={handleSend} members={audience.map(m => ({ pseudo: m.user.pseudo }))} />
         </div>
+      )}
+
+      {reporting && (
+        <ReportMessageModal kind="poll" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />
       )}
 
       {convertOption && (
@@ -324,8 +334,8 @@ function PeopleGroup({ title, tone, people, empty }: { title: string; tone: 'amb
 }
 
 // Message du chat d'un sondage, modifiable / supprimable par son auteur pendant 15 minutes
-function PollChatMessage({ message: m, isMe, onEdit, onDelete }: {
-  message: CirclePollMessage; isMe: boolean; onEdit: (content: string) => void; onDelete: () => void;
+function PollChatMessage({ message: m, isMe, onEdit, onDelete, onReport }: {
+  message: CirclePollMessage; isMe: boolean; onEdit: (content: string) => void; onDelete: () => void; onReport: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const editable = useEditWindow(m.createdAt, m.deletedAt, isMe);
@@ -351,6 +361,11 @@ function PollChatMessage({ message: m, isMe, onEdit, onDelete }: {
           </div>
         )}
         {editable && !editing && <OwnMessageActions onEdit={() => setEditing(true)} onDelete={onDelete} />}
+        {!isMe && !m.deletedAt && (
+          <button onClick={onReport} title="Signaler ce message" className="flex items-center gap-1 text-xs text-slate-300 hover:text-red-500 transition-colors">
+            <Flag size={11} /> Signaler
+          </button>
+        )}
       </div>
     </div>
   );

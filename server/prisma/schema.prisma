@@ -70,6 +70,10 @@ model User {
   circlePollDeclines     CirclePollDecline[]   @relation("CirclePollDeclines")
   circlePollMessages     CirclePollMessage[]   @relation("CirclePollMessages")
   pushTokens             PushToken[]
+  reportsMade            MessageReport[]       @relation("ReportReporter")
+  reportsReceived        MessageReport[]       @relation("ReportAuthor")
+  blocking               UserBlock[]           @relation("BlockBy")
+  blockedBy              UserBlock[]           @relation("BlockTarget")
 
   @@index([lastActiveAt])
 }
@@ -533,4 +537,40 @@ model PageVisit {
   count Int      @default(0)
 
   @@id([page, day])
+}
+
+// Signalement d'un message (chat d'un Plan ou d'un sondage), traité dans le panneau admin
+// (lib/moderation.ts). Le texte est copié au moment du signalement, chiffré comme les messages,
+// pour rester lisible même si l'auteur le modifie ou le supprime ; effacé au traitement.
+model MessageReport {
+  id          String    @id @default(cuid())
+  kind        String // plan | poll
+  messageId   String
+  planId      String?
+  pollId      String?
+  content     String // copie chiffrée (encryptMessage)
+  reason      String?
+  reporterId  String
+  reporter    User      @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User      @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolution  String? // deleted | dismissed
+
+  @@unique([reporterId, kind, messageId])
+  @@index([resolvedAt])
+}
+
+// « Masquer » une personne : ses messages n'apparaissent plus pour blockerId et elle ne lui
+// envoie plus de notifications (lib/moderation.ts). Invisible pour la personne masquée.
+model UserBlock {
+  blockerId String
+  blocker   User     @relation("BlockBy", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("BlockTarget", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
 }

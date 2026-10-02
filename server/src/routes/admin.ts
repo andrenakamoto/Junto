@@ -7,6 +7,7 @@ import { requireAdmin } from '../middleware/admin';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 import { fillDays, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
 import { requestEmailChange } from '../lib/emailChange';
+import { decryptMessage, withPlainContent } from '../lib/messageCrypto';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -153,6 +154,69 @@ router.get('/stats', async (_req, res) => {
     activeUsersLast7Days,
     lightGuests,
   });
+});
+
+// ─── Signalements (lib/moderation.ts) ─────────────────────────────────────────
+
+// GET /api/admin/reports — signalements en attente, avec le texte signalé
+router.get('/reports', async (_req, res) => {
+  const reports = await prisma.messageReport.findMany({
+    where: { resolvedAt: null },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      reporter: { select: { pseudo: true } },
+      author: { select: { id: true, pseudo: true, firstName: true, lastName: true } },
+    },
+  });
+  const planIds = reports.map(r => r.planId).filter((x): x is string => !!x);
+  const pollIds = reports.map(r => r.pollId).filter((x): x is string => !!x);
+  const [plans, polls] = await Promise.all([
+    prisma.plan.findMany({ where: { id: { in: planIds } }, select: { id: true, title: true, circle: { select: { name: true } } } }),
+    prisma.circlePoll.findMany({ where: { id: { in: pollIds } }, select: { id: true, question: true, circle: { select: { name: true } } } }),
+  ]);
+  res.json(reports.map(r => {
+    const plan = plans.find(p => p.id === r.planId);
+    const poll = polls.find(p => p.id === r.pollId);
+    return {
+      id: r.id, kind: r.kind, messageId: r.messageId, createdAt: r.createdAt, reason: r.reason,
+      content: decryptMessage(r.content),
+      reporter: r.reporter.pseudo, author: r.author,
+      where: plan ? `Plan « ${plan.title} » (${plan.circle.name})` : poll ? `Sondage « ${poll.question} » (${poll.circle.name})` : 'Plan ou sondage supprimé',
+    };
+  }));
+});
+
+// POST /api/admin/reports/:id/resolve { action: 'delete' | 'dismiss' } — tous les signalements
+// du même message sont traités ensemble, et la copie du texte est effacée
+router.post('/reports/:id/resolve', async (req: AuthRequest, res) => {
+  const action = req.body?.action;
+  if (action !== 'delete' && action !== 'dismiss') { res.status(400).json({ error: 'Action invalide' }); return; }
+  const report = await prisma.messageReport.findUnique({ where: { id: req.params.id } });
+  if (!report) { res.status(404).json({ error: 'Signalement introuvable' }); return; }
+  if (action === 'delete') {
+    const now = new Date();
+    if (report.kind === 'plan') {
+      const updated = await prisma.message.updateMany({ where: { id: report.messageId }, data: { content: '', deletedAt: now } });
+      if (updated.count && report.planId) {
+        const message = await prisma.message.findUnique({
+          where: { id: report.messageId },
+          include: {
+            author: { select: { id: true, pseudo: true } },
+            reactions: { include: { user: { select: { id: true, pseudo: true } } } },
+            _count: { select: { replies: true } },
+          },
+        });
+        if (message) req.app.get('io')?.to(`plan:${report.planId}`).emit('message-updated', withPlainContent(message));
+      }
+    } else {
+      await prisma.circlePollMessage.updateMany({ where: { id: report.messageId }, data: { content: '', deletedAt: now } });
+    }
+  }
+  await prisma.messageReport.updateMany({
+    where: { kind: report.kind, messageId: report.messageId, resolvedAt: null },
+    data: { resolvedAt: new Date(), resolution: action === 'delete' ? 'deleted' : 'dismissed', content: '' },
+  });
+  res.json({ ok: true });
 });
 
 export default router;

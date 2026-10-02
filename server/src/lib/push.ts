@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 import prisma from './prisma';
+import { isBlockedBy } from './moderation';
 
 // Notifications push des apps Android / iOS, via Firebase Cloud Messaging (projet
 // Firebase « EvLY »). Clé du compte de service dans FIREBASE_SERVICE_ACCOUNT_B64
@@ -18,6 +19,8 @@ export type AppNotification = {
   circleName?: string;
   pollId?: string;
   from?: string;
+  /** Auteur de l'action : pas de notification si le destinataire l'a masqué (lib/moderation.ts) */
+  actorId?: string;
   preview?: string;
 };
 
@@ -119,6 +122,12 @@ export async function sendPush(userId: string, n: AppNotification): Promise<void
 
 // Notification dans l'app (temps réel) + push sur les téléphones, en arrière-plan
 export function notifyUser(io: { to(room: string): { emit(ev: string, data: unknown): unknown } } | undefined, userId: string, n: AppNotification) {
-  io?.to(`user:${userId}`).emit('notification', n);
-  sendPush(userId, n).catch(e => console.error('[push]', e));
+  const deliver = () => {
+    io?.to(`user:${userId}`).emit('notification', n);
+    sendPush(userId, n).catch(e => console.error('[push]', e));
+  };
+  if (!n.actorId) { deliver(); return; }
+  isBlockedBy(userId, n.actorId)
+    .then(blocked => { if (!blocked) deliver(); })
+    .catch(e => { console.error('[notify block check]', e); deliver(); });
 }

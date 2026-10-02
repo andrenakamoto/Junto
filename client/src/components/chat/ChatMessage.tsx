@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { Flag, MessageCircle } from 'lucide-react';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
@@ -16,6 +16,8 @@ interface Props {
   /** Modifier / supprimer son propre message (15 minutes après l'envoi) */
   onEdit?: (messageId: string, content: string) => void;
   onDelete?: (messageId: string) => void;
+  /** Signaler le message d'un autre membre (ReportMessageModal) */
+  onReport?: (message: Message) => void;
 }
 
 function renderContent(content: string) {
@@ -27,7 +29,7 @@ function renderContent(content: string) {
   ));
 }
 
-export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete }: Props) {
+export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport }: Props) {
   const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
     + (message.editedAt && !message.deletedAt ? ' (modifié)' : '');
   const deleted = !!message.deletedAt;
@@ -104,14 +106,28 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           </div>
         )}
 
-        {onReply && (
-          <button
-            onClick={() => onReply(message)}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"
-          >
-            <MessageCircle size={11} />
-            {replyCount ? `${replyCount} réponse${replyCount > 1 ? 's' : ''}` : 'Répondre'}
-          </button>
+        {(onReply || (onReport && !isMe && !deleted)) && (
+          <span className="flex items-center gap-3">
+            {onReply && (
+              <button
+                onClick={() => onReply(message)}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"
+              >
+                <MessageCircle size={11} />
+                {replyCount ? `${replyCount} réponse${replyCount > 1 ? 's' : ''}` : 'Répondre'}
+              </button>
+            )}
+            {onReport && !isMe && !deleted && (
+              <button
+                onClick={() => onReport(message)}
+                title="Signaler ce message"
+                className="flex items-center gap-1 text-xs text-slate-300 hover:text-red-500 transition-colors"
+              >
+                <Flag size={11} />
+                Signaler
+              </button>
+            )}
+          </span>
         )}
 
         {isMe && (

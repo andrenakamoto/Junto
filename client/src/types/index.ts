@@ -15,6 +15,8 @@ export interface User {
   weeklyDigestEnabled: boolean;
   /** Canal des notifications : push, push + email (défaut) ou email */
   notificationChannel?: NotificationChannel;
+  /** Personnes masquées : leurs messages ne sont pas affichés (serveur : lib/moderation.ts) */
+  blockedUserIds?: string[];
 }
 
 export type NotificationChannel = 'push' | 'both' | 'email';

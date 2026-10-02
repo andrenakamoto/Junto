@@ -282,6 +282,7 @@ router.post('/join', async (req: AuthRequest, res) => {
           circleId: circle.id,
           circleName: circle.name,
           from: requester?.pseudo,
+          actorId: req.userId!,
         });
       }
     }
@@ -515,6 +516,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
         circleId,
         circleName: circle.name,
         from: plan.creator.pseudo,
+        actorId: plan.creatorId,
       });
     }
   }
@@ -778,6 +780,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
             circleId: req.params.id,
             circleName: circle.name,
             from: poll.creator.pseudo,
+            actorId: req.userId!,
             planTitle: poll.question,
             pollId: poll.id,
           });
@@ -913,6 +916,7 @@ router.post('/polls/:pollId/messages', async (req: AuthRequest, res) => {
           pollId: poll.id,
           planTitle: poll.question,
           from: message.author.pseudo,
+          actorId: req.userId!,
           preview: content.slice(0, 80),
         });
       }

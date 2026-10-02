@@ -139,7 +139,7 @@ export function setupSocketHandlers(io: Server) {
           planId,
           planTitle: planData.title,
           circleId: planData.circleId,
-          from: socket.data.pseudo,
+          from: socket.data.pseudo, actorId: socket.data.userId,
           preview: trimmed.slice(0, 60),
         });
       }
@@ -172,7 +172,7 @@ export function setupSocketHandlers(io: Server) {
             planId,
             planTitle: planData.title,
             circleId: planData.circleId,
-            from: socket.data.pseudo,
+            from: socket.data.pseudo, actorId: socket.data.userId,
             preview: trimmed.slice(0, 60),
           });
         }
@@ -217,7 +217,7 @@ export function setupSocketHandlers(io: Server) {
         if (mentions(text, m.user.pseudo) && !mentions(before, m.user.pseudo)) {
           notifyUser(io, m.userId, {
             type: 'mention', planId: message.planId, planTitle: message.plan.title, circleId: message.plan.circleId,
-            from: socket.data.pseudo, preview: text.slice(0, 60),
+            from: socket.data.pseudo, actorId: socket.data.userId, preview: text.slice(0, 60),
           });
         }
       }
