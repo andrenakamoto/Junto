@@ -73,6 +73,7 @@ router.get('/', async (req: AuthRequest, res) => {
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 const MAX_CIRCLES_PER_USER = 20;
+const CIRCLE_NAME_MAX = 60;
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
 // Create a circle
@@ -80,6 +81,10 @@ router.post('/', async (req: AuthRequest, res) => {
   const { name, description, color } = req.body;
   if (!name?.trim()) {
     res.status(400).json({ error: 'Nom requis' });
+    return;
+  }
+  if (name.trim().length > CIRCLE_NAME_MAX) {
+    res.status(400).json({ error: `Le nom doit faire ${CIRCLE_NAME_MAX} caractères au plus` });
     return;
   }
   const createdCount = await prisma.circle.count({ where: { creatorId: req.userId! } });
@@ -186,6 +191,10 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   if (planCreationMode === undefined && req.body.planCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des Plans invalide' }); return; }
   const pollCreationMode = req.body.pollCreationMode === undefined ? undefined : parsePollCreationMode(req.body.pollCreationMode);
   const description = typeof req.body.description === 'string' ? req.body.description.trim().slice(0, 500) : undefined;
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : undefined;
+  if (name !== undefined && (name.length < 1 || name.length > CIRCLE_NAME_MAX)) {
+    res.status(400).json({ error: `Le nom doit faire entre 1 et ${CIRCLE_NAME_MAX} caractères` }); return;
+  }
   if (pollCreationMode === undefined && req.body.pollCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des sondages invalide' }); return; }
   // La suppression du Cercle reste l'affaire du créateur : les organisateurs ne changent pas sa règle
   if (deletionMode && deletionMode !== circle.deletionMode && circle.creatorId !== req.userId) {
@@ -195,8 +204,32 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(description !== undefined && { description: description || null }) },
+    data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(description !== undefined && { description: description || null }) },
   });
+
+  // Historique des modifications (CircleChangeLog), visible des membres dans les paramètres
+  const changes: { field: string; oldValue: string | null; newValue: string | null }[] = [];
+  const track = (field: string, before: string | null, after: string | null | undefined) => {
+    if (after !== undefined && (after || null) !== (before || null)) changes.push({ field, oldValue: before || null, newValue: after || null });
+  };
+  track('name', circle.name, name);
+  track('description', circle.description, description);
+  track('admissionMode', circle.admissionMode, admissionMode);
+  track('planCreationMode', circle.planCreationMode, planCreationMode);
+  track('pollCreationMode', circle.pollCreationMode, pollCreationMode);
+  track('deletionMode', circle.deletionMode, deletionMode);
+  if (changes.length) {
+    await prisma.circleChangeLog.createMany({ data: changes.map(c => ({ ...c, circleId: circle.id, changedById: req.userId! })) });
+  }
+  // Nouveau nom : tous les membres sont prévenus (app + push)
+  if (name && name !== circle.name) {
+    const members = await prisma.circleMember.findMany({ where: { circleId: circle.id, userId: { not: req.userId! } }, select: { userId: true } });
+    for (const m of members) {
+      notifyUser(req.app.get('io'), m.userId, {
+        type: 'circle_renamed', circleId: circle.id, circleName: name, preview: circle.name, from: req.pseudo, actorId: req.userId!,
+      });
+    }
+  }
   // Les votes de suppression en cours n'ont plus de sens si c'est le créateur qui décide
   if (deletionMode === 'creator') await prisma.circleDeleteVote.deleteMany({ where: { circleId: circle.id } });
   // Passage en entrée libre : les demandes en attente sont acceptées
@@ -227,17 +260,33 @@ router.put('/:id/members/:userId/role', async (req: AuthRequest, res) => {
 
 // Demander à rejoindre un cercle — nécessite l'approbation d'au moins la
 // moitié des membres actuels (même principe que la suppression d'un Cercle/Plan)
-router.post('/join', async (req: AuthRequest, res) => {
-  const { name, code } = req.body;
-  if (!name?.trim() || !code?.trim()) {
-    res.status(400).json({ error: 'Nom et code requis' });
+// Rejoindre avec le code seul (le nom peut changer, le code est unique) ; tentatives limitées
+// pour empêcher d'essayer des codes en série
+const joinLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Trop de tentatives, réessaie dans quelques minutes.' },
+});
+
+// GET /api/circles/by-code/:code — aperçu d'un Cercle pour la page d'invitation (/rejoindre?code=…) :
+// nom actuel et nombre de membres, rien d'autre. Même limite de tentatives que /join.
+router.get('/by-code/:code', joinLimiter, async (req: AuthRequest, res) => {
+  const circle = await prisma.circle.findUnique({
+    where: { code: req.params.code.trim().toUpperCase() },
+    select: { name: true, color: true, _count: { select: { members: true } } },
+  });
+  if (!circle) { res.status(404).json({ error: 'Ce lien d\'invitation n\'est plus valide (code inconnu).' }); return; }
+  res.json({ name: circle.name, color: circle.color, memberCount: circle._count.members });
+});
+
+router.post('/join', joinLimiter, async (req: AuthRequest, res) => {
+  const code = typeof req.body?.code === 'string' ? req.body.code.trim().toUpperCase() : '';
+  if (!code) {
+    res.status(400).json({ error: 'Code requis' });
     return;
   }
-  const circle = await prisma.circle.findFirst({
-    where: { name: name.trim(), code: code.trim().toUpperCase() },
-  });
+  const circle = await prisma.circle.findUnique({ where: { code } });
   if (!circle) {
-    res.status(404).json({ error: 'Cercle introuvable. Vérifie le nom et le code.' });
+    res.status(404).json({ error: 'Aucun Cercle ne correspond à ce code. Vérifie-le.' });
     return;
   }
   const existing = await prisma.circleMember.findUnique({
@@ -312,6 +361,18 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
     console.error('[join_request notify]', e);
   }
 }
+
+// GET /api/circles/:id/history — historique des modifications du Cercle (membres)
+router.get('/:id/history', async (req: AuthRequest, res) => {
+  if (!(await assertCircleMember(req.userId!, req.params.id))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const logs = await prisma.circleChangeLog.findMany({
+    where: { circleId: req.params.id },
+    orderBy: { changedAt: 'desc' },
+    take: 50,
+    include: { changedBy: { select: { pseudo: true } } },
+  });
+  res.json(logs);
+});
 
 // ─── Inviter un compte EvLY existant (CircleInvitation) ───────────────────────
 

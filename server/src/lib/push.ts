@@ -73,6 +73,8 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
       return { title: n.planTitle ?? 'Sondage', body: `Nouveau message de ${from}`, url: pollUrl, group: `poll:${n.pollId}` };
     case 'join_request':
       return { title: n.circleName ?? 'EvLY', body: `${from} demande à rejoindre le Cercle`, url: circleUrl, group: `join:${n.circleId}` };
+    case 'circle_renamed':
+      return { title: n.circleName ?? 'EvLY', body: `${from} a renommé le Cercle « ${n.preview} » en « ${n.circleName} »`, url: circleUrl, group: `circle:${n.circleId}` };
     case 'circle_invite':
       return { title: n.circleName ?? 'EvLY', body: `${from} t'invite à rejoindre le Cercle`, url: '/dashboard?invitations=1', group: `invite:${n.circleName}` };
     case 'join_accepted':

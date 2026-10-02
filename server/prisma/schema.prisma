@@ -76,6 +76,7 @@ model User {
   blockedBy              UserBlock[]           @relation("BlockTarget")
   circleInvitesSent      CircleInvitation[]    @relation("InviteFrom")
   circleInvitesReceived  CircleInvitation[]    @relation("InviteTo")
+  circleChangeLogs       CircleChangeLog[]     @relation("CircleChangeLogAuthor")
 
   @@index([lastActiveAt])
 }
@@ -118,6 +119,7 @@ model Circle {
   joinRequests CircleJoinRequest[]
   polls        CirclePoll[]
   invitations  CircleInvitation[]
+  changeLogs   CircleChangeLog[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -593,4 +595,20 @@ model CircleInvitation {
 
   @@unique([circleId, inviteeId])
   @@index([inviteeId])
+}
+
+// Historique des modifications d'un Cercle (nom, description, paramètres), visible des membres
+// dans les paramètres du Cercle — même principe que PlanChangeLog
+model CircleChangeLog {
+  id          String   @id @default(cuid())
+  circleId    String
+  circle      Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  field       String
+  oldValue    String?
+  newValue    String?
+  changedAt   DateTime @default(now())
+  changedById String?
+  changedBy   User?    @relation("CircleChangeLogAuthor", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([circleId])
 }
