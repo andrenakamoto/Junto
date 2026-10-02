@@ -107,6 +107,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
 export async function resolveCircleWrite(req: Request): Promise<WriteTarget> {
   const [a, b, c] = segments(req);
   if (!a) return null; // création : la room est rejointe dans la route
+  if (a === 'invitations') return null; // invitations reçues : diffusion faite dans la route
   if (a === 'join') {
     const { name, code } = req.body ?? {};
     if (typeof name !== 'string' || typeof code !== 'string') return null;

@@ -53,6 +53,16 @@ export function DashboardPage() {
     } catch { return []; }
   });
   const [showNotifCenter, setShowNotifCenter] = useState(false);
+  // Invitations reçues à rejoindre un Cercle (comptées sur la cloche)
+  const [invitesCount, setInvitesCount] = useState(0);
+  const refreshInvites = () => api.get('/circles/invitations/mine').then(res => setInvitesCount(res.data.length)).catch(() => {});
+  useEffect(() => { if (user) refreshInvites(); }, [user?.id]);
+  // Lien des emails et notifications d'invitation : /dashboard?invitations=1 ouvre la cloche
+  useEffect(() => {
+    if (searchParams.get('invitations') !== '1') return;
+    setShowNotifCenter(true);
+    setSearchParams(prev => { prev.delete('invitations'); return prev; }, { replace: true });
+  }, [searchParams]);
   // Apps : à l'ouverture (et à chaque retour dans l'app), les notifications du volet du
   // téléphone disparaissent
   useEffect(() => {
@@ -221,6 +231,7 @@ export function DashboardPage() {
       setNotifHistory(prev => [notification, ...prev].slice(0, 30));
       if (data.circleId) markCircle(data.circleId);
       if (data.planId) markPlan(data.planId);
+      if (data.type === 'circle_invite') refreshInvites();
       if (data.type === 'join_accepted') {
         api.get('/circles').then(res => setCircles(res.data));
       }
@@ -300,7 +311,9 @@ export function DashboardPage() {
 
   // Ouvre ce que concerne une notification (bulle ou panneau de la cloche)
   function openNotification(n: AppNotification) {
-    if (n.planId) {
+    if (n.type === 'circle_invite') {
+      setShowNotifCenter(true);
+    } else if (n.planId) {
       handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
     } else if (n.pollId && n.circleId) {
       handleSelectCircle(n.circleId);
@@ -461,6 +474,10 @@ export function DashboardPage() {
         onOpenCircle={handleSelectCircle}
         onOpenNotification={n => { dismissHistory(x => x.id === n.id); openNotification(n); }}
         onClearHistory={() => setNotifHistory([])}
+        onInvitationsChanged={(remaining, joinedCircleId) => {
+          setInvitesCount(remaining);
+          if (joinedCircleId) api.get('/circles').then(res => setCircles(res.data)).catch(() => {});
+        }}
       />
     )}
     {/* Les bandeaux prennent leur place dans la hauteur de l'écran au lieu de pousser le bas hors de la vue */}
@@ -486,7 +503,7 @@ export function DashboardPage() {
           onCalendar={handleCalendar}
           calendarActive={calendarActive}
           onCircleUpdated={handleCircleUpdated}
-          unreadCount={circlesWithNews.size}
+          unreadCount={circlesWithNews.size + invitesCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
           unreadCircles={circlesWithNews}
         />

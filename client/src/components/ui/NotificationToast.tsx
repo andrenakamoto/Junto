@@ -3,7 +3,7 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -64,6 +64,11 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     icon: Bell, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Du nouveau — ${n.planTitle}`,
     body: n => n.preview ?? '',
+  },
+  circle_invite: {
+    icon: UserPlus, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
+    title: n => `Invitation — ${n.circleName}`,
+    body: n => `@${n.from} t'invite à rejoindre le Cercle`,
   },
   plan_gone: {
     icon: Trash2, iconClass: 'text-slate-300', bgClass: 'bg-slate-600/40',

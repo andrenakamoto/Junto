@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { saveFile } from '../../lib/saveFile';
 import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -320,14 +321,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   async function handleExportIcal() {
     const res = await api.get(`/plans/${plan.id}/ical`, { responseType: 'blob' });
-    const url = URL.createObjectURL(res.data);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    // Apps : menu de partage (Agenda…) ; site : téléchargement
+    await saveFile(res.data, `${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics`, plan.title);
   }
 
   const isCreator = plan.creatorId === user.id;
@@ -693,6 +688,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         <InviteModal
           circleName={circleName}
           circleCode={circleCode}
+          circleId={plan.viewerIsGuest ? undefined : plan.circleId}
           planTitle={plan.title}
           planId={plan.id}
           allowGuest

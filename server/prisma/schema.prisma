@@ -74,6 +74,8 @@ model User {
   reportsReceived        MessageReport[]       @relation("ReportAuthor")
   blocking               UserBlock[]           @relation("BlockBy")
   blockedBy              UserBlock[]           @relation("BlockTarget")
+  circleInvitesSent      CircleInvitation[]    @relation("InviteFrom")
+  circleInvitesReceived  CircleInvitation[]    @relation("InviteTo")
 
   @@index([lastActiveAt])
 }
@@ -115,6 +117,7 @@ model Circle {
   deleteVotes  CircleDeleteVote[]
   joinRequests CircleJoinRequest[]
   polls        CirclePoll[]
+  invitations  CircleInvitation[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -543,20 +546,20 @@ model PageVisit {
 // (lib/moderation.ts). Le texte est copié au moment du signalement, chiffré comme les messages,
 // pour rester lisible même si l'auteur le modifie ou le supprime ; effacé au traitement.
 model MessageReport {
-  id          String    @id @default(cuid())
-  kind        String // plan | poll
-  messageId   String
-  planId      String?
-  pollId      String?
-  content     String // copie chiffrée (encryptMessage)
-  reason      String?
-  reporterId  String
-  reporter    User      @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  authorId    String
-  author      User      @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  resolvedAt  DateTime?
-  resolution  String? // deleted | dismissed
+  id         String    @id @default(cuid())
+  kind       String // plan | poll
+  messageId  String
+  planId     String?
+  pollId     String?
+  content    String // copie chiffrée (encryptMessage)
+  reason     String?
+  reporterId String
+  reporter   User      @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User      @relation("ReportAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolution String? // deleted | dismissed
 
   @@unique([reporterId, kind, messageId])
   @@index([resolvedAt])
@@ -573,4 +576,21 @@ model UserBlock {
 
   @@id([blockerId, blockedId])
   @@index([blockedId])
+}
+
+// Invitation d'un compte EvLY existant dans un Cercle (par pseudo ou email exact). La personne
+// accepte ou refuse ; en acceptant, elle suit les mêmes règles qu'avec le code (entrée directe
+// si le Cercle est ouvert, sinon demande d'adhésion — voix de la personne qui invite comptée).
+model CircleInvitation {
+  id        String   @id @default(cuid())
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  inviterId String
+  inviter   User     @relation("InviteFrom", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId String
+  invitee   User     @relation("InviteTo", fields: [inviteeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([circleId, inviteeId])
+  @@index([inviteeId])
 }

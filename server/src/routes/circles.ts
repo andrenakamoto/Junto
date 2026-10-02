@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -263,18 +264,22 @@ router.post('/join', async (req: AuthRequest, res) => {
     return;
   }
 
-  const requester = await prisma.user.findUnique({ where: { id: req.userId! }, select: { pseudo: true } });
   await prisma.circleJoinRequest.create({ data: { circleId: circle.id, userId: req.userId! } });
   res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
+  await notifyJoinRequest(req.app, circle, req.userId!);
+});
 
-  // Notifier les membres actuels (ou le créateur seul s'il valide seul) — temps réel + email
+// Nouvelle demande d'adhésion : prévient les membres (ou seulement le créateur et les
+// organisateurs s'ils valident seuls) — temps réel + push + email
+async function notifyJoinRequest(app: any, circle: { id: string; name: string; creatorId: string; admissionMode: string }, requesterId: string, skipUserId?: string) {
+  const requester = await prisma.user.findUnique({ where: { id: requesterId }, select: { pseudo: true } });
   const byCreator = circle.admissionMode === 'creator';
   try {
-    const io = req.app.get('io');
-    const members = await prisma.circleMember.findMany({
+    const io = app.get('io');
+    const members = (await prisma.circleMember.findMany({
       where: { circleId: circle.id, ...(byCreator && { OR: [{ userId: circle.creatorId }, { role: ORGANIZER_ROLE }] }) },
       select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } },
-    });
+    })).filter(m => m.userId !== skipUserId);
     if (io) {
       for (const m of members) {
         notifyUser(io, m.userId, {
@@ -282,7 +287,7 @@ router.post('/join', async (req: AuthRequest, res) => {
           circleId: circle.id,
           circleName: circle.name,
           from: requester?.pseudo,
-          actorId: req.userId!,
+          actorId: requesterId,
         });
       }
     }
@@ -306,6 +311,138 @@ router.post('/join', async (req: AuthRequest, res) => {
   } catch (e) {
     console.error('[join_request notify]', e);
   }
+}
+
+// ─── Inviter un compte EvLY existant (CircleInvitation) ───────────────────────
+
+const inviteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false,
+  message: { error: 'Trop d\'invitations, réessaie dans quelques minutes.' },
+});
+
+// POST /api/circles/:id/invitations { identifier } — pseudo ou email exact d'un compte existant
+router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => {
+  const circleId = req.params.id;
+  if (!(await assertCircleMember(req.userId!, circleId))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const identifier = typeof req.body?.identifier === 'string' ? req.body.identifier.trim().replace(/^@/, '') : '';
+  if (!identifier || identifier.length > 120) { res.status(400).json({ error: 'Indique un pseudo ou un email' }); return; }
+  const invitee = await prisma.user.findFirst({
+    where: {
+      isLight: false,
+      ...(identifier.includes('@')
+        ? { email: { equals: identifier.toLowerCase(), mode: 'insensitive' as const } }
+        : { pseudo: { equals: identifier, mode: 'insensitive' as const } }),
+    },
+    select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true },
+  });
+  if (!invitee) { res.status(404).json({ error: 'Aucun compte EvLY ne correspond à ce pseudo ou à cet email.' }); return; }
+  if (invitee.id === req.userId) { res.status(400).json({ error: 'Tu fais déjà partie du Cercle 😉' }); return; }
+  const already = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId: invitee.id, circleId } } });
+  if (already) { res.status(409).json({ error: `@${invitee.pseudo} fait déjà partie du Cercle` }); return; }
+
+  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { name: true } });
+  await prisma.circleInvitation.upsert({
+    where: { circleId_inviteeId: { circleId, inviteeId: invitee.id } },
+    create: { circleId, inviterId: req.userId!, inviteeId: invitee.id },
+    update: { inviterId: req.userId!, createdAt: new Date() },
+  });
+  res.json({ ok: true, pseudo: invitee.pseudo });
+
+  // La personne invitée est prévenue (app + push, et email selon ses réglages)
+  notifyUser(req.app.get('io'), invitee.id, {
+    type: 'circle_invite', circleName: circle?.name, from: req.pseudo, actorId: req.userId!,
+  });
+  if (invitee.email && invitee.emailVerified && wantsEmail(invitee.notificationChannel)) {
+    resend.emails.send({
+      from: FROM_EMAIL,
+      to: invitee.email,
+      subject: `${req.pseudo} t'invite dans le Cercle "${circle?.name}"`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2>Salut ${invitee.pseudo} 👋</h2>
+          <p><strong>${req.pseudo}</strong> t'invite à rejoindre le Cercle <strong>"${circle?.name}"</strong> sur EvLY.</p>
+          <a href="${APP_URL}/dashboard?invitations=1" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
+            Voir l'invitation
+          </a>
+        ${notificationFooter()}
+        </div>`,
+    }).then(r => { if (r.error) console.error('[circle_invite email]', r.error); })
+      .catch(e => console.error('[circle_invite email]', e));
+  }
+});
+
+// GET /api/circles/invitations/mine — invitations reçues en attente
+router.get('/invitations/mine', async (req: AuthRequest, res) => {
+  const invites = await prisma.circleInvitation.findMany({
+    where: { inviteeId: req.userId! },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true, createdAt: true,
+      circle: { select: { id: true, name: true, color: true, description: true, _count: { select: { members: true } } } },
+      inviter: { select: { pseudo: true, firstName: true, lastName: true } },
+    },
+  });
+  res.json(invites);
+});
+
+// POST /api/circles/invitations/:inviteId/accept — mêmes règles qu'avec le code
+router.post('/invitations/:inviteId/accept', async (req: AuthRequest, res) => {
+  const invite = await prisma.circleInvitation.findUnique({
+    where: { id: req.params.inviteId },
+    include: { circle: { select: { id: true, name: true, creatorId: true, admissionMode: true } } },
+  });
+  if (!invite || invite.inviteeId !== req.userId) { res.status(404).json({ error: 'Invitation introuvable' }); return; }
+  const { circle } = invite;
+  const io = req.app.get('io');
+  await prisma.circleInvitation.delete({ where: { id: invite.id } });
+
+  const already = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId: req.userId!, circleId: circle.id } } });
+  const inviterIsMember = !!(await prisma.circleMember.findUnique({ where: { userId_circleId: { userId: invite.inviterId, circleId: circle.id } } }));
+  const direct = circle.admissionMode === 'open'
+    || (circle.admissionMode === 'creator' && inviterIsMember && await isCircleManager(invite.inviterId, circle.id));
+
+  if (!already && direct) {
+    await prisma.circleJoinRequest.deleteMany({ where: { circleId: circle.id, userId: req.userId! } });
+    await prisma.circleMember.create({ data: { userId: req.userId!, circleId: circle.id } });
+    joinCircleRoom(io, req.userId!, circle.id);
+  }
+  if (already || direct) {
+    io?.to(`circle:${circle.id}`).emit('circle-updated', { circleId: circle.id });
+    const joined = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
+    res.json({ pending: false, circle: joined, circleName: circle.name });
+    return;
+  }
+
+  // Sinon : demande d'adhésion, comme avec le code (voix de la personne qui invite comptée en mode vote)
+  let request = await prisma.circleJoinRequest.findUnique({ where: { circleId_userId: { circleId: circle.id, userId: req.userId! } } });
+  const isNew = !request;
+  if (!request) request = await prisma.circleJoinRequest.create({ data: { circleId: circle.id, userId: req.userId! } });
+  if (circle.admissionMode === 'vote' && inviterIsMember) {
+    await prisma.circleJoinVote.upsert({
+      where: { requestId_userId: { requestId: request.id, userId: invite.inviterId } },
+      create: { requestId: request.id, userId: invite.inviterId },
+      update: {},
+    });
+    const [memberCount, voteCount] = await Promise.all([
+      prisma.circleMember.count({ where: { circleId: circle.id } }),
+      prisma.circleJoinVote.count({ where: { requestId: request.id } }),
+    ]);
+    if (voteCount >= Math.ceil(memberCount / 2)) {
+      const joined = await acceptJoinRequest(req.app, request, circle.id, 'Tu as été invité(e) et les membres du Cercle ont validé ton arrivée.');
+      io?.to(`circle:${circle.id}`).emit('circle-updated', { circleId: circle.id });
+      res.json({ pending: false, circle: joined, circleName: circle.name });
+      return;
+    }
+  }
+  io?.to(`circle:${circle.id}`).emit('circle-updated', { circleId: circle.id });
+  res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
+  if (isNew) await notifyJoinRequest(req.app, circle, req.userId!, invite.inviterId);
+});
+
+// DELETE /api/circles/invitations/:inviteId — refuser (la personne qui invite n'est pas prévenue)
+router.delete('/invitations/:inviteId', async (req: AuthRequest, res) => {
+  await prisma.circleInvitation.deleteMany({ where: { id: req.params.inviteId, inviteeId: req.userId! } });
+  res.json({ ok: true });
 });
 
 // Voter pour accepter une demande — accepte le membre si le seuil est atteint

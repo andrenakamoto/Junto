@@ -241,6 +241,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         <InviteModal
           circleName={circle.name}
           circleCode={circle.code}
+          circleId={circle.id}
           onClose={() => setShowInvite(false)}
         />
       )}
