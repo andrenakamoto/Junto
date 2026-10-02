@@ -23,7 +23,11 @@ Toute la communication utilisateur (UI, commits, docs) est en **FRANÇAIS**.
 
 EvLY sert aux groupes de proches qui veulent se retrouver facilement.
 Trois niveaux d'organisation :
-- **Cercle** = le groupe (ex. "Les amis du lundi"), rejoint via nom + code d'accès
+- **Cercle** = le groupe (ex. "Les amis du lundi"), rejoint avec son **code d'accès seul**
+  (depuis le 2026-10-03 : le nom est modifiable, il ne sert plus à rejoindre ; /join limité à
+  20 tentatives / 15 min), par lien, QR code ou invitation d'un compte existant
+  (lien `/rejoindre?code=XXXXXX[&planId=…&plan=…]` ; `JoinPage` affiche le nom actuel via
+  GET /circles/by-code/:code — les anciens liens avec `name=` restent valables)
 - **Plan** = le salon lié à un événement précis (ex. "Resto vendredi soir ?"),
   avec titre, description, date/heure, lieu
 - **Chat** = messagerie temps réel à l'intérieur d'un Plan
@@ -470,7 +474,8 @@ Junto/
   un compteur quotidien anonyme (`PageVisit`, `page = 'messages'`,
   `countMessageSent`) : avant, il comptait les messages encore en base et
   baissait à chaque suppression de Plan.
-- **Circle** : name, code (unique), description? (affichée sous le nom en
+- **Circle** : name (**modifiable** depuis le 2026-10-03 par le créateur et les organisateurs,
+  60 caractères max, membres notifiés `circle_renamed`), code (unique), description? (affichée sous le nom en
   tête de la liste des Plans, modifiable par le créateur et les
   organisateurs dans `CircleSettingsModal` via PUT /:id/settings), color?
   (palette fixe de 8 couleurs, `CIRCLE_COLORS` côté client), creatorId
@@ -499,6 +504,9 @@ Junto/
   Liens d'invitation : `publicOrigin()` (`lib/siteUrl.ts`) — **jamais
   `window.location.origin`**, qui vaut `https://localhost` dans les apps (le lien
   WhatsApp restait du texte).
+- **CircleChangeLog** (2026-10-03) : historique des modifications d'un Cercle (nom,
+  description, paramètres avancés ; auteur `changedById`, SetNull), écrit par PUT
+  /:id/settings, lu par GET /:id/history (membres) dans `CircleSettingsModal`.
 - **CircleDeleteVote** : vote collectif pour supprimer un Cercle
 - **CircleJoinRequest** / **CircleJoinVote** : demande pour rejoindre un
   Cercle (créée à la place d'un accès direct) + votes des membres actuels ;
