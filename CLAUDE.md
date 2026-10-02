@@ -331,6 +331,22 @@ Conséquences pratiques :
     petite icône `drawable/ic_stat_evly`, couleur `evly_coral`. iOS :
     `App.entitlements` (`aps-environment`), mode d'arrière-plan
     `remote-notification`, relais APNs dans `AppDelegate.swift`.
+  - **Publication sur les stores** (préparée le 2026-10-02) : version
+    **1.0.0** (Android `versionName` / `versionCode` 1 ; iOS `MARKETING_VERSION`
+    / `CURRENT_PROJECT_VERSION` 1) — incrémenter le code de build à chaque envoi.
+    iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
+    = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
+    (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
+    Première version **sans connexion Google** (donc sans « Sign in with
+    Apple »). Compte Google Play **personnel récent** : test fermé obligatoire
+    (12 testeurs, 14 jours) avant la production. Page publique exigée par
+    Google : `/supprimer-mon-compte` (`DeleteAccountInfoPage`). Compte de
+    démonstration pour les vérificateurs : `server/scripts/demoAccount.ts`
+    (écrit en **production**, `--confirm` obligatoire ; à relancer avant chaque
+    soumission, les Plans expirent ; ne nettoie pas les éventuelles photos
+    Cloudinary envoyées par un vérificateur). Textes des fiches, captures,
+    icône, bannière, AAB et identifiants de démo : dossier
+    `~/Desktop/EvLY - Publication stores/` sur le Mac de l'utilisateur.
   - Tester : simulateur iOS (`… capacitor run ios --target <id>`), émulateur
     Android `EvLY_Pixel` (Android 16, créé le 2026-10-01 ; outils
     `~/Library/Android/sdk/cmdline-tools/latest`).
