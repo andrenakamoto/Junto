@@ -10,8 +10,11 @@ export function JoinPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  const circleName = params.get('name') ?? '';
-  const circleCode = params.get('code') ?? '';
+  const circleCode = (params.get('code') ?? '').toUpperCase();
+  // Nom actuel du Cercle, demandé au serveur (les anciens liens contiennent encore un nom, peut-être
+  // périmé depuis un renommage : il ne sert qu'en attendant la réponse)
+  const [circleName, setCircleName] = useState(params.get('name') ?? '');
+  const [memberCount, setMemberCount] = useState<number | null>(null);
   const planTitle  = params.get('plan') ?? '';
   const planId     = params.get('planId') ?? '';
 
@@ -27,12 +30,19 @@ export function JoinPage() {
     }
   }, [loading, user, navigate]);
 
+  useEffect(() => {
+    if (!user || !circleCode) return;
+    api.get(`/circles/by-code/${encodeURIComponent(circleCode)}`)
+      .then(res => { setCircleName(res.data.name); setMemberCount(res.data.memberCount); })
+      .catch(err => setError(err.response?.data?.error || ''));
+  }, [user, circleCode]);
+
   async function handleJoin() {
-    if (!circleName || !circleCode) return;
+    if (!circleCode) return;
     setJoining(true);
     setError('');
     try {
-      const { data } = await api.post('/circles/join', { name: circleName, code: circleCode });
+      const { data } = await api.post('/circles/join', { code: circleCode });
       if (data.pending) {
         setPending(data.admissionMode === 'creator' ? 'creator' : 'vote');
       } else {
@@ -73,8 +83,11 @@ export function JoinPage() {
               <Users size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">{circleName}</p>
-              <p className="text-slate-400 text-xs">Code : <span className="font-mono tracking-widest text-slate-300">{circleCode}</span></p>
+              <p className="text-white font-bold text-sm">{circleName || 'Cercle EvLY'}</p>
+              <p className="text-slate-400 text-xs">
+                Code : <span className="font-mono tracking-widest text-slate-300">{circleCode}</span>
+                {memberCount !== null && ` · ${memberCount} membre${memberCount > 1 ? 's' : ''}`}
+              </p>
             </div>
           </div>
 
@@ -114,7 +127,7 @@ export function JoinPage() {
               )}
               <button
                 onClick={handleJoin}
-                disabled={joining || !circleName || !circleCode}
+                disabled={joining || !circleCode}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm"
               >
                 {joining ? 'Envoi...' : (

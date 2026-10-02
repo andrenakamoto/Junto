@@ -37,8 +37,8 @@ export function GuideModal({ onClose }: Props) {
             <h3 className="font-bold text-slate-900 mb-2">2. Créer ou rejoindre un Cercle</h3>
             <p>
               Crée un Cercle (nom, description et couleur optionnels) avec le bouton{' '}
-              <strong>« Créer un Cercle »</strong> sous « Mes Cercles », ou <strong>« Rejoindre »</strong> un Cercle avec son <strong>nom</strong> et son <strong>code d'accès</strong> (ou via un lien
-              d'invitation / QR code). Selon le Cercle, ta demande est validée par un{' '}
+              <strong>« Créer un Cercle »</strong> sous « Mes Cercles », ou <strong>« Rejoindre »</strong> un Cercle avec son <strong>code d'accès</strong> (ou via un lien
+              d'invitation / QR code, ou une invitation reçue dans la cloche si tu as déjà un compte). Selon le Cercle, ta demande est validée par un{' '}
               <strong>vote à la majorité</strong> des membres (par défaut), par les{' '}
               <strong>organisateurs</strong>, ou tu entres directement avec le code. En mode vote, personne ne
               peut refuser seul : la demande attend tant que la majorité n'est pas atteinte.
@@ -192,7 +192,7 @@ export function GuideModal({ onClose }: Props) {
             </p>
             <ul className="list-disc pl-5 mt-1.5 space-y-1">
               <li><strong>Admission dans le Cercle</strong> : vote à la majorité, validation par les organisateurs
-                (qui peuvent alors accepter ou refuser), ou entrée libre avec le nom et le code.</li>
+                (qui peuvent alors accepter ou refuser), ou entrée libre avec le code.</li>
               <li><strong>Création des Plans</strong> : par tous les membres, ou par le créateur et les organisateurs
                 seulement.</li>
               <li><strong>Création des sondages de dates</strong> : même choix, réglé à part. Si les sondages sont

@@ -11,7 +11,6 @@ interface Props {
 }
 
 export function JoinCircleModal({ onClose, onJoined }: Props) {
-  const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +21,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/circles/join', { name, code: code.toUpperCase() });
+      const { data } = await api.post('/circles/join', { code: code.toUpperCase() });
       if (data.pending) {
         setPending({ circleName: data.circleName, byCreator: data.admissionMode === 'creator' });
       } else {
@@ -53,9 +52,8 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
 
   return (
     <Modal title="Rejoindre un Cercle" onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">Demande le nom et le code à quelqu'un qui en fait partie. Selon le Cercle, ta demande devra peut-être être validée.</p>
+      <p className="text-sm text-slate-500 mb-4">Demande le code d'accès à quelqu'un qui en fait partie. Selon le Cercle, ta demande devra peut-être être validée.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Nom du Cercle" value={name} onChange={e => setName(e.target.value)} placeholder="Les amis du lundi" required autoFocus />
         <Input
           label="Code d'accès"
           value={code}
@@ -63,6 +61,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
           placeholder="AB3X7Y"
           maxLength={6}
           required
+          autoFocus
           className="tracking-widest font-mono uppercase"
         />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

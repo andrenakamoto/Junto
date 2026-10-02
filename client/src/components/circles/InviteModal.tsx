@@ -47,7 +47,8 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
   // Toujours une adresse evly.ch : dans les apps, l'origine locale (localhost) ne marche pas hors de l'app
   const appUrl = publicOrigin();
 
-  const circleLink = `${appUrl}/rejoindre?name=${encodeURIComponent(circleName)}&code=${circleCode}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}${planId ? `&planId=${planId}` : ''}`;
+  // Le code suffit (le nom du Cercle peut changer) ; titre et id du Plan pour une invitation à un Plan
+  const circleLink = `${appUrl}/rejoindre?code=${circleCode}${planId ? `&planId=${planId}` : ''}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}`;
   const guestLink = guestToken ? `${appUrl}/invitation?token=${guestToken}` : '';
   const isGuestMode = mode === 'guest';
   const joinLink = isGuestMode ? guestLink : circleLink;

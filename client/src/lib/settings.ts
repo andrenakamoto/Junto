@@ -10,7 +10,7 @@ export const DELETION_OPTIONS: { value: DeletionMode; label: string; hint: strin
 export const ADMISSION_OPTIONS: { value: AdmissionMode; label: string; hint: string }[] = [
   { value: 'vote', label: 'Vote à la majorité', hint: 'La moitié des membres valide chaque demande' },
   { value: 'creator', label: 'Validation par les organisateurs', hint: 'Le créateur ou un organisateur accepte ou refuse chaque demande' },
-  { value: 'open', label: 'Entrée libre', hint: 'Le nom et le code suffisent pour entrer' },
+  { value: 'open', label: 'Entrée libre', hint: 'Le code suffit pour entrer' },
 ];
 
 export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = [
