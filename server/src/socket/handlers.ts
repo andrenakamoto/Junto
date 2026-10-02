@@ -7,6 +7,8 @@ import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { countMessageSent, touchUser } from '../lib/activity';
 import { touchPlanSection } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
+import { messageInclude } from '../lib/messageInclude';
+import { destroyFiles } from '../lib/cloudinary';
 import { wantsEmail } from '../lib/notificationPrefs';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
@@ -87,13 +89,23 @@ export function setupSocketHandlers(io: Server) {
       socket.leave(`plan:${planId}`);
     });
 
-    socket.on('send-message', async ({ planId, content, parentId }: { planId: string; content: string; parentId?: string }) => {
-      if (!content?.trim()) return;
+    socket.on('send-message', async ({ planId, content, parentId, attachmentId }: { planId: string; content: string; parentId?: string; attachmentId?: string }) => {
+      const text = typeof content === 'string' ? content.trim().slice(0, 2000) : '';
+      if (!text && !attachmentId) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
         include: { plan: { select: { disabledFeatures: true } } },
       });
       if (!member || member.plan.disabledFeatures.includes('chat')) return;
+
+      // Photo envoyée depuis le chat : déjà importée dans le Plan par son auteur (POST
+      // /attachments/plans/:planId?via=chat), image, pas encore rattachée à un message
+      let validAttachmentId: string | undefined;
+      if (attachmentId) {
+        const att = await prisma.attachment.findUnique({ where: { id: attachmentId }, include: { message: { select: { id: true } } } });
+        if (!att || att.planId !== planId || att.uploadedBy !== socket.data.pseudo || !att.mimeType.startsWith('image/') || att.message) return;
+        validAttachmentId = att.id;
+      }
 
       let validParentId: string | undefined;
       if (parentId) {
@@ -102,12 +114,8 @@ export function setupSocketHandlers(io: Server) {
       }
 
       const message = await prisma.message.create({
-        data: { content: encryptMessage(content.trim()), authorId: socket.data.userId, planId, parentId: validParentId },
-        include: {
-          author: { select: { id: true, pseudo: true } },
-          reactions: { include: { user: { select: { id: true, pseudo: true } } } },
-          _count: { select: { replies: true } },
-        },
+        data: { content: encryptMessage(text), authorId: socket.data.userId, planId, parentId: validParentId, attachmentId: validAttachmentId },
+        include: messageInclude,
       });
       io.to(`plan:${planId}`).emit('message', withPlainContent(message));
       countMessageSent();
@@ -127,7 +135,7 @@ export function setupSocketHandlers(io: Server) {
 
       // Mentions @pseudo → notification ciblée, même hors room active
       const mentioned = new Set<string>();
-      const trimmed = content.trim();
+      const trimmed = text || '📷 Photo';
       for (const m of planData.members) {
         if (m.userId === socket.data.userId) continue;
         const re = new RegExp(`@${m.user.pseudo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
@@ -189,11 +197,6 @@ export function setupSocketHandlers(io: Server) {
       if (!message || message.plan.disabledFeatures.includes('chat')) return null;
       return checkMessageEdit(message, socket.data.userId) ? null : message;
     }
-    const messageInclude = {
-      author: { select: { id: true, pseudo: true } },
-      reactions: { include: { user: { select: { id: true, pseudo: true } } } },
-      _count: { select: { replies: true } },
-    };
 
     socket.on('edit-message', async ({ messageId, content }: { messageId: string; content: string }) => {
       const text = cleanContent(content);
@@ -228,9 +231,18 @@ export function setupSocketHandlers(io: Server) {
       if (!message) return;
       const updated = await prisma.message.update({
         where: { id: message.id },
-        data: { content: '', deletedAt: new Date() },
+        data: { content: '', deletedAt: new Date(), attachmentId: null },
         include: messageInclude,
       });
+      // Photo envoyée avec ce message : supprimée aussi (Cloudinary + onglet Infos)
+      if (message.attachmentId) {
+        const att = await prisma.attachment.findUnique({ where: { id: message.attachmentId } });
+        if (att) {
+          await destroyFiles([att]).catch(e => console.error('[chat photo delete]', e));
+          await prisma.attachment.delete({ where: { id: att.id } }).catch(() => {});
+          io.to(`plan:${message.planId}`).emit('plan-updated', { planId: message.planId });
+        }
+      }
       io.to(`plan:${message.planId}`).emit('message-updated', withPlainContent(updated));
     });
 

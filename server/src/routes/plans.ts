@@ -12,6 +12,7 @@ import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisab
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
+import { messageInclude } from '../lib/messageInclude';
 import { isPlanSection, markAllSeen, markSectionSeen, unseenByPlan } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
 import { wantsEmail } from '../lib/notificationPrefs';
@@ -480,11 +481,6 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
 });
 
 // Get messages
-const messageInclude = {
-  author: { select: { id: true, pseudo: true } },
-  reactions: { include: { user: { select: { id: true, pseudo: true } } } },
-  _count: { select: { replies: true } },
-};
 
 router.get('/:id/messages', async (req: AuthRequest, res) => {
   if (!(await assertPlanMember(req.userId!, req.params.id))) {

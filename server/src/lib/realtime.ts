@@ -131,7 +131,8 @@ export async function resolveCircleWrite(req: Request): Promise<WriteTarget> {
 export async function resolveAttachmentWrite(req: Request): Promise<WriteTarget> {
   const [a, b] = segments(req);
   // POST /plans/:planId = envoi d'un fichier (photo ou autre)
-  if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos', req.method === 'POST' ? 'file' : undefined) : null;
+  // (?via=chat : la photo part dans un message du chat, qui notifie déjà — pas de 2e notification)
+  if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos', req.method === 'POST' && req.query.via !== 'chat' ? 'file' : undefined) : null;
   const att = await prisma.attachment.findUnique({ where: { id: a }, select: { planId: true } });
   return planTarget(att?.planId, false, 'infos');
 }

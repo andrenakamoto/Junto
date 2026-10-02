@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Flag, MessageCircle } from 'lucide-react';
+import { Flag, ImageOff, MessageCircle, X } from 'lucide-react';
+import { mediaUrl } from '../../lib/media';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
@@ -18,6 +19,8 @@ interface Props {
   onDelete?: (messageId: string) => void;
   /** Signaler le message d'un autre membre (ReportMessageModal) */
   onReport?: (message: Message) => void;
+  /** Jeton du Plan pour afficher les photos envoyées dans le chat */
+  mediaToken?: string;
 }
 
 function renderContent(content: string) {
@@ -29,7 +32,11 @@ function renderContent(content: string) {
   ));
 }
 
-export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport }: Props) {
+export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken }: Props) {
+  const [viewing, setViewing] = useState(false);
+  const photo = !message.deletedAt && message.attachment?.mimeType.startsWith('image/') ? message.attachment : null;
+  // Message photo dont la photo a été retirée depuis l'onglet Infos (plus de texte ni de photo)
+  const photoRemoved = !message.deletedAt && !message.attachment && !message.content;
   const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
     + (message.editedAt && !message.deletedAt ? ' (modifié)' : '');
   const deleted = !!message.deletedAt;
@@ -65,12 +72,34 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
               onSave={text => { setEditing(false); onEdit?.(message.id, text); }}
             />
           ) : (
-            <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-              isMe
-                ? 'bg-indigo-600 text-white rounded-tr-sm'
-                : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-            }`}>
-              {renderContent(message.content)}
+            <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+              {photo && (
+                <button type="button" onClick={() => setViewing(true)} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+                  <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" className="block max-w-[240px] max-h-[320px] object-cover" />
+                </button>
+              )}
+              {photoRemoved && (
+                <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm italic text-slate-400 bg-slate-50 border border-dashed border-slate-200">
+                  <ImageOff size={14} /> Photo retirée
+                </div>
+              )}
+              {message.content && (
+                <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                  isMe
+                    ? 'bg-indigo-600 text-white rounded-tr-sm'
+                    : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
+                }`}>
+                  {renderContent(message.content)}
+                </div>
+              )}
+            </div>
+          )}
+          {viewing && photo && (
+            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setViewing(false)}>
+              <button type="button" aria-label="Fermer" className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }}>
+                <X size={20} />
+              </button>
+              <img src={mediaUrl(photo.id, mediaToken, 1600)} alt={photo.name} className="max-w-full max-h-full object-contain rounded-lg" />
             </div>
           )}
 

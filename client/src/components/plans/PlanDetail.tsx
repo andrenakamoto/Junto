@@ -293,6 +293,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     getSocket(token).emit('send-message', { planId: plan.id, content, parentId: replyTo?.id });
   }
 
+  // Photo envoyée dans le chat : ajoutée aux fichiers du Plan (visible dans Infos), puis
+  // publiée comme message (légende = texte saisi)
+  async function handleSendPhoto(file: File, caption: string) {
+    if (!token) return;
+    const form = new FormData();
+    form.append('file', file);
+    const { data } = await api.post(`/attachments/plans/${plan.id}?via=chat`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    getSocket(token).emit('send-message', { planId: plan.id, content: caption, parentId: replyTo?.id, attachmentId: data.id });
+  }
+
   function handleReact(messageId: string, emoji: string) {
     if (!token) return;
     getSocket(token).emit('toggle-reaction', { messageId, emoji });
@@ -639,6 +651,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                         onEdit={handleEditMessage}
                         onDelete={handleDeleteMessage}
                         onReport={setReporting}
+                        mediaToken={plan.mediaToken}
                       />
                       {openThreadId === msg.id && (
                         <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
@@ -652,6 +665,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                               onEdit={handleEditMessage}
                               onDelete={handleDeleteMessage}
                               onReport={setReporting}
+                              mediaToken={plan.mediaToken}
                             />
                           ))}
                         </div>
@@ -663,8 +677,9 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               </div>
               <ChatInput
                 onSend={handleSend}
+                onSendPhoto={isEnabled(plan, 'fichiers') ? handleSendPhoto : undefined}
                 members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
-                replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: replyTo.content.slice(0, 40) } : null}
+                replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment ? '📷 Photo' : '')).slice(0, 40) } : null}
                 onCancelReply={() => setReplyTo(null)}
               />
             </div>

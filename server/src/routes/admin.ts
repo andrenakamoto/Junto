@@ -8,6 +8,8 @@ import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 import { fillDays, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
 import { requestEmailChange } from '../lib/emailChange';
 import { decryptMessage, withPlainContent } from '../lib/messageCrypto';
+import { messageInclude } from '../lib/messageInclude';
+import { destroyFiles } from '../lib/cloudinary';
 
 const router = Router();
 router.use(requireAuth as any);
@@ -196,15 +198,17 @@ router.post('/reports/:id/resolve', async (req: AuthRequest, res) => {
   if (action === 'delete') {
     const now = new Date();
     if (report.kind === 'plan') {
+      // Photo jointe au message : supprimée aussi
+      const original = await prisma.message.findUnique({ where: { id: report.messageId }, include: { attachment: true } });
+      if (original?.attachment) {
+        await destroyFiles([original.attachment]).catch(e => console.error('[report photo delete]', e));
+        await prisma.attachment.delete({ where: { id: original.attachment.id } }).catch(() => {});
+      }
       const updated = await prisma.message.updateMany({ where: { id: report.messageId }, data: { content: '', deletedAt: now } });
       if (updated.count && report.planId) {
         const message = await prisma.message.findUnique({
           where: { id: report.messageId },
-          include: {
-            author: { select: { id: true, pseudo: true } },
-            reactions: { include: { user: { select: { id: true, pseudo: true } } } },
-            _count: { select: { replies: true } },
-          },
+          include: messageInclude,
         });
         if (message) req.app.get('io')?.to(`plan:${report.planId}`).emit('message-updated', withPlainContent(message));
       }

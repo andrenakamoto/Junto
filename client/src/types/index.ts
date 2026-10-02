@@ -188,6 +188,8 @@ export interface Message {
   deletedAt?: string | null;
   reactions?: MessageReaction[];
   _count?: { replies: number };
+  /** Photo envoyée dans le chat (aussi dans l'onglet Infos) ; null si retirée depuis Infos */
+  attachment?: { id: string; name: string; mimeType: string } | null;
 }
 
 export type Currency = 'CHF' | 'EUR';

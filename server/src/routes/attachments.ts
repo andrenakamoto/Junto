@@ -68,6 +68,11 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // Les images → resource_type 'image' (optimisation CDN)
     // PDF, Word, Excel, etc. → resource_type 'raw' (fichier brut, téléchargeable directement)
     const isImageMime = req.file.mimetype.startsWith('image/');
+    // Envoi depuis le chat (?via=chat) : photos uniquement, et le chat doit être actif
+    if (req.query.via === 'chat') {
+      if (!isImageMime) { res.status(400).json({ error: 'Seules les photos peuvent être envoyées dans le chat' }); return; }
+      if (plan.disabledFeatures.includes('chat')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    }
     const result = await streamUpload(req.file.buffer, {
       folder: `estelle/${req.params.planId}`,
       resource_type: isImageMime ? 'image' : 'raw',

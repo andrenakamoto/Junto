@@ -1,5 +1,5 @@
 import { useState, useRef, KeyboardEvent, ChangeEvent } from 'react';
-import { Send, X } from 'lucide-react';
+import { Send, X, ImagePlus, Loader2 } from 'lucide-react';
 
 interface ReplyTarget {
   id: string;
@@ -12,10 +12,35 @@ interface Props {
   members?: { pseudo: string }[];
   replyTo?: ReplyTarget | null;
   onCancelReply?: () => void;
+  /** Envoyer une photo (le texte saisi sert de légende) ; absent : pas de bouton photo */
+  onSendPhoto?: (file: File, caption: string) => Promise<void>;
 }
 
-export function ChatInput({ onSend, members = [], replyTo, onCancelReply }: Props) {
+export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSendPhoto }: Props) {
   const [value, setValue] = useState('');
+  const [sendingPhoto, setSendingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhoto(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onSendPhoto) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError('Photo trop volumineuse (max 10 Mo)');
+      return;
+    }
+    setSendingPhoto(true);
+    setPhotoError('');
+    try {
+      await onSendPhoto(file, value.trim());
+      setValue('');
+    } catch (err: any) {
+      setPhotoError(err?.response?.data?.error || "La photo n'a pas pu être envoyée");
+    } finally {
+      setSendingPhoto(false);
+    }
+  }
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -85,7 +110,22 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply }: Prop
         </div>
       )}
 
+      {photoError && <p className="text-xs text-red-500 mb-2">{photoError}</p>}
       <div className="flex gap-3 items-end">
+        {onSendPhoto && (
+          <>
+            <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={sendingPhoto}
+              title="Envoyer une photo"
+              className="p-3 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 hover:text-indigo-600 disabled:opacity-50 transition-colors flex-shrink-0"
+            >
+              {sendingPhoto ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
+            </button>
+          </>
+        )}
         <textarea
           ref={textareaRef}
           value={value}

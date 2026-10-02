@@ -421,6 +421,8 @@ model Attachment {
   size         Int
   uploadedBy   String
   createdAt    DateTime @default(now())
+  // Message du chat qui affiche cette photo (photo envoyée depuis le chat)
+  message      Message?
 }
 
 model PlanDeleteVote {
@@ -477,6 +479,10 @@ model Message {
   parentId String?
   parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Message[] @relation("MessageReplies")
+
+  // Photo envoyée dans le chat (aussi visible dans l'onglet Infos) — null si retirée depuis Infos
+  attachmentId String?     @unique
+  attachment   Attachment? @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
 
   reactions MessageReaction[]
 }
