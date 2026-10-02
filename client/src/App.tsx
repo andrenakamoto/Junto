@@ -9,6 +9,7 @@ import { AdminPage } from './pages/AdminPage';
 import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -56,6 +57,7 @@ export default function App() {
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}
         <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />
+        <Route path="/supprimer-mon-compte"  element={<DeleteAccountInfoPage />} />
         <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

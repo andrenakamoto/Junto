@@ -6,7 +6,7 @@ import { listenPush } from '../lib/push';
 
 // Couleur des marges de sécurité (encoche, barre d'accueil, barres système) : bleu nuit
 // dans les apps ; sur le site, selon la page (tableau de bord / admin clairs, autres sombres).
-const LIGHT_PAGES = ['/dashboard', '/admin', '/confidentialite'];
+const LIGHT_PAGES = ['/dashboard', '/admin', '/confidentialite', '/supprimer-mon-compte'];
 
 // Pages « racines » : le bouton retour Android y met l'app en arrière-plan
 const ROOT_PAGES = ['/', '/auth', '/dashboard'];
