@@ -17,7 +17,8 @@ export function setupSocketHandlers(io: Server) {
     const token = socket.handshake.auth.token as string;
     if (!token) return next(new Error('Non authentifié'));
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; pseudo: string };
+      const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; pseudo: string; light?: boolean };
+      if (payload.light) return next(new Error('Non authentifié')); // réponse sans compte : pas de temps réel
       socket.data.userId = payload.userId;
       socket.data.pseudo = payload.pseudo;
       touchUser(payload.userId);

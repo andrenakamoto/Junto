@@ -34,6 +34,10 @@ model User {
   // Canal des notifications (lib/notificationPrefs.ts) : push | both | email. N'affecte ni les
   // emails indispensables (validation, mot de passe…) ni les notifications dans l'app.
   notificationChannel  String    @default("both")
+  // Réponse à un Plan sans compte (lib/lightGuest.ts) : prénom seulement, pseudo « prenom.invite »,
+  // ni email ni mot de passe. Devient un compte normal à l'inscription, ou est fusionné dans le
+  // compte existant à la connexion ; supprimé quand il n'a plus aucun Plan.
+  isLight              Boolean   @default(false)
   lastDigestSentAt     DateTime?
   createdAt            DateTime  @default(now())
   // Dernière utilisation de l'app (au plus une mise à jour par heure, lib/activity.ts) —

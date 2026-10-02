@@ -11,6 +11,7 @@ import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
+import { absorbLightUser, readLightUser } from '../lib/lightGuest';
 import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailChange } from '../lib/emailChange';
 
 const router = Router();
@@ -76,6 +77,16 @@ async function sendVerificationEmail(email: string, pseudo: string, token: strin
         <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 24h.</p>
       </div>`,
   });
+}
+
+// Connexion depuis un appareil où l'on avait répondu à des Plans sans compte : ces réponses
+// passent sur le compte (lib/lightGuest.ts). Un échec ne doit pas empêcher la connexion.
+async function transferLightAnswers(lightToken: unknown, userId: string) {
+  try {
+    await absorbLightUser(lightToken, userId);
+  } catch (e) {
+    console.error('[light transfer]', e);
+  }
 }
 
 // ─── Setup admin ─────────────────────────────────────────────────────────────
@@ -151,15 +162,19 @@ router.post('/register', registerLimiter, async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const verifyToken = crypto.randomBytes(32).toString('hex');
     const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const data = {
+      pseudo, email: emailLower, password: hashed,
+      firstName: names.firstName, lastName: names.lastName,
+      status: 'approved', emailVerified: false,
+      emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires,
+    };
 
-    const user = await prisma.user.create({
-      data: {
-        pseudo, email: emailLower, password: hashed,
-        firstName: names.firstName, lastName: names.lastName,
-        status: 'approved', emailVerified: false,
-        emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires,
-      },
-    });
+    // Inscription depuis un appareil où l'on avait répondu sans compte : le même compte
+    // devient un compte normal (il garde ses réponses), à la validation de l'email
+    const light = await readLightUser(req.body.lightToken);
+    const user = light
+      ? await prisma.user.update({ where: { id: light.id }, data })
+      : await prisma.user.create({ data });
 
     await sendVerificationEmail(emailLower, pseudo, verifyToken);
     res.json({ pendingVerification: true, user: safeUser(user) });
@@ -181,7 +196,7 @@ router.post('/verify-email', async (req, res) => {
     if (!user) { res.status(400).json({ error: 'Lien invalide ou expiré' }); return; }
     await prisma.user.update({
       where: { id: user.id },
-      data: { emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null },
+      data: { emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null, isLight: false },
     });
     res.json({ token: makeToken(user), user: safeUser({ ...user, emailVerified: true }) });
   } catch {
@@ -233,6 +248,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     if (user.status === 'rejected') {
       res.status(403).json({ error: 'rejected', message: 'Ton inscription a été refusée.' }); return;
     }
+    await transferLightAnswers(req.body.lightToken, user.id);
     res.json({ token: makeToken(user), user: safeUser(user) });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
@@ -297,6 +313,7 @@ router.post('/google', loginLimiter, async (req, res) => {
       res.status(403).json({ error: 'rejected', message: 'Ton compte a été refusé.' }); return;
     }
 
+    await transferLightAnswers(req.body.lightToken, user.id);
     res.json({ token: makeToken(user), user: safeUser(user) });
   } catch (e) {
     console.error('[google auth]', e);

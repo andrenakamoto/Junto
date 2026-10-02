@@ -19,7 +19,13 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
       userId: string;
       pseudo: string;
       isAdmin: boolean;
+      light?: boolean;
     };
+    // Réponse sans compte (lib/lightGuest.ts) : réservée aux routes /api/invite
+    if (payload.light) {
+      res.status(401).json({ error: 'Crée ton compte EvLY pour continuer' });
+      return;
+    }
     req.userId = payload.userId;
     req.pseudo = payload.pseudo;
     req.isAdmin = payload.isAdmin;

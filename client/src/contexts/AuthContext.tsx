@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { registerPush, unregisterPush } from '../lib/push';
+import { clearLightToken } from '../lib/lightGuest';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -39,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   function login(t: string, u: User) {
+    // Les réponses sans compte de cet appareil ont été transférées au compte (serveur)
+    clearLightToken();
     localStorage.setItem('estelle_token', t);
     setToken(t);
     setUser(u);

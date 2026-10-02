@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import { lightTokenField } from '../lib/lightGuest';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
@@ -32,7 +33,8 @@ export function AuthPage() {
 
   const [email, setEmail] = useState('');
   const [pseudo, setPseudo] = useState('');
-  const [firstName, setFirstName] = useState('');
+  // Prénom déjà donné en répondant à une invitation sans compte (GuestInvitePage)
+  const [firstName, setFirstName] = useState(searchParams.get('prenom') ?? '');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +69,7 @@ export function AuthPage() {
     setSuccess('');
     try {
       if (mode === 'register') {
-        await api.post('/auth/register', { pseudo, email, password, firstName, lastName });
+        await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ...lightTokenField() });
         setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
         setEmail('');
         setPseudo('');
@@ -78,7 +80,7 @@ export function AuthPage() {
       } else {
         // Accepte email ou pseudo (les anciens comptes n'ont pas d'email)
         const isEmail = email.includes('@');
-        const { data } = await api.post('/auth/login', isEmail ? { email, password } : { pseudo: email, password });
+        const { data } = await api.post('/auth/login', { ...(isEmail ? { email, password } : { pseudo: email, password }), ...lightTokenField() });
         login(data.token, data.user);
         navigate(afterLogin, { replace: true });
       }
@@ -105,7 +107,7 @@ export function AuthPage() {
       const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
       const idToken = res.provider === 'google' && 'idToken' in res.result ? res.result.idToken : null;
       if (!idToken) throw new Error('Pas de jeton Google');
-      const { data } = await api.post('/auth/google', { idToken });
+      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField() });
       login(data.token, data.user);
       navigate(afterLogin, { replace: true });
     } catch (err: any) {
@@ -121,7 +123,7 @@ export function AuthPage() {
     setGoogleLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/auth/google', { idToken });
+      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField() });
       login(data.token, data.user);
       navigate(afterLogin, { replace: true });
     } catch (err: any) {

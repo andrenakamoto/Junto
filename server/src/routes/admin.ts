@@ -22,7 +22,8 @@ const userSelect = {
 router.get('/users', async (req: AuthRequest, res) => {
   const { status } = req.query;
   const users = await prisma.user.findMany({
-    where: status ? { status: status as string } : {},
+    // Réponses sans compte (lib/lightGuest.ts) : pas des comptes, comptées à part dans /stats
+    where: { isLight: false, ...(status ? { status: status as string } : {}) },
     select: userSelect,
     orderBy: { createdAt: 'desc' },
   });
@@ -133,9 +134,9 @@ router.get('/stats', async (_req, res) => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   // Jours civils suisses : aujourd'hui compris, 7 jours au total
   const since7Days = new Date(visitDay().getTime() - 6 * 24 * 60 * 60 * 1000);
-  const [pending, approved, rejected, totalCircles, activePlans, messagesAgg, activeUsersLast7Days] = await Promise.all([
+  const [pending, approved, rejected, totalCircles, activePlans, messagesAgg, activeUsersLast7Days, lightGuests] = await Promise.all([
     prisma.user.count({ where: { status: 'pending', isAdmin: false } }),
-    prisma.user.count({ where: { status: 'approved', isAdmin: false } }),
+    prisma.user.count({ where: { status: 'approved', isAdmin: false, isLight: false } }),
     prisma.user.count({ where: { status: 'rejected' } }),
     prisma.circle.count(),
     prisma.plan.count({ where: { endDate: { gt: new Date() } } }),
@@ -143,12 +144,14 @@ router.get('/stats', async (_req, res) => {
     prisma.pageVisit.aggregate({ where: { page: 'messages', day: { gte: since7Days } }, _sum: { count: true } }),
     // Personnes ayant utilisé l'app ces 7 derniers jours (lastActiveAt, mis à jour au plus 1×/h)
     prisma.user.count({ where: { lastActiveAt: { gte: sevenDaysAgo } } }),
+    prisma.user.count({ where: { isLight: true } }),
   ]);
   res.json({
     pending, approved, rejected,
     totalCircles, activePlans,
     messagesLast7Days: messagesAgg._sum.count ?? 0,
     activeUsersLast7Days,
+    lightGuests,
   });
 });
 

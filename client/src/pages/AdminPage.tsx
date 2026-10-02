@@ -24,7 +24,7 @@ interface AdminUser {
 
 interface Stats {
   pending: number; approved: number; rejected: number;
-  totalCircles: number; activePlans: number; messagesLast7Days: number; activeUsersLast7Days: number;
+  totalCircles: number; activePlans: number; messagesLast7Days: number; activeUsersLast7Days: number; lightGuests?: number;
 }
 
 type Filter = 'pending' | 'approved' | 'rejected' | 'all';
@@ -202,7 +202,8 @@ export function AdminPage() {
         <p className="-mt-6 mb-8 text-xs text-slate-500">
           Membres actifs : personnes qui ont utilisé EvLY ces 7 derniers jours. Messages : envoyés ces 7 derniers
           jours dans les chats des Plans et des sondages, même si le Plan a été supprimé depuis. Comptés depuis
-          le 29 septembre 2026.
+          le 29 septembre 2026. Réponses sans compte en cours (invités qui ont répondu à un Plan sans
+          s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
         </p>
 
         <PageVisitsPanel
