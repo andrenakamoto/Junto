@@ -221,7 +221,9 @@ Conséquences pratiques :
 - **Temps réel** : Socket.io (chat, présence, réactions)
 - **Tests** : Vitest côté serveur (`npm test` dans `server/`), limité pour
   l'instant aux fonctions pures (pas d'intégration DB, voir section tests)
-- **Auth** : JWT + bcrypt, connexion par pseudo OU email, + Google Sign-In
+- **Auth** : JWT + bcrypt, connexion par pseudo OU email (**insensible à la casse** : emails
+  enregistrés en minuscules, pseudo cherché en `mode: 'insensitive'`, unicité via `isPseudoTaken`
+  dans `lib/pseudo.ts` ; idem pour l'invitation à un Cercle et les @mentions), + Google Sign-In
   (google-auth-library côté serveur, qui vérifie un ID token). Côté client :
   **sur le web, Google Identity Services** (`GoogleWebButton.tsx`, script
   `accounts.google.com/gsi/client?hl=fr`, bouton officiel rendu par Google) ;
