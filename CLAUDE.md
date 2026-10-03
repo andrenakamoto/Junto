@@ -631,7 +631,17 @@ Junto/
   d'adhésion en attente, et « À voir » = notifications reçues dans l'app
   (`localStorage` `evly_notif_history_<userId>`, 30 dernières, 7 jours,
   DashboardPage), retirées dès que le Plan / sondage / Cercle concerné est
-  ouvert (`dismissHistory`). Bouton retour Android : ferme le panneau. Apps :
+  ouvert (`dismissHistory`). Toucher une notification l'efface **de la cloche seulement**
+  (2026-10-03, demande explicite de l'utilisateur) : les pastilles des onglets et des cartes
+  restent jusqu'à ce que l'onglet soit consulté. Les Plans avec du nouveau sont chargés par
+  DashboardPage (`bellPlans`, GET /plans qui renvoie aussi `unseenAt`, date de la dernière
+  activité non vue — `unseenDetails` dans `lib/planActivity.ts`) ; l'effacement est une date
+  par Plan sur l'appareil (`evly_bell_dismissed_<userId>`), l'entrée revient si `unseenAt` est
+  plus récent. Toucher un Plan l'ouvre sur son premier onglet non vu (prop `openTab` de
+  `PlanDetail`) ; « Tout effacer » vide la cloche (invitations et demandes d'adhésion restent,
+  elles attendent une réponse). Le nombre sur la cloche compte ses entrées (Plans, « À voir »
+  regroupés par Plan / sondage, invitations).
+  Bouton retour Android : ferme le panneau. Apps :
   à l'ouverture et à chaque retour, les notifications EvLY du volet du
   téléphone sont effacées (`clearDeliveredNotifications`), **sans** être
   importées dans la cloche (essayé : doublons avec la copie reçue par socket).
