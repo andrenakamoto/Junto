@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronRight, Mail, UserPlus, X } from 'lucide-react';
+import { Check, ChevronRight, Mail, Trash2, UserPlus, X } from 'lucide-react';
 import { Modal } from './Modal';
 import { NOTIF_CONFIG, type AppNotification } from './NotificationToast';
 import api from '../../services/api';
@@ -11,6 +11,9 @@ import type { Circle, Plan } from '../../types';
 //  - Demandes pour rejoindre un Cercle en attente ;
 //  - À voir : notifications reçues dans l'app, gardées sur l'appareil jusqu'à ce que ce
 //    qu'elles concernent soit ouvert (DashboardPage, dismissHistory).
+// Toucher une notification l'efface de la cloche ; « Tout effacer » vide les Plans et « À voir »
+// (les invitations et demandes d'adhésion restent : elles attendent une réponse). Les pastilles
+// des onglets ne changent pas : elles disparaissent quand l'onglet est consulté.
 
 const SECTION_LABELS: Record<string, string> = {
   chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
@@ -28,12 +31,15 @@ function timeAgo(at: number): string {
 
 interface Props {
   circles: Circle[];
+  /** Plans avec des onglets non vus, sans ceux effacés de la cloche (DashboardPage) */
+  plansWithNews: Plan[];
   history: AppNotification[];
   onClose: () => void;
   onOpenPlan: (plan: Plan) => void;
   onOpenCircle: (circleId: string) => void;
   onOpenNotification: (n: AppNotification) => void;
-  onClearHistory: () => void;
+  /** « Tout effacer » : vide la cloche (sans toucher aux pastilles des onglets) */
+  onClearAll: () => void;
   /** Invitation acceptée (Cercle rejoint, ou demande d'adhésion envoyée) ; nombre d'invitations restantes */
   onInvitationsChanged: (remaining: number, joinedCircleId?: string) => void;
 }
@@ -44,8 +50,7 @@ interface CircleInvite {
   inviter: { pseudo: string; firstName: string | null; lastName: string | null };
 }
 
-export function NotificationCenter({ circles, history, onClose, onOpenPlan, onOpenCircle, onOpenNotification, onClearHistory, onInvitationsChanged }: Props) {
-  const [plansWithNews, setPlansWithNews] = useState<Plan[] | null>(null);
+export function NotificationCenter({ circles, plansWithNews, history, onClose, onOpenPlan, onOpenCircle, onOpenNotification, onClearAll, onInvitationsChanged }: Props) {
   // Invitations à rejoindre un Cercle (CircleInvitation, envoyées par pseudo ou email)
   const [invites, setInvites] = useState<CircleInvite[]>([]);
   const [busyInvite, setBusyInvite] = useState<string | null>(null);
@@ -75,19 +80,20 @@ export function NotificationCenter({ circles, history, onClose, onOpenPlan, onOp
     }
   }
 
-  useEffect(() => {
-    api.get<Plan[]>('/plans')
-      .then(res => setPlansWithNews(res.data.filter(p => (p.unseen?.length ?? 0) > 0)))
-      .catch(() => setPlansWithNews([]));
-  }, []);
-
   const requests = circles.filter(c => (c.joinRequests?.length ?? 0) > 0);
-  const nothing = plansWithNews?.length === 0 && requests.length === 0 && history.length === 0 && invites.length === 0 && !inviteMsg;
+  const clearable = plansWithNews.length > 0 || history.length > 0;
+  const nothing = plansWithNews.length === 0 && requests.length === 0 && history.length === 0 && invites.length === 0 && !inviteMsg;
 
   return (
     <Modal title="Notifications" onClose={onClose}>
       <div className="space-y-5 -mt-1">
-        {plansWithNews === null && <p className="text-sm text-slate-400">Chargement…</p>}
+        {clearable && (
+          <div className="flex justify-end -mb-2">
+            <button onClick={onClearAll} className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50">
+              <Trash2 size={13} /> Tout effacer
+            </button>
+          </div>
+        )}
         {nothing && <p className="text-sm text-slate-500 text-center py-6">Rien de nouveau pour l'instant.</p>}
 
         {inviteMsg && (
@@ -121,7 +127,7 @@ export function NotificationCenter({ circles, history, onClose, onOpenPlan, onOp
           </section>
         )}
 
-        {plansWithNews && plansWithNews.length > 0 && (
+        {plansWithNews.length > 0 && (
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Nouveautés dans tes Plans</h3>
             <div className="space-y-1.5">
@@ -169,10 +175,7 @@ export function NotificationCenter({ circles, history, onClose, onOpenPlan, onOp
 
         {history.length > 0 && (
           <section>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">À voir</h3>
-              <button onClick={onClearHistory} className="text-xs text-slate-400 hover:text-slate-700">Tout effacer</button>
-            </div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">À voir</h3>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
               {history.map(n => {
                 const cfg = NOTIF_CONFIG[n.type];

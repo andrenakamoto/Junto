@@ -136,6 +136,8 @@ export interface Plan {
   title: string;
   /** Onglets avec du nouveau depuis ma dernière visite (chat, infos, trajets, membres, votes, depenses) */
   unseen?: string[];
+  /** Date de la dernière activité non vue (cloche) */
+  unseenAt?: string | null;
   description: string;
   eventDate?: string | null;
   endDate: string;

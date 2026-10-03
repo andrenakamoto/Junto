@@ -57,6 +57,36 @@ export function DashboardPage() {
   const [invitesCount, setInvitesCount] = useState(0);
   const refreshInvites = () => api.get('/circles/invitations/mine').then(res => setInvitesCount(res.data.length)).catch(() => {});
   useEffect(() => { if (user) refreshInvites(); }, [user?.id]);
+  // Cloche, « Nouveautés dans tes Plans » : Plans avec des onglets non vus (serveur). Effacer
+  // une entrée ne la retire que de la cloche (date mémorisée sur l'appareil) : les pastilles
+  // des onglets et des cartes restent jusqu'à ce que l'onglet soit consulté. L'entrée revient
+  // s'il se passe quelque chose de nouveau dans le Plan après l'effacement.
+  const [bellPlans, setBellPlans] = useState<Plan[]>([]);
+  const dismissedKey = `evly_bell_dismissed_${user?.id}`;
+  const [bellDismissed, setBellDismissed] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem(dismissedKey) || '{}'); } catch { return {}; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(dismissedKey, JSON.stringify(bellDismissed)); } catch { /* stockage indisponible */ }
+  }, [bellDismissed, dismissedKey]);
+  function dismissBellPlans(ids: string[]) {
+    const now = new Date().toISOString();
+    setBellDismissed(prev => {
+      const next: Record<string, string> = {};
+      // Les Plans disparus de la liste n'ont plus besoin d'être mémorisés
+      for (const p of bellPlans) if (prev[p.id]) next[p.id] = prev[p.id];
+      for (const id of ids) next[id] = now;
+      return next;
+    });
+  }
+  const refreshBell = () => api.get<Plan[]>('/plans')
+    .then(res => setBellPlans(res.data.filter(p => (p.unseen?.length ?? 0) > 0)))
+    .catch(() => {});
+  useEffect(() => { if (user) refreshBell(); }, [user?.id]);
+  const bellPlanList = useMemo(() => bellPlans.filter(p => {
+    const d = bellDismissed[p.id];
+    return !d || (!!p.unseenAt && p.unseenAt > d);
+  }), [bellPlans, bellDismissed]);
   // Lien des emails et notifications d'invitation : /dashboard?invitations=1 ouvre la cloche
   useEffect(() => {
     if (searchParams.get('invitations') !== '1') return;
@@ -78,6 +108,8 @@ export function DashboardPage() {
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [plansRefreshSignal, setPlansRefreshSignal] = useState(0);
   const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
+  // Onglet à ouvrir dans le Plan sélectionné depuis la cloche
+  const [openTab, setOpenTab] = useState<{ tab: string; n: number } | null>(null);
   const selectedCircleIdRef = useRef(selectedCircleId);
   useEffect(() => { selectedCircleIdRef.current = selectedCircleId; }, [selectedCircleId]);
   const selectedPlanRef = useRef(selectedPlan);
@@ -95,6 +127,7 @@ export function DashboardPage() {
 
   function refreshCircles() {
     soon('circles', () => api.get('/circles').then(res => setCircles(res.data)).catch(() => {}));
+    soon('bell', refreshBell);
   }
 
   function refreshPlans() {
@@ -293,6 +326,9 @@ export function DashboardPage() {
       }
       return next;
     });
+    setBellPlans(prev => prev
+      .map(p => p.id === updated.id && updated.unseen ? { ...p, unseen: updated.unseen, unseenAt: updated.unseenAt } : p)
+      .filter(p => (p.unseen?.length ?? 0) > 0));
     setSelectedPlan(updated);
   }
 
@@ -364,7 +400,8 @@ export function DashboardPage() {
     setMobileView('plans');
   }
 
-  function handleSelectPlan(plan: Plan) {
+  function handleSelectPlan(plan: Plan, tab?: string) {
+    setOpenTab(tab ? { tab, n: Date.now() } : null);
     setSelectedPollId(null);
     clearPlan(plan.id);
     dismissHistory(n => n.planId === plan.id);
@@ -383,6 +420,19 @@ export function DashboardPage() {
       setSelectedPlan(res.data);
       setMobileView('detail');
     });
+  }
+
+  // Cloche : toucher un Plan l'efface de la cloche et l'ouvre sur le premier onglet concerné
+  function openPlanFromBell(plan: Plan) {
+    dismissBellPlans([plan.id]);
+    handleSelectPlan(plan, plan.unseen?.[0]);
+  }
+
+  // Cloche : « Tout effacer » vide la cloche seulement (les invitations et demandes
+  // d'adhésion, qui attendent une réponse, restent affichées)
+  function clearAllNotifications() {
+    setNotifHistory([]);
+    dismissBellPlans(bellPlanList.map(p => p.id));
   }
 
   function handleCircleDeleted() {
@@ -409,6 +459,11 @@ export function DashboardPage() {
   const sortedPlans = useMemo(() => sortPlans(plans), [plans]);
   // Pastille des Cercles : notifications reçues + Plans avec du nouveau (serveur). Pour le Cercle
   // ouvert, on suit directement ses cartes, qui se mettent à jour dès qu'un onglet est consulté.
+  const bellCount = useMemo(() => {
+    const keys = new Set(bellPlanList.map(p => `plan:${p.id}`));
+    for (const n of notifHistory) keys.add(n.planId ? `plan:${n.planId}` : n.pollId ? `poll:${n.pollId}` : `n:${n.id}`);
+    return keys.size + invitesCount;
+  }, [bellPlanList, notifHistory, invitesCount]);
   const circlesWithNews = useMemo(() => {
     const set = new Set(unreadCircles);
     for (const c of circles) {
@@ -470,10 +525,11 @@ export function DashboardPage() {
         circles={circles}
         history={notifHistory}
         onClose={() => setShowNotifCenter(false)}
-        onOpenPlan={handleSelectPlan}
+        plansWithNews={bellPlanList}
+        onOpenPlan={openPlanFromBell}
         onOpenCircle={handleSelectCircle}
         onOpenNotification={n => { dismissHistory(x => x.id === n.id); openNotification(n); }}
-        onClearHistory={() => setNotifHistory([])}
+        onClearAll={clearAllNotifications}
         onInvitationsChanged={(remaining, joinedCircleId) => {
           setInvitesCount(remaining);
           if (joinedCircleId) api.get('/circles').then(res => setCircles(res.data)).catch(() => {});
@@ -503,7 +559,7 @@ export function DashboardPage() {
           onCalendar={handleCalendar}
           calendarActive={calendarActive}
           onCircleUpdated={handleCircleUpdated}
-          unreadCount={circlesWithNews.size + invitesCount}
+          unreadCount={bellCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
           unreadCircles={circlesWithNews}
         />
@@ -573,6 +629,7 @@ export function DashboardPage() {
             user={user!}
             onlineUserIds={onlineUserIds}
             circleMembers={selectedCircle?.members ?? []}
+            openTab={openTab}
           />
         ) : (
           <EmptyState message="Sélectionne un Plan" sub="ou crée-en un nouveau dans ce Cercle" />

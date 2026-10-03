@@ -13,7 +13,7 @@ import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
 import { messageInclude } from '../lib/messageInclude';
-import { isPlanSection, markAllSeen, markSectionSeen, unseenByPlan } from '../lib/planActivity';
+import { isPlanSection, markAllSeen, markSectionSeen, unseenDetails } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
 import { wantsEmail } from '../lib/notificationPrefs';
 
@@ -98,9 +98,10 @@ router.get('/', async (req: AuthRequest, res) => {
 
     // Un invité externe ne doit rien savoir du Cercle : on masque son nom
     const circleIds = new Set(myCircles.map(c => c.circleId));
-    const unseen = await unseenByPlan(userId, plans.map(p => p.id));
+    const unseen = await unseenDetails(userId, plans.map(p => p.id));
     res.json(plans.map(p => {
-      const withUnseen = { ...p, unseen: unseen.get(p.id) ?? [] };
+      const u = unseen.get(p.id);
+      const withUnseen = { ...p, unseen: u?.sections ?? [], unseenAt: u?.at ?? null };
       return circleIds.has(p.circleId) ? withUnseen : { ...withUnseen, circle: null, isGuest: true };
     }));
   } catch {
@@ -128,11 +129,12 @@ router.get('/:id', async (req: AuthRequest, res) => {
     return;
   }
   const withGuests = await withGuestFlags(plan);
-  const unseen = await unseenByPlan(req.userId!, [plan.id]);
+  const unseen = (await unseenDetails(req.userId!, [plan.id])).get(plan.id);
   res.json({
     ...anonymizePlanPolls(withGuests, req.userId!),
     // Onglets avec du nouveau depuis la dernière visite (pastilles)
-    unseen: unseen.get(plan.id) ?? [],
+    unseen: unseen?.sections ?? [],
+    unseenAt: unseen?.at ?? null,
     viewerIsGuest: access.isGuest,
     mediaToken: mintMediaToken(plan.id, req.userId!),
   });

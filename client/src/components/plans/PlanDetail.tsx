@@ -52,9 +52,11 @@ interface Props {
   onlineUserIds?: Set<string>;
   /** Membres du Cercle (vide pour un invité externe) — pour gérer un Plan surprise */
   circleMembers?: CircleMember[];
+  /** Onglet à afficher à l'ouverture (notification de la cloche) ; `n` change à chaque demande */
+  openTab?: { tab: string; n: number } | null;
 }
 
-export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [] }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab }: Props) {
   const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   const tabRef = useRef<Tab>('chat');
@@ -184,13 +186,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
   const disabledKey = (plan.disabledFeatures ?? []).join(',');
 
-  // Reset tab to chat when plan changes
+  // Onglet par défaut à l'ouverture d'un Plan, ou celui demandé par la cloche
   useEffect(() => {
-    setTab(defaultTab);
+    const wanted = openTab?.tab as Tab | undefined;
+    setTab(wanted && visibleTabs.some(t => t.key === wanted) ? wanted : defaultTab);
     setReplyTo(null);
     setOpenThreadId(null);
     setThreadReplies([]);
-  }, [plan.id]);
+  }, [plan.id, openTab?.n]);
 
   useLayoutEffect(() => {
     if (tab === 'chat') scrollToBottom();

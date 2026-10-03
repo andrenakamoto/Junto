@@ -56,14 +56,24 @@ export function unseenSections(activities: { section: string; at: Date }[], seen
 
 // Onglets non vus de chaque Plan pour un utilisateur (Plans dont il est participant)
 export async function unseenByPlan(userId: string, planIds: string[]): Promise<Map<string, PlanSection[]>> {
-  const result = new Map<string, PlanSection[]>();
+  const details = await unseenDetails(userId, planIds);
+  return new Map([...details].map(([id, d]) => [id, d.sections]));
+}
+
+// Idem, avec la date de la dernière activité non vue (cloche : une notification effacée
+// réapparaît s'il se passe quelque chose de nouveau après)
+export async function unseenDetails(userId: string, planIds: string[]): Promise<Map<string, { sections: PlanSection[]; at: string | null }>> {
+  const result = new Map<string, { sections: PlanSection[]; at: string | null }>();
   if (planIds.length === 0) return result;
   const [activities, members] = await Promise.all([
     prisma.planActivity.findMany({ where: { planId: { in: planIds } } }),
     prisma.planMember.findMany({ where: { userId, planId: { in: planIds } }, select: { planId: true, seen: true } }),
   ]);
   for (const m of members) {
-    result.set(m.planId, unseenSections(activities.filter(a => a.planId === m.planId), m.seen));
+    const mine = activities.filter(a => a.planId === m.planId);
+    const sections = unseenSections(mine, m.seen);
+    const dates = mine.filter(a => sections.includes(a.section as PlanSection)).map(a => a.at.getTime());
+    result.set(m.planId, { sections, at: dates.length ? new Date(Math.max(...dates)).toISOString() : null });
   }
   return result;
 }
