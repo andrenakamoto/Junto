@@ -23,13 +23,40 @@ interface Props {
   mediaToken?: string;
 }
 
-function renderContent(content: string) {
-  const parts = content.split(/(@\w+)/g);
-  return parts.map((part, i) => (
-    <Fragment key={i}>
-      {part.startsWith('@') ? <span className="font-semibold text-indigo-300">{part}</span> : part}
+// Liens web (https://…, http://… ou www.…) cliquables ; la ponctuation finale reste du texte
+const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+const TRAILING = /[.,;:!?)\]}»"']+$/;
+
+function renderText(text: string, key: string) {
+  return text.split(/(@\w+)/g).map((part, i) => (
+    <Fragment key={`${key}-${i}`}>
+      {/^@\w+$/.test(part) ? <span className="font-semibold text-indigo-300">{part}</span> : part}
     </Fragment>
   ));
+}
+
+export function renderContent(content: string, isMe: boolean) {
+  return content.split(LINK_RE).map((part, i) => {
+    if (i % 2 === 0) return renderText(part, String(i));
+    const trail = part.match(TRAILING)?.[0] ?? '';
+    const url = trail ? part.slice(0, -trail.length) : part;
+    const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    return (
+      <Fragment key={i}>
+        {/* Dans les apps, Capacitor ouvre les liens externes dans le navigateur du téléphone */}
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          className={`underline underline-offset-2 break-all ${isMe ? 'text-white' : 'text-indigo-600'}`}
+        >
+          {url}
+        </a>
+        {trail}
+      </Fragment>
+    );
+  });
 }
 
 export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken }: Props) {
@@ -42,6 +69,20 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   const deleted = !!message.deletedAt;
   const editable = useEditWindow(message.createdAt, message.deletedAt, isMe && !!onEdit && !!onDelete);
   const [editing, setEditing] = useState(false);
+  // Réactions rapides sur écran tactile : un appui sur le message ouvre la barre, l'appui
+  // suivant (n'importe où) la ferme. Sur ordinateur, elle s'affiche au survol.
+  const [showReactions, setShowReactions] = useState(false);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showReactions) return;
+    function close(e: PointerEvent) {
+      // Un appui sur ce message est géré par son propre clic (qui referme la barre)
+      if (bubbleRef.current?.contains(e.target as Node)) return;
+      setShowReactions(false);
+    }
+    document.addEventListener('pointerdown', close, true);
+    return () => document.removeEventListener('pointerdown', close, true);
+  }, [showReactions]);
 
   const reactionGroups = (message.reactions ?? []).reduce<Record<string, { count: number; mine: boolean; names: string[] }>>((acc, r) => {
     acc[r.emoji] = acc[r.emoji] || { count: 0, mine: false, names: [] };
@@ -62,7 +103,11 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           </div>
         )}
 
-        <div className="relative">
+        <div
+          ref={bubbleRef}
+          className="relative"
+          onClick={() => { if (!deleted && !editing && !window.matchMedia('(hover: hover)').matches) setShowReactions(v => !v); }}
+        >
           {deleted ? (
             <DeletedBubble isMe={isMe} />
           ) : editing ? (
@@ -74,7 +119,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           ) : (
             <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
               {photo && (
-                <button type="button" onClick={() => setViewing(true)} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
+                <button type="button" onClick={e => { e.stopPropagation(); setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
                   <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" className="block max-w-[240px] max-h-[320px] object-cover" />
                 </button>
               )}
@@ -89,13 +134,13 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                     ? 'bg-indigo-600 text-white rounded-tr-sm'
                     : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
                 }`}>
-                  {renderContent(message.content)}
+                  {renderContent(message.content, isMe)}
                 </div>
               )}
             </div>
           )}
           {viewing && photo && (
-            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setViewing(false)}>
+            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setViewing(false); }}>
               <button type="button" aria-label="Fermer" className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }}>
                 <X size={20} />
               </button>
@@ -105,11 +150,11 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
 
           {/* Réactions rapides (survol sur ordinateur, appui sur mobile) : grands emojis,
               posés juste au-dessus de la bulle pour ne pas la masquer */}
-          {!deleted && !editing && <div className={`hidden group-hover:flex absolute bottom-full mb-1 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
+          {!deleted && !editing && <div className={`${showReactions ? 'flex' : 'hidden'} [@media(hover:hover)]:group-hover:flex absolute bottom-full mb-1 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}
-                onClick={() => onReact(message.id, emoji)}
+                onClick={e => { e.stopPropagation(); onReact(message.id, emoji); setShowReactions(false); }}
                 aria-label={`Réagir avec ${emoji}`}
                 className="text-2xl leading-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform"
               >

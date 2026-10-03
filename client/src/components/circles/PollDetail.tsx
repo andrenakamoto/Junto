@@ -6,6 +6,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { fullName } from '../../lib/names';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
+import { renderContent } from '../chat/ChatMessage';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
@@ -357,7 +358,7 @@ function PollChatMessage({ message: m, isMe, onEdit, onDelete, onReport }: {
           <div className={`px-4 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
             isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
           }`}>
-            {m.content}
+            {renderContent(m.content, isMe)}
           </div>
         )}
         {editable && !editing && <OwnMessageActions onEdit={() => setEditing(true)} onDelete={onDelete} />}
