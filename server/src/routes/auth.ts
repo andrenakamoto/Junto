@@ -236,7 +236,9 @@ router.post('/login', loginLimiter, async (req, res) => {
     if (email) {
       user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
     } else if (pseudo) {
-      user = await prisma.user.findUnique({ where: { pseudo } });
+      // Pseudo insensible à la casse (« Andre » ou « andre ») ; l'unicité l'est aussi
+      // (isPseudoTaken), donc au plus un compte correspond
+      user = await prisma.user.findFirst({ where: { pseudo: { equals: String(pseudo).trim(), mode: 'insensitive' } } });
     }
 
     if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
@@ -299,8 +301,7 @@ router.post('/google', loginLimiter, async (req, res) => {
     } else {
       // Créer un pseudo unique basé sur le nom Google
       let pseudo = googleName.replace(/\s+/g, '').slice(0, 20);
-      const taken = await prisma.user.findUnique({ where: { pseudo } });
-      if (taken) pseudo = pseudo + Math.floor(Math.random() * 9000 + 1000);
+      if (await isPseudoTaken(pseudo)) pseudo = pseudo + Math.floor(Math.random() * 9000 + 1000);
 
       user = await prisma.user.create({
         data: {
