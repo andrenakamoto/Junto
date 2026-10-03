@@ -670,7 +670,10 @@ Junto/
   Infos laisse le message affiché « Photo retirée ». Includes partagés dans
   `lib/messageInclude.ts`. Chat des sondages : pas de photos.
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
-  emoji temps réel
+  emoji temps réel. Barre de réactions : survol sur ordinateur ; sur écran tactile (`hover: none`),
+  un appui sur le message l'ouvre et l'appui suivant, n'importe où, la ferme (`ChatMessage`).
+  Liens web (`https://`, `www.`) cliquables dans les deux chats (`renderContent`, exporté de
+  `ChatMessage` et utilisé par `PollDetail`).
 - **Poll** / **PollOption** / **PollVote** : sondages ; `Poll.anonymous`
   (bool) — si vrai, l'API anonymise les userId des votes des autres membres
   dans la réponse (voir `anonymizePoll`/`anonymizePlanPolls` dans
