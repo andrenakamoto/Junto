@@ -343,7 +343,11 @@ Conséquences pratiques :
     **2026-10-04 : version 1.0.2** sur les deux plateformes (Android `versionCode` 3, AAB
     `evly-1.0.2-(3).aab` dans le dossier de publication ; iOS build 3 envoyé à App Store Connect,
     à soumettre après la validation de la 1.0.0 — build 2, en cours d'examen à cette date).
-    iOS **build 4** (même jour) = build 3 + liens d'application : c'est lui à soumettre.
+    iOS **build 4** (même jour) = build 3 + liens d'application.
+    **Version 1.0.3** (2026-10-04, soir) : Android `versionCode` 4 (`evly-1.0.3-(4).aab`), iOS
+    build 5 envoyé — Plan express, démo, page de connexion allégée, « Qui apporte quoi ? »
+    (quantité, modifier, retirer), informations importantes, suggestions. **C'est le build 5 à
+    soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
     = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
     (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
@@ -619,6 +623,22 @@ Junto/
   join si atteinte), deletionMode, disabledFeatures (voir Paramètres
   avancés), reminderSentAt? (anti-doublon rappel email), archived,
   circleId, creatorId
+- **Plans récurrents** (2026-10-05, `lib/recurrence.ts`, testé) : `Plan.recurrence` = `weekly` /
+  `biweekly` / `monthly` (null = ne se répète pas), `recurrenceUntil?` (« Jusqu'au », facultatif),
+  `seriesId` (id du premier Plan de la série), `nextOccurrenceId` (id du suivant, `pending` pendant
+  sa création, `ended` quand la série s'arrête). Choisi par le créateur (`RecurrenceField` dans
+  Create/EditPlanModal), date de l'événement obligatoire. Le job horaire `spawnRecurringPlans`
+  (avant `deleteExpiredPlans`, gated comme les autres crons) crée le Plan suivant **dès que la date
+  du Plan est passée** : mêmes titre, description, lieu, durée, réglages, exclusions et « qui
+  apporte quoi » (sans « Je prends ça »), **réponses remises à zéro** (seul le créateur y est),
+  notification « Nouveau Plan » comme une création normale (`createPlanInCircle`). Heure gardée à
+  l'heure suisse (changements d'heure), mensuel le même jour (31 → dernier jour du mois), dates déjà
+  passées sautées. Réservation atomique (`updateMany` sur `nextOccurrenceId: null`) : jamais deux
+  suivants. La série s'arrête après « Jusqu'au » ou si le créateur a quitté le Cercle
+  (`recurrence` remis à null). Menu du Plan (créateur) : « Annuler cette fois » (POST
+  /plans/:id/skip : crée le suivant puis supprime celui-ci) et « Arrêter la répétition » (PUT
+  /plans/:id/recurrence `{recurrence: null}`). Étiquette « 🔁 Chaque lundi » (`recurrenceLabel`,
+  `client/src/lib/recurrence.ts`) dans la fiche, icône sur la carte. Pas géré dans la démo.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
