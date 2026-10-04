@@ -17,6 +17,11 @@ import { isPlanSection, markAllSeen, markSectionSeen, unseenDetails } from '../l
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
 import { wantsEmail } from '../lib/notificationPrefs';
 
+// « Qui apporte quoi ? » : longueur du texte, quantité facultative en texte libre
+const ITEM_LABEL_MAX = 100;
+const ITEM_QUANTITY_MAX = 30;
+const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim().slice(0, ITEM_QUANTITY_MAX) : null;
+
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolvePlanWrite));
@@ -581,8 +586,42 @@ router.post('/:id/items', async (req: AuthRequest, res) => {
   }
   // « Qui apporte quoi » fait partie des Dépenses : désactivé avec elles
   if (await isFeatureDisabled(req.params.id, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
-  const item = await prisma.bringItem.create({ data: { label: label.trim(), planId: req.params.id } });
+  const item = await prisma.bringItem.create({ data: { label: label.trim().slice(0, ITEM_LABEL_MAX), quantity: cleanQuantity(req.body.quantity), planId: req.params.id, createdById: req.userId! } });
   res.json(item);
+});
+
+// « Qui apporte quoi ? » : modifier ou retirer un élément — son auteur ou le créateur du Plan
+// (les éléments sans auteur connu, plus anciens que le 2026-10-05 : le créateur seul)
+
+async function editableItem(req: AuthRequest, res: any) {
+  const item = await prisma.bringItem.findUnique({ where: { id: req.params.itemId }, include: { plan: { select: { creatorId: true } } } });
+  if (!item) { res.status(404).json({ error: 'Élément introuvable' }); return null; }
+  if (item.createdById !== req.userId && item.plan.creatorId !== req.userId) {
+    res.status(403).json({ error: 'Seuls la personne qui l’a ajouté et le créateur du Plan peuvent le modifier' }); return null;
+  }
+  if (await isFeatureDisabled(item.planId, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return null; }
+  return item;
+}
+
+// PUT /api/plans/items/:itemId { label, quantity? }
+router.put('/items/:itemId', async (req: AuthRequest, res) => {
+  const item = await editableItem(req, res);
+  if (!item) return;
+  const label = typeof req.body?.label === 'string' ? req.body.label.trim() : '';
+  if (!label) { res.status(400).json({ error: 'Label requis' }); return; }
+  const updated = await prisma.bringItem.update({
+    where: { id: item.id },
+    data: { label: label.slice(0, ITEM_LABEL_MAX), quantity: cleanQuantity(req.body.quantity) },
+  });
+  res.json(updated);
+});
+
+// DELETE /api/plans/items/:itemId
+router.delete('/items/:itemId', async (req: AuthRequest, res) => {
+  const item = await editableItem(req, res);
+  if (!item) return;
+  await prisma.bringItem.delete({ where: { id: item.id } });
+  res.json({ ok: true });
 });
 
 // Claim / unclaim a bring item

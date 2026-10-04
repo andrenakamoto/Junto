@@ -538,9 +538,14 @@ model PollVote {
 }
 
 model BringItem {
-  id        String  @id @default(cuid())
-  label     String
-  claimedBy String?
+  id          String  @id @default(cuid())
+  label       String
+  claimedBy   String?
+  // Auteur de l'élément (peut le supprimer, comme le créateur du Plan) ; null pour les
+  // éléments ajoutés avant le 2026-10-05
+  createdById String?
+  // Quantité facultative, en texte libre (« 3 kg », « 2 bouteilles »)
+  quantity    String?
 
   planId String
   plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)

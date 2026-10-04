@@ -85,6 +85,10 @@ export interface BringItem {
   id: string;
   label: string;
   claimedBy?: string | null;
+  /** Auteur (peut retirer l'élément, comme le créateur du Plan) ; absent pour les anciens éléments */
+  createdById?: string | null;
+  /** Quantité facultative, en texte libre (« 3 kg ») */
+  quantity?: string | null;
   planId: string;
 }
 

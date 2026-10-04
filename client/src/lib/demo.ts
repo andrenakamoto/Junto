@@ -333,10 +333,37 @@ function route(method: string, path: string, body: any): any {
 
   // Qui apporte quoi
   if ((m = path.match(/^\/plans\/([^/]+)\/items$/)) && method === 'POST') {
-    const item = { id: newId('item'), label: String(body.label ?? '').trim(), claimedBy: null, planId: m[1] };
+    const item = { id: newId('item'), label: String(body.label ?? '').trim(), quantity: String(body.quantity ?? '').trim() || null, claimedBy: null, createdById: me.id, planId: m[1] };
     plan(m[1]).items.push(item);
     changed(m[1]);
     return item;
+  }
+  if ((m = path.match(/^\/plans\/items\/([^/]+)$/)) && method === 'PUT') {
+    for (const [k, v] of Object.entries(fixtures!)) {
+      if (!/^GET \/plans\/[^/]+$/.test(k)) continue;
+      const p = v as any;
+      const item = p.items?.find((i: any) => i.id === m![1]);
+      if (!item) continue;
+      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, 'Seuls la personne qui l’a ajouté et le créateur du Plan peuvent le modifier');
+      item.label = String(body.label ?? item.label).trim();
+      item.quantity = String(body.quantity ?? '').trim() || null;
+      changed(p.id);
+      return item;
+    }
+    throw new DemoError(404, 'Élément introuvable');
+  }
+  if ((m = path.match(/^\/plans\/items\/([^/]+)$/)) && method === 'DELETE') {
+    for (const [k, v] of Object.entries(fixtures!)) {
+      if (!/^GET \/plans\/[^/]+$/.test(k)) continue;
+      const p = v as any;
+      const item = p.items?.find((i: any) => i.id === m![1]);
+      if (!item) continue;
+      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, 'Seuls la personne qui l’a ajouté et le créateur du Plan peuvent le retirer');
+      p.items = p.items.filter((i: any) => i !== item);
+      changed(p.id);
+      return { ok: true };
+    }
+    throw new DemoError(404, 'Élément introuvable');
   }
   if ((m = path.match(/^\/plans\/items\/([^/]+)\/claim$/))) {
     for (const [k, v] of Object.entries(fixtures!)) {

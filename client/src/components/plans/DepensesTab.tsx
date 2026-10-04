@@ -91,7 +91,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5 short:flex-none short:overflow-visible">
-      <BringItemsSection plan={plan} pseudo={pseudo} onChanged={async () => onPlanUpdated((await api.get(`/plans/${planId}`)).data)} />
+      <BringItemsSection plan={plan} pseudo={pseudo} userId={userId} onChanged={async () => onPlanUpdated((await api.get(`/plans/${planId}`)).data)} />
 
       <h3 className="font-semibold text-slate-800 text-sm -mb-2">Dépenses</h3>
       {/* Ajout, toujours en haut des dépenses */}
