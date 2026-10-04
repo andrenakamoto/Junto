@@ -557,6 +557,15 @@ Junto/
     non-créateur. Le lieu est modifiable depuis le 2026-09-27 (il ne
     l'était par personne avant). `PlanChangeLog.changedById` (SetNull à la
     suppression du compte) trace l'auteur de chaque modification.
+  - `Plan.importantInfoMode` (2026-10-04) : `creator` (défaut, créateur du Plan seul) ou
+    `all` (tous les membres du Plan) — qui peut modifier **`Plan.importantInfo`**
+    (« Informations importantes », 500 caractères max, `parseImportantInfo` dans
+    `lib/settings.ts`). **Indépendant d'`editMode`** (dates et lieu). Saisie possible à la
+    création (`CreatePlanModal`), puis modification directe dans l'onglet Infos
+    (`ImportantInfoCard`, encadré ambre juste après la description) via PUT
+    `/plans/:id/important-info` : historique (`PlanChangeLog`, champ `importantInfo`),
+    notification `plan_activity` `important_info_updated`, pastille Infos. Reprise dans
+    l'email de rappel de la veille (texte échappé).
 - **CirclePoll** / **CirclePollOption** / **CirclePollVote** : sondage pour
   caler une date *avant* de créer un Plan (contrairement à Poll qui
   appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
@@ -679,7 +688,10 @@ Junto/
   dans la réponse (voir `anonymizePoll`/`anonymizePlanPolls` dans
   `plans.ts`), la UI ne s'appuyait déjà que sur les comptes donc c'est
   surtout une protection côté API contre l'inspection réseau
-- **BringItem** : liste "qui apporte quoi"
+- **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
+  depuis le 2026-10-04 (`BringItemsSection.tsx`, en tête de `DepensesTab`) : désactiver les
+  Dépenses la masque aussi et le serveur refuse ajout et « Je prends ça » ; pastille et
+  notifications sur l'onglet Dépenses
 - **Attachment** : fichiers Cloudinary liés à un Plan (url, publicId,
   resourceType, mimeType, size) — les images sont affichées en galerie
   séparée dans InfosTab, les autres types en liste de fichiers
