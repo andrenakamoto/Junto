@@ -699,7 +699,11 @@ Junto/
 - **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
   depuis le 2026-10-04 (`BringItemsSection.tsx`, en tête de `DepensesTab`) : désactiver les
   Dépenses la masque aussi et le serveur refuse ajout et « Je prends ça » ; pastille et
-  notifications sur l'onglet Dépenses
+  notifications sur l'onglet Dépenses. Depuis le 2026-10-05 : **quantité facultative** en texte
+  libre (`BringItem.quantity`, 30 caractères, « 3 kg »), **modifier** (crayon, PUT
+  /plans/items/:itemId : texte et quantité, « Je prends ça » conservé) et **retirer** (corbeille,
+  DELETE /plans/items/:itemId) — par son auteur (`BringItem.createdById`, renseigné depuis cette
+  date) ou le créateur du Plan ; les anciens éléments sans auteur, le créateur seul
 - **Attachment** : fichiers Cloudinary liés à un Plan (url, publicId,
   resourceType, mimeType, size) — les images sont affichées en galerie
   séparée dans InfosTab, les autres types en liste de fichiers
