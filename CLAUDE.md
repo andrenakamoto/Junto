@@ -916,6 +916,16 @@ personne** — `notifyUser` ignore les notifications dont l'`actorId` est masqu�
 par le destinataire (renseigner `actorId` pour toute nouvelle notification
 déclenchée par quelqu'un ; covoiturage volontairement exclu).
 
+**Proposer une amélioration** (2026-10-04, `lib/suggestions.ts`, `routes/suggestions.ts`) : menu ☰
+→ `SuggestionModal` (type idée / problème / autre, 1 000 caractères, **pas de capture d'écran** —
+choix de l'utilisateur ; appareil et version de l'app ajoutés automatiquement), table
+**Suggestion** (cascade à la suppression du compte), 5 par personne sur 24 h, email à info@evly.ch
+(avec le texte). La personne suit ses suggestions dans la même fenêtre (GET /suggestions/mine,
+statut + réponse). Admin : `SuggestionsPanel` (GET/PUT /admin/suggestions) — statut
+new / review / planned / done / declined + réponse ; passer en `planned` ou `done` notifie la
+personne (`suggestion_update`, push + app, lien `/dashboard?suggestions=1` qui rouvre la fenêtre
+via `CircleSidebar`). Mentionné dans la politique de confidentialité.
+
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
 `join-plan`/`leave-plan`, `send-message` (accepte parentId), `message`,
