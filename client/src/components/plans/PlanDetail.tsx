@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,6 +21,7 @@ import { DeletePlanModal } from './DeletePlanModal';
 import { PlanSettingsModal } from './PlanSettingsModal';
 import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
+import { ExpiryChip } from './ExpiryChip';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
@@ -381,7 +382,6 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
     : null;
 
-  const endDateFmt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.endDate));
 
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
@@ -589,20 +589,21 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
         )}
 
-        {/* Date de l'événement (+ répétition) */}
-        {eventDateFmt && (
-          <div className="flex flex-wrap items-center gap-2 mt-2">
+        {/* Date de l'événement, répétition et date de suppression du Plan */}
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          {eventDateFmt && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
               <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
               <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
             </div>
-            {repeatLabel && (
-              <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-xs font-medium text-slate-600">
-                <Repeat size={12} /> {repeatLabel}
-              </span>
-            )}
-          </div>
-        )}
+          )}
+          {repeatLabel && (
+            <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-xs font-medium text-slate-600">
+              <Repeat size={12} /> {repeatLabel}
+            </span>
+          )}
+          <ExpiryChip endDate={plan.endDate} />
+        </div>
 
         {/* Infos membres */}
         {isMember && (
@@ -623,12 +624,6 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             </span>
           </div>
         )}
-
-        {/* Date d'expiration du plan — séparée visuellement */}
-        <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-400 border-t border-slate-100 pt-2">
-          <Clock size={11} />
-          <span>Ce plan disparaît le <span className="font-medium text-slate-500">{endDateFmt}</span> — toutes les données liées (messages, photos, dépenses) seront supprimées</span>
-        </div>
 
         {(plan.exclusions ?? []).length > 0 && (
           <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800">
