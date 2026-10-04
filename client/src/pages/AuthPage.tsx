@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, ArrowRight, FileText, PartyPopper } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowRight, PartyPopper } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
@@ -143,49 +143,13 @@ export function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+        {/* En-tête épuré : la connexion d'abord, le reste sous le formulaire */}
+        <div className="text-center mb-10">
           <div className="flex justify-center mb-3">
             <LogoIcon size={56} />
           </div>
           <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Events Linked to You</p>
-          <a
-            href={siteUrl('/decouvrir.html')}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-4 decoration-indigo-400/50"
-          >
-            Découvrir EvLY en 1 minute
-            <ArrowRight size={14} />
-          </a>
-          <br />
-          <a
-            href={siteUrl('/brochure')}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-slate-400 hover:text-slate-200 underline underline-offset-4 decoration-slate-500/50"
-          >
-            <FileText size={13} />
-            Pour les associations et les entreprises (PDF)
-          </a>
         </div>
-
-        {/* Plan express (/organiser) : organiser une sortie et partager le lien, sans compte */}
-        <Link
-          to="/organiser"
-          onClick={() => countStep('funnel_cta_express')}
-          className="mb-5 w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-400/60 bg-indigo-600/15 text-indigo-100 hover:bg-indigo-600/25 font-semibold text-sm transition-colors"
-        >
-          <PartyPopper size={17} className="text-indigo-300" />
-          Organiser une sortie, sans compte
-          <ArrowRight size={15} />
-        </Link>
-        {/* Démo sans compte (/demo, lib/demo.ts) : des Cercles et des Plans fictifs à explorer */}
-        <p className="-mt-2 mb-5 text-center text-sm text-slate-400">
-          Envie de voir avant ?{' '}
-          <Link to="/demo" className="font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-4 decoration-indigo-400/50">
-            Essayer la démo
-          </Link>
-        </p>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50">
           {/* Onglets */}
@@ -376,8 +340,8 @@ export function AuthPage() {
           </form>
         </div>
 
-        {/* Lien vérification email */}
-        {mode === 'login' && (
+        {/* Email de confirmation : à l'inscription, ou après une connexion refusée faute de confirmation */}
+        {(mode === 'register' || error.includes('confirmer ton adresse')) && (
           <p className="text-center text-xs text-slate-500 mt-4">
             Email de confirmation non reçu ?{' '}
             <button
@@ -388,8 +352,35 @@ export function AuthPage() {
             </button>
           </p>
         )}
-        <p className="text-center text-xs text-slate-600 mt-4">
-          info@evly.ch · <a href={siteUrl('/confidentialite')} className="hover:text-slate-400 underline underline-offset-2">Confidentialité</a>
+        {/* Nouveaux visiteurs : Plan express (/organiser) ou démo sans compte (/demo) */}
+        <div className="mt-8">
+          <p className="text-center text-sm text-slate-400 mb-3">Nouveau sur EvLY ?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to="/organiser"
+              onClick={() => countStep('funnel_cta_express')}
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-indigo-400/60 bg-indigo-600/15 text-indigo-100 hover:bg-indigo-600/25 font-semibold text-sm transition-colors"
+            >
+              <PartyPopper size={16} className="text-indigo-300" />
+              Organiser une sortie
+            </Link>
+            <Link
+              to="/demo"
+              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-700/40 font-semibold text-sm transition-colors"
+            >
+              Voir la démo
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-slate-500 mt-10 leading-relaxed">
+          <a href={siteUrl('/decouvrir.html')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">Découvrir EvLY</a>
+          {' · '}
+          <a href={siteUrl('/brochure')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">Associations (PDF)</a>
+          {' · '}
+          <a href={siteUrl('/confidentialite')} className="hover:text-slate-300 underline underline-offset-2">Confidentialité</a>
+          <br />info@evly.ch
         </p>
       </div>
     </div>
