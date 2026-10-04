@@ -453,8 +453,11 @@ Junto/
 - **User** : pseudo (unique), firstName?/lastName? (2026-09-27 : prénom
   obligatoire à l'inscription par email — contrôlé par l'API, pas par la base —,
   nom facultatif, pré-remplis depuis Google ; les comptes plus anciens sans
-  prénom voient `ProfileNameBanner` ; affichés « Prénom Nom » + @pseudo dans
-  les listes de membres, le chat et les mentions restent au pseudo),
+  prénom voient `ProfileNameBanner` ; depuis le 2026-10-04, les autres membres ne voient que
+  **le prénom + @pseudo** (`displayName` dans `lib/names.ts`) : le **nom de famille n'est
+  plus envoyé** par l'API aux autres membres (selects des membres de Plan / Cercle,
+  invitations, liste des personnes masquées) — seuls la personne (/auth/me, « Mon profil »)
+  et le panneau admin (`fullName`) le voient ; le chat et les mentions restent au pseudo),
   password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt,
