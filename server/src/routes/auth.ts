@@ -12,6 +12,7 @@ import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 import { absorbLightUser, readLightUser } from '../lib/lightGuest';
+import { countFunnel } from '../lib/funnel';
 import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailChange } from '../lib/emailChange';
 
 const router = Router();
@@ -180,6 +181,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       : await prisma.user.create({ data });
 
     await sendVerificationEmail(emailLower, pseudo, verifyToken);
+    countFunnel('funnel_register');
     res.json({ pendingVerification: true, user: safeUser(user) });
   } catch (e) {
     console.error('[register]', e);
@@ -201,6 +203,7 @@ router.post('/verify-email', async (req, res) => {
       where: { id: user.id },
       data: { emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null, isLight: false },
     });
+    countFunnel('funnel_verified');
     res.json({ token: makeToken(user), user: safeUser({ ...user, emailVerified: true }) });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });

@@ -14,6 +14,7 @@ import { destroyFiles } from '../lib/cloudinary';
 import { notifyUser } from '../lib/push';
 import { isSuggestionStatus, NOTIFIED_STATUSES, SUGGESTION_REPLY_MAX } from '../lib/suggestions';
 
+import { FUNNEL_STEPS } from '../lib/funnel';
 const router = Router();
 router.use(requireAuth as any);
 router.use(requireAdmin as any);
@@ -122,6 +123,20 @@ router.delete('/users/:id', async (req: AuthRequest, res) => {
 });
 
 // Visites d'une page publique (?page=decouvrir|brochure — compteur anonyme, 30 derniers jours)
+// GET /api/admin/funnel — parcours d'inscription (lib/funnel.ts) : totaux par étape
+router.get('/funnel', async (_req, res) => {
+  const today = visitDay();
+  const since7 = new Date(today.getTime() - 6 * 864e5);
+  const since30 = new Date(today.getTime() - 29 * 864e5);
+  const pages = FUNNEL_STEPS.map(s => s.page);
+  const rows = await prisma.pageVisit.findMany({ where: { page: { in: [...pages] } } });
+  res.json(FUNNEL_STEPS.map(s => {
+    const mine = rows.filter(r => r.page === s.page);
+    const sum = (from?: Date) => mine.filter(r => !from || r.day >= from).reduce((n, r) => n + r.count, 0);
+    return { page: s.page, label: s.label, last7: sum(since7), last30: sum(since30), total: sum() };
+  }));
+});
+
 router.get('/page-visits', async (req, res) => {
   const page = (TRACKED_PAGES as readonly string[]).includes(String(req.query.page)) ? String(req.query.page) : 'decouvrir';
   const today = visitDay();
@@ -144,7 +159,8 @@ router.get('/stats', async (_req, res) => {
     prisma.user.count({ where: { status: 'pending', isAdmin: false } }),
     prisma.user.count({ where: { status: 'approved', isAdmin: false, isLight: false } }),
     prisma.user.count({ where: { status: 'rejected' } }),
-    prisma.circle.count(),
+    // Sans les Cercles personnels « Mes Plans » (Plans express)
+    prisma.circle.count({ where: { isPersonal: false } }),
     prisma.plan.count({ where: { endDate: { gt: new Date() } } }),
     // Compteur quotidien anonyme (lib/activity.ts) : ne baisse pas quand un Plan est supprimé
     prisma.pageVisit.aggregate({ where: { page: 'messages', day: { gte: since7Days } }, _sum: { count: true } }),

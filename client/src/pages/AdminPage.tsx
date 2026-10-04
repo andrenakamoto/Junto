@@ -9,6 +9,7 @@ import { fullName } from '../lib/names';
 import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
 import { ReportsPanel } from '../components/admin/ReportsPanel';
 import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
+import { FunnelPanel } from '../components/admin/FunnelPanel';
 
 interface AdminUser {
   id: string;
@@ -204,9 +205,11 @@ export function AdminPage() {
         <p className="-mt-6 mb-8 text-xs text-slate-500">
           Membres actifs : personnes qui ont utilisé EvLY ces 7 derniers jours. Messages : envoyés ces 7 derniers
           jours dans les chats des Plans et des sondages, même si le Plan a été supprimé depuis. Comptés depuis
-          le 29 septembre 2026. Réponses sans compte en cours (invités qui ont répondu à un Plan sans
-          s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
+          le 29 septembre 2026. Personnes sans compte en cours (réponses à un Plan ou sorties organisées
+          sans s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
         </p>
+
+        <FunnelPanel />
 
         <ReportsPanel />
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { visitLimiter, downloadLimiter } from '../middleware/rateLimit';
 import { isBot, TRACKED_FILES, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
+import { CLIENT_FUNNEL_PAGES } from '../lib/funnel';
 
 // Public (sans compte) : appelé par navigator.sendBeacon depuis les pages
 // publiques. N'enregistre qu'un +1 sur le total du jour — voir lib/pageVisits.ts.
@@ -23,7 +24,7 @@ async function countVisit(page: string, userAgent: string | undefined) {
 
 router.post('/visit', visitLimiter, async (req, res) => {
   const page = String(req.query.page ?? '');
-  if (!(TRACKED_PAGES as readonly string[]).includes(page)) { res.status(400).end(); return; }
+  if (![...TRACKED_PAGES, ...CLIENT_FUNNEL_PAGES].includes(page as never)) { res.status(400).end(); return; }
   await countVisit(page, req.get('user-agent'));
   res.status(204).end();
 });

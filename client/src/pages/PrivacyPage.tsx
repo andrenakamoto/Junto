@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '4 octobre 2026';
+const VERSION = '5 octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -63,6 +63,10 @@ export function PrivacyPage() {
                 peut-être / je passe), ainsi qu'un identifiant gardé dans ton navigateur pour retrouver ta
                 réponse. Effacés à la fin du Plan, ou tout de suite avec « Retirer ma réponse ». Si tu crées
                 ensuite un compte ou te connectes, ta réponse y est rattachée.</li>
+              <li><strong>Sortie organisée sans compte</strong> (« Organiser une sortie ») : ton prénom, ta
+                sortie (titre, date, lieu) et un identifiant gardé dans ton navigateur pour suivre les réponses.
+                Effacés avec la sortie, le lendemain de sa date. Si tu crées ensuite un compte ou te connectes,
+                tes sorties y sont rattachées.</li>
               <li><strong>Invitations à un Cercle</strong> : si un membre t'invite avec ton pseudo ou ton email,
                 l'invitation (qui t'invite, dans quel Cercle) est gardée jusqu'à ce que tu l'acceptes ou la
                 refuses.</li>
@@ -202,7 +206,10 @@ export function PrivacyPage() {
               La page de présentation (evly.ch/decouvrir.html) et la brochure PDF (evly.ch/brochure)
               comptent leurs visites de façon anonyme : seul un total par jour est enregistré, sans cookie,
               sans adresse IP et sans aucun identifiant. Sur la page de présentation, les personnes déjà
-              connectées à EvLY ne sont pas comptées.
+              connectées à EvLY ne sont pas comptées. De la même façon, quelques étapes de l'inscription
+              (clic sur « Créer mon compte » ou « Organiser une sortie », sortie créée ou partagée,
+              inscription, validation de l'email, premier Plan) sont comptées en totaux par jour, sans
+              savoir qui les a faites.
             </p>
           </Section>
 
