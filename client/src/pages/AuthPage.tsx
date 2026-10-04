@@ -179,6 +179,13 @@ export function AuthPage() {
           Organiser une sortie, sans compte
           <ArrowRight size={15} />
         </Link>
+        {/* Démo sans compte (/demo, lib/demo.ts) : des Cercles et des Plans fictifs à explorer */}
+        <p className="-mt-2 mb-5 text-center text-sm text-slate-400">
+          Envie de voir avant ?{' '}
+          <Link to="/demo" className="font-medium text-indigo-300 hover:text-indigo-200 underline underline-offset-4 decoration-indigo-400/50">
+            Essayer la démo
+          </Link>
+        </p>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50">
           {/* Onglets */}

@@ -3,7 +3,7 @@
 // session de navigation pour la même chose (par exemple, un même Plan partagé deux fois).
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
 
-export type ClientFunnelStep = 'funnel_cta_signup' | 'funnel_cta_express' | 'funnel_express_shared';
+export type ClientFunnelStep = 'funnel_cta_signup' | 'funnel_cta_express' | 'funnel_express_shared' | 'funnel_demo';
 
 export function countStep(step: ClientFunnelStep, onceKey?: string) {
   try {

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { registerPush, unregisterPush } from '../lib/push';
 import { clearLightToken } from '../lib/lightGuest';
+import { DEMO_TOKEN, exitDemo, isDemo, loadDemo } from '../lib/demo';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -21,6 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Démo sans compte (lib/demo.ts) : session fictive d'Alex, rien n'est envoyé au serveur
+    if (isDemo()) {
+      loadDemo()
+        .then(() => api.get('/auth/me'))
+        .then(res => { setToken(DEMO_TOKEN); setUser(res.data); })
+        .catch(() => exitDemo())
+        .finally(() => setLoading(false));
+      return;
+    }
     const stored = localStorage.getItem('estelle_token');
     if (stored) {
       setToken(stored);
@@ -50,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function logout() {
+    if (isDemo()) { exitDemo(); return; }
     unregisterPush(localStorage.getItem('estelle_token'));
     localStorage.removeItem('estelle_token');
     setToken(null);

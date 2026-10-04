@@ -1,4 +1,5 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { isDemo } from './demo';
 import type { FirebaseMessagingPlugin } from '@capacitor-firebase/messaging';
 import api from '../services/api';
 
@@ -25,7 +26,7 @@ async function sendToken(token: string) {
 // Après connexion : demande l'autorisation (une seule fois, le système retient la réponse)
 // puis enregistre l'appareil pour ce compte
 export async function registerPush() {
-  if (!pushAvailable) return;
+  if (!pushAvailable || isDemo()) return;
   try {
     let { receive } = await FirebaseMessaging.checkPermissions();
     if (receive === 'prompt' || receive === 'prompt-with-rationale') {

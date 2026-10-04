@@ -1,8 +1,11 @@
 import axios from 'axios';
+import { demoAdapter, isDemo } from '../lib/demo';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api' });
 
 api.interceptors.request.use((config) => {
+  // Démo sans compte : rien ne part au serveur (lib/demo.ts)
+  if (isDemo()) { config.adapter = demoAdapter; return config; }
   const token = localStorage.getItem('estelle_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;

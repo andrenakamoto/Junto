@@ -21,6 +21,7 @@ import { getPendingInvite } from '../lib/pendingInvite';
 import { useSocketEvent } from '../hooks/useSocketEvent';
 import { sortCircles, sortPlans } from '../lib/order';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
+import { DemoBanner } from '../components/ui/DemoBanner';
 import { clearDeliveredNotifications, pushAvailable } from '../lib/push';
 
 type MobileView = 'circles' | 'plans' | 'detail';
@@ -541,6 +542,7 @@ export function DashboardPage() {
     )}
     {/* Les bandeaux prennent leur place dans la hauteur de l'écran au lieu de pousser le bas hors de la vue */}
     <div className="app-screen flex flex-col bg-slate-100">
+    <DemoBanner />
     <EmailMigrationBanner />
     <ProfileNameBanner />
     <div className="flex flex-1 min-h-0 bg-slate-100 overflow-hidden">
