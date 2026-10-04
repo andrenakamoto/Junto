@@ -931,6 +931,31 @@ new / review / planned / done / declined + réponse ; passer en `planned` ou `do
 personne (`suggestion_update`, push + app, lien `/dashboard?suggestions=1` qui rouvre la fenêtre
 via `CircleSidebar`). Mentionné dans la politique de confidentialité.
 
+**Plan express — « Organiser une sortie »** (2026-10-05, `lib/express.ts`, `routes/express.ts`,
+page publique **`/organiser`** = `OrganizePage`) : un Plan en 30 secondes **sans compte**, puis un
+lien d'invitation (`/invitation?token=…`, réponses sans compte comme d'habitude). Entrées : bouton
+sur la page de connexion (`AuthPage`), boutons « Organiser une sortie » de `decouvrir.html`, adresse
+`/organiser` pour les publicités. Le Plan va dans le **Cercle personnel « Mes Plans »** de
+l'organisateur (`Circle.isPersonal`, un par personne, `getOrCreatePersonalCircle`, admission
+`creator`), date de fin = date de la sortie + 24 h. Sans compte, l'organisateur est un **invité
+léger** (`isLight`, même jeton `evly_light_token`) : il ne peut que créer ses sorties (POST
+/api/express, 3 par jour et par connexion, `skipFailedRequests`) et en suivre les réponses
+(GET /api/express/mine, rafraîchi toutes les 15 s). Avec un compte (jeton normal), POST /api/express
+range le Plan dans son « Mes Plans ». Inscription avec le jeton : même compte (comme les réponses
+sans compte). **Connexion à un compte existant : `absorbLightUser` transfère aussi ses Plans
+(creatorId) et son Cercle personnel** (fusionné dans le « Mes Plans » du compte s'il existe).
+Nettoyage : `deleteOrphanLightUsers` et « Retirer ma réponse » passent par `deleteUserAccount`
+(Circle.creator n'a pas de onDelete). « Cercles créés » (admin) exclut les Cercles personnels.
+
+**Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
+**PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
+(`countStep` dans `client/src/lib/funnel.ts` → POST /api/stats/visit, pages autorisées
+`CLIENT_FUNNEL_PAGES`) : « Créer mon compte » et « Organiser une sortie » (`data-step` dans
+`decouvrir.html`, bouton de `AuthPage`), lien de Plan express partagé. Comptés par le serveur
+(`countFunnel`) : Plan express créé, inscription envoyée, email validé, premier Plan d'un compte.
+Panneau admin `FunnelPanel` (GET /admin/funnel, 7 / 30 jours / total). Mentionné dans la politique
+de confidentialité (version du 5 octobre 2026).
+
 Chat + réactions + fils + présence gérés via socket.io
 (`server/src/socket/handlers.ts`), pas via route REST. Événements clés :
 `join-plan`/`leave-plan`, `send-message` (accepte parentId), `message`,
