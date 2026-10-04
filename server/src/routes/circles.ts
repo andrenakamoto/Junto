@@ -27,7 +27,8 @@ function generateCode(length = 6): string {
 }
 
 const circleInclude = {
-  members: { include: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } } },
+  // Les autres membres voient le pseudo et le prénom, jamais le nom de famille
+  members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } } },
   creator: { select: { id: true, pseudo: true } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   joinRequests: {
@@ -440,7 +441,7 @@ router.get('/invitations/mine', async (req: AuthRequest, res) => {
     select: {
       id: true, createdAt: true,
       circle: { select: { id: true, name: true, color: true, description: true, _count: { select: { members: true } } } },
-      inviter: { select: { pseudo: true, firstName: true, lastName: true } },
+      inviter: { select: { pseudo: true, firstName: true } },
     },
   });
   res.json(invites);

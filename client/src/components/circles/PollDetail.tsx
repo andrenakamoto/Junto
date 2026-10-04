@@ -3,7 +3,7 @@ import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, Mess
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
-import { fullName } from '../../lib/names';
+import { displayName as firstNameOf } from '../../lib/names';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
 import { renderContent } from '../chat/ChatMessage';
@@ -15,7 +15,7 @@ import { isCircleManager } from '../../lib/settings';
 
 type Tab = 'dates' | 'chat';
 
-const displayName = (u: { pseudo: string; firstName?: string | null; lastName?: string | null }) => fullName(u) ?? `@${u.pseudo}`;
+const displayName = (u: { pseudo: string; firstName?: string | null }) => firstNameOf(u) ?? `@${u.pseudo}`;
 
 interface Props {
   pollId: string;

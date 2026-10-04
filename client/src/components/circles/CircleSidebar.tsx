@@ -5,7 +5,7 @@ import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
 import { ProfileModal } from '../ui/ProfileModal';
 import { DeleteAccountModal } from '../ui/DeleteAccountModal';
-import { fullName } from '../../lib/names';
+import { displayName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -272,11 +272,11 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
                         <Avatar pseudo={m.user.pseudo} size="sm" />
                         <span className="flex-1 min-w-0">
-                          <span className="block text-xs text-slate-800 truncate">{fullName(m.user) ?? `@${m.user.pseudo}`}</span>
+                          <span className="block text-xs text-slate-800 truncate">{displayName(m.user) ?? `@${m.user.pseudo}`}</span>
                           <span className="block text-[10px] text-slate-500 truncate">
-                            {fullName(m.user) && `@${m.user.pseudo}`}
+                            {displayName(m.user) && `@${m.user.pseudo}`}
                             {(memberIsCreator || memberIsOrganizer) && (
-                              <span className="text-indigo-600 font-semibold">{fullName(m.user) && ' · '}{memberIsCreator ? 'Créateur' : 'Organisateur'}</span>
+                              <span className="text-indigo-600 font-semibold">{displayName(m.user) && ' · '}{memberIsCreator ? 'Créateur' : 'Organisateur'}</span>
                             )}
                           </span>
                         </span>

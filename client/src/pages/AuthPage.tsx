@@ -264,7 +264,7 @@ export function AuthPage() {
                 </div>
                 <div>
                   <label htmlFor="lastName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Nom <span className="normal-case tracking-normal font-normal text-slate-500">(facultatif)</span>
+                    Nom <span className="normal-case tracking-normal font-normal text-slate-500">(facultatif, privé)</span>
                   </label>
                   <input
                     id="lastName"

@@ -39,7 +39,7 @@ export function ProfileModal({ onClose }: Props) {
           Ton prénom aide les membres de tes Cercles à te reconnaître derrière ton pseudo @{user?.pseudo}.
         </p>
         <Input id="profile-firstName" label="Prénom" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={50} autoComplete="given-name" autoFocus />
-        <Input id="profile-lastName" label="Nom (facultatif)" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
+        <Input id="profile-lastName" label="Nom (facultatif, visible seulement par toi)" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
         <EmailSection />
         <BlockedSection />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
@@ -154,7 +154,7 @@ function EmailSection() {
 // Personnes masquées (lib/moderation.ts) : leurs messages ne s'affichent plus pour moi
 function BlockedSection() {
   const { user, setUser } = useAuth();
-  const [people, setPeople] = useState<{ id: string; pseudo: string; firstName: string | null; lastName: string | null }[]>([]);
+  const [people, setPeople] = useState<{ id: string; pseudo: string; firstName: string | null }[]>([]);
   const count = user?.blockedUserIds?.length ?? 0;
 
   useEffect(() => {
@@ -174,7 +174,7 @@ function BlockedSection() {
       <ul className="space-y-1.5">
         {people.map(p => (
           <li key={p.id} className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-            <span className="text-slate-700 truncate">{[p.firstName, p.lastName].filter(Boolean).join(' ') || p.pseudo} <span className="text-slate-400">@{p.pseudo}</span></span>
+            <span className="text-slate-700 truncate">{p.firstName || p.pseudo} <span className="text-slate-400">@{p.pseudo}</span></span>
             <button type="button" onClick={() => unblock(p.id)} className="text-xs text-indigo-600 hover:text-indigo-800 flex-shrink-0">Ne plus masquer</button>
           </li>
         ))}

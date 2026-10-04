@@ -47,7 +47,7 @@ interface Props {
 interface CircleInvite {
   id: string;
   circle: { id: string; name: string; color: string | null; description: string | null; _count: { members: number } };
-  inviter: { pseudo: string; firstName: string | null; lastName: string | null };
+  inviter: { pseudo: string; firstName: string | null };
 }
 
 export function NotificationCenter({ circles, plansWithNews, history, onClose, onOpenPlan, onOpenCircle, onOpenNotification, onClearAll, onInvitationsChanged }: Props) {

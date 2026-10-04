@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '2 octobre 2026';
+const VERSION = '4 octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -97,6 +97,8 @@ export function PrivacyPage() {
 
           <Section title="4. Qui voit quoi">
             <ul className="list-disc pl-5 space-y-1.5">
+              <li>Les autres membres voient ton <strong>pseudo</strong> et ton <strong>prénom</strong> ; ton nom
+                n'est visible que par toi (et par l'administrateur d'EvLY, pour l'assistance).</li>
               <li>Les membres d'un Cercle voient ses Plans et ses membres ; le contenu d'un Plan (chat,
                 photos, dépenses…) est réservé aux personnes qui l'ont rejoint.</li>
               <li>Une personne invitée à un seul Plan ne voit que ce Plan, rien du Cercle.</li>

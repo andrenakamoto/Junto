@@ -25,7 +25,7 @@ router.post('/reports', async (req: AuthRequest, res) => {
 async function blockList(userId: string) {
   const rows = await prisma.userBlock.findMany({
     where: { blockerId: userId },
-    select: { blocked: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
+    select: { blocked: { select: { id: true, pseudo: true, firstName: true } } },
     orderBy: { createdAt: 'desc' },
   });
   return rows.map(r => r.blocked);

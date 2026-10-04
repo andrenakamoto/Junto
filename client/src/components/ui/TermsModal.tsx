@@ -82,8 +82,8 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
               Pour créer un compte, tu indiques un <strong>pseudo</strong>, ton <strong>prénom</strong>,
               une <strong>adresse email</strong> — que tu confirmes via le lien reçu — et un mot de passe ;
               ton nom est facultatif. Tu peux aussi t'inscrire avec un compte Google. Les informations
-              fournies doivent être exactes : ton prénom et ton nom sont visibles des membres des Cercles
-              et des Plans que tu rejoins.
+              fournies doivent être exactes : ton pseudo et ton prénom sont visibles des membres des Cercles
+              et des Plans que tu rejoins ; ton nom n'est visible que par toi.
             </p>
             <p className="mt-2">
               Tu es seul(e) responsable de la confidentialité de tes identifiants et des actions
