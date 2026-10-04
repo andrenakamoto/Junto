@@ -46,6 +46,8 @@ export type AdmissionMode = 'vote' | 'creator' | 'open';
 export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
+/** Fonctions à activer (absentes par défaut) */
+export type OptionalFeature = 'benevoles';
 
 export interface Circle {
   id: string;
@@ -150,6 +152,8 @@ export interface Plan {
   deletionMode?: DeletionMode;
   /** Fonctions masquées (les données sont conservées) */
   disabledFeatures?: PlanFeature[];
+  /** Fonctions activées en plus (planning des bénévoles) */
+  enabledFeatures?: OptionalFeature[];
   /** Qui peut modifier les dates et le lieu (titre, description, etc. : créateur seul) */
   editMode?: EditMode;
   /** Informations importantes (après la description) */
@@ -310,4 +314,15 @@ export interface CirclePollMessage {
   editedAt?: string | null;
   deletedAt?: string | null;
   author: { id: string; pseudo: string };
+}
+
+// Planning des bénévoles : poste d'un Plan et ses inscrits
+export interface VolunteerShift {
+  id: string;
+  title: string;
+  needed: number;
+  note: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  signups: { userId: string; user: { id: string; pseudo: string; firstName?: string | null } }[];
 }

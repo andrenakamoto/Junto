@@ -6,7 +6,7 @@ import prisma from './prisma';
 // « non vu » si son activité est plus récente que la dernière visite. L'auteur d'un ajout
 // est marqué comme ayant vu l'onglet : ses propres actions ne lui créent pas de pastille.
 
-export const PLAN_SECTIONS = ['chat', 'infos', 'trajets', 'membres', 'votes', 'depenses'] as const;
+export const PLAN_SECTIONS = ['chat', 'infos', 'trajets', 'membres', 'votes', 'depenses', 'benevoles'] as const;
 export type PlanSection = typeof PLAN_SECTIONS[number];
 
 type Seen = Partial<Record<PlanSection, string>>;

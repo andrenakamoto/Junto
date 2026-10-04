@@ -64,13 +64,13 @@ async function planTarget(planId: string | undefined, circleWide: boolean, secti
 // invité (notifications d'arrivée et de désistement, lib/planNotifications.ts), ni pour
 // les votes, les demandes de suppression ou le « vu ».
 const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
-  items: 'item_added', polls: 'poll_created', expenses: 'expense_added', reimbursements: 'reimbursement_added',
+  items: 'item_added', shifts: 'shift_added', polls: 'poll_created', expenses: 'expense_added', reimbursements: 'reimbursement_added',
 };
 
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres',
-  polls: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
+  shifts: 'benevoles', polls: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -88,6 +88,11 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   if (a === 'items') {
     const item = await prisma.bringItem.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(item?.planId, false, 'depenses', 'items_updated');
+  }
+  if (a === 'shifts') {
+    // Postes des bénévoles ; une inscription peut changer la réponse au Plan (liste du Cercle)
+    const shift = await prisma.volunteerShift.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(shift?.planId, c === 'signup', 'benevoles');
   }
   if (a === 'expenses') {
     const expense = await prisma.expense.findUnique({ where: { id: b }, select: { planId: true } });

@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { shiftHours, sortShifts } from './volunteers';
 import { purgePlanFiles } from './cloudinary';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
@@ -90,6 +91,7 @@ export async function sendPlanReminders() {
           where: { rsvp: { in: ['in', 'maybe'] } },
           include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } } },
         },
+        volunteerSignups: { include: { shift: true } },
       },
     });
 
@@ -108,6 +110,17 @@ export async function sendPlanReminders() {
         ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(plan.eventDate)
         : '';
 
+      // Postes de bénévole de chacun (planning des bénévoles)
+      const shiftsOf = (userId: string) => sortShifts(plan.volunteerSignups.filter(s => s.userId === userId).map(s => s.shift));
+      const shiftsBlock = (userId: string) => {
+        const shifts = shiftsOf(userId);
+        if (shifts.length === 0) return '';
+        return `<div style="background:#f1f5f9;border-radius:8px;padding:12px 14px;margin:16px 0">
+              <p style="margin:0 0 6px;font-weight:600;color:#1e293b">🙋 Tes postes de bénévole</p>
+              ${shifts.map(s => `<p style="margin:2px 0;color:#1e293b">${escapeHtml(s.title)}${s.startsAt ? ` — ${shiftHours(s)}` : ''}</p>`).join('')}
+            </div>`;
+      };
+
       const results = await Promise.all(recipients.map(u => resend.emails.send({
         from: FROM_EMAIL,
         to: u.email!,
@@ -120,6 +133,7 @@ export async function sendPlanReminders() {
               <p style="margin:0 0 6px;font-weight:600;color:#92400e">📌 Informations importantes</p>
               <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
             </div>` : ''}
+            ${shiftsBlock(u.id)}
             <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>

@@ -7,7 +7,7 @@ import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
@@ -636,6 +636,7 @@ interface NewPlanInput {
   excludedUserIds?: unknown;
   deletionMode?: unknown;
   disabledFeatures?: unknown;
+  enabledFeatures?: unknown;
   editMode?: unknown;
   importantInfo?: unknown;
   importantInfoMode?: unknown;
@@ -683,6 +684,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       maxParticipants: parsedMaxParticipants,
       deletionMode: parseDeletionMode(input.deletionMode) ?? 'vote',
       disabledFeatures: parseDisabledFeatures(input.disabledFeatures) ?? [],
+      enabledFeatures: parseEnabledFeatures(input.enabledFeatures) ?? [],
       editMode: parseEditMode(input.editMode) ?? 'creator',
       importantInfo,
       importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
@@ -860,6 +862,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
       }),
       prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
       prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+      prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
       prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
     ]);
     res.json({ left: true, circleDeleted: false });
@@ -869,6 +872,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   await prisma.$transaction([
     prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
     prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+    prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
     prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
   ]);
   res.json({ left: true, circleDeleted: false });
@@ -1185,14 +1189,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil,
+    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

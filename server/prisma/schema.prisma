@@ -63,6 +63,7 @@ model User {
   circlePollVotes        CirclePollVote[]
   ridesDriven            Ride[]                @relation("RideDriver")
   ridePassengers         RidePassenger[]
+  volunteerSignups       VolunteerSignup[]
   rideRequests           RideRequest[]
   planExclusions         PlanExclusion[]
   planChangeLogs         PlanChangeLog[]       @relation("PlanChangeLogAuthor")
@@ -270,6 +271,8 @@ model Plan {
   // Paramètres avancés : suppression "vote" ou "creator" ; fonctions masquées (chat, trajets, votes, depenses, fichiers)
   deletionMode      String    @default("vote")
   disabledFeatures  String[]  @default([])
+  // Fonctions à activer (absentes par défaut) : benevoles
+  enabledFeatures   String[]  @default([])
   // "creator" : seul le créateur modifie ; "all" : les membres du Plan (hors invités) modifient dates et lieu
   editMode          String    @default("creator")
   // Informations importantes (affichées après la description) et qui peut les modifier :
@@ -302,6 +305,8 @@ model Plan {
   originCirclePoll CirclePoll?
   rides            Ride[]
   rideRequests     RideRequest[]
+  volunteerShifts  VolunteerShift[]
+  volunteerSignups VolunteerSignup[]
   exclusions       PlanExclusion[]
   guestLink        PlanGuestLink?
 }
@@ -656,4 +661,39 @@ model Suggestion {
 
   @@index([userId])
   @@index([status])
+}
+
+// Planning des bénévoles (lib/volunteers.ts) : postes / créneaux d'un Plan, créés par le
+// créateur du Plan et les gestionnaires du Cercle (créateur, organisateurs)
+model VolunteerShift {
+  id          String            @id @default(cuid())
+  planId      String
+  plan        Plan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title       String
+  // Créneau horaire facultatif (« Buvette 10h-12h »)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  // Nombre de personnes recherchées
+  needed      Int               @default(1)
+  note        String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+  signups     VolunteerSignup[]
+
+  @@index([planId])
+}
+
+// Inscription d'une personne à un poste. planId dupliqué pour retrouver vite les
+// créneaux d'une personne dans un Plan (rappel de la veille, « Je passe »)
+model VolunteerSignup {
+  shiftId   String
+  shift     VolunteerShift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    String
+  plan      Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@id([shiftId, userId])
+  @@index([planId, userId])
 }

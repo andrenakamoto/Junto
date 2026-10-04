@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1 } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -19,12 +19,13 @@ import { CarpoolSection } from './CarpoolSection';
 import { Modal } from '../ui/Modal';
 import { DeletePlanModal } from './DeletePlanModal';
 import { PlanSettingsModal } from './PlanSettingsModal';
-import { isEnabled } from '../../lib/settings';
+import { hasFeature, isEnabled } from '../../lib/settings';
+import { VolunteersTab } from './VolunteersTab';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -39,6 +40,7 @@ const tabs = [
   { key: 'membres' as Tab,    Icon: Users,         label: 'Membres' },
   { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
   { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
+  { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
 ];
 
 interface Props {
@@ -183,9 +185,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   }, [plan.id, isMember, token, scrollToBottom]);
 
   // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
-  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || isEnabled(plan, t.key));
+  // Bénévoles : fonction à activer (absente par défaut)
+  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (t.key === 'benevoles' ? hasFeature(plan, 'benevoles') : isEnabled(plan, t.key)));
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
-  const disabledKey = (plan.disabledFeatures ?? []).join(',');
+  const disabledKey = [...(plan.disabledFeatures ?? []), '|', ...(plan.enabledFeatures ?? [])].join(',');
 
   // Onglet par défaut à l'ouverture d'un Plan, ou celui demandé par la cloche
   useEffect(() => {
@@ -762,6 +765,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           )}
           {tab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
+          {tab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {tab === 'trajets' && (
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">

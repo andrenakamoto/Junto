@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
+import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
@@ -46,6 +46,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [maxParticipants, setMaxParticipants] = useState(plan.maxParticipants?.toString() ?? '');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(plan.deletionMode ?? 'vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
+  const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(plan.enabledFeatures ?? []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -63,6 +64,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         excludedUserIds,
         deletionMode,
         disabledFeatures,
+        enabledFeatures,
         editMode,
         importantInfoMode,
         recurrence: recurrence || null,
@@ -177,7 +179,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           </p>
         )}
         <AdvancedSection>
-          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} />
+          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
           <EditModeField value={editMode} onChange={setEditMode} />
           <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
           <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />

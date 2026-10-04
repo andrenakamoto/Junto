@@ -1,4 +1,4 @@
-import { AdmissionMode, DeletionMode, EditMode, PlanCreationMode, PlanFeature } from '../types';
+import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../types';
 
 // Libellés des paramètres avancés (partagés entre création, modification et consultation)
 
@@ -43,6 +43,15 @@ export const PLAN_FEATURES: { value: PlanFeature; label: string }[] = [
 
 export function isEnabled(plan: { disabledFeatures?: PlanFeature[] }, feature: PlanFeature) {
   return !plan.disabledFeatures?.includes(feature);
+}
+
+// Fonctions à activer : absentes tant que le créateur ne les coche pas
+export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
+  { value: 'benevoles', label: 'Bénévoles (planning)' },
+];
+
+export function hasFeature(plan: { enabledFeatures?: OptionalFeature[] }, feature: OptionalFeature) {
+  return !!plan.enabledFeatures?.includes(feature);
 }
 
 // Créateur du Cercle ou organisateur nommé par lui (mêmes droits sur le Cercle, sauf nommer

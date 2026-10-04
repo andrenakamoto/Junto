@@ -18,7 +18,7 @@ export function PlanSettingsModal({ plan, isCreator, onClose, onEdit }: Props) {
   return (
     <Modal title="Paramètres du Plan" onClose={onClose}>
       <div className="space-y-4">
-        <FeaturesField disabled={plan.disabledFeatures ?? []} onChange={noop} readOnly />
+        <FeaturesField disabled={plan.disabledFeatures ?? []} onChange={noop} enabled={plan.enabledFeatures ?? []} readOnly />
         <EditModeField value={plan.editMode ?? 'creator'} onChange={noop} readOnly />
         <ImportantInfoModeField value={plan.importantInfoMode ?? 'creator'} onChange={noop} readOnly />
         <DeletionModeField subject="Plan" value={plan.deletionMode ?? 'vote'} onChange={noop} readOnly />

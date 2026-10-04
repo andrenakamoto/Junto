@@ -28,6 +28,16 @@ export function featureEnabled(plan: { disabledFeatures: string[] }, feature: Pl
   return !plan.disabledFeatures.includes(feature);
 }
 
+// Fonctions à activer (absentes par défaut, y compris sur les Plans existants) :
+// le planning des bénévoles (lib/volunteers.ts)
+export const OPTIONAL_FEATURES = ['benevoles'] as const;
+export type OptionalFeature = typeof OPTIONAL_FEATURES[number];
+
+export function parseEnabledFeatures(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return [...new Set(v.filter((f): f is string => typeof f === 'string' && (OPTIONAL_FEATURES as readonly string[]).includes(f)))];
+}
+
 export const FEATURE_DISABLED_ERROR = 'Cette fonction est désactivée pour ce Plan';
 
 // Vérification côté serveur (le client masque déjà la fonction, mais on ne s'y fie pas)

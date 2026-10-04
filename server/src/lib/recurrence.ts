@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { copyShifts } from './volunteers';
 import { purgePlanFiles } from './cloudinary';
 
 // Plans récurrents : chaque semaine, toutes les 2 semaines ou chaque mois, jusqu'à une date
@@ -99,7 +100,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
     title: plan.title, description: plan.description, location: plan.location,
     eventDate: eventDate.toISOString(), endDate: endDate.toISOString(),
     maxParticipants: plan.maxParticipants, excludedUserIds: plan.exclusions.map(e => e.userId),
-    deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, editMode: plan.editMode,
+    deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode,
   });
   if ('error' in result) { console.error('[recurrence]', plan.id, result.error); return end(); }
@@ -109,6 +110,8 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
     prisma.bringItem.createMany({ data: plan.items.map(i => ({ planId: next.id, label: i.label, quantity: i.quantity, createdById: i.createdById })) }),
     prisma.plan.update({ where: { id: plan.id }, data: { nextOccurrenceId: next.id } }),
   ]);
+  // Postes des bénévoles : mêmes horaires décalés, sans inscrits
+  await copyShifts(plan.id, next.id, eventDate.getTime() - plan.eventDate.getTime());
   return next.id;
 }
 

@@ -8,7 +8,7 @@ import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
-import { parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
@@ -24,9 +24,13 @@ const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim
 
 import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
+import volunteerRoutes from './volunteers';
+import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolvePlanWrite));
+// Planning des bénévoles (/:id/shifts, /shifts/…)
+router.use(volunteerRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
@@ -322,6 +326,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const settings = isCreator ? req.body : {};
     const deletionMode = settings.deletionMode === undefined ? plan.deletionMode : parseDeletionMode(settings.deletionMode);
     const disabledFeatures = settings.disabledFeatures === undefined ? plan.disabledFeatures : parseDisabledFeatures(settings.disabledFeatures);
+    const enabledFeatures = settings.enabledFeatures === undefined ? plan.enabledFeatures : parseEnabledFeatures(settings.enabledFeatures);
     const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
     const importantInfoMode = settings.importantInfoMode === undefined ? plan.importantInfoMode : parseImportantInfoMode(settings.importantInfoMode);
     // Répétition (créateur seul) : absente = inchangée
@@ -329,7 +334,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
       ? { recurrence: plan.recurrence, recurrenceUntil: plan.recurrenceUntil }
       : parseRecurrenceInput(settings.recurrence, settings.recurrenceUntil, eventDate ? new Date(eventDate) : null);
     if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
-    if (!deletionMode || !disabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+    if (!deletionMode || !disabledFeatures || !enabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
 
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null; changedById: string }[] = [];
     const changedById = req.userId!;
@@ -348,7 +353,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode, importantInfoMode, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil },
     });
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });
@@ -372,6 +377,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
         prisma.planExclusion.deleteMany({ where: { planId } }),
         prisma.planExclusion.createMany({ data: exclusions.map(userId => ({ planId, userId })) }),
         prisma.planMember.deleteMany({ where: { planId, userId: { in: exclusions } } }),
+        prisma.volunteerSignup.deleteMany({ where: { planId, userId: { in: exclusions } } }),
         prisma.planDeleteVote.deleteMany({ where: { planId, userId: { in: exclusions } } }),
       ]);
     }
@@ -489,6 +495,7 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
     if (rsvp === 'out') {
       await removeUserFromRides(req.app.get('io'), req.params.id, req.userId!, req.pseudo!)
         .catch(e => console.error('[rsvp rides cleanup]', e));
+      await removeUserFromShifts(req.params.id, req.userId!).catch(e => console.error('[rsvp shifts cleanup]', e));
     }
     res.json(member);
   } catch {

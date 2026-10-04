@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
-import { AdmissionMode, DeletionMode, EditMode, PlanCreationMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, PLAN_FEATURES, POLL_CREATION_OPTIONS } from '../../lib/settings';
+import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, PLAN_FEATURES, POLL_CREATION_OPTIONS, OPTIONAL_FEATURES } from '../../lib/settings';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
 // `readOnly` : affichage pour les membres qui ne sont pas le créateur.
@@ -84,13 +84,19 @@ export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: 
   return <Choice label="Admission des nouveaux membres" options={ADMISSION_OPTIONS} {...props} />;
 }
 
-export function FeaturesField({ disabled, onChange, readOnly }: {
+export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChange, readOnly }: {
   disabled: PlanFeature[];
   onChange: (v: PlanFeature[]) => void;
+  /** Fonctions à activer (planning des bénévoles), décochées par défaut */
+  enabled?: OptionalFeature[];
+  onEnabledChange?: (v: OptionalFeature[]) => void;
   readOnly?: boolean;
 }) {
   function toggle(f: PlanFeature) {
     onChange(disabled.includes(f) ? disabled.filter(x => x !== f) : [...disabled, f]);
+  }
+  function toggleOptional(f: OptionalFeature) {
+    onEnabledChange?.(enabled.includes(f) ? enabled.filter(x => x !== f) : [...enabled, f]);
   }
   return (
     <fieldset>
@@ -108,9 +114,21 @@ export function FeaturesField({ disabled, onChange, readOnly }: {
             {f.label}
           </label>
         ))}
+        {OPTIONAL_FEATURES.map(f => (
+          <label key={f.value} className={`flex items-center gap-2 text-sm text-slate-700 ${readOnly ? '' : 'cursor-pointer'}`}>
+            <input
+              type="checkbox"
+              checked={enabled.includes(f.value)}
+              onChange={() => toggleOptional(f.value)}
+              disabled={readOnly || !onEnabledChange}
+              className="accent-indigo-600"
+            />
+            {f.label}
+          </label>
+        ))}
       </div>
       <p className="text-xs text-slate-400 mt-1.5">
-        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées.
+        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…).
       </p>
     </fieldset>
   );

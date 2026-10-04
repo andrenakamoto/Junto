@@ -3,7 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
+import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
 import { RecurrenceField, untilToISO } from './RecurrenceField';
@@ -46,6 +46,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
   const [maxParticipants, setMaxParticipants] = useState('');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
+  const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>([]);
   const [editMode, setEditMode] = useState<EditMode>('creator');
   const [importantInfo, setImportantInfo] = useState('');
   const [importantInfoMode, setImportantInfoMode] = useState<EditMode>('creator');
@@ -68,6 +69,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
       excludedUserIds,
       deletionMode,
       disabledFeatures,
+      enabledFeatures,
       editMode,
       importantInfo,
       importantInfoMode,
@@ -140,7 +142,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
           />
         )}
         <AdvancedSection>
-          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} />
+          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
           <EditModeField value={editMode} onChange={setEditMode} />
           <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
           <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />

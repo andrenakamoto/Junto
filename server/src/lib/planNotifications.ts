@@ -55,7 +55,7 @@ export async function notifyMembershipChange(
 export type PlanActivityKind =
   | 'plan_edited' | 'important_info_updated' | 'item_added' | 'items_updated' | 'poll_created'
   | 'expense_added' | 'expense_deleted' | 'reimbursement_added' | 'file_added' | 'photo_added'
-  | 'ride_offered' | 'ride_requested' | 'ride_updated' | 'ride_cancelled';
+  | 'ride_offered' | 'ride_requested' | 'ride_updated' | 'ride_cancelled' | 'shift_added';
 
 export function activityText(kind: PlanActivityKind, pseudo: string): string {
   const who = `@${pseudo}`;
@@ -74,6 +74,7 @@ export function activityText(kind: PlanActivityKind, pseudo: string): string {
     case 'ride_requested': return `${who} cherche une place en voiture`;
     case 'ride_updated': return `${who} a modifié son trajet`;
     case 'ride_cancelled': return `${who} a annulé son trajet`;
+    case 'shift_added': return `${who} a ajouté un poste de bénévole`;
   }
 }
 
