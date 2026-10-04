@@ -11,6 +11,9 @@ import { decryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { messageInclude } from '../lib/messageInclude';
 import { destroyFiles } from '../lib/cloudinary';
 
+import { notifyUser } from '../lib/push';
+import { isSuggestionStatus, NOTIFIED_STATUSES, SUGGESTION_REPLY_MAX } from '../lib/suggestions';
+
 const router = Router();
 router.use(requireAuth as any);
 router.use(requireAdmin as any);
@@ -156,6 +159,34 @@ router.get('/stats', async (_req, res) => {
     activeUsersLast7Days,
     lightGuests,
   });
+});
+
+// ─── Suggestions (lib/suggestions.ts) ─────────────────────────────────────────
+
+// GET /api/admin/suggestions — toutes, les plus récentes d'abord
+router.get('/suggestions', async (_req, res) => {
+  const list = await prisma.suggestion.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    include: { user: { select: { pseudo: true, firstName: true } } },
+  });
+  res.json(list);
+});
+
+// PUT /api/admin/suggestions/:id { status?, reply? } — passer en « Prévu » ou « Réalisé »
+// prévient la personne
+router.put('/suggestions/:id', async (req: AuthRequest, res) => {
+  const current = await prisma.suggestion.findUnique({ where: { id: req.params.id } });
+  if (!current) { res.status(404).json({ error: 'Suggestion introuvable' }); return; }
+  const status = req.body?.status === undefined ? current.status : req.body.status;
+  if (!isSuggestionStatus(status)) { res.status(400).json({ error: 'Statut invalide' }); return; }
+  const reply = req.body?.reply === undefined ? current.reply
+    : (typeof req.body.reply === 'string' && req.body.reply.trim()) ? req.body.reply.trim().slice(0, SUGGESTION_REPLY_MAX) : null;
+  const updated = await prisma.suggestion.update({ where: { id: current.id }, data: { status, reply } });
+  if (status !== current.status && NOTIFIED_STATUSES.includes(status)) {
+    notifyUser(req.app.get('io'), current.userId, { type: 'suggestion_update', suggestionId: current.id, status });
+  }
+  res.json(updated);
 });
 
 // ─── Signalements (lib/moderation.ts) ─────────────────────────────────────────

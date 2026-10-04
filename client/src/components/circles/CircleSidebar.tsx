@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -8,6 +8,7 @@ import { DeleteAccountModal } from '../ui/DeleteAccountModal';
 import { displayName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
+import { SuggestionModal } from '../ui/SuggestionModal';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -46,9 +47,16 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   // Lien « Gérer mes notifications » des emails : /dashboard?reglages=notifications
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
+    // Notification de suivi d'une suggestion : /dashboard?suggestions=1
+    if (searchParams.get('suggestions') === '1') {
+      setShowSuggestions(true);
+      setSearchParams(prev => { prev.delete('suggestions'); return prev; }, { replace: true });
+      return;
+    }
     if (searchParams.get('reglages') !== 'notifications') return;
     setShowNotifSettings(true);
     setSearchParams(prev => { prev.delete('reglages'); return prev; }, { replace: true });
@@ -398,6 +406,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               Notifications
             </button>
             <button
+              onClick={() => { setShowMenu(false); setShowSuggestions(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
+            >
+              <Lightbulb size={15} />
+              Proposer une amélioration
+            </button>
+            <button
               onClick={() => { setShowMenu(false); setShowGuide(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
@@ -438,6 +453,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       )}
       {showNotifSettings && (
         <NotificationSettingsModal onClose={() => setShowNotifSettings(false)} />
+      )}
+      {showSuggestions && (
+        <SuggestionModal onClose={() => setShowSuggestions(false)} />
       )}
       {showTerms && (
         <TermsModal readOnly onClose={() => setShowTerms(false)} />

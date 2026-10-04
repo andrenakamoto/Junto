@@ -22,6 +22,9 @@ export type AppNotification = {
   /** Auteur de l'action : pas de notification si le destinataire l'a masqué (lib/moderation.ts) */
   actorId?: string;
   preview?: string;
+  /** Suggestion dont le statut a changé (type suggestion_update) */
+  suggestionId?: string;
+  status?: string;
 };
 
 let messaging: Messaging | null | undefined;
@@ -79,6 +82,13 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
       return { title: n.circleName ?? 'EvLY', body: `${from} t'invite à rejoindre le Cercle`, url: '/dashboard?invitations=1', group: `invite:${n.circleName}` };
     case 'join_accepted':
       return { title: n.circleName ?? 'EvLY', body: 'Ta demande est acceptée : bienvenue dans le Cercle !', url: circleUrl, group: `join:${n.circleId}` };
+    case 'suggestion_update':
+      return {
+        title: 'EvLY',
+        body: n.status === 'done' ? 'Ta suggestion a été réalisée 🎉 Merci !' : 'Ta suggestion est prévue 🙌 Merci !',
+        url: '/dashboard?suggestions=1',
+        group: `suggestion:${n.suggestionId}`,
+      };
     default:
       return null;
   }

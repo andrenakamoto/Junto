@@ -349,6 +349,9 @@ export function DashboardPage() {
   function openNotification(n: AppNotification) {
     if (n.type === 'circle_invite') {
       setShowNotifCenter(true);
+    } else if (n.type === 'suggestion_update') {
+      // Ouvre « Proposer une amélioration » sur le suivi (CircleSidebar lit ce paramètre)
+      setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
     } else if (n.planId) {
       handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
     } else if (n.pollId && n.circleId) {

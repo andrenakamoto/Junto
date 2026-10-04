@@ -1,15 +1,18 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update';
   pollId?: string;
   planId?: string;
   planTitle?: string;
   circleId?: string;
   circleName?: string;
   from?: string;
+  /** Suivi d'une suggestion (suggestion_update) */
+  suggestionId?: string;
+  status?: string;
   preview?: string;
   at: number;
 }
@@ -69,6 +72,11 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     icon: Users, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Cercle renommé — ${n.circleName}`,
     body: n => `@${n.from} a renommé « ${n.preview} » en « ${n.circleName} »`,
+  },
+  suggestion_update: {
+    icon: Lightbulb, iconClass: 'text-amber-300', bgClass: 'bg-amber-500/30',
+    title: n => n.status === 'done' ? 'Suggestion réalisée 🎉' : 'Suggestion prévue 🙌',
+    body: () => 'Merci pour ton idée ! Touche pour voir le suivi.',
   },
   circle_invite: {
     icon: UserPlus, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',

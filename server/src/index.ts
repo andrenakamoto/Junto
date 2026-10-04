@@ -15,6 +15,7 @@ import pushRoutes from './routes/push';
 import inviteRoutes from './routes/invite';
 import shareRoutes from './routes/share';
 import moderationRoutes from './routes/moderation';
+import suggestionRoutes from './routes/suggestions';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
@@ -78,6 +79,7 @@ app.use('/api/push', pushRoutes);
 app.use('/api/invite', inviteRoutes);
 app.use('/api/share', shareRoutes);
 app.use('/api/moderation', moderationRoutes);
+app.use('/api/suggestions', suggestionRoutes);
 
 app.set('io', io);
 setupSocketHandlers(io);

@@ -70,6 +70,10 @@ export function PrivacyPage() {
                 chiffrée du message, ton motif éventuel et ton pseudo sont transmis à l'administrateur d'EvLY,
                 puis la copie est effacée dès que le signalement est traité. La personne signalée ne sait pas
                 qui l'a signalée. La liste des personnes que tu masques n'est visible que par toi.</li>
+              <li><strong>Suggestions</strong> (« Proposer une amélioration ») : ton message, son type (idée,
+                problème, autre), l'appareil et la version de l'app utilisés, et la réponse éventuelle de
+                l'équipe. Lus uniquement par l'administrateur d'EvLY, qui les reçoit aussi par email ;
+                supprimés avec ton compte.</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
                 peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
                 dépenses et remboursements.</li>

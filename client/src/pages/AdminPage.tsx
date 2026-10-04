@@ -8,6 +8,7 @@ import api from '../services/api';
 import { fullName } from '../lib/names';
 import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
 import { ReportsPanel } from '../components/admin/ReportsPanel';
+import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
 
 interface AdminUser {
   id: string;
@@ -208,6 +209,8 @@ export function AdminPage() {
         </p>
 
         <ReportsPanel />
+
+        <SuggestionsPanel />
 
         <PageVisitsPanel
           page="decouvrir"

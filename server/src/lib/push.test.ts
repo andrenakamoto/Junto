@@ -23,6 +23,13 @@ describe('pushContent', () => {
     expect(a?.group).toBe(b?.group);
   });
 
+  it('suivi d’une suggestion : ouvre « Mes suggestions »', () => {
+    const done = pushContent({ type: 'suggestion_update', suggestionId: 's1', status: 'done' })!;
+    expect(done.body).toContain('réalisée');
+    expect(done.url).toBe('/dashboard?suggestions=1');
+    expect(pushContent({ type: 'suggestion_update', suggestionId: 's1', status: 'planned' })!.body).toContain('prévue');
+  });
+
   it('ignore les types inconnus', () => {
     expect(pushContent({ type: 'autre' })).toBeNull();
   });

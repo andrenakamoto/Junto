@@ -72,6 +72,7 @@ model User {
   pushTokens             PushToken[]
   reportsMade            MessageReport[]       @relation("ReportReporter")
   reportsReceived        MessageReport[]       @relation("ReportAuthor")
+  suggestions            Suggestion[]
   blocking               UserBlock[]           @relation("BlockBy")
   blockedBy              UserBlock[]           @relation("BlockTarget")
   circleInvitesSent      CircleInvitation[]    @relation("InviteFrom")
@@ -621,4 +622,24 @@ model CircleChangeLog {
   changedBy   User?    @relation("CircleChangeLogAuthor", fields: [changedById], references: [id], onDelete: SetNull)
 
   @@index([circleId])
+}
+
+// « Proposer une amélioration » (menu ☰) : idée, problème ou autre, suivi dans le panneau
+// admin. La personne est notifiée quand sa suggestion passe en « Prévu » ou « Réalisé ».
+// Supprimée avec le compte.
+model Suggestion {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind       String // idea | bug | other
+  content    String
+  platform   String? // web | android | ios
+  appVersion String?
+  status     String   @default("new") // new | review | planned | done | declined
+  reply      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
