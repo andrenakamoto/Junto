@@ -639,6 +639,21 @@ Junto/
   /plans/:id/skip : crée le suivant puis supprime celui-ci) et « Arrêter la répétition » (PUT
   /plans/:id/recurrence `{recurrence: null}`). Étiquette « 🔁 Chaque lundi » (`recurrenceLabel`,
   `client/src/lib/recurrence.ts`) dans la fiche, icône sur la carte. Pas géré dans la démo.
+- **Planning des bénévoles** (2026-10-05, `lib/volunteers.ts` testé, `routes/volunteers.ts` monté
+  dans le routeur des Plans, onglet `VolunteersTab.tsx`) : fonction **à activer** — nouvelle liste
+  `Plan.enabledFeatures` (`OPTIONAL_FEATURES` = `benevoles`, vide par défaut, y compris sur les
+  anciens Plans ; case « Bénévoles (planning) » dans `FeaturesField`), l'inverse de
+  `disabledFeatures`. **VolunteerShift** (poste : nom, nombre de personnes, horaire facultatif,
+  remarque) créé / modifié / supprimé par le **créateur du Plan et les gestionnaires du Cercle**
+  (`canManageShifts`) ; **VolunteerSignup** (planId dupliqué). S'inscrire (POST
+  /plans/shifts/:id/signup) **vaut « Je suis in »** (rejoint le Plan si besoin, limite de
+  participants respectée) ; « Absent(e) », exclusion et départ du Cercle retirent des postes. Le
+  créateur du Plan est prévenu des inscriptions / désinscriptions (`plan_activity` ciblée), un
+  gestionnaire peut retirer quelqu'un (la personne est prévenue), supprimer un poste prévient ses
+  inscrits. Résumé « Il manque X personnes », filtre « Mes postes », avertissement de chevauchement
+  (`shiftsOverlap`, miroir client). Section `benevoles` des pastilles « nouveau ». Rappel de la
+  veille : « Tes postes de bénévole » dans l'email. Plans récurrents : postes recopiés décalés, sans
+  inscrits (`copyShifts`). Pas dans la démo.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
