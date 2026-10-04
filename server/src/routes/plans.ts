@@ -8,7 +8,7 @@ import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
-import { parseDeletionMode, parseDisabledFeatures, parseEditMode, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
@@ -315,7 +315,8 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const deletionMode = settings.deletionMode === undefined ? plan.deletionMode : parseDeletionMode(settings.deletionMode);
     const disabledFeatures = settings.disabledFeatures === undefined ? plan.disabledFeatures : parseDisabledFeatures(settings.disabledFeatures);
     const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
-    if (!deletionMode || !disabledFeatures || !editMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+    const importantInfoMode = settings.importantInfoMode === undefined ? plan.importantInfoMode : parseImportantInfoMode(settings.importantInfoMode);
+    if (!deletionMode || !disabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
 
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null; changedById: string }[] = [];
     const changedById = req.userId!;
@@ -334,7 +335,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode, importantInfoMode },
     });
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });
@@ -577,6 +578,8 @@ router.post('/:id/items', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'Label requis' });
     return;
   }
+  // « Qui apporte quoi » fait partie des Dépenses : désactivé avec elles
+  if (await isFeatureDisabled(req.params.id, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   const item = await prisma.bringItem.create({ data: { label: label.trim(), planId: req.params.id } });
   res.json(item);
 });
@@ -592,11 +595,32 @@ router.put('/items/:itemId/claim', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  if (await isFeatureDisabled(item.planId, 'depenses')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
   const updated = await prisma.bringItem.update({
     where: { id: req.params.itemId },
     data: { claimedBy: item.claimedBy === req.pseudo ? null : req.pseudo },
   });
   res.json(updated);
+});
+
+// PUT /api/plans/:id/important-info — informations importantes (après la description).
+// Créateur du Plan, ou tous les participants si importantInfoMode = 'all'. Indépendant de la
+// modification des dates et du lieu (editMode).
+router.put('/:id/important-info', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, importantInfo: true, importantInfoMode: true } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  const allowed = plan.creatorId === req.userId
+    || (plan.importantInfoMode === 'all' && await assertPlanMember(req.userId!, plan.id));
+  if (!allowed) { res.status(403).json({ error: 'Seul le créateur du Plan peut modifier ces informations' }); return; }
+  const importantInfo = parseImportantInfo(req.body?.importantInfo);
+  if (importantInfo === undefined) { res.status(400).json({ error: `${IMPORTANT_INFO_MAX} caractères maximum` }); return; }
+  if (importantInfo !== plan.importantInfo) {
+    await prisma.$transaction([
+      prisma.plan.update({ where: { id: plan.id }, data: { importantInfo } }),
+      prisma.planChangeLog.create({ data: { planId: plan.id, field: 'importantInfo', oldValue: plan.importantInfo, newValue: importantInfo, changedById: req.userId! } }),
+    ]);
+  }
+  res.json({ ok: true, importantInfo });
 });
 
 // Toggle vote de suppression — supprime le plan si le seuil est atteint

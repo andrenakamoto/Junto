@@ -7,7 +7,7 @@ import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
@@ -634,6 +634,8 @@ interface NewPlanInput {
   deletionMode?: unknown;
   disabledFeatures?: unknown;
   editMode?: unknown;
+  importantInfo?: unknown;
+  importantInfoMode?: unknown;
 }
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
@@ -658,6 +660,8 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
       return { error: 'Limite de participants invalide' as const };
     }
   }
+  const importantInfo = parseImportantInfo(input.importantInfo);
+  if (importantInfo === undefined) return { error: `Informations importantes : ${IMPORTANT_INFO_MAX} caractères maximum` };
   const excl = await validateExclusions(circleId, creatorId, input.excludedUserIds);
   if ('error' in excl) return { error: excl.error };
   const exclusions = excl.ids;
@@ -673,6 +677,8 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
       deletionMode: parseDeletionMode(input.deletionMode) ?? 'vote',
       disabledFeatures: parseDisabledFeatures(input.disabledFeatures) ?? [],
       editMode: parseEditMode(input.editMode) ?? 'creator',
+      importantInfo,
+      importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
       creatorId,
       circleId,
       members: { create: { userId: creatorId, rsvp: 'in' } },
@@ -1166,14 +1172,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode,
+    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

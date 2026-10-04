@@ -3,7 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
-import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField } from '../ui/AdvancedSettings';
+import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { SurpriseSelector } from './SurpriseSelector';
 
 function isoToLocal(iso: string | null | undefined): string {
@@ -38,6 +38,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [endDate, setEndDate] = useState(isoToLocal(plan.endDate));
   const [location, setLocation] = useState(plan.location ?? '');
   const [editMode, setEditMode] = useState<EditMode>(plan.editMode ?? 'creator');
+  const [importantInfoMode, setImportantInfoMode] = useState<EditMode>(plan.importantInfoMode ?? 'creator');
   const [maxParticipants, setMaxParticipants] = useState(plan.maxParticipants?.toString() ?? '');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(plan.deletionMode ?? 'vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
@@ -59,6 +60,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         deletionMode,
         disabledFeatures,
         editMode,
+        importantInfoMode,
         location,
       } : {
         eventDate: eventDate ? localToISO(eventDate) : null,
@@ -163,6 +165,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         <AdvancedSection>
           <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} />
           <EditModeField value={editMode} onChange={setEditMode} />
+          <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
           <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
         </AdvancedSection>
         </>}

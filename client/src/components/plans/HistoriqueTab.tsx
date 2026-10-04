@@ -7,6 +7,7 @@ const fieldLabel: Record<string, string> = {
   eventDate: "Date de l'événement",
   endDate: 'Date de fin',
   location: 'Lieu',
+  importantInfo: 'Informations importantes',
 };
 
 function formatValue(field: string, value: string | null): string {

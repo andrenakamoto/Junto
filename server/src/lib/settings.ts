@@ -43,6 +43,23 @@ export function parseEditMode(v: unknown): string | undefined {
   return typeof v === 'string' && (EDIT_MODES as readonly string[]).includes(v) ? v : undefined;
 }
 
+// Informations importantes d'un Plan (affichées après la description) : qui peut les modifier,
+// réglage distinct d'editMode — 'creator' (créateur du Plan) ou 'all' (tous les participants)
+export const IMPORTANT_INFO_MAX = 500;
+
+export function parseImportantInfoMode(v: unknown): string | undefined {
+  return parseEditMode(v);
+}
+
+// Texte des informations importantes : vide → null ; undefined si trop long
+export function parseImportantInfo(v: unknown): string | null | undefined {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== 'string') return undefined;
+  const text = v.trim();
+  if (text.length > IMPORTANT_INFO_MAX) return undefined;
+  return text || null;
+}
+
 // Qui peut créer des Plans, et séparément des sondages de dates, dans un Cercle :
 // 'all' (tous les membres) ou 'creator' (créateur et organisateurs)
 export const PLAN_CREATION_MODES = ['all', 'creator'] as const;

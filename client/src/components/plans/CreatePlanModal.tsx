@@ -4,7 +4,8 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
-import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField } from '../ui/AdvancedSettings';
+import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
+import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { SurpriseSelector } from './SurpriseSelector';
 
@@ -44,6 +45,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
   const [editMode, setEditMode] = useState<EditMode>('creator');
+  const [importantInfo, setImportantInfo] = useState('');
+  const [importantInfoMode, setImportantInfoMode] = useState<EditMode>('creator');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,6 +65,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
       deletionMode,
       disabledFeatures,
       editMode,
+      importantInfo,
+      importantInfoMode,
     };
     try {
       const { data } = fromPoll
@@ -90,6 +95,16 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-slate-700">Informations importantes (optionnel)</label>
+          <textarea
+            value={importantInfo}
+            onChange={e => setImportantInfo(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
+            placeholder="Ex : code de l'immeuble, documents à prendre, heure de départ précise…"
+            rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
+          />
+        </div>
         <Input label="Date et heure de l'événement (optionnel)" type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
         <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
@@ -113,6 +128,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
         <AdvancedSection>
           <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} />
           <EditModeField value={editMode} onChange={setEditMode} />
+          <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
           <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
         </AdvancedSection>
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

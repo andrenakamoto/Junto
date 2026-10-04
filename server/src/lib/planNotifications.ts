@@ -53,7 +53,7 @@ export async function notifyMembershipChange(
 }
 
 export type PlanActivityKind =
-  | 'plan_edited' | 'item_added' | 'items_updated' | 'poll_created'
+  | 'plan_edited' | 'important_info_updated' | 'item_added' | 'items_updated' | 'poll_created'
   | 'expense_added' | 'expense_deleted' | 'reimbursement_added' | 'file_added' | 'photo_added'
   | 'ride_offered' | 'ride_requested' | 'ride_updated' | 'ride_cancelled';
 
@@ -61,6 +61,7 @@ export function activityText(kind: PlanActivityKind, pseudo: string): string {
   const who = `@${pseudo}`;
   switch (kind) {
     case 'plan_edited': return `${who} a modifié les infos du Plan`;
+    case 'important_info_updated': return `${who} a mis à jour les informations importantes`;
     case 'item_added': return `${who} a ajouté un élément à « Qui apporte quoi »`;
     case 'items_updated': return `${who} a mis à jour « Qui apporte quoi »`;
     case 'poll_created': return `${who} a lancé un sondage`;

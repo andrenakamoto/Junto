@@ -116,6 +116,10 @@ export async function sendPlanReminders() {
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
             <h2>Ça se passe demain, ${u.pseudo} 👋</h2>
             <p><strong>${plan.title}</strong> a lieu le ${eventDateFmt}${plan.location ? ` — ${plan.location}` : ''}.</p>
+            ${plan.importantInfo ? `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;margin:16px 0">
+              <p style="margin:0 0 6px;font-weight:600;color:#92400e">📌 Informations importantes</p>
+              <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
+            </div>` : ''}
             <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>
@@ -202,4 +206,9 @@ export async function sendWeeklyDigest() {
   } catch (e) {
     console.error('[digest] Erreur:', e);
   }
+}
+
+// Texte saisi par un participant, inséré dans un email HTML
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }

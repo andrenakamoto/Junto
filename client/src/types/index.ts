@@ -148,6 +148,10 @@ export interface Plan {
   disabledFeatures?: PlanFeature[];
   /** Qui peut modifier les dates et le lieu (titre, description, etc. : créateur seul) */
   editMode?: EditMode;
+  /** Informations importantes (après la description) */
+  importantInfo?: string | null;
+  /** Qui peut modifier les informations importantes (indépendant d'editMode) */
+  importantInfoMode?: EditMode;
   archived: boolean;
   creatorId: string;
   creator: User;
