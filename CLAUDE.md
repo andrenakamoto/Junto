@@ -343,6 +343,7 @@ Conséquences pratiques :
     **2026-10-04 : version 1.0.2** sur les deux plateformes (Android `versionCode` 3, AAB
     `evly-1.0.2-(3).aab` dans le dossier de publication ; iOS build 3 envoyé à App Store Connect,
     à soumettre après la validation de la 1.0.0 — build 2, en cours d'examen à cette date).
+    iOS **build 4** (même jour) = build 3 + liens d'application : c'est lui à soumettre.
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
     = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
     (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
@@ -369,7 +370,8 @@ Conséquences pratiques :
        Distribution: André Martins (LDRKKV8GR7)"` sur chaque `Frameworks/*.framework`,
        puis sur `App.app` avec `--entitlements` (application-identifier
        `LDRKKV8GR7.ch.evly.app`, team-identifier, **`aps-environment` =
-       production**, `get-task-allow` false, `beta-reports-active` true) ;
+       production**, `com.apple.developer.associated-domains` = [`applinks:www.evly.ch`],
+       `get-task-allow` false, `beta-reports-active` true) ;
     4. `xcodebuild -exportArchive -allowProvisioningUpdates` avec `method
        app-store-connect`, `signingStyle automatic`, `destination upload`.
     Une signature locale « - » (ad hoc) est refusée à l'envoi ; une archive
@@ -384,10 +386,10 @@ Conséquences pratiques :
     depuis le Play Store avec `apksigner verify --print-certs`, signataire V3.0 —,
     clé d'envoi `~/Documents/estelle-keystore.jks` et clé de debug ; toute nouvelle
     clé doit y être ajoutée). iPhone : `.well-known/apple-app-site-association`
-    (appID `LDRKKV8GR7.ch.evly.app`) déjà publié, mais il faut encore activer
-    « Associated Domains » sur l'identifiant `ch.evly.app` chez Apple et ajouter
-    `com.apple.developer.associated-domains` (`applinks:www.evly.ch`) aux droits de
-    l'app (`App.entitlements` et ceux de la signature manuelle). `evly.ch` sans www
+    (appID `LDRKKV8GR7.ch.evly.app`), « Associated Domains » activé sur l'identifiant
+    `ch.evly.app` chez Apple (2026-10-04) et `com.apple.developer.associated-domains`
+    (`applinks:www.evly.ch`) dans `App.entitlements` **et dans les droits de la signature
+    manuelle** (étape 3 de l'envoi iPhone) — à partir du build 4 de la 1.0.2. `evly.ch` sans www
     redirige (308) : vérification impossible, seuls les liens www sont déclarés.
     Côté app : `NativeChrome` (`appUrlOpen` + `getLaunchUrl`) navigue vers le
     chemin du lien. Revérifier sur un téléphone : `adb shell pm verify-app-links
