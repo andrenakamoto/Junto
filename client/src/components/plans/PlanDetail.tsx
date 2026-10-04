@@ -693,7 +693,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           )}
           {tab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
-          {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} />}
+          {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {tab === 'trajets' && (
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
               <CarpoolSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} />

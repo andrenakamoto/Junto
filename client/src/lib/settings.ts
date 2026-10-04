@@ -28,6 +28,11 @@ export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = 
   { value: 'all', label: 'Tous les participants', hint: 'Les participants peuvent changer les dates et le lieu (titre et description restent au créateur)' },
 ];
 
+export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = [
+  { value: 'creator', label: 'Créateur seul', hint: 'Seul le créateur modifie les informations importantes' },
+  { value: 'all', label: 'Tous les participants', hint: 'Chaque participant peut compléter ou corriger les informations importantes' },
+];
+
 export const PLAN_FEATURES: { value: PlanFeature; label: string }[] = [
   { value: 'chat', label: 'Chat' },
   { value: 'trajets', label: 'Trajets (covoiturage)' },

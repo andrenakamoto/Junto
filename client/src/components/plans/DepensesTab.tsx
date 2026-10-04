@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Plus, ArrowRight, Trash2, Check, Mail } from 'lucide-react';
-import { Currency, ExpensesData, PlanMember } from '../../types';
+import { Currency, ExpensesData, Plan, PlanMember } from '../../types';
+import { BringItemsSection } from './BringItemsSection';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 
@@ -9,6 +10,10 @@ interface Props {
   planId: string;
   members: PlanMember[];
   userId: string;
+  /** Pour « Qui apporte quoi ? », affiché en tête de l'onglet */
+  plan: Plan;
+  pseudo: string;
+  onPlanUpdated: (plan: Plan) => void;
 }
 
 // Chaque dépense a sa devise ; les comptes sont tenus séparément par devise, sans conversion
@@ -18,7 +23,7 @@ function money(n: number, currency: Currency) {
   return n.toLocaleString('fr-CH', { style: 'currency', currency });
 }
 
-export function DepensesTab({ planId, members, userId }: Props) {
+export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdated }: Props) {
   const [data, setData] = useState<ExpensesData | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [description, setDescription] = useState('');
@@ -86,7 +91,10 @@ export function DepensesTab({ planId, members, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5 short:flex-none short:overflow-visible">
-      {/* Ajout, toujours en haut */}
+      <BringItemsSection plan={plan} pseudo={pseudo} onChanged={async () => onPlanUpdated((await api.get(`/plans/${planId}`)).data)} />
+
+      <h3 className="font-semibold text-slate-800 text-sm -mb-2">Dépenses</h3>
+      {/* Ajout, toujours en haut des dépenses */}
       {!showAdd ? (
         <button
           onClick={openForm}

@@ -70,7 +70,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres',
-  polls: 'votes', items: 'infos', expenses: 'depenses', reimbursements: 'depenses',
+  polls: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -87,7 +87,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   }
   if (a === 'items') {
     const item = await prisma.bringItem.findUnique({ where: { id: b }, select: { planId: true } });
-    return planTarget(item?.planId, false, 'infos', 'items_updated');
+    return planTarget(item?.planId, false, 'depenses', 'items_updated');
   }
   if (a === 'expenses') {
     const expense = await prisma.expense.findUnique({ where: { id: b }, select: { planId: true } });
@@ -96,6 +96,8 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // « seen » ne concerne que la personne : surtout pas de diffusion (chaque écran
   // rechargerait puis marquerait « vu » à son tour, en boucle)
   if (a === 'messages' || b === 'guest-link' || b === 'seen') return null;
+  // Informations importantes : onglet Infos, notification aux participants
+  if (b === 'important-info') return planTarget(a, false, 'infos', 'important_info_updated');
   // PUT /:id (modification du Plan) → onglet Infos ; DELETE /:id → aucun
   const section = !b ? (req.method === 'PUT' ? 'infos' : undefined) : PLAN_SUBROUTE_SECTION[b];
   const activity = !b ? (req.method === 'PUT' ? 'plan_edited' : undefined) : (req.method === 'POST' ? PLAN_SUBROUTE_ACTIVITY[b] : undefined);
