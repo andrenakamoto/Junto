@@ -224,7 +224,7 @@ function AnonymousInvite({ token }: { token: string }) {
             onClick={() => goAuth(true)}
             className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors text-sm"
           >
-            Créer mon compte gratuit <ArrowRight size={16} />
+            Créer mon compte gratuit en 1 min <ArrowRight size={16} />
           </button>
           <p className="text-center text-xs text-slate-500">
             Ta réponse est gardée.{' '}

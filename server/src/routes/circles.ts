@@ -12,6 +12,7 @@ import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
+import { countFunnel } from '../lib/funnel';
 import { sortCircles } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
@@ -21,7 +22,7 @@ const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolveCircleWrite));
 
-function generateCode(length = 6): string {
+export function generateCode(length = 6): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
@@ -641,7 +642,7 @@ interface NewPlanInput {
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
 // Partagé entre POST /:id/plans et la conversion d'un CirclePoll en Plan.
-async function createPlanInCircle(app: any, circleId: string, creatorId: string, input: NewPlanInput) {
+export async function createPlanInCircle(app: any, circleId: string, creatorId: string, input: NewPlanInput) {
   const { title, description, eventDate, endDate, location, maxParticipants } = input;
   if (!title?.trim()) return { error: 'Titre requis' as const };
   if (!endDate) return { error: 'Date de fin obligatoire' as const };
@@ -694,6 +695,10 @@ async function createPlanInCircle(app: any, circleId: string, creatorId: string,
   });
 
   notifyNewPlan(app, circleId, plan).catch(e => console.error('[new_plan notify]', e));
+  // Parcours d'inscription : premier Plan d'un vrai compte (pas d'un organisateur sans compte)
+  prisma.plan.count({ where: { creatorId, creator: { isLight: false } } })
+    .then(n => { if (n === 1) countFunnel('funnel_first_plan'); })
+    .catch(() => {});
 
   return { plan };
 }

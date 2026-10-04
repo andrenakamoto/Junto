@@ -119,6 +119,9 @@
   .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11px; color: var(--ink-dim); }
   .cta-btn { display: inline-block; margin-top: 3mm; padding: 10px 18px; border-radius: 10px; background: var(--coral-600); color: #fff; text-decoration: none; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 14px; }
   .cta-top { margin-top: 4mm; }
+  .cta-alt { background: transparent; color: var(--coral-700); border: 2px solid var(--coral-600); padding: 8px 16px; margin-left: 6px; }
+  .cta-alt:hover { background: rgba(234, 90, 43, .08); }
+  .cta-note { display: block; margin-top: 2mm; font-size: 12px; color: var(--ink-dim); font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 400; }
   .cta-btn:hover { background: var(--coral-700); }
   .cta-btn:focus-visible, .qr-text a:focus-visible { outline: 2px solid var(--coral-700); outline-offset: 2px; }
   .qr { display: flex; align-items: center; gap: 4mm; flex-shrink: 0; }
@@ -129,7 +132,7 @@
   .qr-box { padding: 1.5mm; background: #fff; border: 1px solid var(--line); border-radius: 2mm; line-height: 0; }
   .qr-box svg { width: 20mm; height: 20mm; display: block; }
   @media print {
-    .cta-btn { display: none; }
+    .cta-btn, .cta-note { display: none; }
     .who { margin-bottom: 0; }
     /* Tient sur une seule page A4 */
     .page { padding-top: 9mm; }
@@ -156,7 +159,8 @@
     <div class="tagline">Events Linked to You</div>
     <h1 class="hero">Un événement, <em>une conversation.</em></h1>
     <p class="sub">Le groupe WhatsApp mélange tout. EvLY range chaque sortie à sa place.</p>
-    <a class="cta-btn cta-top" href="/auth?mode=inscription">Créer mon compte gratuit</a>
+    <a class="cta-btn cta-top" href="/organiser" data-step="funnel_cta_express">Organiser une sortie</a><a class="cta-btn cta-top cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Créer mon compte</a>
+    <small class="cta-note">Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer.</small>
   </header>
 
   <h2 class="label">Comment ça marche</h2>
@@ -211,7 +215,7 @@
   </div>
 
   <footer class="foot">
-    <p class="cta">Organise ton prochain événement.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/auth?mode=inscription">Créer mon compte</a></p>
+    <p class="cta">Organise ton prochain événement.<small>Gratuit, sans installation : ça marche dans le navigateur.</small><a class="cta-btn" href="/organiser" data-step="funnel_cta_express">Organiser une sortie</a><a class="cta-btn cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Créer mon compte</a></p>
     <div class="qr">
       <div class="qr-text">
         <div class="url"><a href="https://www.evly.ch">evly.ch</a></div>
@@ -231,6 +235,12 @@
       : host === 'localhost' ? 'http://localhost:3999' : null;
     if (!api || localStorage.getItem('estelle_token') || !navigator.sendBeacon) return;
     navigator.sendBeacon(api + '/api/stats/visit?page=decouvrir');
+    // Clics sur « Organiser une sortie » / « Créer mon compte » (parcours d'inscription)
+    document.querySelectorAll('[data-step]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        try { navigator.sendBeacon(api + '/api/stats/visit?page=' + a.getAttribute('data-step')); } catch (e) {}
+      });
+    });
   } catch (e) { /* le comptage ne doit jamais gêner la page */ }
 })();
 </script>

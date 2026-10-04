@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
+import { OrganizePage } from './pages/OrganizePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
 import { ChildSafetyPage } from './pages/ChildSafetyPage';
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/admin"                 element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
         <Route path="/rejoindre"             element={<JoinPage />} />
         <Route path="/invitation"            element={<GuestInvitePage />} />
+        <Route path="/organiser"             element={<OrganizePage />} />
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}
         <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />

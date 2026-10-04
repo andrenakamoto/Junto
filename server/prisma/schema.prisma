@@ -104,6 +104,8 @@ model Circle {
   description      String?
   color            String?
   createdAt        DateTime @default(now())
+  // Cercle personnel « Mes Plans » (Plans express, lib/express.ts) : un par personne
+  isPersonal       Boolean  @default(false)
   // Paramètres avancés : "vote" (majorité) ou "creator" ; admission aussi "open" (code seul)
   deletionMode     String   @default("vote")
   admissionMode    String   @default("vote")

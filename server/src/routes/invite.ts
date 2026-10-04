@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
+import { deleteUserAccount } from '../lib/accountDeletion';
 import { cleanFirstName, createLightUser, makeLightToken, readLightUser } from '../lib/lightGuest';
 import { markAllSeen, touchPlanSection } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
@@ -157,7 +158,8 @@ router.delete('/:token/respond', updateLimiter, async (req, res) => {
       broadcastMembers(req, plan, light.id);
     }
     const remaining = await prisma.planMember.count({ where: { userId: light.id } });
-    if (remaining === 0) await prisma.user.delete({ where: { id: light.id } });
+    // deleteUserAccount : un organisateur sans compte part aussi avec son Cercle « Mes Plans »
+    if (remaining === 0) await deleteUserAccount(light.id);
     res.json({ removed: true, accountDeleted: remaining === 0 });
   } catch (e) {
     console.error('[invite remove]', e);

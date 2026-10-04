@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, ArrowRight, FileText } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Loader2, ArrowRight, FileText, PartyPopper } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,7 @@ import { lightTokenField } from '../lib/lightGuest';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
+import { countStep } from '../lib/funnel';
 
 type Mode = 'login' | 'register';
 
@@ -167,6 +168,17 @@ export function AuthPage() {
             Pour les associations et les entreprises (PDF)
           </a>
         </div>
+
+        {/* Plan express (/organiser) : organiser une sortie et partager le lien, sans compte */}
+        <Link
+          to="/organiser"
+          onClick={() => countStep('funnel_cta_express')}
+          className="mb-5 w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-indigo-400/60 bg-indigo-600/15 text-indigo-100 hover:bg-indigo-600/25 font-semibold text-sm transition-colors"
+        >
+          <PartyPopper size={17} className="text-indigo-300" />
+          Organiser une sortie, sans compte
+          <ArrowRight size={15} />
+        </Link>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50">
           {/* Onglets */}

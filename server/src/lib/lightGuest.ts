@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import prisma from './prisma';
+import { deleteUserAccount } from './accountDeletion';
 
 // Réponse à un Plan sans compte (« invité léger ») : depuis un lien d'invitation, on donne
 // son prénom et sa réponse (in / peut-être / je passe), sans email ni mot de passe.
@@ -72,6 +73,8 @@ export async function createLightUser(firstName: string) {
 // Connexion à un compte existant depuis un appareil où l'on avait répondu sans compte :
 // les réponses (et parts de dépenses) passent sur le compte, puis l'invité léger disparaît.
 // Si le compte participait déjà au Plan, sa propre réponse est gardée.
+// Plans express créés sans compte (lib/express.ts) : ils passent aussi sur le compte, rangés
+// dans son Cercle « Mes Plans » (celui de l'invité léger devient le sien s'il n'en avait pas).
 export async function absorbLightUser(lightToken: unknown, targetUserId: string): Promise<string[]> {
   const light = await readLightUser(lightToken);
   if (!light || light.id === targetUserId) return [];
@@ -97,6 +100,19 @@ export async function absorbLightUser(lightToken: unknown, targetUserId: string)
     }
     await tx.reimbursement.updateMany({ where: { fromUserId: light.id }, data: { fromUserId: targetUserId } });
     await tx.reimbursement.updateMany({ where: { toUserId: light.id }, data: { toUserId: targetUserId } });
+    // Plans express de l'organisateur sans compte, et son Cercle « Mes Plans »
+    await tx.plan.updateMany({ where: { creatorId: light.id }, data: { creatorId: targetUserId } });
+    const lightCircles = await tx.circle.findMany({ where: { creatorId: light.id }, select: { id: true } });
+    const own = await tx.circle.findFirst({ where: { creatorId: targetUserId, isPersonal: true }, select: { id: true } });
+    for (const c of lightCircles) {
+      if (own) {
+        await tx.plan.updateMany({ where: { circleId: c.id }, data: { circleId: own.id } });
+        await tx.circle.delete({ where: { id: c.id } });
+      } else {
+        await tx.circle.update({ where: { id: c.id }, data: { creatorId: targetUserId } });
+        await tx.circleMember.create({ data: { userId: targetUserId, circleId: c.id, role: 'admin' } });
+      }
+    }
     await tx.user.delete({ where: { id: light.id } }); // parts restantes : cascade
   });
   return planIds;
@@ -104,11 +120,16 @@ export async function absorbLightUser(lightToken: unknown, targetUserId: string)
 
 // Cron horaire : invités légers qui ne participent plus à aucun Plan (Plans terminés et
 // supprimés, ou réponse retirée). Délai d'une heure pour ne pas gêner une réponse en cours.
+// Un organisateur sans compte (lib/express.ts) part avec son Cercle « Mes Plans » vide, via
+// deleteUserAccount (Circle.creator n'a pas de onDelete).
 export async function deleteOrphanLightUsers() {
   try {
-    const { count } = await prisma.user.deleteMany({
+    const orphans = await prisma.user.findMany({
       where: { isLight: true, planMemberships: { none: {} }, createdAt: { lt: new Date(Date.now() - 60 * 60 * 1000) } },
+      select: { id: true },
     });
+    for (const o of orphans) await deleteUserAccount(o.id);
+    const count = orphans.length;
     if (count > 0) console.log(`[cleanup] ${count} réponse(s) sans compte supprimée(s)`);
   } catch (e) {
     console.error('[cleanup] invités sans compte', e);
