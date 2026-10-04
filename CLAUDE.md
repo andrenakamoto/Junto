@@ -340,6 +340,9 @@ Conséquences pratiques :
   - **Publication sur les stores** (préparée le 2026-10-02) : version
     **1.0.0** (Android `versionName` / `versionCode` 1 ; iOS `MARKETING_VERSION`
     / `CURRENT_PROJECT_VERSION` 1) — incrémenter le code de build à chaque envoi.
+    **2026-10-04 : version 1.0.2** sur les deux plateformes (Android `versionCode` 3, AAB
+    `evly-1.0.2-(3).aab` dans le dossier de publication ; iOS build 3 envoyé à App Store Connect,
+    à soumettre après la validation de la 1.0.0 — build 2, en cours d'examen à cette date).
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
     = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
     (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
