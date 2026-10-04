@@ -147,7 +147,6 @@ export function AuthPage() {
             <LogoIcon size={56} />
           </div>
           <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Events Linked to You</p>
-          <p className="text-slate-400 mt-2 text-sm">Retrouve tes proches. Organise tes Plans.</p>
           <a
             href={siteUrl('/decouvrir.html')}
             target="_blank"
