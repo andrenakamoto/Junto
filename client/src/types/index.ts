@@ -156,6 +156,11 @@ export interface Plan {
   importantInfo?: string | null;
   /** Qui peut modifier les informations importantes (indépendant d'editMode) */
   importantInfoMode?: EditMode;
+  /** Plan récurrent : weekly | biweekly | monthly (null = ne se répète pas) */
+  recurrence?: 'weekly' | 'biweekly' | 'monthly' | null;
+  recurrenceUntil?: string | null;
+  /** Plan suivant déjà créé (« ended » : la série s'arrête là) */
+  nextOccurrenceId?: string | null;
   archived: boolean;
   creatorId: string;
   creator: User;

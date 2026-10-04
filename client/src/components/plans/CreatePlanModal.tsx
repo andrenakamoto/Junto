@@ -6,6 +6,8 @@ import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
 import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
+import { RecurrenceField, untilToISO } from './RecurrenceField';
+import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
 import { SurpriseSelector } from './SurpriseSelector';
 
@@ -47,6 +49,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
   const [editMode, setEditMode] = useState<EditMode>('creator');
   const [importantInfo, setImportantInfo] = useState('');
   const [importantInfoMode, setImportantInfoMode] = useState<EditMode>('creator');
+  const [recurrence, setRecurrence] = useState<Recurrence | ''>('');
+  const [recurrenceUntil, setRecurrenceUntil] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -67,6 +71,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
       editMode,
       importantInfo,
       importantInfoMode,
+      recurrence: recurrence || null,
+      recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
     };
     try {
       const { data } = fromPoll
@@ -106,6 +112,14 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
           />
         </div>
         <Input label="Date et heure de l'événement (optionnel)" type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+        {!fromPoll && (
+          <RecurrenceField
+            value={recurrence}
+            until={recurrenceUntil}
+            eventDateISO={eventDate ? localDateTimeToISO(eventDate) : null}
+            onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
+          />
+        )}
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
         <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />

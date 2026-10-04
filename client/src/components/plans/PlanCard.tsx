@@ -1,4 +1,4 @@
-import { Calendar, MapPin, MessageSquare, Users } from 'lucide-react';
+import { Calendar, MapPin, MessageSquare, Users, Repeat } from 'lucide-react';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -65,7 +65,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
       {plan.description && <p className="text-slate-500 text-xs line-clamp-3 whitespace-pre-line break-words mb-2.5">{plan.description}</p>}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-        {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
+        {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}{plan.recurrence && <Repeat size={10} className="ml-0.5 text-slate-400" aria-label="Se répète" />}</span>}
         {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
         {myMember && (
           <span className="flex items-center gap-1">

@@ -18,6 +18,7 @@ import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
 import { wantsEmail } from '../lib/notificationPrefs';
 
+import { parseRecurrenceInput } from '../lib/recurrence';
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolveCircleWrite));
@@ -638,6 +639,8 @@ interface NewPlanInput {
   editMode?: unknown;
   importantInfo?: unknown;
   importantInfoMode?: unknown;
+  recurrence?: unknown;
+  recurrenceUntil?: unknown;
 }
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
@@ -664,6 +667,8 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
   }
   const importantInfo = parseImportantInfo(input.importantInfo);
   if (importantInfo === undefined) return { error: `Informations importantes : ${IMPORTANT_INFO_MAX} caractères maximum` };
+  const repeat = parseRecurrenceInput(input.recurrence, input.recurrenceUntil, parsedEventDate);
+  if ('error' in repeat) return { error: repeat.error };
   const excl = await validateExclusions(circleId, creatorId, input.excludedUserIds);
   if ('error' in excl) return { error: excl.error };
   const exclusions = excl.ids;
@@ -681,6 +686,8 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       editMode: parseEditMode(input.editMode) ?? 'creator',
       importantInfo,
       importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
+      recurrence: repeat.recurrence,
+      recurrenceUntil: repeat.recurrenceUntil,
       creatorId,
       circleId,
       members: { create: { userId: creatorId, rsvp: 'in' } },
@@ -1178,14 +1185,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode,
+    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

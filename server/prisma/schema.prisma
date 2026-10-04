@@ -276,6 +276,13 @@ model Plan {
   // "creator" (créateur du Plan) ou "all" (tous les participants) — indépendant de editMode
   importantInfo     String?
   importantInfoMode String    @default("creator")
+  // Plans récurrents (lib/recurrence.ts) : fréquence weekly | biweekly | monthly (null = ne
+  // se répète pas), jusqu'à quand (facultatif), série commune (id du premier Plan) et Plan
+  // suivant déjà créé (anti-doublon du job horaire)
+  recurrence        String?
+  recurrenceUntil   DateTime?
+  seriesId          String?
+  nextOccurrenceId  String?
 
   creatorId String
   creator   User   @relation("PlanCreator", fields: [creatorId], references: [id])

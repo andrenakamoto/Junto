@@ -102,7 +102,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   const section = !b ? (req.method === 'PUT' ? 'infos' : undefined) : PLAN_SUBROUTE_SECTION[b];
   const activity = !b ? (req.method === 'PUT' ? 'plan_edited' : undefined) : (req.method === 'POST' ? PLAN_SUBROUTE_ACTIVITY[b] : undefined);
   // /:id (modification) et /:id/{join,rsvp,vote-delete} changent aussi la liste du Cercle
-  return planTarget(a, !b || ['join', 'rsvp', 'vote-delete'].includes(b), section, activity);
+  return planTarget(a, !b || ['join', 'rsvp', 'vote-delete', 'skip', 'recurrence'].includes(b), section, activity);
 }
 
 // Routes /api/circles

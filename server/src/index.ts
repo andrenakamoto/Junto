@@ -20,6 +20,8 @@ import expressPlanRoutes from './routes/express';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
+import { spawnRecurringPlans } from './lib/recurrence';
+import { createPlanInCircle } from './routes/circles';
 import { encryptLegacyMessages } from './lib/messageBackfill';
 import { deleteExpiredPolls, sendPollReminders } from './lib/pollCleanup';
 import { deleteOrphanLightUsers } from './lib/lightGuest';
@@ -98,8 +100,10 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 const cronEnabled = !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.ENABLE_CRON === 'true';
 
 if (cronEnabled) {
-  deleteExpiredPlans();
-  setInterval(deleteExpiredPlans, 60 * 60 * 1000);
+  // Plans récurrents : le Plan suivant est créé avant la suppression des Plans passés
+  const hourlyPlans = async () => { await spawnRecurringPlans(app, createPlanInCircle); await deleteExpiredPlans(); };
+  hourlyPlans();
+  setInterval(hourlyPlans, 60 * 60 * 1000);
 
   sendPlanReminders();
   setInterval(sendPlanReminders, 15 * 60 * 1000);

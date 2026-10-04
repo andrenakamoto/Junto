@@ -4,6 +4,8 @@ import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, PlanFeature } from '../../types';
 import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
+import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
+import { Recurrence } from '../../lib/recurrence';
 import { SurpriseSelector } from './SurpriseSelector';
 
 function isoToLocal(iso: string | null | undefined): string {
@@ -39,6 +41,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [location, setLocation] = useState(plan.location ?? '');
   const [editMode, setEditMode] = useState<EditMode>(plan.editMode ?? 'creator');
   const [importantInfoMode, setImportantInfoMode] = useState<EditMode>(plan.importantInfoMode ?? 'creator');
+  const [recurrence, setRecurrence] = useState<Recurrence | ''>(plan.recurrence ?? '');
+  const [recurrenceUntil, setRecurrenceUntil] = useState(isoToDateInput(plan.recurrenceUntil));
   const [maxParticipants, setMaxParticipants] = useState(plan.maxParticipants?.toString() ?? '');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(plan.deletionMode ?? 'vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
@@ -61,6 +65,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         disabledFeatures,
         editMode,
         importantInfoMode,
+        recurrence: recurrence || null,
+        recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
         location,
       } : {
         eventDate: eventDate ? localToISO(eventDate) : null,
@@ -117,6 +123,14 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
+        {isCreator && (
+          <RecurrenceField
+            value={recurrence}
+            until={recurrenceUntil}
+            eventDateISO={eventDate ? localToISO(eventDate) : null}
+            onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
+          />
+        )}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Date de fin du Plan</label>
           <input

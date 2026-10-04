@@ -22,6 +22,8 @@ const ITEM_LABEL_MAX = 100;
 const ITEM_QUANTITY_MAX = 30;
 const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim().slice(0, ITEM_QUANTITY_MAX) : null;
 
+import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
+import { createPlanInCircle } from './circles';
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolvePlanWrite));
@@ -322,6 +324,11 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const disabledFeatures = settings.disabledFeatures === undefined ? plan.disabledFeatures : parseDisabledFeatures(settings.disabledFeatures);
     const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
     const importantInfoMode = settings.importantInfoMode === undefined ? plan.importantInfoMode : parseImportantInfoMode(settings.importantInfoMode);
+    // Répétition (créateur seul) : absente = inchangée
+    const repeat = settings.recurrence === undefined
+      ? { recurrence: plan.recurrence, recurrenceUntil: plan.recurrenceUntil }
+      : parseRecurrenceInput(settings.recurrence, settings.recurrenceUntil, eventDate ? new Date(eventDate) : null);
+    if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
     if (!deletionMode || !disabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
 
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null; changedById: string }[] = [];
@@ -341,7 +348,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode, importantInfoMode },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, editMode, importantInfoMode, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil },
     });
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });
@@ -661,6 +668,29 @@ router.put('/:id/important-info', async (req: AuthRequest, res) => {
     ]);
   }
   res.json({ ok: true, importantInfo });
+});
+
+// PUT /api/plans/:id/recurrence { recurrence, recurrenceUntil? } — créateur : changer ou arrêter
+// la répétition (menu « Arrêter la répétition » : recurrence null)
+router.put('/:id/recurrence', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, eventDate: true } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du Plan' }); return; }
+  const repeat = parseRecurrenceInput(req.body?.recurrence, req.body?.recurrenceUntil, plan.eventDate);
+  if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
+  await prisma.plan.update({ where: { id: plan.id }, data: repeat });
+  res.json(repeat);
+});
+
+// POST /api/plans/:id/skip — créateur, Plan récurrent : « Annuler cette fois ». Le Plan suivant
+// est créé tout de suite, puis celui-ci est supprimé (photos comprises).
+router.post('/:id/skip', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, recurrence: true, nextOccurrenceId: true } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du Plan' }); return; }
+  if (!plan.recurrence || plan.nextOccurrenceId) { res.status(400).json({ error: 'Ce Plan ne se répète pas' }); return; }
+  const nextPlanId = await skipOccurrence(req.app, plan.id, createPlanInCircle);
+  res.json({ nextPlanId });
 });
 
 // Toggle vote de suppression — supprime le plan si le seuil est atteint

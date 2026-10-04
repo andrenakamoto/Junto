@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Clock, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1 } from 'lucide-react';
+import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
@@ -344,6 +345,31 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   // Paramètre avancé : suppression par le créateur seul → bouton réservé au créateur
   const creatorDeletes = plan.deletionMode === 'creator';
   const canDelete = !creatorDeletes || isCreator;
+  // Plan récurrent (lib/recurrence.ts) : étiquette « Chaque lundi » ; le créateur peut annuler
+  // cette date-là (le suivant est créé tout de suite) ou arrêter la série
+  const repeatLabel = recurrenceLabel(plan.recurrence, plan.eventDate);
+  const canManageSeries = isCreator && !!plan.recurrence && !plan.nextOccurrenceId;
+
+  async function skipThisTime() {
+    if (!confirm('Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.')) return;
+    try {
+      await api.post(`/plans/${plan.id}/skip`);
+      onPlanDeleted();
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+    }
+  }
+
+  async function stopRepeating() {
+    if (!confirm('Arrêter la répétition ? Ce Plan reste, mais aucun Plan suivant ne sera créé.')) return;
+    try {
+      await api.put(`/plans/${plan.id}/recurrence`, { recurrence: null });
+      const { data } = await api.get(`/plans/${plan.id}`);
+      onPlanUpdated(data);
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+    }
+  }
   const deleteLabel = creatorDeletes ? 'Supprimer ce Plan' : 'Voter pour supprimer ce Plan';
   // Paramètre avancé : les participants (hors invités externes) peuvent modifier dates et lieu
   const canEdit = isCreator || (plan.editMode === 'all' && isMember && !plan.viewerIsGuest);
@@ -425,6 +451,24 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 >
                   <SlidersHorizontal size={16} />
                 </button>
+                {canManageSeries && (
+                  <>
+                    <button
+                      onClick={skipThisTime}
+                      title="Annuler cette fois"
+                      className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                      <CalendarX size={16} />
+                    </button>
+                    <button
+                      onClick={stopRepeating}
+                      title="Arrêter la répétition"
+                      className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                      <Repeat1 size={16} />
+                    </button>
+                  </>
+                )}
                 {canDelete && <button
                   onClick={() => setShowDeletePlan(true)}
                   title={deleteLabel}
@@ -494,6 +538,24 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                       <SlidersHorizontal size={15} className="text-slate-400" />
                       Paramètres du Plan
                     </button>
+                    {canManageSeries && (
+                      <>
+                        <button
+                          onClick={() => { setShowActionsMenu(false); skipThisTime(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                        >
+                          <CalendarX size={15} className="text-slate-400" />
+                          Annuler cette fois
+                        </button>
+                        <button
+                          onClick={() => { setShowActionsMenu(false); stopRepeating(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                        >
+                          <Repeat1 size={15} className="text-slate-400" />
+                          Arrêter la répétition
+                        </button>
+                      </>
+                    )}
                     {canDelete && <button
                       onClick={() => { setShowActionsMenu(false); setShowDeletePlan(true); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm ${
@@ -524,11 +586,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
         )}
 
-        {/* Date de l'événement */}
+        {/* Date de l'événement (+ répétition) */}
         {eventDateFmt && (
-          <div className="flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
-            <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
-            <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
+              <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
+              <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
+            </div>
+            {repeatLabel && (
+              <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-xs font-medium text-slate-600">
+                <Repeat size={12} /> {repeatLabel}
+              </span>
+            )}
           </div>
         )}
 
