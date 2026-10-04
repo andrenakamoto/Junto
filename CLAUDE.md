@@ -947,6 +947,22 @@ sans compte). **Connexion à un compte existant : `absorbLightUser` transfère a
 Nettoyage : `deleteOrphanLightUsers` et « Retirer ma réponse » passent par `deleteUserAccount`
 (Circle.creator n'a pas de onDelete). « Cercles créés » (admin) exclut les Cercles personnels.
 
+**Démo sans compte** (2026-10-05, `client/src/lib/demo.ts`, route **`/demo`**) : lien « Essayer la
+démo » sous le bouton Plan express de `AuthPage` et dans la note de `decouvrir.html`. Tout tourne
+**dans le navigateur**, rien n'est envoyé au serveur ni écrit en base : drapeau `evly_demo` en
+`sessionStorage` ; `services/api.ts` passe alors par `demoAdapter` (faux serveur), `lib/socket.ts`
+renvoie `demoSocket` (faux temps réel : messages, réactions, modification), `AuthContext` ouvre la
+session fictive d'Alex, `lib/media.ts` sert les photos de `public/demo/photos/`, `registerPush` ne fait
+rien. Données = vraies réponses du serveur enregistrées une fois sur une base jetable avec des
+personnes fictives (`public/demo/data.json`, scripts et mode d'emploi dans
+`server/scripts/demo-site/` — **à régénérer si l'API change de forme**), dates décalées au
+chargement en jours entiers. Actions simulées en mémoire : réponse, « vu », informations
+importantes, modification d'un Plan créé par Alex, « qui apporte quoi », sondages (Plan et dates),
+dépenses (soldes recalculés comme `lib/expenses.ts`), remboursements, covoiturage, chat du sondage,
+création d'un Cercle et d'un Plan. Le reste renvoie un 403 « Dans la démo, cette action n'est pas
+disponible… ». Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
+déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
+
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
 (`countStep` dans `client/src/lib/funnel.ts` → POST /api/stats/visit, pages autorisées
