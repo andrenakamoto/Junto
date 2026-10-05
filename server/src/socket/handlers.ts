@@ -1,5 +1,6 @@
 import { Server, Socket } from 'socket.io';
-import jwt from 'jsonwebtoken';
+import { escapeHtml } from '../lib/escapeHtml';
+import { verifySessionToken } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { decryptMessage, encryptMessage, withPlainContent } from '../lib/messageCrypto';
@@ -18,16 +19,14 @@ export function setupSocketHandlers(io: Server) {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token as string;
     if (!token) return next(new Error('Non authentifié'));
-    try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; pseudo: string; light?: boolean };
-      if (payload.light) return next(new Error('Non authentifié')); // réponse sans compte : pas de temps réel
-      socket.data.userId = payload.userId;
-      socket.data.pseudo = payload.pseudo;
-      touchUser(payload.userId);
-      next();
-    } catch {
-      next(new Error('Token invalide'));
-    }
+    // Jeton de connexion uniquement (pas un jeton de photo, de téléchargement ni d'invité)
+    const payload = verifySessionToken(token);
+    if (!payload) return next(new Error('Token invalide'));
+    if (payload.light) return next(new Error('Non authentifié')); // réponse sans compte : pas de temps réel
+    socket.data.userId = payload.userId;
+    socket.data.pseudo = payload.pseudo;
+    touchUser(payload.userId);
+    next();
   });
 
   io.on('connection', (socket: Socket) => {
@@ -162,8 +161,8 @@ export function setupSocketHandlers(io: Server) {
         subject: `${socket.data.pseudo} t'a mentionné dans "${planData.title}"`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${m.user.pseudo} 👋</h2>
-            <p><strong>${socket.data.pseudo}</strong> t'a mentionné dans le Plan <strong>"${planData.title}"</strong>.</p>
+            <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
+            <p><strong>${escapeHtml(socket.data.pseudo)}</strong> t'a mentionné dans le Plan <strong>"${escapeHtml(planData.title)}"</strong>.</p>
             <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le message
             </a>
