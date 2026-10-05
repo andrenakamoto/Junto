@@ -1115,6 +1115,30 @@ sont enregistrés immédiatement. Ne pas remettre d'`await` avant eux : un
 corrigé le 2026-09-27 — c'est le cas typique d'un invité qui arrive sur
 son Plan juste après avoir accepté l'invitation).
 
+## Sécurité (audit du 2026-10-05)
+
+- **Un seul type de jeton ouvre une session** : `verifySessionToken` (`middleware/auth.ts`, utilisé
+  par `requireAuth` et le socket) refuse tout jeton qui a un `purpose`, un `attachmentId`, un
+  `planId` ou `light`. Les autres jetons signés avec `JWT_SECRET` (photo `?t=` 12 h, téléchargement,
+  invité sans compte) servent uniquement à leur usage. **Tout nouveau jeton à usage précis doit
+  porter un `purpose`.** (Avant cette date, l'adresse d'une photo donnait accès au compte 12 h.)
+- **Admin vérifié en base** à chaque requête (`middleware/admin.ts`), pas d'après le jeton (7 jours).
+- **Invitations par email / SMS** (`routes/invitations.ts`) : le serveur fabrique le lien et le texte
+  à partir de `{ circleId | planId, guest }` (forme ancienne `{ circleCode, joinLink }` encore acceptée
+  pour les apps installées, dont seuls les identifiants sont repris), expéditeur membre obligatoire,
+  20 envois par jour et par compte. Ne jamais remettre un texte ou un lien venant du client dans un
+  email.
+- **Tout texte d'utilisateur dans le HTML d'un email passe par `escapeHtml`** (`lib/escapeHtml.ts`).
+- Fichiers (`/attachments/:id/view`) : affichés « en page » seulement pour les images classiques et les
+  PDF (`SAFE_INLINE_TYPES`), le reste en téléchargement ; `nosniff` partout, CSP `sandbox` sur les
+  images.
+- En-têtes : `helmet` sur l'API (sans CSP globale, CORP cross-origin, sans COOP — voir `index.ts`) ;
+  `client/vercel.json` : nosniff, Referrer-Policy, `frame-ancestors 'none'`, X-Frame-Options,
+  Permissions-Policy. Une CSP complète du site reste à faire (connexion Google, polices).
+- Redirection après connexion (`AuthPage`, `?redirect=`) : chemin interne uniquement, ni `//`, ni `\`.
+- Restent (moyen, non exploitables ici) : `uuid` via firebase-admin / @capacitor/cli, et
+  `react-router` (redirection par `\`, neutralisée ci-dessus) — mise à jour majeure nécessaire.
+
 ## Déploiement
 
 - **Frontend** : Vercel, domaine principal **www.evly.ch** (evly.ch redirige
