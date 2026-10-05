@@ -349,8 +349,13 @@ Conséquences pratiques :
     build 5 envoyé — Plan express, démo, page de connexion allégée, « Qui apporte quoi ? »
     (quantité, modifier, retirer), informations importantes, suggestions.
     **Version 1.0.4** (2026-10-05) : Android `versionCode` 5 (`evly-1.0.4-(5).aab`), iOS build 6
-    envoyé — Plans récurrents, planning des bénévoles, étiquette de suppression du Plan. **C'est le
-    build 6 à soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
+    envoyé — Plans récurrents, planning des bénévoles, étiquette de suppression du Plan.
+    **Version 1.0.5** (même jour) : Android 6, iOS build 7 — fiche du Plan en cartes sur téléphone.
+    **Version 1.0.6** (2026-10-05, soir) : Android `versionCode` 7 (`evly-1.0.6-(7).aab`), iOS build 8
+    envoyé — barre d'actions, mode silencieux, fenêtre des membres, récapitulatif PDF. **C'est le
+    build 8 à soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
+    Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
+    reçoit des attributs étendus qui font échouer `codesign --verify`.
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
     = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
     (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
