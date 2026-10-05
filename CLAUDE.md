@@ -794,6 +794,15 @@ Junto/
   déborde déjà sur mobile), l'onglet Historique a été retiré : l'historique
   des modifications s'ouvre maintenant dans une modale depuis les actions
   du Plan (icône sur desktop, menu ⋮ sur mobile).
+- **Fiche d'un Plan sur téléphone** (2026-10-05, `PlanDetail`, `useIsPhone` < 768 px) : plus
+  d'onglets. **Page principale** = en-tête du Plan + une carte par rubrique (Chat en premier sur
+  toute la largeur, point orange « nouveau » seulement, pas de résumé — choix de l'utilisateur) ;
+  toucher une carte ouvre la rubrique en plein écran avec un en-tête compact « ← titre du Plan /
+  rubrique ». Retour à la page principale : flèche, bouton retour Android (DashboardPage émet
+  d'abord `evly-back-plan`, que PlanDetail annule s'il ferme une rubrique) ou glissement depuis le
+  bord gauche. Un Plan s'ouvre toujours sur sa page principale, sauf rubrique demandée (`openTab` :
+  cloche, notification de message ou de mention → chat, push `?planId=…&tab=chat`). Rien n'est
+  marqué « vu » sur la page principale (`activeTab` null). Grand écran : onglets inchangés.
 - **Invités externes et Plans surprise** (2026-09-27) — règles d'accès
   centralisées dans `server/src/lib/planAccess.ts` (`getPlanAccess`,
   `visiblePlansWhere`, `guestIdsAmong`, `validateExclusions`) : **toute
