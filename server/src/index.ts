@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import helmet from 'helmet';
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
@@ -66,6 +67,15 @@ app.set('trust proxy', 1);
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: corsOptions });
 
+// En-têtes de sécurité (nosniff, HSTS, pas d'intégration dans un cadre…). Pas de CSP globale :
+// l'API sert aussi la page d'aperçu des invitations (routes/share.ts, l'index.html du site) ; CORP en
+// cross-origin car les photos sont affichées sur www.evly.ch et dans les apps ; pas de COOP (connexion
+// Google dans une fenêtre).
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: false,
+}));
 app.use(cors(corsOptions));
 app.use(express.json());
 

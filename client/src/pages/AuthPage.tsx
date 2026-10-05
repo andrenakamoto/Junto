@@ -26,7 +26,8 @@ export function AuthPage() {
   const [searchParams] = useSearchParams();
   // Retour après connexion (ex. lien d'invitation) — chemin interne uniquement, pas d'URL externe
   const redirectParam = searchParams.get('redirect');
-  const afterLogin = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+  // Chemin interne uniquement : « / » suivi d'autre chose que « / » ou « \ » (« /\site.com » vaut « //site.com »)
+  const afterLogin = redirectParam && /^\/(?![/\\])/.test(redirectParam) && !/[\\\s]/.test(redirectParam)
     ? redirectParam
     : '/dashboard';
   // ?mode=inscription (lien depuis la fiche de présentation) ouvre directement l'inscription
