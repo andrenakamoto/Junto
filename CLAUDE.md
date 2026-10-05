@@ -147,27 +147,22 @@ Conséquences pratiques :
   taille en px, `light` inverse la couleur de "Ev" pour les fonds clairs,
   ex. l'empty state de DashboardPage). Police chargée dans `client/index.html`
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
-- **Brochure associations & entreprises** (2026-09-28) :
-  `client/public/fichiers/evly-associations-entreprises.pdf` (4 pages A4,
-  vouvoiement), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
+- **Brochure associations** (refaite le 2026-10-05, **associations uniquement** — la partie
+  entreprises a été retirée à la demande de l'utilisateur) :
+  `client/public/fichiers/evly-associations-entreprises.pdf` (6 pages A4, vouvoiement ; nom de
+  fichier conservé pour les liens existants), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
   **`/brochure`**. Téléchargements comptés (2026-09-29) : `client/vercel.json`
   redirige `/brochure` et l'ancienne adresse `/evly-associations-entreprises.pdf`
   vers `GET /api/stats/go/brochure` (Railway), qui compte +1 dans PageVisit
   (`page = 'brochure'`, mêmes règles que ci-dessous, sans exclusion des
   personnes connectées) puis redirige vers le fichier dans `/fichiers/`
   (`TRACKED_FILES` dans `lib/pageVisits.ts`). Ne pas remettre le PDF à la
-  racine de `public/` : la redirection de l'ancienne adresse bouclerait. Générée hors repo
-  (HTML → PDF avec Playwright) ; sources et jeu de données fictif des
-  captures (club « Les Rayons », entreprise « Atelier Nova ») dans
-  `~/Desktop/EvLY - Brochure (sources)/` sur le Mac de l'utilisateur. La
-  régénérer puis recopier le PDF ici quand une fonctionnalité mise en avant
-  change.
-  **2026-10-05** : sources déplacées dans OneDrive (« 02 Evly »), illisible par l'agent ; le PDF a
-  été **corrigé directement** (PyMuPDF : ancien texte supprimé par caviardage, nouveau texte en
-  Inter aux mêmes positions) — planning des bénévoles (p. 1-2), Plans qui se répètent (p. 3),
-  réponse sans compte et démo dans la FAQ (p. 4). Les captures datent d'avant ces fonctions (elles
-  montrent encore la phrase « Ce plan disparaît… ») : à refaire depuis les sources à la prochaine
-  régénération, en y reportant ces textes.
+  racine de `public/` : la redirection de l'ancienne adresse bouclerait. Sources (HTML → PDF avec
+  Playwright, captures réelles de l'app sur une base jetable, club fictif « Les Rayons », club
+  cycliste de Carouge) dans **`~/Desktop/EvLY - Brochure associations (sources)/`** sur le Mac de
+  l'utilisateur, avec un LISEZMOI pour tout régénérer (`seed-club.js`, `capture.js`, `build.js`).
+  Annonce les apps iPhone / Android « prochainement » (p. 1 et FAQ) : à mettre à jour à leur
+  publication. La régénérer quand une fonctionnalité mise en avant change.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
   (version 3 du 2026-09-29 : public élargi aux associations/entreprises,
   inscription pseudo + prénom + email, rôles et invités, covoiturage,
