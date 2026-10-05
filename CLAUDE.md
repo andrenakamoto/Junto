@@ -507,6 +507,13 @@ Junto/
   miroir client dans `client/src/lib/settings.ts`). Quand le créateur part
   (départ ou suppression de compte), `nextCircleCreator` choisit
   l'organisateur le plus ancien, sinon le membre le plus ancien.
+  **Fenêtre « Membres »** (2026-10-05, `components/circles/CircleMembersSheet.tsx`) : feuille qui
+  monte du bas sur téléphone (poignée à glisser, toucher à côté, bouton retour Android via
+  `evly-back-plan`), fenêtre centrée sur grand écran. Membres groupés (créateur, organisateurs,
+  membres), triés par prénom, présence en ligne, recherche dès 10 membres, bouton « Inviter » ;
+  le créateur y nomme / retire les organisateurs. Ouverte par « N membres » sur la pastille du
+  Cercle et par l'icône 👥 de l'en-tête de `PlanList` (sur grand écran, les icônes de cet en-tête
+  passent sur une 2e ligne sous le nom du Cercle). Remplace l'ancienne liste dépliante.
 - **CircleInvitation** (2026-10-03) : inviter un **compte EvLY existant** dans
   un Cercle par pseudo ou email exact (`InviteModal`, section « Déjà sur EvLY ? »,
   POST /circles/:id/invitations, réservé aux membres). La personne reçoit une
@@ -798,6 +805,11 @@ Junto/
   bord gauche. Un Plan s'ouvre toujours sur sa page principale, sauf rubrique demandée (`openTab` :
   cloche, notification de message ou de mention → chat, push `?planId=…&tab=chat`). Rien n'est
   marqué « vu » sur la page principale (`activeTab` null). Grand écran : onglets inchangés.
+  **Barre d'actions** (même date) fixée en bas de la page principale uniquement (pas dans une
+  rubrique), nettement séparée des cartes (fond blanc, trait et ombre vers le haut, boutons
+  corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
+  partagé avec InfosTab) · Agenda (.ics) · Story. Sur téléphone, ces trois entrées ne sont plus
+  dans le menu ⋮ (toujours là sur tablette, où la barre n'existe pas).
 - **Invités externes et Plans surprise** (2026-09-27) — règles d'accès
   centralisées dans `server/src/lib/planAccess.ts` (`getPlanAccess`,
   `visiblePlansWhere`, `guestIdsAmong`, `validateExclusions`) : **toute
@@ -853,6 +865,21 @@ Junto/
     injoignable : redirection vers `/invitation-plan` (même page, sans
     aperçu). Balises génériques + `public/og-evly.png` dans `index.html`
     pour les autres liens evly.ch.
+
+**Récapitulatif PDF d'un Plan** (2026-10-05, `lib/planRecap.ts`, pdfkit + polices Inter / Fraunces de
+`server/assets/fonts`) : titre, Cercle, dates, lieu, organisateur, description, informations
+importantes, participants par réponse (prénom + @pseudo, jamais nom de famille ni email), planning
+des bénévoles (inscrits, places manquantes) et, s'il y a du contenu, « qui apporte quoi », dépenses
+(soldes, virements) et votes. **Réservé au créateur du Plan et aux gestionnaires du Cercle**
+(`canDownloadRecap` ; GET /plans/:id renvoie `canRecap`). GET /plans/:id/recap (PDF) ; client
+`lib/planRecap.ts` (`saveFile` : téléchargement sur le site, menu de partage dans les apps). Boutons :
+« Récap » de la barre d'actions (téléphone), icône de l'en-tête (grand écran), menu ⋮ (tablette),
+lien dans la bulle ⏳. Option de compte **`User.recapEmailEnabled`** (désactivée par défaut,
+« Récapitulatif avant suppression » dans `NotificationSettingsModal`) : `deleteExpiredPlans` appelle
+`sendRecapBeforeDeletion` avant de supprimer (PDF en pièce jointe Resend), sans tenir compte du
+canal de notification ni du mode silencieux (choix explicite). Mentionné dans la politique de
+confidentialité. **pdfkit : écrire sous la marge du bas ajoute une page** (pied de page : marge
+remise à 0 le temps de l'écrire).
 
 Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
 appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
@@ -957,7 +984,22 @@ hebdomadaire garde son propre réglage. Les rappels (veille du Plan, fin de
 sondage) partent aussi en push. Chaque email de notification se termine par
 `notificationFooter()` (`lib/mailer.ts`, variante `'digest'` pour le résumé
 hebdomadaire) : comment les désactiver + lien `/dashboard?reglages=notifications`,
-qui ouvre la fenêtre Notifications (`CircleSidebar`).
+qui ouvre la fenêtre Notifications (`CircleSidebar`). Depuis le 2026-10-05, le texte dit **où**
+précisément : menu ☰ en bas de la liste des Cercles (à côté du pseudo) → « Notifications », et
+la cloche 🔔 du mode silencieux ; variante `'simple'` sans la cloche (mentions, que le silence ne
+coupe pas ; invitation et admission dans un Cercle).
+
+**Mode silencieux** (2026-10-05, `lib/mutes.ts`, `routes/mutes.ts` sur `/api/mutes`) : table
+**NotificationMute** (userId + planId **ou** circleId, sans durée). Un Plan en silence, ou tout son
+Cercle : **ni bulle dans l'app, ni push, ni email** — les points orange et la cloche (Plans avec du
+nouveau) restent. Filtrage central dans `notifyUser` (`isMuted`, sauf `MUTE_EXEMPT_TYPES` :
+**mentions**, invitation, admission, suggestions) et sur chaque email lié à un Plan / Cercle
+(`withoutMuted` : nouveau Plan, sondage, demande d'adhésion, premier arrivant, rappel de sondage).
+Rappel de la veille : gardé pour ceux qui ont répondu « Je suis in », coupé pour les « Peut-être ».
+**Toute nouvelle notification ou email lié à un Plan / Cercle doit passer par ces filtres.** Client :
+`contexts/MuteContext.tsx` (chargé par DashboardPage), cloche `MuteToggle` sur la **carte du Plan à
+côté de la réponse** et à côté du titre de la fiche, cloche du Cercle dans l'en-tête de `PlanList`,
+🔕 sur la pastille du Cercle, liste « En silence » (réactiver) dans `NotificationSettingsModal`.
 
 **Signaler / masquer** (2026-10-02, exigence Apple 1.2 et Google pour le contenu
 des utilisateurs, `lib/moderation.ts`, `routes/moderation.ts`) : « Signaler »
@@ -1010,7 +1052,9 @@ personnes fictives (`public/demo/data.json`, scripts et mode d'emploi dans
 chargement en jours entiers. Actions simulées en mémoire : réponse, « vu », informations
 importantes, modification d'un Plan créé par Alex, « qui apporte quoi », sondages (Plan et dates),
 dépenses (soldes recalculés comme `lib/expenses.ts`), remboursements, covoiturage, chat du sondage,
-création d'un Cercle et d'un Plan. Le reste renvoie un 403 « Dans la démo, cette action n'est pas
+création d'un Cercle et d'un Plan, **planning des bénévoles** du loto (s'inscrire, gérer les postes :
+Alex est organisateur du Cercle) et **mode silencieux** (2026-10-05). « Foot de la semaine » montre
+un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
 disponible… ». Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
 
