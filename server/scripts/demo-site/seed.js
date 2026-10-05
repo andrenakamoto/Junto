@@ -19,15 +19,26 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   const raclette = await mk(jeu, 'lea_m', { title: 'Soirée raclette du comité', description: 'On prépare le loto autour d’une bonne raclette 🧀', eventDate: at(3, 19), endDate: at(4, 2), location: 'Local de la jeunesse' });
   const ski = await mk(jeu, 'tom_b', { title: 'Sortie ski à Crans-Montana', description: 'Journée ski + fondue à midi ⛷️', eventDate: at(10, 7, 30), endDate: at(10, 22), location: 'Parking de la salle communale',
     importantInfo: 'Départ 7 h 30 précises — on n’attend personne !\nForfait : 45 CHF, à prendre sur place.\nPrévoir pique-nique ou 20 CHF pour la fondue.', maxParticipants: 16 });
-  const loto = await mk(jeu, 'max_g', { title: 'Loto annuel', description: 'Montage de la salle dès 14 h, loto à 20 h', eventDate: at(17, 14), endDate: at(17, 23, 59), location: 'Grande salle de Montvert' });
+  const loto = await mk(jeu, 'max_g', { title: 'Loto annuel', description: 'Montage de la salle dès 14 h, loto à 20 h', eventDate: at(17, 14), endDate: at(17, 23, 59), location: 'Grande salle de Montvert', enabledFeatures: ['benevoles'] });
+  // Planning des bénévoles du loto (Alex, organisateur du Cercle, peut gérer les postes)
+  const shift = (title, h0, h1, needed, note) => call('POST', `/plans/${loto.id}/shifts`, { title, needed, note, startsAt: at(17, h0), endsAt: at(17, h1) }, T.max_g);
+  const sMontage = await shift('Montage de la salle', 14, 17, 4, 'Tables, chaises et sono');
+  const sCaisse = await shift('Caisse et vente des cartes', 19, 23, 2, null);
+  const sBuvette = await shift('Buvette', 19, 23, 3, 'Tablier fourni');
+  const sRange = await shift('Rangement', 23, 24, 4, null);
+  for (const [s, who] of [[sMontage, ['lea_m', 'tom_b', 'max_g']], [sCaisse, ['emma_v']], [sBuvette, ['lea_m', 'noah_p']], [sRange, ['tom_b']]])
+    for (const p of who) await call('POST', `/plans/shifts/${s.id}/signup`, {}, T[p]);
   const apero = await mk(cop, 'alex', { title: 'Apéro au bord du lac', description: 'Chacun amène un truc à partager 🍹', eventDate: at(2, 18, 30), endDate: at(3, 1), location: 'Plage de Géronde, Sierre' });
+  // Rendez-vous qui se répète chaque semaine
+  const foot = await mk(cop, 'tom_b', { title: 'Foot de la semaine', description: 'Match amical, tout niveau. Prévoir un t-shirt clair et un foncé.', eventDate: at(4, 19), endDate: at(4, 21), location: 'Terrain synthétique de Montvert', recurrence: 'weekly' });
   const anniv = await mk(cop, 'alex', { title: 'Anniversaire surprise de Tom 🎂', description: 'Chut ! Tom ne voit pas ce Plan. On se retrouve 30 min avant pour tout préparer.', eventDate: at(12, 19, 30), endDate: at(13, 2), location: 'Chez Julie',
     excludedUserIds: [U.tom_b.id], importantInfo: 'Arriver à 19 h au plus tard, Tom arrive à 19 h 30.\nCagnotte cadeau : 20 CHF par personne.' });
   for (const [p, plan, rsvp] of [['alex', raclette, 'in'], ['tom_b', raclette, 'in'], ['julie_r', raclette, 'in'], ['noah_p', raclette, 'in'], ['emma_v', raclette, 'in'], ['lucas_d', raclette, 'in'], ['chloe_s', raclette, 'maybe'],
     ['alex', ski, 'in'], ['lea_m', ski, 'in'], ['julie_r', ski, 'in'], ['noah_p', ski, 'in'], ['emma_v', ski, 'in'], ['chloe_s', ski, 'in'], ['lucas_d', ski, 'maybe'], ['max_g', ski, 'out'],
     ['alex', loto, 'maybe'], ['lea_m', loto, 'in'], ['tom_b', loto, 'in'], ['emma_v', loto, 'in'],
     ['tom_b', apero, 'in'], ['julie_r', apero, 'in'], ['emma_v', apero, 'maybe'],
-    ['julie_r', anniv, 'in'], ['emma_v', anniv, 'in'], ['noah_p', anniv, 'maybe']]) {
+    ['julie_r', anniv, 'in'], ['emma_v', anniv, 'in'], ['noah_p', anniv, 'maybe'],
+    ['alex', foot, 'in'], ['julie_r', foot, 'in'], ['noah_p', foot, 'in'], ['emma_v', foot, 'maybe']]) {
     await call('POST', `/plans/${plan.id}/join`, {}, T[p]);
     if (rsvp !== 'in') await call('PUT', `/plans/${plan.id}/rsvp`, { rsvp }, T[p]);
   }
@@ -81,8 +92,8 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   for (const [p, os] of [['lea_m', [o1, o2]], ['tom_b', [o1]], ['julie_r', [o1, o3]], ['noah_p', [o1, o2]], ['emma_v', [o2]], ['lucas_d', [o1]]]) for (const o of os) await call('POST', `/circles/polls/options/${o.id}/vote`, {}, T[p]);
   await call('POST', `/circles/polls/${poll.id}/messages`, { content: 'Le vendredi m’arrange mieux, je peux réserver la salle 👍' }, T.tom_b);
   // Alex a déjà tout vu, sauf quelques nouveautés (pastilles)
-  for (const plan of [raclette, ski, loto, apero, anniv]) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id], pollId: poll.id }));
+  for (const plan of [raclette, ski, loto, apero, anniv, foot]) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });

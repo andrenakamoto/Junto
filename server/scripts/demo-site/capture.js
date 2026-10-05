@@ -4,7 +4,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
 (async () => {
   const fx = {};
   const take = async p => { const d = await get(p); if (d !== null) fx[`GET ${p}`] = d; return d; };
-  for (const p of ['/auth/me', '/circles', '/plans', '/circles/invitations/mine', '/suggestions/mine', '/moderation/blocks', '/push/devices', '/invitations/status']) await take(p);
+  for (const p of ['/auth/me', '/circles', '/plans', '/circles/invitations/mine', '/suggestions/mine', '/moderation/blocks', '/push/devices', '/invitations/status', '/mutes']) await take(p);
   for (const c of I.circles) { await take(`/circles/${c}/plans`); const polls = await take(`/circles/${c}/polls`); await take(`/circles/${c}/history`);
     for (const pl of polls || []) { await take(`/circles/polls/${pl.id}`); await take(`/circles/polls/${pl.id}/messages`); } }
   let photos = 0;
@@ -12,7 +12,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     const plan = await take(`/plans/${id}`);
     const msgs = await take(`/plans/${id}/messages`);
     for (const m of (msgs?.messages ?? msgs ?? [])) if (m._count?.replies) await take(`/plans/messages/${m.id}/replies`);
-    await take(`/rides/plan/${id}`); await take(`/plans/${id}/expenses`);
+    await take(`/rides/plan/${id}`); await take(`/plans/${id}/expenses`); await take(`/plans/${id}/shifts`);
     for (const a of plan?.attachments ?? []) {
       const r = await fetch(`${API}/attachments/${a.id}/view?t=${plan.mediaToken}`);
       fs.writeFileSync(`${OUT}/photos/${a.id}.png`, Buffer.from(await r.arrayBuffer())); photos++;

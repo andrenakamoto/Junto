@@ -198,13 +198,25 @@ function planCopies(id: string): any[] {
   return out;
 }
 
+function findShift(shiftId: string): { planId: string; list: any; shift: any } | null {
+  for (const [k, v] of Object.entries(fixtures!)) {
+    const mm = k.match(/^GET \/plans\/([^/]+)\/shifts$/);
+    const shift = mm && v?.shifts?.find((x: any) => x.id === shiftId);
+    if (shift) return { planId: mm![1], list: v, shift };
+  }
+  return null;
+}
+
 function setRsvp(planId: string, rsvp: string) {
   const p = plan(planId);
   for (const target of [p, ...planCopies(planId)]) {
     const m = target.members?.find((x: any) => x.userId === me.id);
     if (m) m.rsvp = rsvp;
   }
-  if (rsvp === 'out') leaveRides(planId);
+  if (rsvp === 'out') {
+    leaveRides(planId);
+    for (const sh of fixtures![`GET /plans/${planId}/shifts`]?.shifts ?? []) sh.signups = sh.signups.filter((x: any) => x.userId !== me.id);
+  }
 }
 
 function rides(planId: string) {
@@ -307,7 +319,59 @@ function route(method: string, path: string, body: any): any {
     if (key in fixtures!) return fixtures![key];
     if ((m = path.match(/^\/plans\/messages\/([^/]+)\/replies$/))) return fixtures![key] ?? [];
     if (path === '/circles/invitations/mine' || path === '/suggestions/mine' || path === '/moderation/blocks') return [];
+    if (path === '/mutes') return (fixtures!['GET /mutes'] ??= { plans: [], circles: [] });
+    if ((m = path.match(/^\/plans\/([^/]+)\/shifts$/))) return (fixtures![key] ??= { shifts: [], canManage: plan(m[1]).creatorId === me.id });
     throw new DemoError(403, NOT_IN_DEMO);
+  }
+
+  // Mode silencieux (Plan ou Cercle), en mémoire
+  if (path === '/mutes' && method === 'PUT') {
+    const mutes = (fixtures!['GET /mutes'] ??= { plans: [], circles: [] });
+    if (body.planId) {
+      mutes.plans = mutes.plans.filter((x: any) => x.id !== body.planId);
+      if (body.muted) mutes.plans.unshift({ id: body.planId, title: plan(body.planId).title });
+    } else if (body.circleId) {
+      mutes.circles = mutes.circles.filter((x: any) => x.id !== body.circleId);
+      const c = (fixtures!['GET /circles'] ?? []).find((x: any) => x.id === body.circleId);
+      if (body.muted && c) mutes.circles.unshift({ id: c.id, name: c.name });
+    }
+    return { ok: true, muted: body.muted };
+  }
+
+  // Planning des bénévoles
+  if ((m = path.match(/^\/plans\/([^/]+)\/shifts$/)) && method === 'POST') {
+    const list = route('GET', path, null);
+    if (!list.canManage) throw new DemoError(403, 'Seuls le créateur du Plan et les organisateurs du Cercle créent les postes');
+    if (!String(body.title ?? '').trim()) throw new DemoError(400, 'Nom du poste requis');
+    list.shifts.push({ id: newId('shift'), title: String(body.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null, signups: [] });
+    list.shifts.sort((a: any, b: any) => (a.startsAt ? 0 : 1) - (b.startsAt ? 0 : 1) || String(a.startsAt).localeCompare(String(b.startsAt)));
+    changed(m[1]);
+    return { ok: true };
+  }
+  if ((m = path.match(/^\/plans\/shifts\/([^/]+)(\/signup|\/signups\/([^/]+))?$/))) {
+    const found = findShift(m[1]);
+    if (!found) throw new DemoError(404, 'Poste introuvable');
+    const { planId, list, shift } = found;
+    if (!m[2] && method === 'PUT') {
+      if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
+      if ((Number(body.needed) || 1) < shift.signups.length) throw new DemoError(400, `${shift.signups.length} personnes sont déjà inscrites : retire d’abord des inscrits`);
+      Object.assign(shift, { title: String(body.title ?? shift.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null });
+    } else if (!m[2] && method === 'DELETE') {
+      if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
+      list.shifts = list.shifts.filter((x: any) => x !== shift);
+    } else if (m[2] === '/signup' && method === 'POST') {
+      if (shift.signups.some((x: any) => x.userId === me.id)) throw new DemoError(409, 'Tu es déjà inscrit(e) à ce poste');
+      if (shift.signups.length >= shift.needed) throw new DemoError(409, 'Ce poste est complet');
+      shift.signups.push({ userId: me.id, user: { id: me.id, pseudo: me.pseudo, firstName: me.firstName ?? null } });
+      setRsvp(planId, 'in'); // s'inscrire vaut « Je suis in »
+    } else if (m[2] === '/signup' && method === 'DELETE') {
+      shift.signups = shift.signups.filter((x: any) => x.userId !== me.id);
+    } else if (m[3] && method === 'DELETE') {
+      if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
+      shift.signups = shift.signups.filter((x: any) => x.userId !== m![3]);
+    } else throw new DemoError(403, NOT_IN_DEMO);
+    changed(planId, plan(planId).circleId);
+    return { ok: true };
   }
 
   // Réponse (RSVP), « vu », informations importantes, modification du Plan
