@@ -26,6 +26,19 @@ import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
 
+// Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
+function useIsPhone() {
+  const query = '(max-width: 767px)';
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setPhone(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
 type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles';
 
 const rsvpConfig = {
@@ -63,8 +76,11 @@ interface Props {
 export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab }: Props) {
   const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
-  const tabRef = useRef<Tab>('chat');
-  tabRef.current = tab;
+  // Téléphone : page principale du Plan (en-tête + une carte par rubrique), puis une rubrique
+  // à la fois en plein écran. Grand écran : onglets.
+  const isPhone = useIsPhone();
+  const [hub, setHub] = useState(true);
+  const tabRef = useRef<Tab | null>('chat');
   // Message reçu en direct pendant qu'un autre onglet est affiché (le chat ne recharge pas le Plan)
   const [chatUnseen, setChatUnseen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -189,20 +205,27 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   // Bénévoles : fonction à activer (absente par défaut)
   const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (t.key === 'benevoles' ? hasFeature(plan, 'benevoles') : isEnabled(plan, t.key)));
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
+  const showHub = isPhone && isMember && hub;
+  const phoneSection = isPhone && isMember && !hub;
+  // Rubrique réellement affichée (aucune sur la page principale)
+  const activeTab: Tab | null = showHub ? null : tab;
+  tabRef.current = activeTab;
   const disabledKey = [...(plan.disabledFeatures ?? []), '|', ...(plan.enabledFeatures ?? [])].join(',');
 
   // Onglet par défaut à l'ouverture d'un Plan, ou celui demandé par la cloche
   useEffect(() => {
     const wanted = openTab?.tab as Tab | undefined;
-    setTab(wanted && visibleTabs.some(t => t.key === wanted) ? wanted : defaultTab);
+    const valid = !!wanted && visibleTabs.some(t => t.key === wanted);
+    setTab(valid ? wanted! : defaultTab);
+    setHub(!valid);
     setReplyTo(null);
     setOpenThreadId(null);
     setThreadReplies([]);
   }, [plan.id, openTab?.n]);
 
   useLayoutEffect(() => {
-    if (tab === 'chat') scrollToBottom();
-  }, [messages, tab, scrollToBottom]);
+    if (activeTab === 'chat') scrollToBottom();
+  }, [messages, activeTab, scrollToBottom]);
 
   // Zone de chat redimensionnée (mise en place de l'écran, clavier) : on reste en bas.
   // Chat qui réapparaît (sur téléphone, le Plan reste chargé mais masqué quand on revient
@@ -218,7 +241,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [tab, isMember, scrollToBottom]);
+  }, [activeTab, isMember, scrollToBottom]);
 
   // Retour dans l'app (ou sur l'onglet du navigateur) après des messages reçus entre-temps :
   // on affiche le dernier message
@@ -251,12 +274,48 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   // les appareils) dès qu'il a du nouveau, y compris quand le Plan se recharge en direct
   const unseenKey = (plan.unseen ?? []).join(',');
   useEffect(() => {
-    if (tab === 'chat') setChatUnseen(false);
-    if (!isMember || !(plan.unseen ?? []).includes(tab)) return;
-    api.post(`/plans/${plan.id}/seen`, { section: tab }).catch(() => {});
-    onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== tab) });
+    if (!activeTab) return; // page principale : rien n'est « vu »
+    if (activeTab === 'chat') setChatUnseen(false);
+    if (!isMember || !(plan.unseen ?? []).includes(activeTab)) return;
+    api.post(`/plans/${plan.id}/seen`, { section: activeTab }).catch(() => {});
+    onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== activeTab) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan.id, tab, isMember, unseenKey]);
+  }, [plan.id, activeTab, isMember, unseenKey]);
+
+  // Retour à la page principale du Plan (flèche, bouton retour Android, glissement depuis le bord)
+  function backToHub() {
+    setHub(true);
+    setReplyTo(null);
+    setOpenThreadId(null);
+    setThreadReplies([]);
+  }
+  const phoneSectionRef = useRef(phoneSection);
+  phoneSectionRef.current = phoneSection;
+  useEffect(() => {
+    // Le tableau de bord (bouton retour Android) demande d'abord au Plan s'il a une rubrique à fermer
+    function onBack(e: Event) {
+      if (!phoneSectionRef.current) return;
+      e.preventDefault();
+      backToHub();
+    }
+    window.addEventListener('evly-back-plan', onBack);
+    return () => window.removeEventListener('evly-back-plan', onBack);
+  }, []);
+  const swipeRef = useRef<{ x: number; y: number } | null>(null);
+  const swipeHandlers = {
+    onTouchStart: (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      swipeRef.current = t.clientX < 28 ? { x: t.clientX, y: t.clientY } : null;
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      const start = swipeRef.current;
+      swipeRef.current = null;
+      if (!start) return;
+      const t = e.changedTouches[0];
+      if (t.clientX - start.x > 70 && Math.abs(t.clientY - start.y) < 60) backToHub();
+    },
+  };
+  const hasNews = (key: Tab) => (plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen);
 
   // Si le créateur masque l'onglet affiché, revenir sur un onglet visible
   useEffect(() => {
@@ -388,10 +447,43 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const outCount = plan.members.filter(m => m.rsvp === 'out').length;
   const isFull = plan.maxParticipants != null && plan.members.length >= plan.maxParticipants;
 
-  return (
-    <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden short:overflow-y-auto">
-      {/* Header */}
-      <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0">
+  // Téléphone, page principale : une carte par rubrique (le Chat en premier, sur toute la largeur)
+  const hubCards = (
+    <div className="grid grid-cols-2 gap-3 p-4">
+      {visibleTabs.map(({ key, Icon, label }) => (
+        <button
+          key={key}
+          onClick={() => { setTab(key); setHub(false); }}
+          className={`relative flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-left active:bg-slate-100 transition-colors ${key === 'chat' ? 'col-span-2 py-5' : ''}`}
+        >
+          <span className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+            <Icon size={20} />
+          </span>
+          <span className="font-semibold text-slate-800 text-sm truncate">{label}</span>
+          {hasNews(key) && <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-orange-500" aria-label="Nouveau" />}
+        </button>
+      ))}
+    </div>
+  );
+  const current = visibleTabs.find(t => t.key === tab);
+  // Téléphone, une rubrique : seulement le titre du Plan et le nom de la rubrique
+  const sectionHeader = (
+    <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
+      <button onClick={backToHub} aria-label="Retour au Plan" className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex-shrink-0">
+        <ChevronLeft size={20} />
+      </button>
+      <button onClick={backToHub} className="min-w-0 text-left">
+        <span className="block text-xs text-slate-500 truncate">{plan.title}</span>
+        <span className="flex items-center gap-1.5 font-semibold text-slate-900">
+          {current && <current.Icon size={15} className="text-indigo-600" />}{current?.label}
+        </span>
+      </button>
+    </div>
+  );
+
+  // En-tête du Plan (titre, actions, dates, réponses, RSVP)
+  const header = (
+      <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0 bg-white">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-2 flex-1 min-w-0">
             <button
@@ -402,7 +494,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             </button>
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
-                <h1 className="text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
+                <h1 className="text-xl md:text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
                 {canEdit && (
                   <button
                     onClick={() => setShowEditPlan(true)}
@@ -593,15 +685,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         <div className="flex flex-wrap items-center gap-2 mt-2">
           {eventDateFmt && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg w-fit">
-              <Calendar size={13} className="text-indigo-500 flex-shrink-0" />
-              <span className="text-sm font-medium text-indigo-700">{eventDateFmt}</span>
+              <Calendar size={15} className="text-indigo-500 flex-shrink-0" />
+              <span className="text-base md:text-sm font-medium text-indigo-700">{eventDateFmt}</span>
             </div>
           )}
           {repeatLabel && (
-            <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-xs font-medium text-slate-600">
-              <Repeat size={12} /> {repeatLabel}
+            <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-sm md:text-xs font-medium text-slate-600">
+              <Repeat size={13} /> {repeatLabel}
             </span>
           )}
+        </div>
+        {/* Date de suppression du Plan, sur sa propre ligne */}
+        <div className="flex mt-2">
           <ExpiryChip endDate={plan.endDate} />
         </div>
 
@@ -609,11 +704,11 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         {isMember && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
             {plan.location && (
-              <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                <MapPin size={12} className="text-indigo-400" />{plan.location}
+              <span className="flex items-center gap-1.5 text-sm md:text-xs text-slate-500">
+                <MapPin size={14} className="text-indigo-400" />{plan.location}
               </span>
             )}
-            <span className="text-xs text-slate-400">
+            <span className="text-sm md:text-xs text-slate-400">
               par @{plan.creator.pseudo} ·{' '}
               <span className="text-emerald-600">{inCount} in</span>{' '}·{' '}
               <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
@@ -626,7 +721,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         )}
 
         {(plan.exclusions ?? []).length > 0 && (
-          <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-800">
+          <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-sm md:text-xs text-indigo-800">
             <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
             <span>
               <strong>Plan surprise</strong> pour {(plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ')} :
@@ -636,21 +731,22 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         )}
 
         {plan.viewerIsGuest && (
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-sm md:text-xs text-slate-500">
             Tu es <strong>invité(e)</strong> à ce Plan : tu y as accès, sans faire partie du Cercle.
           </p>
         )}
         </div>
 
         {isMember ? (
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            <span className="text-xs text-slate-400 font-medium">Mon RSVP :</span>
+          <div className="grid grid-cols-3 md:flex items-center gap-2 mt-3 md:flex-wrap">
+            {/* Téléphone : les trois réponses sur toute la largeur, sans libellé */}
+            <span className="hidden md:inline text-xs text-slate-400 font-medium">Mon RSVP :</span>
             {(['in', 'maybe', 'out'] as const).map(rsvp => (
               <button
                 key={rsvp}
                 onClick={() => handleRsvp(rsvp)}
                 disabled={updatingRsvp}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                className={`px-3.5 py-2 md:px-3 md:py-1.5 rounded-lg text-sm md:text-xs font-semibold transition-colors ${
                   myMember?.rsvp === rsvp ? rsvpConfig[rsvp].active : rsvpConfig[rsvp].inactive
                 }`}
               >
@@ -675,11 +771,22 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           </div>
         )}
       </div>
+  );
+
+  return (
+    <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden short:overflow-y-auto" {...(phoneSection ? swipeHandlers : {})}>
+      {/* En-tête : page principale (téléphone) ou au-dessus des onglets (grand écran) */}
+      {phoneSection ? sectionHeader : showHub ? (
+        <div className="flex-1 overflow-y-auto bg-slate-50">
+          {header}
+          {hubCards}
+        </div>
+      ) : header}
 
       {/* Tabs (only if member) */}
-      {isMember && (
+      {isMember && !showHub && (
         <>
-          <div className="flex border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
+          <div className="hidden md:flex border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
             {visibleTabs.map(({ key, Icon, label }) => (
               <button
                 key={key}
@@ -701,7 +808,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             ))}
           </div>
 
-          {tab === 'chat' && isEnabled(plan, 'chat') && (
+          {activeTab === 'chat' && isEnabled(plan, 'chat') && (
             <div className="flex-1 flex flex-col overflow-hidden short:flex-none short:overflow-visible">
               <div ref={chatScrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
                 {visibleMessages.length === 0 ? (
@@ -755,14 +862,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             </div>
           )}
 
-          {tab === 'infos' && (
+          {activeTab === 'infos' && (
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
-          {tab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
-          {tab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
-          {tab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
-          {tab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
-          {tab === 'trajets' && (
+          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
+          {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
+          {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
+          {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
+          {activeTab === 'trajets' && (
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
               <CarpoolSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} />
             </div>

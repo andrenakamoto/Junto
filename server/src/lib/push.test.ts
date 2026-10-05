@@ -12,7 +12,9 @@ describe('pushContent', () => {
   });
 
   it('ouvre le Plan ou le sondage concerné', () => {
-    expect(pushContent({ type: 'new_message', planId: 'p1', from: 'julie' })?.url).toBe('/dashboard?planId=p1');
+    // Message : directement dans le chat du Plan ; autre activité : page principale du Plan
+    expect(pushContent({ type: 'new_message', planId: 'p1', from: 'julie' })?.url).toBe('/dashboard?planId=p1&tab=chat');
+    expect(pushContent({ type: 'new_plan', planId: 'p1', from: 'julie', planTitle: 'Raclette' })?.url).toBe('/dashboard?planId=p1');
     expect(pushContent({ type: 'poll_message', circleId: 'c1', pollId: 'q1' })?.url).toBe('/dashboard?circleId=c1&pollId=q1');
     expect(pushContent({ type: 'join_request', circleId: 'c1', from: 'tom' })?.url).toBe('/dashboard?circleId=c1');
   });

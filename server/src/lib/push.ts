@@ -55,9 +55,9 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
   const circleUrl = `/dashboard?circleId=${n.circleId}`;
   switch (n.type) {
     case 'new_message':
-      return { title: n.planTitle ?? 'EvLY', body: `Nouveau message de ${from}`, url: planUrl, group: `chat:${n.planId}` };
+      return { title: n.planTitle ?? 'EvLY', body: `Nouveau message de ${from}`, url: `${planUrl}&tab=chat`, group: `chat:${n.planId}` };
     case 'mention':
-      return { title: n.planTitle ?? 'EvLY', body: `${from} t'a mentionné(e)`, url: planUrl, group: `chat:${n.planId}` };
+      return { title: n.planTitle ?? 'EvLY', body: `${from} t'a mentionné(e)`, url: `${planUrl}&tab=chat`, group: `chat:${n.planId}` };
     case 'new_plan':
       return { title: n.circleName ?? 'Nouveau Plan', body: `${from} propose un nouveau Plan : ${n.planTitle}`, url: planUrl, group: `plan:${n.planId}` };
     case 'plan_activity':

@@ -3,7 +3,7 @@ import { Hourglass } from 'lucide-react';
 
 const DAY_MS = 24 * 3600 * 1000;
 
-// Étiquette « ⏳ jusqu'au 9 oct. » à côté de la date du Plan (remplace la phrase « Ce plan
+// Étiquette « ⏳ Jusqu'au 9 oct. à 19:00 » sous la date du Plan (remplace la phrase « Ce plan
 // disparaît le… ») ; le détail s'affiche au toucher. Orange dans les dernières 24 heures.
 export function ExpiryChip({ endDate }: { endDate: string }) {
   const [open, setOpen] = useState(false);
@@ -38,7 +38,7 @@ export function ExpiryChip({ endDate }: { endDate: string }) {
   const soon = left < DAY_MS;
   const label = soon
     ? `Supprimé dans ${left < 3600e3 ? `${Math.max(1, Math.round(left / 60e3))} min` : `${Math.round(left / 3600e3)} h`}`
-    : `jusqu'au ${new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short' }).format(end)}`;
+    : `Jusqu'au ${new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short' }).format(end)} à ${new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' }).format(end)}`;
   const full = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(end);
 
   return (
@@ -48,11 +48,11 @@ export function ExpiryChip({ endDate }: { endDate: string }) {
         onClick={toggle}
         aria-expanded={open}
         title="Quand ce Plan sera supprimé"
-        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm md:text-xs font-medium transition-colors ${
           soon ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
         }`}
       >
-        <Hourglass size={12} /> {label}
+        <Hourglass size={13} /> {label}
       </button>
       {open && pos && (
         <span role="tooltip" style={{ left: pos.left, top: pos.top, width: BUBBLE_W }} className="fixed z-50 p-3 rounded-xl bg-slate-800 text-white text-xs leading-relaxed shadow-xl">

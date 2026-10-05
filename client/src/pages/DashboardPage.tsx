@@ -232,11 +232,13 @@ export function DashboardPage() {
   // Deep-link depuis un lien d'invitation vers un Plan précis (?planId=...)
   useEffect(() => {
     const deepLinkPlanId = searchParams.get('planId');
+    // Rubrique demandée (?tab=chat : notification push d'un message)
+    const deepLinkTab = searchParams.get('tab') || undefined;
     // Un invité externe peut n'être dans aucun Cercle : on attend le chargement, pas un Cercle
     if (!deepLinkPlanId || !circlesLoaded) return;
-    setSearchParams(prev => { prev.delete('planId'); return prev; }, { replace: true });
+    setSearchParams(prev => { prev.delete('planId'); prev.delete('tab'); return prev; }, { replace: true });
     api.get(`/plans/${deepLinkPlanId}`)
-      .then(res => handleSelectPlan(res.data))
+      .then(res => handleSelectPlan(res.data, deepLinkTab))
       .catch(() => {});
   }, [circles, circlesLoaded, searchParams]);
 
@@ -354,7 +356,8 @@ export function DashboardPage() {
       // Ouvre « Proposer une amélioration » sur le suivi (CircleSidebar lit ce paramètre)
       setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
     } else if (n.planId) {
-      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any);
+      // Message ou mention : directement dans le chat ; le reste, page principale du Plan
+      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : undefined);
     } else if (n.pollId && n.circleId) {
       handleSelectCircle(n.circleId);
       openPoll(n.pollId);
@@ -483,11 +486,20 @@ export function DashboardPage() {
   backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId, notifCenter: showNotifCenter };
   useEffect(() => {
     function onBack(e: Event) {
+      // Déjà traité (ex. une rubrique du Plan ouverte sur téléphone revient à la page principale)
+      if (e.defaultPrevented) return;
       const { mobileView: view, open, notifCenter } = backState.current;
       // Panneau des notifications ouvert : le retour le ferme
       if (notifCenter) {
         e.preventDefault();
         setShowNotifCenter(false);
+        return;
+      }
+      // Plan ouvert sur une rubrique (téléphone) : retour à la page principale du Plan
+      const inner = new Event('evly-back-plan', { cancelable: true });
+      window.dispatchEvent(inner);
+      if (inner.defaultPrevented) {
+        e.preventDefault();
         return;
       }
       if (window.matchMedia('(min-width: 768px)').matches) {
