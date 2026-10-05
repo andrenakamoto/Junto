@@ -38,6 +38,8 @@ model User {
   // ni email ni mot de passe. Devient un compte normal à l'inscription, ou est fusionné dans le
   // compte existant à la connexion ; supprimé quand il n'a plus aucun Plan.
   isLight              Boolean   @default(false)
+  // Récapitulatif PDF par email avant la suppression des Plans que la personne gère (lib/planRecap.ts)
+  recapEmailEnabled    Boolean   @default(false)
   lastDigestSentAt     DateTime?
   createdAt            DateTime  @default(now())
   // Dernière utilisation de l'app (au plus une mise à jour par heure, lib/activity.ts) —
@@ -64,6 +66,7 @@ model User {
   ridesDriven            Ride[]                @relation("RideDriver")
   ridePassengers         RidePassenger[]
   volunteerSignups       VolunteerSignup[]
+  notificationMutes      NotificationMute[]
   rideRequests           RideRequest[]
   planExclusions         PlanExclusion[]
   planChangeLogs         PlanChangeLog[]       @relation("PlanChangeLogAuthor")
@@ -115,15 +118,16 @@ model Circle {
   // Qui peut lancer des sondages de dates : 'all' ou 'creator' (créateur et organisateurs)
   pollCreationMode String   @default("all")
 
-  creatorId    String
-  creator      User                @relation("CircleCreator", fields: [creatorId], references: [id])
-  members      CircleMember[]
-  plans        Plan[]
-  deleteVotes  CircleDeleteVote[]
-  joinRequests CircleJoinRequest[]
-  polls        CirclePoll[]
-  invitations  CircleInvitation[]
-  changeLogs   CircleChangeLog[]
+  creatorId         String
+  creator           User                @relation("CircleCreator", fields: [creatorId], references: [id])
+  members           CircleMember[]
+  plans             Plan[]
+  deleteVotes       CircleDeleteVote[]
+  joinRequests      CircleJoinRequest[]
+  polls             CirclePoll[]
+  invitations       CircleInvitation[]
+  changeLogs        CircleChangeLog[]
+  notificationMutes NotificationMute[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -292,23 +296,24 @@ model Plan {
   circleId  String
   circle    Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
-  members          PlanMember[]
-  activities       PlanActivity[]
-  messages         Message[]
-  polls            Poll[]
-  items            BringItem[]
-  deleteVotes      PlanDeleteVote[]
-  changeLogs       PlanChangeLog[]
-  attachments      Attachment[]
-  expenses         Expense[]
-  reimbursements   Reimbursement[]
-  originCirclePoll CirclePoll?
-  rides            Ride[]
-  rideRequests     RideRequest[]
-  volunteerShifts  VolunteerShift[]
-  volunteerSignups VolunteerSignup[]
-  exclusions       PlanExclusion[]
-  guestLink        PlanGuestLink?
+  members           PlanMember[]
+  activities        PlanActivity[]
+  messages          Message[]
+  polls             Poll[]
+  items             BringItem[]
+  deleteVotes       PlanDeleteVote[]
+  changeLogs        PlanChangeLog[]
+  attachments       Attachment[]
+  expenses          Expense[]
+  reimbursements    Reimbursement[]
+  originCirclePoll  CirclePoll?
+  rides             Ride[]
+  rideRequests      RideRequest[]
+  volunteerShifts   VolunteerShift[]
+  volunteerSignups  VolunteerSignup[]
+  notificationMutes NotificationMute[]
+  exclusions        PlanExclusion[]
+  guestLink         PlanGuestLink?
 }
 
 // Lien d'invitation « invité externe » d'un Plan (réutilisable, régénérable par le
@@ -696,4 +701,20 @@ model VolunteerSignup {
 
   @@id([shiftId, userId])
   @@index([planId, userId])
+}
+
+// Mode silencieux (lib/mutes.ts) : plus de push, d'email ni de bulle dans l'app pour un Plan ou
+// tout un Cercle ; les points orange « nouveau » restent. Les mentions préviennent quand même.
+model NotificationMute {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    String?
+  plan      Plan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  circleId  String?
+  circle    Circle?  @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, planId])
+  @@unique([userId, circleId])
 }

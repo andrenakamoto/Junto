@@ -31,7 +31,7 @@ function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
 function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
-  weeklyDigestEnabled?: boolean; firstName?: string | null; lastName?: string | null;
+  weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; firstName?: string | null; lastName?: string | null;
   password?: string | null; pendingEmail?: string | null; notificationChannel?: string;
   blocking?: { blockedId: string }[];
 }) {
@@ -50,6 +50,7 @@ function safeUser(user: {
     // Nouvelle adresse en attente de confirmation (changement d'email)
     pendingEmail: user.pendingEmail ?? null,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
+    recapEmailEnabled: user.recapEmailEnabled ?? false,
     notificationChannel: user.notificationChannel ?? 'both',
     // Personnes masquées (lib/moderation.ts) : leurs messages sont cachés côté client
     ...(user.blocking && { blockedUserIds: user.blocking.map(b => b.blockedId) }),
@@ -368,7 +369,7 @@ router.post('/reset-password', async (req, res) => {
 
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
-  email: true, emailVerified: true, weeklyDigestEnabled: true, notificationChannel: true,
+  email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, notificationChannel: true,
   blocking: { select: { blockedId: true } },
   firstName: true, lastName: true, password: true, pendingEmail: true,
 };
@@ -443,15 +444,16 @@ router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthReques
 
 router.put('/notification-settings', requireAuth, async (req: AuthRequest, res) => {
   // Chaque champ est facultatif : on ne modifie que ceux envoyés
-  const { weeklyDigestEnabled } = req.body;
+  const { weeklyDigestEnabled, recapEmailEnabled } = req.body;
   const notificationChannel = req.body.notificationChannel === undefined ? undefined : parseNotificationChannel(req.body.notificationChannel);
   if ((weeklyDigestEnabled !== undefined && typeof weeklyDigestEnabled !== 'boolean') || notificationChannel === null
-    || (weeklyDigestEnabled === undefined && notificationChannel === undefined)) {
+    || (recapEmailEnabled !== undefined && typeof recapEmailEnabled !== 'boolean')
+    || (weeklyDigestEnabled === undefined && notificationChannel === undefined && recapEmailEnabled === undefined)) {
     res.status(400).json({ error: 'Champ invalide' }); return;
   }
   const user = await prisma.user.update({
     where: { id: req.userId },
-    data: { weeklyDigestEnabled, notificationChannel },
+    data: { weeklyDigestEnabled, notificationChannel, recapEmailEnabled },
     select: meSelect,
   });
   res.json(safeUser(user));

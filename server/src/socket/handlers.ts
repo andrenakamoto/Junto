@@ -167,7 +167,7 @@ export function setupSocketHandlers(io: Server) {
             <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le message
             </a>
-          ${notificationFooter()}
+          ${notificationFooter('simple')}
           </div>`,
       }).then(r => { if (r.error) console.error('[mention email]', m.user.email, r.error); })
         .catch(e => console.error('[mention email]', m.user.email, e))));

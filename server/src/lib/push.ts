@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 import prisma from './prisma';
+import { isMuted, MUTE_EXEMPT_TYPES } from './mutes';
 import { isBlockedBy } from './moderation';
 
 // Notifications push des apps Android / iOS, via Firebase Cloud Messaging (projet
@@ -135,13 +136,18 @@ export async function sendPush(userId: string, n: AppNotification): Promise<void
 }
 
 // Notification dans l'app (temps réel) + push sur les téléphones, en arrière-plan
+// Rien si l'auteur est masqué par le destinataire (lib/moderation.ts) ou si le Plan / le Cercle
+// est en silence pour lui (lib/mutes.ts, sauf mentions et invitations)
 export function notifyUser(io: { to(room: string): { emit(ev: string, data: unknown): unknown } } | undefined, userId: string, n: AppNotification) {
   const deliver = () => {
     io?.to(`user:${userId}`).emit('notification', n);
     sendPush(userId, n).catch(e => console.error('[push]', e));
   };
-  if (!n.actorId) { deliver(); return; }
-  isBlockedBy(userId, n.actorId)
-    .then(blocked => { if (!blocked) deliver(); })
-    .catch(e => { console.error('[notify block check]', e); deliver(); });
+  const checks: Promise<boolean>[] = [];
+  if (n.actorId) checks.push(isBlockedBy(userId, n.actorId));
+  if (!MUTE_EXEMPT_TYPES.has(n.type) && (n.planId || n.circleId)) checks.push(isMuted(userId, { planId: n.planId, circleId: n.circleId }));
+  if (checks.length === 0) { deliver(); return; }
+  Promise.all(checks)
+    .then(results => { if (!results.some(Boolean)) deliver(); })
+    .catch(e => { console.error('[notify checks]', e); deliver(); });
 }

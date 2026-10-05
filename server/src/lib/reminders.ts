@@ -1,4 +1,6 @@
 import prisma from './prisma';
+import { mutedAmong } from './mutes';
+import { sendRecapBeforeDeletion } from './planRecap';
 import { shiftHours, sortShifts } from './volunteers';
 import { purgePlanFiles } from './cloudinary';
 import { visiblePlansWhere } from './planAccess';
@@ -26,6 +28,8 @@ export async function deleteExpiredPlans() {
     });
 
     for (const plan of expiredPlans) {
+      // Récapitulatif PDF pour ceux qui l'ont demandé (avant la suppression : il lit le Plan)
+      await sendRecapBeforeDeletion(plan).catch(e => console.error('[recap] Plan', plan.id, e));
       if (plan.expenses.length > 0) {
         try {
           const memberIds = plan.members.map(m => m.userId);
@@ -96,12 +100,16 @@ export async function sendPlanReminders() {
     });
 
     for (const plan of plans) {
-      const recipients = plan.members
+      // Plan ou Cercle en silence : rappel gardé pour ceux qui ont répondu « Je suis in »,
+      // pas pour les « Peut-être » (lib/mutes.ts)
+      const muted = await mutedAmong({ planId: plan.id, circleId: plan.circleId }, plan.members.map(m => m.userId));
+      const reminded = plan.members.filter(m => m.rsvp === 'in' || !muted.has(m.userId));
+      const recipients = reminded
         .map(m => m.user)
         .filter(u => u.email && u.emailVerified && wantsEmail(u.notificationChannel));
 
       // Rappel aussi en push, pour ceux qui l'ont choisi (filtré dans sendPush)
-      for (const m of plan.members) {
+      for (const m of reminded) {
         sendPush(m.user.id, { type: 'plan_reminder', planId: plan.id, planTitle: plan.title, circleId: plan.circleId })
           .catch(e => console.error('[reminder push]', e));
       }

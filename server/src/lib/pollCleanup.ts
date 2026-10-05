@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { isMuted } from './mutes';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { pollExpiresAt } from './pollExpiry';
 import { wantsEmail } from './notificationPrefs';
@@ -47,6 +48,8 @@ export async function sendPollReminders() {
 
       // Marqué avant l'envoi : un échec d'email ne doit pas provoquer un rappel toutes les 15 min
       await prisma.circlePoll.update({ where: { id: poll.id }, data: { reminderSentAt: new Date() } });
+      // Cercle en silence pour le créateur du sondage : ni push ni email
+      if (await isMuted(poll.creator.id, { circleId: poll.circle.id })) continue;
       sendPush(poll.creator.id, { type: 'poll_reminder', circleId: poll.circle.id, pollId: poll.id, planTitle: poll.question })
         .catch(e => console.error('[poll_reminder push]', e));
       if (!poll.creator.email || !poll.creator.emailVerified || !wantsEmail(poll.creator.notificationChannel)) continue;

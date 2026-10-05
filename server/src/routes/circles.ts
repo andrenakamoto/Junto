@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
+import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
@@ -171,7 +172,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Ouvrir EvLY
             </a>
-          ${notificationFooter()}
+          ${notificationFooter('simple')}
           </div>`,
       }).then(r => { if (r.error) console.error('[join_accepted email]', approvedUser.email, r.error); });
     }
@@ -343,7 +344,8 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
         });
       }
     }
-    const recipients = members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
+    // Cercle en silence (lib/mutes.ts) : pas d'email
+    const recipients = await withoutMuted({ circleId: circle.id }, members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
     await Promise.all(recipients.map(m => resend.emails.send({
       from: FROM_EMAIL,
       to: m.user.email!,
@@ -428,7 +430,7 @@ router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => 
           <a href="${APP_URL}/dashboard?invitations=1" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir l'invitation
           </a>
-        ${notificationFooter()}
+        ${notificationFooter('simple')}
         </div>`,
     }).then(r => { if (r.error) console.error('[circle_invite email]', r.error); })
       .catch(e => console.error('[circle_invite email]', e));
@@ -740,7 +742,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     }
   }
 
-  const recipients = otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
+  const recipients = await withoutMuted({ circleId }, otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), (m: any) => m.userId);
   await Promise.all(recipients.map((m: any) => resend.emails.send({
     from: FROM_EMAIL,
     to: m.user.email!,
@@ -1008,7 +1010,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
         }
       }
 
-      const recipients = otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel));
+      const recipients = await withoutMuted({ circleId: req.params.id }, otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
       await Promise.all(recipients.map(m => resend.emails.send({
         from: FROM_EMAIL,
         to: m.user.email!,

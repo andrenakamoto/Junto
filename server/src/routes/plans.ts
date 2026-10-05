@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { isMuted } from '../lib/mutes';
+import { buildPlanRecapPdf, canDownloadRecap } from '../lib/planRecap';
 import { purgePlanFiles } from '../lib/cloudinary';
 import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -149,7 +151,24 @@ router.get('/:id', async (req: AuthRequest, res) => {
     unseenAt: unseen?.at ?? null,
     viewerIsGuest: access.isGuest,
     mediaToken: mintMediaToken(plan.id, req.userId!),
+    // Récapitulatif PDF : créateur du Plan et gestionnaires du Cercle
+    canRecap: await canDownloadRecap(req.userId!, plan),
   });
+});
+
+// GET /:id/recap — récapitulatif PDF du Plan (lib/planRecap.ts)
+router.get('/:id/recap', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!(await canDownloadRecap(req.userId!, access.plan))) {
+    res.status(403).json({ error: 'Le récapitulatif est réservé au créateur du Plan et aux organisateurs du Cercle' });
+    return;
+  }
+  const pdf = await buildPlanRecapPdf(req.params.id);
+  if (!pdf) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(pdf.filename)}`);
+  res.send(pdf.buffer);
 });
 
 // Onglet consulté : efface sa pastille « nouveau » (pas de diffusion, voir lib/realtime.ts)
@@ -447,7 +466,8 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
         select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true },
       });
       const joiner = updatedPlan.members.find(m => m.userId === req.userId)?.user;
-      if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel) && joiner) {
+      const creatorMuted = await isMuted(updatedPlan.creatorId, { planId: updatedPlan.id, circleId: updatedPlan.circleId });
+      if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel) && joiner && !creatorMuted) {
         const result = await resend.emails.send({
           from: FROM_EMAIL,
           to: creator.email,
