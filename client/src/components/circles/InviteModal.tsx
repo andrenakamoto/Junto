@@ -120,7 +120,8 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
     setSending(true);
     setError('');
     try {
-      await api.post('/invitations/sms', { to: phone.trim(), message: smsText });
+      // Le serveur fabrique lui-même le texte et le lien (routes/invitations.ts)
+      await api.post('/invitations/sms', { to: phone.trim(), circleId, planId, guest: isGuestMode });
       setSent(true);
       setPhone('');
       setTimeout(() => setSent(false), 4000);
@@ -136,7 +137,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
     setSendingEmail(true);
     setEmailError('');
     try {
-      await api.post('/invitations/email', { to: email.trim(), circleName, circleCode, planTitle, joinLink });
+      await api.post('/invitations/email', { to: email.trim(), circleId, planId, guest: isGuestMode });
       setEmailSent(true);
       setEmail('');
       setTimeout(() => setEmailSent(false), 4000);
