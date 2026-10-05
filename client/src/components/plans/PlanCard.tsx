@@ -1,4 +1,5 @@
 import { Calendar, MapPin, MessageSquare, Users, Repeat } from 'lucide-react';
+import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -47,6 +48,8 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
       )}
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
+        <span className="flex-shrink-0 flex items-center gap-1">
+        <MuteToggle plan={plan} />
         {myMember ? (
           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
             {rsvpLabel[myMember.rsvp]}
@@ -60,6 +63,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
             Rejoindre
           </span>
         )}
+        </span>
       </div>
 
       {plan.description && <p className="text-slate-500 text-xs line-clamp-3 whitespace-pre-line break-words mb-2.5">{plan.description}</p>}

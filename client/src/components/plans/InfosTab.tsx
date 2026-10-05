@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { isEnabled } from '../../lib/settings';
 import { ImportantInfoCard } from './ImportantInfoCard';
+import { downloadPlanPhotos } from '../../lib/planPhotos';
 
 interface Props {
   plan: Plan;
@@ -37,21 +38,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
     setZipping(true);
     setZipError('');
     try {
-      if (Capacitor.isNativePlatform()) {
-        const { data } = await api.get(`/attachments/plans/${plan.id}/photos-token`);
-        const base = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
-        window.open(`${base}/attachments/plans/${plan.id}/photos/download?token=${data.token}`, '_system');
-      } else {
-        const res = await api.get(`/attachments/plans/${plan.id}/photos/download`, { responseType: 'blob' });
-        const url = URL.createObjectURL(res.data);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${plan.title.replace(/[/\\:*?"<>|]/g, '_')} - photos.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
+      await downloadPlanPhotos(plan);
     } catch {
       setZipError('Impossible de préparer le téléchargement. Réessaie.');
     } finally {

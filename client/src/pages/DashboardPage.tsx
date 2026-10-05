@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { MuteProvider } from '../contexts/MuteContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
@@ -524,7 +525,7 @@ export function DashboardPage() {
   const showDetail  = mobileView === 'detail';
 
   return (
-    <>
+    <MuteProvider>
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
     )}
@@ -579,6 +580,7 @@ export function DashboardPage() {
           unreadCount={bellCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
           unreadCircles={circlesWithNews}
+          onlineUserIds={onlineUserIds}
         />
       </div>
 
@@ -616,6 +618,7 @@ export function DashboardPage() {
             unreadPlans={unreadPlans}
             selectedPollId={selectedPollId}
             onSelectPoll={openPoll}
+            onlineUserIds={onlineUserIds}
           />
         </div>
       ) : (
@@ -654,7 +657,7 @@ export function DashboardPage() {
       </div>
     </div>
     </div>
-    </>
+    </MuteProvider>
   );
 }
 

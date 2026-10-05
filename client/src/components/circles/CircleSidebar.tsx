@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb } from 'lucide-react';
+import { CircleMembersSheet } from './CircleMembersSheet';
+import { useMutes } from '../../contexts/MuteContext';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
 import { ProfileModal } from '../ui/ProfileModal';
 import { DeleteAccountModal } from '../ui/DeleteAccountModal';
-import { displayName } from '../../lib/names';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { SuggestionModal } from '../ui/SuggestionModal';
@@ -34,9 +35,12 @@ interface Props {
   unreadCount: number;
   onOpenNotifications: () => void;
   unreadCircles: Set<string>;
+  /** Présence en ligne (fenêtre des membres) */
+  onlineUserIds?: Set<string>;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds }: Props) {
+  const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
@@ -78,17 +82,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   }
 
   // Nommer / retirer un organisateur (créateur du Cercle uniquement)
-  const [roleBusy, setRoleBusy] = useState<string | null>(null);
-  async function handleSetRole(circleId: string, userId: string, role: 'organizer' | 'member') {
-    setRoleBusy(userId);
-    try {
-      const { data } = await api.put(`/circles/${circleId}/members/${userId}/role`, { role });
-      onCircleUpdated(data);
-    } catch { /* rechargé par le temps réel */ } finally {
-      setRoleBusy(null);
-    }
-  }
-
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
@@ -97,7 +90,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         setRequestsPopover(null);
       }
     }
-    if (membersPopover || colorPopover || requestsPopover) document.addEventListener('mousedown', handleClick);
+    if (colorPopover || requestsPopover) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [membersPopover, colorPopover, requestsPopover]);
 
@@ -215,11 +208,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <button
-                        onClick={e => { e.stopPropagation(); setMembersPopover(membersPopover === circle.id ? null : circle.id); }}
+                        onClick={e => { e.stopPropagation(); setMembersPopover(circle.id); }}
                         className={`text-xs hover:underline ${selected ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-700'}`}
                       >
                         {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
                       </button>
+                      {isCircleMuted(circle.id) && (
+                        <span title="Cercle en silence" className={selected ? 'text-indigo-100' : 'text-slate-400'}><BellOff size={12} /></span>
+                      )}
                       {(circle._count?.plans ?? 0) > 0 && (
                         <>
                           <span className="text-xs text-slate-300">·</span>
@@ -270,49 +266,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                   </div>
                 )}
               </button>
-
-              {membersPopover === circle.id && (
-                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2 space-y-1">
-                  {circle.members.map(m => {
-                    const memberIsCreator = m.userId === circle.creatorId;
-                    const memberIsOrganizer = m.role === 'organizer';
-                    return (
-                      <div key={m.userId} className="flex items-center gap-2 px-1 py-0.5">
-                        <Avatar pseudo={m.user.pseudo} size="sm" />
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-xs text-slate-800 truncate">{displayName(m.user) ?? `@${m.user.pseudo}`}</span>
-                          <span className="block text-[10px] text-slate-500 truncate">
-                            {displayName(m.user) && `@${m.user.pseudo}`}
-                            {(memberIsCreator || memberIsOrganizer) && (
-                              <span className="text-indigo-600 font-semibold">{displayName(m.user) && ' · '}{memberIsCreator ? 'Créateur' : 'Organisateur'}</span>
-                            )}
-                          </span>
-                        </span>
-                        {isCreator && !memberIsCreator ? (
-                          <button
-                            onClick={() => handleSetRole(circle.id, m.userId, memberIsOrganizer ? 'member' : 'organizer')}
-                            disabled={roleBusy === m.userId}
-                            title={memberIsOrganizer ? 'Retirer le rôle d\'organisateur' : 'Nommer organisateur'}
-                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold flex-shrink-0 transition-colors disabled:opacity-50 ${
-                              memberIsOrganizer ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
-                          >
-                            <ShieldCheck size={11} />
-                            {memberIsOrganizer ? 'Organisateur' : 'Nommer'}
-                          </button>
-                        ) : (memberIsCreator || memberIsOrganizer) && (
-                          <ShieldCheck size={11} className="text-indigo-600 flex-shrink-0" />
-                        )}
-                      </div>
-                    );
-                  })}
-                  {isCreator && circle.members.length > 1 && (
-                    <p className="text-[10px] text-slate-400 px-1 pt-1 border-t border-slate-100">
-                      Les organisateurs gèrent le Cercle avec toi (paramètres, admissions, création des Plans). Ils ne modifient pas les Plans des autres.
-                    </p>
-                  )}
-                </div>
-              )}
 
               {colorPopover === circle.id && (
                 <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5 flex items-center gap-1.5 flex-wrap">
@@ -469,6 +422,10 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       {showDeleteAccount && (
         <DeleteAccountModal onClose={() => setShowDeleteAccount(false)} />
       )}
+      {membersPopover && (() => {
+        const c = circles.find(x => x.id === membersPopover);
+        return c ? <CircleMembersSheet circle={c} onlineUserIds={onlineUserIds} onClose={() => setMembersPopover(null)} onCircleUpdated={onCircleUpdated} /> : null;
+      })()}
       {showCreate && (
         <CreateCircleModal
           onClose={() => setShowCreate(false)}

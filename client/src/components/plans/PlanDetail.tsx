@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { MuteToggle } from './MuteToggle';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -22,6 +23,8 @@ import { PlanSettingsModal } from './PlanSettingsModal';
 import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
 import { ExpiryChip } from './ExpiryChip';
+import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
+import { downloadPlanRecap } from '../../lib/planRecap';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
@@ -465,6 +468,47 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       ))}
     </div>
   );
+  // Téléphone, page principale : actions rapides dans une barre fixe en bas, bien séparée des
+  // cartes (fond blanc, trait et ombre vers le haut, boutons corail)
+  const photoCount = planImageCount(plan);
+  const [zipping, setZipping] = useState(false);
+  const [recapBusy, setRecapBusy] = useState(false);
+  async function downloadRecap() {
+    setRecapBusy(true);
+    try { await downloadPlanRecap(plan); }
+    catch { alert('Impossible de préparer le récapitulatif. Réessaie.'); }
+    finally { setRecapBusy(false); }
+  }
+  async function downloadPhotos() {
+    setZipping(true);
+    try { await downloadPlanPhotos(plan); }
+    catch { alert('Impossible de préparer le téléchargement. Réessaie.'); }
+    finally { setZipping(false); }
+  }
+  const actions = [
+    { key: 'invite', Icon: UserPlus, label: 'Inviter', onClick: () => setShowInvite(true) },
+    ...(photoCount > 0 ? [{ key: 'photos', Icon: Images, label: zipping ? '…' : 'Photos', onClick: downloadPhotos }] : []),
+    { key: 'ical', Icon: CalendarPlus, label: 'Agenda', onClick: handleExportIcal },
+    { key: 'story', Icon: ImageDown, label: 'Story', onClick: () => setShowStory(true) },
+    ...(plan.canRecap ? [{ key: 'recap', Icon: FileDown, label: recapBusy ? '…' : 'Récap', onClick: downloadRecap }] : []),
+  ];
+  const actionBar = (
+    <div className="flex-shrink-0 bg-white border-t border-slate-200 shadow-[0_-6px_16px_-8px_rgba(15,23,42,0.18)] px-3 pt-2.5 pb-3 short:sticky short:bottom-0">
+      <div className="flex gap-2">
+        {actions.map(({ key, Icon, label, onClick }) => (
+          <button
+            key={key}
+            onClick={onClick}
+            disabled={(key === 'photos' && zipping) || (key === 'recap' && recapBusy)}
+            className="flex-1 flex flex-col items-center gap-1 py-2 rounded-xl bg-indigo-50 text-indigo-700 active:bg-indigo-100 transition-colors"
+          >
+            <Icon size={19} />
+            <span className="text-xs font-semibold">{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
   const current = visibleTabs.find(t => t.key === tab);
   // Téléphone, une rubrique : seulement le titre du Plan et le nom de la rubrique
   const sectionHeader = (
@@ -495,6 +539,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
                 <h1 className="text-xl md:text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
+                {isMember && <span className="mt-0.5"><MuteToggle plan={plan} size={16} /></span>}
                 {canEdit && (
                   <button
                     onClick={() => setShowEditPlan(true)}
@@ -532,6 +577,16 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 >
                   <ImageDown size={16} />
                 </button>
+                {plan.canRecap && (
+                  <button
+                    onClick={downloadRecap}
+                    disabled={recapBusy}
+                    title="Télécharger le récapitulatif (PDF)"
+                    className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                  >
+                    <FileDown size={16} />
+                  </button>
+                )}
                 <button
                   onClick={() => setShowHistory(true)}
                   title="Historique des modifications"
@@ -598,27 +653,41 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <div className="absolute top-full right-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
                 {isMember && (
                   <>
-                    <button
-                      onClick={() => { setShowActionsMenu(false); setShowInvite(true); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
-                    >
-                      <UserPlus size={15} className="text-slate-400" />
-                      Inviter
-                    </button>
-                    <button
-                      onClick={() => { setShowActionsMenu(false); handleExportIcal(); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
-                    >
-                      <CalendarPlus size={15} className="text-slate-400" />
-                      Exporter vers mon calendrier
-                    </button>
-                    <button
-                      onClick={() => { setShowActionsMenu(false); setShowStory(true); }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
-                    >
-                      <ImageDown size={15} className="text-slate-400" />
-                      Télécharger la story
-                    </button>
+                    {/* Téléphone : Inviter, Agenda et Story sont dans la barre d'actions en bas */}
+                    {!isPhone && (
+                      <>
+                      <button
+                        onClick={() => { setShowActionsMenu(false); setShowInvite(true); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                      >
+                        <UserPlus size={15} className="text-slate-400" />
+                        Inviter
+                      </button>
+                      <button
+                        onClick={() => { setShowActionsMenu(false); handleExportIcal(); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                      >
+                        <CalendarPlus size={15} className="text-slate-400" />
+                        Exporter vers mon calendrier
+                      </button>
+                      <button
+                        onClick={() => { setShowActionsMenu(false); setShowStory(true); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                      >
+                        <ImageDown size={15} className="text-slate-400" />
+                        Télécharger la story
+                      </button>
+                      </>
+                    )}
+                    {!isPhone && plan.canRecap && (
+                      <button
+                        onClick={() => { setShowActionsMenu(false); downloadRecap(); }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                      >
+                        <FileDown size={15} className="text-slate-400" />
+                        Télécharger le récapitulatif
+                      </button>
+                    )}
                     <button
                       onClick={() => { setShowActionsMenu(false); setShowHistory(true); }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
@@ -697,7 +766,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         </div>
         {/* Date de suppression du Plan, sur sa propre ligne */}
         <div className="flex mt-2">
-          <ExpiryChip endDate={plan.endDate} />
+          <ExpiryChip endDate={plan.endDate} onRecap={isMember && plan.canRecap ? downloadRecap : undefined} />
         </div>
 
         {/* Infos membres */}
@@ -777,10 +846,13 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden short:overflow-y-auto" {...(phoneSection ? swipeHandlers : {})}>
       {/* En-tête : page principale (téléphone) ou au-dessus des onglets (grand écran) */}
       {phoneSection ? sectionHeader : showHub ? (
-        <div className="flex-1 overflow-y-auto bg-slate-50">
-          {header}
-          {hubCards}
-        </div>
+        <>
+          <div className="flex-1 overflow-y-auto bg-slate-50 short:flex-none short:overflow-visible">
+            {header}
+            {hubCards}
+          </div>
+          {actionBar}
+        </>
       ) : header}
 
       {/* Tabs (only if member) */}

@@ -13,6 +13,8 @@ export interface User {
   /** Nouvelle adresse en attente de confirmation (changement d'email) */
   pendingEmail?: string | null;
   weeklyDigestEnabled: boolean;
+  /** Récapitulatif PDF par email avant la suppression des Plans gérés */
+  recapEmailEnabled?: boolean;
   /** Canal des notifications : push, push + email (défaut) ou email */
   notificationChannel?: NotificationChannel;
   /** Personnes masquées : leurs messages ne sont pas affichés (serveur : lib/moderation.ts) */
@@ -185,6 +187,8 @@ export interface Plan {
   viewerIsGuest?: boolean;
   /** Jeton (12 h) pour afficher les photos/fichiers via /api/attachments/:id/view */
   mediaToken?: string;
+  /** Peut télécharger le récapitulatif PDF (créateur du Plan, gestionnaires du Cercle) */
+  canRecap?: boolean;
 }
 
 export interface MessageReaction {

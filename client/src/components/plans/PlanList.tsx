@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal } from 'lucide-react';
+import { CircleMembersSheet } from '../circles/CircleMembersSheet';
+import { useMutes } from '../../contexts/MuteContext';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -28,14 +30,19 @@ interface Props {
   unreadPlans: Set<string>;
   selectedPollId?: string | null;
   onSelectPoll: (pollId: string) => void;
+  /** Présence en ligne (fenêtre des membres) */
+  onlineUserIds?: Set<string>;
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds }: Props) {
   const { user } = useAuth();
+  const { isCircleMuted, setCircleMuted } = useMutes();
+  const circleMuted = isCircleMuted(circle.id);
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
@@ -78,8 +85,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
       <div className="px-4 py-4 border-b border-slate-200">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Grand écran (colonne étroite) : actions sur une 2e ligne, sous le nom du Cercle */}
+        <div className="flex items-start justify-between gap-2 md:flex-wrap md:gap-y-1.5">
+          <div className="flex items-center gap-2 flex-1 min-w-0 md:basis-full">
             <button
               onClick={onBack}
               className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0"
@@ -101,6 +109,16 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             </div>
           </div>
 
+          <div className="flex items-center flex-shrink-0 md:-ml-1.5">
+          {/* Membres du Cercle */}
+          <button
+            onClick={() => setShowMembers(true)}
+            title={`Membres (${circle.members.length})`}
+            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
+          >
+            <Users size={14} />
+          </button>
+
           {/* Invite button */}
           <button
             onClick={() => setShowInvite(true)}
@@ -108,6 +126,16 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <UserPlus size={14} />
+          </button>
+
+          {/* Mode silencieux du Cercle : plus de notifications ni d'emails pour tous ses Plans */}
+          <button
+            onClick={() => setCircleMuted(circle, !circleMuted)}
+            title={circleMuted ? 'Cercle en silence — toucher pour réactiver les notifications' : 'Mettre ce Cercle en silence (plus de notifications ni d’emails)'}
+            aria-pressed={circleMuted}
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${circleMuted ? 'text-slate-600 bg-slate-200 hover:bg-slate-300' : 'text-indigo-600 hover:text-indigo-700 hover:bg-slate-100'}`}
+          >
+            {circleMuted ? <BellOff size={14} /> : <Bell size={14} />}
           </button>
 
           {/* Paramètres avancés (lecture seule sauf pour le créateur) */}
@@ -140,6 +168,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           >
             <LogOut size={14} />
           </button>
+          </div>
         </div>
 
         {circle.description && (
@@ -244,6 +273,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circleId={circle.id}
           onClose={() => setShowInvite(false)}
         />
+      )}
+
+      {showMembers && (
+        <CircleMembersSheet circle={circle} onlineUserIds={onlineUserIds} onClose={() => setShowMembers(false)} onCircleUpdated={onCircleUpdated} />
       )}
 
       {showCreate && (

@@ -161,7 +161,10 @@ export function PrivacyPage() {
               <li><strong>Plans</strong> : supprimés automatiquement à leur date de fin (3 semaines au plus
                 après leur début), avec tout leur contenu — messages, photos, fichiers, trajets, dépenses.
                 Si des dépenses avaient été enregistrées, un résumé est envoyé par email aux membres juste
-                avant.</li>
+                avant. Le créateur du Plan et les organisateurs du Cercle peuvent en garder un{' '}
+                <strong>récapitulatif PDF</strong> (infos, participants avec prénom et pseudo, bénévoles,
+                dépenses, votes) : en le téléchargeant, ou par email juste avant la suppression s'ils ont
+                activé cette option.</li>
               <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur
                 conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
                 proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>

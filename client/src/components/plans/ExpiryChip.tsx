@@ -5,7 +5,7 @@ const DAY_MS = 24 * 3600 * 1000;
 
 // Étiquette « ⏳ Jusqu'au 9 oct. à 19:00 » sous la date du Plan (remplace la phrase « Ce plan
 // disparaît le… ») ; le détail s'affiche au toucher. Orange dans les dernières 24 heures.
-export function ExpiryChip({ endDate }: { endDate: string }) {
+export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapitulatif PDF (créateur, organisateurs) */ onRecap?: () => void }) {
   const [open, setOpen] = useState(false);
   // Position de la bulle (fixe, recadrée dans l'écran : l'étiquette est souvent au bord droit)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -58,6 +58,11 @@ export function ExpiryChip({ endDate }: { endDate: string }) {
         <span role="tooltip" style={{ left: pos.left, top: pos.top, width: BUBBLE_W }} className="fixed z-50 p-3 rounded-xl bg-slate-800 text-white text-xs leading-relaxed shadow-xl">
           Ce Plan et toutes ses données (messages, photos, dépenses) seront supprimés le <strong>{full}</strong>.
           {soon && ' Pense à télécharger les photos avant.'}
+          {onRecap && (
+            <button type="button" onClick={() => { setOpen(false); onRecap(); }} className="block mt-2 font-semibold text-orange-300 underline underline-offset-2">
+              Télécharger le récapitulatif (PDF)
+            </button>
+          )}
         </span>
       )}
     </span>
