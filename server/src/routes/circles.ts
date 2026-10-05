@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { escapeHtml } from '../lib/escapeHtml';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { withoutMuted } from '../lib/mutes';
@@ -167,7 +168,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
         subject: `Tu as rejoint "${updatedCircle.name}" !`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Bienvenue dans "${updatedCircle.name}" ${approvedUser.pseudo} 🎉</h2>
+            <h2>Bienvenue dans "${escapeHtml(updatedCircle.name)}" ${escapeHtml(approvedUser.pseudo)} 🎉</h2>
             <p>${reason}</p>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Ouvrir EvLY
@@ -352,8 +353,8 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
       subject: `${requester?.pseudo} veut rejoindre "${circle.name}"`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Salut ${m.user.pseudo} 👋</h2>
-          <p><strong>${requester?.pseudo}</strong> a demandé à rejoindre le Cercle <strong>"${circle.name}"</strong>.</p>
+          <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
+          <p><strong>${escapeHtml(requester?.pseudo)}</strong> a demandé à rejoindre le Cercle <strong>"${escapeHtml(circle.name)}"</strong>.</p>
           <p>${byCreator ? 'Dans ce Cercle, les demandes sont validées par le créateur et les organisateurs, dont tu fais partie.' : 'La majorité des membres doit valider la demande pour qu\'elle soit acceptée.'}</p>
           <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir la demande
@@ -425,8 +426,8 @@ router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => 
       subject: `${req.pseudo} t'invite dans le Cercle "${circle?.name}"`,
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Salut ${invitee.pseudo} 👋</h2>
-          <p><strong>${req.pseudo}</strong> t'invite à rejoindre le Cercle <strong>"${circle?.name}"</strong> sur EvLY.</p>
+          <h2>Salut ${escapeHtml(invitee.pseudo)} 👋</h2>
+          <p><strong>${escapeHtml(req.pseudo)}</strong> t'invite à rejoindre le Cercle <strong>"${escapeHtml(circle?.name)}"</strong> sur EvLY.</p>
           <a href="${APP_URL}/dashboard?invitations=1" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
             Voir l'invitation
           </a>
@@ -749,9 +750,9 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     subject: `Nouveau Plan dans "${circle.name}" — ${plan.title}`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Salut ${m.user.pseudo} 👋</h2>
-        <p><strong>${plan.creator.pseudo}</strong> a créé un nouveau Plan dans le Cercle <strong>"${circle.name}"</strong> :</p>
-        <p style="font-size:16px;font-weight:600;margin:16px 0">${plan.title}</p>
+        <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
+        <p><strong>${escapeHtml(plan.creator.pseudo)}</strong> a créé un nouveau Plan dans le Cercle <strong>"${escapeHtml(circle.name)}"</strong> :</p>
+        <p style="font-size:16px;font-weight:600;margin:16px 0">${escapeHtml(plan.title)}</p>
         <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Voir le Plan
         </a>
@@ -1017,9 +1018,9 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
         subject: `Sondage de dates dans "${circle.name}" — ${poll.question}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${m.user.pseudo} 👋</h2>
-            <p><strong>${poll.creator.pseudo}</strong> propose plusieurs dates dans le Cercle <strong>"${circle.name}"</strong> :</p>
-            <p style="font-size:16px;font-weight:600;margin:16px 0">${poll.question}</p>
+            <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
+            <p><strong>${escapeHtml(poll.creator.pseudo)}</strong> propose plusieurs dates dans le Cercle <strong>"${escapeHtml(circle.name)}"</strong> :</p>
+            <p style="font-size:16px;font-weight:600;margin:16px 0">${escapeHtml(poll.question)}</p>
             <p>Indique les dates qui te conviennent pour aider à trouver le meilleur créneau.</p>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le sondage

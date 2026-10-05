@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { escapeHtml } from '../lib/escapeHtml';
 import prisma from '../lib/prisma';
 import { isMuted } from '../lib/mutes';
 import { buildPlanRecapPdf, canDownloadRecap } from '../lib/planRecap';
@@ -474,8 +475,8 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
           subject: `${joiner.pseudo} a rejoint "${updatedPlan.title}"`,
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:auto">
-              <h2>Ça bouge, ${creator.pseudo} 👋</h2>
-              <p><strong>${joiner.pseudo}</strong> vient de rejoindre ton Plan <strong>"${updatedPlan.title}"</strong>.</p>
+              <h2>Ça bouge, ${escapeHtml(creator.pseudo)} 👋</h2>
+              <p><strong>${escapeHtml(joiner.pseudo)}</strong> vient de rejoindre ton Plan <strong>"${escapeHtml(updatedPlan.title)}"</strong>.</p>
               <a href="${APP_URL}/dashboard?planId=${updatedPlan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
                 Voir le Plan
               </a>

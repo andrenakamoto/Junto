@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { escapeHtml } from './escapeHtml';
 import prisma from './prisma';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 
@@ -25,7 +26,7 @@ async function sendConfirmation(to: string, name: string, token: string, byAdmin
     subject: 'Confirme ta nouvelle adresse email — EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Bonjour ${name} 👋</h2>
+        <h2>Bonjour ${escapeHtml(name)} 👋</h2>
         <p>${byAdmin ? "L'administrateur d'EvLY a demandé" : 'Tu as demandé'} à utiliser cette adresse pour ton compte EvLY. Clique sur le bouton pour confirmer.</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Confirmer ma nouvelle adresse
@@ -98,8 +99,8 @@ export async function confirmEmailChange(token: unknown): Promise<Result & { ema
       subject: 'Ton adresse email EvLY a été modifiée',
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Bonjour ${user.firstName || user.pseudo}</h2>
-          <p>L'adresse email de ton compte EvLY (@${user.pseudo}) a été remplacée par <strong>${newEmail}</strong>. Les prochains emails d'EvLY seront envoyés à cette nouvelle adresse.</p>
+          <h2>Bonjour ${escapeHtml(user.firstName || user.pseudo)}</h2>
+          <p>L'adresse email de ton compte EvLY (@${escapeHtml(user.pseudo)}) a été remplacée par <strong>${newEmail}</strong>. Les prochains emails d'EvLY seront envoyés à cette nouvelle adresse.</p>
           <p><strong>Ce n'était pas toi ?</strong> Écris-nous tout de suite à <a href="mailto:info@evly.ch">info@evly.ch</a>.</p>
         </div>`,
     }).catch(e => ({ data: null, error: e }));

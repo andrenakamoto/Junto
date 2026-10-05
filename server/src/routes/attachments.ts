@@ -14,6 +14,9 @@ import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
 
 const router = Router();
+
+// Types affichables directement par /view (images classiques, PDF) ; SVG exclu (peut contenir du script)
+const SAFE_INLINE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'image/avif', 'application/pdf']);
 // /download accepte aussi un token query param (mobile), et /view un jeton média :
 // ces routes vérifient leur jeton elles-mêmes, donc exclues du middleware global
 router.use((req, res, next) => {
@@ -269,8 +272,13 @@ router.get('/:id/view', async (req, res) => {
     if (buffer.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
 
     const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
-    res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `inline; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+    // Affiché « en page » seulement pour les images classiques et les PDF. Le reste (HTML, SVG, XML…)
+    // est forcé en téléchargement : sinon un fichier piégé s'ouvrirait comme une page du domaine de l'API.
+    const inline = SAFE_INLINE_TYPES.has((att.mimeType || '').toLowerCase());
+    res.setHeader('Content-Type', inline ? att.mimeType : 'application/octet-stream');
+    res.setHeader('Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    if (inline && att.mimeType.startsWith('image/')) res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
     res.setHeader('Cache-Control', 'private, max-age=3600');
     res.setHeader('Content-Length', buffer.length.toString());
     res.end(buffer);
@@ -328,6 +336,7 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
     res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
     res.setHeader('Content-Type', att.mimeType || 'application/octet-stream');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Length', buffer.length.toString());
     res.end(buffer);
   } catch (e) {

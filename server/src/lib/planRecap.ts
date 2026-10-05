@@ -1,4 +1,5 @@
 import path from 'path';
+import { escapeHtml } from './escapeHtml';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
 import { isCircleManager } from './circleRoles';
@@ -226,6 +227,3 @@ export async function sendRecapBeforeDeletion(plan: { id: string; title: string;
     .catch(e => console.error('[recap email]', u.email, e))));
 }
 
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}

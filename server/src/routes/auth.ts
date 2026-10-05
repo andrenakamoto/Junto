@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { escapeHtml } from '../lib/escapeHtml';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -74,7 +75,7 @@ async function sendVerificationEmail(email: string, pseudo: string, token: strin
     subject: 'Confirme ton adresse email — EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Bienvenue sur EvLY, ${pseudo} 👋</h2>
+        <h2>Bienvenue sur EvLY, ${escapeHtml(pseudo)} 👋</h2>
         <p>Clique sur le bouton ci-dessous pour confirmer ton adresse email.</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Confirmer mon email
@@ -429,7 +430,7 @@ router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthReques
         subject: 'Ton compte EvLY a été supprimé',
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Au revoir ${user.firstName || user.pseudo}</h2>
+            <h2>Au revoir ${escapeHtml(user.firstName || user.pseudo)}</h2>
             <p>Ton compte EvLY et tes données personnelles ont bien été supprimés. Les Cercles et Plans que tu avais créés ont été confiés à d'autres membres.</p>
             <p style="color:#888;font-size:12px;margin-top:24px">Tu peux recréer un compte à tout moment sur evly.ch.</p>
           </div>`,

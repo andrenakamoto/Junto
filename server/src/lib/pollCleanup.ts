@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { escapeHtml } from './escapeHtml';
 import { isMuted } from './mutes';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { pollExpiresAt } from './pollExpiry';
@@ -68,8 +69,8 @@ export async function sendPollReminders() {
         subject: `Ton sondage "${poll.question}" se termine demain`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${poll.creator.pseudo} 👋</h2>
-            <p>Ton sondage de dates <strong>"${poll.question}"</strong> dans le Cercle <strong>"${poll.circle.name}"</strong> se termine demain. Sans Plan créé d'ici là, il sera supprimé avec ses votes et son chat.</p>
+            <h2>Salut ${escapeHtml(poll.creator.pseudo)} 👋</h2>
+            <p>Ton sondage de dates <strong>"${escapeHtml(poll.question)}"</strong> dans le Cercle <strong>"${escapeHtml(poll.circle.name)}"</strong> se termine demain. Sans Plan créé d'ici là, il sera supprimé avec ses votes et son chat.</p>
             ${summary}
             <a href="${APP_URL}/dashboard?circleId=${poll.circle.id}&pollId=${poll.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Créer le Plan

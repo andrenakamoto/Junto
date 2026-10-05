@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { escapeHtml } from './escapeHtml';
 import prisma from './prisma';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 
@@ -22,7 +23,7 @@ export async function sendPasswordReset(user: { id: string; pseudo: string; emai
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>Réinitialisation de mot de passe</h2>
-        <p>Bonjour ${user.pseudo}, ${intro}</p>
+        <p>Bonjour ${escapeHtml(user.pseudo)}, ${intro}</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Réinitialiser mon mot de passe
         </a>

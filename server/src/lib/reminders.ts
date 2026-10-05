@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { escapeHtml } from './escapeHtml';
 import { mutedAmong } from './mutes';
 import { sendRecapBeforeDeletion } from './planRecap';
 import { shiftHours, sortShifts } from './volunteers';
@@ -56,7 +57,7 @@ export async function deleteExpiredPlans() {
             subject: `Résumé des dépenses — "${plan.title}"`,
             html: `
               <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                <h2>Le Plan "${plan.title}" est terminé, ${m.user.pseudo} 👋</h2>
+                <h2>Le Plan "${escapeHtml(plan.title)}" est terminé, ${escapeHtml(m.user.pseudo)} 👋</h2>
                 <p>Voici un dernier résumé des dépenses avant que le Plan ne disparaisse :</p>
                 <p style="font-weight:600;margin-bottom:4px">Dépenses</p>
                 <ul>${expenseLines}</ul>
@@ -135,8 +136,8 @@ export async function sendPlanReminders() {
         subject: `Rappel — "${plan.title}" c'est demain`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Ça se passe demain, ${u.pseudo} 👋</h2>
-            <p><strong>${plan.title}</strong> a lieu le ${eventDateFmt}${plan.location ? ` — ${plan.location}` : ''}.</p>
+            <h2>Ça se passe demain, ${escapeHtml(u.pseudo)} 👋</h2>
+            <p><strong>${escapeHtml(plan.title)}</strong> a lieu le ${eventDateFmt}${plan.location ? ` — ${escapeHtml(plan.location)}` : ''}.</p>
             ${plan.importantInfo ? `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;margin:16px 0">
               <p style="margin:0 0 6px;font-weight:600;color:#92400e">📌 Informations importantes</p>
               <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
@@ -209,7 +210,7 @@ export async function sendWeeklyDigest() {
         subject: `Cette semaine sur EvLY — ${plans.length} Plan${plans.length > 1 ? 's' : ''} actif${plans.length > 1 ? 's' : ''}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${user.pseudo} 👋</h2>
+            <h2>Salut ${escapeHtml(user.pseudo)} 👋</h2>
             <p>Voici les Plans actifs dans tes Cercles :</p>
             <ul>${items}</ul>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
@@ -231,6 +232,3 @@ export async function sendWeeklyDigest() {
 }
 
 // Texte saisi par un participant, inséré dans un email HTML
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
-}
