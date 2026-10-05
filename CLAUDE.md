@@ -162,6 +162,12 @@ Conséquences pratiques :
   `~/Desktop/EvLY - Brochure (sources)/` sur le Mac de l'utilisateur. La
   régénérer puis recopier le PDF ici quand une fonctionnalité mise en avant
   change.
+  **2026-10-05** : sources déplacées dans OneDrive (« 02 Evly »), illisible par l'agent ; le PDF a
+  été **corrigé directement** (PyMuPDF : ancien texte supprimé par caviardage, nouveau texte en
+  Inter aux mêmes positions) — planning des bénévoles (p. 1-2), Plans qui se répètent (p. 3),
+  réponse sans compte et démo dans la FAQ (p. 4). Les captures datent d'avant ces fonctions (elles
+  montrent encore la phrase « Ce plan disparaît… ») : à refaire depuis les sources à la prochaine
+  régénération, en y reportant ces textes.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
   (version 3 du 2026-09-29 : public élargi aux associations/entreprises,
   inscription pseudo + prénom + email, rôles et invités, covoiturage,
@@ -346,8 +352,10 @@ Conséquences pratiques :
     iOS **build 4** (même jour) = build 3 + liens d'application.
     **Version 1.0.3** (2026-10-04, soir) : Android `versionCode` 4 (`evly-1.0.3-(4).aab`), iOS
     build 5 envoyé — Plan express, démo, page de connexion allégée, « Qui apporte quoi ? »
-    (quantité, modifier, retirer), informations importantes, suggestions. **C'est le build 5 à
-    soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
+    (quantité, modifier, retirer), informations importantes, suggestions.
+    **Version 1.0.4** (2026-10-05) : Android `versionCode` 5 (`evly-1.0.4-(5).aab`), iOS build 6
+    envoyé — Plans récurrents, planning des bénévoles, étiquette de suppression du Plan. **C'est le
+    build 6 à soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
     = NON et textes d'autorisation caméra / photos / micro dans `Info.plist`
     (sans eux, le sélecteur de fichiers de la WebView plante sur iPhone).
