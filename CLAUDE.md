@@ -352,8 +352,10 @@ Conséquences pratiques :
     envoyé — Plans récurrents, planning des bénévoles, étiquette de suppression du Plan.
     **Version 1.0.5** (même jour) : Android 6, iOS build 7 — fiche du Plan en cartes sur téléphone.
     **Version 1.0.6** (2026-10-05, soir) : Android `versionCode` 7 (`evly-1.0.6-(7).aab`), iOS build 8
-    envoyé — barre d'actions, mode silencieux, fenêtre des membres, récapitulatif PDF. **C'est le
-    build 8 à soumettre** après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
+    envoyé — barre d'actions, mode silencieux, fenêtre des membres, récapitulatif PDF.
+    **Version 1.0.7** (2026-10-05, nuit) : Android `versionCode` 8 (`evly-1.0.7-(8).aab`), iOS build 9
+    envoyé — corrections de sécurité (invitations, dépendances). **C'est le build 9 à soumettre**
+    après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
     reçoit des attributs étendus qui font échouer `codesign --verify`.
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
