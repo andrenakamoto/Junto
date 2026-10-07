@@ -354,8 +354,12 @@ Conséquences pratiques :
     **Version 1.0.6** (2026-10-05, soir) : Android `versionCode` 7 (`evly-1.0.6-(7).aab`), iOS build 8
     envoyé — barre d'actions, mode silencieux, fenêtre des membres, récapitulatif PDF.
     **Version 1.0.7** (2026-10-05, nuit) : Android `versionCode` 8 (`evly-1.0.7-(8).aab`), iOS build 9
-    envoyé — corrections de sécurité (invitations, dépendances). **C'est le build 9 à soumettre**
-    après la validation de la 1.0.0 (ne pas retirer la 1.0.0 de la vérification).
+    envoyé — corrections de sécurité (invitations, dépendances).
+    **Version 1.0.8** (2026-10-07) : Android `versionCode` 9 (`evly-1.0.8-(9).aab`), iOS build 10 envoyé —
+    Père Noël secret, Killer, équipes et tournoi, cagnotte, messages vocaux (autorisation micro), calendrier,
+    story, appareil photo dans le chat. **C'est le build 10 à soumettre** (la 1.0.0 est en ligne sur l'App
+    Store depuis le 2026-10-06). Signature iPhone : passer l'**empreinte** du certificat à `codesign`
+    (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
     reçoit des attributs étendus qui font échouer `codesign --verify`.
     iPhone uniquement (`TARGETED_DEVICE_FAMILY = 1`), `ITSAppUsesNonExemptEncryption`
