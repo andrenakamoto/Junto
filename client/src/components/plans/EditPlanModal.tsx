@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
@@ -117,7 +118,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         </div>
         </>}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Date et heure de l'événement (optionnel)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"}</label>
           <input
             type="datetime-local"
             value={eventDate}
@@ -143,6 +144,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
           <p className="text-sm font-medium text-red-500 mt-1">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
+          {isCreator && enabledFeatures.includes('pere_noel') && <div className="mt-2"><SantaDatesNote /></div>}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Lieu (optionnel)</label>

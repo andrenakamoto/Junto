@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -113,7 +114,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
-        <Input label="Date et heure de l'événement (optionnel)" type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+        <Input label={enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"} type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
         {!fromPoll && (
           <RecurrenceField
             value={recurrence}
@@ -124,6 +125,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
         )}
         <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
         <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
+        {enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
         <Input
           label="Limite de participants (optionnel)"

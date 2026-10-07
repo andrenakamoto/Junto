@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update';
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -68,6 +69,11 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     title: n => `Du nouveau — ${n.planTitle}`,
     body: n => n.preview ?? '',
   },
+  // Père Noël secret : jamais l'auteur d'un message du Père Noël (le texte est fourni par le serveur)
+  santa_draw: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
+  santa_message: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
+  santa_reveal: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
+  santa_reminder: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
   circle_renamed: {
     icon: Users, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => `Cercle renommé — ${n.circleName}`,

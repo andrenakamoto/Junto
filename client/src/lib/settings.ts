@@ -48,6 +48,7 @@ export function isEnabled(plan: { disabledFeatures?: PlanFeature[] }, feature: P
 // Fonctions à activer : absentes tant que le créateur ne les coche pas
 export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
   { value: 'benevoles', label: 'Bénévoles (planning)' },
+  { value: 'pere_noel', label: 'Père Noël secret' },
 ];
 
 export function hasFeature(plan: { enabledFeatures?: OptionalFeature[] }, feature: OptionalFeature) {

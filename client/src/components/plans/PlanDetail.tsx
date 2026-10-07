@@ -22,6 +22,7 @@ import { DeletePlanModal } from './DeletePlanModal';
 import { PlanSettingsModal } from './PlanSettingsModal';
 import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
+import { SecretSantaTab } from './SecretSantaTab';
 import { ExpiryChip } from './ExpiryChip';
 import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
 import { downloadPlanRecap } from '../../lib/planRecap';
@@ -42,7 +43,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -58,6 +59,7 @@ const tabs = [
   { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
   { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
+  { key: 'pere_noel' as Tab,  Icon: Gift,             label: 'Père Noël' },
 ];
 
 interface Props {
@@ -206,7 +208,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
   // Bénévoles : fonction à activer (absente par défaut)
-  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (t.key === 'benevoles' ? hasFeature(plan, 'benevoles') : isEnabled(plan, t.key)));
+  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (t.key === 'benevoles' || t.key === 'pere_noel' ? hasFeature(plan, t.key) : isEnabled(plan, t.key)));
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
   const showHub = isPhone && isMember && hub;
   const phoneSection = isPhone && isMember && !hub;
@@ -939,6 +941,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           )}
           {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
+          {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

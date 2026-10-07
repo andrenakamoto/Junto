@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
 import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, PLAN_FEATURES, POLL_CREATION_OPTIONS, OPTIONAL_FEATURES } from '../../lib/settings';
@@ -127,8 +128,9 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
           </label>
         ))}
       </div>
+      {!readOnly && enabled.includes('pere_noel') && <div className="mt-2"><SantaDatesNote compact /></div>}
       <p className="text-xs text-slate-400 mt-1.5">
-        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…).
+        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange.
       </p>
     </fieldset>
   );
