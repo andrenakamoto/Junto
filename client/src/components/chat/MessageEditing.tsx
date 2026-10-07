@@ -48,7 +48,7 @@ export function MessageEditor({ initial, onSave, onCancel }: { initial: string; 
 }
 
 // « Modifier · Supprimer » sous son propre message (visibles sur mobile comme sur ordinateur)
-export function OwnMessageActions({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+export function OwnMessageActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete: () => void }) {
   const [confirm, setConfirm] = useState(false);
   if (confirm) {
     return (
@@ -61,8 +61,10 @@ export function OwnMessageActions({ onEdit, onDelete }: { onEdit: () => void; on
   }
   return (
     <span className="flex items-center gap-2 text-xs text-slate-400">
-      <button type="button" onClick={onEdit} className="hover:text-indigo-600 hover:underline">Modifier</button>
-      <span aria-hidden>·</span>
+      {onEdit && <>
+        <button type="button" onClick={onEdit} className="hover:text-indigo-600 hover:underline">Modifier</button>
+        <span aria-hidden>·</span>
+      </>}
       <button type="button" onClick={() => setConfirm(true)} className="hover:text-red-600 hover:underline">Supprimer</button>
     </span>
   );

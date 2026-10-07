@@ -7,6 +7,7 @@ import { mediaUrl } from '../../lib/media';
 import { isEnabled } from '../../lib/settings';
 import { ImportantInfoCard } from './ImportantInfoCard';
 import { downloadPlanPhotos } from '../../lib/planPhotos';
+import { isVoiceNote } from '../../lib/media';
 
 interface Props {
   plan: Plan;
@@ -86,7 +87,8 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   }
 
   const showFiles = isEnabled(plan, 'fichiers');
-  const attachments = plan.attachments || [];
+  // Les messages vocaux restent dans le chat (ils ne sont pas des fichiers du Plan à consulter)
+  const attachments = (plan.attachments || []).filter(a => !isVoiceNote(a));
   const imageAttachments = attachments.filter(a => isImage(a.mimeType));
   const fileAttachments = attachments.filter(a => !isImage(a.mimeType));
   const isCreator = plan.creatorId === userId;

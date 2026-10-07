@@ -4,6 +4,7 @@ import { mediaUrl } from '../../lib/media';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
+import { VoiceMessage } from './VoiceMessage';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -62,6 +63,7 @@ export function renderContent(content: string, isMe: boolean) {
 export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken }: Props) {
   const [viewing, setViewing] = useState(false);
   const photo = !message.deletedAt && message.attachment?.mimeType.startsWith('image/') ? message.attachment : null;
+  const voice = !message.deletedAt && message.attachment?.mimeType.startsWith('audio/') ? message.attachment : null;
   // Message photo dont la photo a été retirée depuis l'onglet Infos (plus de texte ni de photo)
   const photoRemoved = !message.deletedAt && !message.attachment && !message.content;
   const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
@@ -73,6 +75,16 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   // suivant (n'importe où) la ferme. Sur ordinateur, elle s'affiche au survol.
   const [showReactions, setShowReactions] = useState(false);
   const bubbleRef = useRef<HTMLDivElement>(null);
+  // Barre de réactions sous la bulle quand il n'y a pas la place au-dessus (premier message du
+  // chat : sinon elle passe sous la barre des rubriques)
+  const [reactionsBelow, setReactionsBelow] = useState(false);
+  function placeReactions() {
+    const el = bubbleRef.current;
+    if (!el) return;
+    const scroller = el.closest('.overflow-y-auto') as HTMLElement | null;
+    const top = scroller ? scroller.getBoundingClientRect().top : 0;
+    setReactionsBelow(el.getBoundingClientRect().top - top < 56);
+  }
   useEffect(() => {
     if (!showReactions) return;
     function close(e: PointerEvent) {
@@ -93,7 +105,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   }, {});
 
   return (
-    <div className={`group flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
+    <div className={`group flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`} onMouseEnter={placeReactions}>
       {!isMe && <Avatar pseudo={message.author.pseudo} size="sm" />}
       <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
         {!isMe && (
@@ -106,7 +118,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
         <div
           ref={bubbleRef}
           className="relative"
-          onClick={() => { if (!deleted && !editing && !window.matchMedia('(hover: hover)').matches) setShowReactions(v => !v); }}
+          onClick={() => { if (!deleted && !editing && !window.matchMedia('(hover: hover)').matches) { placeReactions(); setShowReactions(v => !v); } }}
         >
           {deleted ? (
             <DeletedBubble isMe={isMe} />
@@ -123,6 +135,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                   <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" className="block max-w-[240px] max-h-[320px] object-cover" />
                 </button>
               )}
+              {voice && <VoiceMessage attachment={voice} mediaToken={mediaToken} isMe={isMe} />}
               {photoRemoved && (
                 <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm italic text-slate-400 bg-slate-50 border border-dashed border-slate-200">
                   <ImageOff size={14} /> Photo retirée
@@ -149,8 +162,8 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           )}
 
           {/* Réactions rapides (survol sur ordinateur, appui sur mobile) : grands emojis,
-              posés juste au-dessus de la bulle pour ne pas la masquer */}
-          {!deleted && !editing && <div className={`${showReactions ? 'flex' : 'hidden'} [@media(hover:hover)]:group-hover:flex absolute bottom-full mb-1 ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
+              posés juste au-dessus de la bulle pour ne pas la masquer (en dessous s'il n'y a pas la place) */}
+          {!deleted && !editing && <div className={`${showReactions ? 'flex' : 'hidden'} [@media(hover:hover)]:group-hover:flex absolute ${reactionsBelow ? 'top-full mt-1' : 'bottom-full mb-1'} ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}
@@ -207,7 +220,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
         {isMe && (
           <span className="flex items-center gap-2">
             {editable && !editing && (
-              <OwnMessageActions onEdit={() => setEditing(true)} onDelete={() => onDelete?.(message.id)} />
+              <OwnMessageActions onEdit={voice ? undefined : () => setEditing(true)} onDelete={() => onDelete?.(message.id)} />
             )}
             <span className="text-xs text-slate-400">{time}</span>
           </span>

@@ -97,13 +97,15 @@ export function setupSocketHandlers(io: Server) {
       });
       if (!member || member.plan.disabledFeatures.includes('chat')) return;
 
-      // Photo envoyée depuis le chat : déjà importée dans le Plan par son auteur (POST
-      // /attachments/plans/:planId?via=chat), image, pas encore rattachée à un message
+      // Photo ou message vocal envoyé depuis le chat : déjà importé dans le Plan par son auteur
+      // (POST /attachments/plans/:planId?via=chat), pas encore rattaché à un message
       let validAttachmentId: string | undefined;
+      let isVoice = false;
       if (attachmentId) {
         const att = await prisma.attachment.findUnique({ where: { id: attachmentId }, include: { message: { select: { id: true } } } });
-        if (!att || att.planId !== planId || att.uploadedBy !== socket.data.pseudo || !att.mimeType.startsWith('image/') || att.message) return;
+        if (!att || att.planId !== planId || att.uploadedBy !== socket.data.pseudo || !(att.mimeType.startsWith('image/') || (att.mimeType.startsWith('audio/') && att.resourceType === 'video')) || att.message) return;
         validAttachmentId = att.id;
+        isVoice = att.mimeType.startsWith('audio/');
       }
 
       let validParentId: string | undefined;
@@ -134,7 +136,7 @@ export function setupSocketHandlers(io: Server) {
 
       // Mentions @pseudo → notification ciblée, même hors room active
       const mentioned = new Set<string>();
-      const trimmed = text || '📷 Photo';
+      const trimmed = text || (isVoice ? '🎤 Message vocal' : '📷 Photo');
       for (const m of planData.members) {
         if (m.userId === socket.data.userId) continue;
         const re = new RegExp(`@${m.user.pseudo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');

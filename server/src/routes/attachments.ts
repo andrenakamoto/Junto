@@ -71,14 +71,18 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // Les images → resource_type 'image' (optimisation CDN)
     // PDF, Word, Excel, etc. → resource_type 'raw' (fichier brut, téléchargeable directement)
     const isImageMime = req.file.mimetype.startsWith('image/');
-    // Envoi depuis le chat (?via=chat) : photos uniquement, et le chat doit être actif
-    if (req.query.via === 'chat') {
-      if (!isImageMime) { res.status(400).json({ error: 'Seules les photos peuvent être envoyées dans le chat' }); return; }
+    // Envoi depuis le chat (?via=chat) : photos et messages vocaux uniquement, chat actif
+    const viaChat = req.query.via === 'chat';
+    const isVoice = viaChat && req.file.mimetype.startsWith('audio/');
+    if (viaChat) {
+      if (!isImageMime && !isVoice) { res.status(400).json({ error: 'Seules les photos et les messages vocaux peuvent être envoyés dans le chat' }); return; }
       if (plan.disabledFeatures.includes('chat')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
     }
+    // Messages vocaux → resource_type 'video' (Cloudinary range l'audio avec la vidéo), pour
+    // pouvoir les servir convertis en MP3, lisible partout (iPhone ne lit pas le WebM d'Android)
     const result = await streamUpload(req.file.buffer, {
       folder: `estelle/${req.params.planId}`,
-      resource_type: isImageMime ? 'image' : 'raw',
+      resource_type: isImageMime ? 'image' : isVoice ? 'video' : 'raw',
       use_filename: false,
     });
 
@@ -89,7 +93,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
         url:          result.secure_url,
         publicId:     result.public_id,
         resourceType: result.resource_type,
-        mimeType:     req.file.mimetype,
+        mimeType:     req.file.mimetype.split(';')[0].trim(),
         size:         req.file.size,
         uploadedBy:   req.pseudo!,
       },
@@ -264,6 +268,19 @@ router.get('/:id/view', async (req, res) => {
 
     const width = Number(req.query.w);
     let buffer: Buffer | null = null;
+    // Message vocal (?format=mp3) : converti en MP3 par Cloudinary
+    const voice = req.query.format === 'mp3' && att.resourceType === 'video' && att.mimeType.startsWith('audio/') && /\.[a-z0-9]+$/i.test(att.url);
+    if (voice) {
+      buffer = await fetchBuffer(att.url.replace(/\.[a-z0-9]+$/i, '.mp3'));
+      if (buffer.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', 'inline; filename="message-vocal.mp3"');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cache-Control', 'private, max-age=3600');
+      res.setHeader('Content-Length', buffer.length.toString());
+      res.end(buffer);
+      return;
+    }
     if (width > 0 && att.resourceType === 'image' && att.mimeType.startsWith('image/') && att.url.includes('/upload/')) {
       const w = Math.min(Math.max(Math.round(width), 64), 1600);
       buffer = await fetchBuffer(att.url.replace('/upload/', `/upload/c_limit,w_${w},q_auto/`)).catch(() => null);
