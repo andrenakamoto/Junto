@@ -324,6 +324,35 @@ function route(method: string, path: string, body: any): any {
     throw new DemoError(403, NOT_IN_DEMO);
   }
 
+  // Père Noël secret (Noël entre copains) : tirage déjà fait ; envies, cadeau prêt, messages anonymes
+  if ((m = path.match(/^\/plans\/([^/]+)\/santa(\/[a-z]+)?$/)) && method !== 'GET') {
+    const st = fixtures![`GET /plans/${m[1]}/santa`];
+    if (!st) throw new DemoError(403, NOT_IN_DEMO);
+    const sub = m[2] ?? '';
+    const meP = st.participants.find((p: any) => p.id === me.id);
+    if (sub === '/wish') {
+      st.myNoWish = body.noWish === true;
+      st.myWish = st.myNoWish ? '' : String(body.text ?? '').trim();
+      if (meP) meP.wishStatus = st.myWish ? 'wish' : st.myNoWish ? 'none' : 'pending';
+    } else if (sub === '/ready' && st.me) {
+      if (st.me.giftReady !== (body.ready === true)) st.readyCount += body.ready === true ? 1 : -1;
+      st.me.giftReady = body.ready === true;
+    } else if (sub === '/messages') {
+      const content = String(body.content ?? '').trim();
+      if (!content) throw new DemoError(400, 'Message vide');
+      const thread = body.to === 'receiver' ? st.me?.withReceiver : st.santa?.withSanta;
+      if (!thread) throw new DemoError(404, 'Conversation introuvable');
+      thread.push({ id: newId('santa'), mine: true, content, createdAt: now() });
+      // Une réponse arrive quelques secondes plus tard, pour donner vie à la démo
+      const reply = body.to === 'receiver' ? 'Ha ha, mystère… Merci Père Noël ! 😄' : 'Bien reçu, je note ! 🎅';
+      window.setTimeout(() => { thread.push({ id: newId('santa'), mine: false, content: reply, createdAt: now() }); changed(m![1]); }, 2500);
+    } else if (sub === '' && method === 'PUT' && st.canManage && body.budget !== undefined) {
+      st.budget = String(body.budget ?? '').trim() || null;
+    } else throw new DemoError(403, NOT_IN_DEMO);
+    changed(m[1]);
+    return { ok: true };
+  }
+
   // Mode silencieux (Plan ou Cercle), en mémoire
   if (path === '/mutes' && method === 'PUT') {
     const mutes = (fixtures!['GET /mutes'] ??= { plans: [], circles: [] });

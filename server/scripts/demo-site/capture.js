@@ -13,6 +13,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     const msgs = await take(`/plans/${id}/messages`);
     for (const m of (msgs?.messages ?? msgs ?? [])) if (m._count?.replies) await take(`/plans/messages/${m.id}/replies`);
     await take(`/rides/plan/${id}`); await take(`/plans/${id}/expenses`); await take(`/plans/${id}/shifts`);
+    if ((I.santaPlans || []).includes(id)) await take(`/plans/${id}/santa`);
     for (const a of plan?.attachments ?? []) {
       const r = await fetch(`${API}/attachments/${a.id}/view?t=${plan.mediaToken}`);
       fs.writeFileSync(`${OUT}/photos/${a.id}.png`, Buffer.from(await r.arrayBuffer())); photos++;

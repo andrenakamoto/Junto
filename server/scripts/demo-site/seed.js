@@ -92,8 +92,22 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   for (const [p, os] of [['lea_m', [o1, o2]], ['tom_b', [o1]], ['julie_r', [o1, o3]], ['noah_p', [o1, o2]], ['emma_v', [o2]], ['lucas_d', [o1]]]) for (const o of os) await call('POST', `/circles/polls/options/${o.id}/vote`, {}, T[p]);
   await call('POST', `/circles/polls/${poll.id}/messages`, { content: 'Le vendredi m’arrange mieux, je peux réserver la salle 👍' }, T.tom_b);
   // Alex a déjà tout vu, sauf quelques nouveautés (pastilles)
-  for (const plan of [raclette, ski, loto, apero, anniv, foot]) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id], pollId: poll.id }));
+  // Père Noël secret entre copains : tirage déjà fait (Alex organise), envies, messages anonymes
+  const noel = await mk(cop, 'alex', { title: 'Noël entre copains 🎄', description: 'Repas de Noël et échange de cadeaux. Chacun apporte un plat !', eventDate: at(14, 19), endDate: at(15, 2), location: 'Chez Emma', enabledFeatures: ['pere_noel'] });
+  for (const p of ['tom_b', 'julie_r', 'emma_v', 'noah_p']) await call('POST', `/plans/${noel.id}/join`, {}, T[p]);
+  await call('PUT', `/plans/${noel.id}/santa`, { budget: '30 CHF', exclusions: [[U.julie_r.id, U.noah_p.id]] }, T.alex);
+  for (const [p, body] of [['tom_b', { text: 'Un jeu de société, du chocolat noir. Pas de chaussettes 😅' }], ['julie_r', { text: 'Un livre (polar ou roman), une jolie tasse, du thé' }],
+    ['emma_v', { noWish: true }], ['noah_p', { text: 'Des écouteurs sans fil ou un bonnet (taille M)' }]]) await call('PUT', `/plans/${noel.id}/santa/wish`, body, T[p]);
+  await call('POST', `/plans/${noel.id}/santa/draw`, {}, T.alex);
+  const santaPairs = await prisma.secretSantaPair.findMany({ where: { planId: noel.id } });
+  const pk = Object.fromEntries(Object.entries(U).map(([k, u]) => [u.id, k]));
+  const alexReceiver = pk[santaPairs.find(p => p.giverId === U.alex.id).receiverId];
+  const alexSanta = pk[santaPairs.find(p => p.receiverId === U.alex.id).giverId];
+  await call('POST', `/plans/${noel.id}/santa/messages`, { to: 'santa', content: 'Coucou mon Père Noël secret 🎅 J’ai mis ma liste d’envies à jour !' }, T[alexReceiver]);
+  await call('POST', `/plans/${noel.id}/santa/messages`, { to: 'receiver', content: 'Hello ! Tu préfères le sucré ou le salé ? 🎅' }, T[alexSanta]);
+  for (const p of ['tom_b', 'julie_r']) if (p !== alexReceiver) await call('PUT', `/plans/${noel.id}/santa/ready`, { ready: true }, T[p]);
+  for (const plan of [raclette, ski, loto, apero, anniv, foot, noel]) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id], santaPlans: [noel.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });
