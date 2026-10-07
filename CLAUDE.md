@@ -696,7 +696,7 @@ Junto/
   pas prêts) et dans l'email de la veille (« N'oublie pas le cadeau de … »). Notifications
   `santa_draw|santa_message|santa_reveal|santa_reminder` → onglet `pere_noel` (`?tab=pere_noel`).
   Temps réel : rechargement seulement, pas de pastille « nouveau » (tout y est privé). Pas encore
-  dans la démo ni dans les apps (version 1.0.7).
+  dans les apps (version 1.0.7) ; présent dans la démo.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
@@ -1086,7 +1086,10 @@ chargement en jours entiers. Actions simulées en mémoire : réponse, « vu »,
 importantes, modification d'un Plan créé par Alex, « qui apporte quoi », sondages (Plan et dates),
 dépenses (soldes recalculés comme `lib/expenses.ts`), remboursements, covoiturage, chat du sondage,
 création d'un Cercle et d'un Plan, **planning des bénévoles** du loto (s'inscrire, gérer les postes :
-Alex est organisateur du Cercle) et **mode silencieux** (2026-10-05). « Foot de la semaine » montre
+Alex est organisateur du Cercle), **mode silencieux** (2026-10-05) et **Père Noël secret** (2026-10-07,
+« Noël entre copains 🎄 » dans Les copains, tirage déjà fait : liste d'envies, cadeau prêt, messages
+anonymes avec une réponse simulée quelques secondes plus tard ; tirage, ajout et révélation renvoient
+le 403 de la démo). « Foot de la semaine » montre
 un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
 disponible… ». Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
