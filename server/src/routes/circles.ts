@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { escapeHtml } from '../lib/escapeHtml';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
-import { removeFromSantaInCircle, santaDateError } from '../lib/secretSanta';
+import { santaDateError } from '../lib/secretSanta';
+import { removeFromGamesInCircle } from '../lib/planGames';
 import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -860,7 +861,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
       return;
     }
 
-    await removeFromSantaInCircle(circleId, userId).catch(e => console.error('[leave santa cleanup]', e));
+    await removeFromGamesInCircle(circleId, userId);
     await prisma.$transaction([
       prisma.circle.update({ where: { id: circleId }, data: { creatorId: nextMember.userId } }),
       prisma.circleMember.update({
@@ -876,7 +877,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
     return;
   }
 
-  await removeFromSantaInCircle(circleId, userId).catch(e => console.error('[leave santa cleanup]', e));
+  await removeFromGamesInCircle(circleId, userId);
   await prisma.$transaction([
     prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
     prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),

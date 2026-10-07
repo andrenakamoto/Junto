@@ -29,15 +29,22 @@ import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
 import secretSantaRoutes from './secretSanta';
-import { removeFromSanta, santaDateError } from '../lib/secretSanta';
+import { santaDateError } from '../lib/secretSanta';
+import { removeFromPlanGames } from '../lib/planGames';
+import killerRoutes from './killer';
+import teamsRoutes from './teams';
+import giftPotRoutes from './giftPot';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
-// Père Noël secret (/:id/santa…)
+// Père Noël secret (/:id/santa…), Killer (/:id/killer…), équipes (/:id/teams…), cagnotte (/:id/pot…)
 router.use(secretSantaRoutes);
+router.use(killerRoutes);
+router.use(teamsRoutes);
+router.use(giftPotRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
@@ -399,7 +406,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
       for (const m of removed) {
         await removeUserFromRides(req.app.get('io'), planId, m.userId, m.user.pseudo)
           .catch(e => console.error('[exclusion rides cleanup]', e));
-        await removeFromSanta(planId, m.userId).catch(e => console.error('[exclusion santa cleanup]', e));
+        await removeFromPlanGames(planId, m.userId);
       }
       await prisma.$transaction([
         prisma.planExclusion.deleteMany({ where: { planId } }),
@@ -525,7 +532,7 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
       await removeUserFromRides(req.app.get('io'), req.params.id, req.userId!, req.pseudo!)
         .catch(e => console.error('[rsvp rides cleanup]', e));
       await removeUserFromShifts(req.params.id, req.userId!).catch(e => console.error('[rsvp shifts cleanup]', e));
-      await removeFromSanta(req.params.id, req.userId!).catch(e => console.error('[rsvp santa cleanup]', e));
+      await removeFromPlanGames(req.params.id, req.userId!);
     }
     res.json(member);
   } catch {

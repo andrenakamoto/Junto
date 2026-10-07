@@ -70,6 +70,12 @@ model User {
   santaWishes            SecretSantaWish[]
   santaGiving            SecretSantaPair[]     @relation("SantaGiver")
   santaReceiving         SecretSantaPair[]     @relation("SantaReceiver")
+  killerPlayers          KillerPlayer[]
+  teamLevels             TeamLevel[]
+  teamMemberships        TeamMember[]
+  giftPledges            GiftPledge[]
+  giftIdeas              GiftIdea[]
+  giftIdeaVotes          GiftIdeaVote[]
   rideRequests           RideRequest[]
   planExclusions         PlanExclusion[]
   planChangeLogs         PlanChangeLog[]       @relation("PlanChangeLogAuthor")
@@ -316,6 +322,9 @@ model Plan {
   volunteerSignups  VolunteerSignup[]
   notificationMutes NotificationMute[]
   santa             SecretSanta?
+  killer            KillerGame?
+  teamDraw          TeamDraw?
+  giftPot           GiftPot?
   exclusions        PlanExclusion[]
   guestLink         PlanGuestLink?
 }
@@ -795,4 +804,163 @@ model SecretSantaMessage {
   createdAt  DateTime    @default(now())
 
   @@index([planId, giverId])
+}
+
+// Killer (lib/killer.ts) : fonction à activer (enabledFeatures « killer »). Chaque joueur reçoit en
+// secret une cible, un objet et un lieu ; une chaîne unique relie tous les joueurs. La cible confirme
+// son élimination, le tueur hérite alors de sa mission. Le dernier en vie gagne.
+model KillerGame {
+  planId    String         @id
+  plan      Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  objects   String[]
+  places    String[]
+  startedAt DateTime?
+  endedAt   DateTime?
+  winnerId  String?
+  createdAt DateTime       @default(now())
+  players   KillerPlayer[]
+}
+
+// Un joueur et sa mission en cours (targetId/object/place vides une fois éliminé). Jamais renvoyé
+// tel quel au client : chacun ne voit que sa propre mission avant la fin de la partie.
+model KillerPlayer {
+  planId         String
+  game           KillerGame @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetId       String?
+  object         String?
+  place          String?
+  // « J'ai eu ma cible » : en attente de la confirmation de la cible
+  claimedAt      DateTime?
+  kills          Int        @default(0)
+  eliminatedAt   DateTime?
+  // Auteur de l'élimination (null : retiré par l'organisateur ou parti)
+  eliminatedById String?
+  joinedAt       DateTime   @default(now())
+
+  @@id([planId, userId])
+}
+
+// Tirage des équipes et tournoi (lib/teams.ts) : fonction à activer (enabledFeatures « equipes »).
+model TeamDraw {
+  planId    String      @id
+  plan      Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  teamCount Int         @default(2)
+  // Équipes équilibrées selon le niveau (1 à 3) donné par l'organisateur
+  balanced  Boolean     @default(false)
+  drawnAt   DateTime?
+  // Tournoi : 'league' (championnat, chacun contre chacun) ou 'knockout' (élimination directe)
+  format    String?
+  createdAt DateTime    @default(now())
+  levels    TeamLevel[]
+  teams     Team[]
+  matches   TeamMatch[]
+}
+
+model TeamLevel {
+  planId String
+  draw   TeamDraw @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level  Int
+
+  @@id([planId, userId])
+}
+
+model Team {
+  id       String       @id @default(cuid())
+  planId   String
+  draw     TeamDraw     @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  name     String
+  color    String
+  position Int
+  members  TeamMember[]
+
+  @@index([planId])
+}
+
+// Une personne dans une seule équipe par Plan (planId dupliqué pour l'unicité)
+model TeamMember {
+  planId String
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([planId, userId])
+}
+
+// Match d'un tournoi ; awayId vide = équipe exemptée (élimination directe)
+model TeamMatch {
+  id        String   @id @default(cuid())
+  planId    String
+  draw      TeamDraw @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  round     Int
+  position  Int
+  homeId    String?
+  awayId    String?
+  homeScore Int?
+  awayScore Int?
+  winnerId  String?
+  updatedAt DateTime @updatedAt
+
+  @@index([planId])
+}
+
+// Cagnotte cadeau commune (lib/giftPot.ts) : fonction à activer (enabledFeatures « cagnotte »).
+// Montant de chacun visible par l'organisateur seulement ; les autres voient le total et qui participe.
+model GiftPot {
+  planId         String       @id
+  plan           Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  forWhom        String?
+  target         Float?
+  suggested      Float?
+  currency       String       @default("CHF")
+  // Comment payer (Twint, IBAN…) : texte libre de l'organisateur
+  payInfo        String?
+  chosenIdeaId   String?
+  closedAt       DateTime?
+  lastReminderAt DateTime?
+  createdAt      DateTime     @default(now())
+  pledges        GiftPledge[]
+  ideas          GiftIdea[]
+}
+
+model GiftPledge {
+  planId         String
+  pot            GiftPot   @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Float
+  // « J'ai payé » (participant) puis « Reçu » (organisateur)
+  declaredPaidAt DateTime?
+  receivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@id([planId, userId])
+}
+
+model GiftIdea {
+  id          String         @id @default(cuid())
+  planId      String
+  pot         GiftPot        @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  text        String
+  url         String?
+  price       Float?
+  createdById String?
+  createdBy   User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+  votes       GiftIdeaVote[]
+
+  @@index([planId])
+}
+
+model GiftIdeaVote {
+  ideaId String
+  idea   GiftIdea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, userId])
 }

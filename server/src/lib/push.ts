@@ -68,6 +68,12 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
     case 'santa_reveal':
     case 'santa_reminder':
       return { title: n.planTitle ?? 'Père Noël secret', body: n.preview ?? 'Du nouveau pour le Père Noël secret', url: `${planUrl}&tab=pere_noel`, group: `santa:${n.planId}` };
+    case 'killer':
+      return { title: n.planTitle ?? 'Killer', body: n.preview ?? 'Du nouveau dans la partie de Killer', url: `${planUrl}&tab=killer`, group: `killer:${n.planId}` };
+    case 'teams':
+      return { title: n.planTitle ?? 'Équipes', body: n.preview ?? 'Du nouveau pour les équipes', url: `${planUrl}&tab=equipes`, group: `teams:${n.planId}` };
+    case 'pot':
+      return { title: n.planTitle ?? 'Cagnotte', body: n.preview ?? 'Du nouveau dans la cagnotte', url: `${planUrl}&tab=cagnotte`, group: `pot:${n.planId}` };
     case 'plan_member':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? 'Du changement chez les participants', url: planUrl, group: `members:${n.planId}` };
     case 'plan_reminder':
