@@ -32,7 +32,7 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   // Rendez-vous qui se répète chaque semaine
   const foot = await mk(cop, 'tom_b', { title: 'Foot de la semaine', description: 'Match amical, tout niveau. Prévoir un t-shirt clair et un foncé.', eventDate: at(4, 19), endDate: at(4, 21), location: 'Terrain synthétique de Montvert', recurrence: 'weekly' });
   const anniv = await mk(cop, 'alex', { title: 'Anniversaire surprise de Tom 🎂', description: 'Chut ! Tom ne voit pas ce Plan. On se retrouve 30 min avant pour tout préparer.', eventDate: at(12, 19, 30), endDate: at(13, 2), location: 'Chez Julie',
-    excludedUserIds: [U.tom_b.id], importantInfo: 'Arriver à 19 h au plus tard, Tom arrive à 19 h 30.\nCagnotte cadeau : 20 CHF par personne.' });
+    excludedUserIds: [U.tom_b.id], importantInfo: 'Arriver à 19 h au plus tard, Tom arrive à 19 h 30.\nCagnotte cadeau : 20 CHF par personne.', enabledFeatures: ['cagnotte'] });
   for (const [p, plan, rsvp] of [['alex', raclette, 'in'], ['tom_b', raclette, 'in'], ['julie_r', raclette, 'in'], ['noah_p', raclette, 'in'], ['emma_v', raclette, 'in'], ['lucas_d', raclette, 'in'], ['chloe_s', raclette, 'maybe'],
     ['alex', ski, 'in'], ['lea_m', ski, 'in'], ['julie_r', ski, 'in'], ['noah_p', ski, 'in'], ['emma_v', ski, 'in'], ['chloe_s', ski, 'in'], ['lucas_d', ski, 'maybe'], ['max_g', ski, 'out'],
     ['alex', loto, 'maybe'], ['lea_m', loto, 'in'], ['tom_b', loto, 'in'], ['emma_v', loto, 'in'],
@@ -107,7 +107,41 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   await call('POST', `/plans/${noel.id}/santa/messages`, { to: 'receiver', content: 'Hello ! Tu préfères le sucré ou le salé ? 🎅' }, T[alexSanta]);
   for (const p of ['tom_b', 'julie_r']) if (p !== alexReceiver) await call('PUT', `/plans/${noel.id}/santa/ready`, { ready: true }, T[p]);
   for (const plan of [raclette, ski, loto, apero, anniv, foot, noel]) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id], santaPlans: [noel.id], pollId: poll.id }));
+  // Cagnotte de l'anniversaire surprise de Tom (Alex organise)
+  await call('PUT', `/plans/${anniv.id}/pot`, { forWhom: 'Tom', target: '200', suggested: '20', currency: 'CHF', payInfo: 'Twint au 079 123 45 67 (Alex), ou en espèces le soir même' }, T.alex);
+  await call('PUT', `/plans/${anniv.id}/pot/pledge`, { amount: '20' }, T.julie_r);
+  await call('PUT', `/plans/${anniv.id}/pot/pledge`, { amount: '30' }, T.emma_v);
+  await call('PUT', `/plans/${anniv.id}/pot/pledge`, { amount: '20' }, T.noah_p);
+  await call('PUT', `/plans/${anniv.id}/pot/pledge/paid`, { paid: true }, T.julie_r);
+  await call('PUT', `/plans/${anniv.id}/pot/pledges/${U.julie_r.id}`, { received: true }, T.alex);
+  await call('PUT', `/plans/${anniv.id}/pot/pledge/paid`, { paid: true }, T.emma_v);
+  await call('POST', `/plans/${anniv.id}/pot/ideas`, { text: 'Un baptême de parapente', price: '170' }, T.julie_r);
+  await call('POST', `/plans/${anniv.id}/pot/ideas`, { text: 'Le nouveau maillot du FC Sion', url: 'https://www.fc-sion.ch', price: '110' }, T.emma_v);
+  await call('POST', `/plans/${anniv.id}/pot/ideas`, { text: 'Une box dégustation de bières', price: '60' }, T.noah_p);
+  const ideas = await call('GET', `/plans/${anniv.id}/pot`, null, T.alex);
+  const para = ideas.ideas.find(i => i.text.includes('parapente'));
+  await call('POST', `/plans/${anniv.id}/pot/ideas/${para.id}/vote`, {}, T.noah_p);
+  // Killer au chalet (Alex organise) : partie en cours, une élimination déjà faite
+  const chalet = await mk(cop, 'alex', { title: 'Week-end au chalet 🏔️', description: 'Deux jours entre copains, raclette et partie de Killer tout le week-end 🔪', eventDate: at(6, 18), endDate: at(8, 18), location: 'Chalet des Mayens, Nax', enabledFeatures: ['killer'] });
+  for (const p of ['tom_b', 'julie_r', 'emma_v', 'noah_p']) await call('POST', `/plans/${chalet.id}/join`, {}, T[p]);
+  await call('PUT', `/plans/${chalet.id}/killer`, { objects: ['une cuillère en bois', 'un bouchon de liège', 'une carte de jass', 'un gant de cuisine', 'une pive', 'un caquelon'], places: ['dans la cuisine', 'sur la terrasse', 'près de la cheminée', 'dans l’escalier', 'devant le chalet'] }, T.alex);
+  await call('POST', `/plans/${chalet.id}/killer/start`, {}, T.alex);
+  const kp = await prisma.killerPlayer.findMany({ where: { planId: chalet.id } });
+  const alexTarget = kp.find(p => p.userId === U.alex.id).targetId;
+  // Un joueur qui ne vise ni Alex ni sa cible élimine la sienne
+  const hunter = kp.find(p => p.userId !== U.alex.id && p.targetId !== U.alex.id && p.targetId !== alexTarget && p.userId !== alexTarget) ?? kp.find(p => p.userId !== U.alex.id && p.targetId !== U.alex.id);
+  const pseudoOf = id => Object.keys(U).find(k => U[k].id === id);
+  await call('POST', `/plans/${chalet.id}/killer/claim`, {}, T[pseudoOf(hunter.userId)]);
+  await call('POST', `/plans/${chalet.id}/killer/answer`, { confirm: true }, T[pseudoOf(hunter.targetId)]);
+  // Tournoi de pétanque de la jeunesse (Alex, organisateur du Cercle, saisit les scores)
+  const petanque = await mk(jeu, 'lea_m', { title: 'Tournoi de pétanque 🥇', description: 'Doublettes tirées au sort, championnat sur l’après-midi. Grillades ensuite !', eventDate: at(9, 14), endDate: at(9, 22), location: 'Place de la Fontaine, Montvert', enabledFeatures: ['equipes'] });
+  for (const p of ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g']) await call('POST', `/plans/${petanque.id}/join`, {}, T[p]);
+  await call('PUT', `/plans/${petanque.id}/teams`, { teamCount: 4 }, T.lea_m);
+  await call('POST', `/plans/${petanque.id}/teams/draw`, {}, T.lea_m);
+  await call('POST', `/plans/${petanque.id}/teams/tournament`, { format: 'league' }, T.lea_m);
+  const tour = await call('GET', `/plans/${petanque.id}/teams`, null, T.lea_m);
+  for (const [i, m] of tour.matches.filter(m => m.round <= 2).entries()) await call('PUT', `/plans/${petanque.id}/teams/matches/${m.id}`, { homeScore: [13, 9, 13, 13][i], awayScore: [7, 13, 11, 4][i] }, T.lea_m);
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], killerPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });

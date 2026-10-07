@@ -311,6 +311,55 @@ function createPlan(circleId: string, body: any) {
   return detail;
 }
 
+// Killer : la cible d'Alex confirme son élimination ; Alex reprend une mission (cible encore en jeu,
+// objet et lieu de la partie). Dernier en jeu : fin de partie et palmarès.
+const demoKillerKills = new Map<string, string>(); // victime → auteur (éliminations faites dans la démo)
+function killerConfirm(planId: string) {
+  const st = fixtures![`GET /plans/${planId}/killer`];
+  if (!st?.me?.claimed || !st.me.mission) return;
+  const victimId = st.me.mission.target.id;
+  const victim = st.players.find((p: any) => p.user.id === victimId);
+  if (victim) { victim.alive = false; victim.eliminatedAt = now(); }
+  demoKillerKills.set(victimId, me.id);
+  st.me.kills += 1; st.me.claimed = false;
+  st.aliveCount = st.players.filter((p: any) => p.alive).length;
+  const others = st.players.filter((p: any) => p.alive && p.user.id !== me.id);
+  const pick = (l: any[]) => l[Math.floor(Math.random() * l.length)];
+  if (!others.length) {
+    st.ended = true; st.me.mission = null;
+    st.winner = st.players.find((p: any) => p.user.id === me.id)?.user ?? null;
+    const byId = new Map(st.players.map((p: any) => [p.user.id, p.user]));
+    for (const p of st.players) {
+      p.kills = p.user.id === me.id ? st.me.kills : 0;
+      p.eliminatedBy = p.alive ? null : byId.get(demoKillerKills.get(p.user.id) ?? '') ?? null;
+    }
+    // Les éliminations d'avant la démo : attribuées à un autre joueur (données fictives)
+    for (const p of st.players) if (!p.alive && !p.eliminatedBy) {
+      const author = st.players.find((x: any) => x.user.id !== me.id && x.user.id !== p.user.id);
+      if (author) { p.eliminatedBy = author.user; author.kills += 1; }
+    }
+    st.players.sort((a: any, b: any) => b.kills - a.kills);
+  } else {
+    st.me.mission = { target: pick(others).user, object: pick(st.objects ?? ['une cuillère']), place: pick(st.places ?? ['dans la cuisine']) };
+  }
+  changed(planId);
+  fire('notification', { id: newId('n'), type: 'killer', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: st.ended ? '🏆 Tu remportes le Killer !' : '🎯 Élimination confirmée ! Découvre ta nouvelle mission' });
+}
+
+// Championnat : même classement que le serveur (3 / 1 / 0, différence, buts marqués)
+function recomputeStandings(st: any) {
+  const t = new Map<string, any>(st.teams.map((x: any) => [x.id, { teamId: x.id, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, diff: 0, points: 0 }]));
+  for (const m of st.matches) {
+    if (m.homeScore == null || m.awayScore == null) continue;
+    const h = t.get(m.homeId), a = t.get(m.awayId);
+    if (!h || !a) continue;
+    h.played++; a.played++; h.goalsFor += m.homeScore; h.goalsAgainst += m.awayScore; a.goalsFor += m.awayScore; a.goalsAgainst += m.homeScore;
+    if (m.homeScore > m.awayScore) { h.won++; a.lost++; h.points += 3; } else if (m.homeScore < m.awayScore) { a.won++; h.lost++; a.points += 3; } else { h.drawn++; a.drawn++; h.points++; a.points++; }
+  }
+  st.standings = [...t.values()].map(s => ({ ...s, diff: s.goalsFor - s.goalsAgainst })).sort((x, y) => y.points - x.points || y.diff - x.diff || y.goalsFor - x.goalsFor);
+  st.championId = st.matches.every((m: any) => m.homeScore != null) ? st.standings[0]?.teamId ?? null : null;
+}
+
 function route(method: string, path: string, body: any): any {
   const key = `${method} ${path}`;
   let m: RegExpMatchArray | null;
@@ -351,6 +400,98 @@ function route(method: string, path: string, body: any): any {
     } else throw new DemoError(403, NOT_IN_DEMO);
     changed(m[1]);
     return { ok: true };
+  }
+
+  // Killer (Week-end au chalet) : partie en cours. « J'ai eu ma cible » : la cible confirme
+  // quelques secondes plus tard et Alex reçoit une nouvelle mission. Le reste est réservé au vrai site.
+  if ((m = path.match(/^\/plans\/([^/]+)\/killer\/claim$/))) {
+    const st = fixtures![`GET /plans/${m[1]}/killer`];
+    if (!st?.me?.mission || st.ended) throw new DemoError(403, NOT_IN_DEMO);
+    const planId = m[1];
+    st.me.claimed = method === 'POST';
+    if (method === 'POST') window.setTimeout(() => killerConfirm(planId), 3000);
+    changed(planId);
+    return { ok: true };
+  }
+  if (path.match(/^\/plans\/[^/]+\/killer/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Tournoi (pétanque) : Alex, organisateur du Cercle, saisit les scores du championnat
+  if ((m = path.match(/^\/plans\/([^/]+)\/teams\/matches\/([^/]+)$/)) && method === 'PUT') {
+    const st = fixtures![`GET /plans/${m[1]}/teams`];
+    const match = st?.matches.find((x: any) => x.id === m![2]);
+    if (!match || st.format !== 'league') throw new DemoError(403, NOT_IN_DEMO);
+    if (body.clear) { match.homeScore = null; match.awayScore = null; }
+    else {
+      const h = Number(body.homeScore), a = Number(body.awayScore);
+      if (!Number.isInteger(h) || !Number.isInteger(a) || h < 0 || a < 0) throw new DemoError(400, 'Score invalide');
+      match.homeScore = h; match.awayScore = a;
+    }
+    recomputeStandings(st);
+    changed(m[1]);
+    return { ok: true };
+  }
+  if (path.match(/^\/plans\/[^/]+\/teams/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Cagnotte (anniversaire surprise de Tom) : participation, paiement, idées et votes, réglages d'Alex
+  if ((m = path.match(/^\/plans\/([^/]+)\/pot(\/.*)?$/)) && method !== 'GET') {
+    const st = fixtures![`GET /plans/${m[1]}/pot`];
+    if (!st) throw new DemoError(403, NOT_IN_DEMO);
+    const sub = m[2] ?? '';
+    const meP = { id: me.id, pseudo: me.pseudo, firstName: me.firstName };
+    let im: RegExpMatchArray | null;
+    let result: any = { ok: true };
+    if (sub === '/pledge' && method === 'PUT') {
+      const amount = Math.round(Number(String(body.amount).replace(',', '.')) * 100) / 100;
+      if (!(amount > 0)) throw new DemoError(400, 'Montant invalide');
+      if (st.closed) throw new DemoError(400, 'La cagnotte est close');
+      st.myPledge = { amount, declaredPaid: st.myPledge?.declaredPaid ?? false, received: st.myPledge?.received ?? false };
+      st.pledges = (st.pledges ?? []).filter((p: any) => p.user.id !== me.id).concat({ user: meP, ...st.myPledge });
+      if (!st.contributors.some((c: any) => c.id === me.id)) st.contributors.push(meP);
+      st.notYet = (st.notYet ?? []).filter((u: any) => u.id !== me.id);
+    } else if (sub === '/pledge' && method === 'DELETE') {
+      st.myPledge = null;
+      st.pledges = (st.pledges ?? []).filter((p: any) => p.user.id !== me.id);
+      st.contributors = st.contributors.filter((c: any) => c.id !== me.id);
+    } else if (sub === '/pledge/paid' && st.myPledge) {
+      st.myPledge.declaredPaid = body.paid === true;
+      const mine = st.pledges?.find((p: any) => p.user.id === me.id); if (mine) mine.declaredPaid = body.paid === true;
+    } else if ((im = sub.match(/^\/pledges\/([^/]+)$/)) && st.canManage) {
+      const p = st.pledges?.find((x: any) => x.user.id === im![1]);
+      if (!p) throw new DemoError(404, 'Participation introuvable');
+      p.received = body.received === true;
+      if (im[1] === me.id && st.myPledge) st.myPledge.received = p.received;
+    } else if (sub === '/ideas' && method === 'POST') {
+      const text = String(body.text ?? '').trim();
+      if (!text) throw new DemoError(400, 'Idée vide');
+      const price = body.price ? Number(String(body.price).replace(',', '.')) : null;
+      st.ideas.push({ id: newId('idea'), text, url: body.url || null, price: price && price > 0 ? price : null, createdBy: meP, votes: 1, myVote: true, canDelete: true });
+    } else if ((im = sub.match(/^\/ideas\/([^/]+)$/)) && method === 'DELETE') {
+      const idea = st.ideas.find((i: any) => i.id === im![1]);
+      if (!idea?.canDelete) throw new DemoError(403, NOT_IN_DEMO);
+      st.ideas = st.ideas.filter((i: any) => i.id !== idea.id);
+      if (st.chosenIdeaId === idea.id) st.chosenIdeaId = null;
+    } else if ((im = sub.match(/^\/ideas\/([^/]+)\/vote$/))) {
+      const idea = st.ideas.find((i: any) => i.id === im![1]);
+      if (!idea) throw new DemoError(404, 'Idée introuvable');
+      idea.votes += idea.myVote ? -1 : 1; idea.myVote = !idea.myVote;
+    } else if (sub === '' && method === 'PUT' && st.canManage) {
+      for (const k of ['forWhom', 'payInfo', 'currency', 'chosenIdeaId']) if (body[k] !== undefined) st[k] = body[k] || null;
+      for (const k of ['target', 'suggested']) if (body[k] !== undefined) st[k] = body[k] === '' || body[k] === null ? null : Number(String(body[k]).replace(',', '.')) || null;
+      st.currency = st.currency || 'CHF';
+    } else if (sub === '/remind' && st.canManage) {
+      st.canRemind = false;
+      result = { ok: true, sent: (st.notYet?.length ?? 0) + (st.pledges ?? []).filter((p: any) => !p.declaredPaid && !p.received && p.user.id !== me.id).length };
+    } else if (sub === '/close' && st.canManage) {
+      st.closed = body.closed !== false;
+    } else throw new DemoError(403, NOT_IN_DEMO);
+    st.ideas.sort((a: any, b: any) => b.votes - a.votes);
+    if (st.pledges) {
+      st.total = Math.round(st.pledges.reduce((s: number, p: any) => s + p.amount, 0) * 100) / 100;
+      st.received = Math.round(st.pledges.filter((p: any) => p.received).reduce((s: number, p: any) => s + p.amount, 0) * 100) / 100;
+      st.count = st.pledges.length;
+    }
+    changed(m[1]);
+    return result;
   }
 
   // Mode silencieux (Plan ou Cercle), en mémoire
