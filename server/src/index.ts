@@ -22,6 +22,7 @@ import muteRoutes from './routes/mutes';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
+import { sendSantaReminders } from './lib/secretSanta';
 import { spawnRecurringPlans } from './lib/recurrence';
 import { createPlanInCircle } from './routes/circles';
 import { encryptLegacyMessages } from './lib/messageBackfill';
@@ -119,6 +120,9 @@ if (cronEnabled) {
 
   sendPlanReminders();
   setInterval(sendPlanReminders, 15 * 60 * 1000);
+  // Père Noël secret : rappel une semaine avant l'échange (cadeaux pas encore prêts)
+  sendSantaReminders(io);
+  setInterval(() => sendSantaReminders(io), 60 * 60 * 1000);
 
   sendWeeklyDigest();
   setInterval(sendWeeklyDigest, 60 * 60 * 1000);

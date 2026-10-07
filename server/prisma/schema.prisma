@@ -67,6 +67,9 @@ model User {
   ridePassengers         RidePassenger[]
   volunteerSignups       VolunteerSignup[]
   notificationMutes      NotificationMute[]
+  santaWishes            SecretSantaWish[]
+  santaGiving            SecretSantaPair[]     @relation("SantaGiver")
+  santaReceiving         SecretSantaPair[]     @relation("SantaReceiver")
   rideRequests           RideRequest[]
   planExclusions         PlanExclusion[]
   planChangeLogs         PlanChangeLog[]       @relation("PlanChangeLogAuthor")
@@ -275,7 +278,7 @@ model Plan {
   // Paramètres avancés : suppression "vote" ou "creator" ; fonctions masquées (chat, trajets, votes, depenses, fichiers)
   deletionMode      String    @default("vote")
   disabledFeatures  String[]  @default([])
-  // Fonctions à activer (absentes par défaut) : benevoles
+  // Fonctions à activer (absentes par défaut) : benevoles, pere_noel
   enabledFeatures   String[]  @default([])
   // "creator" : seul le créateur modifie ; "all" : les membres du Plan (hors invités) modifient dates et lieu
   editMode          String    @default("creator")
@@ -312,6 +315,7 @@ model Plan {
   volunteerShifts   VolunteerShift[]
   volunteerSignups  VolunteerSignup[]
   notificationMutes NotificationMute[]
+  santa             SecretSanta?
   exclusions        PlanExclusion[]
   guestLink         PlanGuestLink?
 }
@@ -717,4 +721,78 @@ model NotificationMute {
 
   @@unique([userId, planId])
   @@unique([userId, circleId])
+}
+
+// Père Noël secret (lib/secretSanta.ts) : fonction à activer dans un Plan (enabledFeatures
+// « pere_noel »). La date du Plan est le jour de l'échange des cadeaux. Tirage lancé par
+// l'organisateur parmi les participants « Je suis in » (avec compte) ; chacun ne voit que sa paire
+// jusqu'à la révélation, décidée par l'organisateur à partir du jour de l'échange.
+model SecretSanta {
+  planId             String                 @id
+  plan               Plan                   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  budget             String?
+  drawnAt            DateTime?
+  revealedAt         DateTime?
+  // Rappel « une semaine avant » envoyé (anti-doublon)
+  weekReminderSentAt DateTime?
+  createdAt          DateTime               @default(now())
+  wishes             SecretSantaWish[]
+  exclusions         SecretSantaExclusion[]
+  pairs              SecretSantaPair[]
+  messages           SecretSantaMessage[]
+}
+
+// Liste d'envies d'un participant
+model SecretSantaWish {
+  planId    String
+  santa     SecretSanta @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  // « Je n'ai pas d'envie particulière » : la personne a répondu sans rien noter
+  noWish    Boolean     @default(false)
+  updatedAt DateTime    @updatedAt
+
+  @@id([planId, userId])
+}
+
+// Deux personnes à ne pas tirer ensemble (couple, frères et sœurs…), dans les deux sens
+model SecretSantaExclusion {
+  id      String      @id @default(cuid())
+  planId  String
+  santa   SecretSanta @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userAId String
+  userBId String
+
+  @@unique([planId, userAId, userBId])
+}
+
+// Résultat du tirage : giver offre à receiver. Jamais renvoyé tel quel au client (sauf révélation).
+model SecretSantaPair {
+  planId     String
+  santa      SecretSanta @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  giverId    String
+  giver      User        @relation("SantaGiver", fields: [giverId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User        @relation("SantaReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  giftReady  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+
+  @@id([planId, giverId])
+  @@unique([planId, receiverId])
+}
+
+// Messagerie anonyme d'une paire (giver ↔ receiver) ; fromGiver : écrit par le Père Noël.
+// Contenu chiffré comme les autres messages (lib/messageCrypto.ts).
+model SecretSantaMessage {
+  id         String      @id @default(cuid())
+  planId     String
+  santa      SecretSanta @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  giverId    String
+  receiverId String
+  fromGiver  Boolean
+  content    String
+  createdAt  DateTime    @default(now())
+
+  @@index([planId, giverId])
 }

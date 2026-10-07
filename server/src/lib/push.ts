@@ -63,6 +63,11 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
       return { title: n.circleName ?? 'Nouveau Plan', body: `${from} propose un nouveau Plan : ${n.planTitle}`, url: planUrl, group: `plan:${n.planId}` };
     case 'plan_activity':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? 'Du nouveau dans le Plan', url: planUrl, group: `activity:${n.planId}` };
+    case 'santa_draw':
+    case 'santa_message':
+    case 'santa_reveal':
+    case 'santa_reminder':
+      return { title: n.planTitle ?? 'Père Noël secret', body: n.preview ?? 'Du nouveau pour le Père Noël secret', url: `${planUrl}&tab=pere_noel`, group: `santa:${n.planId}` };
     case 'plan_member':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? 'Du changement chez les participants', url: planUrl, group: `members:${n.planId}` };
     case 'plan_reminder':

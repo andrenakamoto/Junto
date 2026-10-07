@@ -28,12 +28,16 @@ const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim
 import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
+import secretSantaRoutes from './secretSanta';
+import { removeFromSanta, santaDateError } from '../lib/secretSanta';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
 router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
+// Père Noël secret (/:id/santa…)
+router.use(secretSantaRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
@@ -355,6 +359,9 @@ router.put('/:id', async (req: AuthRequest, res) => {
       : parseRecurrenceInput(settings.recurrence, settings.recurrenceUntil, eventDate ? new Date(eventDate) : null);
     if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
     if (!deletionMode || !disabledFeatures || !enabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+    // Père Noël secret : la date du Plan est celle de l'échange, la fin vient après
+    const santaError = santaDateError(enabledFeatures, newEventDate, newEndDate);
+    if (santaError) { res.status(400).json({ error: santaError }); return; }
 
     const logs: { planId: string; field: string; oldValue: string | null; newValue: string | null; changedById: string }[] = [];
     const changedById = req.userId!;
@@ -392,6 +399,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
       for (const m of removed) {
         await removeUserFromRides(req.app.get('io'), planId, m.userId, m.user.pseudo)
           .catch(e => console.error('[exclusion rides cleanup]', e));
+        await removeFromSanta(planId, m.userId).catch(e => console.error('[exclusion santa cleanup]', e));
       }
       await prisma.$transaction([
         prisma.planExclusion.deleteMany({ where: { planId } }),
@@ -517,6 +525,7 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
       await removeUserFromRides(req.app.get('io'), req.params.id, req.userId!, req.pseudo!)
         .catch(e => console.error('[rsvp rides cleanup]', e));
       await removeUserFromShifts(req.params.id, req.userId!).catch(e => console.error('[rsvp shifts cleanup]', e));
+      await removeFromSanta(req.params.id, req.userId!).catch(e => console.error('[rsvp santa cleanup]', e));
     }
     res.json(member);
   } catch {

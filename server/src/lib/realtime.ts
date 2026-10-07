@@ -101,6 +101,8 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // « seen » ne concerne que la personne : surtout pas de diffusion (chaque écran
   // rechargerait puis marquerait « vu » à son tour, en boucle)
   if (a === 'messages' || b === 'guest-link' || b === 'seen') return null;
+  // Père Noël secret : rechargement seulement — pas de pastille ni d'activité (tout y est privé)
+  if (b === 'santa') return planTarget(a, false);
   // Informations importantes : onglet Infos, notification aux participants
   if (b === 'important-info') return planTarget(a, false, 'infos', 'important_info_updated');
   // PUT /:id (modification du Plan) → onglet Infos ; DELETE /:id → aucun

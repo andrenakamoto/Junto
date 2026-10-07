@@ -97,6 +97,7 @@ export async function sendPlanReminders() {
           include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } } },
         },
         volunteerSignups: { include: { shift: true } },
+        santa: { include: { pairs: { include: { receiver: { select: { pseudo: true, firstName: true } } } } } },
       },
     });
 
@@ -130,6 +131,16 @@ export async function sendPlanReminders() {
             </div>`;
       };
 
+      // Père Noël secret : à qui la personne offre un cadeau (elle seule le voit)
+      const santaBlock = (userId: string) => {
+        const pair = plan.santa?.drawnAt && !plan.santa.revealedAt ? plan.santa.pairs.find(p => p.giverId === userId) : null;
+        if (!pair) return '';
+        const who = pair.receiver.firstName ?? '@' + pair.receiver.pseudo;
+        return `<div style="background:#fff1f2;border-radius:8px;padding:12px 14px;margin:16px 0">
+              <p style="margin:0;color:#1e293b">🎅 N'oublie pas le cadeau de <strong>${escapeHtml(who)}</strong>${plan.santa?.budget ? ` (budget : ${escapeHtml(plan.santa.budget)})` : ''}.</p>
+            </div>`;
+      };
+
       const results = await Promise.all(recipients.map(u => resend.emails.send({
         from: FROM_EMAIL,
         to: u.email!,
@@ -143,6 +154,7 @@ export async function sendPlanReminders() {
               <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
             </div>` : ''}
             ${shiftsBlock(u.id)}
+            ${santaBlock(u.id)}
             <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               Voir le Plan
             </a>
