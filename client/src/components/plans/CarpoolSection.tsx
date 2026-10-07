@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getSocket } from '../../lib/socket';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import api from '../../services/api';
+import { DateTimeField } from '../ui/DateTimeField';
 
 interface Props {
   planId: string;
@@ -236,16 +237,17 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                 maxLength={100}
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <div className="flex gap-2">
-                <label className="flex-1 text-xs text-slate-500">
+              <div className="flex gap-2 items-start">
+                <div className="flex-1 min-w-0 text-xs text-slate-500">
                   Heure de départ (optionnel)
-                  <input
-                    type="datetime-local"
+                  <DateTimeField
                     value={rideForm.departureAt}
-                    onChange={e => setRideForm({ ...rideForm, departureAt: e.target.value })}
-                    className="mt-0.5 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    onChange={v => setRideForm({ ...rideForm, departureAt: v })}
+                    placeholder="Choisir"
+                    clearable
+                    className="mt-0.5"
                   />
-                </label>
+                </div>
                 <label className="w-24 text-xs text-slate-500">
                   Places
                   <input

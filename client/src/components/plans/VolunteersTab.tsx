@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock, Pencil, Plus, Trash2, X } from 'luc
 import { Plan, VolunteerShift } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
+import { DateTimeField } from '../ui/DateTimeField';
 
 // Planning des bénévoles (fonction à activer dans les paramètres avancés du Plan) : le créateur
 // du Plan et les gestionnaires du Cercle créent les postes, chacun s'inscrit — ce qui vaut
@@ -256,11 +257,12 @@ function ShiftForm({ plan, shift, onSubmit, onCancel }: {
           pers.
         </label>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        <label className="text-xs text-slate-500 flex items-center gap-1.5 flex-1 min-w-[12rem]">
-          Début
-          <input type="datetime-local" value={start} onChange={e => setStart(e.target.value)} onFocus={() => { if (!start && plan.eventDate) setStart(toLocalInput(plan.eventDate)); }} className={input} />
-        </label>
+      <div className="flex flex-wrap gap-2 items-start">
+        <div className="text-xs text-slate-500 flex items-start gap-1.5 flex-1 min-w-[14rem]">
+          <span className="pt-2.5">Début</span>
+          <DateTimeField value={start} onChange={setStart} placeholder="Horaire (facultatif)" clearable
+            openAt={toLocalInput(plan.eventDate)} defaultTime={toLocalInput(plan.eventDate).slice(11, 16) || '09:00'} className="flex-1 min-w-0" />
+        </div>
         <label className="text-xs text-slate-500 flex items-center gap-1.5">
           Fin
           <input type="time" value={end} onChange={e => setEnd(e.target.value)} disabled={!start} className={`w-28 ${input} disabled:opacity-50`} />

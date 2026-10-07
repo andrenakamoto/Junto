@@ -1,5 +1,6 @@
 import { Repeat } from 'lucide-react';
 import { Recurrence, RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence';
+import { DateTimeField } from '../ui/DateTimeField';
 
 // Choix « Répéter » d'un Plan (création et modification, créateur seul). `until` : date
 // AAAA-MM-JJ (facultative) ; la répétition demande une date et une heure d'événement.
@@ -32,12 +33,7 @@ export function RecurrenceField({ value, until, eventDateISO, onChange }: {
             </p>
           )}
           <label className="block text-xs font-medium text-slate-600">Jusqu'au (facultatif)</label>
-          <input
-            type="date"
-            value={until}
-            onChange={e => onChange(value, e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
-          />
+          <DateTimeField mode="date" value={until} onChange={v => onChange(value, v)} placeholder="Pas de date de fin" clearable openAt={eventDateISO ?? undefined} />
         </div>
       )}
     </div>

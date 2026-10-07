@@ -7,6 +7,7 @@ import api from '../../services/api';
 import { CirclePoll, CircleMember } from '../../types';
 import { SurpriseSelector } from '../plans/SurpriseSelector';
 import { useAuth } from '../../contexts/AuthContext';
+import { DateTimeField } from '../ui/DateTimeField';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -67,12 +68,12 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
           <label className="text-sm font-medium text-slate-700">Dates proposées</label>
           {dates.map((d, i) => (
             <div key={i} className="flex gap-2">
-              <input
-                type="datetime-local"
+              <DateTimeField
                 value={d}
-                onChange={e => { const next = [...dates]; next[i] = e.target.value; setDates(next); }}
+                onChange={v => { const next = [...dates]; next[i] = v; setDates(next); }}
                 required
-                className="flex-1 px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white text-sm"
+                openAt={dates.find(Boolean)}
+                className="flex-1 min-w-0"
               />
               {dates.length > 2 && (
                 <button type="button" onClick={() => setDates(dates.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 p-1">

@@ -8,6 +8,7 @@ import { TermsModal } from '../components/ui/TermsModal';
 import { getLightToken, setLightToken } from '../lib/lightGuest';
 import { publicOrigin } from '../lib/siteUrl';
 import { countStep } from '../lib/funnel';
+import { DateTimeField } from '../components/ui/DateTimeField';
 
 // « Organiser une sortie » (/organiser, serveur : routes/express.ts) : un Plan en 30 secondes,
 // même sans compte, puis un lien à partager. Les amis répondent sans rien installer
@@ -176,7 +177,7 @@ export function OrganizePage() {
                 <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} required autoFocus placeholder="Raclette chez moi, sortie ski, apéro…" className={inputClass} />
               </Field>
               <Field label="Quand ?">
-                <input type="datetime-local" value={when} onChange={e => setWhen(e.target.value)} required className={`${inputClass} [color-scheme:dark]`} />
+                <DateTimeField value={when} onChange={setWhen} required dark />
               </Field>
               <Field label="Où ? (facultatif)">
                 <input value={where} onChange={e => setWhere(e.target.value)} maxLength={200} placeholder="Chez moi, Lausanne…" className={inputClass} />

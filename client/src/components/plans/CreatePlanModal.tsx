@@ -11,6 +11,7 @@ import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
 import { SurpriseSelector } from './SurpriseSelector';
+import { DateTimeField } from '../ui/DateTimeField';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -114,7 +115,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
-        <Input label={enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"} type="datetime-local" value={eventDate} onChange={e => setEventDate(e.target.value)} />
+        <DateTimeField label={enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"} value={eventDate} onChange={setEventDate} clearable />
         {!fromPoll && (
           <RecurrenceField
             value={recurrence}
@@ -123,7 +124,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
           />
         )}
-        <Input label="Date de fin du Plan" type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} required />
+        <DateTimeField label="Date de fin du Plan" value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
         <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
         {enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
         <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
