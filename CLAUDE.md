@@ -671,6 +671,32 @@ Junto/
   (`shiftsOverlap`, miroir client). Section `benevoles` des pastilles « nouveau ». Rappel de la
   veille : « Tes postes de bénévole » dans l'email. Plans récurrents : postes recopiés décalés, sans
   inscrits (`copyShifts`). Pas dans la démo.
+- **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
+  routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
+  « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
+  obligatoire, et la fin du Plan vient après (`santaDateError`, création et PUT /plans/:id). Tables
+  **SecretSanta** (budget, drawnAt, revealedAt, weekReminderSentAt), **SecretSantaWish** (liste
+  d'envies), **SecretSantaExclusion** (paires à ne pas tirer), **SecretSantaPair** (giver → receiver,
+  giftReady), **SecretSantaMessage** (messagerie anonyme d'une paire, chiffrée, `fromGiver`).
+  Participants = « Je suis in » **avec un compte** (pas les réponses sans compte). Liste d'envies
+  facultative mais **réponse attendue** : envies notées ou « Je n'ai pas d'envie particulière »
+  (`SecretSantaWish.noWish`) ; statut `wish` / `none` / `pending` montré aux participants, et le tirage
+  prévient s'il reste des réponses en attente. Les deux conversations anonymes sont visuellement
+  opposées (rouge 🎁 « La personne que TU gâtes » / vert 🎅 « La personne qui TE gâte »).
+  Création / modification : encadré `SantaDatesNote` (date = échange, fin après l'échange). Tirage (POST
+  /santa/draw) **lancé par l'organisateur** (créateur du Plan ou gestionnaire du Cercle,
+  `canManageSanta`), une seule fois (réservation atomique) : un seul grand cercle si possible, sinon
+  toute attribution sans soi-même, exclusions respectées (`drawPairs`). **Règle d'or : GET /santa ne
+  renvoie que la paire de la personne, jamais l'identité de son Père Noël** avant la révélation ; les
+  notifications d'un message du Père Noël n'ont ni `from` ni `actorId`. Désistement après le tirage
+  (« Je passe », exclusion, départ du Cercle) : `removeFromSanta` referme la chaîne ; arrivées :
+  « Les ajouter au tirage » (`addToSanta`). « Refaire le tirage » efface paires et messages.
+  **Révélation** (POST /santa/reveal) par l'organisateur, **seulement à partir de la date du Plan**
+  (donc entre l'échange et la suppression). Rappels : une semaine avant (`sendSantaReminders`, cadeaux
+  pas prêts) et dans l'email de la veille (« N'oublie pas le cadeau de … »). Notifications
+  `santa_draw|santa_message|santa_reveal|santa_reminder` → onglet `pere_noel` (`?tab=pere_noel`).
+  Temps réel : rechargement seulement, pas de pastille « nouveau » (tout y est privé). Pas encore
+  dans la démo ni dans les apps (version 1.0.7).
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
