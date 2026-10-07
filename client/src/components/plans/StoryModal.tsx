@@ -32,6 +32,8 @@ export function StoryModal({ plan, onClose }: Props) {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragState = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const [generating, setGenerating] = useState(false);
+  // Tant qu'aucune photo n'a été prise, « Prendre la photo » est le bouton principal
+  const [photoTaken, setPhotoTaken] = useState(false);
 
   const imageAttachments = (plan.attachments || []).filter(a => isImage(a.mimeType));
   // 1600 px suffisent pour l'export de la story (cadre ~400 px, rendu x4)
@@ -68,10 +70,11 @@ export function StoryModal({ plan, onClose }: Props) {
 
   function handleTakePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     // data: URL plutôt que blob: — html-to-image ne sait pas embarquer les blob: (fetch() les rejette)
     const reader = new FileReader();
-    reader.onload = () => selectCover(reader.result as string);
+    reader.onload = () => { selectCover(reader.result as string); setPhotoTaken(true); };
     reader.readAsDataURL(file);
   }
 
@@ -260,18 +263,43 @@ export function StoryModal({ plan, onClose }: Props) {
           className="hidden"
           onChange={handleTakePhoto}
         />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-        >
-          <Camera size={15} />
-          Prendre une photo sur le moment
-        </button>
-
-        <Button onClick={handleDownload} disabled={generating} className="w-full flex items-center justify-center gap-2">
-          {generating ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-          Télécharger la story
-        </Button>
+        {/* Boutons toujours visibles en bas de la fenêtre, même quand l'aperçu dépasse l'écran */}
+        <div className="sticky -bottom-6 -mx-6 -mb-6 px-6 pt-3 pb-6 w-[calc(100%+3rem)] bg-white border-t border-slate-100 flex flex-col items-center gap-3">
+        {!photoTaken ? (
+          <>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-indigo-600 text-white text-base font-bold shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 active:scale-[0.98] transition"
+            >
+              <Camera size={22} />
+              Prendre la photo
+            </button>
+            <p className="text-xs text-slate-500 -mt-2 text-center">Prends d'abord ta photo, elle s'affiche dans la story. Ensuite, télécharge-la.</p>
+            <button
+              onClick={handleDownload}
+              disabled={generating}
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 font-medium disabled:opacity-50"
+            >
+              {generating ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {imageAttachments.length > 0 ? 'Télécharger avec la photo du Plan' : 'Télécharger sans photo'}
+            </button>
+          </>
+        ) : (
+          <>
+            <Button onClick={handleDownload} disabled={generating} className="w-full flex items-center justify-center gap-2 !py-3 !text-base">
+              {generating ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+              Télécharger la story
+            </Button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            >
+              <Camera size={15} />
+              Reprendre la photo
+            </button>
+          </>
+        )}
+        </div>
       </div>
     </Modal>
   );
