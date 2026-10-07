@@ -697,6 +697,40 @@ Junto/
   `santa_draw|santa_message|santa_reveal|santa_reminder` → onglet `pere_noel` (`?tab=pere_noel`).
   Temps réel : rechargement seulement, pas de pastille « nouveau » (tout y est privé). Pas encore
   dans les apps (version 1.0.7) ; présent dans la démo.
+- **Killer, Équipes, Cagnotte** (2026-10-07, 3 nouvelles fonctions **à activer**, `OPTIONAL_FEATURES`
+  `killer` / `equipes` / `cagnotte`, onglets `KillerTab` / `TeamsTab` / `GiftPotTab`, routes montées dans
+  le routeur des Plans, migration `20261007200000_killer_teams_gift_pot`). Organisateur = créateur du Plan
+  ou gestionnaire du Cercle (comme le Père Noël secret). Notifications `killer` / `teams` / `pot` →
+  `?tab=killer|equipes|cagnotte`. Temps réel : rechargement seulement (`realtime.ts`). Départs (« Je
+  passe », exclusion, départ du Cercle) : **`removeFromPlanGames` / `removeFromGamesInCircle`
+  (`lib/planGames.ts`)** retirent de tous les jeux (Père Noël, Killer, équipes) — à compléter pour tout
+  nouveau jeu. Pas dans le récapitulatif PDF. Dans la démo : « Week-end au chalet 🏔️ » (Killer en
+  cours, Les copains), « Tournoi de pétanque 🥇 » (championnat à moitié joué, Jeunesse de Montvert) et la
+  cagnotte de l'« Anniversaire surprise de Tom » (`killerConfirm`, `recomputeStandings` dans `lib/demo.ts`).
+  - **Killer** (`lib/killer.ts` testé, `routes/killer.ts`) : **KillerGame** (objets, lieux — listes par
+    défaut modifiables avant le début, visibles par l'organisateur seul), **KillerPlayer** (mission en
+    cours : `targetId`, `object`, `place` ; `claimedAt`, `kills`, `eliminatedAt`, `eliminatedById`).
+    Joueurs = « Je suis in » avec un compte, 3 minimum. Une seule chaîne (`drawPairs`). Le tueur dit
+    « J'ai eu ma cible » → la cible confirme (le tueur hérite de sa mission, `applyKill`) ou conteste.
+    Départ / retrait par l'organisateur : `withdrawPlayer` (le chasseur reprend la mission). Arrivées :
+    `insertPlayer`. `repairChain` répare à la lecture une chaîne cassée (compte supprimé). **Règle
+    d'or : GET ne renvoie que la mission de la personne** ; nombre d'éliminations et « qui a eu qui »
+    seulement à la fin (la victime apprend son tueur en confirmant). Mission cachée par défaut à l'écran.
+  - **Équipes** (`lib/teams.ts` testé, `routes/teams.ts`) : **TeamDraw** (nombre d'équipes 2–8,
+    `balanced`, `format` `league` / `knockout`), **TeamLevel** (1–3, organisateur seul), **Team** (nom,
+    couleur — `TEAM_COLORS`), **TeamMember** (une équipe par personne et par Plan), **TeamMatch**. Joueurs =
+    « Je suis in » **y compris les réponses sans compte**. Tirage « en serpent » (tailles égales à un
+    près, équilibré par niveau). Championnat : `leagueSchedule` (cercle), `leagueStandings` (3/1/0, diff,
+    buts). Élimination directe : exemptés au 1er tour, tour suivant créé quand le tour est complet,
+    égalité → l'organisateur désigne le qualifié ; changer un qualifié recrée les tours suivants. Scores
+    saisis par l'organisateur.
+  - **Cagnotte** (`lib/giftPot.ts` testé, `routes/giftPot.ts`) : **GiftPot** (pour qui, objectif, montant
+    proposé, devise CHF/EUR, « comment payer » en texte libre, idée choisie, clôture, dernière relance),
+    **GiftPledge** (montant, « J'ai payé », « Reçu » par l'organisateur), **GiftIdea** + **GiftIdeaVote**.
+    Participer : tout membre du Plan avec un compte, quelle que soit sa réponse. **Montant de chacun
+    visible par l'organisateur seul** ; les autres voient le total et qui participe. Pas d'argent qui
+    transite par EvLY. Relance (sans participation / pas encore payé) au plus toutes les 12 h. Une
+    participation reçue ne se retire plus. Rappel dans les réglages : cacher le Plan à la personne fêtée.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
@@ -764,6 +798,21 @@ Junto/
   message supprime la photo (Cloudinary compris), supprimer la photo dans
   Infos laisse le message affiché « Photo retirée ». Includes partagés dans
   `lib/messageInclude.ts`. Chat des sondages : pas de photos.
+  **Messages vocaux** (2026-10-07) : bouton micro à la place d'« Envoyer » quand la saisie est
+  vide (`ChatInput`, `MediaRecorder`, 2 min max, corbeille pour annuler). Même chemin qu'une photo :
+  POST `?via=chat` accepte `audio/*`, stocké chez Cloudinary en **`resource_type: 'video'`**, puis
+  `send-message` avec `attachmentId` (le serveur accepte image ou audio « video »). Durée dans le nom
+  du fichier (`vocal-23s.webm`, `voiceSeconds` dans `lib/media.ts`, pas de colonne). Lecture
+  (`VoiceMessage.tsx`) : `/view?format=mp3` = converti en MP3 par Cloudinary (un WebM enregistré sur
+  Android ne se lit pas sur iPhone), chargé en mémoire au premier appui (Safari ne lit pas un son
+  servi sans Range). Pas de « Modifier » (seulement supprimer, fichier compris), absents de l'onglet
+  Infos (`isVoiceNote`), aperçu des notifications « 🎤 Message vocal ». Apps : `RECORD_AUDIO` +
+  `MODIFY_AUDIO_SETTINGS` dans `AndroidManifest.xml`, texte `NSMicrophoneUsageDescription` iOS.
+  Pas dans la démo (envoi refusé comme les photos).
+  **Calendrier** (même date) : `components/ui/DateTimeField.tsx` remplace tous les champs natifs
+  `datetime-local` / `date` (listes défilantes sur téléphone, sans jour de la semaine) ; même format
+  de valeur (« AAAA-MM-JJTHH:MM »). Le chat propose aussi « Prendre une photo » / « Choisir dans la
+  galerie » sur écran tactile (le sélecteur Android n'ouvrait que la galerie).
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
   emoji temps réel. Barre de réactions : survol sur ordinateur ; sur écran tactile (`hover: none`),
   un appui sur le message l'ouvre et l'appui suivant, n'importe où, la ferme (`ChatMessage`).
@@ -1089,7 +1138,9 @@ création d'un Cercle et d'un Plan, **planning des bénévoles** du loto (s'insc
 Alex est organisateur du Cercle), **mode silencieux** (2026-10-05) et **Père Noël secret** (2026-10-07,
 « Noël entre copains 🎄 » dans Les copains, tirage déjà fait : liste d'envies, cadeau prêt, messages
 anonymes avec une réponse simulée quelques secondes plus tard ; tirage, ajout et révélation renvoient
-le 403 de la démo). « Foot de la semaine » montre
+le 403 de la démo), **Killer** (« J'ai eu ma cible » : la cible confirme 3 s plus tard, nouvelle
+mission), **tournoi** (scores du championnat, classement recalculé) et **cagnotte** (participation, « J'ai
+payé », idées, votes, réglages d'Alex) (2026-10-07). « Foot de la semaine » montre
 un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
 disponible… ». Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
