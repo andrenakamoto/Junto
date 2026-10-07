@@ -1,9 +1,9 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
-import { Plan, Message, User, CircleMember } from '../../types';
+import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { ChatInput } from '../chat/ChatInput';
@@ -23,6 +23,9 @@ import { PlanSettingsModal } from './PlanSettingsModal';
 import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
 import { SecretSantaTab } from './SecretSantaTab';
+import { KillerTab } from './KillerTab';
+import { TeamsTab } from './TeamsTab';
+import { GiftPotTab } from './GiftPotTab';
 import { ExpiryChip } from './ExpiryChip';
 import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
 import { downloadPlanRecap } from '../../lib/planRecap';
@@ -43,7 +46,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -60,7 +63,11 @@ const tabs = [
   { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: 'Père Noël' },
+  { key: 'killer' as Tab,     Icon: Crosshair,        label: 'Killer' },
+  { key: 'equipes' as Tab,    Icon: Trophy,           label: 'Équipes' },
+  { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: 'Cagnotte' },
 ];
+const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'equipes', 'cagnotte'];
 
 interface Props {
   plan: Plan;
@@ -208,7 +215,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
   // Bénévoles : fonction à activer (absente par défaut)
-  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (t.key === 'benevoles' || t.key === 'pere_noel' ? hasFeature(plan, t.key) : isEnabled(plan, t.key)));
+  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)));
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
   const showHub = isPhone && isMember && hub;
   const phoneSection = isPhone && isMember && !hub;
@@ -375,6 +382,18 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     getSocket(token).emit('send-message', { planId: plan.id, content: caption, parentId: replyTo?.id, attachmentId: data.id });
+  }
+
+  // Message vocal : même chemin qu'une photo (fichier du Plan rattaché au message), durée dans le nom
+  async function handleSendVoice(blob: Blob, seconds: number) {
+    if (!token) return;
+    const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+    const form = new FormData();
+    form.append('file', new File([blob], `vocal-${Math.max(1, Math.round(seconds))}s.${ext}`, { type: blob.type || 'audio/webm' }));
+    const { data } = await api.post(`/attachments/plans/${plan.id}?via=chat`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    getSocket(token).emit('send-message', { planId: plan.id, content: '', parentId: replyTo?.id, attachmentId: data.id });
   }
 
   function handleReact(messageId: string, emoji: string) {
@@ -929,6 +948,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <ChatInput
                 onSend={handleSend}
                 onSendPhoto={isEnabled(plan, 'fichiers') ? handleSendPhoto : undefined}
+                onSendVoice={isEnabled(plan, 'fichiers') ? handleSendVoice : undefined}
                 members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
                 replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment ? '📷 Photo' : '')).slice(0, 40) } : null}
                 onCancelReply={() => setReplyTo(null)}
@@ -942,6 +962,9 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
+          {activeTab === 'killer' && <KillerTab plan={plan} userId={user.id} />}
+          {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
+          {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

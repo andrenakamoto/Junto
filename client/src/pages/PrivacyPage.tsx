@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '5 octobre 2026';
+const VERSION = '7 octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 const processors: { name: string; role: string; where: string; safeguard: string }[] = [
   { name: 'Railway', role: 'hébergement du serveur et de la base de données (comptes, messages, Plans)', where: 'États-Unis (Californie)', safeguard: 'clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)' },
   { name: 'Vercel', role: 'hébergement du site evly.ch', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
-  { name: 'Cloudinary', role: 'stockage des photos et fichiers partagés dans les Plans', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
+  { name: 'Cloudinary', role: 'stockage des photos, messages vocaux et fichiers partagés dans les Plans', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Resend', role: 'envoi des emails (validation, rappels, notifications)', where: 'États-Unis', safeguard: 'clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)' },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
@@ -79,7 +79,8 @@ export function PrivacyPage() {
                 l'équipe. Lus uniquement par l'administrateur d'EvLY, qui les reçoit aussi par email ;
                 supprimés avec ton compte.</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
-                peut-être / non), votes, informations des Plans, photos et fichiers, trajets de covoiturage,
+                peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
+                aux jeux (Père Noël secret, Killer, équipes et scores) et à une cagnotte (montant, paiement signalé),
                 dépenses et remboursements.</li>
               <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
                 connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
@@ -116,7 +117,7 @@ export function PrivacyPage() {
                 titre, la date, le nombre de participants et le prénom de l'organisateur. Le créateur du Plan
                 peut renouveler le lien à tout moment, l'ancien cesse alors de fonctionner.</li>
               <li>Un Plan surprise est invisible pour les personnes à qui il est caché.</li>
-              <li>Les photos et fichiers ne sont accessibles que depuis EvLY, par des liens temporaires
+              <li>Les photos, messages vocaux et fichiers ne sont accessibles que depuis EvLY, par des liens temporaires
                 réservés aux membres.</li>
               <li>Les messages (chat des Plans et des sondages) sont <strong>chiffrés dans la base de
                 données</strong>, avec une clé conservée séparément : une copie de la base ne permet pas de
@@ -159,7 +160,7 @@ export function PrivacyPage() {
           <Section title="6. Combien de temps nous les gardons">
             <ul className="list-disc pl-5 space-y-1.5">
               <li><strong>Plans</strong> : supprimés automatiquement à leur date de fin (3 semaines au plus
-                après leur début), avec tout leur contenu — messages, photos, fichiers, trajets, dépenses.
+                après leur début), avec tout leur contenu — messages, messages vocaux, photos, fichiers, trajets, dépenses.
                 Si des dépenses avaient été enregistrées, un résumé est envoyé par email aux membres juste
                 avant. Le créateur du Plan et les organisateurs du Cercle peuvent en garder un{' '}
                 <strong>récapitulatif PDF</strong> (infos, participants avec prénom et pseudo, bénévoles,

@@ -49,7 +49,7 @@ export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 /** Fonctions à activer (absentes par défaut) */
-export type OptionalFeature = 'benevoles' | 'pere_noel';
+export type OptionalFeature = 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte';
 
 export interface Circle {
   id: string;

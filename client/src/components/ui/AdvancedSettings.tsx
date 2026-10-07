@@ -129,8 +129,13 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
         ))}
       </div>
       {!readOnly && enabled.includes('pere_noel') && <div className="mt-2"><SantaDatesNote compact /></div>}
+      {!readOnly && enabled.includes('cagnotte') && (
+        <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Plan surprise »).
+        </p>
+      )}
       <p className="text-xs text-slate-400 mt-1.5">
-        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange.
+        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange. Killer : chacun reçoit en secret une cible, un objet et un lieu ; le dernier en jeu gagne. Équipes : tirage au sort (équilibré si tu veux) puis tournoi. Cagnotte : chacun participe à un cadeau commun et vote pour l’idée.
       </p>
     </fieldset>
   );
