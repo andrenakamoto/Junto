@@ -135,7 +135,7 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
         </p>
       )}
       <p className="text-xs text-slate-400 mt-1.5">
-        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange. Killer : chacun reçoit en secret une cible, un objet et un lieu ; le dernier en jeu gagne. Équipes : tirage au sort (équilibré si tu veux) puis tournoi. Cagnotte : chacun participe à un cadeau commun et vote pour l’idée.
+        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange. Killer : chacun reçoit en secret une cible, un objet et un lieu ; le dernier en jeu gagne. Le mot piège : chacun doit faire dire un mot secret à sa cible, qui peut le démasquer. Équipes : tirage au sort (équilibré si tu veux) puis tournoi. Cagnotte : chacun participe à un cadeau commun et vote pour l’idée.
       </p>
     </fieldset>
   );

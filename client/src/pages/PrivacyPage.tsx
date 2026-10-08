@@ -80,7 +80,7 @@ export function PrivacyPage() {
                 supprimés avec ton compte.</li>
               <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
                 peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
-                aux jeux (Père Noël secret, Killer, équipes et scores) et à une cagnotte (montant, paiement signalé),
+                aux jeux (Père Noël secret, Killer, mot piège, équipes et scores) et à une cagnotte (montant, paiement signalé),
                 dépenses et remboursements.</li>
               <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
                 connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à

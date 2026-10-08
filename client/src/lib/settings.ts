@@ -50,6 +50,7 @@ export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
   { value: 'benevoles', label: 'Bénévoles (planning)' },
   { value: 'pere_noel', label: 'Père Noël secret' },
   { value: 'killer', label: 'Killer (jeu de l’assassin)' },
+  { value: 'mot_piege', label: 'Le mot piège (jeu)' },
   { value: 'equipes', label: 'Tirage des équipes et tournoi' },
   { value: 'cagnotte', label: 'Cagnotte cadeau' },
 ];

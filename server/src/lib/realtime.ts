@@ -104,7 +104,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // Père Noël secret : rechargement seulement — pas de pastille ni d'activité (tout y est privé)
   if (b === 'santa') return planTarget(a, false);
   // Killer, équipes, cagnotte : rechargement seulement (leurs notifications sont envoyées par les routes)
-  if (b === 'killer' || b === 'teams' || b === 'pot') return planTarget(a, false);
+  if (b === 'killer' || b === 'teams' || b === 'pot' || b === 'words') return planTarget(a, false);
   // Informations importantes : onglet Infos, notification aux participants
   if (b === 'important-info') return planTarget(a, false, 'infos', 'important_info_updated');
   // PUT /:id (modification du Plan) → onglet Infos ; DELETE /:id → aucun

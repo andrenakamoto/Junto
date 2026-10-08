@@ -34,6 +34,7 @@ import { removeFromPlanGames } from '../lib/planGames';
 import killerRoutes from './killer';
 import teamsRoutes from './teams';
 import giftPotRoutes from './giftPot';
+import wordGameRoutes from './wordGame';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
@@ -45,6 +46,8 @@ router.use(secretSantaRoutes);
 router.use(killerRoutes);
 router.use(teamsRoutes);
 router.use(giftPotRoutes);
+// Le mot piège (/:id/words…)
+router.use(wordGameRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
