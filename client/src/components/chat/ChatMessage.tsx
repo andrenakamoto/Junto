@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Flag, ImageOff, MessageCircle, X } from 'lucide-react';
+import { Flag, ImageOff, MessageCircle, Trash2, X } from 'lucide-react';
+import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
@@ -158,6 +159,22 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 <X size={20} />
               </button>
               <img src={mediaUrl(photo.id, mediaToken, 1600)} alt={photo.name} className="max-w-full max-h-full object-contain rounded-lg" />
+              {/* L'auteur peut retirer sa photo à tout moment (le message reste : « Photo retirée ») */}
+              {isMe && (
+                <button
+                  type="button"
+                  onClick={async e => {
+                    e.stopPropagation();
+                    if (!confirm('Supprimer cette photo pour tout le monde ?')) return;
+                    try { await api.delete(`/attachments/${photo.id}`); setViewing(false); }
+                    catch (err: any) { alert(err?.response?.data?.error || 'La photo n’a pas pu être supprimée'); }
+                  }}
+                  className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/15 text-white text-sm font-medium hover:bg-red-600"
+                  style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}
+                >
+                  <Trash2 size={16} /> Supprimer la photo
+                </button>
+              )}
             </div>
           )}
 

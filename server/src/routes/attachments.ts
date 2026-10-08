@@ -12,6 +12,8 @@ import { cloudinary } from '../lib/cloudinary';
 import { verifyMediaToken } from '../lib/mediaToken';
 import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
+import { messageInclude } from '../lib/messageInclude';
+import { withPlainContent } from '../lib/messageCrypto';
 
 const router = Router();
 
@@ -371,13 +373,20 @@ router.delete('/:id', async (req: AuthRequest, res) => {
     const plan = await prisma.plan.findUnique({ where: { id: att.planId } });
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
-    const canDelete = att.uploadedBy === req.pseudo || plan.creatorId === req.userId;
+    // La personne qui a mis le fichier (à tout moment) ou le créateur du Plan
+    const canDelete = att.uploadedBy.toLowerCase() === (req.pseudo ?? '').toLowerCase() || plan.creatorId === req.userId;
     if (!canDelete) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
+    const linked = await prisma.message.findUnique({ where: { attachmentId: att.id }, select: { id: true } });
     await cloudinary.uploader.destroy(att.publicId, { resource_type: att.resourceType as any });
     await prisma.attachment.delete({ where: { id: req.params.id } });
 
     res.json({ deleted: true });
+    // Photo envoyée dans le chat : le message reste, affiché « Photo retirée » chez tout le monde
+    if (linked) {
+      const message = await prisma.message.findUnique({ where: { id: linked.id }, include: messageInclude });
+      if (message) req.app.get('io')?.to(`plan:${att.planId}`).emit('message-updated', withPlainContent(message));
+    }
   } catch (e) {
     console.error('[attachment delete]', e);
     res.status(500).json({ error: 'Erreur lors de la suppression' });

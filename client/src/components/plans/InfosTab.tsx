@@ -145,7 +145,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
                 key={att.id}
                 att={att}
                 token={plan.mediaToken}
-                canDelete={isCreator || att.uploadedBy === pseudo}
+                canDelete={isCreator || att.uploadedBy.toLowerCase() === pseudo.toLowerCase()}
                 onDelete={() => handleDelete(att)}
               />
             ))}
@@ -164,7 +164,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
                 key={att.id}
                 att={att}
                 token={plan.mediaToken}
-                canDelete={isCreator || att.uploadedBy === pseudo}
+                canDelete={isCreator || att.uploadedBy.toLowerCase() === pseudo.toLowerCase()}
                 deleting={deletingId === att.id}
                 onDelete={() => handleDelete(att)}
               />
@@ -214,13 +214,14 @@ function GalleryThumb({ att, token, canDelete, onDelete }: { att: Attachment; to
             <div className="flex gap-1">
               <button
                 onClick={onDelete}
-                className="p-1 bg-red-600 text-white rounded-md text-xs"
+                aria-label="Confirmer la suppression"
+                className="p-1.5 bg-red-600 text-white rounded-md text-xs"
               >
-                <Trash2 size={11} />
+                <Trash2 size={13} />
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="p-1 bg-white/90 text-slate-700 rounded-md text-xs"
+                className="px-2 py-1 bg-white/90 text-slate-700 rounded-md text-xs"
               >
                 ✕
               </button>
@@ -228,9 +229,10 @@ function GalleryThumb({ att, token, canDelete, onDelete }: { att: Attachment; to
           ) : (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="hidden group-hover:flex p-1 bg-black/50 text-white rounded-md"
+              aria-label="Supprimer la photo"
+              className="flex [@media(hover:hover)]:hidden [@media(hover:hover)]:group-hover:flex p-1.5 bg-black/50 text-white rounded-md"
             >
-              <Trash2 size={11} />
+              <Trash2 size={13} />
             </button>
           )}
         </div>
