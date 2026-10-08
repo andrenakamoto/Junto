@@ -70,6 +70,10 @@ export function pushContent(n: AppNotification): { title: string; body: string; 
       return { title: n.planTitle ?? 'Père Noël secret', body: n.preview ?? 'Du nouveau pour le Père Noël secret', url: `${planUrl}&tab=pere_noel`, group: `santa:${n.planId}` };
     case 'killer':
       return { title: n.planTitle ?? 'Killer', body: n.preview ?? 'Du nouveau dans la partie de Killer', url: `${planUrl}&tab=killer`, group: `killer:${n.planId}` };
+    case 'shift_reminder':
+      return { title: n.planTitle ?? 'Bénévoles', body: n.preview ?? 'Ton poste de bénévole commence bientôt', url: `${planUrl}&tab=benevoles`, group: `shift:${n.planId}` };
+    case 'words':
+      return { title: n.planTitle ?? 'Le mot piège', body: n.preview ?? 'Du nouveau dans le mot piège', url: `${planUrl}&tab=mot_piege`, group: `words:${n.planId}` };
     case 'teams':
       return { title: n.planTitle ?? 'Équipes', body: n.preview ?? 'Du nouveau pour les équipes', url: `${planUrl}&tab=equipes`, group: `teams:${n.planId}` };
     case 'pot':

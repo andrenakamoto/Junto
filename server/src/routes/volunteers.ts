@@ -77,7 +77,9 @@ router.put('/shifts/:shiftId', async (req: AuthRequest, res) => {
     res.status(400).json({ error: `${shift._count.signups} personnes sont déjà inscrites : retire d’abord des inscrits` });
     return;
   }
-  res.json(await prisma.volunteerShift.update({ where: { id: shift.id }, data }));
+  // Horaire changé : le rappel d'une heure avant repart pour le nouvel horaire
+  const moved = (data.startsAt?.getTime() ?? null) !== (shift.startsAt?.getTime() ?? null);
+  res.json(await prisma.volunteerShift.update({ where: { id: shift.id }, data: { ...data, ...(moved ? { reminderSentAt: null } : {}) } }));
 });
 
 // DELETE /shifts/:shiftId — supprimer un poste ; les inscrits sont prévenus

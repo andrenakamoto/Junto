@@ -44,3 +44,15 @@ describe('sortShifts', () => {
     expect(s.map(x => x.id)).toEqual(['10h', '12h', 'sans']);
   });
 });
+
+import { shiftReminderText } from './volunteers';
+
+describe('rappel de poste', () => {
+  const start = new Date('2026-10-10T17:00:00Z'); // 19h00 à Genève
+  it('une heure avant', () => {
+    expect(shiftReminderText({ title: 'Buvette', startsAt: start }, start.getTime() - 58 * 60000)).toBe('⏰ Ton poste « Buvette » commence à 19h00, dans une heure');
+  });
+  it('plus tard : le vrai délai', () => {
+    expect(shiftReminderText({ title: 'Caisse', startsAt: start }, start.getTime() - 41 * 60000)).toBe('⏰ Ton poste « Caisse » commence à 19h00, dans 40 minutes');
+  });
+});

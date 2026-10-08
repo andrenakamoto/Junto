@@ -71,6 +71,7 @@ model User {
   santaGiving            SecretSantaPair[]     @relation("SantaGiver")
   santaReceiving         SecretSantaPair[]     @relation("SantaReceiver")
   killerPlayers          KillerPlayer[]
+  wordPlayers            WordPlayer[]
   teamLevels             TeamLevel[]
   teamMemberships        TeamMember[]
   giftPledges            GiftPledge[]
@@ -323,6 +324,7 @@ model Plan {
   notificationMutes NotificationMute[]
   santa             SecretSanta?
   killer            KillerGame?
+  wordGame          WordGame?
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
@@ -684,19 +686,21 @@ model Suggestion {
 // Planning des bénévoles (lib/volunteers.ts) : postes / créneaux d'un Plan, créés par le
 // créateur du Plan et les gestionnaires du Cercle (créateur, organisateurs)
 model VolunteerShift {
-  id          String            @id @default(cuid())
-  planId      String
-  plan        Plan              @relation(fields: [planId], references: [id], onDelete: Cascade)
-  title       String
+  id             String            @id @default(cuid())
+  planId         String
+  plan           Plan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title          String
   // Créneau horaire facultatif (« Buvette 10h-12h »)
-  startsAt    DateTime?
-  endsAt      DateTime?
+  startsAt       DateTime?
+  endsAt         DateTime?
   // Nombre de personnes recherchées
-  needed      Int               @default(1)
-  note        String?
-  createdById String?
-  createdAt   DateTime          @default(now())
-  signups     VolunteerSignup[]
+  needed         Int               @default(1)
+  note           String?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  // Rappel « ton poste commence dans 1 heure » envoyé aux inscrits (remis à zéro si l'horaire change)
+  reminderSentAt DateTime?
+  signups        VolunteerSignup[]
 
   @@index([planId])
 }
@@ -963,4 +967,62 @@ model GiftIdeaVote {
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([ideaId, userId])
+}
+
+// Le mot piège (lib/wordGame.ts) : fonction à activer (enabledFeatures « mot_piege »). Chaque joueur doit
+// faire dire secrètement un mot à sa cible. La cible confirme ; « Démasquer » permet d'accuser la personne
+// qui essaie de nous piéger. Mode « points » (défaut, chacun joue jusqu'au bout) ou « elimination ».
+model WordGame {
+  planId      String        @id
+  plan        Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  mode        String        @default("points")
+  // Niveaux de la liste par défaut retenus : facile, moyen, difficile
+  levels      String[]      @default(["facile", "moyen"])
+  customWords String[]
+  // Mots déjà tirés pendant la partie (pas deux fois le même)
+  usedWords   String[]
+  // Fin automatique (mode points), facultative
+  endsAt      DateTime?
+  startedAt   DateTime?
+  endedAt     DateTime?
+  winnerId    String?
+  createdAt   DateTime      @default(now())
+  players     WordPlayer[]
+  missions    WordMission[]
+}
+
+// Un joueur et sa mission en cours. Jamais renvoyé tel quel : chacun ne voit que sa mission avant la fin.
+model WordPlayer {
+  planId             String
+  game               WordGame  @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetId           String?
+  word               String?
+  // « Il / elle l'a dit ! » : en attente de la confirmation de la cible
+  claimedAt          DateTime?
+  points             Int       @default(0)
+  eliminatedAt       DateTime?
+  eliminatedById     String?
+  // Après une accusation fausse, plus d'accusation avant cette heure
+  accuseBlockedUntil DateTime?
+  joinedAt           DateTime  @default(now())
+
+  @@id([planId, userId])
+}
+
+// Historique des missions, révélé à la fin (qui devait faire dire quoi à qui, et le résultat)
+model WordMission {
+  id        String    @id @default(cuid())
+  planId    String
+  game      WordGame  @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  hunterId  String
+  targetId  String
+  word      String
+  // open (en cours) · success · unmasked (démasqué) · cancelled
+  outcome   String    @default("open")
+  createdAt DateTime  @default(now())
+  closedAt  DateTime?
+
+  @@index([planId])
 }

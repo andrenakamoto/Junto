@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import { isCircleManager } from './circleRoles';
+import { notifyUser } from './push';
 
 // Planning des bénévoles : fonction à activer dans les paramètres avancés du Plan
 // (Plan.enabledFeatures contient « benevoles »). Le créateur du Plan et les gestionnaires
@@ -101,4 +102,42 @@ export async function copyShifts(fromPlanId: string, toPlanId: string, offsetMs:
       startsAt: shift(s.startsAt), endsAt: shift(s.endsAt), createdById: s.createdById,
     })),
   });
+}
+
+// Rappel une heure avant la prise de poste, à chaque inscrit (notification dans l'app + push). Vérifié
+// toutes les 5 minutes (index.ts, avec les autres tâches régulières). Les inscriptions faites dans le
+// dernier quart d'heure ne reçoivent pas de rappel : la personne vient de s'inscrire en connaissance de cause.
+export const SHIFT_REMINDER_BEFORE_MS = 60 * 60 * 1000;
+
+export function shiftReminderText(s: { title: string; startsAt: Date }, now = Date.now()): string {
+  const time = new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }).format(s.startsAt);
+  const mins = Math.max(5, Math.round((s.startsAt.getTime() - now) / 60000 / 5) * 5);
+  return `⏰ Ton poste « ${s.title} » commence à ${time.replace(':', 'h')}, ${mins >= 55 ? 'dans une heure' : `dans ${mins} minutes`}`;
+}
+
+export async function sendShiftReminders(io: any) {
+  try {
+    const now = Date.now();
+    const due = await prisma.volunteerShift.findMany({
+      where: {
+        reminderSentAt: null,
+        startsAt: { gt: new Date(now), lte: new Date(now + SHIFT_REMINDER_BEFORE_MS) },
+        plan: { archived: false, enabledFeatures: { has: 'benevoles' } },
+      },
+      include: {
+        plan: { select: { id: true, title: true, circleId: true } },
+        signups: { where: { createdAt: { lt: new Date(now - 15 * 60 * 1000) } }, select: { userId: true } },
+      },
+    });
+    for (const s of due) {
+      // Réservation : un seul envoi même si deux serveurs tournent
+      const claimed = await prisma.volunteerShift.updateMany({ where: { id: s.id, reminderSentAt: null }, data: { reminderSentAt: new Date() } });
+      if (!claimed.count) continue;
+      for (const { userId } of s.signups) {
+        notifyUser(io, userId, { type: 'shift_reminder', planId: s.plan.id, planTitle: s.plan.title, circleId: s.plan.circleId, preview: shiftReminderText({ title: s.title, startsAt: s.startsAt! }) });
+      }
+    }
+  } catch (e) {
+    console.error('[shift reminders]', e);
+  }
 }
