@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,6 +24,7 @@ import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
+import { WordTrapTab } from './WordTrapTab';
 import { TeamsTab } from './TeamsTab';
 import { GiftPotTab } from './GiftPotTab';
 import { ExpiryChip } from './ExpiryChip';
@@ -46,7 +47,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'mot_piege' | 'equipes' | 'cagnotte';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -64,10 +65,11 @@ const tabs = [
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: 'Père Noël' },
   { key: 'killer' as Tab,     Icon: Crosshair,        label: 'Killer' },
+  { key: 'mot_piege' as Tab,  Icon: Speech,           label: 'Mot piège' },
   { key: 'equipes' as Tab,    Icon: Trophy,           label: 'Équipes' },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: 'Cagnotte' },
 ];
-const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'equipes', 'cagnotte'];
+const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte'];
 
 interface Props {
   plan: Plan;
@@ -853,7 +855,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         ) : (
           <div className="mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
             <p className="text-sm text-slate-600 mb-3">
-              Rejoindre ce Plan, c'est dire <strong>oui</strong> à sa description. Tu pourras ensuite chatter et voir les infos.
+              Ce Plan te tente ? Rejoins-le pour accéder au chat et aux infos.
             </p>
             <Button onClick={handleJoin} disabled={joining} size="sm">
               {joining ? 'Rejoindre...' : '→ Rejoindre ce Plan'}
@@ -963,6 +965,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'killer' && <KillerTab plan={plan} userId={user.id} />}
+          {activeTab === 'mot_piege' && <WordTrapTab plan={plan} userId={user.id} />}
           {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
           {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
