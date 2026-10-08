@@ -357,8 +357,10 @@ Conséquences pratiques :
     envoyé — corrections de sécurité (invitations, dépendances).
     **Version 1.0.8** (2026-10-07) : Android `versionCode` 9 (`evly-1.0.8-(9).aab`), iOS build 10 envoyé —
     Père Noël secret, Killer, équipes et tournoi, cagnotte, messages vocaux (autorisation micro), calendrier,
-    story, appareil photo dans le chat. **C'est le build 10 à soumettre** (la 1.0.0 est en ligne sur l'App
-    Store depuis le 2026-10-06). Signature iPhone : passer l'**empreinte** du certificat à `codesign`
+    story, appareil photo dans le chat (la 1.0.0 est en ligne sur l'App Store depuis le 2026-10-06).
+    **Version 1.0.9** (2026-10-08) : Android `versionCode` 10 (`evly-1.0.9-(10).aab`), iOS build 11 envoyé — le
+    mot piège, listes triées par activité, suppression de ses photos (corbeille sur téléphone, visionneuse du
+    chat), phrase pour rejoindre un Plan. Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
     reçoit des attributs étendus qui font échouer `codesign --verify`.
