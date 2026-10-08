@@ -632,13 +632,20 @@ Junto/
     notification `poll_message` envoyés aux rooms `user:*` de l'audience
     (pas de room de sondage à rejoindre). Recopiés dans `Message` du Plan
     (dates d'origine conservées) lors de la conversion.
-- **Ordre d'affichage** (2026-09-29) : Plans du plus proche au plus
-  lointain (date de début ; les Plans sans date à la fin, par date de fin)
-  et Cercles selon leur prochain Plan (ceux sans Plan à venir à la fin).
-  Règle unique dans `server/src/lib/planOrder.ts` (GET /circles, testée) et
-  son miroir `client/src/lib/order.ts` (appliqué dans DashboardPage, pour
-  que l'ordre reste juste juste après une création) — garder les deux
-  identiques.
+- **Ordre d'affichage** (refait le 2026-10-08, à la demande de l'utilisateur) : **Cercles et Plans d'un
+  Cercle par dernière activité** (le plus récemment modifié en tête) ; **« Tous mes plans » par date**
+  (le plus proche d'abord, en une seule liste — plus de regroupement par Cercle, le nom du Cercle est
+  sur chaque carte). Activité d'un Plan = sa création ou la dernière activité d'une rubrique
+  (`PlanActivity` : chat, infos, réponses, trajets, votes, dépenses, bénévoles — `planLastActivity`).
+  Activité d'un Cercle = la plus récente parmi : l'arrivée de la personne dans le Cercle
+  (`CircleMember.joinedAt`), ses Plans visibles, ses sondages de dates (création, messages). GET
+  /circles et GET /circles/:id/plans renvoient `lastActivityAt` et sont déjà triés ; GET /plans reste
+  par date (`comparePlans`). Règles dans `server/src/lib/planOrder.ts` (testées) et leur miroir
+  `client/src/lib/order.ts` (`sortCirclesByActivity`, `sortPlansByActivity` dans DashboardPage ; sans
+  `lastActivityAt`, juste créé, en tête). Un message dans un chat émet `circle-updated` vers le Cercle
+  **au plus une fois par minute et par Plan** (`chatListRefresh` dans `socket/handlers.ts`) pour que
+  les listes se réordonnent. Démo : `touchActivity` dans `lib/demo.ts`. Les jeux (Père Noël, Killer,
+  équipes, cagnotte) ne comptent pas comme activité (pas de section).
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle, bloque le
   join si atteinte), deletionMode, disabledFeatures (voir Paramètres
@@ -673,7 +680,11 @@ Junto/
   gestionnaire peut retirer quelqu'un (la personne est prévenue), supprimer un poste prévient ses
   inscrits. Résumé « Il manque X personnes », filtre « Mes postes », avertissement de chevauchement
   (`shiftsOverlap`, miroir client). Section `benevoles` des pastilles « nouveau ». Rappel de la
-  veille : « Tes postes de bénévole » dans l'email. Plans récurrents : postes recopiés décalés, sans
+  veille : « Tes postes de bénévole » dans l'email. **Rappel une heure avant la prise de poste** (2026-10-08,
+  `sendShiftReminders`, toutes les 5 min, gated comme les crons) : notification `shift_reminder` (app + push,
+  passe même en mode silencieux) à chaque inscrit, sauf inscription du dernier quart d'heure ;
+  `VolunteerShift.reminderSentAt` anti-doublon, remis à zéro si l'horaire change ; texte avec le vrai délai
+  (`shiftReminderText`). Plans récurrents : postes recopiés décalés, sans
   inscrits (`copyShifts`). Pas dans la démo.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
@@ -735,6 +746,21 @@ Junto/
     visible par l'organisateur seul** ; les autres voient le total et qui participe. Pas d'argent qui
     transite par EvLY. Relance (sans participation / pas encore payé) au plus toutes les 12 h. Une
     participation reçue ne se retire plus. Rappel dans les réglages : cacher le Plan à la personne fêtée.
+- **Le mot piège** (2026-10-08, `lib/wordGame.ts` testé, `routes/wordGame.ts` sur `/:id/words…`, onglet
+  `WordTrapTab.tsx`, migration `20261008120000_word_trap`) : fonction **à activer** (`mot_piege`). Chacun doit
+  faire dire secrètement un mot à sa cible ; « … l'a dit ! » → la cible confirme ou conteste (elle voit alors
+  qui et le mot). **Démasquer** : la cible accuse un joueur ; juste → +1 point pour elle et nouvelle mission
+  pour le piégeur ; faux → plus d'accusation pendant 30 min (`accuseBlockedUntil`). Deux modes au choix de
+  l'organisateur : **`points` (défaut)** — personne n'est éliminé, chaque mot réussi = 1 point + nouvelle
+  mission (autre cible, autre mot), fin à l'heure choisie (`endsAt`, vérifiée chaque minute par
+  `endDueWordGames` dans `index.ts` et à la lecture) ou par l'organisateur ; **`elimination`** — la cible
+  piégée sort, le piégeur reprend sa cible avec un nouveau mot, le dernier en jeu gagne. Tables
+  **WordGame** (mode, niveaux `facile|moyen|difficile` de `DEFAULT_WORDS`, mots perso de l'organisateur,
+  `usedWords` : jamais deux fois le même mot), **WordPlayer** (mission en cours, points), **WordMission**
+  (historique : `open|success|unmasked|cancelled`, révélé à la fin). **Classement public en direct** ;
+  missions secrètes jusqu'à la fin (règle d'or comme le Killer). Notifications `words` → `?tab=mot_piege`.
+  Départs : `removeFromWordGame` dans `lib/planGames.ts`. Démo : partie en cours dans « Week-end au chalet »
+  (`wordConfirm`, « Démasquer » réussit une fois sur deux).
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
@@ -800,7 +826,10 @@ Junto/
   serveur vérifie même Plan, même auteur, image, pas déjà publiée). La photo
   est un fichier du Plan comme un autre (visible dans Infos) ; supprimer le
   message supprime la photo (Cloudinary compris), supprimer la photo dans
-  Infos laisse le message affiché « Photo retirée ». Includes partagés dans
+  Infos laisse le message affiché « Photo retirée ». Depuis le 2026-10-08, **la personne qui a mis une photo
+  (ou un fichier) peut la supprimer à tout moment** (en plus du créateur du Plan) : corbeille visible sur écran
+  tactile dans Infos (avant : au survol seulement), et « Supprimer la photo » dans la visionneuse du chat
+  (au-delà des 15 minutes de modification du message) ; le serveur émet alors `message-updated`. Includes partagés dans
   `lib/messageInclude.ts`. Chat des sondages : pas de photos.
   **Messages vocaux** (2026-10-07) : bouton micro à la place d'« Envoyer » quand la saisie est
   vide (`ChatInput`, `MediaRecorder`, 2 min max, corbeille pour annuler). Même chemin qu'une photo :
