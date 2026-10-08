@@ -81,7 +81,20 @@ function fire(event: string, payload: any) {
 // Après une action : les écrans se rechargent comme avec le vrai serveur (plan-updated…)
 function changed(planId?: string, circleId?: string) {
   if (planId) fire('plan-updated', { planId });
-  if (circleId) fire('circle-updated', { circleId });
+  const touched = planId ? touchActivity(planId) : undefined;
+  if (circleId || touched) fire('circle-updated', { circleId: circleId ?? touched });
+}
+
+// Ordre des listes (dernière activité d'abord) : une action remonte le Plan et son Cercle
+function touchActivity(planId: string): string | undefined {
+  const circleId = fixtures?.[`GET /plans/${planId}`]?.circleId;
+  if (!circleId) return undefined;
+  const at = now();
+  const inCircle = (fixtures![`GET /circles/${circleId}/plans`] as any[] | undefined)?.find(p => p.id === planId);
+  if (inCircle) inCircle.lastActivityAt = at;
+  const circle = (fixtures!['GET /circles'] as any[]).find(c => c.id === circleId);
+  if (circle) circle.lastActivityAt = at;
+  return circleId;
 }
 
 let counter = 0;
@@ -139,6 +152,7 @@ function handleSocket(event: string, p: any) {
   if (event === 'send-message') {
     const content = typeof p.content === 'string' ? p.content.trim() : '';
     if (!content) return;
+    if (touchActivity(p.planId)) fire('circle-updated', { circleId: plan(p.planId).circleId });
     const msg = {
       id: newId('msg'), content, createdAt: now(), editedAt: null, deletedAt: null,
       authorId: me.id, planId: p.planId, parentId: p.parentId ?? null, attachmentId: null, attachment: null,
@@ -346,6 +360,26 @@ function killerConfirm(planId: string) {
   fire('notification', { id: newId('n'), type: 'killer', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: st.ended ? '🏆 Tu remportes le Killer !' : '🎯 Élimination confirmée ! Découvre ta nouvelle mission' });
 }
 
+// Le mot piège : la cible confirme, Alex marque un point et reçoit une nouvelle mission
+const DEMO_WORDS = ['parapluie', 'trampoline', 'moustache', 'girafe', 'chocolat', 'marmotte', 'karaoké', 'boussole', 'pyjama', 'igloo'];
+function wordConfirm(planId: string) {
+  const st = fixtures![`GET /plans/${planId}/words`];
+  if (!st?.me?.claimed || !st.me.mission) return;
+  const previous = st.me.mission.target?.id;
+  st.me.points += 1; st.me.claimed = false;
+  const others = st.ranking.filter((r: any) => r.user.id !== me.id && r.user.id !== previous);
+  const pickOne = (l: any[]) => l[Math.floor(Math.random() * l.length)];
+  st.me.mission = { target: pickOne(others.length ? others : st.ranking.filter((r: any) => r.user.id !== me.id)).user, word: pickOne(DEMO_WORDS.filter(w => w !== st.me.mission.word)) };
+  bumpWordRanking(st);
+  changed(planId);
+  fire('notification', { id: newId('n'), type: 'words', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: '🎯 Mot validé ! +1 point, découvre ta nouvelle mission' });
+}
+function bumpWordRanking(st: any) {
+  const mine = st.ranking.find((r: any) => r.user.id === me.id);
+  if (mine) mine.points = st.me.points;
+  st.ranking.sort((a: any, b: any) => b.points - a.points);
+}
+
 // Championnat : même classement que le serveur (3 / 1 / 0, différence, buts marqués)
 function recomputeStandings(st: any) {
   const t = new Map<string, any>(st.teams.map((x: any) => [x.id, { teamId: x.id, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, diff: 0, points: 0 }]));
@@ -414,6 +448,28 @@ function route(method: string, path: string, body: any): any {
     return { ok: true };
   }
   if (path.match(/^\/plans\/[^/]+\/killer/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Le mot piège (Week-end au chalet) : « … l'a dit ! » est confirmé quelques secondes plus tard (+1 point,
+  // nouvelle mission) ; « Démasquer » réussit une fois sur deux. Le reste est réservé au vrai site.
+  if ((m = path.match(/^\/plans\/([^/]+)\/words\/(claim|accuse)$/))) {
+    const st = fixtures![`GET /plans/${m[1]}/words`];
+    if (!st?.me || st.ended || !st.started) throw new DemoError(403, NOT_IN_DEMO);
+    const planId = m[1];
+    if (m[2] === 'claim') {
+      if (!st.me.mission) throw new DemoError(400, 'Tu n’as pas de mission en cours');
+      st.me.claimed = method === 'POST';
+      if (method === 'POST') window.setTimeout(() => wordConfirm(planId), 3000);
+      changed(planId);
+      return { ok: true };
+    }
+    if (st.me.accuseBlockedUntil) throw new DemoError(429, 'Après une accusation fausse, attends un peu avant d’accuser à nouveau');
+    const correct = Math.random() < 0.5;
+    if (correct) { st.me.points += 1; bumpWordRanking(st); }
+    else st.me.accuseBlockedUntil = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    changed(planId);
+    return correct ? { correct: true } : { correct: false, blockedUntil: st.me.accuseBlockedUntil };
+  }
+  if (path.match(/^\/plans\/[^/]+\/words/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Tournoi (pétanque) : Alex, organisateur du Cercle, saisit les scores du championnat
   if ((m = path.match(/^\/plans\/([^/]+)\/teams\/matches\/([^/]+)$/)) && method === 'PUT') {

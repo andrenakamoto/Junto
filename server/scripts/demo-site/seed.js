@@ -122,7 +122,7 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   const para = ideas.ideas.find(i => i.text.includes('parapente'));
   await call('POST', `/plans/${anniv.id}/pot/ideas/${para.id}/vote`, {}, T.noah_p);
   // Killer au chalet (Alex organise) : partie en cours, une élimination déjà faite
-  const chalet = await mk(cop, 'alex', { title: 'Week-end au chalet 🏔️', description: 'Deux jours entre copains, raclette et partie de Killer tout le week-end 🔪', eventDate: at(6, 18), endDate: at(8, 18), location: 'Chalet des Mayens, Nax', enabledFeatures: ['killer'] });
+  const chalet = await mk(cop, 'alex', { title: 'Week-end au chalet 🏔️', description: 'Deux jours entre copains, raclette et partie de Killer tout le week-end 🔪', eventDate: at(6, 18), endDate: at(8, 18), location: 'Chalet des Mayens, Nax', enabledFeatures: ['killer', 'mot_piege'] });
   for (const p of ['tom_b', 'julie_r', 'emma_v', 'noah_p']) await call('POST', `/plans/${chalet.id}/join`, {}, T[p]);
   await call('PUT', `/plans/${chalet.id}/killer`, { objects: ['une cuillère en bois', 'un bouchon de liège', 'une carte de jass', 'un gant de cuisine', 'une pive', 'un caquelon'], places: ['dans la cuisine', 'sur la terrasse', 'près de la cheminée', 'dans l’escalier', 'devant le chalet'] }, T.alex);
   await call('POST', `/plans/${chalet.id}/killer/start`, {}, T.alex);
@@ -133,6 +133,16 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   const pseudoOf = id => Object.keys(U).find(k => U[k].id === id);
   await call('POST', `/plans/${chalet.id}/killer/claim`, {}, T[pseudoOf(hunter.userId)]);
   await call('POST', `/plans/${chalet.id}/killer/answer`, { confirm: true }, T[pseudoOf(hunter.targetId)]);
+  // Le mot piège au chalet (aux points, mots perso du groupe), deux mots déjà réussis par d'autres
+  await call('PUT', `/plans/${chalet.id}/words`, { levels: ['facile', 'moyen'], customWords: ['caquelon', 'Nax', 'télécabine'], endsAt: at(8, 12) }, T.alex);
+  await call('POST', `/plans/${chalet.id}/words/start`, {}, T.alex);
+  for (let i = 0; i < 2; i++) {
+    const wp = await prisma.wordPlayer.findMany({ where: { planId: chalet.id, eliminatedAt: null } });
+    const h = wp.find(p => p.userId !== U.alex.id && p.targetId !== U.alex.id);
+    if (!h) break;
+    await call('POST', `/plans/${chalet.id}/words/claim`, {}, T[pseudoOf(h.userId)]);
+    await call('POST', `/plans/${chalet.id}/words/answer`, { confirm: true }, T[pseudoOf(h.targetId)]);
+  }
   // Tournoi de pétanque de la jeunesse (Alex, organisateur du Cercle, saisit les scores)
   const petanque = await mk(jeu, 'lea_m', { title: 'Tournoi de pétanque 🥇', description: 'Doublettes tirées au sort, championnat sur l’après-midi. Grillades ensuite !', eventDate: at(9, 14), endDate: at(9, 22), location: 'Place de la Fontaine, Montvert', enabledFeatures: ['equipes'] });
   for (const p of ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g']) await call('POST', `/plans/${petanque.id}/join`, {}, T[p]);
@@ -141,7 +151,7 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   await call('POST', `/plans/${petanque.id}/teams/tournament`, { format: 'league' }, T.lea_m);
   const tour = await call('GET', `/plans/${petanque.id}/teams`, null, T.lea_m);
   for (const [i, m] of tour.matches.filter(m => m.round <= 2).entries()) await call('PUT', `/plans/${petanque.id}/teams/matches/${m.id}`, { homeScore: [13, 9, 13, 13][i], awayScore: [7, 13, 11, 4][i] }, T.lea_m);
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], killerPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });

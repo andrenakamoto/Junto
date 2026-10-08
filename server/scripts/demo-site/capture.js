@@ -15,6 +15,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     await take(`/rides/plan/${id}`); await take(`/plans/${id}/expenses`); await take(`/plans/${id}/shifts`);
     if ((I.santaPlans || []).includes(id)) await take(`/plans/${id}/santa`);
     if ((I.killerPlans || []).includes(id)) await take(`/plans/${id}/killer`);
+    if ((I.wordPlans || []).includes(id)) await take(`/plans/${id}/words`);
     if ((I.teamPlans || []).includes(id)) await take(`/plans/${id}/teams`);
     if ((I.potPlans || []).includes(id)) await take(`/plans/${id}/pot`);
     for (const a of plan?.attachments ?? []) {
