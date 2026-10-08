@@ -26,3 +26,17 @@ export function sortCircles<C extends { plans?: DatedPlan[] }>(circles: C[]): C[
     return 0;
   });
 }
+
+// Ordre « dernière activité » (Cercles et Plans d'un Cercle) : le plus récemment modifié d'abord.
+// « Tous mes plans » garde l'ordre par date. Miroir de server/src/lib/planOrder.ts.
+// Sans date d'activité (Cercle ou Plan tout juste créé, avant le rechargement) : en tête.
+type Active = { lastActivityAt?: string | null };
+const activity = (x: Active) => (x.lastActivityAt ? time(x.lastActivityAt) : Date.now() + 1);
+
+export function sortPlansByActivity<P extends DatedPlan & Active>(plans: P[]): P[] {
+  return [...plans].sort((a, b) => activity(b) - activity(a) || comparePlans(a, b));
+}
+
+export function sortCirclesByActivity<C extends Active>(circles: C[]): C[] {
+  return [...circles].sort((a, b) => activity(b) - activity(a));
+}

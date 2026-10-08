@@ -3,6 +3,7 @@ import { Calendar, Users, MessageSquare, ChevronLeft } from 'lucide-react';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { sortPlans } from '../../lib/order';
 
 interface Props {
   onSelectPlan: (plan: Plan) => void;
@@ -27,14 +28,9 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
     api.get('/plans').then(res => setPlans(res.data)).finally(() => setLoading(false));
   }, [refreshSignal]);
 
-  // Grouper par cercle
-  const byCircle = plans.reduce<Record<string, { name: string; plans: Plan[] }>>((acc, plan) => {
-    // Plans où l'on est invité externe : regroupés à part, sans révéler le Cercle
-    const id = plan.isGuest ? '__invitations' : plan.circleId;
-    if (!acc[id]) acc[id] = { name: plan.isGuest ? 'Invitations' : plan.circle?.name ?? '', plans: [] };
-    acc[id].plans.push(plan);
-    return acc;
-  }, {});
+  // Une seule liste, du plus proche au plus lointain (ordre du serveur, lib/planOrder.ts) ; le
+  // Cercle est indiqué sur chaque carte (« Invitation » pour un invité externe, sans révéler le Cercle)
+  const sorted = sortPlans(plans);
 
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
@@ -51,53 +47,50 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         ) : plans.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm">Aucun plan actif pour l'instant.</div>
         ) : (
-          Object.values(byCircle).map(({ name, plans: circlePlans }) => (
-            <div key={name}>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 px-1">{name}</p>
-              <div className="space-y-2">
-                {circlePlans.map(plan => {
-                  const myMember = plan.members.find(m => m.userId === user?.id);
-                  const inCount = plan.members.filter(m => m.rsvp === 'in').length;
-                  const date = plan.eventDate
-                    ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
-                    : null;
+          <div className="space-y-2">
+            {sorted.map(plan => {
+              const myMember = plan.members.find(m => m.userId === user?.id);
+              const inCount = plan.members.filter(m => m.rsvp === 'in').length;
+              const date = plan.eventDate
+                ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
+                : null;
+              const circleName = plan.isGuest ? 'Invitation' : plan.circle?.name;
 
-                  return (
-                    <button
-                      key={plan.id}
-                      onClick={() => onSelectPlan(plan)}
-                      className={`w-full text-left p-3 rounded-xl transition-all border ${
-                        selectedPlanId === plan.id
-                          ? 'bg-indigo-50 border-indigo-400 shadow-md'
-                          : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
-                        {myMember ? (
-                          <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
-                            {rsvpLabel[myMember.rsvp]}
-                          </span>
-                        ) : (
-                          <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-600 border border-indigo-500/30">
-                            Rejoindre
-                          </span>
-                        )}
-                      </div>
-                      {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-                        <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{inCount} in</span></span>
-                        {(plan._count?.messages ?? 0) > 0 && (
-                          <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))
+              return (
+                <button
+                  key={plan.id}
+                  onClick={() => onSelectPlan(plan)}
+                  className={`w-full text-left p-3 rounded-xl transition-all border ${
+                    selectedPlanId === plan.id
+                      ? 'bg-indigo-50 border-indigo-400 shadow-md'
+                      : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
+                  }`}
+                >
+                  {circleName && <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{circleName}</p>}
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
+                    {myMember ? (
+                      <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
+                        {rsvpLabel[myMember.rsvp]}
+                      </span>
+                    ) : (
+                      <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-600 border border-indigo-500/30">
+                        Rejoindre
+                      </span>
+                    )}
+                  </div>
+                  {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
+                    <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{inCount} in</span></span>
+                    {(plan._count?.messages ?? 0) > 0 && (
+                      <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

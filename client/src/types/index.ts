@@ -49,9 +49,11 @@ export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 /** Fonctions à activer (absentes par défaut) */
-export type OptionalFeature = 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte';
+export type OptionalFeature = 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege';
 
 export interface Circle {
+  /** Dernière activité (GET /circles) : sert à l'ordre de la liste */
+  lastActivityAt?: string | null;
   id: string;
   name: string;
   code: string;
@@ -140,6 +142,8 @@ export interface PlanChangeLog {
 }
 
 export interface Plan {
+  /** Dernière activité (GET /circles/:id/plans) : sert à l'ordre de la liste du Cercle */
+  lastActivityAt?: string | null;
   id: string;
   title: string;
   /** Onglets avec du nouveau depuis ma dernière visite (chat, infos, trajets, membres, votes, depenses) */

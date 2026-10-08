@@ -22,3 +22,27 @@ describe('ordre des Plans et des Cercles', () => {
     expect(sortCircles(circles).map(c => c.name)).toEqual(['bientôt', 'plus tard', 'sans date', 'sans plan A', 'sans plan B']);
   });
 });
+
+import { compareByActivity, planLastActivity, sortCirclesByActivity } from './planOrder';
+
+describe('ordre par dernière activité', () => {
+  it('activité d’un Plan : création ou dernière rubrique modifiée', () => {
+    expect(planLastActivity({ createdAt: '2026-10-01T10:00:00Z' }).toISOString()).toBe('2026-10-01T10:00:00.000Z');
+    expect(planLastActivity({ createdAt: '2026-10-01T10:00:00Z', activities: [{ at: '2026-10-05T08:00:00Z' }, { at: '2026-10-03T08:00:00Z' }] }).toISOString()).toBe('2026-10-05T08:00:00.000Z');
+  });
+
+  it('Plans : le plus récemment modifié d’abord, puis le plus proche', () => {
+    const plans = [
+      { id: 'ancien', lastActivityAt: '2026-10-01', eventDate: '2026-10-02', endDate: '2026-10-03' },
+      { id: 'recent', lastActivityAt: '2026-10-07', eventDate: '2026-12-01', endDate: '2026-12-02' },
+      { id: 'egal-loin', lastActivityAt: '2026-10-05', eventDate: '2026-11-20', endDate: '2026-11-21' },
+      { id: 'egal-proche', lastActivityAt: '2026-10-05', eventDate: '2026-10-20', endDate: '2026-10-21' },
+    ];
+    expect([...plans].sort(compareByActivity).map(p => p.id)).toEqual(['recent', 'egal-proche', 'egal-loin', 'ancien']);
+  });
+
+  it('Cercles : la plus récente activité d’abord, ordre conservé à égalité', () => {
+    const circles = [{ id: 'a', lastActivityAt: '2026-10-01' }, { id: 'b', lastActivityAt: '2026-10-06' }, { id: 'c', lastActivityAt: null }, { id: 'd', lastActivityAt: '2026-10-06' }];
+    expect(sortCirclesByActivity(circles).map(c => c.id)).toEqual(['b', 'd', 'a', 'c']);
+  });
+});

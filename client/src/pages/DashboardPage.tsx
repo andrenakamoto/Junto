@@ -20,7 +20,7 @@ import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
 import { getPendingInvite } from '../lib/pendingInvite';
 import { useSocketEvent } from '../hooks/useSocketEvent';
-import { sortCircles, sortPlans } from '../lib/order';
+import { sortCirclesByActivity, sortPlansByActivity } from '../lib/order';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
 import { DemoBanner } from '../components/ui/DemoBanner';
 import { clearDeliveredNotifications, pushAvailable } from '../lib/push';
@@ -358,7 +358,7 @@ export function DashboardPage() {
       setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
     } else if (n.planId) {
       // Message ou mention : directement dans le chat ; le reste, page principale du Plan
-      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
+      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' ? 'benevoles' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
     } else if (n.pollId && n.circleId) {
       handleSelectCircle(n.circleId);
       openPoll(n.pollId);
@@ -462,9 +462,10 @@ export function DashboardPage() {
   }
 
   const selectedCircle = circles.find(c => c.id === selectedCircleId) ?? null;
-  // Le plus proche d'abord, y compris juste après une création (avant le rechargement)
-  const sortedCircles = useMemo(() => sortCircles(circles), [circles]);
-  const sortedPlans = useMemo(() => sortPlans(plans), [plans]);
+  // Le plus récemment actif d'abord, y compris juste après une création (avant le rechargement).
+  // « Tous mes plans » garde l'ordre par date (AllPlansView, ordre du serveur).
+  const sortedCircles = useMemo(() => sortCirclesByActivity(circles), [circles]);
+  const sortedPlans = useMemo(() => sortPlansByActivity(plans), [plans]);
   // Pastille des Cercles : notifications reçues + Plans avec du nouveau (serveur). Pour le Cercle
   // ouvert, on suit directement ses cartes, qui se mettent à jour dès qu'un onglet est consulté.
   const bellCount = useMemo(() => {

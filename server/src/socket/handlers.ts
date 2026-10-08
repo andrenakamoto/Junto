@@ -15,6 +15,9 @@ import { wantsEmail } from '../lib/notificationPrefs';
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
 const onlineCounts = new Map<string, number>();
 
+// Dernier rafraîchissement des listes du Cercle provoqué par un message (voir send-message)
+const chatListRefresh = new Map<string, number>();
+
 export function setupSocketHandlers(io: Server) {
   io.use((socket, next) => {
     const token = socket.handshake.auth.token as string;
@@ -130,6 +133,14 @@ export function setupSocketHandlers(io: Server) {
         },
       });
       if (!planData) return;
+
+      // Ordre des listes (dernière activité d'abord) : le Cercle recharge ses listes, au plus une
+      // fois par minute et par Plan pendant une conversation
+      const lastRefresh = chatListRefresh.get(planId) ?? 0;
+      if (Date.now() - lastRefresh > 60_000) {
+        chatListRefresh.set(planId, Date.now());
+        io.to(`circle:${planData.circleId}`).emit('circle-updated', { circleId: planData.circleId });
+      }
 
       const sockets = await io.in(`plan:${planId}`).fetchSockets();
       const activeUserIds = new Set(sockets.map(s => s.data.userId));

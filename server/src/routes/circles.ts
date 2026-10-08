@@ -17,7 +17,7 @@ import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
 import { countFunnel } from '../lib/funnel';
-import { sortCircles } from '../lib/planOrder';
+import { compareByActivity, planLastActivity, sortCirclesByActivity } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
 import { wantsEmail } from '../lib/notificationPrefs';
@@ -74,8 +74,27 @@ router.get('/', async (req: AuthRequest, res) => {
   });
   const unseen = await unseenByPlan(req.userId!, myPlans.map(m => m.planId));
   const circlesWithNews = new Set(myPlans.filter(m => (unseen.get(m.planId)?.length ?? 0) > 0).map(m => m.plan.circleId));
-  // Le Cercle dont le prochain Plan est le plus proche en premier
-  res.json(sortCircles(circles).map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id) })));
+  // Dernière activité de chaque Cercle : son arrivée dans le Cercle, ses Plans visibles (création,
+  // rubriques modifiées) et ses sondages de dates (création, messages)
+  const circleIds = circles.map(c => c.id);
+  const [visiblePlans, polls] = await Promise.all([
+    prisma.plan.findMany({
+      where: { circleId: { in: circleIds }, archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
+      select: { circleId: true, createdAt: true, activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 } },
+    }),
+    prisma.circlePoll.findMany({
+      where: { circleId: { in: circleIds }, resolvedAt: null, exclusions: { none: { userId: req.userId } } },
+      select: { circleId: true, createdAt: true, messages: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 } },
+    }),
+  ]);
+  const last = new Map<string, number>();
+  const bump = (id: string, d: Date) => last.set(id, Math.max(last.get(id) ?? 0, d.getTime()));
+  for (const c of circles) bump(c.id, c.members.find(m => m.userId === req.userId)?.joinedAt ?? c.createdAt);
+  for (const p of visiblePlans) bump(p.circleId, planLastActivity(p));
+  for (const p of polls) bump(p.circleId, new Date(Math.max(p.createdAt.getTime(), p.messages[0]?.createdAt.getTime() ?? 0)));
+  // Le Cercle le plus récemment actif en premier
+  res.json(sortCirclesByActivity(circles.map(c => ({ ...c, lastActivityAt: new Date(last.get(c.id) ?? 0).toISOString() })))
+    .map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id) })));
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
@@ -612,11 +631,15 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
       members: { include: { user: { select: { id: true, pseudo: true } } } },
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
+      activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 },
     },
     orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
   const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
-  res.json(plans.map(p => ({ ...p, unseen: unseen.get(p.id) ?? [] })));
+  // Le Plan le plus récemment modifié en premier (création, chat, infos, réponses…)
+  res.json(plans
+    .map(({ activities, ...p }) => ({ ...p, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
+    .sort(compareByActivity));
 });
 
 // Paramètres avancés : création des Plans, et des sondages de dates, réservée au créateur et aux organisateurs
