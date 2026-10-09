@@ -360,7 +360,10 @@ Conséquences pratiques :
     story, appareil photo dans le chat (la 1.0.0 est en ligne sur l'App Store depuis le 2026-10-06).
     **Version 1.0.9** (2026-10-08) : Android `versionCode` 10 (`evly-1.0.9-(10).aab`), iOS build 11 envoyé — le
     mot piège, listes triées par activité, suppression de ses photos (corbeille sur téléphone, visionneuse du
-    chat), phrase pour rejoindre un Plan. Signature iPhone : passer l'**empreinte** du certificat à `codesign`
+    chat), phrase pour rejoindre un Plan.
+    **Version 1.0.10** (2026-10-09) : Android `versionCode` 11 (`evly-1.0.10-(11).aab`), iOS build 12 envoyé — liste
+    d'attente, fonctions rangées par catégorie, votants visibles, clavier du chat, match de groupe, « Qui s'y colle ? ».
+    Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
     reçoit des attributs étendus qui font échouer `codesign --verify`.
