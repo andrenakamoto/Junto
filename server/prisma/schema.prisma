@@ -72,6 +72,7 @@ model User {
   santaReceiving         SecretSantaPair[]     @relation("SantaReceiver")
   killerPlayers          KillerPlayer[]
   wordPlayers            WordPlayer[]
+  waitlists              PlanWaitlist[]
   teamLevels             TeamLevel[]
   teamMemberships        TeamMember[]
   giftPledges            GiftPledge[]
@@ -325,6 +326,7 @@ model Plan {
   santa             SecretSanta?
   killer            KillerGame?
   wordGame          WordGame?
+  waitlist          PlanWaitlist[]
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
@@ -1025,4 +1027,18 @@ model WordMission {
   closedAt  DateTime?
 
   @@index([planId])
+}
+
+// Liste d'attente d'un Plan complet (lib/waitlist.ts) : dès qu'une place se libère (« Je passe », départ,
+// limite augmentée…), la première personne de la liste devient participante (« Je suis in ») et est prévenue.
+// Une place = une réponse « Je suis in » ou « Peut-être ».
+model PlanWaitlist {
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([planId, userId])
+  @@index([planId, createdAt])
 }

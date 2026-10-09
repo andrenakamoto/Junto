@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { santaDateError } from '../lib/secretSanta';
 import { removeFromGamesInCircle } from '../lib/planGames';
+import { promoteFromWaitlist } from '../lib/waitlist';
 import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/cloudinary';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -632,6 +633,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
       activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 },
+      waitlist: { select: { userId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
     },
     orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
@@ -873,6 +875,9 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: circleId } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
   leaveCircleRoom(req.app.get('io'), userId, circleId);
+  // Places occupées dans les Plans du Cercle : libérées par le départ (liste d'attente ensuite)
+  const heldPlans = (await prisma.planMember.findMany({ where: { userId, rsvp: { not: 'out' }, plan: { circleId } }, select: { planId: true } })).map(m => m.planId);
+  const freeSpots = () => { for (const id of heldPlans) promoteFromWaitlist(req.app.get('io'), id).catch(e => console.error('[waitlist leave]', e)); };
 
   if (circle.creatorId === userId) {
     const nextMember = await nextCircleCreator(circleId, userId);
@@ -893,10 +898,12 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
       }),
       prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
       prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+      prisma.planWaitlist.deleteMany({ where: { userId, plan: { circleId } } }),
       prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
       prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
     ]);
     res.json({ left: true, circleDeleted: false });
+    freeSpots();
     return;
   }
 
@@ -904,10 +911,12 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   await prisma.$transaction([
     prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
     prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
+    prisma.planWaitlist.deleteMany({ where: { userId, plan: { circleId } } }),
     prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
     prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
   ]);
   res.json({ left: true, circleDeleted: false });
+  freeSpots();
 });
 
 // ─── Sondages de Cercle (caler une date avant de créer un Plan) ───────────

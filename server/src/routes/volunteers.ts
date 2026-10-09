@@ -5,6 +5,7 @@ import { getPlanAccess } from '../lib/planAccess';
 import { markAllSeen } from '../lib/planActivity';
 import { notifyMembershipChange } from '../lib/planNotifications';
 import { notifyUser } from '../lib/push';
+import { hasFreeSpot } from '../lib/waitlist';
 import {
   canManageShifts, parseShiftInput, sortShifts, shiftHours, volunteersEnabled, VOLUNTEERS_DISABLED_ERROR,
 } from '../lib/volunteers';
@@ -108,11 +109,11 @@ router.post('/shifts/:shiftId/signup', async (req: AuthRequest, res) => {
   // S'inscrire = participer au Plan
   const member = await prisma.planMember.findUnique({ where: { userId_planId: { userId, planId: plan.id } } });
   let membership: 'join' | 'back' | null = null;
+  if ((!member || member.rsvp === 'out') && !(await hasFreeSpot(plan, userId))) {
+    res.status(409).json({ error: 'Ce Plan est complet : inscris-toi sur la liste d’attente' });
+    return;
+  }
   if (!member) {
-    if (plan.maxParticipants !== null && await prisma.planMember.count({ where: { planId: plan.id } }) >= plan.maxParticipants) {
-      res.status(409).json({ error: 'Ce Plan est complet' });
-      return;
-    }
     await prisma.planMember.create({ data: { userId, planId: plan.id, rsvp: 'in' } });
     await markAllSeen(plan.id, userId);
     membership = 'join';
@@ -121,6 +122,7 @@ router.post('/shifts/:shiftId/signup', async (req: AuthRequest, res) => {
     if (member.rsvp === 'out') membership = 'back';
   }
 
+  await prisma.planWaitlist.deleteMany({ where: { planId: plan.id, userId } });
   await prisma.volunteerSignup.create({ data: { shiftId: shift.id, userId, planId: plan.id } });
   // Deux inscriptions au même moment pour la dernière place : la plus récente est annulée
   const signups = await prisma.volunteerSignup.findMany({ where: { shiftId: shift.id }, orderBy: { createdAt: 'asc' }, select: { userId: true } });

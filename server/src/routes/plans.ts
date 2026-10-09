@@ -31,6 +31,7 @@ import volunteerRoutes from './volunteers';
 import secretSantaRoutes from './secretSanta';
 import { santaDateError } from '../lib/secretSanta';
 import { removeFromPlanGames } from '../lib/planGames';
+import { hasFreeSpot, occupiedCount, promoteFromWaitlist } from '../lib/waitlist';
 import killerRoutes from './killer';
 import teamsRoutes from './teams';
 import giftPotRoutes from './giftPot';
@@ -64,6 +65,8 @@ const planInclude = {
   members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
+  // Liste d'attente (Plan complet), dans l'ordre d'inscription
+  waitlist: { select: { userId: true, createdAt: true, user: { select: { id: true, pseudo: true, firstName: true } } }, orderBy: { createdAt: 'asc' as const } },
   items: { orderBy: { id: 'asc' as const } },
   changeLogs: { orderBy: { changedAt: 'asc' as const }, include: { changedBy: { select: { id: true, pseudo: true } } } },
   // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
@@ -121,6 +124,7 @@ router.get('/', async (req: AuthRequest, res) => {
         deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
         circle: { select: { id: true, name: true } },
         _count: { select: { messages: true } },
+        waitlist: { select: { userId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
       },
       orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
     }), prisma.circleMember.findMany({ where: { userId }, select: { circleId: true } })]);
@@ -247,7 +251,7 @@ async function findActiveInvite(token: string) {
         select: {
           id: true, title: true, eventDate: true, endDate: true, maxParticipants: true,
           creator: { select: { pseudo: true } },
-          _count: { select: { members: true } },
+          _count: { select: { members: { where: { rsvp: { not: 'out' } } } } },
         },
       },
     },
@@ -268,7 +272,7 @@ router.get('/guest-invite/:token', async (req: AuthRequest, res) => {
       eventDate: plan.eventDate,
       creatorPseudo: plan.creator.pseudo,
       alreadyMember: access.isPlanMember,
-      full: plan.maxParticipants !== null && plan._count.members >= plan.maxParticipants,
+      full: !(await hasFreeSpot(plan)),
     });
   } catch (e) {
     console.error('[guest invite preview]', e);
@@ -283,7 +287,8 @@ router.post('/guest-invite/:token/accept', async (req: AuthRequest, res) => {
     const access = plan && await getPlanAccess(req.userId!, plan.id);
     if (!plan || !access || access.isExcluded) { res.status(404).json({ error: INVALID_INVITE }); return; }
     if (access.isPlanMember) { res.json({ planId: plan.id }); return; }
-    if (plan.maxParticipants !== null && plan._count.members >= plan.maxParticipants) {
+    // Une place libre, et personne de la liste d'attente avant (elle passe en premier)
+    if (!(await hasFreeSpot(plan))) {
       res.status(409).json({ error: 'Ce Plan est complet' }); return;
     }
     await prisma.planMember.create({ data: { userId: req.userId!, planId: plan.id, rsvp: 'in' } });
@@ -342,9 +347,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
       if (isNaN(newMaxParticipants) || newMaxParticipants < 1) {
         res.status(400).json({ error: 'Limite de participants invalide' }); return;
       }
-      const currentCount = await prisma.planMember.count({ where: { planId: req.params.id } });
+      // Places occupées : « Je suis in » et « Peut-être » (un « Je passe » ne compte pas)
+      const currentCount = await occupiedCount(req.params.id);
       if (newMaxParticipants < currentCount) {
-        res.status(400).json({ error: `Il y a déjà ${currentCount} membre(s), la limite doit être au moins ${currentCount}` }); return;
+        res.status(400).json({ error: `${currentCount} personne(s) participent déjà, la limite doit être au moins ${currentCount}` }); return;
       }
     }
 
@@ -420,6 +426,8 @@ router.put('/:id', async (req: AuthRequest, res) => {
       ]);
     }
 
+    // Limite augmentée, exclusions… : des places ont pu se libérer pour la liste d'attente
+    await promoteFromWaitlist(req.app.get('io'), planId);
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
     res.json({
       ...anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!),
@@ -428,6 +436,29 @@ router.put('/:id', async (req: AuthRequest, res) => {
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
+});
+
+// POST /:id/waitlist — s'inscrire sur la liste d'attente d'un Plan complet (membres du Cercle)
+router.post('/:id/waitlist', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, maxParticipants: true, endDate: true } });
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!plan || !access || access.isExcluded || !access.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!access.isCircleMember) { res.status(403).json({ error: 'La liste d’attente est réservée aux membres du Cercle' }); return; }
+  const member = await prisma.planMember.findUnique({ where: { userId_planId: { userId: req.userId!, planId: plan.id } }, select: { rsvp: true } });
+  if (member && member.rsvp !== 'out') { res.status(409).json({ error: 'Tu participes déjà à ce Plan' }); return; }
+  if (await hasFreeSpot(plan, req.userId!)) { res.status(409).json({ error: 'Il reste de la place : rejoins directement le Plan', full: false }); return; }
+  await prisma.planWaitlist.upsert({
+    where: { planId_userId: { planId: plan.id, userId: req.userId! } },
+    create: { planId: plan.id, userId: req.userId! }, update: {},
+  });
+  const rows = await prisma.planWaitlist.findMany({ where: { planId: plan.id }, orderBy: { createdAt: 'asc' }, select: { userId: true } });
+  res.json({ position: rows.findIndex(r => r.userId === req.userId) + 1 });
+});
+
+// DELETE /:id/waitlist — quitter la liste d'attente
+router.delete('/:id/waitlist', async (req: AuthRequest, res) => {
+  await prisma.planWaitlist.deleteMany({ where: { planId: req.params.id, userId: req.userId! } });
+  res.json({ ok: true });
 });
 
 // Join a plan
@@ -450,14 +481,12 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     res.status(409).json({ error: 'Tu es déjà dans ce Plan' });
     return;
   }
-  if (plan.maxParticipants !== null) {
-    const currentCount = await prisma.planMember.count({ where: { planId: req.params.id } });
-    if (currentCount >= plan.maxParticipants) {
-      res.status(409).json({ error: 'Ce Plan est complet' });
-      return;
-    }
+  if (!(await hasFreeSpot(plan, req.userId!))) {
+    res.status(409).json({ error: 'Ce Plan est complet', full: true });
+    return;
   }
   await prisma.planMember.create({ data: { userId: req.userId!, planId: req.params.id, rsvp: 'in' } });
+  await prisma.planWaitlist.deleteMany({ where: { planId: req.params.id, userId: req.userId! } });
   // Ce qui existait avant l'arrivée n'est pas « nouveau » pour le nouveau participant
   await markAllSeen(req.params.id, req.userId!);
   const updatedPlan = await prisma.plan.findUnique({
@@ -519,8 +548,13 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
   try {
     const before = await prisma.planMember.findUnique({
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
-      select: { rsvp: true },
+      select: { rsvp: true, plan: { select: { id: true, maxParticipants: true } } },
     });
+    // Revenir (de « Je passe » à « in » / « peut-être ») demande une place libre
+    if (before?.rsvp === 'out' && rsvp !== 'out' && !(await hasFreeSpot(before.plan, req.userId!))) {
+      res.status(409).json({ error: 'Ce Plan est complet : inscris-toi sur la liste d’attente', full: true });
+      return;
+    }
     const member = await prisma.planMember.update({
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
       data: { rsvp },
@@ -537,7 +571,10 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
       await removeUserFromShifts(req.params.id, req.userId!).catch(e => console.error('[rsvp shifts cleanup]', e));
       await removeFromPlanGames(req.params.id, req.userId!);
     }
+    if (rsvp !== 'out') await prisma.planWaitlist.deleteMany({ where: { planId: req.params.id, userId: req.userId! } });
     res.json(member);
+    // Une place libérée : la première personne en attente la prend
+    if (rsvp === 'out' && before && before.rsvp !== 'out') promoteFromWaitlist(req.app.get('io'), req.params.id).catch(e => console.error('[waitlist rsvp]', e));
   } catch {
     res.status(404).json({ error: 'Tu n\'es pas membre de ce Plan' });
   }

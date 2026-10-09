@@ -155,6 +155,8 @@ export interface Plan {
   endDate: string;
   location?: string | null;
   maxParticipants?: number | null;
+  /** Liste d'attente (Plan complet), dans l'ordre ; `user` seulement dans le détail du Plan */
+  waitlist?: { userId: string; createdAt?: string; user?: { id: string; pseudo: string; firstName?: string | null } }[];
   deletionMode?: DeletionMode;
   /** Fonctions masquées (les données sont conservées) */
   disabledFeatures?: PlanFeature[];

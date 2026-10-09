@@ -5,6 +5,7 @@ import { deleteUserAccount } from '../lib/accountDeletion';
 import { cleanFirstName, createLightUser, makeLightToken, readLightUser } from '../lib/lightGuest';
 import { markAllSeen, touchPlanSection } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
+import { hasFreeSpot, promoteFromWaitlist } from '../lib/waitlist';
 
 // Lien d'invitation à un Plan, côté personne sans compte (lib/lightGuest.ts). Public : le
 // jeton du lien suffit pour voir l'essentiel du Plan ; le jeton « invité léger » (en-tête
@@ -50,7 +51,7 @@ async function findPlan(token: string) {
 type InvitePlan = NonNullable<Awaited<ReturnType<typeof findPlan>>>;
 
 function isFull(plan: InvitePlan) {
-  return plan.maxParticipants !== null && plan.members.length >= plan.maxParticipants;
+  return plan.maxParticipants !== null && plan.members.filter(m => m.rsvp !== 'out').length >= plan.maxParticipants;
 }
 
 // Ce que voit une personne sans compte. Avant de répondre : le Plan et le nombre de
@@ -112,14 +113,17 @@ async function respond(req: Request, res: Response) {
     const existing = light ? plan.members.find(m => m.userId === light!.id) : undefined;
 
     if (existing) {
+      // Revenir après « Je passe » demande une place libre (la liste d'attente des membres passe avant)
+      if (existing.rsvp === 'out' && rsvp !== 'out' && !(await hasFreeSpot(plan))) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
       if (existing.rsvp !== rsvp) {
         await prisma.planMember.update({ where: { userId_planId: { userId: light!.id, planId: plan.id } }, data: { rsvp } });
         const change = rsvpChange(existing.rsvp, rsvp);
         if (change) notifyMembershipChange(req.app.get('io'), plan.id, { id: light!.id, pseudo: light!.pseudo }, change).catch(e => console.error('[invite notify]', e));
         broadcastMembers(req, plan, light!.id);
+        if (rsvp === 'out' && existing.rsvp !== 'out') promoteFromWaitlist(req.app.get('io'), plan.id).catch(e => console.error('[waitlist invite]', e));
       }
     } else {
-      if (rsvp !== 'out' && isFull(plan)) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
+      if (rsvp !== 'out' && !(await hasFreeSpot(plan))) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
       if (!light) {
         const firstName = cleanFirstName(req.body?.firstName);
         if (!firstName) { res.status(400).json({ error: 'Indique ton prénom (30 caractères maximum)' }); return; }
@@ -156,6 +160,7 @@ router.delete('/:token/respond', updateLimiter, async (req, res) => {
       await prisma.planMember.delete({ where: { userId_planId: { userId: light.id, planId: plan.id } } });
       if (member.rsvp !== 'out') notifyMembershipChange(req.app.get('io'), plan.id, { id: light.id, pseudo: light.pseudo }, 'leave').catch(e => console.error('[invite notify]', e));
       broadcastMembers(req, plan, light.id);
+      if (member.rsvp !== 'out') promoteFromWaitlist(req.app.get('io'), plan.id).catch(e => console.error('[waitlist invite]', e));
     }
     const remaining = await prisma.planMember.count({ where: { userId: light.id } });
     // deleteUserAccount : un organisateur sans compte part aussi avec son Cercle « Mes Plans »

@@ -33,6 +33,7 @@ import { downloadPlanRecap } from '../../lib/planRecap';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import api from '../../services/api';
+import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 
 // Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
 function useIsPhone() {
@@ -99,6 +100,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [chatUnseen, setChatUnseen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [joining, setJoining] = useState(false);
+  // Message lié aux places (Plan complet, liste d'attente)
+  const [placesError, setPlacesError] = useState('');
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
@@ -349,8 +352,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   async function handleJoin() {
     setJoining(true);
+    setPlacesError('');
     try {
       const { data } = await api.post(`/plans/${plan.id}/join`);
+      onPlanUpdated(data);
+    } catch (err: any) {
+      // Complet entre-temps : la fiche rechargée propose la liste d'attente
+      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
+      const { data } = await api.get(`/plans/${plan.id}`);
       onPlanUpdated(data);
     } finally {
       setJoining(false);
@@ -360,12 +369,32 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   async function handleRsvp(rsvp: 'in' | 'maybe' | 'out') {
     if (updatingRsvp || myMember?.rsvp === rsvp) return;
     setUpdatingRsvp(true);
+    setPlacesError('');
     try {
       await api.put(`/plans/${plan.id}/rsvp`, { rsvp });
       const { data } = await api.get(`/plans/${plan.id}`);
       onPlanUpdated(data);
+    } catch (err: any) {
+      // Revenir sur un Plan complet : la liste d'attente est proposée juste en dessous
+      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
     } finally {
       setUpdatingRsvp(false);
+    }
+  }
+
+  // Liste d'attente d'un Plan complet
+  async function handleWaitlist(join: boolean) {
+    setJoining(true);
+    setPlacesError('');
+    try {
+      if (join) await api.post(`/plans/${plan.id}/waitlist`);
+      else await api.delete(`/plans/${plan.id}/waitlist`);
+    } catch (err: any) {
+      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
+    } finally {
+      const { data } = await api.get(`/plans/${plan.id}`);
+      onPlanUpdated(data);
+      setJoining(false);
     }
   }
 
@@ -471,7 +500,37 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
   const outCount = plan.members.filter(m => m.rsvp === 'out').length;
-  const isFull = plan.maxParticipants != null && plan.members.length >= plan.maxParticipants;
+  const isFull = isPlanFull(plan);
+  const occupied = occupiedPlaces(plan);
+  const myWaitPos = waitlistPosition(plan, user?.id);
+  const waitingCount = plan.waitlist?.length ?? 0;
+
+  // Liste d'attente : Plan complet (ou déjà en attente) pour quelqu'un qui n'occupe pas de place
+  const waitlistCard = (
+    <div className="mt-3 p-4 bg-amber-50 rounded-xl border border-amber-200">
+      {myWaitPos ? (
+        <>
+          <p className="text-sm text-amber-900 font-medium">⏳ Tu es n°{myWaitPos} sur la liste d’attente.</p>
+          <p className="text-xs text-amber-800 mt-1">Dès qu’une place se libère, tu es inscrit(e) automatiquement et prévenu(e).</p>
+          <button onClick={() => handleWaitlist(false)} disabled={joining} className="mt-2 text-xs text-amber-900 underline">Quitter la liste d’attente</button>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-amber-900 font-medium">Ce Plan est complet ({occupied}/{plan.maxParticipants}).</p>
+          <p className="text-xs text-amber-800 mt-1">
+            Inscris-toi sur la liste d’attente : tu prendras automatiquement la première place libérée.
+            {waitingCount > 0 && ` ${waitingCount} personne${waitingCount > 1 ? 's attendent' : ' attend'} déjà.`}
+          </p>
+          {plan.viewerIsGuest ? null : (
+            <Button onClick={() => handleWaitlist(true)} disabled={joining} size="sm" className="mt-3">
+              {joining ? '…' : 'Rejoindre la liste d’attente'}
+            </Button>
+          )}
+        </>
+      )}
+      {placesError && <p className="text-xs text-red-600 mt-2">{placesError}</p>}
+    </div>
+  );
 
   // Téléphone, page principale : une carte par rubrique (le Chat en premier, sur toute la largeur)
   const hubCards = (
@@ -806,7 +865,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
               <span className="text-slate-400">{outCount} non</span>
               {plan.maxParticipants != null && (
-                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{plan.members.length}/{plan.maxParticipants}</span></>
+                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600"> · {waitingCount} en attente</span>}</>
               )}
             </span>
           </div>
@@ -845,13 +904,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 {rsvpConfig[rsvp].label}
               </button>
             ))}
+            {myMember?.rsvp === 'out' && (isFull || myWaitPos) && <div className="col-span-3 md:basis-full">{waitlistCard}</div>}
           </div>
-        ) : isFull ? (
-          <div className="mt-3 p-4 bg-red-50 rounded-xl border border-red-100">
-            <p className="text-sm text-red-600 font-medium">
-              Ce Plan est complet ({plan.members.length}/{plan.maxParticipants} participants).
-            </p>
-          </div>
+        ) : isFull || myWaitPos ? (
+          waitlistCard
         ) : (
           <div className="mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
             <p className="text-sm text-slate-600 mb-3">
@@ -961,7 +1017,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'infos' && (
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
-          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} />}
+          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'killer' && <KillerTab plan={plan} userId={user.id} />}

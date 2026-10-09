@@ -2,6 +2,7 @@ import { Calendar, MapPin, MessageSquare, Users, Repeat } from 'lucide-react';
 import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { isPlanFull, occupiedPlaces, placesLeft as placesLeftOf, waitlistPosition } from '../../lib/places';
 
 interface Props {
   plan: Plan;
@@ -22,10 +23,13 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
   const myMember = plan.members.find(m => m.userId === user?.id);
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
-  // Limite de places : même calcul que le serveur (toutes les personnes ayant rejoint le Plan)
+  // Limite de places : même calcul que le serveur (« Je suis in » et « Peut-être », lib/places.ts)
   const max = plan.maxParticipants ?? null;
-  const isFull = max != null && plan.members.length >= max;
-  const placesLeft = max != null ? Math.max(0, max - plan.members.length) : null;
+  const isFull = isPlanFull(plan);
+  const placesLeft = placesLeftOf(plan);
+  const occupied = occupiedPlaces(plan);
+  const myWaitPos = waitlistPosition(plan, user?.id);
+  const waiting = plan.waitlist?.length ?? 0;
 
   const date = plan.eventDate
     ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
@@ -54,6 +58,10 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
             {rsvpLabel[myMember.rsvp]}
           </span>
+        ) : myWaitPos ? (
+          <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200">
+            En attente n°{myWaitPos}
+          </span>
         ) : isFull ? (
           <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-600 border border-red-500/30">
             Complet
@@ -81,9 +89,9 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
         {max != null && (
           isFull ? (
             myMember ? (
-              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-semibold">Complet · {plan.members.length}/{max}</span>
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-semibold">Complet · {occupied}/{max}{waiting > 0 ? ` · ${waiting} en attente` : ''}</span>
             ) : (
-              <span className="text-red-600 font-medium">{plan.members.length}/{max} places</span>
+              <span className="text-red-600 font-medium">{occupied}/{max} places{waiting > 0 ? ` · ${waiting} en attente` : ''}</span>
             )
           ) : (
             <span className={placesLeft === 1 ? 'text-amber-600 font-medium' : ''}>

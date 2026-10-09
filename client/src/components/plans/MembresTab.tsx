@@ -1,4 +1,4 @@
-import { PlanMember } from '../../types';
+import { Plan, PlanMember } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
 
@@ -10,7 +10,7 @@ const rsvpCfg = {
 
 const rsvpOrder: Record<string, number> = { in: 0, maybe: 1, out: 2 };
 
-export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; onlineUserIds?: Set<string> }) {
+export function MembresTab({ members, onlineUserIds, waitlist = [] }: { members: PlanMember[]; onlineUserIds?: Set<string>; waitlist?: NonNullable<Plan['waitlist']> }) {
   const sorted = [...members].sort((a, b) => rsvpOrder[a.rsvp] - rsvpOrder[b.rsvp]);
 
   return (
@@ -37,6 +37,21 @@ export function MembresTab({ members, onlineUserIds }: { members: PlanMember[]; 
           </div>
         ))}
       </div>
+      {waitlist.length > 0 && (
+        <>
+          <h3 className="font-semibold text-slate-800 text-sm mt-5 mb-1">Liste d’attente</h3>
+          <p className="text-xs text-slate-400 mb-3">Dès qu’une place se libère, la première personne est inscrite automatiquement.</p>
+          <div className="space-y-2">
+            {waitlist.map((w, i) => (
+              <div key={w.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-dashed border-amber-300">
+                <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                <span className="flex-1 min-w-0 text-sm font-medium text-slate-700">{w.user ? displayName(w.user) ?? `@${w.user.pseudo}` : 'Membre'}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-50 text-amber-700">En attente</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
