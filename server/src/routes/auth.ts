@@ -19,7 +19,7 @@ import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailC
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const CURRENT_TERMS_VERSION = 3;
+export const CURRENT_TERMS_VERSION = 4;
 
 function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
   return jwt.sign(

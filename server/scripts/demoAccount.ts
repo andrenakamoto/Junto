@@ -63,7 +63,7 @@ async function main() {
       data: {
         pseudo: p.pseudo, firstName: p.firstName, lastName: p.lastName, password: hash,
         email: 'email' in p ? p.email : null, emailVerified: true, status: 'approved',
-        acceptedTermsVersion: 3, notificationChannel: 'push', weeklyDigestEnabled: false,
+        acceptedTermsVersion: 4, notificationChannel: 'push', weeklyDigestEnabled: false,
       },
     });
     ids[p.pseudo] = u.id;

@@ -164,9 +164,21 @@ Conséquences pratiques :
   Annonce les apps iPhone / Android « prochainement » (p. 1 et FAQ) : à mettre à jour à leur
   publication. La régénérer quand une fonctionnalité mise en avant change.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
-  (version 3 du 2026-09-29 : public élargi aux associations/entreprises,
-  inscription pseudo + prénom + email, rôles et invités, covoiturage,
-  devises, durée de conservation). La version acceptée est
+  (version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
+  numérotés automatiquement depuis `SECTIONS`) : en plus de la v3, réponses sans compte, **responsabilité des
+  organisations** (usage du Service, données de leurs membres au sens de la nLPD), « Signaler » / masquer,
+  **rôle d'hébergeur** (aucun contrôle préalable), participation aux événements **à ses propres risques**,
+  **Assemblées et votes** (statuts et Code civil font foi, convocation EvLY ≠ forme statutaire, vote secret non
+  certifié, PV à relire et signer, nom de famille dans le PV), **Jeux et tirages au sort**, notifications sans
+  garantie de réception, **aucune garantie de sauvegarde**, services de tiers, pas d'usage critique, propriété
+  intellectuelle et suggestions, limitation de responsabilité **avec la réserve de l'art. 100 CO** (faute
+  intentionnelle / grave négligence — sans elle, la clause risquerait d'être annulée), force majeure,
+  dispositions finales. `CURRENT_TERMS_VERSION` = 4 : tout le monde les accepte à nouveau. Non relues par un
+  juriste.
+- **Guide d'utilisation** : `client/src/components/ui/GuideModal.tsx` (menu ☰), refait le 2026-10-09 :
+  synthèse « EvLY en bref », sommaire cliquable, puis une fiche dépliable par fonction, rangées par thème
+  (`GROUPS` : Les bases, Dans un Plan, Fonctions à activer, Rester informé, Règles et organisation, Garder une
+  trace, Ton compte). **Y ajouter une fiche pour toute nouvelle fonction.** La version acceptée est
   `User.acceptedTermsVersion`, comparée à `CURRENT_TERMS_VERSION`
   (`server/src/routes/auth.ts`) : l'incrémenter redemande l'acceptation à
   tout le monde à la prochaine ouverture de l'app — à faire pour toute
@@ -907,6 +919,32 @@ Junto/
   personnes retirées volontairement** (et des déjà tombées) ; « Revoir », tirages précédents. Notification `wheel`
   (→ `?tab=votes`) à l'arrêt de la roue, seulement aux comptes qui ne regardent pas le Plan. Démo : « Qui fait la
   vaisselle ? » (soirée raclette, Léa retirée, un tirage fait ; `findDemoWheel` / `refreshDemoWheel`).
+- **Assemblée** (2026-10-09, `lib/assembly.ts` testé, `routes/assembly.ts` monté dans le routeur des Plans, PV
+  `lib/assemblyPv.ts`, onglet `AssemblyTab.tsx`, migration `20261011100000_assembly`) : fonction **à activer**
+  (`assemblee`, catégorie Organiser). La date du Plan = celle de l'assemblée. Organisateur = créateur du Plan ou
+  gestionnaire du Cercle (`canManageAssembly`) ; **secrétaire** facultatif (notes du PV, téléchargement du PV).
+  Tables **Assembly** (réglages : `nonVoterIds` = membres décochés des votants, procurations autorisées + maximum par
+  personne, quorum `none|count|percent`, `codeCheckIn` + `checkInCode` à 4 chiffres, `hybrid`, `noticeDays`,
+  `convokedAt|openedAt|closedAt`), **AssemblyItem** (point de l'ordre du jour `info|vote|election`, documents =
+  `attachmentIds` envoyés par `POST /attachments/plans/:id?via=assemblee` — possible sans « Photos et fichiers » —,
+  notes, `secret`, majorité `simple|absolute|two_thirds`, `seats`, statut `pending|open|closed|tacit`,
+  `eligibleVotes` figé à l'ouverture), **AssemblyCandidate**, **AssemblyVoter** (qui a voté et pour qui ; le choix
+  seulement à main levée), **AssemblyBallot** (bulletin, id uuid, **sans personne ni date** : vote secret),
+  **AssemblyProxy**, **AssemblyAttendance** (`remote`). Personnes référencées par id, sans relation. **Votants =
+  membres du Cercle (comptes normaux) moins `nonVoterIds`** ; invités externes et réponses sans compte voient
+  l'ordre du jour, rien du Cercle. **Seules les personnes pointées présentes votent** (organisateur qui coche, code
+  de la salle, ou « à distance » si hybride) ; une procuration vaut tant que la personne qui l'a donnée n'est pas
+  présente et que celle qui la porte l'est (`votingRights`), et se donne / retire seulement avant l'ouverture.
+  Quorum = présents votants + procurations valables. Un seul vote ouvert à la fois ; résultat visible à la
+  clôture ; « Annuler » efface les voix ; « sans scrutin » (acclamation / élection tacite) ; égalité à une élection
+  → l'organisateur départage (`/elect`). Convocation : app + push + email (canal respecté, **même Cercle en
+  silence** : pas de bulle), 1 / 10 min. Notifications `assembly` et **`assembly_vote` (ouverture d'un vote,
+  exemptée du mode silencieux)** → `?tab=assemblee`. **PV** (GET /:id/assembly/pv, organisateur et secrétaire,
+  « projet » tant que l'assemblée n'est pas close) : **prénom et nom** des présents, procurations, excusés,
+  quorum, chaque point avec notes, résultats (noms à main levée), élus, signatures ; **envoyé par email au créateur
+  du Plan seul** à la clôture. Politique de confidentialité mise à jour (9 octobre 2026). Démo : « Assemblée générale
+  2026 » (Jeunesse de Montvert, ouverte, comptes adoptés, vote de la cotisation en cours : Alex vote pour lui et
+  pour Chloé, puis peut clore le vote — `findDemoAssemblyItem`).
 - **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
   depuis le 2026-10-04 (`BringItemsSection.tsx`, en tête de `DepensesTab`) : désactiver les
   Dépenses la masque aussi et le serveur refuse ajout et « Je prends ça » ; pastille et
