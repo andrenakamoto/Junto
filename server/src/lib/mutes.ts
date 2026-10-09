@@ -8,8 +8,8 @@ import prisma from './prisma';
 // concernent un Cercle dont elle n'est pas (encore) membre ; le reste n'est lié à aucun Plan.
 // Le rappel de la veille est traité à part (gardé pour ceux qui ont répondu « Je suis in »).
 // Le rappel de poste de bénévole passe même en silence : la personne s'est engagée (comme le rappel de la
-// veille pour les « Je suis in »)
-export const MUTE_EXEMPT_TYPES = new Set(['mention', 'circle_invite', 'join_accepted', 'suggestion_update', 'shift_reminder', 'waitlist']);
+// veille pour les « Je suis in »). L'ouverture d'un vote d'assemblée aussi : on vote dans la salle, maintenant.
+export const MUTE_EXEMPT_TYPES = new Set(['mention', 'circle_invite', 'join_accepted', 'suggestion_update', 'shift_reminder', 'waitlist', 'assembly_vote']);
 
 export type MuteScope = { planId?: string | null; circleId?: string | null };
 

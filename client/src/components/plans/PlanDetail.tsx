@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { saveFile } from '../../lib/saveFile';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,6 +27,7 @@ import { KillerTab } from './KillerTab';
 import { WordTrapTab } from './WordTrapTab';
 import { TeamsTab } from './TeamsTab';
 import { GiftPotTab } from './GiftPotTab';
+import { AssemblyTab } from './AssemblyTab';
 import { ExpiryChip } from './ExpiryChip';
 import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
 import { downloadPlanRecap } from '../../lib/planRecap';
@@ -49,7 +50,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'mot_piege' | 'equipes' | 'cagnotte';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
 
 const rsvpConfig = {
   in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -65,13 +66,14 @@ const tabs = [
   { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
   { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
+  { key: 'assemblee' as Tab,  Icon: Landmark,         label: 'Assemblée' },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: 'Père Noël' },
   { key: 'killer' as Tab,     Icon: Crosshair,        label: 'Killer' },
   { key: 'mot_piege' as Tab,  Icon: Speech,           label: 'Mot piège' },
   { key: 'equipes' as Tab,    Icon: Trophy,           label: 'Équipes' },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: 'Cagnotte' },
 ];
-const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte'];
+const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
 
 interface Props {
   plan: Plan;
@@ -1030,6 +1032,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'mot_piege' && <WordTrapTab plan={plan} userId={user.id} />}
           {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
           {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
+          {activeTab === 'assemblee' && <AssemblyTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

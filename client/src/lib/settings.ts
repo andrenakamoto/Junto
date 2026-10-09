@@ -53,6 +53,7 @@ export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
   { value: 'mot_piege', label: 'Le mot piège (jeu)' },
   { value: 'equipes', label: 'Tirage des équipes et tournoi' },
   { value: 'cagnotte', label: 'Cagnotte cadeau' },
+  { value: 'assemblee', label: 'Assemblée (ordre du jour, votes, PV)' },
 ];
 
 // Fonctions du Plan rangées par catégorie (fenêtres de création / modification / paramètres).
@@ -72,6 +73,7 @@ export const FEATURE_GROUPS: { key: string; title: string; icon: string; collaps
     { kind: 'base', value: 'trajets', label: 'Trajets', hint: 'Covoiturage : places et demandes' },
     { kind: 'base', value: 'depenses', label: 'Dépenses', hint: 'Qui apporte quoi, frais partagés' },
     { kind: 'optional', value: 'benevoles', label: 'Bénévoles', hint: 'Postes à pourvoir, chacun s’inscrit' },
+    { kind: 'optional', value: 'assemblee', label: 'Assemblée', hint: 'Ordre du jour, procurations, votes, procès-verbal' },
   ] },
   { key: 'feter', title: 'Fêter et offrir', icon: '🎁', collapsible: true, items: [
     { kind: 'optional', value: 'cagnotte', label: 'Cagnotte cadeau', hint: 'Un cadeau commun, idées et votes' },

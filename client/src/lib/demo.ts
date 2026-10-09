@@ -389,6 +389,16 @@ function revealDemoMatch(planId: string, match: any, full: any) {
   }
 }
 
+// Assemblée : retrouver un point de l'ordre du jour enregistré
+function findDemoAssemblyItem(itemId: string): { planId: string; st: any; item: any } | null {
+  for (const k of Object.keys(fixtures!)) {
+    const mm = k.match(/^GET \/plans\/([^/]+)\/assembly$/);
+    const item = mm && fixtures![k].items.find((i: any) => i.id === itemId);
+    if (item) return { planId: mm![1], st: fixtures![k], item };
+  }
+  return null;
+}
+
 // Qui s'y colle ? : retrouver une roue enregistrée et recalculer qui est dessus (comme lib/wheel.ts)
 function findDemoWheel(wheelId: string): { planId: string; wheel: any } | null {
   for (const k of Object.keys(fixtures!)) {
@@ -530,6 +540,38 @@ function route(method: string, path: string, body: any): any {
     return { ok: true };
   }
   if (path.match(/^\/plans\/(matches|[^/]+\/matches)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Assemblée générale de la jeunesse : Alex vote (pour lui et pour Chloé), les autres finissent de voter quelques
+  // secondes plus tard ; Alex, organisateur du Cercle, peut clore le vote. Notes du PV en mémoire.
+  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/(vote|close|notes)$/))) {
+    const found = findDemoAssemblyItem(m[1]);
+    if (!found) throw new DemoError(403, NOT_IN_DEMO);
+    const { planId, st, item } = found;
+    if (m[2] === 'notes') { item.notes = String(body.notes ?? '').trim() || null; changed(planId); return { ok: true }; }
+    if (m[2] === 'vote') {
+      if (item.status !== 'open') throw new DemoError(400, 'Le vote n’est pas ouvert');
+      for (const v of body.votes ?? []) {
+        const mandate = item.myMandates.find((x: any) => x.id === v.onBehalfOfId);
+        if (!mandate || mandate.voted) continue;
+        mandate.voted = true; item.votedCount += 1;
+        (item._mine ??= []).push(v.choice);
+      }
+      window.setTimeout(() => { if (item.status === 'open') { item.votedCount = item.eligibleVotes; changed(planId); } }, 4000);
+      changed(planId);
+      return { ok: true };
+    }
+    if (!st.canManage || item.status !== 'open') throw new DemoError(403, NOT_IN_DEMO);
+    // Voix des autres (bulletin secret) : celles déjà enregistrées dans la démo + les retardataires
+    const mine: string[] = item._mine ?? [];
+    const others = (item.eligibleVotes ?? 0) - mine.length;
+    const counts = { yes: Math.max(others - 2, 0), no: Math.min(1, others), abstain: others >= 2 ? 1 : 0 };
+    for (const ch of mine) counts[ch as 'yes' | 'no' | 'abstain'] += 1;
+    item.status = 'closed'; item.votedCount = item.eligibleVotes; item.myMandates = [];
+    item.result = { counts, adopted: counts.yes > counts.no };
+    changed(planId);
+    return { ok: true };
+  }
+  if (path.match(/^\/plans\/(assembly|[^/]+\/assembly)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Qui s'y colle ? (soirée raclette) : retirer / remettre des personnes et lancer la roue, en mémoire
   if ((m = path.match(/^\/plans\/wheels\/([^/]+)(\/spin)?$/)) && (method === 'PUT' || m[2])) {

@@ -88,6 +88,19 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // Match de groupe : /matches/:matchId/… et /matches/options/:optionId/… (un oui / non ne crée pas de
   // pastille ; les notifications sont envoyées par les routes)
   // « Qui s'y colle ? » : /wheels/:wheelId/… (le lancement émet en plus « wheel-spin » depuis la route)
+  // Assemblée : /assembly/items/:itemId/… et /assembly/candidates/:id (rechargement seulement, les
+  // notifications sont envoyées par les routes)
+  if (a === 'assembly') {
+    if (b === 'items') {
+      const item = await prisma.assemblyItem.findUnique({ where: { id: c }, select: { assembly: { select: { planId: true } } } });
+      return planTarget(item?.assembly.planId, false);
+    }
+    if (b === 'candidates') {
+      const cand = await prisma.assemblyCandidate.findUnique({ where: { id: c }, select: { item: { select: { assembly: { select: { planId: true } } } } } });
+      return planTarget(cand?.item.assembly.planId, false);
+    }
+    return null;
+  }
   if (a === 'wheels') {
     const wheel = await prisma.wheel.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(wheel?.planId, false);
@@ -120,7 +133,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // Père Noël secret : rechargement seulement — pas de pastille ni d'activité (tout y est privé)
   if (b === 'santa') return planTarget(a, false);
   // Killer, équipes, cagnotte : rechargement seulement (leurs notifications sont envoyées par les routes)
-  if (b === 'killer' || b === 'teams' || b === 'pot' || b === 'words') return planTarget(a, false);
+  if (b === 'killer' || b === 'teams' || b === 'pot' || b === 'words' || b === 'assembly') return planTarget(a, false);
   // Informations importantes : onglet Infos, notification aux participants
   if (b === 'important-info') return planTarget(a, false, 'infos', 'important_info_updated');
   // PUT /:id (modification du Plan) → onglet Infos ; DELETE /:id → aucun

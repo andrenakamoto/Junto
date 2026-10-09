@@ -4,7 +4,7 @@ import { LogoIcon } from '../components/ui/Logo';
 
 // Politique de confidentialité (nLPD). Page publique : doit être lisible avant l'inscription.
 
-const VERSION = '7 octobre 2026';
+const VERSION = '9 octobre 2026';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -82,6 +82,14 @@ export function PrivacyPage() {
                 peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
                 aux jeux (Père Noël secret, Killer, mot piège, équipes et scores) et à une cagnotte (montant, paiement signalé),
                 dépenses et remboursements.</li>
+              <li><strong>Assemblées</strong> (fonction à activer dans un Plan) : ta présence (sur place ou à
+                distance), la procuration que tu donnes ou reçois, et tes votes. Au <strong>bulletin secret</strong>,
+                EvLY enregistre séparément que tu as voté et le bulletin lui-même, sans lien entre les deux : personne,
+                ni l'organisateur ni l'administrateur d'EvLY, ne peut retrouver ce que tu as voté. À main levée, ton
+                vote figure dans les résultats et dans le procès-verbal. Le <strong>procès-verbal</strong> (PDF)
+                indique le <strong>prénom et le nom</strong> des présents, des personnes représentées et des
+                candidats ; il est téléchargé par l'organisateur ou le ou la secrétaire, et envoyé par email au
+                créateur du Plan à la clôture de l'assemblée.</li>
               <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
                 connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
                 l'heure près, pour compter les membres actifs), la date à laquelle tu as consulté chaque
@@ -165,7 +173,8 @@ export function PrivacyPage() {
                 avant. Le créateur du Plan et les organisateurs du Cercle peuvent en garder un{' '}
                 <strong>récapitulatif PDF</strong> (infos, participants avec prénom et pseudo, bénévoles,
                 dépenses, votes) : en le téléchargeant, ou par email juste avant la suppression s'ils ont
-                activé cette option.</li>
+                activé cette option. Le procès-verbal d'une assemblée est envoyé par email au créateur du
+                Plan à sa clôture : c'est ensuite à l'association de le conserver.</li>
               <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur
                 conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
                 proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>

@@ -57,7 +57,9 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
     // Photo d'une proposition de match (?via=match) : propre au match, indépendante des « Photos et fichiers »
     const viaMatch = req.query.via === 'match';
-    if (!viaMatch && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    // Document de l'ordre du jour d'une assemblée (?via=assemblee) : possible même sans « Photos et fichiers »
+    const viaAssembly = req.query.via === 'assemblee' && plan.enabledFeatures.includes('assemblee');
+    if (!viaMatch && !viaAssembly && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },

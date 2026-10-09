@@ -332,6 +332,7 @@ model Plan {
   waitlist          PlanWaitlist[]
   matchPolls        MatchPoll[]
   wheels            Wheel[]
+  assembly          Assembly?
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
@@ -1140,4 +1141,126 @@ model WheelSpin {
   createdAt    DateTime @default(now())
 
   @@index([wheelId])
+}
+
+// Assemblée (lib/assembly.ts) : ordre du jour, convocation, présences, procurations, votes (bulletin secret ou
+// à main levée), élections et procès-verbal PDF. Personnes référencées par leur id (sans relation) : un compte
+// supprimé apparaît « ? » sans casser l'historique.
+model Assembly {
+  id             String               @id @default(cuid())
+  planId         String               @unique
+  plan           Plan                 @relation(fields: [planId], references: [id], onDelete: Cascade)
+  // Membres du Cercle qui ne votent pas (tous votent par défaut)
+  nonVoterIds    String[]             @default([])
+  proxiesAllowed Boolean              @default(true)
+  maxProxies     Int                  @default(1)
+  // none | count | percent
+  quorumMode     String               @default("none")
+  quorumValue    Int?
+  // Pointage soi-même avec le code affiché dans la salle (l'organisateur peut toujours pointer)
+  codeCheckIn    Boolean              @default(false)
+  checkInCode    String?
+  // Assemblée hybride : participation à distance possible
+  hybrid         Boolean              @default(false)
+  noticeDays     Int                  @default(20)
+  secretaryId    String?
+  convokedAt     DateTime?
+  openedAt       DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime             @default(now())
+  items          AssemblyItem[]
+  proxies        AssemblyProxy[]
+  attendances    AssemblyAttendance[]
+}
+
+model AssemblyItem {
+  id            String              @id @default(cuid())
+  assemblyId    String
+  assembly      Assembly            @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  position      Int
+  title         String
+  description   String?
+  // info | vote | election
+  kind          String              @default("info")
+  // Documents : fichiers du Plan
+  attachmentIds String[]            @default([])
+  notes         String?
+  secret        Boolean             @default(true)
+  // simple | absolute | two_thirds
+  majority      String              @default("simple")
+  seats         Int?
+  // pending | open | closed | tacit
+  status        String              @default("pending")
+  // Voix possibles à l'ouverture du vote (présents + procurations)
+  eligibleVotes Int?
+  // Vote sans scrutin : adopté / rejeté par acclamation
+  tacitAdopted  Boolean?
+  openedAt      DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime            @default(now())
+  candidates    AssemblyCandidate[]
+  voters        AssemblyVoter[]
+  ballots       AssemblyBallot[]
+
+  @@index([assemblyId])
+}
+
+model AssemblyCandidate {
+  id      String       @id @default(cuid())
+  itemId  String
+  item    AssemblyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId  String?
+  name    String
+  elected Boolean      @default(false)
+
+  @@index([itemId])
+}
+
+// Qui a voté (et pour qui : soi-même ou la personne représentée). Le choix n'y figure que pour un vote à
+// main levée ; au bulletin secret, il n'existe que dans AssemblyBallot, sans lien avec la personne.
+model AssemblyVoter {
+  id           String       @id @default(cuid())
+  itemId       String
+  item         AssemblyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId       String
+  onBehalfOfId String
+  choice       String?
+  candidateIds String[]     @default([])
+  createdAt    DateTime     @default(now())
+
+  @@unique([itemId, onBehalfOfId])
+}
+
+// Bulletin anonyme : identifiant aléatoire (uuid), sans date ni personne
+model AssemblyBallot {
+  id           String       @id @default(uuid())
+  itemId       String
+  item         AssemblyItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  // yes | no | abstain (vote) ; vide pour une élection
+  choice       String?
+  candidateIds String[]     @default([])
+
+  @@index([itemId])
+}
+
+model AssemblyProxy {
+  id         String   @id @default(cuid())
+  assemblyId String
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  giverId    String
+  holderId   String
+  createdAt  DateTime @default(now())
+
+  @@unique([assemblyId, giverId])
+}
+
+model AssemblyAttendance {
+  assemblyId  String
+  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  userId      String
+  remote      Boolean  @default(false)
+  checkedInAt DateTime @default(now())
+  checkedById String?
+
+  @@id([assemblyId, userId])
 }

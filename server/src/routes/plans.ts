@@ -38,6 +38,7 @@ import giftPotRoutes from './giftPot';
 import wordGameRoutes from './wordGame';
 import matchPollRoutes from './matchPoll';
 import wheelRoutes from './wheel';
+import assemblyRoutes from './assembly';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
@@ -55,6 +56,8 @@ router.use(wordGameRoutes);
 router.use(matchPollRoutes);
 // « Qui s'y colle ? » (/:id/wheels, /wheels/…)
 router.use(wheelRoutes);
+// Assemblée (/:id/assembly…, /assembly/…)
+router.use(assemblyRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 

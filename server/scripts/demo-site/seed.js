@@ -161,7 +161,32 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   await call('POST', `/plans/${petanque.id}/teams/tournament`, { format: 'league' }, T.lea_m);
   const tour = await call('GET', `/plans/${petanque.id}/teams`, null, T.lea_m);
   for (const [i, m] of tour.matches.filter(m => m.round <= 2).entries()) await call('PUT', `/plans/${petanque.id}/teams/matches/${m.id}`, { homeScore: [13, 9, 13, 13][i], awayScore: [7, 13, 11, 4][i] }, T.lea_m);
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id], wheelPlans: [raclette.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
+  // Assemblée générale de la jeunesse (Léa préside, Julie secrétaire) : ouverte, comptes adoptés, vote de la
+  // cotisation en cours — Alex vote pour lui et pour Chloé (procuration)
+  const ag = await mk(jeu, 'lea_m', { title: 'Assemblée générale 2026', description: 'AG ordinaire de la jeunesse. Apéro offert après la séance 🥂', eventDate: at(0, 19, 30), endDate: at(7, 23), location: 'Salle communale de Montvert', enabledFeatures: ['assemblee'] });
+  for (const p of ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'max_g', 'chloe_s']) await call('POST', `/plans/${ag.id}/join`, {}, T[p]);
+  await call('PUT', `/plans/${ag.id}/rsvp`, { rsvp: 'out' }, T.chloe_s);
+  const AG = `/plans/${ag.id}/assembly`;
+  await call('PUT', AG, { quorumMode: 'count', quorumValue: 5, codeCheckIn: true, secretaryId: U.julie_r.id }, T.lea_m);
+  const agItem = async body => (await call('POST', `${AG}/items`, body, T.lea_m)).id;
+  const agRapport = await agItem({ title: 'Rapport de la présidente', kind: 'info', description: 'Bilan de l’année : loto, giron, sortie ski et 4 nouveaux membres.' });
+  const agComptes = await agItem({ title: 'Approbation des comptes 2025-2026', kind: 'vote', majority: 'simple', description: 'Bénéfice de 1 240 CHF, surtout grâce au loto.' });
+  const agCotis = await agItem({ title: 'Cotisation 2027 : 40 CHF', kind: 'vote', majority: 'simple', description: 'Proposition du comité : passer de 30 à 40 CHF.' });
+  const agComite = await agItem({ title: 'Élection du comité', kind: 'election', seats: 2, description: 'Deux sièges à repourvoir.' });
+  await agItem({ title: 'Divers', kind: 'info' });
+  for (const p of ['tom_b', 'emma_v', 'noah_p']) await call('POST', `/plans/assembly/items/${agComite}/candidates`, { userId: U[p].id }, T.lea_m);
+  await call('POST', `${AG}/proxy`, { holderId: U.alex.id }, T.chloe_s);
+  await call('POST', `${AG}/convoke`, {}, T.lea_m);
+  await call('POST', `${AG}/open`, {}, T.lea_m);
+  for (const p of ['lea_m', 'alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'max_g']) await call('PUT', `${AG}/attendance/${U[p].id}`, { present: true }, T.lea_m);
+  await call('PUT', `/plans/assembly/items/${agRapport}/notes`, { notes: 'La présidente remercie les bénévoles du loto et du giron. Applaudissements.' }, T.julie_r);
+  await call('POST', `/plans/assembly/items/${agComptes}/open`, {}, T.lea_m);
+  for (const [p, ch] of [['lea_m', 'yes'], ['tom_b', 'yes'], ['julie_r', 'yes'], ['noah_p', 'yes'], ['emma_v', 'yes'], ['lucas_d', 'abstain'], ['max_g', 'yes']]) await call('POST', `/plans/assembly/items/${agComptes}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
+  await call('POST', `/plans/assembly/items/${agComptes}/vote`, { votes: [{ onBehalfOfId: U.alex.id, choice: 'yes' }, { onBehalfOfId: U.chloe_s.id, choice: 'yes' }] }, T.alex);
+  await call('POST', `/plans/assembly/items/${agComptes}/close`, {}, T.lea_m);
+  await call('POST', `/plans/assembly/items/${agCotis}/open`, {}, T.lea_m);
+  for (const [p, ch] of [['lea_m', 'yes'], ['tom_b', 'yes'], ['julie_r', 'no'], ['noah_p', 'yes']]) await call('POST', `/plans/assembly/items/${agCotis}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [ag.id, raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id], wheelPlans: [raclette.id], assemblyPlans: [ag.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });

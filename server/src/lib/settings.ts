@@ -30,7 +30,7 @@ export function featureEnabled(plan: { disabledFeatures: string[] }, feature: Pl
 
 // Fonctions à activer (absentes par défaut, y compris sur les Plans existants) :
 // le planning des bénévoles (lib/volunteers.ts)
-export const OPTIONAL_FEATURES = ['benevoles', 'pere_noel', 'killer', 'equipes', 'cagnotte', 'mot_piege'] as const;
+export const OPTIONAL_FEATURES = ['benevoles', 'pere_noel', 'killer', 'equipes', 'cagnotte', 'mot_piege', 'assemblee'] as const;
 export type OptionalFeature = typeof OPTIONAL_FEATURES[number];
 
 export function parseEnabledFeatures(v: unknown): string[] | undefined {
