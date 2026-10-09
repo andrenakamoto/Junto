@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { Plan, Poll } from '../../types';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
+import { displayName } from '../../lib/names';
 
 interface Props {
   plan: Plan;
@@ -51,7 +52,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
         <p className="text-sm text-slate-400 italic">Aucun sondage pour l'instant.</p>
       )}
       {polls.map(poll => (
-        <PollCard key={poll.id} poll={poll} userId={userId} onVote={handleVote} />
+        <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} />
       ))}
 
       {showCreate ? (
@@ -104,9 +105,20 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   );
 }
 
-function PollCard({ poll, userId, onVote }: { poll: Poll; userId: string; onVote: (optionId: string) => void }) {
+type Member = Plan['members'][number];
+
+function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: string; members: Member[]; onVote: (optionId: string) => void }) {
   const total = poll.options.reduce((s, o) => s + o.votes.length, 0);
   const myVote = poll.options.find(o => o.votes.some(v => v.userId === userId));
+  // Sondage non anonyme : qui a voté quoi (prénom + pseudo des participants du Plan)
+  const nameOf = (id: string) => {
+    if (id === userId) return 'toi';
+    const u = members.find(m => m.userId === id)?.user;
+    return u ? displayName(u) ?? `@${u.pseudo}` : null;
+  };
+  const voterNames = (votes: { userId: string }[]) => votes.map(v => nameOf(v.userId)).filter((n): n is string => !!n);
+  const voted = new Set(poll.options.flatMap(o => o.votes.map(v => v.userId)));
+  const notYet = poll.anonymous ? [] : members.filter(m => m.rsvp !== 'out' && !voted.has(m.userId)).map(m => nameOf(m.userId)).filter((n): n is string => !!n);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
@@ -137,11 +149,17 @@ function PollCard({ poll, userId, onVote }: { poll: Poll; userId: string; onVote
                 <span className={isMe ? 'text-indigo-700 font-medium' : 'text-slate-700'}>{opt.text}</span>
                 <span className={`text-xs ml-2 flex-shrink-0 ${isMe ? 'text-indigo-500' : 'text-slate-400'}`}>{count} ({pct}%)</span>
               </div>
+              {!poll.anonymous && count > 0 && (
+                <p className="relative px-3 pb-2 -mt-1 text-xs text-slate-500 leading-snug">{voterNames(opt.votes).join(', ')}</p>
+              )}
             </button>
           );
         })}
       </div>
-      <p className="text-xs text-slate-400 mt-2">{total} vote{total !== 1 ? 's' : ''}</p>
+      <p className="text-xs text-slate-400 mt-2">
+        {total} vote{total !== 1 ? 's' : ''}
+        {notYet.length > 0 && <> · Pas encore voté : {notYet.join(', ')}</>}
+      </p>
     </div>
   );
 }
