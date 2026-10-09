@@ -133,7 +133,12 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
     onSend(trimmed);
     setValue('');
     setMentionQuery(null);
+    // On reste dans le champ : le clavier du téléphone ne se ferme pas après l'envoi
+    textareaRef.current?.focus();
   }
+
+  // Toucher le bouton ne doit pas retirer le focus du champ (sinon le clavier se ferme)
+  const keepFocus = (e: { preventDefault: () => void }) => e.preventDefault();
 
   function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
     const v = e.target.value;
@@ -181,6 +186,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
             <button
               key={m.pseudo}
               onClick={() => insertMention(m.pseudo)}
+              onMouseDown={keepFocus}
               className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 transition-colors"
             >
               @{m.pseudo}
@@ -261,6 +267,8 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
         ) : (
         <button
           onClick={handleSend}
+          onMouseDown={keepFocus}
+          onPointerDown={keepFocus}
           disabled={!value.trim()}
           className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
