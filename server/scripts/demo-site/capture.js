@@ -21,6 +21,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
       const r = await fetch(`${API}/plans/${id}/matches`, { headers: { Authorization: `Bearer ${I.tom}` } });
       if (r.ok) fx[`DEMO_FULL /plans/${id}/matches`] = await r.json();
     }
+    if ((I.wheelPlans || []).includes(id)) await take(`/plans/${id}/wheels`);
     if ((I.wordPlans || []).includes(id)) await take(`/plans/${id}/words`);
     if ((I.teamPlans || []).includes(id)) await take(`/plans/${id}/teams`);
     if ((I.potPlans || []).includes(id)) await take(`/plans/${id}/pot`);

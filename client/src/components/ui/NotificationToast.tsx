@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
   type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
-    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match';
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -75,6 +75,7 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
   santa_reveal: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
   santa_reminder: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => `Père Noël secret — ${n.planTitle}`, body: n => n.preview ?? '' },
   killer: { icon: Crosshair, iconClass: 'text-red-300', bgClass: 'bg-red-600/30', title: n => `Killer — ${n.planTitle}`, body: n => n.preview ?? '' },
+  wheel: { icon: Dices, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   match: { icon: Heart, iconClass: 'text-pink-300', bgClass: 'bg-pink-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   waitlist: { icon: PartyPopper, iconClass: 'text-emerald-300', bgClass: 'bg-emerald-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? 'Une place s’est libérée, tu es dedans !' },
   shift_reminder: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => `Bénévoles — ${n.planTitle}`, body: n => n.preview ?? '' },

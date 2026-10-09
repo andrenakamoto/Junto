@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
 import { Match, MatchCard, MatchCreateForm } from './MatchSection';
+import { Wheel, WheelCard, WheelCreateForm } from './WheelSection';
 
 interface Props {
   plan: Plan;
@@ -24,7 +25,17 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   async function loadMatches() {
     try { setMatches((await api.get(`/plans/${plan.id}/matches`)).data); } catch { setMatches([]); }
   }
-  useEffect(() => { loadMatches(); }, [plan]);
+  // Roues « Qui s'y colle ? »
+  const [wheels, setWheels] = useState<Wheel[]>([]);
+  const [wheelOffset, setWheelOffset] = useState(0);
+  const [createWheel, setCreateWheel] = useState(false);
+  async function loadWheels() {
+    try {
+      const { data } = await api.get(`/plans/${plan.id}/wheels`);
+      setWheelOffset(data.serverNow - Date.now()); setWheels(data.wheels);
+    } catch { setWheels([]); }
+  }
+  useEffect(() => { loadMatches(); loadWheels(); }, [plan]);
 
   async function refresh() {
     const { data } = await api.get(`/plans/${plan.id}`);
@@ -56,9 +67,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
-      {polls.length === 0 && matches.length === 0 && !showCreate && !createMatch && (
+      {polls.length === 0 && matches.length === 0 && wheels.length === 0 && !showCreate && !createMatch && !createWheel && (
         <p className="text-sm text-slate-400 italic">Aucun sondage pour l'instant.</p>
       )}
+      {wheels.map(w => <WheelCard key={w.id} wheel={w} plan={plan} serverOffset={wheelOffset} onChanged={loadWheels} />)}
       {matches.map(m => <MatchCard key={m.id} match={m} plan={plan} onChanged={loadMatches} />)}
       {polls.map(poll => (
         <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} />
@@ -104,6 +116,8 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
         </div>
       ) : createMatch ? (
         <MatchCreateForm plan={plan} onCancel={() => setCreateMatch(false)} onDone={() => { setCreateMatch(false); loadMatches(); }} />
+      ) : createWheel ? (
+        <WheelCreateForm plan={plan} onCancel={() => setCreateWheel(false)} onDone={() => { setCreateWheel(false); loadWheels(); }} />
       ) : (
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => setShowCreate(true)} className="p-3 rounded-xl bg-white border border-slate-200 text-left hover:bg-slate-50">
@@ -113,6 +127,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
           <button onClick={() => setCreateMatch(true)} className="p-3 rounded-xl bg-white border border-pink-200 text-left hover:bg-pink-50">
             <span className="block text-sm font-semibold text-slate-800">💘 Match</span>
             <span className="block text-xs text-slate-500">Oui / non sur chaque proposition</span>
+          </button>
+          <button onClick={() => setCreateWheel(true)} className="col-span-2 p-3 rounded-xl bg-white border border-amber-200 text-left hover:bg-amber-50">
+            <span className="block text-sm font-semibold text-slate-800">🎡 Qui s’y colle ?</span>
+            <span className="block text-xs text-slate-500">La roue tire au sort une personne du Plan</span>
           </button>
         </div>
       )}

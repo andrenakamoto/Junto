@@ -98,6 +98,9 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   const fopts = await prisma.matchOption.findMany({ where: { matchId: film.id } });
   for (const [who, likes] of [['julie_r', ['Le Grand Bain', 'Intouchables']], ['tom_b', ['Le Grand Bain', 'Dune', 'Un film']], ['emma_v', ['Le Grand Bain', 'Intouchables', 'Dune']]])
     for (const o of fopts) await call('POST', `/plans/matches/options/${o.id}/swipe`, { like: likes.some(l => o.label.startsWith(l)) }, T[who]);
+  // Qui s'y colle ? sur la raclette : Léa (qui reçoit) retirée volontairement, un premier tirage déjà fait
+  const wheel = await call('POST', `/plans/${raclette.id}/wheels`, { question: 'Qui fait la vaisselle ?', excludedUserIds: [U.lea_m.id], noRepeat: true }, T.tom_b);
+  await call('POST', `/plans/wheels/${wheel.id}/spin`, {}, T.julie_r);
   // Alex a déjà tout vu, sauf quelques nouveautés (pastilles)
   // Père Noël secret entre copains : tirage déjà fait (Alex organise), envies, messages anonymes
   const noel = await mk(cop, 'alex', { title: 'Noël entre copains 🎄', description: 'Repas de Noël et échange de cadeaux. Chacun apporte un plat !', eventDate: at(14, 19), endDate: at(15, 2), location: 'Chez Emma', enabledFeatures: ['pere_noel'] });
@@ -158,7 +161,7 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   await call('POST', `/plans/${petanque.id}/teams/tournament`, { format: 'league' }, T.lea_m);
   const tour = await call('GET', `/plans/${petanque.id}/teams`, null, T.lea_m);
   for (const [i, m] of tour.matches.filter(m => m.round <= 2).entries()) await call('PUT', `/plans/${petanque.id}/teams/matches/${m.id}`, { homeScore: [13, 9, 13, 13][i], awayScore: [7, 13, 11, 4][i] }, T.lea_m);
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id], wheelPlans: [raclette.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });

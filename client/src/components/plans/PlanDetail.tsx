@@ -32,6 +32,7 @@ import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
 import { downloadPlanRecap } from '../../lib/planRecap';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
+import { WheelSpinHost, openWheelSpin } from './WheelSection';
 import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 
@@ -178,6 +179,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     }
     socket.on('message-updated', onMessageUpdated);
 
+    // « Qui s'y colle ? » lancée par quelqu'un : la roue s'ouvre ici aussi, quel que soit l'onglet
+    function onWheelSpin(d: { planId: string; spinId: string }) { if (d.planId === plan.id) openWheelSpin(d.planId, d.spinId, false, true); }
+    socket.on('wheel-spin', onWheelSpin);
+
     // Après une coupure (veille, réseau, redémarrage du serveur), le serveur a oublié la room
     // du Plan : on la rejoint à nouveau et on recharge les messages manqués.
     function onReconnect() {
@@ -214,6 +219,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       socket.off('message', onMessage);
       socket.off('reactions-updated', onReactionsUpdated);
       socket.off('message-updated', onMessageUpdated);
+      socket.off('wheel-spin', onWheelSpin);
       socket.off('connect', onReconnect);
     };
   }, [plan.id, isMember, token, scrollToBottom]);
@@ -1072,6 +1078,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />
       )}
+
+      {isMember && <WheelSpinHost plan={plan} />}
 
       {showEditPlan && (
         <EditPlanModal

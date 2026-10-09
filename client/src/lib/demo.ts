@@ -389,6 +389,21 @@ function revealDemoMatch(planId: string, match: any, full: any) {
   }
 }
 
+// Qui s'y colle ? : retrouver une roue enregistrée et recalculer qui est dessus (comme lib/wheel.ts)
+function findDemoWheel(wheelId: string): { planId: string; wheel: any } | null {
+  for (const k of Object.keys(fixtures!)) {
+    const mm = k.match(/^GET \/plans\/([^/]+)\/wheels$/);
+    const wheel = mm && fixtures![k].wheels.find((w: any) => w.id === wheelId);
+    if (wheel) return { planId: mm![1], wheel };
+  }
+  return null;
+}
+function refreshDemoWheel(wheel: any) {
+  const winners = new Set(wheel.spins.map((s: any) => s.winner.id));
+  for (const p of wheel.participants) p.alreadyDrawn = wheel.noRepeat && winners.has(p.id);
+  wheel.candidates = wheel.participants.filter((p: any) => !p.excluded && !p.alreadyDrawn).map((p: any) => ({ id: p.id, name: p.name }));
+}
+
 // Le mot piège : la cible confirme, Alex marque un point et reçoit une nouvelle mission
 const DEMO_WORDS = ['parapluie', 'trampoline', 'moustache', 'girafe', 'chocolat', 'marmotte', 'karaoké', 'boussole', 'pyjama', 'igloo'];
 function wordConfirm(planId: string) {
@@ -428,6 +443,8 @@ function route(method: string, path: string, body: any): any {
   let m: RegExpMatchArray | null;
 
   if (method === 'GET') {
+    // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
+    if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
     if (key in fixtures!) return fixtures![key];
     if ((m = path.match(/^\/plans\/messages\/([^/]+)\/replies$/))) return fixtures![key] ?? [];
     if (path === '/circles/invitations/mine' || path === '/suggestions/mine' || path === '/moderation/blocks') return [];
@@ -513,6 +530,32 @@ function route(method: string, path: string, body: any): any {
     return { ok: true };
   }
   if (path.match(/^\/plans\/(matches|[^/]+\/matches)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Qui s'y colle ? (soirée raclette) : retirer / remettre des personnes et lancer la roue, en mémoire
+  if ((m = path.match(/^\/plans\/wheels\/([^/]+)(\/spin)?$/)) && (method === 'PUT' || m[2])) {
+    const found = findDemoWheel(m[1]);
+    if (!found) throw new DemoError(403, NOT_IN_DEMO);
+    const { planId, wheel } = found;
+    if (m[2]) {
+      if (!wheel.candidates.length) throw new DemoError(400, 'Il n’y a personne sur la roue');
+      const last = wheel.spins[wheel.spins.length - 1];
+      if (last && last.startAt + last.durationMs > Date.now()) throw new DemoError(409, 'La roue tourne déjà !');
+      const winner = wheel.candidates[Math.floor(Math.random() * wheel.candidates.length)];
+      const pick = (f: (p: any) => boolean) => wheel.participants.filter(f).map((p: any) => ({ id: p.id, name: p.name }));
+      const spin = { id: newId('spin'), winner, candidates: [...wheel.candidates], excluded: pick((p: any) => p.excluded), skipped: pick((p: any) => !p.excluded && p.alreadyDrawn),
+        spunBy: { id: me.id, name: me.firstName ?? me.pseudo }, startAt: Date.now() + 3000, durationMs: 5000 };
+      wheel.spins.push(spin);
+      refreshDemoWheel(wheel);
+      changed(planId);
+      return { id: spin.id, startAt: spin.startAt, serverNow: Date.now() };
+    }
+    if (Array.isArray(body.excludedUserIds)) for (const p of wheel.participants) p.excluded = body.excludedUserIds.includes(p.id);
+    if (typeof body.noRepeat === 'boolean') wheel.noRepeat = body.noRepeat;
+    refreshDemoWheel(wheel);
+    changed(planId);
+    return { ok: true };
+  }
+  if (path.match(/^\/plans\/(wheels|[^/]+\/wheels)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Le mot piège (Week-end au chalet) : « … l'a dit ! » est confirmé quelques secondes plus tard (+1 point,
   // nouvelle mission) ; « Démasquer » réussit une fois sur deux. Le reste est réservé au vrai site.

@@ -890,6 +890,20 @@ Junto/
   participants prévenus. Rappel la veille de l'échéance (`sendMatchReminders`, horaire). Notifications `match` →
   `?tab=votes`. Démo : « On regarde quel film après l'apéro ? » (apéro au bord du lac ; vue complète de Tom dans
   `DEMO_FULL /plans/:id/matches`, `findDemoMatch` / `revealDemoMatch`).
+- **Qui s'y colle ?** (2026-10-09, roue de la décision, `lib/wheel.ts` testé, `routes/wheel.ts` monté dans le
+  routeur des Plans, `components/plans/WheelSection.tsx`, migration `20261010100000_wheels`) : 3e choix de l'onglet
+  Votes, soumis à la fonction `votes`. Tables **Wheel** (question, `excludedUserIds` = personnes **retirées
+  volontairement**, `noRepeat` « pas deux fois la même personne ») et **WheelSpin** (gagnant + copie des
+  candidats, retirés et déjà tombés au moment du tirage). Sur la roue : « Je suis in » et « Peut-être », **réponses
+  sans compte comprises**. **Tout participant** crée, retire / remet des personnes (PUT) et lance ; suppression par
+  son créateur ou le créateur du Plan. **Le serveur tire le résultat** (`crypto.randomInt`) et fixe une heure de
+  départ commune (`startAt` = maintenant + 3 s, rotation 5 s, 409 pendant qu'elle tourne) ; événement socket
+  `wheel-spin` dans `plan:{id}` → `WheelSpinHost` (PlanDetail, quel que soit l'onglet) ouvre la roue plein écran,
+  synchronisée avec `serverNow` : tous les téléphones s'arrêtent au même instant sur le même nom. Pendant la
+  rotation, la carte cache le résultat (« La roue tourne… / Regarder »). **Le résultat affiche les noms des
+  personnes retirées volontairement** (et des déjà tombées) ; « Revoir », tirages précédents. Notification `wheel`
+  (→ `?tab=votes`) à l'arrêt de la roue, seulement aux comptes qui ne regardent pas le Plan. Démo : « Qui fait la
+  vaisselle ? » (soirée raclette, Léa retirée, un tirage fait ; `findDemoWheel` / `refreshDemoWheel`).
 - **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
   depuis le 2026-10-04 (`BringItemsSection.tsx`, en tête de `DepensesTab`) : désactiver les
   Dépenses la masque aussi et le serveur refuse ajout et « Je prends ça » ; pastille et

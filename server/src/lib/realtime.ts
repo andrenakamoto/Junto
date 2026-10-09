@@ -87,6 +87,11 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   }
   // Match de groupe : /matches/:matchId/… et /matches/options/:optionId/… (un oui / non ne crée pas de
   // pastille ; les notifications sont envoyées par les routes)
+  // « Qui s'y colle ? » : /wheels/:wheelId/… (le lancement émet en plus « wheel-spin » depuis la route)
+  if (a === 'wheels') {
+    const wheel = await prisma.wheel.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(wheel?.planId, false);
+  }
   if (a === 'matches') {
     const d = segments(req)[3];
     if (b === 'options') {

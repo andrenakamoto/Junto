@@ -358,7 +358,7 @@ export function DashboardPage() {
       setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
     } else if (n.planId) {
       // Message ou mention : directement dans le chat ; le reste, page principale du Plan
-      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' ? 'benevoles' : n.type === 'match' ? 'votes' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
+      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' ? 'benevoles' : n.type === 'match' || n.type === 'wheel' ? 'votes' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
     } else if (n.pollId && n.circleId) {
       handleSelectCircle(n.circleId);
       openPoll(n.pollId);
