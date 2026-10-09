@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, PLAN_FEATURES, POLL_CREATION_OPTIONS, OPTIONAL_FEATURES } from '../../lib/settings';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem } from '../../lib/settings';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
 // `readOnly` : affichage pour les membres qui ne sont pas le créateur.
@@ -88,55 +88,70 @@ export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: 
 export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChange, readOnly }: {
   disabled: PlanFeature[];
   onChange: (v: PlanFeature[]) => void;
-  /** Fonctions à activer (planning des bénévoles), décochées par défaut */
+  /** Fonctions à activer (bénévoles, jeux, cagnotte…), décochées par défaut */
   enabled?: OptionalFeature[];
   onEnabledChange?: (v: OptionalFeature[]) => void;
   readOnly?: boolean;
 }) {
-  function toggle(f: PlanFeature) {
-    onChange(disabled.includes(f) ? disabled.filter(x => x !== f) : [...disabled, f]);
-  }
-  function toggleOptional(f: OptionalFeature) {
-    onEnabledChange?.(enabled.includes(f) ? enabled.filter(x => x !== f) : [...enabled, f]);
+  const isOn = (f: FeatureItem) => (f.kind === 'base' ? !disabled.includes(f.value) : enabled.includes(f.value));
+  // Catégories repliables (fêtes, jeux) : ouvertes d'office si une de leurs fonctions est cochée
+  const [open, setOpen] = useState<Set<string>>(() => new Set(FEATURE_GROUPS.filter(g => !g.collapsible || g.items.some(isOn)).map(g => g.key)));
+  function toggle(f: FeatureItem) {
+    if (f.kind === 'base') onChange(disabled.includes(f.value) ? disabled.filter(x => x !== f.value) : [...disabled, f.value]);
+    else onEnabledChange?.(enabled.includes(f.value) ? enabled.filter(x => x !== f.value) : [...enabled, f.value]);
   }
   return (
     <fieldset>
-      <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Fonctions du Plan</legend>
-      <div className="grid grid-cols-2 gap-1.5">
-        {PLAN_FEATURES.map(f => (
-          <label key={f.value} className={`flex items-center gap-2 text-sm text-slate-700 ${readOnly ? '' : 'cursor-pointer'}`}>
-            <input
-              type="checkbox"
-              checked={!disabled.includes(f.value)}
-              onChange={() => toggle(f.value)}
-              disabled={readOnly}
-              className="accent-indigo-600"
-            />
-            {f.label}
-          </label>
-        ))}
-        {OPTIONAL_FEATURES.map(f => (
-          <label key={f.value} className={`flex items-center gap-2 text-sm text-slate-700 ${readOnly ? '' : 'cursor-pointer'}`}>
-            <input
-              type="checkbox"
-              checked={enabled.includes(f.value)}
-              onChange={() => toggleOptional(f.value)}
-              disabled={readOnly || !onEnabledChange}
-              className="accent-indigo-600"
-            />
-            {f.label}
-          </label>
-        ))}
+      <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Fonctions du Plan</legend>
+      <p className="text-xs text-slate-400 mb-2">Infos et Membres sont toujours actifs. Décocher masque une fonction sans effacer ses données.</p>
+      <div className="space-y-2.5">
+        {FEATURE_GROUPS.map(g => {
+          const isOpen = open.has(g.key);
+          const count = g.items.filter(isOn).length;
+          return (
+            <div key={g.key}>
+              {g.collapsible ? (
+                <button type="button" onClick={() => setOpen(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}
+                  className="w-full flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1">
+                  <span aria-hidden>{g.icon}</span>{g.title}
+                  {count > 0 && <span className="normal-case font-medium text-indigo-600">· {count} activée{count > 1 ? 's' : ''}</span>}
+                  <ChevronDown size={14} className={`ml-auto text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+              ) : (
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1"><span aria-hidden>{g.icon}</span>{g.title}</p>
+              )}
+              {isOpen && (
+                <div className="space-y-1 mt-0.5">
+                  {g.items.map(f => (
+                    <div key={f.value}>
+                      <label className={`flex items-start gap-2.5 px-2 py-1.5 rounded-lg ${readOnly ? '' : 'cursor-pointer hover:bg-slate-50'}`}>
+                        <input
+                          type="checkbox"
+                          checked={isOn(f)}
+                          onChange={() => toggle(f)}
+                          disabled={readOnly || (f.kind === 'optional' && !onEnabledChange)}
+                          className="accent-indigo-600 mt-0.5"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm text-slate-800">{f.label}</span>
+                          <span className="block text-xs text-slate-400">{f.hint}</span>
+                        </span>
+                      </label>
+                      {/* Rappels utiles, sous la fonction concernée */}
+                      {!readOnly && f.value === 'pere_noel' && isOn(f) && <div className="ml-7 mt-1"><SantaDatesNote compact /></div>}
+                      {!readOnly && f.value === 'cagnotte' && isOn(f) && (
+                        <p className="ml-7 mt-1 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                          🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Plan surprise »).
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {!readOnly && enabled.includes('pere_noel') && <div className="mt-2"><SantaDatesNote compact /></div>}
-      {!readOnly && enabled.includes('cagnotte') && (
-        <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Plan surprise »).
-        </p>
-      )}
-      <p className="text-xs text-slate-400 mt-1.5">
-        Infos et Membres restent toujours actifs. Une fonction décochée est masquée, ses données sont conservées. Bénévoles : des postes à pourvoir, chacun s’y inscrit (associations, fêtes, tournois…). Père Noël secret : tirage au sort des cadeaux ; la date du Plan est alors le jour de l’échange. Killer : chacun reçoit en secret une cible, un objet et un lieu ; le dernier en jeu gagne. Le mot piège : chacun doit faire dire un mot secret à sa cible, qui peut le démasquer. Équipes : tirage au sort (équilibré si tu veux) puis tournoi. Cagnotte : chacun participe à un cadeau commun et vote pour l’idée.
-      </p>
     </fieldset>
   );
 }

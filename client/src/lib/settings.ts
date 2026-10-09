@@ -55,6 +55,35 @@ export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
   { value: 'cagnotte', label: 'Cagnotte cadeau' },
 ];
 
+// Fonctions du Plan rangées par catégorie (fenêtres de création / modification / paramètres).
+// `base` : active par défaut (décocher la masque) ; `optional` : à activer. Les catégories `collapsible`
+// sont repliées tant qu'aucune de leurs fonctions n'est cochée.
+export type FeatureItem =
+  | { kind: 'base'; value: PlanFeature; label: string; hint: string }
+  | { kind: 'optional'; value: OptionalFeature; label: string; hint: string };
+
+export const FEATURE_GROUPS: { key: string; title: string; icon: string; collapsible?: boolean; items: FeatureItem[] }[] = [
+  { key: 'echanger', title: 'Échanger', icon: '💬', items: [
+    { kind: 'base', value: 'chat', label: 'Chat', hint: 'Discuter, photos et messages vocaux' },
+    { kind: 'base', value: 'votes', label: 'Sondages', hint: 'Voter sur une question' },
+    { kind: 'base', value: 'fichiers', label: 'Photos et fichiers', hint: 'Galerie et documents partagés' },
+  ] },
+  { key: 'organiser', title: 'Organiser', icon: '🧭', items: [
+    { kind: 'base', value: 'trajets', label: 'Trajets', hint: 'Covoiturage : places et demandes' },
+    { kind: 'base', value: 'depenses', label: 'Dépenses', hint: 'Qui apporte quoi, frais partagés' },
+    { kind: 'optional', value: 'benevoles', label: 'Bénévoles', hint: 'Postes à pourvoir, chacun s’inscrit' },
+  ] },
+  { key: 'feter', title: 'Fêter et offrir', icon: '🎁', collapsible: true, items: [
+    { kind: 'optional', value: 'cagnotte', label: 'Cagnotte cadeau', hint: 'Un cadeau commun, idées et votes' },
+    { kind: 'optional', value: 'pere_noel', label: 'Père Noël secret', hint: 'Tirage au sort et cadeaux anonymes' },
+  ] },
+  { key: 'jouer', title: 'Jouer', icon: '🎲', collapsible: true, items: [
+    { kind: 'optional', value: 'killer', label: 'Killer', hint: 'Une cible, un objet, un lieu' },
+    { kind: 'optional', value: 'mot_piege', label: 'Le mot piège', hint: 'Faire dire un mot secret' },
+    { kind: 'optional', value: 'equipes', label: 'Équipes et tournoi', hint: 'Tirage des équipes, scores' },
+  ] },
+];
+
 export function hasFeature(plan: { enabledFeatures?: OptionalFeature[] }, feature: OptionalFeature) {
   return !!plan.enabledFeatures?.includes(feature);
 }
