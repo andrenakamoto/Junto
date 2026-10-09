@@ -580,6 +580,11 @@ Junto/
   - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut) ou
     `creator` (vote-delete supprime immédiatement si c'est le créateur, 403
     sinon ; passer en `creator` efface les votes en cours).
+  - **Liste des fonctions** (`FeaturesField`, refaite le 2026-10-09) : rangée par catégorie selon
+    `FEATURE_GROUPS` (`client/src/lib/settings.ts`) — Échanger (chat, sondages, photos), Organiser (trajets,
+    dépenses, bénévoles), Fêter et offrir (cagnotte, Père Noël secret) et Jouer (Killer, mot piège, équipes),
+    ces deux dernières **repliées** tant qu'aucune de leurs fonctions n'est cochée ; une ligne d'explication
+    sous chaque fonction. **Toute nouvelle fonction s'ajoute dans `FEATURE_GROUPS`.**
   - `Plan.disabledFeatures` (String[]) : `chat`, `trajets`, `votes`,
     `depenses`, `fichiers`. Infos et Membres toujours actifs. Masquer ne
     supprime aucune donnée ; le serveur bloque les **écritures** (socket
@@ -649,10 +654,22 @@ Junto/
   les listes se réordonnent. Démo : `touchActivity` dans `lib/demo.ts`. Les jeux (Père Noël, Killer,
   équipes, cagnotte) ne comptent pas comme activité (pas de section).
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
-  archivage), location?, maxParticipants? (limite optionnelle, bloque le
-  join si atteinte), deletionMode, disabledFeatures (voir Paramètres
+  archivage), location?, maxParticipants? (limite optionnelle ; depuis le 2026-10-09 **une place = « Je suis
+  in » ou « Peut-être »**, un « Je passe » libère la sienne — `occupiedCount` / `hasFreeSpot` dans
+  `lib/waitlist.ts`, miroir client `lib/places.ts`), deletionMode, disabledFeatures (voir Paramètres
   avancés), reminderSentAt? (anti-doublon rappel email), archived,
   circleId, creatorId
+- **Liste d'attente** (2026-10-09, `lib/waitlist.ts`, table **PlanWaitlist** planId+userId+createdAt,
+  migration `20261009120000_plan_waitlist`) : Plan complet → les membres du Cercle s'inscrivent en attente
+  (POST/DELETE `/plans/:id/waitlist`, réponse `position`). `promoteFromWaitlist(io, planId)` remplit les places
+  libres dans l'ordre (« Je suis in », `markAllSeen`, notification `waitlist` « Une place s'est libérée, tu es
+  dedans ! » app + push + email, exemptée du mode silencieux, `notifyMembershipChange`). **À appeler après tout
+  ce qui libère une place** : « Je passe » (PUT rsvp), PUT /plans/:id (limite augmentée, exclusions), départ du
+  Cercle, réponse sans compte retirée ou passée à « Je passe ». `hasFreeSpot` : place libre **et personne
+  d'autre en attente avant** (rejoindre, revenir de « Je passe », lien invité, réponse sans compte, poste de
+  bénévole) ; sinon 409 `{ full: true }`. Invités externes et réponses sans compte : pas de liste d'attente
+  (« complet »). Client : encadré ambre dans `PlanDetail` (non-membre ou « Je passe » sur un Plan complet),
+  « En attente n°X » sur `PlanCard`, section « Liste d'attente » dans `MembresTab`. Pas dans la démo.
 - **Plans récurrents** (2026-10-05, `lib/recurrence.ts`, testé) : `Plan.recurrence` = `weekly` /
   `biweekly` / `monthly` (null = ne se répète pas), `recurrenceUntil?` (« Jusqu'au », facultatif),
   `seriesId` (id du premier Plan de la série), `nextOccurrenceId` (id du suivant, `pending` pendant
