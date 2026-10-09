@@ -25,6 +25,7 @@ import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/r
 import { sendSantaReminders } from './lib/secretSanta';
 import { endDueWordGames } from './lib/wordGame';
 import { sendShiftReminders } from './lib/volunteers';
+import { sendMatchReminders } from './lib/matchPoll';
 import { spawnRecurringPlans } from './lib/recurrence';
 import { createPlanInCircle } from './routes/circles';
 import { encryptLegacyMessages } from './lib/messageBackfill';
@@ -125,6 +126,8 @@ if (cronEnabled) {
   // Père Noël secret : rappel une semaine avant l'échange (cadeaux pas encore prêts)
   sendSantaReminders(io);
   setInterval(() => sendSantaReminders(io), 60 * 60 * 1000);
+  // Match de groupe : rappel la veille de l'échéance à ceux qui n'ont pas joué
+  setInterval(() => sendMatchReminders(io), 60 * 60 * 1000);
   // Bénévoles : rappel une heure avant la prise de poste
   sendShiftReminders(io);
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);

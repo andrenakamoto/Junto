@@ -55,7 +55,9 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
 
     const access = await getPlanAccess(req.userId!, plan.id);
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
-    if (plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    // Photo d'une proposition de match (?via=match) : propre au match, indépendante des « Photos et fichiers »
+    const viaMatch = req.query.via === 'match';
+    if (!viaMatch && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -76,6 +78,10 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // Envoi depuis le chat (?via=chat) : photos et messages vocaux uniquement, chat actif
     const viaChat = req.query.via === 'chat';
     const isVoice = viaChat && req.file.mimetype.startsWith('audio/');
+    if (viaMatch) {
+      if (!isImageMime) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
+      if (plan.disabledFeatures.includes('votes')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    }
     if (viaChat) {
       if (!isImageMime && !isVoice) { res.status(400).json({ error: 'Seules les photos et les messages vocaux peuvent être envoyés dans le chat' }); return; }
       if (plan.disabledFeatures.includes('chat')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
@@ -222,7 +228,7 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const photos = await prisma.attachment.findMany({
-      where: { planId: plan.id, mimeType: { startsWith: 'image/' } },
+      where: { planId: plan.id, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: { name: { startsWith: 'match-' } } },
       orderBy: { createdAt: 'asc' },
     });
     if (photos.length === 0) { res.status(404).json({ error: 'Aucune photo dans ce Plan' }); return; }

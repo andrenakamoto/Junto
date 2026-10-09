@@ -36,6 +36,7 @@ import killerRoutes from './killer';
 import teamsRoutes from './teams';
 import giftPotRoutes from './giftPot';
 import wordGameRoutes from './wordGame';
+import matchPollRoutes from './matchPoll';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
@@ -49,6 +50,8 @@ router.use(teamsRoutes);
 router.use(giftPotRoutes);
 // Le mot piège (/:id/words…)
 router.use(wordGameRoutes);
+// Match de groupe (/:id/matches, /matches/…)
+router.use(matchPollRoutes);
 
 const MAX_PLAN_DURATION_MS = 21 * 24 * 60 * 60 * 1000; // 3 semaines
 
@@ -71,6 +74,8 @@ const planInclude = {
   changeLogs: { orderBy: { changedAt: 'asc' as const }, include: { changedBy: { select: { id: true, pseudo: true } } } },
   // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
   attachments: {
+    // Sans les photos des propositions de match (elles appartiennent au match)
+    where: { matchOption: null, NOT: { name: { startsWith: 'match-' } } },
     select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
     orderBy: { createdAt: 'asc' as const },
   },

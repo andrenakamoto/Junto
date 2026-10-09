@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Plan, Poll } from '../../types';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
+import { Match, MatchCard, MatchCreateForm } from './MatchSection';
 
 interface Props {
   plan: Plan;
@@ -17,6 +18,13 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   const [options, setOptions] = useState(['', '']);
   const [anonymous, setAnonymous] = useState(false);
   const [creating, setCreating] = useState(false);
+  // Matchs de groupe (à côté des sondages) ; rechargés à chaque mise à jour du Plan (temps réel)
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [createMatch, setCreateMatch] = useState(false);
+  async function loadMatches() {
+    try { setMatches((await api.get(`/plans/${plan.id}/matches`)).data); } catch { setMatches([]); }
+  }
+  useEffect(() => { loadMatches(); }, [plan]);
 
   async function refresh() {
     const { data } = await api.get(`/plans/${plan.id}`);
@@ -48,9 +56,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
-      {polls.length === 0 && !showCreate && (
+      {polls.length === 0 && matches.length === 0 && !showCreate && !createMatch && (
         <p className="text-sm text-slate-400 italic">Aucun sondage pour l'instant.</p>
       )}
+      {matches.map(m => <MatchCard key={m.id} match={m} plan={plan} onChanged={loadMatches} />)}
       {polls.map(poll => (
         <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} />
       ))}
@@ -93,13 +102,19 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
             <Button variant="ghost" onClick={() => setShowCreate(false)} size="sm">Annuler</Button>
           </div>
         </div>
+      ) : createMatch ? (
+        <MatchCreateForm plan={plan} onCancel={() => setCreateMatch(false)} onDone={() => { setCreateMatch(false); loadMatches(); }} />
       ) : (
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-        >
-          <Plus size={14} />Créer un sondage
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => setShowCreate(true)} className="p-3 rounded-xl bg-white border border-slate-200 text-left hover:bg-slate-50">
+            <span className="block text-sm font-semibold text-slate-800">🗳️ Sondage</span>
+            <span className="block text-xs text-slate-500">Une question, un choix</span>
+          </button>
+          <button onClick={() => setCreateMatch(true)} className="p-3 rounded-xl bg-white border border-pink-200 text-left hover:bg-pink-50">
+            <span className="block text-sm font-semibold text-slate-800">💘 Match</span>
+            <span className="block text-xs text-slate-500">Oui / non sur chaque proposition</span>
+          </button>
+        </div>
       )}
     </div>
   );

@@ -15,6 +15,12 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     await take(`/rides/plan/${id}`); await take(`/plans/${id}/expenses`); await take(`/plans/${id}/shifts`);
     if ((I.santaPlans || []).includes(id)) await take(`/plans/${id}/santa`);
     if ((I.killerPlans || []).includes(id)) await take(`/plans/${id}/killer`);
+    if ((I.matchPlans || []).includes(id)) {
+      await take(`/plans/${id}/matches`);
+      // Vue complète d'un joueur qui a fini (Tom), pour simuler les résultats quand Alex a joué
+      const r = await fetch(`${API}/plans/${id}/matches`, { headers: { Authorization: `Bearer ${I.tom}` } });
+      if (r.ok) fx[`DEMO_FULL /plans/${id}/matches`] = await r.json();
+    }
     if ((I.wordPlans || []).includes(id)) await take(`/plans/${id}/words`);
     if ((I.teamPlans || []).includes(id)) await take(`/plans/${id}/teams`);
     if ((I.potPlans || []).includes(id)) await take(`/plans/${id}/pot`);

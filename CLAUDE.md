@@ -875,6 +875,21 @@ Junto/
   dans la réponse (voir `anonymizePoll`/`anonymizePlanPolls` dans
   `plans.ts`), la UI ne s'appuyait déjà que sur les comptes donc c'est
   surtout une protection côté API contre l'inspection réseau
+- **Match de groupe** (2026-10-09, `lib/matchPoll.ts` testé, `routes/matchPoll.ts` monté dans le routeur des
+  Plans, `components/plans/MatchSection.tsx`, migration `20261009180000_match_polls`) : dans l'onglet Votes, **à
+  côté** du sondage classique (« 🗳️ Sondage » / « 💘 Match »), soumis à la fonction `votes`. Tables **MatchPoll**
+  (question, anonyme, échéance facultative, `chosenOptionId`, `closedAt`), **MatchOption** (proposition, précision,
+  lien, **photo facultative** = fichier du Plan envoyé par `POST /attachments/plans/:id?via=match`, nommé `match-…`,
+  **masqué de l'onglet Infos et du ZIP de photos**, supprimé avec la proposition / le match ; `matchedAt`),
+  **MatchSwipe** (oui / non). Joueurs = « Je suis in » / « Peut-être » avec un compte. Cartes plein écran
+  (`SwipeDeck` : glisser ou boutons ✖️ / 💚, flèches du clavier, annuler), ordre mélangé propre à chacun
+  (`deckOrder`). **Personne ne voit les réponses des autres avant d'avoir fini ses cartes** (ou échéance passée,
+  match clos) ; **match = oui de tous les joueurs** (`isUnanimous`), visible de tous et notifié une seule fois.
+  **Tout participant peut ajouter des propositions** (15 max). Le **créateur du Plan** « Choisit » (après avoir
+  joué) : lieu du Plan et / ou informations importantes mis à jour (historique `PlanChangeLog`), match clos,
+  participants prévenus. Rappel la veille de l'échéance (`sendMatchReminders`, horaire). Notifications `match` →
+  `?tab=votes`. Démo : « On regarde quel film après l'apéro ? » (apéro au bord du lac ; vue complète de Tom dans
+  `DEMO_FULL /plans/:id/matches`, `findDemoMatch` / `revealDemoMatch`).
 - **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
   depuis le 2026-10-04 (`BringItemsSection.tsx`, en tête de `DepensesTab`) : désactiver les
   Dépenses la masque aussi et le serveur refuse ajout et « Je prends ça » ; pastille et

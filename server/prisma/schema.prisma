@@ -73,6 +73,9 @@ model User {
   killerPlayers          KillerPlayer[]
   wordPlayers            WordPlayer[]
   waitlists              PlanWaitlist[]
+  matchPollsCreated      MatchPoll[]           @relation("MatchPollCreator")
+  matchOptionsCreated    MatchOption[]         @relation("MatchOptionCreator")
+  matchSwipes            MatchSwipe[]
   teamLevels             TeamLevel[]
   teamMemberships        TeamMember[]
   giftPledges            GiftPledge[]
@@ -327,6 +330,7 @@ model Plan {
   killer            KillerGame?
   wordGame          WordGame?
   waitlist          PlanWaitlist[]
+  matchPolls        MatchPoll[]
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
@@ -451,19 +455,21 @@ model PlanChangeLog {
 }
 
 model Attachment {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   planId       String
-  plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
   name         String
   url          String
   publicId     String
-  resourceType String   @default("raw")
+  resourceType String       @default("raw")
   mimeType     String
   size         Int
   uploadedBy   String
-  createdAt    DateTime @default(now())
+  createdAt    DateTime     @default(now())
   // Message du chat qui affiche cette photo (photo envoyée depuis le chat)
   message      Message?
+  // Proposition d'un match qui affiche cette photo
+  matchOption  MatchOption?
 }
 
 model PlanDeleteVote {
@@ -1041,4 +1047,59 @@ model PlanWaitlist {
 
   @@id([planId, userId])
   @@index([planId, createdAt])
+}
+
+// Match de groupe (lib/matchPoll.ts), dans l'onglet Votes à côté des sondages : chacun fait défiler les
+// propositions (oui à droite, non à gauche). Une proposition qui reçoit oui de tous les participants
+// (« Je suis in » / « Peut-être », avec un compte) est un match. Le créateur du Plan peut ensuite
+// l'appliquer au Plan (lieu, informations importantes).
+model MatchPoll {
+  id             String        @id @default(cuid())
+  planId         String
+  plan           Plan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  question       String
+  createdById    String?
+  createdBy      User?         @relation("MatchPollCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  anonymous      Boolean       @default(false)
+  deadline       DateTime?
+  reminderSentAt DateTime?
+  chosenOptionId String?
+  closedAt       DateTime?
+  createdAt      DateTime      @default(now())
+  options        MatchOption[]
+
+  @@index([planId])
+}
+
+model MatchOption {
+  id           String       @id @default(cuid())
+  matchId      String
+  match        MatchPoll    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  label        String
+  note         String?
+  url          String?
+  // Photo facultative (fichier du Plan, masqué de l'onglet Infos)
+  attachmentId String?      @unique
+  attachment   Attachment?  @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
+  createdById  String?
+  createdBy    User?        @relation("MatchOptionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  // Oui de tout le monde (prévenu une seule fois)
+  matchedAt    DateTime?
+  createdAt    DateTime     @default(now())
+  swipes       MatchSwipe[]
+
+  @@index([matchId])
+}
+
+model MatchSwipe {
+  optionId  String
+  option    MatchOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId   String
+  like      Boolean
+  createdAt DateTime    @default(now())
+
+  @@id([optionId, userId])
+  @@index([matchId, userId])
 }

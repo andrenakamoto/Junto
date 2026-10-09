@@ -360,6 +360,35 @@ function killerConfirm(planId: string) {
   fire('notification', { id: newId('n'), type: 'killer', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: st.ended ? '🏆 Tu remportes le Killer !' : '🎯 Élimination confirmée ! Découvre ta nouvelle mission' });
 }
 
+// Match de groupe : retrouver un match (par proposition ou par id) et la vue complète enregistrée
+function findDemoMatch(optionId?: string, matchId?: string): { planId: string; match: any; full: any } | null {
+  for (const k of Object.keys(fixtures!)) {
+    const mm = k.match(/^GET \/plans\/([^/]+)\/matches$/);
+    if (!mm) continue;
+    const fullList = fixtures![`DEMO_FULL /plans/${mm[1]}/matches`] as any[] | undefined;
+    for (const match of fixtures![k] as any[]) {
+      const full = fullList?.find(f => f.id === match.id);
+      if (!full) continue;
+      if (matchId ? match.id === matchId : full.results?.some((r: any) => r.id === optionId)) return { planId: mm[1], match, full };
+    }
+  }
+  return null;
+}
+// Alex a fini : résultats = ceux des copains + les « oui » d'Alex ; oui de tous = match
+function revealDemoMatch(planId: string, match: any, full: any) {
+  const likes = new Set<string>(match.myLikes);
+  match.results = full.results.map((r: any) => ({
+    ...r, canDelete: false,
+    yes: r.yes + (likes.has(r.id) ? 1 : 0), no: r.no + (likes.has(r.id) ? 0 : 1),
+    likers: r.likers ? [...r.likers, ...(likes.has(r.id) ? ['Alex'] : [])] : undefined,
+  })).sort((a: any, b: any) => b.yes - a.yes || a.no - b.no);
+  match.finishedCount = match.playerCount; match.allFinished = true;
+  match.matchedIds = match.results.filter((r: any) => r.yes === match.playerCount).map((r: any) => r.id);
+  for (const r of match.results.filter((x: any) => match.matchedIds.includes(x.id))) {
+    fire('notification', { id: newId('n'), type: 'match', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: `💘 C’est un match : ${r.label} !` });
+  }
+}
+
 // Le mot piège : la cible confirme, Alex marque un point et reçoit une nouvelle mission
 const DEMO_WORDS = ['parapluie', 'trampoline', 'moustache', 'girafe', 'chocolat', 'marmotte', 'karaoké', 'boussole', 'pyjama', 'igloo'];
 function wordConfirm(planId: string) {
@@ -448,6 +477,42 @@ function route(method: string, path: string, body: any): any {
     return { ok: true };
   }
   if (path.match(/^\/plans\/[^/]+\/killer/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
+
+  // Match de groupe (apéro au bord du lac) : les copains ont joué ; quand Alex a fini ses cartes, les
+  // résultats s'affichent (oui au Grand Bain = c'est un match). Choisir applique au Plan.
+  if ((m = path.match(/^\/plans\/matches\/options\/([^/]+)\/swipe$/))) {
+    const found = findDemoMatch(m[1]);
+    if (!found) throw new DemoError(403, NOT_IN_DEMO);
+    const { planId, match, full } = found;
+    const optionId = m[1];
+    if (method === 'POST') {
+      match.deck = match.deck.filter((c: any) => c.id !== optionId);
+      match.myLikes = match.myLikes.filter((id: string) => id !== optionId).concat(body.like ? [optionId] : []);
+      if (!match.deck.length) revealDemoMatch(planId, match, full);
+    } else {
+      const card = full.results.find((r: any) => r.id === optionId);
+      if (card && !match.deck.some((c: any) => c.id === optionId)) match.deck.unshift({ id: card.id, label: card.label, note: card.note, url: card.url, attachmentId: card.attachmentId, createdBy: card.createdBy });
+      match.myLikes = match.myLikes.filter((id: string) => id !== optionId);
+      match.results = null; match.matchedIds = []; match.finishedCount = full.finishedCount; match.allFinished = false;
+    }
+    changed(planId);
+    return { ok: true };
+  }
+  if ((m = path.match(/^\/plans\/matches\/([^/]+)\/choose$/))) {
+    const found = findDemoMatch(undefined, m[1]);
+    if (!found || !found.match.canChoose) throw new DemoError(403, NOT_IN_DEMO);
+    const { planId, match } = found;
+    const option = match.results?.find((r: any) => r.id === body.optionId);
+    if (!option) throw new DemoError(400, 'Joue d’abord tes cartes pour voir les résultats');
+    match.closed = true; match.canChoose = false; match.chosenOptionId = option.id; match.deck = [];
+    for (const t of [plan(planId), ...planCopies(planId)]) {
+      if (body.setLocation) t.location = option.label;
+      if (body.addToInfo) t.importantInfo = [t.importantInfo, `✅ ${match.question} → ${option.label}`].filter(Boolean).join('\n');
+    }
+    changed(planId, plan(planId).circleId);
+    return { ok: true };
+  }
+  if (path.match(/^\/plans\/(matches|[^/]+\/matches)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Le mot piège (Week-end au chalet) : « … l'a dit ! » est confirmé quelques secondes plus tard (+1 point,
   // nouvelle mission) ; « Démasquer » réussit une fois sur deux. Le reste est réservé au vrai site.

@@ -70,7 +70,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres',
-  shifts: 'benevoles', polls: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
+  shifts: 'benevoles', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -84,6 +84,17 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   if (a === 'polls' && c === 'vote') {
     const option = await prisma.pollOption.findUnique({ where: { id: b }, select: { poll: { select: { planId: true } } } });
     return planTarget(option?.poll.planId, false, 'votes');
+  }
+  // Match de groupe : /matches/:matchId/… et /matches/options/:optionId/… (un oui / non ne crée pas de
+  // pastille ; les notifications sont envoyées par les routes)
+  if (a === 'matches') {
+    const d = segments(req)[3];
+    if (b === 'options') {
+      const option = await prisma.matchOption.findUnique({ where: { id: c }, select: { match: { select: { planId: true } } } });
+      return planTarget(option?.match.planId, false, d === 'swipe' ? undefined : 'votes');
+    }
+    const match = await prisma.matchPoll.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(match?.planId, c === 'choose', 'votes');
   }
   if (a === 'items') {
     const item = await prisma.bringItem.findUnique({ where: { id: b }, select: { planId: true } });
@@ -143,6 +154,8 @@ export async function resolveAttachmentWrite(req: Request): Promise<WriteTarget>
   const [a, b] = segments(req);
   // POST /plans/:planId = envoi d'un fichier (photo ou autre)
   // (?via=chat : la photo part dans un message du chat, qui notifie déjà — pas de 2e notification)
+  // (?via=match : photo d'une proposition de match, ni onglet Infos ni notification)
+  if (a === 'plans' && req.query.via === 'match') return null;
   if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos', req.method === 'POST' && req.query.via !== 'chat' ? 'file' : undefined) : null;
   const att = await prisma.attachment.findUnique({ where: { id: a }, select: { planId: true } });
   return planTarget(att?.planId, false, 'infos');
