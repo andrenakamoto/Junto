@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import { fixUploadedFileName } from '../lib/fileName';
 import https from 'https';
 import http from 'http';
 import zlib from 'zlib';
@@ -99,7 +100,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const attachment = await prisma.attachment.create({
       data: {
         planId:       req.params.planId,
-        name:         req.file.originalname,
+        name:         fixUploadedFileName(req.file.originalname),
         url:          result.secure_url,
         publicId:     result.public_id,
         resourceType: result.resource_type,
