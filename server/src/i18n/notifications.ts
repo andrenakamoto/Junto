@@ -89,10 +89,10 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '💸 Petit rappel : ta part de la cagnotte ({0})': ['💸 Kleine Erinnerung: dein Anteil an der Geschenkkasse ({0})', '💸 Piccolo promemoria: la tua quota della colletta ({0})', '💸 Quick reminder: your share of the pot ({0})'],
   '🎉 Cagnotte close : {0} réunis, merci !': ['🎉 Geschenkkasse geschlossen: {0} gesammelt, danke!', '🎉 Colletta chiusa: {0} raccolti, grazie!', '🎉 Pot closed: {0} collected, thank you!'],
   // Match de groupe, roue
-  '💘 C’est un match : {0} !': ['💘 Es ist ein Match: {0}!', '💘 È un match: {0}!', '💘 It’s a match: {0}!'],
-  '💘 Nouveau match : {0} À toi de jouer !': ['💘 Neues Match: {0} Du bist dran!', '💘 Nuovo match: {0} Tocca a te!', '💘 New match: {0} Your turn!'],
+  '❤️ C’est un match : {0} !': ['❤️ Es ist ein Match: {0}!', '❤️ È un match: {0}!', '❤️ It’s a match: {0}!'],
+  '❤️ Nouveau match : {0} À toi de jouer !': ['❤️ Neues Match: {0} Du bist dran!', '❤️ Nuovo match: {0} Tocca a te!', '❤️ New match: {0} Your turn!'],
   '✅ C’est décidé : {0}': ['✅ Entschieden: {0}', '✅ È deciso: {0}', '✅ It’s decided: {0}'],
-  '💘 Il ne manque plus que toi pour le match « {0} »': ['💘 Beim Match «{0}» fehlst nur noch du', '💘 Manchi solo tu per il match «{0}»', '💘 Only you are missing for the match “{0}”'],
+  '❤️ Il ne manque plus que toi pour le match « {0} »': ['❤️ Beim Match «{0}» fehlst nur noch du', '❤️ Manchi solo tu per il match «{0}»', '❤️ Only you are missing for the match “{0}”'],
   '🎡 {0} La roue a choisi : {1} !': ['🎡 {0} Das Rad hat gewählt: {1}!', '🎡 {0} La ruota ha scelto: {1}!', '🎡 {0} The wheel picked: {1}!'],
   // Assemblée
   '📣 Convocation : {0} — ordre du jour et documents dans le Plan': ['📣 Einladung: {0} — Traktanden und Dokumente im Plan', '📣 Convocazione: {0} — ordine del giorno e documenti nel Plan', '📣 Notice: {0} — agenda and documents in the Plan'],

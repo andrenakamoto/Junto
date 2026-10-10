@@ -88,7 +88,7 @@ export async function sendMatchReminders(io: any) {
       const optionIds = m.options.map(o => o.id);
       for (const p of players) {
         if (optionIds.every(o => swipes.some(s => s.userId === p.userId && s.optionId === o))) continue;
-        notifyUser(io, p.userId, { type: 'match', planId: m.plan.id, planTitle: m.plan.title, circleId: m.plan.circleId, preview: `💘 Il ne manque plus que toi pour le match « ${m.question} »` });
+        notifyUser(io, p.userId, { type: 'match', planId: m.plan.id, planTitle: m.plan.title, circleId: m.plan.circleId, preview: `❤️ Il ne manque plus que toi pour le match « ${m.question} »` });
       }
     }
   } catch (e) {

@@ -77,7 +77,7 @@ async function checkMatches(req: AuthRequest, plan: PlanLite, matchId: string) {
     if (o.matchedAt || !isUnanimous(o.id, ids, swipes)) continue;
     const claimed = await prisma.matchOption.updateMany({ where: { id: o.id, matchedAt: null }, data: { matchedAt: new Date() } });
     if (!claimed.count) continue;
-    for (const id of ids) notify(req, plan, id, `💘 C’est un match : ${o.label} !`);
+    for (const id of ids) notify(req, plan, id, `❤️ C’est un match : ${o.label} !`);
   }
 }
 
@@ -163,7 +163,7 @@ router.post('/:id/matches', async (req: AuthRequest, res) => {
   });
   res.json({ id: match.id });
   for (const p of await matchPlayers(plan.id)) {
-    if (p.userId !== req.userId) notify(req, plan, p.userId, `💘 Nouveau match : ${question} À toi de jouer !`, req.userId!);
+    if (p.userId !== req.userId) notify(req, plan, p.userId, `❤️ Nouveau match : ${question} À toi de jouer !`, req.userId!);
   }
 });
 

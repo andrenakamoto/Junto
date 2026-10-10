@@ -31,7 +31,7 @@ export default {
     defaultPlace: 'dans la cuisine',
     killerWon: '🏆 Tu remportes le Killer !',
     killerNext: '🎯 Élimination confirmée ! Découvre ta nouvelle mission',
-    match: '💘 C’est un match : {{label}} !',
+    match: '❤️ C’est un match : {{label}} !',
     words: 'parapluie,trampoline,moustache,girafe,chocolat,marmotte,karaoké,boussole,pyjama,igloo',
     wordOk: '🎯 Mot validé ! +1 point, découvre ta nouvelle mission',
     santaReplyReceiver: 'Ha ha, mystère… Merci Père Noël ! 😄',

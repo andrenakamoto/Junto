@@ -32,7 +32,7 @@ const ui: Dict['ui'] = {
     defaultPlace: 'in the kitchen',
     killerWon: '🏆 You win the Killer game!',
     killerNext: '🎯 Elimination confirmed! Discover your new mission',
-    match: '💘 It’s a match: {{label}}!',
+    match: '❤️ It’s a match: {{label}}!',
     words: 'umbrella,trampoline,moustache,giraffe,chocolate,marmot,karaoke,compass,pyjamas,igloo',
     wordOk: '🎯 Word confirmed! +1 point, discover your new mission',
     santaReplyReceiver: 'Ha ha, such a mystery… Thanks, Secret Santa! 😄',

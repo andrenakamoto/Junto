@@ -121,7 +121,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>Sondage</strong> : une question, un choix. Anonyme ou non ; s'il ne l'est pas, chacun voit qui a voté quoi.</>,
-            <><strong>Match</strong> 💘 : chacun dit oui ou non à chaque proposition (cartes à glisser, photo facultative). Les
+            <><strong>Match</strong> ❤️ : chacun dit oui ou non à chaque proposition (cartes à glisser, photo facultative). Les
               réponses des autres restent cachées tant que tu n'as pas fini. « C'est un match » quand tout le monde a dit oui. Le
               créateur du Plan choisit et peut reporter le choix dans le lieu ou les informations importantes.</>,
             <><strong>Qui s'y colle ?</strong> 🎡 : une roue tire au sort une personne du Plan (« Je suis in » et « Peut-être »).

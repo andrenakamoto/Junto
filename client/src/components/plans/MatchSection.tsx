@@ -163,7 +163,7 @@ function SwipeDeck({ match, plan, onClose }: { match: Match; plan: Plan; onClose
           >
             {top.attachmentId
               ? <img src={mediaUrl(top.attachmentId, plan.mediaToken, 800)} alt="" draggable={false} className="w-full h-3/5 object-cover" />
-              : <div className="w-full h-3/5 bg-gradient-to-br from-pink-500 to-rose-700 flex items-center justify-center text-6xl">💘</div>}
+              : <div className="w-full h-3/5 bg-gradient-to-br from-pink-500 to-rose-700 flex items-center justify-center text-6xl">❤️</div>}
             <div className="p-4">
               <p className="text-xl font-bold text-slate-900">{top.label}</p>
               {top.note && <p className="text-sm text-slate-600 mt-1">{top.note}</p>}
@@ -249,7 +249,7 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
   return (
     <div className="bg-white rounded-xl border border-pink-200 shadow-sm p-4">
       <div className="flex items-start gap-2">
-        <p className="flex-1 font-semibold text-slate-800 text-sm">💘 {match.question}</p>
+        <p className="flex-1 font-semibold text-slate-800 text-sm">❤️ {match.question}</p>
         {match.canDelete && <button onClick={() => { if (confirm(t('votes.match.deleteConfirm'))) run(() => api.delete(`/plans/matches/${match.id}`)); }} className="text-slate-300 hover:text-red-500" aria-label={t('votes.match.delete')}><Trash2 size={14} /></button>}
       </div>
       <p className="text-xs text-slate-400 mt-0.5">
@@ -286,7 +286,7 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
               <div key={r.id} className={`flex gap-2.5 p-2 rounded-xl border ${isMatch ? 'border-pink-300 bg-pink-50' : 'border-slate-200'}`}>
                 {r.attachmentId
                   ? <img src={mediaUrl(r.attachmentId, plan.mediaToken, 200)} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  : <div className="w-12 h-12 rounded-lg bg-pink-100 text-pink-600 font-bold text-lg flex items-center justify-center flex-shrink-0">{isMatch ? '💘' : r.label.charAt(0).toUpperCase()}</div>}
+                  : <div className="w-12 h-12 rounded-lg bg-pink-100 text-pink-600 font-bold text-lg flex items-center justify-center flex-shrink-0">{isMatch ? '❤️' : r.label.charAt(0).toUpperCase()}</div>}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">{r.label}</p>
                   {r.note && <p className="text-xs text-slate-500 truncate">{r.note}</p>}

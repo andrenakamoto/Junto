@@ -120,7 +120,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>Poll</strong>: one question, one choice. Anonymous or not; if not, everyone sees who voted for what.</>,
-            <><strong>Match</strong> 💘: everyone says yes or no to each suggestion (swipeable cards, optional photo).
+            <><strong>Match</strong> ❤️: everyone says yes or no to each suggestion (swipeable cards, optional photo).
               Others’ answers stay hidden until you’ve finished. “It’s a match” when everyone said yes. The Plan’s creator
               chooses and can copy the choice into the place or the important information.</>,
             <><strong>Whose turn?</strong> 🎡: a wheel picks someone from the Plan at random (“I’m in” and “Maybe”). Untick

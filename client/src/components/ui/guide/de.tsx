@@ -125,7 +125,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>Umfrage</strong>: eine Frage, eine Wahl. Anonym oder nicht; wenn nicht, sehen alle, wer was gewählt hat.</>,
-            <><strong>Match</strong> 💘: Alle sagen Ja oder Nein zu jedem Vorschlag (Karten zum Wischen, Foto freiwillig). Die
+            <><strong>Match</strong> ❤️: Alle sagen Ja oder Nein zu jedem Vorschlag (Karten zum Wischen, Foto freiwillig). Die
               Antworten der anderen bleiben verborgen, bis du fertig bist. «Es ist ein Match», wenn alle Ja gesagt haben. Der
               Ersteller des Plans wählt und kann die Wahl als Ort oder in die wichtigen Infos übernehmen.</>,
             <><strong>Wer ist dran?</strong> 🎡: Ein Rad lost eine Person des Plans aus («Ich bin dabei» und «Vielleicht»).
