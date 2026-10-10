@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
 import { Send, X, ImagePlus, Loader2, Camera, Images, Mic, Trash2 } from 'lucide-react';
 import { t } from '../../i18n';
+import { isTouchDevice, sendsOnEnter } from '../../lib/keyboard';
 
 interface ReplyTarget {
   id: string;
@@ -123,6 +124,15 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
 
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const touch = isTouchDevice();
+  // La zone de saisie grandit avec le texte (jusqu'à 120 px, puis elle défile)
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    // Vide : hauteur d'une ligne (le texte d'aide peut tenir sur deux)
+    if (value) el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [value]);
 
   const mentionMatches = mentionQuery !== null
     ? members.filter(m => m.pseudo.toLowerCase().startsWith(mentionQuery.toLowerCase())).slice(0, 5)
@@ -161,7 +171,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (sendsOnEnter(e)) {
       e.preventDefault();
       handleSend();
     }
@@ -250,7 +260,8 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={t('chat.input.placeholder')}
+          placeholder={touch ? t('chat.input.placeholderTouch') : t('chat.input.placeholder')}
+          enterKeyHint={touch ? 'enter' : 'send'}
           rows={1}
           className="flex-1 resize-none px-4 py-3 bg-slate-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
           style={{ minHeight: '44px', maxHeight: '120px' }}

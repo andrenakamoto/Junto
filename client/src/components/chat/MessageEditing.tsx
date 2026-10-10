@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sendsOnEnter } from '../../lib/keyboard';
 import { t } from '../../i18n';
 
 // Modifier / supprimer son propre message pendant 15 minutes (même règle côté serveur :
@@ -33,7 +34,7 @@ export function MessageEditor({ initial, onSave, onCancel }: { initial: string; 
         value={text}
         onChange={e => setText(e.target.value)}
         onKeyDown={e => {
-          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); save(); }
+          if (sendsOnEnter(e)) { e.preventDefault(); save(); }
           if (e.key === 'Escape') onCancel();
         }}
         rows={Math.min(6, Math.max(2, text.split('\n').length))}

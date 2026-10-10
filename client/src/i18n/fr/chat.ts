@@ -32,7 +32,8 @@ export default {
     takePhoto: 'Prendre une photo',
     chooseGallery: 'Choisir dans la galerie',
     sendPhoto: 'Envoyer une photo',
-    placeholder: 'Message… (Entrée pour envoyer, @ pour mentionner)',
+    placeholder: 'Message… (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)',
+    placeholderTouch: 'Message… (@ pour mentionner)',
     recordVoice: 'Enregistrer un message vocal',
   },
   message: {

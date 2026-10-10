@@ -33,7 +33,8 @@ const chat: Dict['chat'] = {
     takePhoto: 'Scatta una foto',
     chooseGallery: 'Scegli dalla galleria',
     sendPhoto: 'Invia una foto',
-    placeholder: 'Messaggio… (Invio per inviare, @ per menzionare)',
+    placeholder: 'Messaggio… (Invio per inviare, Maiusc+Invio per andare a capo)',
+    placeholderTouch: 'Messaggio… (@ per menzionare)',
     recordVoice: 'Registra un messaggio vocale',
   },
   message: {
