@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
-import { saveFile } from '../../lib/saveFile';
+import { addPlanToCalendar } from '../../lib/calendar';
 import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
@@ -464,9 +464,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   }
 
   async function handleExportIcal() {
-    const res = await api.get(`/plans/${plan.id}/ical`, { responseType: 'blob' });
-    // Apps : menu de partage (Agenda…) ; site : téléchargement
-    await saveFile(res.data, `${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics`, plan.title);
+    // Apps : écran « Nouvel événement » de l'agenda du téléphone ; site : fichier .ics
+    await addPlanToCalendar(plan);
   }
 
   const isCreator = plan.creatorId === user.id;
