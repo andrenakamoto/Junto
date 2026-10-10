@@ -149,8 +149,9 @@ Conséquences pratiques :
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
 - **Brochure associations** (refaite le 2026-10-05, **associations uniquement** — la partie
   entreprises a été retirée à la demande de l'utilisateur) :
-  `client/public/fichiers/evly-associations-entreprises.pdf` (6 pages A4, vouvoiement ; nom de
-  fichier conservé pour les liens existants), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
+  `client/public/fichiers/evly-associations-entreprises.pdf` (**7 pages** A4 depuis le 2026-10-10 : une page
+  entière pour l'**Assemblée** — captures de l'onglet et du PV —, « Décider ensemble », liste d'attente,
+  jeux cités sans détail ; vouvoiement ; nom de fichier conservé pour les liens existants), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
   **`/brochure`**. Téléchargements comptés (2026-09-29) : `client/vercel.json`
   redirige `/brochure` et l'ancienne adresse `/evly-associations-entreprises.pdf`
   vers `GET /api/stats/go/brochure` (Railway), qui compte +1 dans PageVisit
@@ -161,8 +162,9 @@ Conséquences pratiques :
   Playwright, captures réelles de l'app sur une base jetable, club fictif « Les Rayons », club
   cycliste de Carouge) dans **`~/Desktop/EvLY - Brochure associations (sources)/`** sur le Mac de
   l'utilisateur, avec un LISEZMOI pour tout régénérer (`seed-club.js`, `capture.js`, `build.js`).
-  Annonce les apps iPhone / Android « prochainement » (p. 1 et FAQ) : à mettre à jour à leur
-  publication. La régénérer quand une fonctionnalité mise en avant change.
+  Annonce l'app iPhone disponible et **Android « bientôt »** (p. 1, p. 6 et FAQ) : à mettre à jour à la
+  publication Android. `seed-ag-seance.js` (séance de l'AG, après `seed-club.js`) et `add-icons.js` (icônes
+  Lucide) dans le même dossier. La régénérer quand une fonctionnalité mise en avant change.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
   (version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
   numérotés automatiquement, une version par langue dans `components/ui/terms/*.tsx`) : en plus de la v3, réponses sans compte, **responsabilité des
@@ -197,7 +199,7 @@ Conséquences pratiques :
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
   une page A4, refaite le 2026-09-28 en version **visuelle** (~100 mots :
   pictos Cercle → Plan → Chat, « avant/après » WhatsApp vs carte de Plan,
-  6 tuiles de fonctions, icônes Lucide inlinées en SVG), avec boutons
+  10 tuiles de fonctions depuis le 2026-10-10 — jeux, sondages, liste d'attente, cagnotte cités sans détail, à garder synthétique —, icônes Lucide inlinées en SVG ; versions de / it / en régénérées par `client/scripts/decouvrir-i18n.mjs`, à compléter pour tout texte modifié ; la version allemande déborde déjà sur 2 pages à l'impression), avec boutons
   « Créer mon compte » en haut et en bas (masqués à l'impression), qui
   pointent vers `/auth?mode=inscription` (AuthPage ouvre alors l'onglet
   inscription). L'ancienne version texte
@@ -316,6 +318,13 @@ Conséquences pratiques :
     fenêtre `evly_night`). Bouton retour Android : `NativeChrome` émet
     `evly-back`, DashboardPage remonte Plan → Plans → Cercles (ou ferme le
     Plan sur écran large), sinon page précédente ou arrière-plan.
+  - **« Agenda » d'un Plan** (2026-10-10, `lib/calendar.ts`) : dans les apps, ouvre l'écran natif
+    « Nouvel événement » de l'agenda, pré-rempli (`@ebarooni/capacitor-calendar` 8.7.0,
+    `createEventWithPrompt` ; Android : intention d'insertion, sans autorisation ; iPhone :
+    EKEventEditViewController, sans accès à l'agenda depuis iOS 17). Textes
+    `NSCalendarsUsageDescription` / `NSCalendarsWriteOnlyAccessUsageDescription` dans `Info.plist`.
+    Site, ou si l'écran natif échoue : fichier .ics (GET /plans/:id/ical). Avant, les apps
+    ouvraient le menu de partage avec le .ics (Google Agenda n'ouvre pas les .ics sur Android).
   - **Liens vers le site** (fiche Découvrir, brochure, confidentialité) :
     `lib/siteUrl.ts` → URL absolue www.evly.ch dans les apps (ouverte dans le
     navigateur du téléphone), relative sur le web.
@@ -832,6 +841,23 @@ Junto/
   missions secrètes jusqu'à la fin (règle d'or comme le Killer). Notifications `words` → `?tab=mot_piege`.
   Départs : `removeFromWordGame` dans `lib/planGames.ts`. Démo : partie en cours dans « Week-end au chalet »
   (`wordConfirm`, « Démasquer » réussit une fois sur deux).
+- **Quiz** (2026-10-10, `lib/quiz.ts` testé, `routes/quiz.ts` monté dans le routeur des Plans, `components/plans/QuizTab.tsx`,
+  migration `20261013100000_quiz`) : fonction **à activer** (`quiz`, catégorie Jouer). Tables **Quiz** (réglages : `timeLimit`
+  10–60 s, `editorIds`, `status` `preparation|question|reveal|ended`, `currentIndex`, heures de début / fin de la question en
+  cours), **QuizQuestion** (texte, 2 à 4 `options`, `correctIndex`, photo facultative = pièce jointe `quiz-…` envoyée par
+  `POST /attachments/plans/:id?via=quiz`, masquée d'Infos et du ZIP), **QuizAnswer** (une par joueur et par question,
+  `elapsedMs`, `points`). **Les personnes qui préparent les questions (`editorIds`, créateur du Plan ou gestionnaire du Cercle
+  via POST /:id/quiz/edit) animent sans jouer** : elles seules voient questions et bonnes réponses. Joueurs = « Je suis in » et
+  « Peut-être » avec un compte, sauf `editorIds`. Partie en direct : le serveur ouvre chaque question 3 s après (heures communes,
+  `serverNow` pour corriger les horloges), refuse les réponses avant / après, **n'envoie le texte qu'à l'heure de début et la
+  bonne réponse qu'au résultat**. Question close quand tout le monde a répondu, au temps écoulé (minuterie en mémoire, rattrapée à
+  la lecture) ou par « Afficher la réponse » ; la personne qui anime passe à la suivante ; podium à la fin (notification aux
+  joueurs absents, comme au lancement : type `quiz` → `?tab=quiz`). **Points : bonne réponse = 1000 → 500 selon la rapidité,
+  mauvaise = 0** (`answerPoints`). Temps réel : événement `quiz-updated` dans `plan:{id}` (écritures exclues de
+  `broadcastWrites`) ; `QuizLiveHost` (PlanDetail) ouvre la partie en plein écran chez les membres. **Écran de salle** : page
+  publique `/ecran?t=<jeton>` (`QuizScreenPage`, GET `/api/quiz-screen/:token`, jeton `purpose: 'quiz-screen'` 24 h donné par
+  GET /:id/quiz/screen-link, rechargement chaque seconde, jeton photo au nom de la personne qui anime seulement quand la question
+  a une photo). « Rejouer » efface les réponses, garde les questions. Pas dans la démo.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
@@ -929,7 +955,7 @@ Junto/
   surtout une protection côté API contre l'inspection réseau
 - **Match de groupe** (2026-10-09, `lib/matchPoll.ts` testé, `routes/matchPoll.ts` monté dans le routeur des
   Plans, `components/plans/MatchSection.tsx`, migration `20261009180000_match_polls`) : dans l'onglet Votes, **à
-  côté** du sondage classique (« 🗳️ Sondage » / « 💘 Match »), soumis à la fonction `votes`. Tables **MatchPoll**
+  côté** du sondage classique (« 🗳️ Sondage » / « ❤️ Match »), soumis à la fonction `votes`. Tables **MatchPoll**
   (question, anonyme, échéance facultative, `chosenOptionId`, `closedAt`), **MatchOption** (proposition, précision,
   lien, **photo facultative** = fichier du Plan envoyé par `POST /attachments/plans/:id?via=match`, nommé `match-…`,
   **masqué de l'onglet Infos et du ZIP de photos**, supprimé avec la proposition / le match ; `matchedAt`),
