@@ -1,4 +1,5 @@
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { currentLang, t as tr } from '../i18n';
 
 // Démo sans compte (/demo) : tout tourne dans le navigateur. Les données (public/demo/data.json)
 // sont de vraies réponses du serveur, enregistrées une fois sur une base jetable avec des
@@ -12,7 +13,7 @@ import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'ax
 
 const FLAG = 'evly_demo';
 export const DEMO_TOKEN = 'demo';
-const NOT_IN_DEMO = 'Dans la démo, cette action n’est pas disponible. Crée ton compte gratuit pour l’essayer pour de vrai !';
+const NOT_IN_DEMO = tr('ui.demoApi.notInDemo');
 
 export function isDemo(): boolean {
   try { return sessionStorage.getItem(FLAG) === '1'; } catch { return false; }
@@ -34,13 +35,14 @@ let loading: Promise<void> | null = null;
 
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
-// Décale toutes les dates du nombre de jours écoulés depuis l'enregistrement
-function shiftDates(value: any, delta: number): any {
-  if (typeof value === 'string') return ISO.test(value) ? new Date(new Date(value).getTime() + delta).toISOString() : value;
-  if (Array.isArray(value)) return value.map(v => shiftDates(v, delta));
+// Décale toutes les dates du nombre de jours écoulés depuis l'enregistrement et traduit les textes
+// de la démo (public/demo/i18n.json, généré par scripts/demo-i18n.py ; absent = français)
+function shiftDates(value: any, delta: number, texts: Record<string, string> = {}): any {
+  if (typeof value === 'string') return ISO.test(value) ? new Date(new Date(value).getTime() + delta).toISOString() : texts[value] ?? value;
+  if (Array.isArray(value)) return value.map(v => shiftDates(v, delta, texts));
   if (value && typeof value === 'object') {
     const out: any = {};
-    for (const [k, v] of Object.entries(value)) out[k] = shiftDates(v, delta);
+    for (const [k, v] of Object.entries(value)) out[k] = shiftDates(v, delta, texts);
     return out;
   }
   return value;
@@ -48,12 +50,15 @@ function shiftDates(value: any, delta: number): any {
 
 export function loadDemo(): Promise<void> {
   if (!loading) {
-    loading = fetch('/demo/data.json')
-      .then(r => r.json())
-      .then(data => {
+    const lang = currentLang();
+    loading = Promise.all([
+      fetch('/demo/data.json').then(r => r.json()),
+      lang === 'fr' ? Promise.resolve(null) : fetch('/demo/i18n.json').then(r => r.json()).catch(() => null),
+    ])
+      .then(([data, i18n]) => {
         // Décalage en jours entiers : les heures restent rondes (19:00, pas 19:04)
         const delta = Math.floor((Date.now() - new Date(data.capturedAt).getTime()) / 864e5) * 864e5;
-        fixtures = shiftDates(data.fixtures, delta);
+        fixtures = shiftDates(data.fixtures, delta, i18n?.[lang] ?? {});
         const u = fixtures!['GET /auth/me'];
         me = { id: u.id, pseudo: u.pseudo, firstName: u.firstName };
       });
@@ -354,10 +359,10 @@ function killerConfirm(planId: string) {
     }
     st.players.sort((a: any, b: any) => b.kills - a.kills);
   } else {
-    st.me.mission = { target: pick(others).user, object: pick(st.objects ?? ['une cuillère']), place: pick(st.places ?? ['dans la cuisine']) };
+    st.me.mission = { target: pick(others).user, object: pick(st.objects ?? [tr('ui.demoApi.defaultObject')]), place: pick(st.places ?? [tr('ui.demoApi.defaultPlace')]) };
   }
   changed(planId);
-  fire('notification', { id: newId('n'), type: 'killer', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: st.ended ? '🏆 Tu remportes le Killer !' : '🎯 Élimination confirmée ! Découvre ta nouvelle mission' });
+  fire('notification', { id: newId('n'), type: 'killer', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: st.ended ? tr('ui.demoApi.killerWon') : tr('ui.demoApi.killerNext') });
 }
 
 // Match de groupe : retrouver un match (par proposition ou par id) et la vue complète enregistrée
@@ -385,7 +390,7 @@ function revealDemoMatch(planId: string, match: any, full: any) {
   match.finishedCount = match.playerCount; match.allFinished = true;
   match.matchedIds = match.results.filter((r: any) => r.yes === match.playerCount).map((r: any) => r.id);
   for (const r of match.results.filter((x: any) => match.matchedIds.includes(x.id))) {
-    fire('notification', { id: newId('n'), type: 'match', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: `💘 C’est un match : ${r.label} !` });
+    fire('notification', { id: newId('n'), type: 'match', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: tr('ui.demoApi.match', { label: r.label }) });
   }
 }
 
@@ -415,7 +420,7 @@ function refreshDemoWheel(wheel: any) {
 }
 
 // Le mot piège : la cible confirme, Alex marque un point et reçoit une nouvelle mission
-const DEMO_WORDS = ['parapluie', 'trampoline', 'moustache', 'girafe', 'chocolat', 'marmotte', 'karaoké', 'boussole', 'pyjama', 'igloo'];
+const DEMO_WORDS = tr('ui.demoApi.words').split(',');
 function wordConfirm(planId: string) {
   const st = fixtures![`GET /plans/${planId}/words`];
   if (!st?.me?.claimed || !st.me.mission) return;
@@ -426,7 +431,7 @@ function wordConfirm(planId: string) {
   st.me.mission = { target: pickOne(others.length ? others : st.ranking.filter((r: any) => r.user.id !== me.id)).user, word: pickOne(DEMO_WORDS.filter(w => w !== st.me.mission.word)) };
   bumpWordRanking(st);
   changed(planId);
-  fire('notification', { id: newId('n'), type: 'words', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: '🎯 Mot validé ! +1 point, découvre ta nouvelle mission' });
+  fire('notification', { id: newId('n'), type: 'words', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: tr('ui.demoApi.wordOk') });
 }
 function bumpWordRanking(st: any) {
   const mine = st.ranking.find((r: any) => r.user.id === me.id);
@@ -483,7 +488,7 @@ function route(method: string, path: string, body: any): any {
       if (!thread) throw new DemoError(404, 'Conversation introuvable');
       thread.push({ id: newId('santa'), mine: true, content, createdAt: now() });
       // Une réponse arrive quelques secondes plus tard, pour donner vie à la démo
-      const reply = body.to === 'receiver' ? 'Ha ha, mystère… Merci Père Noël ! 😄' : 'Bien reçu, je note ! 🎅';
+      const reply = body.to === 'receiver' ? tr('ui.demoApi.santaReplyReceiver') : tr('ui.demoApi.santaReplyGiver');
       window.setTimeout(() => { thread.push({ id: newId('santa'), mine: false, content: reply, createdAt: now() }); changed(m![1]); }, 2500);
     } else if (sub === '' && method === 'PUT' && st.canManage && body.budget !== undefined) {
       st.budget = String(body.budget ?? '').trim() || null;
@@ -530,7 +535,7 @@ function route(method: string, path: string, body: any): any {
     if (!found || !found.match.canChoose) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, match } = found;
     const option = match.results?.find((r: any) => r.id === body.optionId);
-    if (!option) throw new DemoError(400, 'Joue d’abord tes cartes pour voir les résultats');
+    if (!option) throw new DemoError(400, tr('ui.demoApi.playFirst'));
     match.closed = true; match.canChoose = false; match.chosenOptionId = option.id; match.deck = [];
     for (const t of [plan(planId), ...planCopies(planId)]) {
       if (body.setLocation) t.location = option.label;
@@ -549,7 +554,7 @@ function route(method: string, path: string, body: any): any {
     const { planId, st, item } = found;
     if (m[2] === 'notes') { item.notes = String(body.notes ?? '').trim() || null; changed(planId); return { ok: true }; }
     if (m[2] === 'vote') {
-      if (item.status !== 'open') throw new DemoError(400, 'Le vote n’est pas ouvert');
+      if (item.status !== 'open') throw new DemoError(400, tr('ui.demoApi.voteNotOpen'));
       for (const v of body.votes ?? []) {
         const mandate = item.myMandates.find((x: any) => x.id === v.onBehalfOfId);
         if (!mandate || mandate.voted) continue;
@@ -579,9 +584,9 @@ function route(method: string, path: string, body: any): any {
     if (!found) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, wheel } = found;
     if (m[2]) {
-      if (!wheel.candidates.length) throw new DemoError(400, 'Il n’y a personne sur la roue');
+      if (!wheel.candidates.length) throw new DemoError(400, tr('ui.demoApi.wheelEmpty'));
       const last = wheel.spins[wheel.spins.length - 1];
-      if (last && last.startAt + last.durationMs > Date.now()) throw new DemoError(409, 'La roue tourne déjà !');
+      if (last && last.startAt + last.durationMs > Date.now()) throw new DemoError(409, tr('ui.demoApi.wheelSpinning'));
       const winner = wheel.candidates[Math.floor(Math.random() * wheel.candidates.length)];
       const pick = (f: (p: any) => boolean) => wheel.participants.filter(f).map((p: any) => ({ id: p.id, name: p.name }));
       const spin = { id: newId('spin'), winner, candidates: [...wheel.candidates], excluded: pick((p: any) => p.excluded), skipped: pick((p: any) => !p.excluded && p.alreadyDrawn),
@@ -606,13 +611,13 @@ function route(method: string, path: string, body: any): any {
     if (!st?.me || st.ended || !st.started) throw new DemoError(403, NOT_IN_DEMO);
     const planId = m[1];
     if (m[2] === 'claim') {
-      if (!st.me.mission) throw new DemoError(400, 'Tu n’as pas de mission en cours');
+      if (!st.me.mission) throw new DemoError(400, tr('ui.demoApi.noMission'));
       st.me.claimed = method === 'POST';
       if (method === 'POST') window.setTimeout(() => wordConfirm(planId), 3000);
       changed(planId);
       return { ok: true };
     }
-    if (st.me.accuseBlockedUntil) throw new DemoError(429, 'Après une accusation fausse, attends un peu avant d’accuser à nouveau');
+    if (st.me.accuseBlockedUntil) throw new DemoError(429, tr('ui.demoApi.accuseWait'));
     const correct = Math.random() < 0.5;
     if (correct) { st.me.points += 1; bumpWordRanking(st); }
     else st.me.accuseBlockedUntil = new Date(Date.now() + 30 * 60 * 1000).toISOString();
@@ -668,7 +673,7 @@ function route(method: string, path: string, body: any): any {
       if (im[1] === me.id && st.myPledge) st.myPledge.received = p.received;
     } else if (sub === '/ideas' && method === 'POST') {
       const text = String(body.text ?? '').trim();
-      if (!text) throw new DemoError(400, 'Idée vide');
+      if (!text) throw new DemoError(400, tr('ui.demoApi.emptyIdea'));
       const price = body.price ? Number(String(body.price).replace(',', '.')) : null;
       st.ideas.push({ id: newId('idea'), text, url: body.url || null, price: price && price > 0 ? price : null, createdBy: meP, votes: 1, myVote: true, canDelete: true });
     } else if ((im = sub.match(/^\/ideas\/([^/]+)$/)) && method === 'DELETE') {
@@ -678,7 +683,7 @@ function route(method: string, path: string, body: any): any {
       if (st.chosenIdeaId === idea.id) st.chosenIdeaId = null;
     } else if ((im = sub.match(/^\/ideas\/([^/]+)\/vote$/))) {
       const idea = st.ideas.find((i: any) => i.id === im![1]);
-      if (!idea) throw new DemoError(404, 'Idée introuvable');
+      if (!idea) throw new DemoError(404, tr('ui.demoApi.ideaNotFound'));
       idea.votes += idea.myVote ? -1 : 1; idea.myVote = !idea.myVote;
     } else if (sub === '' && method === 'PUT' && st.canManage) {
       for (const k of ['forWhom', 'payInfo', 'currency', 'chosenIdeaId']) if (body[k] !== undefined) st[k] = body[k] || null;
@@ -717,7 +722,7 @@ function route(method: string, path: string, body: any): any {
   // Planning des bénévoles
   if ((m = path.match(/^\/plans\/([^/]+)\/shifts$/)) && method === 'POST') {
     const list = route('GET', path, null);
-    if (!list.canManage) throw new DemoError(403, 'Seuls le créateur du Plan et les organisateurs du Cercle créent les postes');
+    if (!list.canManage) throw new DemoError(403, tr('ui.demoApi.shiftsManagers'));
     if (!String(body.title ?? '').trim()) throw new DemoError(400, 'Nom du poste requis');
     list.shifts.push({ id: newId('shift'), title: String(body.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null, signups: [] });
     list.shifts.sort((a: any, b: any) => (a.startsAt ? 0 : 1) - (b.startsAt ? 0 : 1) || String(a.startsAt).localeCompare(String(b.startsAt)));
@@ -730,13 +735,13 @@ function route(method: string, path: string, body: any): any {
     const { planId, list, shift } = found;
     if (!m[2] && method === 'PUT') {
       if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
-      if ((Number(body.needed) || 1) < shift.signups.length) throw new DemoError(400, `${shift.signups.length} personnes sont déjà inscrites : retire d’abord des inscrits`);
+      if ((Number(body.needed) || 1) < shift.signups.length) throw new DemoError(400, tr('ui.demoApi.shiftTooSmall', { count: shift.signups.length }));
       Object.assign(shift, { title: String(body.title ?? shift.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null });
     } else if (!m[2] && method === 'DELETE') {
       if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
       list.shifts = list.shifts.filter((x: any) => x !== shift);
     } else if (m[2] === '/signup' && method === 'POST') {
-      if (shift.signups.some((x: any) => x.userId === me.id)) throw new DemoError(409, 'Tu es déjà inscrit(e) à ce poste');
+      if (shift.signups.some((x: any) => x.userId === me.id)) throw new DemoError(409, tr('ui.demoApi.alreadySigned'));
       if (shift.signups.length >= shift.needed) throw new DemoError(409, 'Ce poste est complet');
       shift.signups.push({ userId: me.id, user: { id: me.id, pseudo: me.pseudo, firstName: me.firstName ?? null } });
       setRsvp(planId, 'in'); // s'inscrire vaut « Je suis in »
@@ -764,7 +769,7 @@ function route(method: string, path: string, body: any): any {
   }
   if ((m = path.match(/^\/plans\/([^/]+)$/)) && method === 'PUT') {
     const p = plan(m[1]);
-    if (p.creatorId !== me.id) throw new DemoError(403, 'Réservé au créateur du Plan');
+    if (p.creatorId !== me.id) throw new DemoError(403, tr('ui.demoApi.creatorOnly'));
     const fields = ['title', 'description', 'eventDate', 'endDate', 'location', 'maxParticipants', 'deletionMode', 'disabledFeatures', 'editMode', 'importantInfoMode'];
     for (const t of [p, ...planCopies(m[1])]) for (const f of fields) if (body[f] !== undefined) t[f] = body[f];
     changed(m[1], p.circleId);
@@ -784,13 +789,13 @@ function route(method: string, path: string, body: any): any {
       const p = v as any;
       const item = p.items?.find((i: any) => i.id === m![1]);
       if (!item) continue;
-      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, 'Seuls la personne qui l’a ajouté et le créateur du Plan peuvent le modifier');
+      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, tr('ui.demoApi.itemEditForbidden'));
       item.label = String(body.label ?? item.label).trim();
       item.quantity = String(body.quantity ?? '').trim() || null;
       changed(p.id);
       return item;
     }
-    throw new DemoError(404, 'Élément introuvable');
+    throw new DemoError(404, tr('ui.demoApi.itemNotFound'));
   }
   if ((m = path.match(/^\/plans\/items\/([^/]+)$/)) && method === 'DELETE') {
     for (const [k, v] of Object.entries(fixtures!)) {
@@ -798,25 +803,25 @@ function route(method: string, path: string, body: any): any {
       const p = v as any;
       const item = p.items?.find((i: any) => i.id === m![1]);
       if (!item) continue;
-      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, 'Seuls la personne qui l’a ajouté et le créateur du Plan peuvent le retirer');
+      if (item.createdById !== me.id && p.creatorId !== me.id) throw new DemoError(403, tr('ui.demoApi.itemRemoveForbidden'));
       p.items = p.items.filter((i: any) => i !== item);
       changed(p.id);
       return { ok: true };
     }
-    throw new DemoError(404, 'Élément introuvable');
+    throw new DemoError(404, tr('ui.demoApi.itemNotFound'));
   }
   if ((m = path.match(/^\/plans\/items\/([^/]+)\/claim$/))) {
     for (const [k, v] of Object.entries(fixtures!)) {
       if (!/^GET \/plans\/[^/]+$/.test(k)) continue;
       const item = (v as any).items?.find((i: any) => i.id === m![1]);
       if (item) {
-        if (item.claimedBy && item.claimedBy !== me.pseudo) throw new DemoError(409, 'Déjà pris');
+        if (item.claimedBy && item.claimedBy !== me.pseudo) throw new DemoError(409, tr('ui.demoApi.taken'));
         item.claimedBy = item.claimedBy ? null : me.pseudo;
         changed((v as any).id);
         return item;
       }
     }
-    throw new DemoError(404, 'Élément introuvable');
+    throw new DemoError(404, tr('ui.demoApi.itemNotFound'));
   }
 
   // Sondages d'un Plan (un seul choix)
@@ -863,7 +868,7 @@ function route(method: string, path: string, body: any): any {
         return { ok: true };
       }
     }
-    throw new DemoError(404, 'Dépense introuvable');
+    throw new DemoError(404, tr('ui.demoApi.expenseNotFound'));
   }
   if ((m = path.match(/^\/plans\/([^/]+)\/reimbursements$/)) && method === 'POST') {
     const data = fixtures![`GET /plans/${m[1]}/expenses`];
@@ -941,7 +946,7 @@ function route(method: string, path: string, body: any): any {
   // Créer un Cercle (vide, Alex seul membre)
   if (path === '/circles' && method === 'POST') {
     const name = String(body.name ?? '').trim();
-    if (!name) throw new DemoError(400, 'Donne un nom à ton Cercle');
+    if (!name) throw new DemoError(400, tr('ui.demoApi.circleName'));
     const id = newId('circle');
     const circle = {
       id, name, code: Math.random().toString(36).slice(2, 8).toUpperCase(), description: body.description?.trim() || null,
@@ -983,7 +988,7 @@ export const demoAdapter: AxiosAdapter = async (config: InternalAxiosRequestConf
     const data = route(method, path, body);
     return respond(200, JSON.parse(JSON.stringify(data ?? { ok: true })));
   } catch (e) {
-    const err: any = new Error(e instanceof DemoError ? e.message : 'Erreur de la démo');
+    const err: any = new Error(e instanceof DemoError ? e.message : tr('ui.demoApi.error'));
     err.response = respond(e instanceof DemoError ? e.status : 500, { error: err.message });
     err.config = config;
     err.isAxiosError = true;
