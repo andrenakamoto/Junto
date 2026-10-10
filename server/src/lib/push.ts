@@ -74,6 +74,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.planTitle ?? T.santa, body: n.preview ?? T.santaNews, url: `${planUrl}&tab=pere_noel`, group: `santa:${n.planId}` };
     case 'killer':
       return { title: n.planTitle ?? 'Killer', body: n.preview ?? T.killerNews, url: `${planUrl}&tab=killer`, group: `killer:${n.planId}` };
+    case 'quiz':
+      return { title: n.planTitle ?? T.quiz, body: n.preview ?? T.quizNews, url: `${planUrl}&tab=quiz`, group: `quiz:${n.planId}` };
     case 'assembly':
     case 'assembly_vote':
       return { title: n.planTitle ?? T.assembly, body: n.preview ?? T.assemblyNews, url: `${planUrl}&tab=assemblee`, group: `assembly:${n.planId}` };

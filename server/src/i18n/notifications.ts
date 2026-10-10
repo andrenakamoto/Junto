@@ -120,4 +120,7 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   'Les membres du Cercle ont validé ta demande.': ['Die Mitglieder des Kreises haben deine Anfrage bestätigt.', 'I membri del Cerchio hanno approvato la tua richiesta.', 'The Circle’s members approved your request.'],
   'Date de fin obligatoire': ['Enddatum erforderlich', 'Data di fine obbligatoria', 'End date required'],
   'La date de fin doit être dans le futur': ['Das Enddatum muss in der Zukunft liegen', 'La data di fine deve essere futura', 'The end date must be in the future'],
+  // Quiz
+  '🧠 Le quiz commence : viens jouer !': ['🧠 Das Quiz beginnt: Spiel mit!', '🧠 Il quiz inizia: vieni a giocare!', '🧠 The quiz is starting: come and play!'],
+  '🏆 {0} remporte le quiz ! Découvre le classement': ['🏆 {0} gewinnt das Quiz! Entdecke die Rangliste', '🏆 {0} vince il quiz! Scopri la classifica', '🏆 {0} wins the quiz! See the leaderboard'],
 };

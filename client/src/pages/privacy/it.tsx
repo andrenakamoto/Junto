@@ -47,7 +47,7 @@ const it: PrivacyText = {
           dall’amministratore di EvLY, che li riceve anche per email; eliminati con il tuo account.</li>
         <li><strong>Ciò che pubblichi</strong>: messaggi e reazioni, risposte ai Plan (sì / forse / no), voti, informazioni
           dei Plan, foto, messaggi vocali e file, passaggi in car pooling, partecipazioni ai giochi (Babbo Natale segreto,
-          Killer, parola trappola, squadre e punteggi) e a una colletta (importo, pagamento segnalato), spese e
+          Killer, parola trappola, squadre e punteggi, risposte e punti del quiz) e a una colletta (importo, pagamento segnalato), spese e
           rimborsi.</li>
         <li><strong>Assemblee</strong> (funzione da attivare in un Plan): la tua presenza (sul posto o a distanza), la
           delega che dai o ricevi e i tuoi voti. A <strong>scrutinio segreto</strong>, EvLY registra separatamente che hai

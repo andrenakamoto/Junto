@@ -194,6 +194,10 @@ const groups: Group[] = [
           erlauben Fragen. Auflösung ab dem Tag des Austauschs.</P>,
       },
       {
+        id: 'quiz', emoji: '🧠', title: 'Quiz', summary: 'Live-Fragen, Bonus für Schnelligkeit',
+        body: <P>Eine Person bereitet Multiple-Choice-Fragen vor (2 bis 4 Antworten, Foto optional) und leitet das Quiz, ohne mitzuspielen. Nach dem Start erscheint jede Frage gleichzeitig auf allen Handys: Je schneller die Antwort, desto mehr Punkte (höchstens 1000). Wenn alle geantwortet haben oder die Zeit abgelaufen ist: richtige Antwort und Rangliste. Die Spielleitung geht zur nächsten Frage. Option <strong>Saalbildschirm</strong>: ein Link für Fernseher oder Beamer.</P>,
+      },
+      {
         id: 'killer', emoji: '🎯', title: 'Killer', summary: 'Ein Ziel, ein Gegenstand, ein Ort',
         body: <P>Alle erhalten heimlich ein Ziel, einen Gegenstand und einen Ort: Bring dein Ziel dazu, den Gegenstand an
           diesem Ort in die Hand zu nehmen, ohne Verdacht zu erregen. «Ich habe mein Ziel erwischt», das Ziel bestätigt, und
@@ -312,7 +316,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🗳️', text: <>Gemeinsam entscheiden: <strong>Termine</strong>, Umfragen, <strong>Match</strong>, Rad <strong>Wer ist dran?</strong></> },
   { emoji: '🚗', text: <>Sich organisieren: <strong>Fahrten</strong>, <strong>wer bringt was</strong>, <strong>Ausgaben</strong>, <strong>Helfende</strong>.</> },
   { emoji: '🏛️', text: <>Vereine halten ihre <strong>Versammlung</strong> ab: Abstimmungen, Vollmachten, Protokoll.</> },
-  { emoji: '🎉', text: <>Spass haben: <strong>Geschenkkasse</strong>, <strong>Wichteln</strong>, <strong>Killer</strong>, <strong>Fallenwort</strong>, <strong>Turnier</strong>.</> },
+  { emoji: '🎉', text: <>Spass haben: <strong>Quiz</strong>, <strong>Geschenkkasse</strong>, <strong>Wichteln</strong>, <strong>Killer</strong>, <strong>Fallenwort</strong>, <strong>Turnier</strong>.</> },
   { emoji: '⏳', text: <>Ein Plan <strong>verschwindet an seinem Enddatum</strong>: Sichere vorher Fotos, Übersicht oder Protokoll.</> },
 ];
 

@@ -335,6 +335,7 @@ model Plan {
   matchPolls        MatchPoll[]
   wheels            Wheel[]
   assembly          Assembly?
+  quiz              Quiz?
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
@@ -1265,4 +1266,56 @@ model AssemblyAttendance {
   checkedById String?
 
   @@id([assemblyId, userId])
+}
+
+// Quiz (lib/quiz.ts) : fonction à activer (enabledFeatures « quiz »). Les personnes qui préparent les
+// questions (editorIds) animent sans jouer : elles seules voient les questions et les bonnes réponses
+// avant qu'elles soient posées. Déroulement en direct : status preparation → question → reveal → (question
+// suivante…) → ended ; heures de début / fin de chaque question fixées par le serveur.
+model Quiz {
+  planId            String         @id
+  plan              Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  timeLimit         Int            @default(20)
+  editorIds         String[]
+  hostId            String?
+  status            String         @default("preparation")
+  currentIndex      Int?
+  questionStartedAt DateTime?
+  questionEndsAt    DateTime?
+  startedAt         DateTime?
+  endedAt           DateTime?
+  createdAt         DateTime       @default(now())
+  questions         QuizQuestion[]
+}
+
+// Question à choix multiple : 2 à 4 réponses, une seule bonne. Photo facultative = pièce jointe du Plan
+// (nommée « quiz-… », masquée de l'onglet Infos), référencée par son id.
+model QuizQuestion {
+  id           String       @id @default(cuid())
+  planId       String
+  quiz         Quiz         @relation(fields: [planId], references: [planId], onDelete: Cascade)
+  position     Int
+  text         String
+  options      String[]
+  correctIndex Int
+  attachmentId String?
+  createdAt    DateTime     @default(now())
+  answers      QuizAnswer[]
+
+  @@index([planId, position])
+}
+
+// Réponse d'un joueur : une seule par question, points calculés par le serveur (bonus de rapidité)
+model QuizAnswer {
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  planId     String
+  userId     String
+  option     Int
+  elapsedMs  Int
+  points     Int
+  createdAt  DateTime     @default(now())
+
+  @@id([questionId, userId])
+  @@index([planId])
 }

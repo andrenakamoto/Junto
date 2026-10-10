@@ -19,6 +19,7 @@ import moderationRoutes from './routes/moderation';
 import suggestionRoutes from './routes/suggestions';
 import expressPlanRoutes from './routes/express';
 import { translateErrors } from './lib/i18n';
+import quizScreenRoutes from './routes/quizScreen';
 import muteRoutes from './routes/mutes';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
@@ -103,6 +104,7 @@ app.use('/api/moderation', moderationRoutes);
 app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/express', expressPlanRoutes);
 app.use('/api/mutes', muteRoutes);
+app.use('/api/quiz-screen', quizScreenRoutes);
 
 app.set('io', io);
 setupSocketHandlers(io);

@@ -35,6 +35,7 @@ import { santaDateError } from '../lib/secretSanta';
 import { removeFromPlanGames } from '../lib/planGames';
 import { hasFreeSpot, occupiedCount, promoteFromWaitlist } from '../lib/waitlist';
 import killerRoutes from './killer';
+import quizRoutes from './quiz';
 import teamsRoutes from './teams';
 import giftPotRoutes from './giftPot';
 import wordGameRoutes from './wordGame';
@@ -50,6 +51,7 @@ router.use(volunteerRoutes);
 // Père Noël secret (/:id/santa…), Killer (/:id/killer…), équipes (/:id/teams…), cagnotte (/:id/pot…)
 router.use(secretSantaRoutes);
 router.use(killerRoutes);
+router.use(quizRoutes);
 router.use(teamsRoutes);
 router.use(giftPotRoutes);
 // Le mot piège (/:id/words…)
@@ -83,7 +85,7 @@ const planInclude = {
   // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
   attachments: {
     // Sans les photos des propositions de match (elles appartiennent au match)
-    where: { matchOption: null, NOT: { name: { startsWith: 'match-' } } },
+    where: { matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
     select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
     orderBy: { createdAt: 'asc' as const },
   },

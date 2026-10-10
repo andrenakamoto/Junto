@@ -188,6 +188,10 @@ const groups: Group[] = [
           de poser des questions. Révélation à partir du jour de l'échange.</P>,
       },
       {
+        id: 'quiz', emoji: '🧠', title: 'Quiz', summary: 'Questions en direct, bonus de rapidité',
+        body: <P>Une personne prépare des questions à choix multiple (2 à 4 réponses, photo facultative) et anime sans jouer. Au lancement, chaque question s’affiche en même temps sur tous les téléphones : plus on répond vite, plus on gagne de points (1 000 au maximum). Quand tout le monde a répondu ou que le temps est écoulé : bonne réponse et classement. L’animatrice ou l’animateur passe à la question suivante. Option <strong>écran de salle</strong> : un lien à ouvrir sur une télévision ou un projecteur.</P>,
+      },
+      {
         id: 'killer', emoji: '🎯', title: 'Killer', summary: 'Une cible, un objet, un lieu',
         body: <P>Chaque joueur reçoit en secret une cible, un objet et un lieu : il doit lui faire tenir l'objet à cet endroit, sans éveiller ses soupçons. « J'ai eu ma cible »,
           la cible confirme, et tu hérites de sa mission. Le dernier en jeu gagne. Jouez dans le respect de chacun et en
@@ -303,7 +307,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🗳️', text: <>On décide ensemble : <strong>dates</strong>, sondages, <strong>Match</strong>, roue <strong>Qui s'y colle ?</strong></> },
   { emoji: '🚗', text: <>On s'organise : <strong>trajets</strong>, <strong>qui apporte quoi</strong>, <strong>dépenses</strong>, <strong>bénévoles</strong>.</> },
   { emoji: '🏛️', text: <>Les associations tiennent leur <strong>assemblée</strong> : votes, procurations, procès-verbal.</> },
-  { emoji: '🎉', text: <>On s'amuse : <strong>cagnotte</strong>, <strong>Père Noël secret</strong>, <strong>Killer</strong>, <strong>mot piège</strong>, <strong>tournoi</strong>.</> },
+  { emoji: '🎉', text: <>On s'amuse : <strong>quiz</strong>, <strong>cagnotte</strong>, <strong>Père Noël secret</strong>, <strong>Killer</strong>, <strong>mot piège</strong>, <strong>tournoi</strong>.</> },
   { emoji: '⏳', text: <>Un Plan <strong>disparaît à sa date de fin</strong> : garde photos, récap ou PV avant.</> },
 ];
 

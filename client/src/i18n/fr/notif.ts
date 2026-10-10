@@ -16,6 +16,7 @@ export default {
   membersTitle: 'Participants — {{plan}}',
   activityTitle: 'Du nouveau — {{plan}}',
   santaTitle: 'Père Noël secret — {{plan}}',
+  quizTitle: 'Quiz — {{plan}}',
   killerTitle: 'Killer — {{plan}}',
   assembly: 'Assemblée',
   waitlistBody: 'Une place s’est libérée, tu es dedans !',

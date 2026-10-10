@@ -47,7 +47,7 @@ const en: PrivacyText = {
           receives them by email; deleted with your account.</li>
         <li><strong>What you publish</strong>: messages and reactions, replies to Plans (yes / maybe / no), votes, Plan
           information, photos, voice messages and files, car-sharing rides, participation in games (Secret Santa,
-          Killer, trap word, teams and scores) and in a gift pot (amount, payment reported), expenses and
+          Killer, trap word, teams and scores, quiz answers and points) and in a gift pot (amount, payment reported), expenses and
           repayments.</li>
         <li><strong>Assemblies</strong> (a feature to turn on in a Plan): your attendance (in person or remote), the proxy
           you give or receive, and your votes. With a <strong>secret ballot</strong>, EvLY records separately that you

@@ -49,7 +49,7 @@ const de: PrivacyText = {
           Administrator von EvLY gelesen, der sie auch per E-Mail erhält; gelöscht mit deinem Konto.</li>
         <li><strong>Was du veröffentlichst</strong>: Nachrichten und Reaktionen, Antworten auf Pläne (ja / vielleicht /
           nein), Stimmen, Infos zu Plänen, Fotos, Sprachnachrichten und Dateien, Fahrten der Fahrgemeinschaft,
-          Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate) und an einer Geschenkkasse (Betrag,
+          Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate, Antworten und Punkte im Quiz) und an einer Geschenkkasse (Betrag,
           gemeldete Zahlung), Ausgaben und Rückzahlungen.</li>
         <li><strong>Versammlungen</strong> (in einem Plan zu aktivierende Funktion): deine Anwesenheit (vor Ort oder
           online), die Vollmacht, die du gibst oder erhältst, und deine Stimmen. Bei <strong>geheimer Abstimmung</strong>{' '}

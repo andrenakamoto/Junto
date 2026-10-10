@@ -53,7 +53,7 @@ const fr: PrivacyText = {
           supprimés avec ton compte.</li>
         <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
           peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
-          aux jeux (Père Noël secret, Killer, mot piège, équipes et scores) et à une cagnotte (montant, paiement signalé),
+          aux jeux (Père Noël secret, Killer, mot piège, équipes et scores, réponses et points du quiz) et à une cagnotte (montant, paiement signalé),
           dépenses et remboursements.</li>
         <li><strong>Assemblées</strong> (fonction à activer dans un Plan) : ta présence (sur place ou à
           distance), la procuration que tu donnes ou reçois, et tes votes. Au <strong>bulletin secret</strong>,

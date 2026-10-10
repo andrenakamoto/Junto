@@ -219,7 +219,7 @@ export default {
   detail: {
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
-      benevoles: 'Bénévoles', assemblee: 'Assemblée', pere_noel: 'Père Noël', killer: 'Killer', mot_piege: 'Mot piège',
+      benevoles: 'Bénévoles', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
       equipes: 'Équipes', cagnotte: 'Cagnotte',
     },
     skipConfirm: 'Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.',

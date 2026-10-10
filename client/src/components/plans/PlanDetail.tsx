@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,6 +34,7 @@ import { downloadPlanRecap } from '../../lib/planRecap';
 import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import { WheelSpinHost, openWheelSpin } from './WheelSection';
+import { QuizLiveHost, QuizTab } from './QuizTab';
 import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
@@ -52,7 +53,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
 
 const rsvpConfig = {
   in:    { label: t('common.rsvp.in'),  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
@@ -70,12 +71,13 @@ const tabs = [
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: t('plan.detail.tabs.benevoles') },
   { key: 'assemblee' as Tab,  Icon: Landmark,         label: t('plan.detail.tabs.assemblee') },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: t('plan.detail.tabs.pere_noel') },
+  { key: 'quiz' as Tab,       Icon: Brain,            label: t('plan.detail.tabs.quiz') },
   { key: 'killer' as Tab,     Icon: Crosshair,        label: t('plan.detail.tabs.killer') },
   { key: 'mot_piege' as Tab,  Icon: Speech,           label: t('plan.detail.tabs.mot_piege') },
   { key: 'equipes' as Tab,    Icon: Trophy,           label: t('plan.detail.tabs.equipes') },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: t('plan.detail.tabs.cagnotte') },
 ];
-const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
+const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
 
 interface Props {
   plan: Plan;
@@ -1028,6 +1030,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
+          {activeTab === 'quiz' && <QuizTab plan={plan} userId={user.id} />}
           {activeTab === 'killer' && <KillerTab plan={plan} userId={user.id} />}
           {activeTab === 'mot_piege' && <WordTrapTab plan={plan} userId={user.id} />}
           {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
@@ -1083,6 +1086,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       )}
 
       {isMember && <WheelSpinHost plan={plan} />}
+      {isMember && hasFeature(plan, 'quiz') && <QuizLiveHost plan={plan} />}
 
       {showEditPlan && (
         <EditPlanModal

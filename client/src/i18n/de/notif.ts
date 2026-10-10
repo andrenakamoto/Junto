@@ -17,6 +17,7 @@ const notif: Dict['notif'] = {
   membersTitle: 'Teilnehmende — {{plan}}',
   activityTitle: 'Neuigkeiten — {{plan}}',
   santaTitle: 'Wichteln — {{plan}}',
+  quizTitle: 'Quiz — {{plan}}',
   killerTitle: 'Killer — {{plan}}',
   assembly: 'Versammlung',
   waitlistBody: 'Ein Platz ist frei geworden, du bist dabei!',

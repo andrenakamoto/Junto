@@ -193,6 +193,10 @@ const groups: Group[] = [
           permettono di fare domande. Rivelazione dal giorno dello scambio.</P>,
       },
       {
+        id: 'quiz', emoji: '🧠', title: 'Quiz', summary: 'Domande in diretta, bonus velocità',
+        body: <P>Una persona prepara domande a scelta multipla (da 2 a 4 risposte, foto facoltativa) e conduce senza giocare. Al via, ogni domanda appare nello stesso momento su tutti i telefoni: più rispondi in fretta, più punti guadagni (al massimo 1000). Quando tutti hanno risposto o il tempo è scaduto: risposta giusta e classifica. Chi conduce passa alla domanda successiva. Opzione <strong>schermo in sala</strong>: un link da aprire su una TV o un proiettore.</P>,
+      },
+      {
         id: 'killer', emoji: '🎯', title: 'Killer', summary: 'Un bersaglio, un oggetto, un luogo',
         body: <P>Ogni giocatore riceve in segreto un bersaglio, un oggetto e un luogo: deve fargli tenere l’oggetto in quel
           posto senza destare sospetti. «Ho preso il mio bersaglio», il bersaglio conferma e tu erediti la sua missione.
@@ -309,7 +313,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🗳️', text: <>Si decide insieme: <strong>date</strong>, sondaggi, <strong>Match</strong>, ruota <strong>A chi tocca?</strong></> },
   { emoji: '🚗', text: <>Ci si organizza: <strong>passaggi</strong>, <strong>chi porta cosa</strong>, <strong>spese</strong>, <strong>volontari</strong>.</> },
   { emoji: '🏛️', text: <>Le associazioni tengono la loro <strong>assemblea</strong>: voti, deleghe, verbale.</> },
-  { emoji: '🎉', text: <>Ci si diverte: <strong>colletta</strong>, <strong>Babbo Natale segreto</strong>, <strong>Killer</strong>, <strong>parola trappola</strong>, <strong>torneo</strong>.</> },
+  { emoji: '🎉', text: <>Ci si diverte: <strong>quiz</strong>, <strong>colletta</strong>, <strong>Babbo Natale segreto</strong>, <strong>Killer</strong>, <strong>parola trappola</strong>, <strong>torneo</strong>.</> },
   { emoji: '⏳', text: <>Un Plan <strong>sparisce alla sua data di fine</strong>: conserva prima foto, riepilogo o verbale.</> },
 ];
 

@@ -220,7 +220,7 @@ const plan: Dict['plan'] = {
   detail: {
     tabs: {
       chat: 'Chat', infos: 'Info', trajets: 'Passaggi', membres: 'Membri', votes: 'Voti', depenses: 'Spese',
-      benevoles: 'Volontari', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', killer: 'Killer', mot_piege: 'Parola trappola',
+      benevoles: 'Volontari', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Parola trappola',
       equipes: 'Squadre', cagnotte: 'Colletta',
     },
     skipConfirm: 'Annullare questo Plan per questa volta? Verrà eliminato e il successivo creato subito.',

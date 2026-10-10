@@ -101,6 +101,8 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     }
     return null;
   }
+  // Quiz : ses routes émettent elles-mêmes « quiz-updated » (une réponse par joueur : pas de rechargement du Plan)
+  if (a === 'quiz') return null;
   if (a === 'wheels') {
     const wheel = await prisma.wheel.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(wheel?.planId, false);
@@ -133,6 +135,7 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   // Père Noël secret : rechargement seulement — pas de pastille ni d'activité (tout y est privé)
   if (b === 'santa') return planTarget(a, false);
   // Killer, équipes, cagnotte : rechargement seulement (leurs notifications sont envoyées par les routes)
+  if (b === 'quiz') return null;
   if (b === 'killer' || b === 'teams' || b === 'pot' || b === 'words' || b === 'assembly') return planTarget(a, false);
   // Informations importantes : onglet Infos, notification aux participants
   if (b === 'important-info') return planTarget(a, false, 'infos', 'important_info_updated');

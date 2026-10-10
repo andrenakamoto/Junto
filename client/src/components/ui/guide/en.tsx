@@ -187,6 +187,10 @@ const groups: Group[] = [
           Reveal from the day of the exchange.</P>,
       },
       {
+        id: 'quiz', emoji: '🧠', title: 'Quiz', summary: 'Live questions, speed bonus',
+        body: <P>Someone prepares multiple-choice questions (2 to 4 answers, optional photo) and hosts without playing. Once started, each question appears at the same time on every phone: the faster you answer, the more points you score (1,000 at most). When everyone has answered or time is up: the right answer and the leaderboard. The host moves on to the next question. <strong>Room screen</strong> option: a link to open on a TV or projector.</P>,
+      },
+      {
         id: 'killer', emoji: '🎯', title: 'Killer', summary: 'A target, an object, a place',
         body: <P>Each player secretly gets a target, an object and a place: get your target to hold the object in that place
           without raising suspicion. “I got my target”, the target confirms, and you take over their mission. The last one
@@ -302,7 +306,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🗳️', text: <>Decide together: <strong>dates</strong>, polls, <strong>Match</strong>, the <strong>Whose turn?</strong> wheel.</> },
   { emoji: '🚗', text: <>Get organised: <strong>rides</strong>, <strong>who brings what</strong>, <strong>expenses</strong>, <strong>volunteers</strong>.</> },
   { emoji: '🏛️', text: <>Associations hold their <strong>assembly</strong>: votes, proxies, minutes.</> },
-  { emoji: '🎉', text: <>Have fun: <strong>gift pot</strong>, <strong>Secret Santa</strong>, <strong>Killer</strong>, <strong>trap word</strong>, <strong>tournament</strong>.</> },
+  { emoji: '🎉', text: <>Have fun: <strong>quiz</strong>, <strong>gift pot</strong>, <strong>Secret Santa</strong>, <strong>Killer</strong>, <strong>trap word</strong>, <strong>tournament</strong>.</> },
   { emoji: '⏳', text: <>A Plan <strong>disappears on its end date</strong>: keep photos, summary or minutes before then.</> },
 ];
 

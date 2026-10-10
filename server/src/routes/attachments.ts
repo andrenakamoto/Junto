@@ -58,9 +58,11 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
     // Photo d'une proposition de match (?via=match) : propre au match, indépendante des « Photos et fichiers »
     const viaMatch = req.query.via === 'match';
+    // Photo d'une question de quiz (?via=quiz) : propre au quiz, nommée « quiz-… » par l'app (masquée d'Infos)
+    const viaQuiz = req.query.via === 'quiz' && plan.enabledFeatures.includes('quiz');
     // Document de l'ordre du jour d'une assemblée (?via=assemblee) : possible même sans « Photos et fichiers »
     const viaAssembly = req.query.via === 'assemblee' && plan.enabledFeatures.includes('assemblee');
-    if (!viaMatch && !viaAssembly && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    if (!viaMatch && !viaQuiz && !viaAssembly && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -81,6 +83,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // Envoi depuis le chat (?via=chat) : photos et messages vocaux uniquement, chat actif
     const viaChat = req.query.via === 'chat';
     const isVoice = viaChat && req.file.mimetype.startsWith('audio/');
+    if (viaQuiz && !isImageMime) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
     if (viaMatch) {
       if (!isImageMime) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
       if (plan.disabledFeatures.includes('votes')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
@@ -231,7 +234,7 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const photos = await prisma.attachment.findMany({
-      where: { planId: plan.id, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: { name: { startsWith: 'match-' } } },
+      where: { planId: plan.id, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
       orderBy: { createdAt: 'asc' },
     });
     if (photos.length === 0) { res.status(404).json({ error: 'Aucune photo dans ce Plan' }); return; }

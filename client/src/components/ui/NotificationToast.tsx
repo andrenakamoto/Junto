@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { t } from '../../i18n';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark, Brain } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
   type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
-    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote';
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -75,6 +75,7 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
   santa_message: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => t('notif.santaTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   santa_reveal: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => t('notif.santaTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   santa_reminder: { icon: Gift, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => t('notif.santaTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
+  quiz: { icon: Brain, iconClass: 'text-indigo-200', bgClass: 'bg-indigo-500/30', title: n => t('notif.quizTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   killer: { icon: Crosshair, iconClass: 'text-red-300', bgClass: 'bg-red-600/30', title: n => t('notif.killerTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   assembly: { icon: Landmark, iconClass: 'text-indigo-300', bgClass: 'bg-indigo-600/30', title: n => n.planTitle ?? t('notif.assembly'), body: n => n.preview ?? '' },
   assembly_vote: { icon: Landmark, iconClass: 'text-indigo-300', bgClass: 'bg-indigo-600/30', title: n => n.planTitle ?? t('notif.assembly'), body: n => n.preview ?? '' },

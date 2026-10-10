@@ -6,11 +6,12 @@ type PushTexts = {
   wheel: string; matchNews: string; waitlist: string; volunteers: string; shiftSoon: string; words: string; wordsNews: string;
   teams: string; teamsNews: string; pot: string; potNews: string; membersNews: string; planReminder: string;
   poll: string; pollReminder: string; rides: string; ridesNews: string; newPollTitle: string; newPoll: string;
-  joinRequest: string; renamed: string; invite: string; joinAccepted: string; suggestionDone: string; suggestionPlanned: string;
+  quiz: string; quizNews: string; joinRequest: string; renamed: string; invite: string; joinAccepted: string; suggestionDone: string; suggestionPlanned: string;
 };
 
 export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
   fr: {
+    quiz: 'Quiz', quizNews: 'Du nouveau dans le quiz',
     someone: 'Quelqu’un', newMessage: 'Nouveau message de {from}', mention: '{from} t’a mentionné(e)',
     newPlanTitle: 'Nouveau Plan', newPlan: '{from} propose un nouveau Plan : {plan}', planNews: 'Du nouveau dans le Plan',
     santa: 'Père Noël secret', santaNews: 'Du nouveau pour le Père Noël secret', killerNews: 'Du nouveau dans la partie de Killer',
@@ -26,6 +27,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     suggestionDone: 'Ta suggestion a été réalisée 🎉 Merci !', suggestionPlanned: 'Ta suggestion est prévue 🙌 Merci !',
   },
   de: {
+    quiz: 'Quiz', quizNews: 'Neues im Quiz',
     someone: 'Jemand', newMessage: 'Neue Nachricht von {from}', mention: '{from} hat dich erwähnt',
     newPlanTitle: 'Neuer Plan', newPlan: '{from} schlägt einen neuen Plan vor: {plan}', planNews: 'Neues im Plan',
     santa: 'Wichteln', santaNews: 'Neues beim Wichteln', killerNews: 'Neues im Killer-Spiel',
@@ -41,6 +43,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     suggestionDone: 'Dein Vorschlag wurde umgesetzt 🎉 Danke!', suggestionPlanned: 'Dein Vorschlag ist geplant 🙌 Danke!',
   },
   it: {
+    quiz: 'Quiz', quizNews: 'Novità nel quiz',
     someone: 'Qualcuno', newMessage: 'Nuovo messaggio di {from}', mention: '{from} ti ha menzionato/a',
     newPlanTitle: 'Nuovo Plan', newPlan: '{from} propone un nuovo Plan: {plan}', planNews: 'Novità nel Plan',
     santa: 'Babbo Natale segreto', santaNews: 'Novità per il Babbo Natale segreto', killerNews: 'Novità nella partita di Killer',
@@ -56,6 +59,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     suggestionDone: 'Il tuo suggerimento è stato realizzato 🎉 Grazie!', suggestionPlanned: 'Il tuo suggerimento è previsto 🙌 Grazie!',
   },
   en: {
+    quiz: 'Quiz', quizNews: 'Something new in the quiz',
     someone: 'Someone', newMessage: 'New message from {from}', mention: '{from} mentioned you',
     newPlanTitle: 'New Plan', newPlan: '{from} suggests a new Plan: {plan}', planNews: 'Something new in the Plan',
     santa: 'Secret Santa', santaNews: 'Something new in the Secret Santa', killerNews: 'Something new in the Killer game',
