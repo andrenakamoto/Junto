@@ -386,6 +386,9 @@ Conséquences pratiques :
     d'attente, fonctions rangées par catégorie, votants visibles, clavier du chat, match de groupe, « Qui s'y colle ? ».
     **Version 1.0.11** (2026-10-09, soir) : Android `versionCode` 12 (`evly-1.0.11-(12).aab`), iOS build 13 envoyé —
     Assemblée, guide d'utilisation refait, conditions d'utilisation v4 (acceptation redemandée).
+    **Version 1.0.12** (2026-10-10) : Android `versionCode` 13 (`evly-1.0.12-(13).aab`), iOS build 14 envoyé — 4 langues
+    (allemand, italien, anglais), quiz en direct, « Agenda » natif (autorisation agenda iOS), retour à la ligne dans le
+    chat, cœur rouge des matchs, noms de fichiers accentués.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
