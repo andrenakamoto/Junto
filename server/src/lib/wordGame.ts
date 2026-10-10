@@ -1,4 +1,6 @@
 import prisma from './prisma';
+import { userLocale, type Locale } from './i18n';
+import { TRAP_WORDS } from '../i18n/games';
 import { drawPairs, santaParticipants } from './secretSanta';
 import { isCircleManager } from './circleRoles';
 import { notifyUser } from './push';
@@ -73,10 +75,11 @@ export function parseLevels(v: unknown): string[] | null {
   return out;
 }
 
-// Réserve de mots de la partie : niveaux choisis + mots personnalisés
-export function wordPool(levels: string[], customWords: string[]): string[] {
+// Réserve de mots de la partie : niveaux choisis (dans la langue du créateur du Plan) + mots personnalisés
+export function wordPool(levels: string[], customWords: string[], locale: Locale = 'fr'): string[] {
   const words = [...customWords];
-  for (const l of WORD_LEVELS) if (levels.includes(l)) words.push(...DEFAULT_WORDS[l]);
+  const lists = locale === 'fr' ? DEFAULT_WORDS : TRAP_WORDS[locale];
+  for (const l of WORD_LEVELS) if (levels.includes(l)) words.push(...lists[l]);
   return [...new Map(words.map(w => [w.toLowerCase(), w])).values()];
 }
 
@@ -244,8 +247,8 @@ export async function saveWordPlayers(planId: string, before: WordState[], after
 }
 
 // Générateur de mots d'une partie (réserve + mots déjà tirés), à enregistrer ensuite (usedWords)
-export function wordDrawer(game: { levels: string[]; customWords: string[]; usedWords: string[] }, rand: () => number = Math.random) {
-  const pool = wordPool(game.levels, game.customWords);
+export function wordDrawer(game: { levels: string[]; customWords: string[]; usedWords: string[] }, locale: Locale = 'fr', rand: () => number = Math.random) {
+  const pool = wordPool(game.levels, game.customWords, locale);
   const used = new Set(game.usedWords.map(w => w.toLowerCase()));
   const drawn = [...game.usedWords];
   return {
@@ -260,7 +263,8 @@ export async function removeFromWordGame(planId: string, userId: string) {
   const game = await prisma.wordGame.findUnique({ where: { planId } });
   if (!game?.startedAt || game.endedAt) return;
   const before = await loadWordPlayers(planId);
-  const words = wordDrawer(game);
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { creatorId: true } });
+  const words = wordDrawer(game, plan ? await userLocale(plan.creatorId) : 'fr');
   const result = withdrawWordPlayer(before, game.mode as WordMode, userId, words.next);
   if (!result) return;
   await saveWordPlayers(planId, before, result.players, {

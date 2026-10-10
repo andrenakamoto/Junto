@@ -77,10 +77,10 @@ export function sortShifts<T extends { startsAt: Date | null; createdAt: Date }>
   });
 }
 
-export function shiftHours(s: { startsAt: Date | null; endsAt: Date | null }): string {
+export function shiftHours(s: { startsAt: Date | null; endsAt: Date | null }, intl = 'fr-CH'): string {
   if (!s.startsAt) return '';
-  const fmt = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
-  const time = new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
+  const fmt = new Intl.DateTimeFormat(intl, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
+  const time = new Intl.DateTimeFormat(intl, { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
   return s.endsAt ? `${fmt.format(s.startsAt)} – ${time.format(s.endsAt)}` : fmt.format(s.startsAt);
 }
 

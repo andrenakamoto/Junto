@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { parseLocale, requestLocale } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
@@ -260,7 +262,7 @@ router.delete('/assembly/candidates/:candidateId', async (req: AuthRequest, res)
 // Convocation ------------------------------------------------------------------------------------------------
 
 const lastConvocation = new Map<string, number>();
-const zurichDate = (d: Date) => new Intl.DateTimeFormat('fr-CH', { timeZone: 'Europe/Zurich', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
+const zurichDate = (d: Date, intl = 'fr-CH') => new Intl.DateTimeFormat(intl, { timeZone: 'Europe/Zurich', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
 
 router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   const ctx = await load(req, res, req.params.id, { manage: true }); if (!ctx) return;
@@ -278,25 +280,30 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
     where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null }, id: { not: req.userId } },
-    select: { email: true, firstName: true, pseudo: true, notificationChannel: true },
+    select: { email: true, firstName: true, pseudo: true, notificationChannel: true, locale: true },
   });
   const { resend, FROM_EMAIL, APP_URL, notificationFooter } = await import('../lib/mailer');
   const link = `${APP_URL}/dashboard?planId=${ctx.plan.id}&tab=assemblee`;
-  const agenda = items.map((i, n) => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? ' — vote' : i.kind === 'election' ? ' — élection' : ''}${i.description ? `<br><span style="color:#64748b">${escapeHtml(i.description)}</span>` : ''}</li>`).join('');
   for (const u of users.filter(x => wantsEmail(x.notificationChannel))) {
+    const m = mail(parseLocale(u.locale) ?? 'fr');
+    const date = ctx.plan.eventDate ? zurichDate(ctx.plan.eventDate, m.intl) : null;
+    const place = ctx.plan.location;
+    const vars = { name: u.firstName ?? u.pseudo, date: date ?? '', place: place ?? '' };
+    const intro = m.t(date && place ? 'convocation.textWhenWhere' : date ? 'convocation.textWhen' : place ? 'convocation.textWhere' : 'convocation.text', vars);
+    const agenda = items.map(i => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? m.t('convocation.vote') : i.kind === 'election' ? m.t('convocation.election') : ''}${i.description ? `<br><span style="color:#64748b">${escapeHtml(i.description)}</span>` : ''}</li>`).join('');
     resend.emails.send({
       from: FROM_EMAIL, to: u.email!,
-      subject: `Convocation — ${ctx.plan.title}`,
+      subject: m.s('convocation.subject', { plan: ctx.plan.title }),
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:auto">
           <p style="color:#ea5a2b;font-weight:700;letter-spacing:1px;font-size:12px">${escapeHtml(circle?.name ?? '').toUpperCase()}</p>
           <h2 style="margin-top:4px">${escapeHtml(ctx.plan.title)}</h2>
-          <p>Bonjour ${escapeHtml(u.firstName ?? u.pseudo)},<br>tu es convoqué·e à l'assemblée${when ? ` du <b>${escapeHtml(when)}</b>` : ''}${ctx.plan.location ? `, <b>${escapeHtml(ctx.plan.location)}</b>` : ''}.</p>
-          <p style="margin-bottom:4px"><b>Ordre du jour</b></p>
+          <p>${intro}</p>
+          <p style="margin-bottom:4px"><b>${m.t('convocation.agenda')}</b></p>
           <ol style="padding-left:20px;margin-top:0">${agenda}</ol>
-          ${ctx.assembly.proxiesAllowed ? '<p>Tu ne peux pas venir ? Tu peux donner ta procuration à un autre membre dans EvLY.</p>' : ''}
-          <p><a href="${link}" style="display:inline-block;background:#ea5a2b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Voir l'ordre du jour et les documents</a></p>
-          ${notificationFooter('simple')}
+          ${ctx.assembly.proxiesAllowed ? `<p>${m.t('convocation.proxy')}</p>` : ''}
+          <p><a href="${link}" style="display:inline-block;background:#ea5a2b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">${m.t('convocation.button')}</a></p>
+          ${notificationFooter('simple', m.locale)}
         </div>`,
     }).then(r => { if (r.error) console.error('[assembly convocation]', r.error); }).catch(e => console.error('[assembly convocation]', e));
   }
@@ -398,19 +405,21 @@ router.post('/:id/assembly/reopen', async (req: AuthRequest, res) => {
 
 // Procès-verbal envoyé au créateur du Plan à la clôture (le Plan sera supprimé après sa date)
 async function sendPvToCreator(plan: PlanLite) {
-  const creator = await prisma.user.findUnique({ where: { id: plan.creatorId }, select: { email: true, emailVerified: true, firstName: true, pseudo: true } });
+  const creator = await prisma.user.findUnique({ where: { id: plan.creatorId }, select: { email: true, emailVerified: true, firstName: true, pseudo: true, locale: true } });
   if (!creator?.email || !creator.emailVerified) return;
-  const pdf = await buildAssemblyPvPdf(plan.id);
+  const locale = parseLocale(creator.locale) ?? 'fr';
+  const pdf = await buildAssemblyPvPdf(plan.id, locale);
   if (!pdf) return;
   const { resend, FROM_EMAIL } = await import('../lib/mailer');
+  const m = mail(locale);
   const r = await resend.emails.send({
     from: FROM_EMAIL, to: creator.email,
-    subject: `Procès-verbal — ${plan.title}`,
+    subject: m.s('pv.subject', { plan: plan.title }),
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Procès-verbal de « ${escapeHtml(plan.title)} »</h2>
-        <p>Bonjour ${escapeHtml(creator.firstName ?? creator.pseudo)},<br>l'assemblée est close. Voici le procès-verbal en pièce jointe (PDF) : présents, excusés, procurations, quorum, résultats des votes et des élections.</p>
-        <p>Pense à le relire, à le faire signer et à le conserver : le Plan sera supprimé automatiquement après sa date de fin. Tu peux aussi le télécharger à nouveau depuis l'onglet Assemblée tant que le Plan existe.</p>
+        <h2>${m.t('pv.title', { plan: plan.title })}</h2>
+        <p>${m.t('pv.text', { name: creator.firstName ?? creator.pseudo })}</p>
+        <p>${m.t('pv.keep')}</p>
       </div>`,
     attachments: [{ filename: pdf.filename, content: pdf.buffer }],
   });
@@ -536,7 +545,7 @@ router.post('/assembly/items/:itemId/elect', async (req: AuthRequest, res) => {
 router.get('/:id/assembly/pv', async (req: AuthRequest, res) => {
   const ctx = await load(req, res, req.params.id); if (!ctx) return;
   if (!ctx.manager && ctx.assembly.secretaryId !== req.userId) { res.status(403).json({ error: 'Réservé à l’organisateur et au ou à la secrétaire' }); return; }
-  const pdf = await buildAssemblyPvPdf(ctx.plan.id);
+  const pdf = await buildAssemblyPvPdf(ctx.plan.id, requestLocale(req));
   if (!pdf) { res.status(404).json({ error: 'Introuvable' }); return; }
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(pdf.filename)}`);

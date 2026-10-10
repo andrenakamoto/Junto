@@ -3,6 +3,8 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
+import { userLocale } from '../lib/i18n';
+import { KILLER_OBJECTS, KILLER_PLACES } from '../i18n/games';
 import {
   DEFAULT_OBJECTS, DEFAULT_PLACES, KILLER_DISABLED_ERROR, KillerState, alive, applyKill, buildMissions, canManageKiller,
   insertPlayer, killerEnabled, killerParticipants, loadPlayers, parseKillerList, repairChain, savePlayers, withdrawPlayer,
@@ -22,9 +24,10 @@ async function load(req: AuthRequest, res: any) {
   if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return null; }
   const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, circleId: true, creatorId: true, enabledFeatures: true } });
   if (!plan || !killerEnabled(plan)) { res.status(403).json({ error: KILLER_DISABLED_ERROR }); return null; }
+  const locale = await userLocale(plan.creatorId);
   const game = await prisma.killerGame.upsert({
     where: { planId: plan.id },
-    create: { planId: plan.id, objects: DEFAULT_OBJECTS, places: DEFAULT_PLACES },
+    create: { planId: plan.id, objects: KILLER_OBJECTS[locale], places: KILLER_PLACES[locale] },
     update: {},
   });
   return { plan, game };

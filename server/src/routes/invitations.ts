@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { requestLocale } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -89,11 +91,10 @@ router.post('/sms', inviteLimiter, async (req: AuthRequest, res) => {
   if (!twilioConfigured) { res.status(503).json({ error: 'twilio_not_configured' }); return; }
   const inv = await resolveInvite(req);
   if ('error' in inv) { res.status(inv.status).json({ error: inv.error }); return; }
-  const message = inv.guest
-    ? `${req.pseudo} t'invite au Plan "${inv.planTitle}" sur EvLY : ${inv.link}`
-    : inv.planTitle
-    ? `${req.pseudo} t'invite au Plan "${inv.planTitle}" (Cercle "${inv.circleName}") sur EvLY : ${inv.link}`
-    : `${req.pseudo} t'invite dans le Cercle "${inv.circleName}" sur EvLY : ${inv.link}`;
+  // Texte dans la langue de l'app de la personne qui invite
+  const m = mail(requestLocale(req));
+  const vars = { who: req.pseudo ?? '', plan: inv.planTitle ?? '', circle: inv.circleName ?? '', link: inv.link };
+  const message = m.s(inv.guest ? 'invite.smsGuest' : inv.planTitle ? 'invite.smsPlan' : 'invite.smsCircle', vars);
   try {
     const twilio = await import('twilio');
     const client = twilio.default(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
@@ -112,22 +113,18 @@ router.post('/email', inviteLimiter, async (req: AuthRequest, res) => {
   const inv = await resolveInvite(req);
   if ('error' in inv) { res.status(inv.status).json({ error: inv.error }); return; }
 
-  const who = escapeHtml(req.pseudo ?? '');
-  const subject = inv.planTitle
-    ? `${req.pseudo} t'invite au Plan "${inv.planTitle}" sur EvLY`
-    : `${req.pseudo} t'invite dans le Cercle "${inv.circleName}" sur EvLY`;
+  // Texte dans la langue de l'app de la personne qui invite
+  const m = mail(requestLocale(req));
+  const vars = { who: req.pseudo ?? '', plan: inv.planTitle ?? '', circle: inv.circleName ?? '' };
+  const subject = m.s(inv.planTitle ? 'invite.subjectPlan' : 'invite.subjectCircle', vars);
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:auto">
-      <h2>${who} t'invite sur EvLY 🎉</h2>
-      ${inv.guest
-        ? `<p>Tu es invité(e) au Plan <strong>"${escapeHtml(inv.planTitle!)}"</strong>. Ouvre le lien pour voir le Plan et répondre, même sans compte.</p>`
-        : inv.planTitle
-        ? `<p>Tu es invité(e) au Plan <strong>"${escapeHtml(inv.planTitle)}"</strong>. Rejoins d'abord le Cercle <strong>"${escapeHtml(inv.circleName!)}"</strong> pour y accéder.</p>`
-        : `<p>Tu es invité(e) à rejoindre le Cercle <strong>"${escapeHtml(inv.circleName!)}"</strong>.</p>`}
+      <h2>${m.t('invite.title', vars)}</h2>
+      <p>${m.t(inv.guest ? 'invite.guest' : inv.planTitle ? 'invite.planViaCircle' : 'invite.circle', vars)}</p>
       <a href="${inv.link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-        ${inv.guest ? 'Voir le Plan' : 'Rejoindre'}
+        ${inv.guest ? m.t('common.viewPlan') : m.t('invite.join')}
       </a>
-      ${inv.code ? `<p style="color:#888;font-size:12px;margin-top:24px">Code d'accès du Cercle : <strong>${inv.code}</strong> (déjà inclus dans le lien ci-dessus).</p>` : ''}
+      ${inv.code ? `<p style="color:#888;font-size:12px;margin-top:24px">${m.t('invite.code', { code: inv.code })}</p>` : ''}
     </div>`;
 
   try {

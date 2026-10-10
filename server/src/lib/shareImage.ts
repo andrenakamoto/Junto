@@ -1,5 +1,7 @@
 import path from 'path';
 import { Resvg } from '@resvg/resvg-js';
+import type { Locale } from './i18n';
+import { SHARE_TEXTS } from '../i18n/share';
 
 // Image d'aperçu d'un lien d'invitation (WhatsApp, Messenger, iMessage… : balise og:image),
 // 1200 × 630. Dessinée en SVG puis convertie en PNG, avec les polices du dossier
@@ -15,6 +17,8 @@ export type ShareCard = {
   date: string | null;      // déjà formatée (« Samedi 4 octobre · 19:00 »)
   participants: number;
   creatorName: string;
+  /** Langue du créateur du Plan (français par défaut) */
+  locale?: Locale;
 } | null;                   // null : carte générique EvLY (lien invalide, page d'accueil)
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -69,17 +73,19 @@ export function shareCardSvg(card: ShareCard): string {
     .map((l, i) => `<text x="80" y="${titleY + i * gap}" font-family="Inter" font-weight="800" font-size="${size}" fill="#ffffff">${esc(l)}</text>`)
     .join('');
   const infoY = titleY + (lines.length - 1) * gap + (lines.length === 1 ? 76 : 64);
-  const who = `${card.participants} participant${card.participants > 1 ? 's' : ''} · proposé par ${card.creatorName}`;
+  const T = SHARE_TEXTS[card.locale ?? 'fr'];
+  const count = (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants));
+  const who = `${count} · ${T.proposedBy.replace('{name}', card.creatorName)}`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     ${background}${logo}
     <rect x="80" y="160" width="232" height="44" rx="22" fill="#ea5a2b" opacity="0.18"/>
-    <text x="196" y="190" text-anchor="middle" font-family="Inter" font-weight="800" font-size="20" letter-spacing="3" fill="#f5a383">INVITATION</text>
+    <text x="196" y="190" text-anchor="middle" font-family="Inter" font-weight="800" font-size="20" letter-spacing="3" fill="#f5a383">${T.badge}</text>
     ${titleSvg}
     ${card.date ? `<text x="80" y="${infoY}" font-family="Inter" font-weight="500" font-size="36" fill="#e2e8f0">${esc(card.date)}</text>` : ''}
     <text x="80" y="${infoY + (card.date ? 52 : 0)}" font-family="Inter" font-weight="500" font-size="30" fill="#94a3b8">${esc(who)}</text>
     <rect x="80" y="514" width="420" height="72" rx="36" fill="#ea5a2b"/>
-    <text x="290" y="560" text-anchor="middle" font-family="Inter" font-weight="800" font-size="30" fill="#ffffff">Réponds en un clic →</text>
+    <text x="290" y="560" text-anchor="middle" font-family="Inter" font-weight="800" font-size="30" fill="#ffffff">${esc(T.cta)}</text>
     <text x="1120" y="562" text-anchor="end" font-family="Inter" font-weight="500" font-size="30" fill="#94a3b8">evly.ch</text>
   </svg>`;
 }

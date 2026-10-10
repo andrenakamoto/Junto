@@ -3,6 +3,9 @@ import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import { APP_URL } from '../lib/mailer';
 import { renderShareCard, type ShareCard } from '../lib/shareImage';
+import { parseLocale } from '../lib/i18n';
+import { intlLocale } from '../lib/emailText';
+import { SHARE_TEXTS } from '../i18n/share';
 
 // Aperçu des liens d'invitation dans les messageries (WhatsApp, Messenger, iMessage…).
 // Vercel renvoie /invitation vers GET /api/share/invitation (client/vercel.json) : on sert
@@ -17,11 +20,11 @@ const SITE = (APP_URL.startsWith('http://localhost') ? 'https://www.evly.ch' : A
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // « Samedi 4 octobre · 19:00 » (heure suisse)
-export function shareDate(date: Date | null): string | null {
+export function shareDate(date: Date | null, intl = 'fr-CH'): string | null {
   if (!date) return null;
   const tz = { timeZone: 'Europe/Zurich' } as const;
-  const day = new Intl.DateTimeFormat('fr-CH', { ...tz, weekday: 'long', day: 'numeric', month: 'long' }).format(date);
-  const time = new Intl.DateTimeFormat('fr-CH', { ...tz, hour: '2-digit', minute: '2-digit' }).format(date);
+  const day = new Intl.DateTimeFormat(intl, { ...tz, weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+  const time = new Intl.DateTimeFormat(intl, { ...tz, hour: '2-digit', minute: '2-digit' }).format(date);
   return `${day.charAt(0).toUpperCase()}${day.slice(1)} · ${time}`;
 }
 
@@ -33,7 +36,7 @@ async function shareCardFor(token: string): Promise<ShareCard> {
       plan: {
         select: {
           title: true, eventDate: true, endDate: true,
-          creator: { select: { firstName: true, pseudo: true } },
+          creator: { select: { firstName: true, pseudo: true, locale: true } },
           _count: { select: { members: { where: { rsvp: 'in' } } } },
         },
       },
@@ -41,9 +44,11 @@ async function shareCardFor(token: string): Promise<ShareCard> {
   });
   if (!link || link.plan.endDate <= new Date()) return null;
   const { plan } = link;
+  const locale = parseLocale(plan.creator.locale) ?? 'fr';
   return {
     title: plan.title,
-    date: shareDate(plan.eventDate),
+    date: shareDate(plan.eventDate, intlLocale(locale)),
+    locale,
     participants: plan._count.members,
     creatorName: plan.creator.firstName || plan.creator.pseudo,
   };
@@ -68,12 +73,12 @@ async function siteIndex(): Promise<string | null> {
 }
 
 export function injectMeta(html: string, card: ShareCard, token: string): string {
-  const title = card ? `${card.title} — invitation EvLY` : 'Invitation EvLY';
-  const parts = card
-    ? [card.date, `${card.participants} participant${card.participants > 1 ? 's' : ''}`].filter(Boolean).join(' · ')
-    : '';
+  const T = SHARE_TEXTS[card?.locale ?? 'fr'];
+  const title = card ? T.title.replace('{title}', card.title) : 'Invitation EvLY';
+  const count = card ? (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants)) : '';
+  const parts = card ? [card.date, count].filter(Boolean).join(' · ') : '';
   const description = card
-    ? `${parts} — Réponds en un clic, sans créer de compte.`
+    ? T.description.replace('{parts}', parts)
     : 'Cette invitation n\'est plus valide. Découvre EvLY pour organiser tes sorties entre proches.';
   const image = card ? `${SITE}/apercu/${token}.png?v=${cardVersion(card)}` : `${SITE}/og-evly.png`;
   const url = `${SITE}/invitation?token=${encodeURIComponent(token)}`;
@@ -82,7 +87,7 @@ export function injectMeta(html: string, card: ShareCard, token: string): string
     <meta name="description" content="${esc(description)}" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EvLY" />
-    <meta property="og:locale" content="fr_CH" />
+    <meta property="og:locale" content="${T.ogLocale}" />
     <meta property="og:url" content="${esc(url)}" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />

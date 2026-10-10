@@ -1,4 +1,8 @@
 import prisma from './prisma';
+import { parseLocale, type Locale } from './i18n';
+import { mail } from './emailText';
+
+type Mail = ReturnType<typeof mail>;
 import { escapeHtml } from './escapeHtml';
 import { mutedAmong } from './mutes';
 import { sendRecapBeforeDeletion } from './planRecap';
@@ -21,7 +25,7 @@ export async function deleteExpiredPlans() {
     const expiredPlans = await prisma.plan.findMany({
       where: { endDate: { lt: new Date() } },
       include: {
-        members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true } } } },
+        members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, locale: true } } } },
         // splitWith indispensable : sans lui, chaque dépense serait répartie entre tous les membres
         expenses: { include: { paidBy: { select: { id: true, pseudo: true } }, splitWith: { select: { userId: true } } } },
         reimbursements: true,
@@ -38,34 +42,39 @@ export async function deleteExpiredPlans() {
             .flatMap(c => c.transfers.map(t => ({ ...t, currency: c.currency })));
           const pseudoOf = (id: string) => plan.members.find(m => m.userId === id)?.user.pseudo ?? '?';
 
-          const expenseLines = plan.expenses
-            .map(e => {
-              const shared = e.splitWith.length > 0 && e.splitWith.length < memberIds.length
-                ? `, partagé entre ${e.splitWith.map(s => pseudoOf(s.userId)).join(', ')}`
-                : '';
-              return `<li>${e.description} — ${formatAmount(e.amount, e.currency)} (payé par ${e.paidBy.pseudo}${shared})</li>`;
-            })
-            .join('');
-          const transferLines = transfers.length > 0
-            ? transfers.map(t => `<li>${pseudoOf(t.fromUserId)} doit ${formatAmount(t.amount, t.currency)} à ${pseudoOf(t.toUserId)}</li>`).join('')
-            : '<li>Tout le monde est déjà à l\'équilibre.</li>';
+          // Résumé dans la langue de chaque membre (montants et textes)
+          const summaryFor = (locale: Locale) => {
+            const m = mail(locale);
+            const expenseLines = plan.expenses.map(e => {
+              const shared = e.splitWith.length > 0 && e.splitWith.length < memberIds.length;
+              const vars = { description: e.description, amount: formatAmount(e.amount, e.currency, m.intl), payer: e.paidBy.pseudo, names: e.splitWith.map(x => pseudoOf(x.userId)).join(', ') };
+              return `<li>${m.t(shared ? 'expenses.lineShared' : 'expenses.line', vars)}</li>`;
+            }).join('');
+            const transferLines = transfers.length > 0
+              ? transfers.map(t => `<li>${m.t('expenses.transfer', { from: pseudoOf(t.fromUserId), amount: formatAmount(t.amount, t.currency, m.intl), to: pseudoOf(t.toUserId) })}</li>`).join('')
+              : `<li>${m.t('expenses.balanced')}</li>`;
+            return { m, expenseLines, transferLines };
+          };
 
-          const recipients = plan.members.filter(m => m.user.email && m.user.emailVerified);
-          await Promise.all(recipients.map(m => resend.emails.send({
-            from: FROM_EMAIL,
-            to: m.user.email!,
-            subject: `Résumé des dépenses — "${plan.title}"`,
-            html: `
+          const recipients = plan.members.filter(x => x.user.email && x.user.emailVerified);
+          await Promise.all(recipients.map(x => {
+            const { m, expenseLines, transferLines } = summaryFor(parseLocale(x.user.locale) ?? 'fr');
+            return resend.emails.send({
+              from: FROM_EMAIL,
+              to: x.user.email!,
+              subject: m.s('expenses.subject', { plan: plan.title }),
+              html: `
               <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                <h2>Le Plan "${escapeHtml(plan.title)}" est terminé, ${escapeHtml(m.user.pseudo)} 👋</h2>
-                <p>Voici un dernier résumé des dépenses avant que le Plan ne disparaisse :</p>
-                <p style="font-weight:600;margin-bottom:4px">Dépenses</p>
+                <h2>${m.t('expenses.title', { plan: plan.title, name: x.user.pseudo })}</h2>
+                <p>${m.t('expenses.intro')}</p>
+                <p style="font-weight:600;margin-bottom:4px">${m.t('expenses.expenses')}</p>
                 <ul>${expenseLines}</ul>
-                <p style="font-weight:600;margin-bottom:4px">Pour équilibrer les comptes</p>
+                <p style="font-weight:600;margin-bottom:4px">${m.t('expenses.balance')}</p>
                 <ul>${transferLines}</ul>
               </div>`,
-          }).then(r => { if (r.error) console.error('[expense_summary email]', m.user.email, r.error); })
-            .catch(e => console.error('[expense_summary email]', m.user.email, e))));
+            }).then(r => { if (r.error) console.error('[expense_summary email]', x.user.email, r.error); })
+              .catch(e => console.error('[expense_summary email]', x.user.email, e));
+          }));
         } catch (e) {
           console.error('[expense_summary] Erreur pour le plan', plan.id, e);
         }
@@ -94,7 +103,7 @@ export async function sendPlanReminders() {
       include: {
         members: {
           where: { rsvp: { in: ['in', 'maybe'] } },
-          include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } } },
+          include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true, locale: true } } },
         },
         volunteerSignups: { include: { shift: true } },
         santa: { include: { pairs: { include: { receiver: { select: { pseudo: true, firstName: true } } } } } },
@@ -116,54 +125,60 @@ export async function sendPlanReminders() {
           .catch(e => console.error('[reminder push]', e));
       }
 
-      const eventDateFmt = plan.eventDate
-        ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(plan.eventDate)
+      const eventDateFmt = (intl: string) => plan.eventDate
+        ? new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }).format(plan.eventDate)
         : '';
 
       // Postes de bénévole de chacun (planning des bénévoles)
       const shiftsOf = (userId: string) => sortShifts(plan.volunteerSignups.filter(s => s.userId === userId).map(s => s.shift));
-      const shiftsBlock = (userId: string) => {
+      const shiftsBlock = (userId: string, m: Mail) => {
         const shifts = shiftsOf(userId);
         if (shifts.length === 0) return '';
         return `<div style="background:#f1f5f9;border-radius:8px;padding:12px 14px;margin:16px 0">
-              <p style="margin:0 0 6px;font-weight:600;color:#1e293b">🙋 Tes postes de bénévole</p>
-              ${shifts.map(s => `<p style="margin:2px 0;color:#1e293b">${escapeHtml(s.title)}${s.startsAt ? ` — ${shiftHours(s)}` : ''}</p>`).join('')}
+              <p style="margin:0 0 6px;font-weight:600;color:#1e293b">${m.t('reminder.shifts')}</p>
+              ${shifts.map(s => `<p style="margin:2px 0;color:#1e293b">${escapeHtml(s.title)}${s.startsAt ? ` — ${shiftHours(s, m.intl)}` : ''}</p>`).join('')}
             </div>`;
       };
 
       // Père Noël secret : à qui la personne offre un cadeau (elle seule le voit)
-      const santaBlock = (userId: string) => {
+      const santaBlock = (userId: string, m: Mail) => {
         const pair = plan.santa?.drawnAt && !plan.santa.revealedAt ? plan.santa.pairs.find(p => p.giverId === userId) : null;
         if (!pair) return '';
         const who = pair.receiver.firstName ?? '@' + pair.receiver.pseudo;
         return `<div style="background:#fff1f2;border-radius:8px;padding:12px 14px;margin:16px 0">
-              <p style="margin:0;color:#1e293b">🎅 N'oublie pas le cadeau de <strong>${escapeHtml(who)}</strong>${plan.santa?.budget ? ` (budget : ${escapeHtml(plan.santa.budget)})` : ''}.</p>
+              <p style="margin:0;color:#1e293b">${plan.santa?.budget ? m.t('reminder.santaBudget', { who, budget: plan.santa.budget }) : m.t('reminder.santa', { who })}</p>
             </div>`;
       };
 
-      const results = await Promise.all(recipients.map(u => resend.emails.send({
+      const results = await Promise.all(recipients.map(u => {
+        const m = mail(parseLocale(u.locale) ?? 'fr');
+        const when = plan.location
+          ? m.t('reminder.whenWhere', { plan: plan.title, date: eventDateFmt(m.intl), place: plan.location })
+          : m.t('reminder.when', { plan: plan.title, date: eventDateFmt(m.intl) });
+        return resend.emails.send({
         from: FROM_EMAIL,
         to: u.email!,
-        subject: `Rappel — "${plan.title}" c'est demain`,
+        subject: m.s('reminder.subject', { plan: plan.title }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Ça se passe demain, ${escapeHtml(u.pseudo)} 👋</h2>
-            <p><strong>${escapeHtml(plan.title)}</strong> a lieu le ${eventDateFmt}${plan.location ? ` — ${escapeHtml(plan.location)}` : ''}.</p>
+            <h2>${m.t('reminder.title', { name: u.pseudo })}</h2>
+            <p>${when}</p>
             ${plan.importantInfo ? `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;margin:16px 0">
-              <p style="margin:0 0 6px;font-weight:600;color:#92400e">📌 Informations importantes</p>
+              <p style="margin:0 0 6px;font-weight:600;color:#92400e">${m.t('reminder.important')}</p>
               <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
             </div>` : ''}
-            ${shiftsBlock(u.id)}
-            ${santaBlock(u.id)}
+            ${shiftsBlock(u.id, m)}
+            ${santaBlock(u.id, m)}
             <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Voir le Plan
+              ${m.t('common.viewPlan')}
             </a>
-          ${notificationFooter()}
+          ${notificationFooter('notification', m.locale)}
           </div>`,
       }).then(r => {
         if (r.error) console.error('[reminder email]', u.email, r.error);
         return !r.error;
-      }).catch(e => { console.error('[reminder email]', u.email, e); return false; })));
+      }).catch(e => { console.error('[reminder email]', u.email, e); return false; });
+      }));
 
       const sentCount = results.filter(Boolean).length;
       await prisma.plan.update({ where: { id: plan.id }, data: { reminderSentAt: now } });
@@ -187,7 +202,7 @@ export async function sendWeeklyDigest() {
         emailVerified: true,
         OR: [{ lastDigestSentAt: null }, { lastDigestSentAt: { lt: sixDaysAgo } }],
       },
-      select: { id: true, pseudo: true, email: true },
+      select: { id: true, pseudo: true, email: true, locale: true },
     });
     let sentCount = 0;
 
@@ -207,28 +222,29 @@ export async function sendWeeklyDigest() {
         continue;
       }
 
+      const m = mail(parseLocale(user.locale) ?? 'fr');
       const items = plans.map(p => {
         const dateStr = p.eventDate
-          ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(p.eventDate)
-          : 'Date libre';
+          ? new Intl.DateTimeFormat(m.intl, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' }).format(p.eventDate)
+          : m.t('digest.freeDate');
         // Invité externe : on ne révèle pas le nom du Cercle
-        const where = p.circle.members.length > 0 ? p.circle.name : 'invitation';
-        return `<li><strong>${p.title}</strong> (${where}) — ${dateStr}</li>`;
+        const where = p.circle.members.length > 0 ? escapeHtml(p.circle.name) : m.t('digest.invitation');
+        return `<li><strong>${escapeHtml(p.title)}</strong> (${where}) — ${dateStr}</li>`;
       }).join('');
 
       const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: user.email!,
-        subject: `Cette semaine sur EvLY — ${plans.length} Plan${plans.length > 1 ? 's' : ''} actif${plans.length > 1 ? 's' : ''}`,
+        subject: m.s('digest.subject', { count: plans.length }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${escapeHtml(user.pseudo)} 👋</h2>
-            <p>Voici les Plans actifs dans tes Cercles :</p>
+            <h2>${m.t('common.hello', { name: user.pseudo })}</h2>
+            <p>${m.t('digest.intro')}</p>
             <ul>${items}</ul>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Ouvrir EvLY
+              ${m.t('common.openEvly')}
             </a>
-          ${notificationFooter('digest')}
+          ${notificationFooter('digest', m.locale)}
           </div>`,
       }).catch(e => { console.error('[digest email]', user.email, e); return null; });
       if (result?.error) console.error('[digest email]', user.email, result.error);

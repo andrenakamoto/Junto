@@ -1,3 +1,4 @@
+import { requestLocale } from '../lib/i18n';
 import { Router, Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
@@ -64,7 +65,7 @@ router.post('/', limitIfNoAccount, async (req, res) => {
       lightToken = makeLightToken(light);
     }
 
-    const circle = await getOrCreatePersonalCircle(user.id);
+    const circle = await getOrCreatePersonalCircle(user.id, requestLocale(req));
     // Le Plan disparaît le lendemain de la sortie, comme tous les Plans à leur date de fin
     const endDate = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000);
     const result = await createPlanInCircle(req.app, circle.id, user.id, {

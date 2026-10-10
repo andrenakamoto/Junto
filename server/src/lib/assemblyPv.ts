@@ -1,7 +1,9 @@
 import path from 'path';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
-import { MAJORITY_LABEL, countVotes, electionResult, fullName, isAdopted, quorumRequired, votingRights } from './assembly';
+import type { Locale } from './i18n';
+import { mail } from './emailText';
+import { countVotes, electionResult, fullName, isAdopted, quorumRequired, votingRights } from './assembly';
 
 // Procès-verbal d'une assemblée (lib/assembly.ts) : présents, procurations, quorum, chaque point de l'ordre du
 // jour avec ses notes et le résultat des votes, élus, lignes de signature. Un PV identifie les personnes :
@@ -16,12 +18,13 @@ const F = {
   serifLight: path.join(FONT_DIR, 'Fraunces-LightItalic.ttf'),
 };
 const CORAL = '#ea5a2b', INK = '#1c1410', DIM = '#6b5850', LINE = '#f0ddd3', GREEN = '#047857', RED = '#b91c1c';
-const zurich = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('fr-CH', { timeZone: 'Europe/Zurich', ...opts });
-const day = zurich({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const time = zurich({ hour: '2-digit', minute: '2-digit' });
-const CHOICE: Record<string, string> = { yes: 'oui', no: 'non', abstain: 'abstention' };
-
-export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buffer; filename: string } | null> {
+export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'): Promise<{ buffer: Buffer; filename: string } | null> {
+  const m = mail(locale);
+  const zurich = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(m.intl, { timeZone: 'Europe/Zurich', ...opts });
+  const day = zurich({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const time = zurich({ hour: '2-digit', minute: '2-digit' });
+  const CHOICE: Record<string, string> = { yes: m.s('pvPdf.yes'), no: m.s('pvPdf.no'), abstain: m.s('pvPdf.abstain') };
+  const MAJORITY: Record<string, string> = { simple: m.s('pvPdf.majoritySimple'), absolute: m.s('pvPdf.majorityAbsolute'), two_thirds: m.s('pvPdf.majorityTwoThirds') };
   const plan = await prisma.plan.findUnique({
     where: { id: planId },
     include: {
@@ -43,8 +46,8 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
     select: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
   });
   const users = new Map(circleMembers.map(m => [m.user.id, m.user]));
-  const name = (id: string | null | undefined) => { const u = id ? users.get(id) : null; return u ? fullName(u) : '(compte supprimé)'; };
-  const sortByName = (ids: string[]) => [...ids].sort((x, y) => name(x).localeCompare(name(y), 'fr'));
+  const name = (id: string | null | undefined) => { const u = id ? users.get(id) : null; return u ? fullName(u) : m.s('pvPdf.deleted'); };
+  const sortByName = (ids: string[]) => [...ids].sort((x, y) => name(x).localeCompare(name(y), m.intl));
   const voterIds = [...users.keys()].filter(id => !a.nonVoterIds.includes(id));
   const present = new Set(a.attendances.map(x => x.userId));
   const r = votingRights(voterIds, present, a.proxies);
@@ -52,7 +55,7 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
   const docIds = [...new Set(a.items.flatMap(i => i.attachmentIds))];
   const docs = new Map((docIds.length ? await prisma.attachment.findMany({ where: { id: { in: docIds } }, select: { id: true, name: true } }) : []).map(d => [d.id, d.name]));
 
-  const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 56, right: 56 }, bufferPages: true, info: { Title: `Procès-verbal — ${plan.title}`, Author: 'EvLY' } });
+  const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 56, right: 56 }, bufferPages: true, info: { Title: m.s('pvPdf.title', { plan: plan.title }), Author: 'EvLY' } });
   const chunks: Buffer[] = [];
   doc.on('data', c => chunks.push(c));
   const done = new Promise<Buffer>(resolve => doc.on('end', () => resolve(Buffer.concat(chunks))));
@@ -62,7 +65,7 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
   const draft = !a.closedAt;
 
   doc.font('serifLight').fontSize(20).fillColor(INK).text('Ev', left, 44, { continued: true }).font('serif').fillColor(CORAL).text('LY');
-  doc.font('bold').fontSize(8).fillColor(draft ? RED : CORAL).text(draft ? 'PROJET DE PROCÈS-VERBAL' : 'PROCÈS-VERBAL', left, 52, { width, align: 'right', characterSpacing: 1.2 });
+  doc.font('bold').fontSize(8).fillColor(draft ? RED : CORAL).text(draft ? m.s('pvPdf.draftHeader') : m.s('pvPdf.header'), left, 52, { width, align: 'right', characterSpacing: 1.2 });
   doc.moveTo(left, 76).lineTo(left + width, 76).lineWidth(0.8).strokeColor(LINE).stroke();
   doc.y = 92;
   doc.font('semibold').fontSize(9).fillColor(CORAL).text(plan.circle.name.toUpperCase(), { characterSpacing: 0.8 });
@@ -70,11 +73,11 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
   doc.moveDown(0.4);
   const line = (label: string, value: string) => doc.font('semibold').fontSize(10).fillColor(DIM).text(`${label}  `, { continued: true }).font('regular').fillColor(INK).text(value);
   const when = a.openedAt ?? plan.eventDate;
-  if (when) line('Date', `${day.format(when)}`);
-  if (a.openedAt) line('Ouverture', time.format(a.openedAt) + (a.closedAt ? `  ·  Clôture : ${time.format(a.closedAt)}` : ''));
-  if (plan.location) line('Lieu', plan.location);
-  line('Organisation', fullName(plan.creator));
-  if (a.secretaryId) line('Procès-verbal', name(a.secretaryId));
+  if (when) line(m.s('pvPdf.date'), `${day.format(when)}`);
+  if (a.openedAt) line(m.s('pvPdf.opening'), time.format(a.openedAt) + (a.closedAt ? m.s('pvPdf.closing', { time: time.format(a.closedAt) }) : ''));
+  if (plan.location) line(m.s('pvPdf.place'), plan.location);
+  line(m.s('pvPdf.organisation'), fullName(plan.creator));
+  if (a.secretaryId) line(m.s('pvPdf.minutes'), name(a.secretaryId));
 
   const section = (title: string, sub?: string) => {
     if (doc.y > doc.page.height - 140) doc.addPage();
@@ -87,59 +90,64 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
 
   // Présences
   const presentIds = sortByName([...present].filter(id => users.has(id)));
-  section('Présences', `${presentIds.length} présent${presentIds.length > 1 ? 's' : ''}`);
+  section(m.s('pvPdf.presence'), m.s('pvPdf.presentCount', { count: presentIds.length }));
   if (presentIds.length) para(presentIds.map(id => {
     const att = a.attendances.find(x => x.userId === id);
-    const tags = [att?.remote ? 'à distance' : null, a.nonVoterIds.includes(id) ? 'sans droit de vote' : null].filter(Boolean);
+    const tags = [att?.remote ? m.s('pvPdf.remote') : null, a.nonVoterIds.includes(id) ? m.s('pvPdf.noVote') : null].filter(Boolean);
     return `${name(id)}${tags.length ? ` (${tags.join(', ')})` : ''}`;
   }).join(', '));
-  else para('Personne n’a été pointé présent.', DIM);
+  else para(m.s('pvPdf.nobodyPresent'), DIM);
   if (r.validProxies.length) {
-    doc.moveDown(0.4).font('semibold').fontSize(10).fillColor(INK).text(`Procurations (${r.validProxies.length})`);
-    para(r.validProxies.map(p => `${name(p.giverId)}, représenté·e par ${name(p.holderId)}`).join(' ; '), DIM);
+    doc.moveDown(0.4).font('semibold').fontSize(10).fillColor(INK).text(m.s('pvPdf.proxies', { count: r.validProxies.length }));
+    para(r.validProxies.map(p => m.s('pvPdf.representedBy', { giver: name(p.giverId), holder: name(p.holderId) })).join(' ; '), DIM);
   }
   const excused = sortByName(plan.members.filter(m => m.rsvp === 'out' && users.has(m.userId) && !present.has(m.userId) && !r.validProxies.some(p => p.giverId === m.userId)).map(m => m.userId));
   if (excused.length) {
-    doc.moveDown(0.4).font('semibold').fontSize(10).fillColor(INK).text(`Excusés (${excused.length})`);
+    doc.moveDown(0.4).font('semibold').fontSize(10).fillColor(INK).text(m.s('pvPdf.excused', { count: excused.length }));
     para(excused.map(name).join(', '), DIM);
   }
 
-  section('Quorum');
-  para(`${voterIds.length} membres votants · ${r.presentVoters} présents votants + ${r.validProxies.length} procuration${r.validProxies.length > 1 ? 's' : ''} = ${r.represented} voix.`);
-  if (required === null) para('Aucun quorum requis.', DIM);
-  else para(`Quorum requis : ${required} voix${a.quorumMode === 'percent' ? ` (${a.quorumValue} % des membres votants)` : ''} — ${r.represented >= required ? 'atteint.' : 'NON atteint.'}`, r.represented >= required ? GREEN : RED, 'semibold');
+  section(m.s('pvPdf.quorum'));
+  para(m.s('pvPdf.quorumLine', { voters: voterIds.length, present: r.presentVoters, proxies: r.validProxies.length, represented: r.represented }));
+  if (required === null) para(m.s('pvPdf.noQuorum'), DIM);
+  else {
+    const status = r.represented >= required ? m.s('pvPdf.reached') : m.s('pvPdf.notReached');
+    para(a.quorumMode === 'percent' ? m.s('pvPdf.quorumRequiredPercent', { required, value: a.quorumValue ?? '', status }) : m.s('pvPdf.quorumRequired', { required, status }), r.represented >= required ? GREEN : RED, 'semibold');
+  }
 
   // Ordre du jour
-  section('Ordre du jour et décisions');
+  section(m.s('pvPdf.agenda'));
   a.items.forEach((i, n) => {
     if (doc.y > doc.page.height - 130) doc.addPage();
     doc.moveDown(0.5).font('semibold').fontSize(11.5).fillColor(INK).text(`${n + 1}. ${i.title}`, { width });
     if (i.description) para(i.description, DIM);
     const d = i.attachmentIds.map(id => docs.get(id)).filter(Boolean);
-    if (d.length) para(`Documents : ${d.join(', ')}`, DIM);
+    if (d.length) para(m.s('pvPdf.documents', { names: d.join(', ') }), DIM);
     if (i.notes) { doc.moveDown(0.2); para(i.notes); }
     if (i.kind === 'vote') {
       doc.moveDown(0.2);
-      if (i.status === 'tacit') para(`Décision : ${i.tacitAdopted ? 'adopté' : 'rejeté'} sans scrutin (par acclamation).`, i.tacitAdopted ? GREEN : RED, 'semibold');
+      if (i.status === 'tacit') para(i.tacitAdopted ? m.s('pvPdf.tacitAdopted') : m.s('pvPdf.tacitRejected'), i.tacitAdopted ? GREEN : RED, 'semibold');
       else if (i.status === 'closed') {
         const c = countVotes(i.ballots);
         const ok = isAdopted(c, i.majority);
-        para(`Vote ${i.secret ? 'au bulletin secret' : 'à main levée'}, ${MAJORITY_LABEL[i.majority as keyof typeof MAJORITY_LABEL]}.`, DIM);
-        para(`${ok ? 'Adopté' : 'Rejeté'} : ${c.yes} oui, ${c.no} non, ${c.abstain} abstention${c.abstain > 1 ? 's' : ''}${i.eligibleVotes ? ` (${i.ballots.length} voix exprimées sur ${i.eligibleVotes})` : ''}.`, ok ? GREEN : RED, 'semibold');
-        if (!i.secret && i.voters.length) para(i.voters.map(v => `${name(v.onBehalfOfId)}${v.userId !== v.onBehalfOfId ? ` (par ${name(v.userId)})` : ''} : ${CHOICE[v.choice ?? ''] ?? '?'}`).join(' ; '), DIM);
-      } else para('Pas encore voté.', DIM);
+        para(m.s(i.secret ? 'pvPdf.voteSecret' : 'pvPdf.voteOpen', { majority: MAJORITY[i.majority] ?? i.majority }), DIM);
+        const vars = { verdict: ok ? m.s('pvPdf.adopted') : m.s('pvPdf.rejected'), yes: c.yes, no: c.no, abstain: c.abstain, cast: i.ballots.length, eligible: i.eligibleVotes ?? '' };
+        para(m.s(i.eligibleVotes ? 'pvPdf.resultCast' : 'pvPdf.result', vars), ok ? GREEN : RED, 'semibold');
+        if (!i.secret && i.voters.length) para(i.voters.map(v => `${v.userId !== v.onBehalfOfId ? m.s('pvPdf.by', { name: name(v.onBehalfOfId), by: name(v.userId) }) : name(v.onBehalfOfId)} : ${CHOICE[v.choice ?? ''] ?? '?'}`).join(' ; '), DIM);
+      } else para(m.s('pvPdf.notVoted'), DIM);
     }
     if (i.kind === 'election') {
       doc.moveDown(0.2);
       const elected = i.candidates.filter(c => c.elected).map(c => c.name);
-      if (i.status === 'tacit') para(`Élu${elected.length > 1 ? 's' : ''} tacitement : ${elected.join(', ')}.`, GREEN, 'semibold');
+      if (i.status === 'tacit') para(m.s('pvPdf.tacitElected', { names: elected.join(', ') }), GREEN, 'semibold');
       else if (i.status === 'closed') {
         const res = electionResult(i.candidates.map(c => c.id), i.ballots, i.seats ?? 1);
-        para(`Élection ${i.secret ? 'au bulletin secret' : 'à main levée'}, ${i.seats ?? 1} siège${(i.seats ?? 1) > 1 ? 's' : ''} ; ${i.ballots.length} bulletins${i.eligibleVotes ? ` sur ${i.eligibleVotes} voix` : ''}.`, DIM);
-        para(res.ranking.map(x => `${i.candidates.find(c => c.id === x.id)?.name} : ${x.votes} voix`).join(' ; '), DIM);
-        para(elected.length ? `Élu${elected.length > 1 ? 's' : ''} : ${elected.join(', ')}.` : 'Personne d’élu.', elected.length ? GREEN : RED, 'semibold');
-        if (res.tie && elected.length > res.elected.length) para('Égalité de voix départagée par la présidence.', DIM);
-      } else para(i.candidates.length ? `Candidats : ${i.candidates.map(c => c.name).join(', ')}. Pas encore élu.` : 'Pas encore élu.', DIM);
+        const key = i.secret ? (i.eligibleVotes ? 'pvPdf.electionSecretOf' : 'pvPdf.electionSecret') : (i.eligibleVotes ? 'pvPdf.electionOpenOf' : 'pvPdf.electionOpen');
+        para(m.s(key, { seats: i.seats ?? 1, ballots: i.ballots.length, eligible: i.eligibleVotes ?? '' }), DIM);
+        para(res.ranking.map(x => m.s('pvPdf.candidateVotes', { name: i.candidates.find(c => c.id === x.id)?.name ?? '?', count: x.votes })).join(' ; '), DIM);
+        para(elected.length ? m.s('pvPdf.elected', { names: elected.join(', ') }) : m.s('pvPdf.nobodyElected'), elected.length ? GREEN : RED, 'semibold');
+        if (res.tie && elected.length > res.elected.length) para(m.s('pvPdf.tieBroken'), DIM);
+      } else para(i.candidates.length ? m.s('pvPdf.candidatesPending', { names: i.candidates.map(c => c.name).join(', ') }) : m.s('pvPdf.notElected'), DIM);
     }
   });
 
@@ -151,8 +159,8 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
   doc.moveTo(left, y).lineTo(left + half, y).lineWidth(0.6).strokeColor(DIM).stroke();
   doc.moveTo(left + half + 40, y).lineTo(left + width, y).stroke();
   doc.font('regular').fontSize(9).fillColor(DIM)
-    .text('La présidence', left, y + 6, { width: half })
-    .text(a.secretaryId ? `Le ou la secrétaire (${name(a.secretaryId)})` : 'Le ou la secrétaire', left + half + 40, y + 6, { width: half });
+    .text(m.s('pvPdf.chair'), left, y + 6, { width: half })
+    .text(a.secretaryId ? m.s('pvPdf.secretaryNamed', { name: name(a.secretaryId) }) : m.s('pvPdf.secretary'), left + half + 40, y + 6, { width: half });
 
   const generated = zurich({ day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date());
   const range = doc.bufferedPageRange();
@@ -162,11 +170,11 @@ export async function buildAssemblyPvPdf(planId: string): Promise<{ buffer: Buff
     doc.page.margins.bottom = 0;
     const fy = doc.page.height - 38;
     doc.font('regular').fontSize(8).fillColor(DIM)
-      .text(`${draft ? 'Projet généré' : 'Généré'} le ${generated} depuis evly.ch`, left, fy, { width: width - 40, lineBreak: false })
+      .text(m.s(draft ? 'pvPdf.footerDraft' : 'pvPdf.footer', { date: generated }), left, fy, { width: width - 40, lineBreak: false })
       .text(`${p + 1} / ${range.count}`, left, fy, { width, align: 'right', lineBreak: false });
     doc.page.margins.bottom = bottom;
   }
   doc.end();
   const buffer = await done;
-  return { buffer, filename: `${plan.title.replace(/[/\\:*?"<>|]/g, '_').slice(0, 80)} - procès-verbal.pdf` };
+  return { buffer, filename: `${plan.title.replace(/[/\\:*?"<>|]/g, '_').slice(0, 80)} - ${m.s('pvPdf.file')}.pdf` };
 }

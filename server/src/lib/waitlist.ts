@@ -1,4 +1,6 @@
 import prisma from './prisma';
+import { parseLocale } from './i18n';
+import { mail } from './emailText';
 import { getPlanAccess } from './planAccess';
 import { markAllSeen } from './planActivity';
 import { notifyUser } from './push';
@@ -45,7 +47,7 @@ export async function promoteFromWaitlist(io: any, planId: string): Promise<stri
     for (let guard = 0; guard < 50; guard++) {
       const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, circleId: true, maxParticipants: true, endDate: true } });
       if (!plan || plan.endDate <= new Date()) break;
-      const first = await prisma.planWaitlist.findFirst({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { user: { select: { id: true, pseudo: true, firstName: true, email: true, emailVerified: true, notificationChannel: true } } } });
+      const first = await prisma.planWaitlist.findFirst({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { user: { select: { id: true, pseudo: true, firstName: true, email: true, emailVerified: true, notificationChannel: true, locale: true } } } });
       if (!first) break;
       // Plus de limite, ou une place libre
       if (plan.maxParticipants !== null && await occupiedCount(planId) >= plan.maxParticipants) break;
@@ -67,17 +69,18 @@ export async function promoteFromWaitlist(io: any, planId: string): Promise<stri
       notifyUser(io, first.userId, { type: 'waitlist', planId, planTitle: plan.title, circleId: plan.circleId, preview: '🎉 Une place s’est libérée, tu es dedans !' });
       notifyMembershipChange(io, planId, { id: first.userId, pseudo: first.user.pseudo }, existing ? 'back' : 'join').catch(e => console.error('[waitlist notify]', e));
       if (first.user.email && first.user.emailVerified && wantsEmail(first.user.notificationChannel)) {
+        const m = mail(parseLocale(first.user.locale) ?? 'fr');
         resend.emails.send({
           from: FROM_EMAIL,
           to: first.user.email,
-          subject: `Une place s’est libérée : tu participes à « ${plan.title} »`,
+          subject: m.s('waitlist.subject', { plan: plan.title }),
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:auto">
-              <h2>Bonne nouvelle ${escapeHtml(first.user.firstName ?? first.user.pseudo)} 🎉</h2>
-              <p>Une place s’est libérée dans le Plan <strong>« ${escapeHtml(plan.title)} »</strong> : tu étais en tête de la liste d’attente, tu es maintenant inscrit(e).</p>
-              <p>Tu ne peux plus venir ? Réponds « Je passe » pour laisser la place à la personne suivante.</p>
-              <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Voir le Plan</a>
-              ${notificationFooter('simple')}
+              <h2>${m.t('waitlist.title', { name: first.user.firstName ?? first.user.pseudo })}</h2>
+              <p>${m.t('waitlist.text', { plan: plan.title })}</p>
+              <p>${m.t('waitlist.cantCome')}</p>
+              <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${m.t('common.viewPlan')}</a>
+              ${notificationFooter('simple', m.locale)}
             </div>`,
         }).then(r => { if (r.error) console.error('[waitlist email]', r.error); }).catch(e => console.error('[waitlist email]', e));
       }

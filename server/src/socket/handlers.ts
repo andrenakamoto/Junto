@@ -2,6 +2,8 @@ import { Server, Socket } from 'socket.io';
 import { escapeHtml } from '../lib/escapeHtml';
 import { verifySessionToken } from '../middleware/auth';
 import prisma from '../lib/prisma';
+import { parseLocale } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { decryptMessage, encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
@@ -129,7 +131,7 @@ export function setupSocketHandlers(io: Server) {
         where: { id: planId },
         select: {
           title: true, circleId: true,
-          members: { select: { userId: true, user: { select: { pseudo: true, email: true, emailVerified: true, notificationChannel: true } } } },
+          members: { select: { userId: true, user: { select: { pseudo: true, email: true, emailVerified: true, notificationChannel: true, locale: true } } } },
         },
       });
       if (!planData) return;
@@ -168,21 +170,24 @@ export function setupSocketHandlers(io: Server) {
       const offlineMentioned = planData.members.filter(
         m => mentioned.has(m.userId) && (onlineCounts.get(m.userId) ?? 0) === 0 && m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel),
       );
-      await Promise.all(offlineMentioned.map(m => resend.emails.send({
+      await Promise.all(offlineMentioned.map(r => {
+        const m = mail(parseLocale(r.user.locale) ?? 'fr');
+        return resend.emails.send({
         from: FROM_EMAIL,
-        to: m.user.email!,
-        subject: `${socket.data.pseudo} t'a mentionné dans "${planData.title}"`,
+        to: r.user.email!,
+        subject: m.s('mention.subject', { who: socket.data.pseudo, plan: planData.title }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
-            <p><strong>${escapeHtml(socket.data.pseudo)}</strong> t'a mentionné dans le Plan <strong>"${escapeHtml(planData.title)}"</strong>.</p>
+            <h2>${m.t('common.hello', { name: r.user.pseudo })}</h2>
+            <p>${m.t('mention.text', { who: socket.data.pseudo, plan: planData.title })}</p>
             <a href="${APP_URL}/dashboard?planId=${planId}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Voir le message
+              ${m.t('mention.button')}
             </a>
-          ${notificationFooter('simple')}
+          ${notificationFooter('simple', m.locale)}
           </div>`,
-      }).then(r => { if (r.error) console.error('[mention email]', m.user.email, r.error); })
-        .catch(e => console.error('[mention email]', m.user.email, e))));
+      }).then(x => { if (x.error) console.error('[mention email]', r.user.email, x.error); })
+        .catch(e => console.error('[mention email]', r.user.email, e));
+      }));
 
       // Notifier les autres membres du plan qui ne sont pas dans la room (et pas déjà notifiés pour la mention)
       for (const m of planData.members) {

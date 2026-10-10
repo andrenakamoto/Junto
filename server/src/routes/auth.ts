@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { parseLocale, forgetUserLocale, localeFromHeader, requestLocale, type Locale } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import { escapeHtml } from '../lib/escapeHtml';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -33,7 +35,7 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; firstName?: string | null; lastName?: string | null;
-  password?: string | null; pendingEmail?: string | null; notificationChannel?: string;
+  password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null;
   blocking?: { blockedId: string }[];
 }) {
   return {
@@ -53,6 +55,7 @@ function safeUser(user: {
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
     recapEmailEnabled: user.recapEmailEnabled ?? false,
     notificationChannel: user.notificationChannel ?? 'both',
+    locale: user.locale ?? null,
     // Personnes masquées (lib/moderation.ts) : leurs messages sont cachés côté client
     ...(user.blocking && { blockedUserIds: user.blocking.map(b => b.blockedId) }),
   };
@@ -67,20 +70,21 @@ function parseNames(body: any): { firstName: string; lastName: string | null } |
   return { firstName, lastName: lastName || null };
 }
 
-async function sendVerificationEmail(email: string, pseudo: string, token: string) {
+async function sendVerificationEmail(email: string, pseudo: string, token: string, locale: Locale) {
   const link = `${APP_URL}/verify-email?token=${token}`;
+  const m = mail(locale);
   await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: 'Confirme ton adresse email — EvLY',
+    subject: m.s('verify.subject'),
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Bienvenue sur EvLY, ${escapeHtml(pseudo)} 👋</h2>
-        <p>Clique sur le bouton ci-dessous pour confirmer ton adresse email.</p>
+        <h2>${m.t('verify.title', { name: pseudo })}</h2>
+        <p>${m.t('verify.text')}</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-          Confirmer mon email
+          ${m.t('verify.button')}
         </a>
-        <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 24h.</p>
+        <p style="color:#888;font-size:12px;margin-top:24px">${m.t('verify.expires')}</p>
       </div>`,
   });
 }
@@ -173,6 +177,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       firstName: names.firstName, lastName: names.lastName,
       status: 'approved', emailVerified: false,
       emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires,
+      locale: localeFromHeader(req.headers['accept-language']),
     };
 
     // Inscription depuis un appareil où l'on avait répondu sans compte : le même compte
@@ -182,7 +187,7 @@ router.post('/register', registerLimiter, async (req, res) => {
       ? await prisma.user.update({ where: { id: light.id }, data })
       : await prisma.user.create({ data });
 
-    await sendVerificationEmail(emailLower, pseudo, verifyToken);
+    await sendVerificationEmail(emailLower, pseudo, verifyToken, requestLocale(req));
     countFunnel('funnel_register');
     res.json({ pendingVerification: true, user: safeUser(user) });
   } catch (e) {
@@ -224,7 +229,7 @@ router.post('/resend-verification', emailActionLimiter, async (req, res) => {
       where: { id: user.id },
       data: { emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires },
     });
-    await sendVerificationEmail(user.email!, user.pseudo, verifyToken);
+    await sendVerificationEmail(user.email!, user.pseudo, verifyToken, requestLocale(req));
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
@@ -314,6 +319,7 @@ router.post('/google', loginLimiter, async (req, res) => {
           firstName: payload.given_name?.slice(0, 50) ?? null,
           lastName: payload.family_name?.slice(0, 50) ?? null,
           emailVerified: true, status: 'approved',
+          locale: localeFromHeader(req.headers['accept-language']),
         },
       });
     }
@@ -372,7 +378,7 @@ const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, notificationChannel: true,
   blocking: { select: { blockedId: true } },
-  firstName: true, lastName: true, password: true, pendingEmail: true,
+  firstName: true, lastName: true, password: true, pendingEmail: true, locale: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
@@ -395,6 +401,15 @@ router.put('/profile', requireAuth, async (req: AuthRequest, res) => {
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
+});
+
+// Langue de l'app, des emails et des notifications (lib/i18n.ts)
+router.put('/locale', requireAuth, async (req: AuthRequest, res) => {
+  const locale = parseLocale(req.body?.locale);
+  if (!locale) { res.status(400).json({ error: 'Langue inconnue' }); return; }
+  await prisma.user.update({ where: { id: req.userId }, data: { locale } });
+  forgetUserLocale(req.userId!);
+  res.json({ locale });
 });
 
 // Supprimer son propre compte (mot de passe requis, ou « SUPPRIMER » pour un compte Google)
@@ -424,15 +439,16 @@ router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthReques
     res.json({ deleted: true });
 
     if (user.email && user.emailVerified) {
+      const m = mail(parseLocale(user.locale) ?? requestLocale(req));
       const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: user.email,
-        subject: 'Ton compte EvLY a été supprimé',
+        subject: m.s('deleted.subject'),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Au revoir ${escapeHtml(user.firstName || user.pseudo)}</h2>
-            <p>Ton compte EvLY et tes données personnelles ont bien été supprimés. Les Cercles et Plans que tu avais créés ont été confiés à d'autres membres.</p>
-            <p style="color:#888;font-size:12px;margin-top:24px">Tu peux recréer un compte à tout moment sur evly.ch.</p>
+            <h2>${m.t('deleted.title', { name: user.firstName || user.pseudo })}</h2>
+            <p>${m.t('deleted.text')}</p>
+            <p style="color:#888;font-size:12px;margin-top:24px">${m.t('deleted.again')}</p>
           </div>`,
       });
       if (result.error) console.error('[delete account email]', user.email, result.error);
@@ -502,7 +518,7 @@ router.put('/add-email', requireAuth, async (req: AuthRequest, res) => {
       where: { id: req.userId },
       data: { email: emailLower, emailVerified: false, emailVerifyToken: verifyToken, emailVerifyExpires: verifyExpires },
     });
-    await sendVerificationEmail(emailLower, user.pseudo, verifyToken);
+    await sendVerificationEmail(emailLower, user.pseudo, verifyToken, requestLocale(req));
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });

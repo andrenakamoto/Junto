@@ -1,4 +1,6 @@
 import prisma from './prisma';
+import { parseLocale } from './i18n';
+import { mail } from './emailText';
 import { escapeHtml } from './escapeHtml';
 import { isMuted } from './mutes';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
@@ -38,7 +40,7 @@ export async function sendPollReminders() {
       where: { resolvedAt: null, reminderSentAt: null, createdAt: { lt: new Date(now - 12 * HOUR) } },
       include: {
         options: { include: { votes: { select: { userId: true } } } },
-        creator: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true } },
+        creator: { select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true, locale: true } },
         circle: { select: { id: true, name: true } },
       },
     });
@@ -59,23 +61,24 @@ export async function sendPollReminders() {
       const open = poll.options.filter(o => !o.eventDate || o.eventDate.getTime() > now);
       const best = Math.max(0, ...open.map(o => o.votes.length));
       const bestLabels = best > 0 ? open.filter(o => o.votes.length === best).map(o => o.label) : [];
+      const m = mail(parseLocale(poll.creator.locale) ?? 'fr');
       const summary = bestLabels.length > 0
-        ? `<p>${voters} personne${voters > 1 ? 's ont' : ' a'} répondu. La date la plus demandée : <strong>${bestLabels.join(' / ')}</strong> (${best} vote${best > 1 ? 's' : ''}).</p>`
-        : '<p>Personne n\'a encore coché de date.</p>';
+        ? `<p>${m.t('pollReminder.answered', { count: voters })} ${m.t('pollReminder.best', { dates: bestLabels.join(' / '), count: best })}</p>`
+        : `<p>${m.t('pollReminder.nobody')}</p>`;
 
       const r = await resend.emails.send({
         from: FROM_EMAIL,
         to: poll.creator.email,
-        subject: `Ton sondage "${poll.question}" se termine demain`,
+        subject: m.s('pollReminder.subject', { poll: poll.question }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${escapeHtml(poll.creator.pseudo)} 👋</h2>
-            <p>Ton sondage de dates <strong>"${escapeHtml(poll.question)}"</strong> dans le Cercle <strong>"${escapeHtml(poll.circle.name)}"</strong> se termine demain. Sans Plan créé d'ici là, il sera supprimé avec ses votes et son chat.</p>
+            <h2>${m.t('common.hello', { name: poll.creator.pseudo })}</h2>
+            <p>${m.t('pollReminder.text', { poll: poll.question, circle: poll.circle.name })}</p>
             ${summary}
             <a href="${APP_URL}/dashboard?circleId=${poll.circle.id}&pollId=${poll.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Créer le Plan
+              ${m.t('pollReminder.button')}
             </a>
-          ${notificationFooter()}
+          ${notificationFooter('notification', m.locale)}
           </div>`,
       }).catch(e => ({ data: null, error: e }));
       if (r.error) console.error('[poll_reminder email]', poll.id, r.error);

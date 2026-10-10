@@ -42,5 +42,8 @@ describe('aperçu des invitations', () => {
     expect(out).toContain('noindex');
     expect(out.match(/og:title/g)).toHaveLength(1);
     expect(injectMeta(html, null, 'zzz')).toContain('og-evly.png');
+    const de = injectMeta(html, { title: 'Raclette', date: null, participants: 1, creatorName: 'Julie', locale: 'de' }, 'abcdefghijkl');
+    expect(de).toContain('content="1 Teilnehmer/in — Antworte mit einem Klick, ohne Konto."');
+    expect(de).toContain('content="de_CH"');
   });
 });

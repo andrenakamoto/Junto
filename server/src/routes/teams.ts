@@ -3,6 +3,8 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
+import { userLocale } from '../lib/i18n';
+import { TEAM_NAMES } from '../i18n/games';
 import {
   MAX_TEAMS, TEAMS_DISABLED_ERROR, TEAM_COLORS, TEAM_NAME_MAX, canManageTeams, drawTeams, knockoutFirstRound,
   knockoutWinner, leagueSchedule, leagueStandings, nextKnockoutRound, parseScore, teamParticipants, teamsEnabled,
@@ -116,19 +118,20 @@ router.post('/:id/teams/draw', async (req: AuthRequest, res) => {
   const groups = drawTeams(participants.map(p => ({ id: p.id, level: levels.find(l => l.userId === p.id)?.level ?? 2 })), ctx.draw.teamCount, ctx.draw.balanced);
   // Noms gardés d'un tirage à l'autre s'ils ont été changés
   const previous = await prisma.team.findMany({ where: { planId: ctx.plan.id }, orderBy: { position: 'asc' } });
+  const teamNames = TEAM_NAMES[await userLocale(ctx.plan.creatorId)];
   await prisma.$transaction([
     prisma.teamMatch.deleteMany({ where: { planId: ctx.plan.id } }),
     prisma.team.deleteMany({ where: { planId: ctx.plan.id } }),
     prisma.teamDraw.update({ where: { planId: ctx.plan.id }, data: { drawnAt: new Date(), format: null } }),
     ...groups.map((ids, i) => prisma.team.create({
       data: {
-        planId: ctx.plan.id, position: i, name: previous[i]?.name ?? TEAM_COLORS[i].name, color: TEAM_COLORS[i].color,
+        planId: ctx.plan.id, position: i, name: previous[i]?.name ?? teamNames[i], color: TEAM_COLORS[i].color,
         members: { create: ids.map(userId => ({ planId: ctx.plan.id, userId })) },
       },
     })),
   ]);
   res.json({ ok: true });
-  const names = groups.map((_, i) => previous[i]?.name ?? TEAM_COLORS[i].name);
+  const names = groups.map((_, i) => previous[i]?.name ?? teamNames[i]);
   groups.forEach((ids, i) => ids.forEach(id => notify(req, ctx.plan, id, `⚽ Les équipes sont faites : tu joues chez les ${names[i]}`)));
 });
 

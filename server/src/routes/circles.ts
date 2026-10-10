@@ -21,6 +21,8 @@ import { countFunnel } from '../lib/funnel';
 import { compareByActivity, planLastActivity, sortCirclesByActivity } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
+import { parseLocale, translateMessage } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import { wantsEmail } from '../lib/notificationPrefs';
 
 import { parseRecurrenceInput } from '../lib/recurrence';
@@ -181,21 +183,22 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
     }
     const approvedUser = await prisma.user.findUnique({
       where: { id: request.userId },
-      select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true },
+      select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true },
     });
     if (updatedCircle && approvedUser?.email && approvedUser.emailVerified && wantsEmail(approvedUser.notificationChannel)) {
+      const m = mail(parseLocale(approvedUser.locale) ?? 'fr');
       await resend.emails.send({
         from: FROM_EMAIL,
         to: approvedUser.email,
-        subject: `Tu as rejoint "${updatedCircle.name}" !`,
+        subject: m.s('joined.subject', { circle: updatedCircle.name }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Bienvenue dans "${escapeHtml(updatedCircle.name)}" ${escapeHtml(approvedUser.pseudo)} 🎉</h2>
-            <p>${reason}</p>
+            <h2>${m.t('joined.title', { circle: updatedCircle.name, name: approvedUser.pseudo })}</h2>
+            <p>${escapeHtml(translateMessage(reason, m.locale))}</p>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Ouvrir EvLY
+              ${m.t('common.openEvly')}
             </a>
-          ${notificationFooter('simple')}
+          ${notificationFooter('simple', m.locale)}
           </div>`,
       }).then(r => { if (r.error) console.error('[join_accepted email]', approvedUser.email, r.error); });
     }
@@ -320,7 +323,7 @@ router.post('/join', joinLimiter, async (req: AuthRequest, res) => {
     where: { userId_circleId: { userId: req.userId!, circleId: circle.id } },
   });
   if (existing) {
-    res.status(409).json({ error: 'Tu es déjà dans ce Cercle' });
+    res.status(409).json({ error: 'Tu es déjà dans ce Cercle', code: 'already_member' });
     return;
   }
   if (circle.admissionMode === 'open') {
@@ -354,7 +357,7 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
     const io = app.get('io');
     const members = (await prisma.circleMember.findMany({
       where: { circleId: circle.id, ...(byCreator && { OR: [{ userId: circle.creatorId }, { role: ORGANIZER_ROLE }] }) },
-      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } },
+      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true } } },
     })).filter(m => m.userId !== skipUserId);
     if (io) {
       for (const m of members) {
@@ -369,22 +372,25 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
     }
     // Cercle en silence (lib/mutes.ts) : pas d'email
     const recipients = await withoutMuted({ circleId: circle.id }, members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
-    await Promise.all(recipients.map(m => resend.emails.send({
+    await Promise.all(recipients.map(r => {
+      const m = mail(parseLocale(r.user.locale) ?? 'fr');
+      return resend.emails.send({
       from: FROM_EMAIL,
-      to: m.user.email!,
-      subject: `${requester?.pseudo} veut rejoindre "${circle.name}"`,
+      to: r.user.email!,
+      subject: m.s('joinRequest.subject', { who: requester?.pseudo ?? '', circle: circle.name }),
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
-          <p><strong>${escapeHtml(requester?.pseudo)}</strong> a demandé à rejoindre le Cercle <strong>"${escapeHtml(circle.name)}"</strong>.</p>
-          <p>${byCreator ? 'Dans ce Cercle, les demandes sont validées par le créateur et les organisateurs, dont tu fais partie.' : 'La majorité des membres doit valider la demande pour qu\'elle soit acceptée.'}</p>
+          <h2>${m.t('common.hello', { name: r.user.pseudo })}</h2>
+          <p>${m.t('joinRequest.text', { who: requester?.pseudo ?? '', circle: circle.name })}</p>
+          <p>${m.t(byCreator ? 'joinRequest.byManagers' : 'joinRequest.byVote')}</p>
           <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-            Voir la demande
+            ${m.t('joinRequest.button')}
           </a>
-        ${notificationFooter()}
+        ${notificationFooter('notification', m.locale)}
           </div>`,
-    }).then(r => { if (r.error) console.error('[join_request email]', m.user.email, r.error); })
-      .catch(e => console.error('[join_request email]', m.user.email, e))));
+    }).then(x => { if (x.error) console.error('[join_request email]', r.user.email, x.error); })
+      .catch(e => console.error('[join_request email]', r.user.email, e));
+    }));
   } catch (e) {
     console.error('[join_request notify]', e);
   }
@@ -422,7 +428,7 @@ router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => 
         ? { email: { equals: identifier.toLowerCase(), mode: 'insensitive' as const } }
         : { pseudo: { equals: identifier, mode: 'insensitive' as const } }),
     },
-    select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true },
+    select: { id: true, pseudo: true, email: true, emailVerified: true, notificationChannel: true, locale: true },
   });
   if (!invitee) { res.status(404).json({ error: 'Aucun compte EvLY ne correspond à ce pseudo ou à cet email.' }); return; }
   if (invitee.id === req.userId) { res.status(400).json({ error: 'Tu fais déjà partie du Cercle 😉' }); return; }
@@ -442,18 +448,19 @@ router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => 
     type: 'circle_invite', circleName: circle?.name, from: req.pseudo, actorId: req.userId!,
   });
   if (invitee.email && invitee.emailVerified && wantsEmail(invitee.notificationChannel)) {
+    const m = mail(parseLocale(invitee.locale) ?? 'fr');
     resend.emails.send({
       from: FROM_EMAIL,
       to: invitee.email,
-      subject: `${req.pseudo} t'invite dans le Cercle "${circle?.name}"`,
+      subject: m.s('circleInvite.subject', { who: req.pseudo ?? '', circle: circle?.name ?? '' }),
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Salut ${escapeHtml(invitee.pseudo)} 👋</h2>
-          <p><strong>${escapeHtml(req.pseudo)}</strong> t'invite à rejoindre le Cercle <strong>"${escapeHtml(circle?.name)}"</strong> sur EvLY.</p>
+          <h2>${m.t('common.hello', { name: invitee.pseudo })}</h2>
+          <p>${m.t('circleInvite.text', { who: req.pseudo ?? '', circle: circle?.name ?? '' })}</p>
           <a href="${APP_URL}/dashboard?invitations=1" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-            Voir l'invitation
+            ${m.t('circleInvite.button')}
           </a>
-        ${notificationFooter('simple')}
+        ${notificationFooter('simple', m.locale)}
         </div>`,
     }).then(r => { if (r.error) console.error('[circle_invite email]', r.error); })
       .catch(e => console.error('[circle_invite email]', e));
@@ -751,7 +758,7 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
     where: { id: circleId },
     select: {
       name: true,
-      members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } } },
+      members: { select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true } } } },
     },
   });
   if (!circle) return;
@@ -773,22 +780,25 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
   }
 
   const recipients = await withoutMuted({ circleId }, otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), (m: any) => m.userId);
-  await Promise.all(recipients.map((m: any) => resend.emails.send({
+  await Promise.all(recipients.map((r: any) => {
+    const m = mail(parseLocale(r.user.locale) ?? 'fr');
+    return resend.emails.send({
     from: FROM_EMAIL,
-    to: m.user.email!,
-    subject: `Nouveau Plan dans "${circle.name}" — ${plan.title}`,
+    to: r.user.email!,
+    subject: m.s('newPlan.subject', { circle: circle.name, plan: plan.title }),
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
-        <p><strong>${escapeHtml(plan.creator.pseudo)}</strong> a créé un nouveau Plan dans le Cercle <strong>"${escapeHtml(circle.name)}"</strong> :</p>
+        <h2>${m.t('common.hello', { name: r.user.pseudo })}</h2>
+        <p>${m.t('newPlan.text', { who: plan.creator.pseudo, circle: circle.name })}</p>
         <p style="font-size:16px;font-weight:600;margin:16px 0">${escapeHtml(plan.title)}</p>
         <a href="${APP_URL}/dashboard?planId=${plan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-          Voir le Plan
+          ${m.t('common.viewPlan')}
         </a>
-      ${notificationFooter()}
+      ${notificationFooter('notification', m.locale)}
           </div>`,
-  }).then(r => { if (r.error) console.error('[new_plan email]', m.user.email, r.error); })
-    .catch(e => console.error('[new_plan email]', m.user.email, e))));
+  }).then(x => { if (x.error) console.error('[new_plan email]', r.user.email, x.error); })
+    .catch(e => console.error('[new_plan email]', r.user.email, e));
+  }));
 }
 
 router.post('/:id/plans', async (req: AuthRequest, res) => {
@@ -962,7 +972,7 @@ async function pollAudience(pollId: string, circleId: string) {
   const [members, exclusions] = await Promise.all([
     prisma.circleMember.findMany({
       where: { circleId },
-      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true } } },
+      select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true } } },
     }),
     prisma.circlePollExclusion.findMany({ where: { pollId }, select: { userId: true } }),
   ]);
@@ -1050,23 +1060,26 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
       }
 
       const recipients = await withoutMuted({ circleId: req.params.id }, otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
-      await Promise.all(recipients.map(m => resend.emails.send({
+      await Promise.all(recipients.map(r => {
+        const m = mail(parseLocale(r.user.locale) ?? 'fr');
+        return resend.emails.send({
         from: FROM_EMAIL,
-        to: m.user.email!,
-        subject: `Sondage de dates dans "${circle.name}" — ${poll.question}`,
+        to: r.user.email!,
+        subject: m.s('newPoll.subject', { circle: circle.name, poll: poll.question }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2>Salut ${escapeHtml(m.user.pseudo)} 👋</h2>
-            <p><strong>${escapeHtml(poll.creator.pseudo)}</strong> propose plusieurs dates dans le Cercle <strong>"${escapeHtml(circle.name)}"</strong> :</p>
+            <h2>${m.t('common.hello', { name: r.user.pseudo })}</h2>
+            <p>${m.t('newPoll.text', { who: poll.creator.pseudo, circle: circle.name })}</p>
             <p style="font-size:16px;font-weight:600;margin:16px 0">${escapeHtml(poll.question)}</p>
-            <p>Indique les dates qui te conviennent pour aider à trouver le meilleur créneau.</p>
+            <p>${m.t('newPoll.hint')}</p>
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-              Voir le sondage
+              ${m.t('newPoll.button')}
             </a>
-          ${notificationFooter()}
+          ${notificationFooter('notification', m.locale)}
           </div>`,
-      }).then(r => { if (r.error) console.error('[circle_poll email]', m.user.email, r.error); })
-        .catch(e => console.error('[circle_poll email]', m.user.email, e))));
+      }).then(x => { if (x.error) console.error('[circle_poll email]', r.user.email, x.error); })
+        .catch(e => console.error('[circle_poll email]', r.user.email, e));
+      }));
     }
   } catch (e) {
     console.error('[circle_poll notify]', e);

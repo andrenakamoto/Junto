@@ -59,8 +59,8 @@ export function parseCurrency(v: unknown): Currency | undefined {
   return typeof v === 'string' && (CURRENCIES as readonly string[]).includes(v) ? v as Currency : undefined;
 }
 
-export function formatAmount(amount: number, currency: string): string {
-  return amount.toLocaleString('fr-CH', { style: 'currency', currency: parseCurrency(currency) ?? 'CHF' });
+export function formatAmount(amount: number, currency: string, intl = 'fr-CH'): string {
+  return amount.toLocaleString(intl, { style: 'currency', currency: parseCurrency(currency) ?? 'CHF' });
 }
 
 // Soldes et virements suggérés, devise par devise (seulement les devises utilisées)

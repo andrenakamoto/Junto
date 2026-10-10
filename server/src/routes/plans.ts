@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { escapeHtml } from '../lib/escapeHtml';
 import prisma from '../lib/prisma';
+import { parseLocale, requestLocale } from '../lib/i18n';
+import { mail } from '../lib/emailText';
 import { isMuted } from '../lib/mutes';
 import { buildPlanRecapPdf, canDownloadRecap } from '../lib/planRecap';
 import { purgePlanFiles } from '../lib/cloudinary';
@@ -194,7 +196,7 @@ router.get('/:id/recap', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Le récapitulatif est réservé au créateur du Plan et aux organisateurs du Cercle' });
     return;
   }
-  const pdf = await buildPlanRecapPdf(req.params.id);
+  const pdf = await buildPlanRecapPdf(req.params.id, requestLocale(req));
   if (!pdf) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(pdf.filename)}`);
@@ -522,23 +524,24 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     try {
       const creator = await prisma.user.findUnique({
         where: { id: updatedPlan.creatorId },
-        select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true },
+        select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true },
       });
       const joiner = updatedPlan.members.find(m => m.userId === req.userId)?.user;
       const creatorMuted = await isMuted(updatedPlan.creatorId, { planId: updatedPlan.id, circleId: updatedPlan.circleId });
       if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel) && joiner && !creatorMuted) {
+        const m = mail(parseLocale(creator.locale) ?? 'fr');
         const result = await resend.emails.send({
           from: FROM_EMAIL,
           to: creator.email,
-          subject: `${joiner.pseudo} a rejoint "${updatedPlan.title}"`,
+          subject: m.s('firstJoin.subject', { who: joiner.pseudo, plan: updatedPlan.title }),
           html: `
             <div style="font-family:sans-serif;max-width:480px;margin:auto">
-              <h2>Ça bouge, ${escapeHtml(creator.pseudo)} 👋</h2>
-              <p><strong>${escapeHtml(joiner.pseudo)}</strong> vient de rejoindre ton Plan <strong>"${escapeHtml(updatedPlan.title)}"</strong>.</p>
+              <h2>${m.t('firstJoin.title', { name: creator.pseudo })}</h2>
+              <p>${m.t('firstJoin.text', { who: joiner.pseudo, plan: updatedPlan.title })}</p>
               <a href="${APP_URL}/dashboard?planId=${updatedPlan.id}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-                Voir le Plan
+                ${m.t('common.viewPlan')}
               </a>
-            ${notificationFooter()}
+            ${notificationFooter('notification', m.locale)}
           </div>`,
         });
         if (result.error) console.error('[first_join email]', creator.email, result.error);

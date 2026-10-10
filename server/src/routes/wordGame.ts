@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
+import { userLocale } from '../lib/i18n';
 import {
   ACCUSE_COOLDOWN_MS, WORD_DISABLED_ERROR, WORD_MODES, WordMode, WordState, applyAccusation, applySuccess,
   canManageWordGame, insertWordPlayer, loadWordPlayers, parseCustomWords, parseLevels, playing, ranking,
@@ -73,7 +74,7 @@ router.get('/:id/words', async (req: AuthRequest, res) => {
   const myRow = rows.find(r => r.userId === me);
   const claimOnMe = rows.find(r => r.targetId === me && r.claimedAt);
   const inGame = new Set(players.map(p => p.userId));
-  const words = wordDrawer(game);
+  const words = wordDrawer(game, await userLocale(plan.creatorId));
   res.json({
     started: !!game.startedAt,
     ended,
@@ -156,7 +157,7 @@ router.post('/:id/words/start', async (req: AuthRequest, res) => {
   if (ctx.game.startedAt) { res.status(409).json({ error: 'La partie a déjà commencé' }); return; }
   const participants = await wordParticipants(ctx.plan.id);
   if (participants.length < 3) { res.status(400).json({ error: 'Il faut au moins 3 joueurs (« Je suis in », avec un compte)' }); return; }
-  const words = wordDrawer({ ...ctx.game, usedWords: [] });
+  const words = wordDrawer({ ...ctx.game, usedWords: [] }, await userLocale(ctx.plan.creatorId));
   if (words.poolSize < 3) { res.status(400).json({ error: 'Il faut au moins 3 mots' }); return; }
   const missions = startMissions(participants.map(p => p.id), words.next);
   if (!missions) { res.status(400).json({ error: 'Impossible de distribuer les missions' }); return; }
@@ -204,7 +205,7 @@ router.post('/:id/words/answer', async (req: AuthRequest, res) => {
     return;
   }
   const before = await loadWordPlayers(ctx.plan.id);
-  const words = wordDrawer(ctx.game);
+  const words = wordDrawer(ctx.game, await userLocale(ctx.plan.creatorId));
   const result = applySuccess(before, ctx.mode, claim.userId, me, words.next);
   if (!result) { res.status(409).json({ error: 'Ce mot ne correspond plus à une mission en cours' }); return; }
   await saveWordPlayers(ctx.plan.id, before, result.players, {
@@ -232,7 +233,7 @@ router.post('/:id/words/accuse', async (req: AuthRequest, res) => {
   if (!row || row.eliminatedAt) { res.status(400).json({ error: 'Tu n’es pas en jeu' }); return; }
   if (row.accuseBlockedUntil && row.accuseBlockedUntil.getTime() > Date.now()) { res.status(429).json({ error: 'Après une accusation fausse, attends un peu avant d’accuser à nouveau' }); return; }
   const before = await loadWordPlayers(ctx.plan.id);
-  const words = wordDrawer(ctx.game);
+  const words = wordDrawer(ctx.game, await userLocale(ctx.plan.creatorId));
   const result = applyAccusation(before, ctx.mode, me, String(req.body?.suspectId ?? ''), words.next);
   if (!result) { res.status(400).json({ error: 'Choisis un joueur encore en jeu' }); return; }
   if (!result.correct) {
@@ -255,7 +256,7 @@ router.post('/:id/words/remove', async (req: AuthRequest, res) => {
   if (!running(ctx.game)) { res.status(400).json({ error: 'Pas de partie en cours' }); return; }
   const userId = String(req.body?.userId ?? '');
   const before = await loadWordPlayers(ctx.plan.id);
-  const words = wordDrawer(ctx.game);
+  const words = wordDrawer(ctx.game, await userLocale(ctx.plan.creatorId));
   const result = withdrawWordPlayer(before, ctx.mode, userId, words.next);
   if (!result) { res.status(404).json({ error: 'Ce joueur n’est plus en jeu' }); return; }
   await saveWordPlayers(ctx.plan.id, before, result.players, { usedWords: words.used(), ...(result.gameOver ? { end: { winnerId: winnerOf(result.players, ctx.mode) } } : {}) });
@@ -273,7 +274,7 @@ router.post('/:id/words/add', async (req: AuthRequest, res) => {
   const before = await loadWordPlayers(ctx.plan.id);
   const inGame = new Set(before.map(p => p.userId));
   const newcomers = (await wordParticipants(ctx.plan.id)).filter(p => !inGame.has(p.id));
-  const words = wordDrawer(ctx.game);
+  const words = wordDrawer(ctx.game, await userLocale(ctx.plan.creatorId));
   let players: WordState[] = before;
   const added: string[] = []; const changed = new Set<string>();
   for (const n of newcomers) {

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { escapeHtml } from './escapeHtml';
+import { parseLocale, userLocale, type Locale } from './i18n';
+import { mail } from './emailText';
 import prisma from './prisma';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 
@@ -18,20 +19,21 @@ export function normalizeEmail(v: unknown): string | null {
   return EMAIL_RE.test(email) && email.length <= 254 ? email : null;
 }
 
-async function sendConfirmation(to: string, name: string, token: string, byAdmin: boolean): Promise<boolean> {
+async function sendConfirmation(to: string, name: string, token: string, byAdmin: boolean, locale: Locale): Promise<boolean> {
   const link = `${APP_URL}/confirmer-email?token=${token}`;
+  const m = mail(locale);
   const r = await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: 'Confirme ta nouvelle adresse email — EvLY',
+    subject: m.s('emailChange.subject'),
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Bonjour ${escapeHtml(name)} 👋</h2>
-        <p>${byAdmin ? "L'administrateur d'EvLY a demandé" : 'Tu as demandé'} à utiliser cette adresse pour ton compte EvLY. Clique sur le bouton pour confirmer.</p>
+        <h2>${m.t('common.hello', { name })}</h2>
+        <p>${m.t(byAdmin ? 'emailChange.byAdmin' : 'emailChange.byUser')}</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-          Confirmer ma nouvelle adresse
+          ${m.t('emailChange.button')}
         </a>
-        <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 24 h. Si tu n'es pas à l'origine de cette demande, ignore cet email : rien ne changera.</p>
+        <p style="color:#888;font-size:12px;margin-top:24px">${m.t('emailChange.expires')}</p>
       </div>`,
   }).catch(e => ({ data: null, error: e }));
   if (r.error) { console.error('[email change confirmation]', to, r.error); return false; }
@@ -50,7 +52,7 @@ export async function requestEmailChange(user: Target, rawEmail: unknown, byAdmi
     where: { id: user.id },
     data: { pendingEmail: email, pendingEmailToken: token, pendingEmailExpires: new Date(Date.now() + DAY) },
   });
-  const sent = await sendConfirmation(email, user.firstName || user.pseudo, token, byAdmin);
+  const sent = await sendConfirmation(email, user.firstName || user.pseudo, token, byAdmin, await userLocale(user.id));
   if (!sent) {
     // Pas de changement « en attente » si personne n'a reçu de lien
     await cancelEmailChange(user.id);
@@ -93,15 +95,16 @@ export async function confirmEmailChange(token: unknown): Promise<Result & { ema
 
   // Prévenir l'ancienne adresse : protection classique en cas de compte piraté
   if (user.email && user.emailVerified) {
+    const m = mail(parseLocale(user.locale) ?? 'fr');
     const r = await resend.emails.send({
       from: FROM_EMAIL,
       to: user.email,
-      subject: 'Ton adresse email EvLY a été modifiée',
+      subject: m.s('emailChange.changedSubject'),
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto">
-          <h2>Bonjour ${escapeHtml(user.firstName || user.pseudo)}</h2>
-          <p>L'adresse email de ton compte EvLY (@${escapeHtml(user.pseudo)}) a été remplacée par <strong>${newEmail}</strong>. Les prochains emails d'EvLY seront envoyés à cette nouvelle adresse.</p>
-          <p><strong>Ce n'était pas toi ?</strong> Écris-nous tout de suite à <a href="mailto:info@evly.ch">info@evly.ch</a>.</p>
+          <h2>${m.t('common.bonjour', { name: user.firstName || user.pseudo })}</h2>
+          <p>${m.t('emailChange.changedText', { pseudo: user.pseudo, email: newEmail })}</p>
+          <p>${m.t('emailChange.notYou')}</p>
         </div>`,
     }).catch(e => ({ data: null, error: e }));
     if (r.error) console.error('[email change notice]', user.email, r.error);

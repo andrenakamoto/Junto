@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import prisma from './prisma';
+import type { Locale } from './i18n';
 
 // Plan express (« Organiser une sortie », page publique /organiser) : un Plan créé en
 // 30 secondes, même sans compte, puis partagé par lien. Les amis répondent sans compte
@@ -20,15 +21,23 @@ function code(length = 6) {
   return Array.from({ length }, () => chars[crypto.randomInt(chars.length)]).join('');
 }
 
-export async function getOrCreatePersonalCircle(userId: string) {
+// Nom et description du Cercle personnel, dans la langue de l'organisateur au moment de sa création
+const PERSONAL_CIRCLE: Record<Locale, { name: string; description: string }> = {
+  fr: { name: PERSONAL_CIRCLE_NAME, description: 'Tes Plans partagés par lien' },
+  de: { name: 'Meine Pläne', description: 'Deine per Link geteilten Pläne' },
+  it: { name: 'I miei Plan', description: 'I tuoi Plan condivisi tramite link' },
+  en: { name: 'My Plans', description: 'Your Plans shared by link' },
+};
+
+export async function getOrCreatePersonalCircle(userId: string, locale: Locale = 'fr') {
   const existing = await prisma.circle.findFirst({ where: { creatorId: userId, isPersonal: true }, select: { id: true } });
   if (existing) return existing;
   let c = code();
   while (await prisma.circle.findUnique({ where: { code: c } })) c = code();
   return prisma.circle.create({
     data: {
-      name: PERSONAL_CIRCLE_NAME,
-      description: 'Tes Plans partagés par lien',
+      name: PERSONAL_CIRCLE[locale].name,
+      description: PERSONAL_CIRCLE[locale].description,
       isPersonal: true,
       // Personne ne rejoint ce Cercle avec son code sans l'accord de son propriétaire
       admissionMode: 'creator',

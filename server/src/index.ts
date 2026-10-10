@@ -18,6 +18,7 @@ import shareRoutes from './routes/share';
 import moderationRoutes from './routes/moderation';
 import suggestionRoutes from './routes/suggestions';
 import expressPlanRoutes from './routes/express';
+import { translateErrors } from './lib/i18n';
 import muteRoutes from './routes/mutes';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
@@ -82,6 +83,8 @@ app.use(helmet({
 }));
 app.use(cors(corsOptions));
 app.use(express.json());
+// Messages d'erreur dans la langue de l'app (lib/i18n.ts)
+app.use(translateErrors);
 
 app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
 

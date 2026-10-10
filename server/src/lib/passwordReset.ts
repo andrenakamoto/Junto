@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { escapeHtml } from './escapeHtml';
+import { userLocale } from './i18n';
+import { mail } from './emailText';
 import prisma from './prisma';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 
@@ -13,21 +14,19 @@ export async function sendPasswordReset(user: { id: string; pseudo: string; emai
     data: { resetPasswordToken: token, resetPasswordExpires: new Date(Date.now() + 60 * 60 * 1000) },
   });
   const link = `${APP_URL}/reset-password?token=${token}`;
-  const intro = requestedByAdmin
-    ? "l'administrateur d'EvLY t'envoie un lien pour choisir un nouveau mot de passe."
-    : 'tu as demandé à réinitialiser ton mot de passe.';
+  const m = mail(await userLocale(user.id));
   const result = await resend.emails.send({
     from: FROM_EMAIL,
     to: user.email,
-    subject: 'Réinitialisation de ton mot de passe — EvLY',
+    subject: m.s('reset.subject'),
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Réinitialisation de mot de passe</h2>
-        <p>Bonjour ${escapeHtml(user.pseudo)}, ${intro}</p>
+        <h2>${m.t('reset.title')}</h2>
+        <p>${m.t(requestedByAdmin ? 'reset.byAdmin' : 'reset.byUser', { name: user.pseudo })}</p>
         <a href="${link}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
-          Réinitialiser mon mot de passe
+          ${m.t('reset.button')}
         </a>
-        <p style="color:#888;font-size:12px;margin-top:24px">Ce lien expire dans 1h. Si tu n'as pas fait cette demande, ignore cet email.</p>
+        <p style="color:#888;font-size:12px;margin-top:24px">${m.t('reset.expires')}</p>
       </div>`,
   });
   if (result.error) {
