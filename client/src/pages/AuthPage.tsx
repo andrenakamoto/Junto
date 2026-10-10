@@ -10,6 +10,8 @@ import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
 import { countStep } from '../lib/funnel';
+import { t } from '../i18n';
+import { LanguagePicker } from '../components/ui/LanguagePicker';
 
 type Mode = 'login' | 'register';
 
@@ -72,7 +74,7 @@ export function AuthPage() {
     try {
       if (mode === 'register') {
         await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ...lightTokenField() });
-        setSuccess('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse.');
+        setSuccess(t('auth.page.created'));
         setEmail('');
         setPseudo('');
         setFirstName('');
@@ -89,13 +91,13 @@ export function AuthPage() {
     } catch (err: any) {
       const code = err.response?.data?.error;
       if (code === 'email_unverified') {
-        setError('Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.');
+        setError(t('auth.page.unverified'));
       } else if (code === 'pending') {
-        setError('Ton compte est en attente de validation.');
+        setError(t('auth.page.pending'));
       } else if (code === 'rejected') {
-        setError('Ton inscription a été refusée.');
+        setError(t('auth.page.rejected'));
       } else {
-        setError(err.response?.data?.error || 'Une erreur est survenue');
+        setError(err.response?.data?.error || t('auth.page.error'));
       }
     } finally {
       setLoading(false);
@@ -114,7 +116,7 @@ export function AuthPage() {
       navigate(afterLogin, { replace: true });
     } catch (err: any) {
       if (err?.error !== 'popup_closed_by_user' && err?.message !== 'User cancelled.') {
-        setError('Connexion Google annulée ou échouée.');
+        setError(t('auth.page.googleCancelled'));
       }
     } finally {
       setGoogleLoading(false);
@@ -129,7 +131,7 @@ export function AuthPage() {
       login(data.token, data.user);
       navigate(afterLogin, { replace: true });
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Connexion Google échouée.');
+      setError(err.response?.data?.message || err.response?.data?.error || t('auth.page.googleFailed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -142,7 +144,11 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative">
+      {/* Langue, avant même de se connecter */}
+      <div className="absolute top-3 right-3 text-slate-300" style={{ marginTop: 'var(--sa-top, 0px)' }}>
+        <LanguagePicker compact />
+      </div>
       <div className="w-full max-w-sm">
         {/* En-tête épuré : la connexion d'abord, le reste sous le formulaire */}
         <div className="text-center mb-10">
@@ -163,7 +169,7 @@ export function AuthPage() {
                   mode === m ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {m === 'login' ? 'Connexion' : 'Inscription'}
+                {m === 'login' ? t('auth.page.login') : t('auth.page.register')}
               </button>
             ))}
           </div>
@@ -192,7 +198,7 @@ export function AuthPage() {
                 />
                 {googleLoading && (
                   <p className="flex items-center justify-center gap-2 text-xs text-slate-400 -mt-2 mb-4">
-                    <Loader2 size={13} className="animate-spin" /> Connexion en cours...
+                    <Loader2 size={13} className="animate-spin" /> {t('auth.page.connecting')}
                   </p>
                 )}
               </>
@@ -215,14 +221,14 @@ export function AuthPage() {
                 <path fill="none" d="M0 0h48v48H0z"/>
               </svg>
             )}
-            {mode === 'login' ? 'Continuer avec Google' : "S'inscrire avec Google"}
+            {mode === 'login' ? t('auth.page.continueGoogle') : t('auth.page.signupGoogle')}
           </button>
           )}
 
           {(!Capacitor.isNativePlatform() ? !!GOOGLE_CLIENT_ID : NATIVE_GOOGLE_ENABLED) && (
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-slate-700" />
-              <span className="text-xs text-slate-500 font-medium">ou</span>
+              <span className="text-xs text-slate-500 font-medium">{t('auth.page.or')}</span>
               <div className="flex-1 h-px bg-slate-700" />
             </div>
           )}
@@ -232,13 +238,13 @@ export function AuthPage() {
             {mode === 'register' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="firstName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Prénom</label>
+                  <label htmlFor="firstName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('auth.page.firstName')}</label>
                   <input
                     id="firstName"
                     type="text"
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
-                    placeholder="Léa"
+                    placeholder={t('auth.page.firstNamePlaceholder')}
                     required
                     maxLength={50}
                     autoComplete="given-name"
@@ -247,14 +253,14 @@ export function AuthPage() {
                 </div>
                 <div>
                   <label htmlFor="lastName" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Nom <span className="normal-case tracking-normal font-normal text-slate-500">(facultatif, privé)</span>
+                    {t('auth.page.lastName')} <span className="normal-case tracking-normal font-normal text-slate-500">{t('auth.page.lastNameHint')}</span>
                   </label>
                   <input
                     id="lastName"
                     type="text"
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
-                    placeholder="Dupont"
+                    placeholder={t('auth.page.lastNamePlaceholder')}
                     maxLength={50}
                     autoComplete="family-name"
                     className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
@@ -265,15 +271,15 @@ export function AuthPage() {
 
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Pseudo</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('auth.page.pseudo')}</label>
                 <input
                   type="text"
                   value={pseudo}
                   onChange={e => setPseudo(e.target.value)}
-                  placeholder="ton_pseudo"
+                  placeholder={t('auth.page.pseudoPlaceholder')}
                   required
                   pattern="[a-zA-Z0-9_]{2,24}"
-                  title="Lettres non accentuées, chiffres et underscore uniquement (2 à 24 caractères)"
+                  title={t('auth.page.pseudoRule')}
                   className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
                 />
               </div>
@@ -281,13 +287,13 @@ export function AuthPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                {mode === 'login' ? 'Email ou pseudo' : 'Email'}
+                {mode === 'login' ? t('auth.page.emailOrPseudo') : t('auth.page.email')}
               </label>
               <input
                 type={mode === 'login' ? 'text' : 'email'}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder={mode === 'login' ? 'toi@example.com ou ton_pseudo' : 'toi@example.com'}
+                placeholder={mode === 'login' ? t('auth.page.loginPlaceholder') : t('auth.emailPlaceholder')}
                 required
                 autoFocus={mode === 'login' && !Capacitor.isNativePlatform()}
                 className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
@@ -296,14 +302,14 @@ export function AuthPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Mot de passe</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('auth.page.password')}</label>
                 {mode === 'login' && (
                   <button
                     type="button"
                     onClick={() => navigate('/forgot-password')}
                     className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                   >
-                    Mot de passe oublié ?
+                    {t('auth.page.forgot')}
                   </button>
                 )}
               </div>
@@ -326,7 +332,7 @@ export function AuthPage() {
                 </button>
               </div>
               {mode === 'register' && (
-                <p className="text-xs text-slate-500 mt-1.5">8 caractères minimum</p>
+                <p className="text-xs text-slate-500 mt-1.5">{t('auth.page.minLength')}</p>
               )}
             </div>
 
@@ -336,26 +342,26 @@ export function AuthPage() {
               className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading ? 'Chargement...' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+              {loading ? t('common.loading') : mode === 'login' ? t('auth.page.submitLogin') : t('auth.page.submitRegister')}
             </button>
           </form>
         </div>
 
         {/* Email de confirmation : à l'inscription, ou après une connexion refusée faute de confirmation */}
-        {(mode === 'register' || error.includes('confirmer ton adresse')) && (
+        {(mode === 'register' || error === t('auth.page.unverified')) && (
           <p className="text-center text-xs text-slate-500 mt-4">
-            Email de confirmation non reçu ?{' '}
+            {t('auth.page.noEmail')}{' '}
             <button
               onClick={() => navigate('/resend-verification')}
               className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
             >
-              Renvoyer
+              {t('auth.page.resend')}
             </button>
           </p>
         )}
         {/* Nouveaux visiteurs : Plan express (/organiser) ou démo sans compte (/demo) */}
         <div className="mt-8">
-          <p className="text-center text-sm text-slate-400 mb-3">Nouveau sur EvLY ?</p>
+          <p className="text-center text-sm text-slate-400 mb-3">{t('auth.page.newHere')}</p>
           <div className="grid grid-cols-2 gap-2">
             <Link
               to="/organiser"
@@ -363,24 +369,24 @@ export function AuthPage() {
               className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-indigo-400/60 bg-indigo-600/15 text-indigo-100 hover:bg-indigo-600/25 font-semibold text-sm transition-colors"
             >
               <PartyPopper size={16} className="text-indigo-300" />
-              Organiser une sortie
+              {t('auth.page.organize')}
             </Link>
             <Link
               to="/demo"
               className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-700/40 font-semibold text-sm transition-colors"
             >
-              Voir la démo
+              {t('auth.page.demo')}
               <ArrowRight size={15} />
             </Link>
           </div>
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-10 leading-relaxed">
-          <a href={siteUrl('/decouvrir.html')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">Découvrir EvLY</a>
+          <a href={siteUrl('/decouvrir.html')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.discover')}</a>
           {' · '}
-          <a href={siteUrl('/brochure')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">Associations (PDF)</a>
+          <a href={siteUrl('/brochure')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.brochure')}</a>
           {' · '}
-          <a href={siteUrl('/confidentialite')} className="hover:text-slate-300 underline underline-offset-2">Confidentialité</a>
+          <a href={siteUrl('/confidentialite')} className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.privacy')}</a>
           <br />info@evly.ch
         </p>
       </div>

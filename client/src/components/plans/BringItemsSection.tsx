@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Pencil, Plus, Trash2 } from 'lucide-react';
 import { BringItem, Plan } from '../../types';
 import api from '../../services/api';
+import { t } from '../../i18n';
 
 // « Qui apporte quoi ? » : fait partie de l'onglet Dépenses (désactivé avec lui). Quantité
 // facultative en texte libre ; modifier ou retirer un élément : son auteur ou le créateur du Plan.
@@ -18,7 +19,7 @@ export function BringItemsSection({ plan, pseudo, userId, onChanged }: { plan: P
       await onChanged();
       return true;
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setError(err.response?.data?.error || t('common.retryError'));
       return false;
     }
   }
@@ -32,23 +33,23 @@ export function BringItemsSection({ plan, pseudo, userId, onChanged }: { plan: P
   }
 
   async function handleRemove(item: BringItem) {
-    if (item.claimedBy && !confirm(`Retirer « ${item.label} » ? @${item.claimedBy} l’avait pris.`)) return;
+    if (item.claimedBy && !confirm(t('plan.bring.removeConfirm', { label: item.label, pseudo: item.claimedBy }))) return;
     await run(() => api.delete(`/plans/items/${item.id}`));
   }
 
   return (
     <div>
-      <h3 className="font-semibold text-slate-800 text-sm mb-3">Qui apporte quoi ?</h3>
+      <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.bring.title')}</h3>
       <div className="space-y-2">
         {items.length === 0 && !addingItem && (
-          <p className="text-sm text-slate-400 italic">Rien de prévu pour l'instant.</p>
+          <p className="text-sm text-slate-400 italic">{t('plan.bring.empty')}</p>
         )}
         {items.map(item => editingId === item.id ? (
           <ItemForm
             key={item.id}
             initialLabel={item.label}
             initialQuantity={item.quantity ?? ''}
-            submitLabel="Enregistrer"
+            submitLabel={t('common.save')}
             onSubmit={(label, quantity) => handleEdit(item, label, quantity)}
             onCancel={() => setEditingId(null)}
           />
@@ -69,7 +70,7 @@ export function BringItemsSection({ plan, pseudo, userId, onChanged }: { plan: P
 
       {addingItem ? (
         <div className="mt-3">
-          <ItemForm submitLabel="Ajouter" onSubmit={handleAdd} onCancel={() => setAddingItem(false)} />
+          <ItemForm submitLabel={t('common.add')} onSubmit={handleAdd} onCancel={() => setAddingItem(false)} />
         </div>
       ) : (
         <button
@@ -77,7 +78,7 @@ export function BringItemsSection({ plan, pseudo, userId, onChanged }: { plan: P
           className="flex items-center gap-1.5 mt-3 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
         >
           <Plus size={14} />
-          Ajouter un élément
+          {t('plan.bring.addItem')}
         </button>
       )}
     </div>
@@ -97,11 +98,11 @@ function ItemForm({ initialLabel = '', initialQuantity = '', submitLabel, onSubm
   return (
     <div className="p-3 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
       <div className="flex gap-2">
-        <input autoFocus value={label} onChange={e => setLabel(e.target.value)} onKeyDown={onKey} maxLength={100} placeholder="Ex : fromage à raclette" className={`flex-1 ${input}`} />
-        <input value={quantity} onChange={e => setQuantity(e.target.value)} onKeyDown={onKey} maxLength={30} placeholder="Quantité (facultatif)" className={`w-36 ${input}`} />
+        <input autoFocus value={label} onChange={e => setLabel(e.target.value)} onKeyDown={onKey} maxLength={100} placeholder={t('plan.bring.labelPlaceholder')} className={`flex-1 ${input}`} />
+        <input value={quantity} onChange={e => setQuantity(e.target.value)} onKeyDown={onKey} maxLength={30} placeholder={t('plan.bring.quantityPlaceholder')} className={`w-36 ${input}`} />
       </div>
       <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">Annuler</button>
+        <button onClick={onCancel} className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">{t('common.cancel')}</button>
         <button onClick={submit} disabled={!label.trim()} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">{submitLabel}</button>
       </div>
     </div>
@@ -133,14 +134,14 @@ function BringItemRow({ item, myPseudo, onClaim, canManage, onEdit, onRemove }: 
           'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
         }`}
       >
-        {isMe ? 'Je prends ça ✓' : taken ? 'Pris' : 'Je prends ça'}
+        {isMe ? t('plan.bring.mine') : taken ? t('plan.bring.taken') : t('plan.bring.take')}
       </button>
       {canManage && (
         <span className="flex-shrink-0 flex -mr-1">
-          <button onClick={onEdit} title="Modifier cet élément" aria-label={`Modifier « ${item.label} »`} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+          <button onClick={onEdit} title={t('plan.bring.editItem')} aria-label={t('plan.bring.editAria', { label: item.label })} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
             <Pencil size={14} />
           </button>
-          <button onClick={onRemove} title="Retirer cet élément" aria-label={`Retirer « ${item.label} »`} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+          <button onClick={onRemove} title={t('plan.bring.removeItem')} aria-label={t('plan.bring.removeAria', { label: item.label })} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
             <Trash2 size={14} />
           </button>
         </span>

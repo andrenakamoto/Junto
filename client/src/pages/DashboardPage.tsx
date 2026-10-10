@@ -24,6 +24,7 @@ import { sortCirclesByActivity, sortPlansByActivity } from '../lib/order';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
 import { DemoBanner } from '../components/ui/DemoBanner';
 import { clearDeliveredNotifications, pushAvailable } from '../lib/push';
+import { t } from '../i18n';
 
 type MobileView = 'circles' | 'plans' | 'detail';
 
@@ -624,7 +625,7 @@ export function DashboardPage() {
         </div>
       ) : (
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1`}>
-          <EmptyState message="Bienvenue !" sub="Crée un Cercle ou rejoins-en un pour commencer" />
+          <EmptyState message={t('ui.dashboard.welcome')} sub={t('ui.dashboard.welcomeSub')} />
         </div>
       )}
 
@@ -653,7 +654,7 @@ export function DashboardPage() {
             openTab={openTab}
           />
         ) : (
-          <EmptyState message="Sélectionne un Plan" sub="ou crée-en un nouveau dans ce Cercle" />
+          <EmptyState message={t('ui.dashboard.selectPlan')} sub={t('ui.dashboard.selectPlanSub')} />
         )}
       </div>
     </div>

@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { displayName } from '../../lib/names';
 import { Match, MatchCard, MatchCreateForm } from './MatchSection';
 import { Wheel, WheelCard, WheelCreateForm } from './WheelSection';
+import { t } from '../../i18n';
 
 interface Props {
   plan: Plan;
@@ -68,7 +69,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
       {polls.length === 0 && matches.length === 0 && wheels.length === 0 && !showCreate && !createMatch && !createWheel && (
-        <p className="text-sm text-slate-400 italic">Aucun sondage pour l'instant.</p>
+        <p className="text-sm text-slate-400 italic">{t('votes.empty')}</p>
       )}
       {wheels.map(w => <WheelCard key={w.id} wheel={w} plan={plan} serverOffset={wheelOffset} onChanged={loadWheels} />)}
       {matches.map(m => <MatchCard key={m.id} match={m} plan={plan} onChanged={loadMatches} />)}
@@ -82,7 +83,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
             autoFocus
             value={question}
             onChange={e => setQuestion(e.target.value)}
-            placeholder="Question du sondage..."
+            placeholder={t('votes.questionPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {options.map((opt, i) => (
@@ -90,7 +91,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
               <input
                 value={opt}
                 onChange={e => { const n = [...options]; n[i] = e.target.value; setOptions(n); }}
-                placeholder={`Option ${i + 1}`}
+                placeholder={t('votes.option', { n: i + 1 })}
                 className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               {options.length > 2 && (
@@ -102,16 +103,16 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
           ))}
           {options.length < 5 && (
             <button onClick={() => setOptions([...options, ''])} className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium">
-              <Plus size={13} />Ajouter une option
+              <Plus size={13} />{t('votes.addOption')}
             </button>
           )}
           <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
             <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} className="rounded" />
-            Sondage anonyme (personne ne voit qui a voté quoi)
+            {t('votes.anonymous')}
           </label>
           <div className="flex gap-2 pt-1">
-            <Button onClick={handleCreate} disabled={creating} size="sm">{creating ? 'Création...' : 'Créer le sondage'}</Button>
-            <Button variant="ghost" onClick={() => setShowCreate(false)} size="sm">Annuler</Button>
+            <Button onClick={handleCreate} disabled={creating} size="sm">{creating ? t('common.creating') : t('votes.create')}</Button>
+            <Button variant="ghost" onClick={() => setShowCreate(false)} size="sm">{t('common.cancel')}</Button>
           </div>
         </div>
       ) : createMatch ? (
@@ -121,16 +122,16 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => setShowCreate(true)} className="p-3 rounded-xl bg-white border border-slate-200 text-left hover:bg-slate-50">
-            <span className="block text-sm font-semibold text-slate-800">🗳️ Sondage</span>
-            <span className="block text-xs text-slate-500">Une question, un choix</span>
+            <span className="block text-sm font-semibold text-slate-800">{t('votes.pollTitle')}</span>
+            <span className="block text-xs text-slate-500">{t('votes.pollHint')}</span>
           </button>
           <button onClick={() => setCreateMatch(true)} className="p-3 rounded-xl bg-white border border-pink-200 text-left hover:bg-pink-50">
-            <span className="block text-sm font-semibold text-slate-800">💘 Match</span>
-            <span className="block text-xs text-slate-500">Oui / non sur chaque proposition</span>
+            <span className="block text-sm font-semibold text-slate-800">{t('votes.matchTitle')}</span>
+            <span className="block text-xs text-slate-500">{t('votes.matchHint')}</span>
           </button>
           <button onClick={() => setCreateWheel(true)} className="col-span-2 p-3 rounded-xl bg-white border border-amber-200 text-left hover:bg-amber-50">
-            <span className="block text-sm font-semibold text-slate-800">🎡 Qui s’y colle ?</span>
-            <span className="block text-xs text-slate-500">La roue tire au sort une personne du Plan</span>
+            <span className="block text-sm font-semibold text-slate-800">{t('votes.wheelTitle')}</span>
+            <span className="block text-xs text-slate-500">{t('votes.wheelHint')}</span>
           </button>
         </div>
       )}
@@ -145,7 +146,7 @@ function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: strin
   const myVote = poll.options.find(o => o.votes.some(v => v.userId === userId));
   // Sondage non anonyme : qui a voté quoi (prénom + pseudo des participants du Plan)
   const nameOf = (id: string) => {
-    if (id === userId) return 'toi';
+    if (id === userId) return t('votes.you');
     const u = members.find(m => m.userId === id)?.user;
     return u ? displayName(u) ?? `@${u.pseudo}` : null;
   };
@@ -158,7 +159,7 @@ function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: strin
       <p className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
         {poll.question}
         {poll.anonymous && (
-          <span className="text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">🔒 anonyme</span>
+          <span className="text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{t('votes.anonymousBadge')}</span>
         )}
       </p>
       <div className="space-y-2">
@@ -190,8 +191,8 @@ function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: strin
         })}
       </div>
       <p className="text-xs text-slate-400 mt-2">
-        {total} vote{total !== 1 ? 's' : ''}
-        {notYet.length > 0 && <> · Pas encore voté : {notYet.join(', ')}</>}
+        {t('votes.votes', { count: total })}
+        {notYet.length > 0 && t('votes.notYet', { names: notYet.join(', ') })}
       </p>
     </div>
   );

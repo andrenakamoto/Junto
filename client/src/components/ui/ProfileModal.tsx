@@ -5,6 +5,9 @@ import { Input } from './Input';
 import { Button } from './Button';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { t } from '../../i18n';
+import { Trans } from 'react-i18next';
+import { LanguagePicker } from './LanguagePicker';
 
 interface Props {
   onClose: () => void;
@@ -26,26 +29,31 @@ export function ProfileModal({ onClose }: Props) {
       setUser(data);
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Modal title="Mon profil" onClose={onClose}>
+    <Modal title={t('account.profile.title')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-sm text-slate-500">
-          Ton prénom aide les membres de tes Cercles à te reconnaître derrière ton pseudo @{user?.pseudo}.
+          {t('account.profile.intro', { pseudo: user?.pseudo })}
         </p>
-        <Input id="profile-firstName" label="Prénom" value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={50} autoComplete="given-name" autoFocus />
-        <Input id="profile-lastName" label="Nom (facultatif, visible seulement par toi)" value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
+        <Input id="profile-firstName" label={t('account.profile.firstName')} value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={50} autoComplete="given-name" autoFocus />
+        <Input id="profile-lastName" label={t('account.profile.lastName')} value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium text-slate-700">{t('common.language')}</span>
+          <div className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-900"><LanguagePicker loggedIn /></div>
+          <span className="text-xs text-slate-400">{t('account.profile.languageHint')}</span>
+        </div>
         <EmailSection />
         <BlockedSection />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-          <Button type="submit" disabled={saving || !firstName.trim()}>{saving ? 'Enregistrement...' : 'Enregistrer'}</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={saving || !firstName.trim()}>{saving ? t('common.saving') : t('common.save')}</Button>
         </div>
       </form>
     </Modal>
@@ -81,34 +89,34 @@ function EmailSection() {
   const onEnter = (e: React.KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); if (canSubmit) submit(); } };
   const submit = () => run(
     () => api.post('/auth/change-email', { email: newEmail, password: user.hasPassword ? password : undefined }),
-    `Un lien de confirmation a été envoyé à ${newEmail.trim().toLowerCase()}. Ton adresse actuelle reste active jusqu'au clic.`,
+    t('account.profile.linkSent', { email: newEmail.trim().toLowerCase() }),
   );
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-slate-700">Email</span>
+      <span className="text-sm font-medium text-slate-700">{t('account.profile.email')}</span>
       {user.email ? (
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-sm truncate">{user.email}</div>
           {!editing && (
             <button type="button" onClick={() => { setEditing(true); setMsg(null); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex-shrink-0">
-              Changer
+              {t('account.profile.change')}
             </button>
           )}
         </div>
       ) : (
-        <p className="text-sm text-slate-400 italic">Aucun email associé à ce compte.</p>
+        <p className="text-sm text-slate-400 italic">{t('account.profile.noEmail')}</p>
       )}
       {user.email && !user.emailVerified && !user.pendingEmail && (
-        <p className="text-xs text-amber-600">Email pas encore vérifié : pense à cliquer sur le lien reçu.</p>
+        <p className="text-xs text-amber-600">{t('account.profile.notVerified')}</p>
       )}
 
       {user.pendingEmail && !editing && (
         <div className="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2 space-y-1">
-          <p><Mail size={12} className="inline -mt-0.5 mr-1.5" />Changement en attente vers <strong className="break-all">{user.pendingEmail}</strong> : clique sur le lien reçu à cette adresse.</p>
+          <p><Mail size={12} className="inline -mt-0.5 mr-1.5" /><Trans i18nKey="account.profile.pending" values={{ email: user.pendingEmail }} components={{ b: <strong className="break-all" /> }} /></p>
           <div className="flex gap-3">
-            <button type="button" disabled={busy} onClick={() => run(() => api.post('/auth/change-email/resend'), `Nouveau lien envoyé à ${user.pendingEmail}.`)} className="font-semibold underline underline-offset-2 disabled:opacity-50">Renvoyer le lien</button>
-            <button type="button" disabled={busy} onClick={() => run(() => api.delete('/auth/change-email'), 'Changement annulé.')} className="font-semibold underline underline-offset-2 disabled:opacity-50">Annuler</button>
+            <button type="button" disabled={busy} onClick={() => run(() => api.post('/auth/change-email/resend'), t('account.profile.newLinkSent', { email: user.pendingEmail }))} className="font-semibold underline underline-offset-2 disabled:opacity-50">{t('account.profile.resend')}</button>
+            <button type="button" disabled={busy} onClick={() => run(() => api.delete('/auth/change-email'), t('account.profile.cancelled'))} className="font-semibold underline underline-offset-2 disabled:opacity-50">{t('common.cancel')}</button>
           </div>
         </div>
       )}
@@ -119,7 +127,7 @@ function EmailSection() {
             type="email"
             value={newEmail}
             onChange={e => setNewEmail(e.target.value)}
-            placeholder="Nouvelle adresse email"
+            placeholder={t('account.profile.newEmail')}
             autoComplete="email"
             autoFocus
             onKeyDown={onEnter}
@@ -130,17 +138,17 @@ function EmailSection() {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="Ton mot de passe actuel"
+              placeholder={t('account.profile.currentPassword')}
               autoComplete="current-password"
               onKeyDown={onEnter}
               className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           )}
-          <p className="text-xs text-slate-500">Un lien de confirmation sera envoyé à la nouvelle adresse ; l'ancienne reste active d'ici là.</p>
+          <p className="text-xs text-slate-500">{t('account.profile.changeHint')}</p>
           <div className="flex gap-2 justify-end">
-            <Button type="button" variant="ghost" size="sm" onClick={() => { setEditing(false); setMsg(null); }}>Annuler</Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => { setEditing(false); setMsg(null); }}>{t('common.cancel')}</Button>
             <Button type="button" size="sm" onClick={submit} disabled={!canSubmit}>
-              {busy ? 'Envoi…' : 'Envoyer le lien'}
+              {busy ? t('common.sending') : t('account.profile.sendLink')}
             </Button>
           </div>
         </div>
@@ -170,16 +178,16 @@ function BlockedSection() {
   if (people.length === 0) return null;
   return (
     <div className="pt-1">
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Personnes masquées</p>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{t('account.profile.blocked')}</p>
       <ul className="space-y-1.5">
         {people.map(p => (
           <li key={p.id} className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
             <span className="text-slate-700 truncate">{p.firstName || p.pseudo} <span className="text-slate-400">@{p.pseudo}</span></span>
-            <button type="button" onClick={() => unblock(p.id)} className="text-xs text-indigo-600 hover:text-indigo-800 flex-shrink-0">Ne plus masquer</button>
+            <button type="button" onClick={() => unblock(p.id)} className="text-xs text-indigo-600 hover:text-indigo-800 flex-shrink-0">{t('account.profile.unblock')}</button>
           </li>
         ))}
       </ul>
-      <p className="text-xs text-slate-400 mt-1.5">Leurs messages ne te sont pas affichés et ils ne t'envoient pas de notifications. Ils n'en savent rien.</p>
+      <p className="text-xs text-slate-400 mt-1.5">{t('account.profile.blockedHint')}</p>
     </div>
   );
 }

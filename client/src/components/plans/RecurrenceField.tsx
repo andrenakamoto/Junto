@@ -1,6 +1,7 @@
 import { Repeat } from 'lucide-react';
 import { Recurrence, RECURRENCE_OPTIONS, recurrenceLabel } from '../../lib/recurrence';
 import { DateTimeField } from '../ui/DateTimeField';
+import { useTranslation } from 'react-i18next';
 
 // Choix « Répéter » d'un Plan (création et modification, créateur seul). `until` : date
 // AAAA-MM-JJ (facultative) ; la répétition demande une date et une heure d'événement.
@@ -11,10 +12,11 @@ export function RecurrenceField({ value, until, eventDateISO, onChange }: {
   onChange: (value: Recurrence | '', until: string) => void;
 }) {
   const label = recurrenceLabel(value || null, eventDateISO);
+  const { t } = useTranslation();
   return (
     <div>
       <label className="flex items-center gap-1.5 text-sm font-medium text-slate-700 mb-1">
-        <Repeat size={14} className="text-slate-400" /> Répéter
+        <Repeat size={14} className="text-slate-400" /> {t('plan.recurrence.label')}
       </label>
       <select
         value={value}
@@ -26,14 +28,14 @@ export function RecurrenceField({ value, until, eventDateISO, onChange }: {
       {value && (
         <div className="mt-2 space-y-1">
           {!eventDateISO ? (
-            <p className="text-xs text-amber-600">Indique la date et l'heure de l'événement pour pouvoir répéter le Plan.</p>
+            <p className="text-xs text-amber-600">{t('plan.recurrence.needDate')}</p>
           ) : (
             <p className="text-xs text-slate-500">
-              {label}. Le Plan suivant est créé automatiquement dès que celui-ci est passé ; chacun y répond à nouveau.
+              {t('plan.recurrence.explain', { label })}
             </p>
           )}
-          <label className="block text-xs font-medium text-slate-600">Jusqu'au (facultatif)</label>
-          <DateTimeField mode="date" value={until} onChange={v => onChange(value, v)} placeholder="Pas de date de fin" clearable openAt={eventDateISO ?? undefined} />
+          <label className="block text-xs font-medium text-slate-600">{t('plan.recurrence.until')}</label>
+          <DateTimeField mode="date" value={until} onChange={v => onChange(value, v)} placeholder={t('plan.recurrence.noEnd')} clearable openAt={eventDateISO ?? undefined} />
         </div>
       )}
     </div>

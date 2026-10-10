@@ -7,6 +7,9 @@ import { LogoIcon } from '../components/ui/Logo';
 import { TermsModal } from '../components/ui/TermsModal';
 import { savePendingInvite, clearPendingInvite } from '../lib/pendingInvite';
 import { getLightToken, setLightToken, clearLightToken } from '../lib/lightGuest';
+import { intlLocale, t } from '../i18n';
+import { Trans } from 'react-i18next';
+import { LanguagePicker } from '../components/ui/LanguagePicker';
 
 type Rsvp = 'in' | 'maybe' | 'out';
 
@@ -36,20 +39,20 @@ interface PublicPreview {
 }
 
 const RSVP_OPTIONS: { value: Rsvp; label: string; icon: typeof Check; active: string; idle: string }[] = [
-  { value: 'in', label: 'Je suis in', icon: Check, active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10' },
-  { value: 'maybe', label: 'Peut-être', icon: HelpCircle, active: 'bg-amber-500 border-amber-500 text-white', idle: 'border-amber-500/40 text-amber-300 hover:bg-amber-500/10' },
-  { value: 'out', label: 'Je passe', icon: X, active: 'bg-slate-500 border-slate-500 text-white', idle: 'border-slate-600 text-slate-300 hover:bg-slate-700/40' },
+  { value: 'in', label: t('auth.guest.rsvpIn'), icon: Check, active: 'bg-emerald-500 border-emerald-500 text-white', idle: 'border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10' },
+  { value: 'maybe', label: t('auth.guest.rsvpMaybe'), icon: HelpCircle, active: 'bg-amber-500 border-amber-500 text-white', idle: 'border-amber-500/40 text-amber-300 hover:bg-amber-500/10' },
+  { value: 'out', label: t('auth.guest.rsvpOut'), icon: X, active: 'bg-slate-500 border-slate-500 text-white', idle: 'border-slate-600 text-slate-300 hover:bg-slate-700/40' },
 ];
 
 const CONFIRMATION: Record<Rsvp, string> = {
-  in: 'Tu es in ! Les autres participants sont prévenus.',
-  maybe: 'C\'est noté : peut-être. Tu peux changer d\'avis à tout moment ici.',
-  out: 'C\'est noté : tu ne viens pas. Merci d\'avoir répondu !',
+  in: t('auth.guest.confirmIn'),
+  maybe: t('auth.guest.confirmMaybe'),
+  out: t('auth.guest.confirmOut'),
 };
 
 function formatDate(iso: string | null) {
   return iso
-    ? new Intl.DateTimeFormat('fr-CH', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+    ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
     : null;
 }
 
@@ -60,13 +63,16 @@ export function GuestInvitePage() {
 
   if (loading) return null;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4 relative">
+      <div className="absolute top-3 right-3 text-slate-300" style={{ marginTop: 'var(--sa-top, 0px)' }}>
+        <LanguagePicker compact loggedIn={!!user} />
+      </div>
       <div className="w-full max-w-md py-6">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
             <LogoIcon size={64} />
           </div>
-          <h1 className="text-2xl font-black text-white">Tu es invité(e) !</h1>
+          <h1 className="text-2xl font-black text-white">{t('auth.guest.invited')}</h1>
         </div>
         {user ? <MemberInvite token={token} /> : <AnonymousInvite token={token} />}
       </div>
@@ -86,15 +92,15 @@ function AnonymousInvite({ token }: { token: string }) {
   const [justAnswered, setJustAnswered] = useState(false);
 
   const lightHeaders = () => {
-    const t = getLightToken();
-    return t ? { Authorization: `Bearer ${t}` } : {};
+    const lt = getLightToken();
+    return lt ? { Authorization: `Bearer ${lt}` } : {};
   };
 
   useEffect(() => {
-    if (!token) { setError("Ce lien d'invitation est incomplet."); return; }
+    if (!token) { setError(t('auth.guest.incomplete')); return; }
     api.get(`/invite/${token}`, { headers: lightHeaders() })
       .then(res => setPreview(res.data))
-      .catch(err => setError(err.response?.data?.error || "Ce lien d'invitation n'est plus valide"));
+      .catch(err => setError(err.response?.data?.error || t('auth.guest.invalid')));
   }, [token]);
 
   async function answer(rsvp: Rsvp) {
@@ -107,14 +113,14 @@ function AnonymousInvite({ token }: { token: string }) {
       setPreview(data);
       setJustAnswered(true);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setError(err.response?.data?.error || t('common.retryError'));
     } finally {
       setSending(null);
     }
   }
 
   async function removeAnswer() {
-    if (!confirm('Retirer ta réponse ? Ton prénom sera effacé de ce Plan.')) return;
+    if (!confirm(t('auth.guest.removeConfirm'))) return;
     try {
       const { data } = await api.delete(`/invite/${token}/respond`, { headers: lightHeaders() });
       if (data.accountDeleted) clearLightToken();
@@ -122,7 +128,7 @@ function AnonymousInvite({ token }: { token: string }) {
       setPreview(res.data);
       setJustAnswered(false);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     }
   }
 
@@ -144,7 +150,7 @@ function AnonymousInvite({ token }: { token: string }) {
         {error
           ? <ErrorBox text={error} />
           : <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-slate-400" /></div>}
-        {error && <Link to="/auth" className="block text-center text-sm text-slate-400 hover:text-slate-200">Aller sur EvLY</Link>}
+        {error && <Link to="/auth" className="block text-center text-sm text-slate-400 hover:text-slate-200">{t('auth.guest.goToEvly')}</Link>}
       </Card>
     );
   }
@@ -164,17 +170,17 @@ function AnonymousInvite({ token }: { token: string }) {
             )}
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Ta réponse{me.firstName ? `, ${me.firstName}` : ''}
+                {me.firstName ? t('auth.guest.yourAnswerName', { name: me.firstName }) : t('auth.guest.yourAnswer')}
               </p>
               <RsvpButtons value={me.rsvp} sending={sending} onChoose={answer} disabledIn={preview.full && me.rsvp === 'out'} />
             </div>
             {preview.participants && preview.participants.length > 0 && (
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Qui vient</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{t('auth.guest.whoComes')}</p>
                 <ul className="flex flex-wrap gap-1.5">
                   {preview.participants.map((p, i) => (
                     <li key={i} className={`text-xs px-2.5 py-1 rounded-full border ${p.rsvp === 'in' ? 'border-emerald-500/30 text-emerald-200 bg-emerald-500/10' : 'border-amber-500/30 text-amber-200 bg-amber-500/10'}`}>
-                      {p.name}{p.isMe ? ' (toi)' : ''}{p.rsvp === 'maybe' ? ' · peut-être' : ''}
+                      {p.name}{p.isMe ? t('auth.guest.you') : ''}{p.rsvp === 'maybe' ? t('auth.guest.maybeTag') : ''}
                     </li>
                   ))}
                 </ul>
@@ -182,28 +188,27 @@ function AnonymousInvite({ token }: { token: string }) {
             )}
           </>
         ) : preview.full ? (
-          <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">Ce Plan est complet.</p>
+          <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">{t('auth.guest.full')}</p>
         ) : (
           <div className="space-y-3">
             <div>
-              <label htmlFor="invite-firstname" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Ton prénom</label>
+              <label htmlFor="invite-firstname" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">{t('auth.guest.yourFirstName')}</label>
               <input
                 id="invite-firstname"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 maxLength={30}
                 autoComplete="given-name"
-                placeholder="Pour que les autres sachent qui vient"
+                placeholder={t('auth.guest.firstNamePlaceholder')}
                 className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"
               />
             </div>
             <RsvpButtons value={null} sending={sending} onChoose={answer} disabled={!firstName.trim()} />
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Pas besoin de compte : seul ton prénom est enregistré, et il est effacé à la fin du Plan. En
-              répondant, tu acceptes les{' '}
-              <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-slate-300">conditions d'utilisation</button>
-              {' '}et la{' '}
-              <Link to="/confidentialite" className="underline hover:text-slate-300">politique de confidentialité</Link>.
+              <Trans i18nKey="auth.guest.noAccount" components={{
+                terms: <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-slate-300" />,
+                privacy: <Link to="/confidentialite" className="underline hover:text-slate-300" />,
+              }} />
             </p>
           </div>
         )}
@@ -213,31 +218,31 @@ function AnonymousInvite({ token }: { token: string }) {
 
       {me ? (
         <Card>
-          <p className="text-white font-semibold text-sm">Envie d'en profiter pleinement ?</p>
+          <p className="text-white font-semibold text-sm">{t('auth.guest.enjoyFully')}</p>
           <ul className="grid grid-cols-2 gap-2 text-xs text-slate-300">
-            <li className="flex items-center gap-2"><MessageSquare size={14} className="text-indigo-400" /> Le chat du Plan</li>
-            <li className="flex items-center gap-2"><Car size={14} className="text-indigo-400" /> Le covoiturage</li>
-            <li className="flex items-center gap-2"><Image size={14} className="text-indigo-400" /> Les photos</li>
-            <li className="flex items-center gap-2"><Bell size={14} className="text-indigo-400" /> Les rappels</li>
+            <li className="flex items-center gap-2"><MessageSquare size={14} className="text-indigo-400" /> {t('auth.guest.chat')}</li>
+            <li className="flex items-center gap-2"><Car size={14} className="text-indigo-400" /> {t('auth.guest.rides')}</li>
+            <li className="flex items-center gap-2"><Image size={14} className="text-indigo-400" /> {t('auth.guest.photos')}</li>
+            <li className="flex items-center gap-2"><Bell size={14} className="text-indigo-400" /> {t('auth.guest.reminders')}</li>
           </ul>
           <button
             onClick={() => goAuth(true)}
             className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors text-sm"
           >
-            Créer mon compte gratuit en 1 min <ArrowRight size={16} />
+            {t('auth.guest.createAccount')} <ArrowRight size={16} />
           </button>
           <p className="text-center text-xs text-slate-500">
-            Ta réponse est gardée.{' '}
-            <button onClick={() => goAuth(false)} className="text-slate-300 hover:text-white underline">J'ai déjà un compte</button>
+            {t('auth.guest.answerKept')}{' '}
+            <button onClick={() => goAuth(false)} className="text-slate-300 hover:text-white underline">{t('auth.guest.haveAccount')}</button>
           </p>
           <button onClick={removeAnswer} className="w-full text-[11px] text-slate-500 hover:text-slate-300">
-            Retirer ma réponse
+            {t('auth.guest.removeAnswer')}
           </button>
         </Card>
       ) : (
         <p className="text-center text-sm text-slate-400">
-          Déjà un compte EvLY ?{' '}
-          <button onClick={() => goAuth(false)} className="text-indigo-300 hover:text-indigo-200 font-medium">Se connecter</button>
+          {t('auth.guest.alreadyAccount')}{' '}
+          <button onClick={() => goAuth(false)} className="text-indigo-300 hover:text-indigo-200 font-medium">{t('auth.guest.login')}</button>
         </p>
       )}
 
@@ -278,7 +283,7 @@ function PlanSummary({ preview }: { preview: PublicPreview }) {
         </div>
         <div className="min-w-0">
           <p className="text-white font-bold">{preview.title}</p>
-          <p className="text-slate-400 text-xs mt-0.5">Proposé par {preview.creatorName}</p>
+          <p className="text-slate-400 text-xs mt-0.5">{t('auth.guest.proposedBy', { name: preview.creatorName })}</p>
         </div>
       </div>
       <div className="space-y-1.5 text-sm">
@@ -286,7 +291,7 @@ function PlanSummary({ preview }: { preview: PublicPreview }) {
         {preview.location && <p className="flex items-center gap-2 text-slate-300"><MapPin size={14} className="text-indigo-400 flex-shrink-0" />{preview.location}</p>}
         <p className="flex items-center gap-2 text-slate-300">
           <Users size={14} className="text-indigo-400 flex-shrink-0" />
-          {going} participant{going > 1 ? 's' : ''}{preview.counts.maybe > 0 ? ` · ${preview.counts.maybe} peut-être` : ''}
+          {t('auth.guest.participants', { count: going })}{preview.counts.maybe > 0 ? t('auth.guest.maybeCount', { count: preview.counts.maybe }) : ''}
         </p>
       </div>
       {preview.description && (
@@ -313,12 +318,12 @@ function MemberInvite({ token }: { token: string }) {
   const [joining, setJoining] = useState(false);
 
   useEffect(() => {
-    if (!token) { setError("Ce lien d'invitation est incomplet."); return; }
+    if (!token) { setError(t('auth.guest.incomplete')); return; }
     api.get(`/plans/guest-invite/${token}`)
       .then(res => setPreview(res.data))
       .catch(err => {
         clearPendingInvite();
-        setError(err.response?.data?.error || "Ce lien d'invitation n'est plus valide");
+        setError(err.response?.data?.error || t('auth.guest.invalid'));
       });
   }, [token]);
 
@@ -336,7 +341,7 @@ function MemberInvite({ token }: { token: string }) {
       clearPendingInvite();
       navigate(`/dashboard?planId=${data.planId}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setJoining(false);
     }
@@ -364,7 +369,7 @@ function MemberInvite({ token }: { token: string }) {
           </div>
           <div className="min-w-0">
             <p className="text-white font-bold text-sm">{preview.title}</p>
-            <p className="text-slate-400 text-xs mt-0.5">Proposé par @{preview.creatorPseudo}</p>
+            <p className="text-slate-400 text-xs mt-0.5">{t('auth.guest.proposedBy', { name: `@${preview.creatorPseudo}` })}</p>
             {dateFmt && <p className="text-indigo-300 text-xs mt-1 first-letter:uppercase">{dateFmt}</p>}
           </div>
         </div>
@@ -372,8 +377,7 @@ function MemberInvite({ token }: { token: string }) {
 
       {preview && !preview.alreadyMember && (
         <p className="text-xs text-slate-400 leading-relaxed">
-          Tu rejoindras <strong className="text-slate-300">uniquement ce Plan</strong> : son chat, ses infos, les
-          trajets et les photos. Rejoindre un Plan, c'est dire oui à ce qui y est proposé.
+          <Trans i18nKey="auth.guest.onlyThisPlan" components={{ b: <strong className="text-slate-300" /> }} />
         </p>
       )}
 
@@ -381,7 +385,7 @@ function MemberInvite({ token }: { token: string }) {
 
       {preview && (preview.full && !preview.alreadyMember ? (
         <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-          Ce Plan est complet.
+          {t('auth.guest.full')}
         </p>
       ) : (
         <button
@@ -389,9 +393,9 @@ function MemberInvite({ token }: { token: string }) {
           disabled={joining}
           className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm"
         >
-          {joining ? 'Un instant...' : (
+          {joining ? t('common.wait') : (
             <>
-              {preview.alreadyMember ? 'Ouvrir le Plan' : 'Rejoindre ce Plan'}
+              {preview.alreadyMember ? t('auth.guest.openPlan') : t('auth.guest.joinPlan')}
               <ArrowRight size={16} />
             </>
           )}
@@ -402,7 +406,7 @@ function MemberInvite({ token }: { token: string }) {
         onClick={handleIgnore}
         className="w-full py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors"
       >
-        {error ? 'Aller sur EvLY' : 'Ignorer'}
+        {error ? t('auth.guest.goToEvly') : t('auth.guest.ignore')}
       </button>
     </Card>
   );

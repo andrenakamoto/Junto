@@ -21,6 +21,7 @@ import { Avatar } from '../ui/Avatar';
 import { isCircleManager } from '../../lib/settings';
 import { JoinRequestList } from './JoinRequestList';
 import { siteUrl } from '../../lib/siteUrl';
+import { intlLocale, t } from '../../i18n';
 
 interface Props {
   circles: Circle[];
@@ -121,8 +122,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         </p>
         <button
           onClick={handleLogout}
-          title="Se déconnecter"
-          aria-label="Se déconnecter"
+          title={t('circle.sidebar.logout')}
+          aria-label={t('circle.sidebar.logout')}
           className="ml-auto p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
         >
           <LogOut size={17} />
@@ -142,7 +143,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${allPlansActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
             <Calendar size={15} />
           </div>
-          Tous mes plans
+          {t('circle.sidebar.allPlans')}
         </button>
         <button
           onClick={onCalendar}
@@ -155,27 +156,27 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${calendarActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
             <CalendarDays size={15} />
           </div>
-          Calendrier
+          {t('circle.sidebar.calendar')}
         </button>
-        <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Mes Cercles</p>
+        <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.sidebar.myCircles')}</p>
         <div className="space-y-1.5 pb-2">
           <button
             onClick={() => setShowCreate(true)}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
           >
             <Plus size={15} />
-            Créer un Cercle
+            {t('circle.sidebar.create')}
           </button>
           <button
             onClick={() => setShowJoin(true)}
             className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
             <Users size={14} />
-            Rejoindre un Cercle
+            {t('circle.sidebar.join')}
           </button>
         </div>
         {circles.length === 0 && (
-          <p className="px-3 py-2 text-sm text-slate-400 italic">Aucun Cercle pour l'instant</p>
+          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noCircle')}</p>
         )}
         {circles.map((circle) => {
           const selected = selectedId === circle.id;
@@ -211,23 +212,23 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                         onClick={e => { e.stopPropagation(); setMembersPopover(circle.id); }}
                         className={`text-xs hover:underline ${selected ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-700'}`}
                       >
-                        {circle.members.length} membre{circle.members.length > 1 ? 's' : ''}
+                        {t('circle.members.count', { count: circle.members.length })}
                       </button>
                       {isCircleMuted(circle.id) && (
-                        <span title="Cercle en silence" className={selected ? 'text-indigo-100' : 'text-slate-400'}><BellOff size={12} /></span>
+                        <span title={t('circle.sidebar.muted')} className={selected ? 'text-indigo-100' : 'text-slate-400'}><BellOff size={12} /></span>
                       )}
                       {(circle._count?.plans ?? 0) > 0 && (
                         <>
                           <span className="text-xs text-slate-300">·</span>
                           <span className={`text-xs ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
-                            {circle._count!.plans} plan{circle._count!.plans > 1 ? 's' : ''}
+                            {t('circle.sidebar.plans', { count: circle._count!.plans })}
                           </span>
                         </>
                       )}
                       {isManager && (
                         <button
                           onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
-                          title="Couleur du Cercle"
+                          title={t('circle.sidebar.color')}
                           className="w-3 h-3 rounded-full border border-slate-300 flex-shrink-0 ml-0.5"
                           style={{ backgroundColor: circleColor || '#64748b' }}
                         />
@@ -237,7 +238,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                   {(circle.joinRequests?.length ?? 0) > 0 && (
                     <button
                       onClick={e => { e.stopPropagation(); setRequestsPopover(requestsPopover === circle.id ? null : circle.id); }}
-                      title="Demandes en attente"
+                      title={t('circle.sidebar.pending')}
                       className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors flex-shrink-0 text-xs font-semibold"
                     >
                       <UserPlus size={12} />
@@ -249,7 +250,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 {nextPlan && (
                   <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg ${selected ? 'bg-indigo-500/30' : 'bg-slate-50'}`}>
                     <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${selected ? 'text-indigo-200/70' : 'text-indigo-600'}`}>
-                      Prochain évènement
+                      {t('circle.sidebar.nextEvent')}
                     </p>
                     <p className={`text-xs font-semibold truncate ${selected ? 'text-white' : 'text-slate-800'}`}>
                       {nextPlan.title}
@@ -258,8 +259,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       <Calendar size={10} className="flex-shrink-0" />
                       <span className="text-xs">
                         {nextPlan.eventDate
-                          ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(nextPlan.eventDate))
-                          : `Clôture le ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(nextPlan.endDate))}`
+                          ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(nextPlan.eventDate))
+                          : t('circle.sidebar.closesOn', { date: new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' }).format(new Date(nextPlan.endDate)) })
                         }
                       </span>
                     </div>
@@ -271,7 +272,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5 flex items-center gap-1.5 flex-wrap">
                   <button
                     onClick={() => handleSetColor(circle.id, null)}
-                    title="Aucune couleur"
+                    title={t('circle.sidebar.noColor')}
                     className="w-6 h-6 rounded-full border-2 border-dashed border-slate-500 flex-shrink-0"
                   />
                   {CIRCLE_COLORS.map(c => (
@@ -303,8 +304,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
             qui ont du nouveau */}
         <button
           onClick={onOpenNotifications}
-          title="Notifications"
-          aria-label={unreadCount > 0 ? `Notifications (${unreadCount})` : 'Notifications'}
+          title={t('circle.sidebar.notifications')}
+          aria-label={unreadCount > 0 ? t('circle.sidebar.notificationsCount', { count: unreadCount }) : t('circle.sidebar.notifications')}
           className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 shadow-sm text-indigo-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <Bell size={18} />
@@ -320,7 +321,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
         <button
           onClick={() => setShowMenu(v => !v)}
-          title="Menu"
+          title={t('circle.sidebar.menu')}
           className={`w-9 h-9 flex items-center justify-center rounded-xl border shadow-sm transition-colors ${showMenu ? 'bg-slate-200 border-slate-300 text-slate-900' : 'bg-white border-slate-200 text-indigo-600 hover:text-slate-900 hover:bg-slate-50'}`}
         >
           <Menu size={18} />
@@ -334,7 +335,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
               >
                 <ShieldCheck size={15} />
-                Panneau admin
+                {t('circle.sidebar.admin')}
               </button>
             )}
             <button
@@ -342,42 +343,42 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
               <UserRound size={15} />
-              Mon profil
+              {t('circle.sidebar.profile')}
             </button>
             <button
               onClick={() => { setShowMenu(false); setShowChangePassword(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
               <KeyRound size={15} />
-              Changer mon mot de passe
+              {t('circle.sidebar.password')}
             </button>
             <button
               onClick={() => { setShowMenu(false); setShowNotifSettings(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
               <Bell size={15} />
-              Notifications
+              {t('circle.sidebar.notifications')}
             </button>
             <button
               onClick={() => { setShowMenu(false); setShowSuggestions(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
               <Lightbulb size={15} />
-              Proposer une amélioration
+              {t('circle.sidebar.suggest')}
             </button>
             <button
               onClick={() => { setShowMenu(false); setShowGuide(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
               <BookOpen size={15} />
-              Guide d'utilisation
+              {t('circle.sidebar.guide')}
             </button>
             <button
               onClick={() => { setShowMenu(false); setShowTerms(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
             >
               <ScrollText size={15} />
-              Conditions d'utilisation
+              {t('circle.sidebar.terms')}
             </button>
             <a
               href={siteUrl('/confidentialite')}
@@ -387,14 +388,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
             >
               <ShieldCheck size={15} />
-              Politique de confidentialité
+              {t('circle.sidebar.privacy')}
             </a>
             <button
               onClick={() => { setShowMenu(false); setShowDeleteAccount(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-slate-100 transition-colors text-sm"
             >
               <UserX size={15} />
-              Supprimer mon compte
+              {t('circle.sidebar.deleteAccount')}
             </button>
             <p className="text-center text-xs text-slate-500 pt-2 mt-1 border-t border-slate-200">info@evly.ch</p>
           </div>

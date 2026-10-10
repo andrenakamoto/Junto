@@ -8,6 +8,7 @@ import { isEnabled } from '../../lib/settings';
 import { ImportantInfoCard } from './ImportantInfoCard';
 import { downloadPlanPhotos } from '../../lib/planPhotos';
 import { isVoiceNote } from '../../lib/media';
+import { intlLocale, t } from '../../i18n';
 
 interface Props {
   plan: Plan;
@@ -18,8 +19,8 @@ interface Props {
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} o`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} Ko`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+  if (bytes < 1024 * 1024) return t('plan.infos.kb', { n: (bytes / 1024).toFixed(0) });
+  return t('plan.infos.mb', { n: (bytes / (1024 * 1024)).toFixed(1) });
 }
 
 function isImage(mimeType: string) {
@@ -41,7 +42,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
     try {
       await downloadPlanPhotos(plan);
     } catch {
-      setZipError('Impossible de préparer le téléchargement. Réessaie.');
+      setZipError(t('plan.infos.zipError'));
     } finally {
       setZipping(false);
     }
@@ -56,7 +57,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Fichier trop volumineux (max 10 Mo)');
+      setUploadError(t('plan.infos.fileTooBig'));
       return;
     }
     setUploading(true);
@@ -69,7 +70,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
       });
       await refresh();
     } catch (err: any) {
-      setUploadError(err.response?.data?.error || "Erreur lors de l'envoi");
+      setUploadError(err.response?.data?.error || t('plan.infos.uploadError'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -99,7 +100,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">
             <AlignLeft size={15} className="text-indigo-500" />
-            Description
+            {t('plan.infos.description')}
           </div>
           <p className="text-slate-600 text-sm pl-5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
         </div>
@@ -111,7 +112,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm mb-1">
             <MapPin size={15} className="text-indigo-500" />
-            Lieu du rendez-vous
+            {t('plan.infos.location')}
           </div>
           <p className="text-slate-600 text-sm pl-5">{plan.location}</p>
         </div>
@@ -120,7 +121,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
       {/* Galerie photo (masquée si « Photos et fichiers » est désactivé) */}
       {showFiles && imageAttachments.length > 0 && (
         <div>
-          <h3 className="font-semibold text-slate-800 text-sm mb-3">Galerie ({imageAttachments.length})</h3>
+          <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.infos.gallery', { count: imageAttachments.length })}</h3>
           <div className="mb-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
             <button
               onClick={handleDownloadAllPhotos}
@@ -129,13 +130,11 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
             >
               {zipping ? <Loader2 size={16} className="animate-spin" /> : <Images size={16} />}
               {zipping
-                ? 'Préparation du téléchargement…'
-                : `Télécharger toutes les photos (${imageAttachments.length})`}
+                ? t('plan.infos.preparing')
+                : t('plan.infos.downloadAll', { count: imageAttachments.length })}
             </button>
             <p className="text-xs text-indigo-700/80 text-center mt-2">
-              Les photos seront supprimées avec le Plan le{' '}
-              {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(new Date(plan.endDate))}.
-              Pense à les récupérer !
+              {t('plan.infos.deletedOn', { date: new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long' }).format(new Date(plan.endDate)) })}
             </p>
             {zipError && <p className="text-xs text-red-500 text-center mt-1">{zipError}</p>}
           </div>
@@ -155,7 +154,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
 
       {/* Pièces jointes */}
       {showFiles && <div>
-        <h3 className="font-semibold text-slate-800 text-sm mb-3">Pièces jointes</h3>
+        <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.infos.attachments')}</h3>
 
         {fileAttachments.length > 0 && (
           <div className="space-y-2 mb-3">
@@ -173,7 +172,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         )}
 
         {fileAttachments.length === 0 && !uploading && (
-          <p className="text-sm text-slate-400 italic mb-3">Aucune pièce jointe pour l'instant.</p>
+          <p className="text-sm text-slate-400 italic mb-3">{t('plan.infos.noAttachment')}</p>
         )}
 
         {uploadError && (
@@ -193,9 +192,9 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium disabled:opacity-50"
         >
           {uploading ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
-          {uploading ? 'Envoi en cours…' : 'Ajouter une pièce jointe'}
+          {uploading ? t('plan.infos.uploading') : t('plan.infos.addAttachment')}
         </button>
-        <p className="text-xs text-slate-400 mt-1">PDF, images, Word, Excel… · max 10 Mo</p>
+        <p className="text-xs text-slate-400 mt-1">{t('plan.infos.formats')}</p>
       </div>}
     </div>
   );
@@ -214,7 +213,7 @@ function GalleryThumb({ att, token, canDelete, onDelete }: { att: Attachment; to
             <div className="flex gap-1">
               <button
                 onClick={onDelete}
-                aria-label="Confirmer la suppression"
+                aria-label={t('plan.infos.confirmDelete')}
                 className="p-1.5 bg-red-600 text-white rounded-md text-xs"
               >
                 <Trash2 size={13} />
@@ -229,7 +228,7 @@ function GalleryThumb({ att, token, canDelete, onDelete }: { att: Attachment; to
           ) : (
             <button
               onClick={() => setConfirmDelete(true)}
-              aria-label="Supprimer la photo"
+              aria-label={t('plan.infos.deletePhoto')}
               className="flex [@media(hover:hover)]:hidden [@media(hover:hover)]:group-hover:flex p-1.5 bg-black/50 text-white rounded-md"
             >
               <Trash2 size={13} />
@@ -279,7 +278,7 @@ function AttachmentRow({
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.error || err?.message || 'Erreur inconnue';
+      const msg = err?.response?.data?.error || err?.message || t('plan.infos.unknownError');
       setDlError(msg);
     } finally {
       setDownloading(false);
@@ -311,19 +310,19 @@ function AttachmentRow({
           {confirmDelete ? (
             /* Confirmation inline */
             <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-xs text-red-600 font-medium">Supprimer ce fichier ?</span>
+              <span className="text-xs text-red-600 font-medium">{t('plan.infos.deleteFile')}</span>
               <button
                 onClick={() => { setConfirmDelete(false); onDelete(); }}
                 disabled={deleting}
                 className="px-2 py-0.5 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
               >
-                {deleting ? <Loader2 size={12} className="animate-spin inline" /> : 'Oui, supprimer'}
+                {deleting ? <Loader2 size={12} className="animate-spin inline" /> : t('plan.infos.yesDelete')}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
                 className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
             </div>
           ) : (
@@ -334,7 +333,7 @@ function AttachmentRow({
                   onClick={handleDownload}
                   disabled={downloading}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
-                  title="Télécharger"
+                  title={t('plan.infos.download')}
                 >
                   {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 </button>
@@ -342,7 +341,7 @@ function AttachmentRow({
                   <button
                     onClick={() => setConfirmDelete(true)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Supprimer"
+                    title={t('plan.infos.delete')}
                   >
                     <Trash2 size={14} />
                   </button>

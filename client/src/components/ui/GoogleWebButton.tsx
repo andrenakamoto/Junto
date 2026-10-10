@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { currentLang, t } from '../../i18n';
 
 // Connexion Google sur le web via Google Identity Services (GIS).
 // L'ancienne bibliothèque gapi.auth2, utilisée par le plugin Capacitor sur le web,
@@ -15,7 +16,7 @@ function loadGis(): Promise<void> {
   if (!gisScript) {
     gisScript = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client?hl=fr';
+      script.src = `https://accounts.google.com/gsi/client?hl=${currentLang()}`;
       script.async = true;
       script.onload = () => resolve();
       script.onerror = () => { gisScript = null; reject(new Error('gsi')); };
@@ -59,12 +60,12 @@ export function GoogleWebButton({ clientId, text, onCredential, onError }: Props
           shape: 'pill',
           text,
           logo_alignment: 'center',
-          locale: 'fr',
+          locale: currentLang(),
           width: Math.min(el.offsetWidth || 320, 400),
         });
       })
       .catch(() => {
-        if (!cancelled) onError('Impossible de charger la connexion Google. Vérifie ta connexion internet.');
+        if (!cancelled) onError(t('auth.googleLoadError'));
       });
     return () => { cancelled = true; };
     // onError volontairement hors dépendances : on ne recharge pas le bouton pour ça

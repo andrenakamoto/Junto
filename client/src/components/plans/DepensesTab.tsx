@@ -5,6 +5,7 @@ import { Currency, ExpensesData, Plan, PlanMember } from '../../types';
 import { BringItemsSection } from './BringItemsSection';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
+import { intlLocale, t } from '../../i18n';
 
 interface Props {
   planId: string;
@@ -20,7 +21,7 @@ interface Props {
 const CURRENCIES: { value: Currency; label: string }[] = [{ value: 'CHF', label: 'CHF' }, { value: 'EUR', label: 'EUR (€)' }];
 
 function money(n: number, currency: Currency) {
-  return n.toLocaleString('fr-CH', { style: 'currency', currency });
+  return n.toLocaleString(intlLocale(), { style: 'currency', currency });
 }
 
 export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdated }: Props) {
@@ -82,7 +83,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
   }
 
   if (!data) {
-    return <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 text-sm text-slate-400">Chargement...</div>;
+    return <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 text-sm text-slate-400">{t('common.loading')}</div>;
   }
 
   const nonZero = (amounts: { currency: Currency; balance: number }[]) => amounts.filter(a => Math.abs(a.balance) > 0.01);
@@ -93,23 +94,23 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5 short:flex-none short:overflow-visible">
       <BringItemsSection plan={plan} pseudo={pseudo} userId={userId} onChanged={async () => onPlanUpdated((await api.get(`/plans/${planId}`)).data)} />
 
-      <h3 className="font-semibold text-slate-800 text-sm -mb-2">Dépenses</h3>
+      <h3 className="font-semibold text-slate-800 text-sm -mb-2">{t('plan.expenses.title')}</h3>
       {/* Ajout, toujours en haut des dépenses */}
       {!showAdd ? (
         <button
           onClick={openForm}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
         >
-          <Plus size={16} />Ajouter une dépense
+          <Plus size={16} />{t('plan.expenses.add')}
         </button>
       ) : (
         <div className="bg-white rounded-xl border border-indigo-200 shadow-sm p-4 space-y-3">
-          <p className="text-sm font-semibold text-slate-800">Nouvelle dépense</p>
+          <p className="text-sm font-semibold text-slate-800">{t('plan.expenses.new')}</p>
           <input
             autoFocus
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Ex : Courses, essence, resto..."
+            placeholder={t('plan.expenses.descriptionPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <div className="flex gap-2">
@@ -119,10 +120,10 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
               step="0.01"
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              placeholder="Montant"
+              placeholder={t('plan.expenses.amount')}
               className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            <div className="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 flex-shrink-0" role="group" aria-label="Devise">
+            <div className="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 flex-shrink-0" role="group" aria-label={t('plan.expenses.currency')}>
               {CURRENCIES.map(c => (
                 <button
                   key={c.value}
@@ -139,7 +140,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
             </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500 mb-1.5">Partagée entre :</p>
+            <p className="text-xs font-medium text-slate-500 mb-1.5">{t('plan.expenses.splitWith')}</p>
             <div className="flex flex-wrap gap-1.5">
               {members.map(m => (
                 <button
@@ -158,31 +159,31 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
             </div>
             {splitWith.length > 0 && (
               <p className="text-xs text-slate-400 mt-1.5">
-                Réparti à parts égales entre {splitWith.length} membre{splitWith.length > 1 ? 's' : ''}.
+                {t('plan.expenses.split', { count: splitWith.length })}
               </p>
             )}
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleAddExpense} disabled={creating || splitWith.length === 0} size="sm">{creating ? 'Ajout...' : 'Ajouter'}</Button>
-            <Button variant="ghost" onClick={() => setShowAdd(false)} size="sm">Annuler</Button>
+            <Button onClick={handleAddExpense} disabled={creating || splitWith.length === 0} size="sm">{creating ? t('plan.expenses.adding') : t('common.add')}</Button>
+            <Button variant="ghost" onClick={() => setShowAdd(false)} size="sm">{t('common.cancel')}</Button>
           </div>
         </div>
       )}
 
       <div className="flex items-start gap-2 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
         <Mail size={13} className="flex-shrink-0 mt-0.5" />
-        <span>Un résumé des dépenses sera envoyé par email à tous les membres à la fin du Plan.</span>
+        <span>{t('plan.expenses.summaryEmail')}</span>
       </div>
 
       {/* Soldes, une colonne par devise utilisée */}
       {data.balances[0]?.amounts.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-          <h3 className="font-semibold text-slate-800 text-sm mb-3">Soldes</h3>
+          <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.expenses.balances')}</h3>
           <div className="space-y-1.5">
             {data.balances.map(b => (
               <div key={b.userId} className="flex items-center justify-between gap-3 text-sm">
                 <span className={b.userId === userId ? 'font-semibold text-slate-800' : 'text-slate-600'}>
-                  @{b.pseudo}{b.userId === userId && ' (toi)'}
+                  @{b.pseudo}{b.userId === userId && t('plan.expenses.you')}
                 </span>
                 <span className="flex flex-wrap justify-end gap-x-3 font-medium tabular-nums">
                   {nonZero(b.amounts).length === 0
@@ -198,13 +199,13 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
           </div>
           {mine.length > 0 && (
             <p className="text-xs text-slate-400 mt-2 pt-2 border-t border-slate-100">
-              {mine.every(a => a.balance > 0) ? 'On te doit de l\'argent au total.'
-                : mine.every(a => a.balance < 0) ? 'Tu dois de l\'argent au total.'
-                : 'On te doit de l\'argent dans une devise, tu en dois dans l\'autre.'}
+              {mine.every(a => a.balance > 0) ? t('plan.expenses.owedToYou')
+                : mine.every(a => a.balance < 0) ? t('plan.expenses.youOwe')
+                : t('plan.expenses.mixed')}
             </p>
           )}
           {multiCurrency && (
-            <p className="text-xs text-slate-400 mt-1">Les CHF et les euros sont comptés séparément, sans conversion.</p>
+            <p className="text-xs text-slate-400 mt-1">{t('plan.expenses.separate')}</p>
           )}
         </div>
       )}
@@ -212,27 +213,27 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
       {/* Virements suggérés */}
       {data.suggestedTransfers.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-          <h3 className="font-semibold text-slate-800 text-sm mb-3">Qui doit quoi à qui</h3>
+          <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.expenses.whoOwes')}</h3>
           <div className="space-y-2">
-            {data.suggestedTransfers.map(t => {
-              const key = `${t.fromUserId}-${t.toUserId}-${t.currency}`;
-              const involvesMe = t.fromUserId === userId || t.toUserId === userId;
+            {data.suggestedTransfers.map(tr => {
+              const key = `${tr.fromUserId}-${tr.toUserId}-${tr.currency}`;
+              const involvesMe = tr.fromUserId === userId || tr.toUserId === userId;
               return (
                 <div key={key} className={`flex items-center justify-between gap-2 p-2.5 rounded-lg ${involvesMe ? 'bg-indigo-50' : 'bg-slate-50'}`}>
                   <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-slate-700 min-w-0">
-                    <span className="break-all">@{t.fromPseudo}</span>
+                    <span className="break-all">@{tr.fromPseudo}</span>
                     <ArrowRight size={12} className="text-slate-400 flex-shrink-0" />
-                    <span className="break-all">@{t.toPseudo}</span>
-                    <span className="font-semibold text-slate-800 flex-shrink-0">{money(t.amount, t.currency)}</span>
+                    <span className="break-all">@{tr.toPseudo}</span>
+                    <span className="font-semibold text-slate-800 flex-shrink-0">{money(tr.amount, tr.currency)}</span>
                   </div>
-                  {t.fromUserId === userId && (
+                  {tr.fromUserId === userId && (
                     <button
-                      onClick={() => handleSettle(t.toUserId, t.amount, t.currency, key)}
+                      onClick={() => handleSettle(tr.toUserId, tr.amount, tr.currency, key)}
                       disabled={settling === key}
                       className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors flex-shrink-0 disabled:opacity-50"
                     >
                       <Check size={11} />
-                      {settling === key ? '...' : 'Remboursé'}
+                      {settling === key ? '...' : t('plan.expenses.repaid')}
                     </button>
                   )}
                 </div>
@@ -244,9 +245,9 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
 
       {/* Liste des dépenses */}
       <div>
-        <h3 className="font-semibold text-slate-800 text-sm mb-3">Dépenses ({data.expenses.length})</h3>
+        <h3 className="font-semibold text-slate-800 text-sm mb-3">{t('plan.expenses.list', { count: data.expenses.length })}</h3>
         {data.expenses.length === 0 ? (
-          <p className="text-sm text-slate-400 italic">Aucune dépense enregistrée.</p>
+          <p className="text-sm text-slate-400 italic">{t('plan.expenses.none')}</p>
         ) : (
           <div className="space-y-2">
             {data.expenses.map(exp => (
@@ -254,10 +255,9 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">{exp.description}</p>
                   <p className="text-xs text-slate-400">
-                    payé par @{exp.paidBy.pseudo}
-                    {exp.splitWith.length > 0 && exp.splitWith.length !== members.length && (
-                      <> · partagé avec {exp.splitWith.map(s => `@${s.user.pseudo}`).join(', ')}</>
-                    )}
+                    {t('plan.expenses.paidBy', { pseudo: exp.paidBy.pseudo })}
+                    {exp.splitWith.length > 0 && exp.splitWith.length !== members.length &&
+                      t('plan.expenses.sharedWith', { names: exp.splitWith.map(s => `@${s.user.pseudo}`).join(', ') })}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

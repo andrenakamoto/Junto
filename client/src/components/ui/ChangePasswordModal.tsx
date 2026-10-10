@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { KeyRound } from 'lucide-react';
 import { Modal } from './Modal';
 import api from '../../services/api';
+import { t } from '../../i18n';
 
 interface Props {
   onClose: () => void;
@@ -18,7 +19,7 @@ export function ChangePasswordModal({ onClose }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (newPassword !== confirm) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('account.password.mismatch'));
       return;
     }
     setLoading(true);
@@ -28,22 +29,22 @@ export function ChangePasswordModal({ onClose }: Props) {
       setSuccess(true);
       setTimeout(onClose, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal title="Changer mon mot de passe" onClose={onClose}>
+    <Modal title={t('account.password.title')} onClose={onClose}>
       {success ? (
         <div className="py-4 text-center text-emerald-600 font-medium">
-          Mot de passe modifié avec succès ✓
+          {t('account.password.changed')}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Mot de passe actuel</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('account.password.current')}</label>
             <input
               type="password"
               value={currentPassword}
@@ -55,7 +56,7 @@ export function ChangePasswordModal({ onClose }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nouveau mot de passe</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('account.password.new')}</label>
             <input
               type="password"
               value={newPassword}
@@ -66,7 +67,7 @@ export function ChangePasswordModal({ onClose }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Confirmer le nouveau mot de passe</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{t('account.password.confirmNew')}</label>
             <input
               type="password"
               value={confirm}
@@ -79,7 +80,7 @@ export function ChangePasswordModal({ onClose }: Props) {
           {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
           <div className="flex gap-2 justify-end pt-1">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -87,7 +88,7 @@ export function ChangePasswordModal({ onClose }: Props) {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
               <KeyRound size={14} />
-              {loading ? 'Modification...' : 'Modifier'}
+              {loading ? t('account.password.changing') : t('common.edit')}
             </button>
           </div>
         </form>

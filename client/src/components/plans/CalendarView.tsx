@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
+import { intlLocale, t } from '../../i18n';
 
 interface Props {
   onSelectPlan: (plan: Plan) => void;
@@ -10,11 +11,13 @@ interface Props {
   refreshSignal?: number;
 }
 
-const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const MONTH_NAMES = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-];
+// Initiales des jours (lundi → dimanche) et nom du mois, dans la langue de l'app
+const WEEKDAYS = Array.from({ length: 7 }, (_, i) =>
+  new Intl.DateTimeFormat(intlLocale(), { weekday: 'narrow' }).format(new Date(2024, 0, 1 + i)));
+const monthName = (year: number, month: number) => {
+  const s = new Intl.DateTimeFormat(intlLocale(), { month: 'long' }).format(new Date(year, month, 1));
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 function dateKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -61,7 +64,7 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <h2 className="font-bold text-slate-900 text-sm">Calendrier</h2>
+        <h2 className="font-bold text-slate-900 text-sm">{t('plan.calendar.title')}</h2>
       </div>
 
       <div className="px-3 py-3 flex items-center justify-between">
@@ -71,7 +74,7 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         >
           <ChevronLeft size={16} />
         </button>
-        <span className="text-sm font-semibold text-slate-900">{MONTH_NAMES[month]} {year}</span>
+        <span className="text-sm font-semibold text-slate-900">{monthName(year, month)} {year}</span>
         <button
           onClick={() => { setCursor(new Date(year, month + 1, 1)); setSelectedDay(null); }}
           className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
@@ -119,14 +122,14 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
 
       <div className="flex-1 overflow-y-auto px-3 py-3 mt-2 border-t border-slate-200 space-y-2 short:flex-none short:overflow-visible">
         {loading ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
+          <div className="text-center py-8 text-slate-500 text-sm">{t('common.loading')}</div>
         ) : !selectedDay ? (
           <div className="text-center py-8 text-slate-500 text-sm flex flex-col items-center gap-2">
             <CalendarIcon size={24} className="text-slate-400" />
-            Sélectionne un jour pour voir les Plans
+            {t('plan.calendar.pickDay')}
           </div>
         ) : selectedDayPlans.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Aucun Plan ce jour-là.</div>
+          <div className="text-center py-8 text-slate-500 text-sm">{t('plan.calendar.noPlan')}</div>
         ) : (
           selectedDayPlans.map(plan => (
             <button
@@ -139,9 +142,9 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
               }`}
             >
               <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1">{plan.title}</h3>
-              <p className="text-slate-500 text-xs">{plan.isGuest ? 'Invitation' : plan.circle?.name}</p>
+              <p className="text-slate-500 text-xs">{plan.isGuest ? t('plan.allPlans.invitation') : plan.circle?.name}</p>
               <p className="text-slate-500 text-xs mt-1">
-                {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
+                {new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
               </p>
             </button>
           ))

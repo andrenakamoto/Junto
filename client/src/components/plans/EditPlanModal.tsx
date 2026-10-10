@@ -9,6 +9,7 @@ import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
 import { SurpriseSelector } from './SurpriseSelector';
 import { DateTimeField } from '../ui/DateTimeField';
+import { t } from '../../i18n';
 
 function isoToLocal(iso: string | null | undefined): string {
   if (!iso) return '';
@@ -80,24 +81,23 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
       onUpdated(data);
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal title="Modifier le Plan" onClose={onClose}>
+    <Modal title={t('plan.form.editTitle')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {!isCreator && (
           <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-            Tu peux modifier les dates et le lieu. Le titre, la description et les autres réglages restent
-            au créateur. Ta modification sera visible dans l'historique du Plan.
+            {t('plan.form.participantEdit')}
           </p>
         )}
         {isCreator && <>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Titre</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.title')}</label>
           <input
             type="text"
             value={title}
@@ -108,18 +108,18 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Description (optionnel)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.description')}</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
             rows={3}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 resize-none text-sm"
           />
-          <p className="text-xs text-slate-400 mt-1">Les membres qui ont déjà rejoint le plan voient cette mise à jour.</p>
+          <p className="text-xs text-slate-400 mt-1">{t('plan.form.descriptionUpdated')}</p>
         </div>
         </>}
         <div>
-          <DateTimeField label={enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"} value={eventDate} onChange={setEventDate} clearable />
+          <DateTimeField label={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : t('plan.form.eventDate')} value={eventDate} onChange={setEventDate} clearable />
         </div>
         {isCreator && (
           <RecurrenceField
@@ -130,30 +130,30 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           />
         )}
         <div>
-          <DateTimeField label="Date de fin du Plan" value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
-          <p className="text-sm font-medium text-red-500 mt-1">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
+          <DateTimeField label={t('plan.form.endDate')} value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
+          <p className="text-sm font-medium text-red-500 mt-1">{t('plan.form.endDateWarning')}</p>
           {isCreator && enabledFeatures.includes('pere_noel') && <div className="mt-2"><SantaDatesNote /></div>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Lieu (optionnel)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.location')}</label>
           <input
             type="text"
             value={location}
             onChange={e => setLocation(e.target.value)}
             maxLength={200}
-            placeholder="Place de la République, Chez Marco..."
+            placeholder={t('plan.form.locationPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
         {isCreator && <>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Limite de participants (optionnel)</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.maxParticipants')}</label>
           <input
             type="number"
             min={1}
             value={maxParticipants}
             onChange={e => setMaxParticipants(e.target.value)}
-            placeholder="Ex : 8"
+            placeholder={t('plan.form.maxPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
@@ -165,7 +165,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         />
         {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
           <p className="text-xs text-amber-600 -mt-2">
-            Une personne cochée a déjà rejoint ce Plan : elle en sera retirée.
+            {t('plan.form.excludedMember')}
           </p>
         )}
         <AdvancedSection>
@@ -177,8 +177,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         </>}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-          <Button type="submit" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={loading}>{loading ? t('common.saving') : t('common.save')}</Button>
         </div>
       </form>
     </Modal>

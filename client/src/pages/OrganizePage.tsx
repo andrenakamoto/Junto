@@ -9,6 +9,9 @@ import { getLightToken, setLightToken } from '../lib/lightGuest';
 import { publicOrigin } from '../lib/siteUrl';
 import { countStep } from '../lib/funnel';
 import { DateTimeField } from '../components/ui/DateTimeField';
+import { intlLocale, t } from '../i18n';
+import { Trans } from 'react-i18next';
+import { LanguagePicker } from '../components/ui/LanguagePicker';
 
 // « Organiser une sortie » (/organiser, serveur : routes/express.ts) : un Plan en 30 secondes,
 // même sans compte, puis un lien à partager. Les amis répondent sans rien installer
@@ -26,13 +29,13 @@ interface ExpressPlan {
 }
 
 const RSVP_STYLE: Record<Rsvp, { label: string; icon: typeof Check; className: string }> = {
-  in: { label: 'je suis in', icon: Check, className: 'text-emerald-300' },
-  maybe: { label: 'peut-être', icon: HelpCircle, className: 'text-amber-300' },
-  out: { label: 'je passe', icon: X, className: 'text-slate-400' },
+  in: { label: t('auth.organize.rsvpIn'), icon: Check, className: 'text-emerald-300' },
+  maybe: { label: t('auth.organize.rsvpMaybe'), icon: HelpCircle, className: 'text-amber-300' },
+  out: { label: t('auth.organize.rsvpOut'), icon: X, className: 'text-slate-400' },
 };
 
 const dateFmt = (iso: string | null) => iso
-  ? new Intl.DateTimeFormat('fr-CH', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+  ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
   : '';
 
 const inviteUrl = (token: string) => `${publicOrigin()}/invitation?token=${token}`;
@@ -68,8 +71,8 @@ export function OrganizePage() {
         .catch(() => {});
     };
     load();
-    const t = window.setInterval(load, 15000);
-    return () => { stop = true; window.clearInterval(t); };
+    const timer = window.setInterval(load, 15000);
+    return () => { stop = true; window.clearInterval(timer); };
   }, [loading, user, created]);
 
   async function create(e: React.FormEvent) {
@@ -85,7 +88,7 @@ export function OrganizePage() {
       setTitle(''); setWhen(''); setWhere('');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setError(err.response?.data?.error || t('common.retryError'));
     } finally {
       setSending(false);
     }
@@ -93,7 +96,7 @@ export function OrganizePage() {
 
   function shareText(p: { title: string; eventDate: string | null; location: string | null; inviteToken: string }) {
     const date = dateFmt(p.eventDate);
-    return `${p.title}\n📅 ${date.charAt(0).toUpperCase() + date.slice(1)}${p.location ? `\n📍 ${p.location}` : ''}\n\nTu viens ? Réponds en un clic, sans rien installer 👉 ${inviteUrl(p.inviteToken)}`;
+    return t('auth.organize.shareText', { title: p.title, date: date.charAt(0).toUpperCase() + date.slice(1), location: p.location ? `\n📍 ${p.location}` : '', url: inviteUrl(p.inviteToken) });
   }
 
   function shared(planId: string) {
@@ -124,12 +127,15 @@ export function OrganizePage() {
   const others = plans.filter(p => p.id !== created?.planId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-start sm:items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-start sm:items-center justify-center p-4 relative">
+      <div className="absolute top-3 right-3 text-slate-300" style={{ marginTop: 'var(--sa-top, 0px)' }}>
+        <LanguagePicker compact loggedIn={!!user} />
+      </div>
       <div className="w-full max-w-md py-6 space-y-5">
         <div className="text-center">
           <div className="flex justify-center mb-3"><LogoIcon size={56} /></div>
-          <h1 className="text-2xl font-black text-white">{createdFull ? 'Ton lien est prêt !' : 'Organise ta sortie'}</h1>
-          {!createdFull && <p className="text-slate-400 text-sm mt-1">En 30 secondes. Tes amis n'ont rien à installer.</p>}
+          <h1 className="text-2xl font-black text-white">{createdFull ? t('auth.organize.ready') : t('auth.organize.title')}</h1>
+          {!createdFull && <p className="text-slate-400 text-sm mt-1">{t('auth.organize.subtitle')}</p>}
         </div>
 
         {createdFull && (
@@ -146,56 +152,57 @@ export function OrganizePage() {
               onClick={() => shared(createdFull.planId)}
               className="w-full flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:brightness-95 text-white font-semibold rounded-xl text-sm"
             >
-              <MessageSquare size={16} /> Envoyer sur WhatsApp
+              <MessageSquare size={16} /> {t('auth.organize.whatsapp')}
             </a>
             <div className={`grid gap-2 ${canShare ? 'grid-cols-2' : 'grid-cols-1'}`}>
               <button onClick={() => copy(createdFull)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-600 text-slate-200 text-sm hover:bg-slate-700/40">
-                {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copié !' : 'Copier le lien'}
+                {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? t('auth.organize.copied') : t('auth.organize.copy')}
               </button>
               {/* Partage natif du téléphone (absent de la plupart des navigateurs d'ordinateur) */}
               {canShare && (
                 <button onClick={() => nativeShare(createdFull)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-600 text-slate-200 text-sm hover:bg-slate-700/40">
-                  <Share2 size={15} /> Partager
+                  <Share2 size={15} /> {t('auth.organize.share')}
                 </button>
               )}
             </div>
             {user ? (
               <button onClick={() => navigate(`/dashboard?planId=${createdFull.planId}`)} className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm">
-                Ouvrir le Plan <ArrowRight size={16} />
+                {t('auth.organize.openPlan')} <ArrowRight size={16} />
               </button>
             ) : (
               <Answers answers={liveAnswers} />
             )}
-            <button onClick={() => setCreated(null)} className="w-full text-xs text-slate-400 hover:text-slate-200">Organiser une autre sortie</button>
+            <button onClick={() => setCreated(null)} className="w-full text-xs text-slate-400 hover:text-slate-200">{t('auth.organize.another')}</button>
           </Card>
         )}
 
         {!createdFull && (
           <Card>
             <form onSubmit={create} className="space-y-3">
-              <Field label="Quoi ?">
-                <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} required autoFocus placeholder="Raclette chez moi, sortie ski, apéro…" className={inputClass} />
+              <Field label={t('auth.organize.what')}>
+                <input value={title} onChange={e => setTitle(e.target.value)} maxLength={100} required autoFocus placeholder={t('auth.organize.whatPlaceholder')} className={inputClass} />
               </Field>
-              <Field label="Quand ?">
+              <Field label={t('auth.organize.when')}>
                 <DateTimeField value={when} onChange={setWhen} required dark />
               </Field>
-              <Field label="Où ? (facultatif)">
-                <input value={where} onChange={e => setWhere(e.target.value)} maxLength={200} placeholder="Chez moi, Lausanne…" className={inputClass} />
+              <Field label={t('auth.organize.where')}>
+                <input value={where} onChange={e => setWhere(e.target.value)} maxLength={200} placeholder={t('auth.organize.wherePlaceholder')} className={inputClass} />
               </Field>
               {needName && (
-                <Field label="Ton prénom">
-                  <input value={firstName} onChange={e => setFirstName(e.target.value)} maxLength={30} required autoComplete="given-name" placeholder="Pour que tes amis sachent qui invite" className={inputClass} />
+                <Field label={t('auth.organize.firstName')}>
+                  <input value={firstName} onChange={e => setFirstName(e.target.value)} maxLength={30} required autoComplete="given-name" placeholder={t('auth.organize.firstNamePlaceholder')} className={inputClass} />
                 </Field>
               )}
               {error && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
               <button type="submit" disabled={sending} className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-semibold rounded-xl text-sm">
-                {sending ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />} Créer le lien d'invitation
+                {sending ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />} {t('auth.organize.create')}
               </button>
               {!user && (
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Pas besoin de compte : seul ton prénom est enregistré, effacé avec la sortie. En continuant, tu acceptes les{' '}
-                  <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-slate-300">conditions d'utilisation</button>
-                  {' '}et la{' '}<Link to="/confidentialite" className="underline hover:text-slate-300">politique de confidentialité</Link>.
+                  <Trans i18nKey="auth.organize.noAccount" components={{
+                    terms: <button type="button" onClick={() => setShowTerms(true)} className="underline hover:text-slate-300" />,
+                    privacy: <Link to="/confidentialite" className="underline hover:text-slate-300" />,
+                  }} />
                 </p>
               )}
             </form>
@@ -204,7 +211,7 @@ export function OrganizePage() {
 
         {!user && others.length > 0 && (
           <Card>
-            <p className="text-white font-semibold text-sm">Tes sorties</p>
+            <p className="text-white font-semibold text-sm">{t('auth.organize.yourOutings')}</p>
             <div className="space-y-3">
               {others.map(p => (
                 <div key={p.id} className="rounded-xl bg-slate-900/50 border border-slate-700/40 p-3 space-y-2">
@@ -215,7 +222,7 @@ export function OrganizePage() {
                   <Answers answers={p.answers} compact />
                   {p.inviteToken && (
                     <button onClick={() => setCreated({ planId: p.id, inviteToken: p.inviteToken!, title: p.title, eventDate: p.eventDate ?? '', location: p.location })} className="text-xs text-indigo-300 hover:text-indigo-200 font-medium">
-                      Partager à nouveau
+                      {t('auth.organize.shareAgain')}
                     </button>
                   )}
                 </div>
@@ -226,29 +233,29 @@ export function OrganizePage() {
 
         {!user && (plans.length > 0 || createdFull) && (
           <Card>
-            <p className="text-white font-semibold text-sm">Garde la main sur tes sorties</p>
+            <p className="text-white font-semibold text-sm">{t('auth.organize.keepControl')}</p>
             <ul className="grid grid-cols-2 gap-2 text-xs text-slate-300">
-              <li className="flex items-center gap-2"><Bell size={14} className="text-indigo-400" /> Notifications des réponses</li>
-              <li className="flex items-center gap-2"><MessageSquare size={14} className="text-indigo-400" /> Chat avec tes amis</li>
-              <li className="flex items-center gap-2"><Car size={14} className="text-indigo-400" /> Covoiturage</li>
-              <li className="flex items-center gap-2"><Image size={14} className="text-indigo-400" /> Photos et dépenses</li>
+              <li className="flex items-center gap-2"><Bell size={14} className="text-indigo-400" /> {t('auth.organize.notifications')}</li>
+              <li className="flex items-center gap-2"><MessageSquare size={14} className="text-indigo-400" /> {t('auth.organize.chat')}</li>
+              <li className="flex items-center gap-2"><Car size={14} className="text-indigo-400" /> {t('auth.organize.rides')}</li>
+              <li className="flex items-center gap-2"><Image size={14} className="text-indigo-400" /> {t('auth.organize.photos')}</li>
             </ul>
             <button
               onClick={() => navigate(`/auth?${new URLSearchParams({ mode: 'inscription', redirect: '/dashboard', ...(knownName || firstName ? { prenom: knownName || firstName } : {}) })}`)}
               className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm"
             >
-              Créer mon compte gratuit en 1 min <ArrowRight size={16} />
+              {t('auth.guest.createAccount')} <ArrowRight size={16} />
             </button>
             <p className="text-center text-xs text-slate-500">
-              Tes sorties et les réponses sont gardées.{' '}
-              <button onClick={() => navigate('/auth?redirect=/dashboard')} className="text-slate-300 hover:text-white underline">J'ai déjà un compte</button>
+              {t('auth.organize.kept')}{' '}
+              <button onClick={() => navigate('/auth?redirect=/dashboard')} className="text-slate-300 hover:text-white underline">{t('auth.guest.haveAccount')}</button>
             </p>
           </Card>
         )}
 
         {user && (
           <p className="text-center text-sm text-slate-400">
-            <Link to="/dashboard" className="text-indigo-300 hover:text-indigo-200 font-medium">Retour à mes Cercles</Link>
+            <Link to="/dashboard" className="text-indigo-300 hover:text-indigo-200 font-medium">{t('auth.organize.backToCircles')}</Link>
           </p>
         )}
       </div>
@@ -270,12 +277,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Answers({ answers, compact }: { answers: { name: string; rsvp: Rsvp }[]; compact?: boolean }) {
   if (answers.length === 0) {
-    return <p className="text-xs text-slate-400">{compact ? 'Pas encore de réponse.' : 'Les réponses de tes amis s’afficheront ici.'}</p>;
+    return <p className="text-xs text-slate-400">{compact ? t('auth.organize.noAnswerYet') : t('auth.organize.answersHere')}</p>;
   }
   const going = answers.filter(a => a.rsvp === 'in').length;
   return (
     <div className="space-y-1.5">
-      {!compact && <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Réponses · {going} in</p>}
+      {!compact && <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('auth.organize.answers', { count: going })}</p>}
       <ul className="space-y-1">
         {answers.map((a, i) => {
           const s = RSVP_STYLE[a.rsvp];

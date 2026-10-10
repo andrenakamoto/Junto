@@ -6,6 +6,8 @@ import { getSocket } from '../../lib/socket';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import api from '../../services/api';
 import { DateTimeField } from '../ui/DateTimeField';
+import { intlLocale, t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 interface Props {
   planId: string;
@@ -28,7 +30,7 @@ function isoToLocal(iso: string | null | undefined): string {
 }
 
 function formatDeparture(iso: string) {
-  return new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     .format(new Date(iso));
 }
 
@@ -80,7 +82,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
       await load();
       return true;
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
       return false;
     } finally {
       setBusy(false);
@@ -115,15 +117,15 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
     <div>
       <h3 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-1.5">
         <Car size={15} className="text-indigo-500" />
-        Covoiturage
+        {t('plan.rides.title')}
       </h3>
 
       {loading ? (
-        <p className="text-sm text-slate-400">Chargement…</p>
+        <p className="text-sm text-slate-400">{t('common.loading')}</p>
       ) : (
         <div className="space-y-2">
           {rides.length === 0 && requests.length === 0 && !rideForm && requestFrom === null && (
-            <p className="text-sm text-slate-400 italic">Aucun trajet proposé pour l'instant.</p>
+            <p className="text-sm text-slate-400 italic">{t('plan.rides.none')}</p>
           )}
 
           {rides.map(ride => {
@@ -139,11 +141,11 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-800">
                       <span className="font-semibold">@{ride.driver.pseudo}</span>
-                      <span className="text-slate-500"> · depuis </span>
+                      <span className="text-slate-500">{t('plan.rides.from')}</span>
                       <span className="font-medium">{ride.departure}</span>
                     </p>
                     {ride.departureAt && (
-                      <p className="text-xs text-slate-500 mt-0.5">Départ {formatDeparture(ride.departureAt)}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{t('plan.rides.departure', { date: formatDeparture(ride.departureAt) })}</p>
                     )}
                     {ride.note && <p className="text-xs text-slate-500 italic mt-0.5">{ride.note}</p>}
                     {ride.passengers.length > 0 && (
@@ -157,7 +159,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                     )}
                   </div>
                   <span className={`text-xs font-semibold px-2 py-1 rounded-lg flex-shrink-0 ${full ? 'bg-slate-100 text-slate-500' : 'bg-emerald-100 text-emerald-700'}`}>
-                    {full ? 'Complet' : `${ride.seats - ride.passengers.length} place${ride.seats - ride.passengers.length > 1 ? 's libres' : ' libre'}`}
+                    {full ? t('common.full') : t('plan.rides.seats', { count: ride.seats - ride.passengers.length })}
                   </span>
                 </div>
 
@@ -173,14 +175,14 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                           }}
                           className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium text-slate-600 hover:bg-white transition-colors"
                         >
-                          <Pencil size={12} /> Modifier
+                          <Pencil size={12} /> {t('common.edit')}
                         </button>
                         <button
                           onClick={() => run(() => api.delete(`/rides/${ride.id}`))}
                           disabled={busy}
                           className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                         >
-                          <Trash2 size={12} /> Annuler le trajet
+                          <Trash2 size={12} /> {t('plan.rides.cancelRide')}
                         </button>
                       </>
                     ) : isPassenger ? (
@@ -189,7 +191,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                         disabled={busy}
                         className="text-xs px-2.5 py-1 rounded-lg font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
                       >
-                        Je descends
+                        {t('plan.rides.getOff')}
                       </button>
                     ) : !myRide && !full ? (
                       <button
@@ -197,7 +199,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                         disabled={busy}
                         className="text-xs px-2.5 py-1 rounded-lg font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
                       >
-                        {mySeatRideId ? 'Changer pour ce trajet' : 'Je monte'}
+                        {mySeatRideId ? t('plan.rides.switch') : t('plan.rides.getOn')}
                       </button>
                     ) : null}
                   </div>
@@ -210,14 +212,13 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
             <div key={req.id} className="flex items-center gap-2.5 p-3 rounded-xl border border-dashed border-amber-300 bg-amber-50">
               <Hand size={15} className="text-amber-600 flex-shrink-0" />
               <p className="flex-1 text-sm text-slate-700">
-                <span className="font-semibold">@{req.user.pseudo}</span> cherche une place depuis{' '}
-                <span className="font-medium">{req.fromLocation}</span>
+                <Trans i18nKey="plan.rides.looking" values={{ pseudo: req.user.pseudo, from: req.fromLocation }} components={{ b: <span className="font-semibold" />, m: <span className="font-medium" /> }} />
               </p>
               {req.user.id === userId && (
                 <button
                   onClick={() => run(() => api.delete(`/rides/plan/${planId}/request`))}
                   disabled={busy}
-                  title="Retirer ma demande"
+                  title={t('plan.rides.removeRequest')}
                   className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-white transition-colors disabled:opacity-50"
                 >
                   <X size={14} />
@@ -228,28 +229,28 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
 
           {rideForm && (
             <div className="p-3 rounded-xl border border-indigo-200 bg-white shadow-sm space-y-2">
-              <p className="text-sm font-semibold text-slate-800">{editingRideId ? 'Modifier mon trajet' : 'Je propose un trajet'}</p>
+              <p className="text-sm font-semibold text-slate-800">{editingRideId ? t('plan.rides.editMine') : t('plan.rides.offer')}</p>
               <input
                 autoFocus
                 value={rideForm.departure}
                 onChange={e => setRideForm({ ...rideForm, departure: e.target.value })}
-                placeholder="Lieu de départ (ex. Lausanne gare)"
+                placeholder={t('plan.rides.departurePlaceholder')}
                 maxLength={100}
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <div className="flex gap-2 items-start">
                 <div className="flex-1 min-w-0 text-xs text-slate-500">
-                  Heure de départ (optionnel)
+                  {t('plan.rides.departureTime')}
                   <DateTimeField
                     value={rideForm.departureAt}
                     onChange={v => setRideForm({ ...rideForm, departureAt: v })}
-                    placeholder="Choisir"
+                    placeholder={t('plan.rides.pick')}
                     clearable
                     className="mt-0.5"
                   />
                 </div>
                 <label className="w-24 text-xs text-slate-500">
-                  Places
+                  {t('plan.rides.seatsLabel')}
                   <input
                     type="number"
                     min={1}
@@ -263,7 +264,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
               <input
                 value={rideForm.note}
                 onChange={e => setRideForm({ ...rideForm, note: e.target.value })}
-                placeholder="Note (optionnel), ex. retour vers 23h"
+                placeholder={t('plan.rides.notePlaceholder')}
                 maxLength={200}
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -272,7 +273,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                   onClick={() => { setRideForm(null); setEditingRideId(null); setError(''); }}
                   className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-sm hover:bg-slate-200"
                 >
-                  Annuler
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={submitRide}
@@ -280,7 +281,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {busy && <Loader2 size={13} className="animate-spin" />}
-                  {editingRideId ? 'Enregistrer' : 'Proposer'}
+                  {editingRideId ? t('common.save') : t('plan.rides.propose')}
                 </button>
               </div>
             </div>
@@ -293,7 +294,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                 value={requestFrom}
                 onChange={e => setRequestFrom(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && submitRequest()}
-                placeholder="D'où pars-tu ? (ex. Morges)"
+                placeholder={t('plan.rides.fromPlaceholder')}
                 maxLength={100}
                 className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               />
@@ -302,13 +303,13 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                 disabled={busy || !requestFrom.trim()}
                 className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >
-                OK
+                {t('common.ok')}
               </button>
               <button
                 onClick={() => { setRequestFrom(null); setError(''); }}
                 className="px-3 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
             </div>
           )}
@@ -316,7 +317,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
           {error && <p className="text-xs text-red-500">{error}</p>}
 
           {isAbsent ? (
-            <p className="text-xs text-slate-400 italic">Tu es indiqué(e) absent(e) : le covoiturage n'est pas disponible.</p>
+            <p className="text-xs text-slate-400 italic">{t('plan.rides.absent')}</p>
           ) : !rideForm && requestFrom === null && (
             <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
               {!myRide && (
@@ -325,7 +326,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                   className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                 >
                   <Car size={14} />
-                  Je propose un trajet
+                  {t('plan.rides.offer')}
                 </button>
               )}
               {!myRide && !mySeatRideId && (
@@ -334,7 +335,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
                   className="flex items-center gap-1.5 text-sm text-amber-700 hover:text-amber-800 font-medium"
                 >
                   <Hand size={14} />
-                  {myRequest ? 'Modifier ma demande' : 'Je cherche une place'}
+                  {myRequest ? t('plan.rides.editRequest') : t('plan.rides.lookForSeat')}
                 </button>
               )}
             </div>

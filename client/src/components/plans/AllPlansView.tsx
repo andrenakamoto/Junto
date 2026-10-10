@@ -4,6 +4,8 @@ import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { sortPlans } from '../../lib/order';
+import { t } from '../../i18n';
+import { shortDateTime } from '../../lib/dates';
 
 interface Props {
   onSelectPlan: (plan: Plan) => void;
@@ -17,7 +19,7 @@ const rsvpBadge = {
   maybe: 'bg-amber-50 text-amber-700 border-amber-200',
   out:   'bg-slate-100 text-slate-500 border-slate-200',
 };
-const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Absent(e)' };
+const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 
 export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
   const { user } = useAuth();
@@ -38,23 +40,23 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <h2 className="font-bold text-slate-900 text-sm">Tous mes plans</h2>
+        <h2 className="font-bold text-slate-900 text-sm">{t('plan.allPlans.title')}</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 short:flex-none short:overflow-visible">
         {loading ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
+          <div className="text-center py-8 text-slate-500 text-sm">{t('common.loading')}</div>
         ) : plans.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Aucun plan actif pour l'instant.</div>
+          <div className="text-center py-8 text-slate-500 text-sm">{t('plan.allPlans.empty')}</div>
         ) : (
           <div className="space-y-2">
             {sorted.map(plan => {
               const myMember = plan.members.find(m => m.userId === user?.id);
               const inCount = plan.members.filter(m => m.rsvp === 'in').length;
               const date = plan.eventDate
-                ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
+                ? shortDateTime(plan.eventDate)
                 : null;
-              const circleName = plan.isGuest ? 'Invitation' : plan.circle?.name;
+              const circleName = plan.isGuest ? t('plan.allPlans.invitation') : plan.circle?.name;
 
               return (
                 <button
@@ -71,18 +73,18 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                     <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
                     {myMember ? (
                       <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
-                        {rsvpLabel[myMember.rsvp]}
+                        {rsvpLabel(myMember.rsvp)}
                       </span>
                     ) : (
                       <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-600 border border-indigo-500/30">
-                        Rejoindre
+                        {t('common.join')}
                       </span>
                     )}
                   </div>
                   {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-                    <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{inCount} in</span></span>
+                    <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span></span>
                     {(plan._count?.messages ?? 0) > 0 && (
                       <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
                     )}

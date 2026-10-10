@@ -1,0 +1,61 @@
+import type { Dict } from '../fr';
+
+const ui: Dict['ui'] = {
+  demo: {
+    banner: 'Demo mode: explore freely, nothing is saved.',
+    createAccount: 'Create my account',
+    quit: 'Exit',
+  },
+  update: {
+    available: 'A new version of EvLY is available.',
+    reload: 'Reload',
+  },
+  profileBanner: {
+    text: 'Add your first name so the members of your Circles recognise you.',
+    add: 'Add',
+  },
+  pending: {
+    title: 'Awaiting approval',
+    hello: 'Hello <b>@{{pseudo}}</b>!',
+    text: 'Your account is being reviewed by an administrator.<br/>You’ll get access as soon as it’s approved.',
+    logout: 'Log out',
+  },
+  dashboard: {
+    welcome: 'Welcome!',
+    welcomeSub: 'Create a Circle or join one to get started',
+    selectPlan: 'Select a Plan',
+    selectPlanSub: 'or create a new one in this Circle',
+  },
+  demoApi: {
+    notInDemo: 'This action isn’t available in the demo. Create your free account to try it for real!',
+    defaultObject: 'a spoon',
+    defaultPlace: 'in the kitchen',
+    killerWon: '🏆 You win the Killer game!',
+    killerNext: '🎯 Elimination confirmed! Discover your new mission',
+    match: '💘 It’s a match: {{label}}!',
+    words: 'umbrella,trampoline,moustache,giraffe,chocolate,marmot,karaoke,compass,pyjamas,igloo',
+    wordOk: '🎯 Word confirmed! +1 point, discover your new mission',
+    santaReplyReceiver: 'Ha ha, such a mystery… Thanks, Secret Santa! 😄',
+    santaReplyGiver: 'Got it, noted! 🎅',
+    playFirst: 'Play your cards first to see the results',
+    voteNotOpen: 'The vote isn’t open',
+    wheelEmpty: 'There’s nobody on the wheel',
+    wheelSpinning: 'The wheel is already spinning!',
+    noMission: 'You don’t have a mission right now',
+    accuseWait: 'After a wrong accusation, wait a little before accusing again',
+    emptyIdea: 'Empty idea',
+    ideaNotFound: 'Idea not found',
+    shiftsManagers: 'Only the Plan’s creator and the Circle’s organisers create shifts',
+    shiftTooSmall: '{{count}} people are already signed up: remove some first',
+    alreadySigned: 'You’re already signed up for this shift',
+    creatorOnly: 'Only for the Plan’s creator',
+    itemEditForbidden: 'Only the person who added it and the Plan’s creator can edit it',
+    itemNotFound: 'Item not found',
+    itemRemoveForbidden: 'Only the person who added it and the Plan’s creator can remove it',
+    taken: 'Already taken',
+    expenseNotFound: 'Expense not found',
+    circleName: 'Give your Circle a name',
+    error: 'Demo error',
+  },
+};
+export default ui;

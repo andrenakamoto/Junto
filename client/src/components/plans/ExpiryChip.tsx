@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Hourglass } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
+import { intlLocale } from '../../i18n';
 
 const DAY_MS = 24 * 3600 * 1000;
 
@@ -10,6 +12,7 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
   // Position de la bulle (fixe, recadrée dans l'écran : l'étiquette est souvent au bord droit)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
+  const { t } = useTranslation();
   const BUBBLE_W = 256;
 
   function toggle() {
@@ -37,9 +40,9 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
   const left = end.getTime() - Date.now();
   const soon = left < DAY_MS;
   const label = soon
-    ? `Supprimé dans ${left < 3600e3 ? `${Math.max(1, Math.round(left / 60e3))} min` : `${Math.round(left / 3600e3)} h`}`
-    : `Jusqu'au ${new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short' }).format(end)} à ${new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' }).format(end)}`;
-  const full = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(end);
+    ? t('plan.expiry.deletedIn', { time: left < 3600e3 ? t('plan.expiry.minutes', { n: Math.max(1, Math.round(left / 60e3)) }) : t('plan.expiry.hours', { n: Math.round(left / 3600e3) }) })
+    : t('plan.expiry.until', { date: new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' }).format(end), time: new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(end) });
+  const full = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(end);
 
   return (
     <span ref={ref}>
@@ -47,7 +50,7 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
         type="button"
         onClick={toggle}
         aria-expanded={open}
-        title="Quand ce Plan sera supprimé"
+        title={t('plan.expiry.title')}
         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm md:text-xs font-medium transition-colors ${
           soon ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
         }`}
@@ -56,11 +59,11 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
       </button>
       {open && pos && (
         <span role="tooltip" style={{ left: pos.left, top: pos.top, width: BUBBLE_W }} className="fixed z-50 p-3 rounded-xl bg-slate-800 text-white text-xs leading-relaxed shadow-xl">
-          Ce Plan et toutes ses données (messages, photos, dépenses) seront supprimés le <strong>{full}</strong>.
-          {soon && ' Pense à télécharger les photos avant.'}
+          <Trans i18nKey="plan.expiry.bubble" values={{ date: full }} components={{ b: <strong /> }} />
+          {soon && t('plan.expiry.downloadPhotos')}
           {onRecap && (
             <button type="button" onClick={() => { setOpen(false); onRecap(); }} className="block mt-2 font-semibold text-orange-300 underline underline-offset-2">
-              Télécharger le récapitulatif (PDF)
+              {t('plan.expiry.recap')}
             </button>
           )}
         </span>

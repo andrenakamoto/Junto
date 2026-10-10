@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
+import { t } from '../i18n';
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -20,7 +21,7 @@ export function ResetPasswordPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (password !== confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+    if (password !== confirm) { setError(t('auth.reset.mismatch')); return; }
     setLoading(true);
     setError('');
     try {
@@ -29,7 +30,7 @@ export function ResetPasswordPage() {
       setDone(true);
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Lien invalide ou expiré.');
+      setError(err.response?.data?.error || t('auth.confirmEmailChange.invalidOrExpired'));
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,7 @@ export function ResetPasswordPage() {
   if (!token) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <div className="text-red-400 text-sm">Lien invalide.</div>
+        <div className="text-red-400 text-sm">{t('auth.confirmEmailChange.invalidLink')}</div>
       </div>
     );
   }
@@ -52,13 +53,13 @@ export function ResetPasswordPage() {
           {done ? (
             <div className="flex flex-col items-center gap-3 py-4">
               <CheckCircle size={40} className="text-emerald-400" />
-              <p className="text-white font-semibold">Mot de passe mis à jour !</p>
-              <p className="text-slate-400 text-sm">Redirection…</p>
+              <p className="text-white font-semibold">{t('auth.reset.updated')}</p>
+              <p className="text-slate-400 text-sm">{t('auth.reset.redirecting')}</p>
             </div>
           ) : (
             <>
-              <h2 className="text-white font-semibold text-lg mb-1">Nouveau mot de passe</h2>
-              <p className="text-slate-400 text-sm mb-5">Choisis un nouveau mot de passe pour ton compte.</p>
+              <h2 className="text-white font-semibold text-lg mb-1">{t('auth.reset.title')}</h2>
+              <p className="text-slate-400 text-sm mb-5">{t('auth.reset.intro')}</p>
 
               {error && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm mb-4">{error}</div>
@@ -70,7 +71,7 @@ export function ResetPasswordPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Nouveau mot de passe"
+                    placeholder={t('auth.reset.newPassword')}
                     required
                     minLength={8}
                     autoFocus
@@ -85,18 +86,18 @@ export function ResetPasswordPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
-                  placeholder="Confirmer le mot de passe"
+                  placeholder={t('auth.reset.confirmPassword')}
                   required
                   className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                 />
-                <p className="text-xs text-slate-500">8 caractères minimum</p>
+                <p className="text-xs text-slate-500">{t('auth.reset.minLength')}</p>
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
                 >
                   {loading && <Loader2 size={16} className="animate-spin" />}
-                  Mettre à jour
+                  {t('auth.reset.submit')}
                 </button>
               </form>
             </>

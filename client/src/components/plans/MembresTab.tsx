@@ -1,22 +1,24 @@
 import { Plan, PlanMember } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
+import { useTranslation } from 'react-i18next';
 
 const rsvpCfg = {
-  in: { label: 'In', cls: 'bg-emerald-100 text-emerald-700' },
-  maybe: { label: 'Peut-être', cls: 'bg-amber-100 text-amber-700' },
-  out: { label: 'Non', cls: 'bg-slate-100 text-slate-600' },
-};
+  in: { label: 'plan.members.rsvpIn', cls: 'bg-emerald-100 text-emerald-700' },
+  maybe: { label: 'plan.members.rsvpMaybe', cls: 'bg-amber-100 text-amber-700' },
+  out: { label: 'plan.members.rsvpOut', cls: 'bg-slate-100 text-slate-600' },
+} as const;
 
 const rsvpOrder: Record<string, number> = { in: 0, maybe: 1, out: 2 };
 
 export function MembresTab({ members, onlineUserIds, waitlist = [] }: { members: PlanMember[]; onlineUserIds?: Set<string>; waitlist?: NonNullable<Plan['waitlist']> }) {
+  const { t } = useTranslation();
   const sorted = [...members].sort((a, b) => rsvpOrder[a.rsvp] - rsvpOrder[b.rsvp]);
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
       <h3 className="font-semibold text-slate-800 text-sm mb-3">
-        {members.length} membre{members.length > 1 ? 's' : ''}
+        {t('plan.members.count', { count: members.length })}
       </h3>
       <div className="space-y-2">
         {sorted.map(m => (
@@ -26,27 +28,27 @@ export function MembresTab({ members, onlineUserIds, waitlist = [] }: { members:
               <span className="text-sm font-medium text-slate-800">{displayName(m.user) ?? `@${m.user.pseudo}`}</span>
               {m.isGuest && (
                 <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 align-middle">
-                  Invité(e)
+                  {t('plan.members.guest')}
                 </span>
               )}
               {displayName(m.user) && <span className="block text-xs text-slate-400 truncate">@{m.user.pseudo}</span>}
             </span>
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${rsvpCfg[m.rsvp].cls}`}>
-              {rsvpCfg[m.rsvp].label}
+              {t(rsvpCfg[m.rsvp].label)}
             </span>
           </div>
         ))}
       </div>
       {waitlist.length > 0 && (
         <>
-          <h3 className="font-semibold text-slate-800 text-sm mt-5 mb-1">Liste d’attente</h3>
-          <p className="text-xs text-slate-400 mb-3">Dès qu’une place se libère, la première personne est inscrite automatiquement.</p>
+          <h3 className="font-semibold text-slate-800 text-sm mt-5 mb-1">{t('plan.members.waitlist')}</h3>
+          <p className="text-xs text-slate-400 mb-3">{t('plan.members.waitlistHint')}</p>
           <div className="space-y-2">
             {waitlist.map((w, i) => (
               <div key={w.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-dashed border-amber-300">
                 <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                <span className="flex-1 min-w-0 text-sm font-medium text-slate-700">{w.user ? displayName(w.user) ?? `@${w.user.pseudo}` : 'Membre'}</span>
-                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-50 text-amber-700">En attente</span>
+                <span className="flex-1 min-w-0 text-sm font-medium text-slate-700">{w.user ? displayName(w.user) ?? `@${w.user.pseudo}` : t('plan.members.member')}</span>
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-50 text-amber-700">{t('plan.members.waiting')}</span>
               </div>
             ))}
           </div>

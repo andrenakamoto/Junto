@@ -12,6 +12,7 @@ import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
 import { SurpriseSelector } from './SurpriseSelector';
 import { DateTimeField } from '../ui/DateTimeField';
+import { t } from '../../i18n';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -84,38 +85,38 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
         : await api.post(`/circles/${circleId}/plans`, payload);
       onCreated(data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal title={fromPoll ? 'Créer le Plan à partir du sondage' : 'Créer un Plan'} onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">Rejoindre un Plan = être d'accord avec sa description.</p>
+    <Modal title={fromPoll ? t('plan.form.fromPollTitle') : t('plan.form.createTitle')} onClose={onClose}>
+      <p className="text-sm text-slate-500 mb-4">{t('plan.form.intro')}</p>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Titre" value={title} onChange={e => setTitle(e.target.value)} placeholder="Qui veut manger ce midi ?" required autoFocus />
+        <Input label={t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Description (optionnel)</label>
+          <label className="text-sm font-medium text-slate-700">{t('plan.form.description')}</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="Décris l'événement. Les gens qui rejoignent ce Plan sont d'accord avec ce que tu écris ici."
+            placeholder={t('plan.form.descriptionPlaceholder')}
             rows={3}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-slate-700">Informations importantes (optionnel)</label>
+          <label className="text-sm font-medium text-slate-700">{t('plan.form.importantInfo')}</label>
           <textarea
             value={importantInfo}
             onChange={e => setImportantInfo(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
-            placeholder="Ex : code de l'immeuble, documents à prendre, heure de départ précise…"
+            placeholder={t('plan.form.importantInfoPlaceholder')}
             rows={2}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
           />
         </div>
-        <DateTimeField label={enabledFeatures.includes('pere_noel') ? "Date et heure de l'échange des cadeaux" : "Date et heure de l'événement (optionnel)"} value={eventDate} onChange={setEventDate} clearable />
+        <DateTimeField label={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : t('plan.form.eventDate')} value={eventDate} onChange={setEventDate} clearable />
         {!fromPoll && (
           <RecurrenceField
             value={recurrence}
@@ -124,17 +125,17 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
           />
         )}
-        <DateTimeField label="Date de fin du Plan" value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
-        <p className="text-sm font-medium text-red-500 -mt-2">Le Plan et toutes les données liées seront automatiquement supprimés après cette date. Maximum 3 semaines après le début du Plan.</p>
+        <DateTimeField label={t('plan.form.endDate')} value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
+        <p className="text-sm font-medium text-red-500 -mt-2">{t('plan.form.endDateWarning')}</p>
         {enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
-        <Input label="Lieu (optionnel)" value={location} onChange={e => setLocation(e.target.value)} placeholder="Place de la République, Chez Marco..." />
+        <Input label={t('plan.form.location')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} />
         <Input
-          label="Limite de participants (optionnel)"
+          label={t('plan.form.maxParticipants')}
           type="number"
           min={1}
           value={maxParticipants}
           onChange={e => setMaxParticipants(e.target.value)}
-          placeholder="Ex : 8"
+          placeholder={t('plan.form.maxPlaceholder')}
         />
         {user && (
           <SurpriseSelector
@@ -152,8 +153,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
         </AdvancedSection>
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-          <Button type="submit" disabled={loading}>{loading ? 'Création...' : 'Créer le Plan'}</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={loading}>{loading ? t('common.creating') : t('plan.form.submit')}</Button>
         </div>
       </form>
     </Modal>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
 import { Send, X, ImagePlus, Loader2, Camera, Images, Mic, Trash2 } from 'lucide-react';
+import { t } from '../../i18n';
 
 interface ReplyTarget {
   id: string;
@@ -36,7 +37,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
     e.target.value = '';
     if (!file || !onSendPhoto) return;
     if (file.size > 10 * 1024 * 1024) {
-      setPhotoError('Photo trop volumineuse (max 10 Mo)');
+      setPhotoError(t('chat.input.photoTooBig'));
       return;
     }
     setSendingPhoto(true);
@@ -45,7 +46,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
       await onSendPhoto(file, value.trim());
       setValue('');
     } catch (err: any) {
-      setPhotoError(err?.response?.data?.error || "La photo n'a pas pu être envoyée");
+      setPhotoError(err?.response?.data?.error || t('chat.input.photoFailed'));
     } finally {
       setSendingPhoto(false);
     }
@@ -71,18 +72,18 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
     if (!onSendVoice) return;
     setPhotoError('');
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setPhotoError("Ton appareil ne permet pas d'enregistrer un message vocal ici");
+      setPhotoError(t('chat.input.noRecorder'));
       return;
     }
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setPhotoError("Autorise l'accès au micro pour enregistrer un message vocal");
+      setPhotoError(t('chat.input.allowMic'));
       return;
     }
     streamRef.current = stream;
-    const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'].find(t => MediaRecorder.isTypeSupported?.(t));
+    const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus'].find(mt => MediaRecorder.isTypeSupported?.(mt));
     const recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
     const chunks: Blob[] = [];
     const startedAt = Date.now();
@@ -98,7 +99,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
       try {
         await onSendVoice(blob, seconds);
       } catch (err: any) {
-        setPhotoError(err?.response?.data?.error || "Le message vocal n'a pas pu être envoyé");
+        setPhotoError(err?.response?.data?.error || t('chat.input.voiceFailed'));
       } finally {
         setSendingVoice(false);
       }
@@ -198,16 +199,16 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
       {photoError && <p className="text-xs text-red-500 mb-2">{photoError}</p>}
       {recSeconds !== null ? (
         <div className="flex gap-3 items-center">
-          <button type="button" onClick={() => stopRecording(false)} title="Annuler"
+          <button type="button" onClick={() => stopRecording(false)} title={t('common.cancel')}
             className="p-3 bg-slate-100 text-slate-500 rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0">
             <Trash2 size={16} />
           </button>
           <div className="flex-1 flex items-center gap-2.5 px-4 py-3 bg-red-50 rounded-xl text-sm text-red-600 font-medium" style={{ minHeight: '44px' }}>
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="whitespace-nowrap">Enregistrement… {fmt(recSeconds)}</span>
-            <span className="ml-auto text-xs font-normal text-red-400 whitespace-nowrap">max {fmt(VOICE_MAX_SECONDS)}</span>
+            <span className="whitespace-nowrap">{t('chat.input.recording', { time: fmt(recSeconds) })}</span>
+            <span className="ml-auto text-xs font-normal text-red-400 whitespace-nowrap">{t('chat.input.max', { time: fmt(VOICE_MAX_SECONDS) })}</span>
           </div>
-          <button type="button" onClick={() => stopRecording(true)} title="Envoyer le message vocal"
+          <button type="button" onClick={() => stopRecording(true)} title={t('chat.input.sendVoice')}
             className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex-shrink-0">
             <Send size={16} />
           </button>
@@ -224,11 +225,11 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
                 <div className="absolute bottom-full left-6 mb-2 z-20 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden w-56">
                   <button type="button" onClick={() => { setPhotoMenu(false); cameraInputRef.current?.click(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-indigo-50">
-                    <Camera size={18} className="text-indigo-600" /> Prendre une photo
+                    <Camera size={18} className="text-indigo-600" /> {t('chat.input.takePhoto')}
                   </button>
                   <button type="button" onClick={() => { setPhotoMenu(false); photoInputRef.current?.click(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-indigo-50 border-t border-slate-100">
-                    <Images size={18} className="text-indigo-600" /> Choisir dans la galerie
+                    <Images size={18} className="text-indigo-600" /> {t('chat.input.chooseGallery')}
                   </button>
                 </div>
               </>
@@ -237,7 +238,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
               type="button"
               onClick={() => (isTouch ? setPhotoMenu(m => !m) : photoInputRef.current?.click())}
               disabled={sendingPhoto}
-              title="Envoyer une photo"
+              title={t('chat.input.sendPhoto')}
               className="p-3 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 hover:text-indigo-600 disabled:opacity-50 transition-colors flex-shrink-0"
             >
               {sendingPhoto ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
@@ -249,7 +250,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Message... (Entrée pour envoyer, @ pour mentionner)"
+          placeholder={t('chat.input.placeholder')}
           rows={1}
           className="flex-1 resize-none px-4 py-3 bg-slate-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
           style={{ minHeight: '44px', maxHeight: '120px' }}
@@ -259,7 +260,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
             type="button"
             onClick={startRecording}
             disabled={sendingVoice}
-            title="Enregistrer un message vocal"
+            title={t('chat.input.recordVoice')}
             className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors flex-shrink-0"
           >
             {sendingVoice ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}

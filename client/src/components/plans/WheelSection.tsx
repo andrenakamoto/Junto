@@ -3,6 +3,8 @@ import { Trash2, X, RotateCcw, Users } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
+import { currentLang, intlLocale, t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 // « Qui s'y colle ? » (serveur : routes/wheel.ts), dans l'onglet Votes. Le serveur tire le résultat et fixe
 // l'heure de départ ; chaque téléphone anime la roue pour qu'elle s'arrête au même instant sur le même nom.
@@ -18,7 +20,7 @@ export type Wheel = {
 export type WheelsResponse = { serverNow: number; wheels: Wheel[] };
 
 const COLORS = ['#ea5a2b', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#ef4444', '#6366f1', '#84cc16'];
-const fmtTime = (ms: number) => new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' }).format(new Date(ms)).replace(':', 'h');
+const fmtTime = (ms: number) => new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(ms));
 
 // Demander l'ouverture de la roue (PlanDetail l'affiche, quel que soit l'onglet)
 // auto : ouverture par le temps réel (une seule fois par tirage) ; sinon demandée par la personne
@@ -41,7 +43,7 @@ function WheelSvg({ candidates, rotation }: { candidates: P[]; rotation: number 
   const n = Math.max(candidates.length, 1);
   const a = 360 / n;
   const r = 150;
-  const pt = (deg: number, rad = r) => { const t = ((deg - 90) * Math.PI) / 180; return [160 + rad * Math.cos(t), 160 + rad * Math.sin(t)]; };
+  const pt = (deg: number, rad = r) => { const a2 = ((deg - 90) * Math.PI) / 180; return [160 + rad * Math.cos(a2), 160 + rad * Math.sin(a2)]; };
   return (
     <svg viewBox="0 0 320 320" className="w-full h-full">
       <g style={{ transform: `rotate(${rotation}deg)`, transformOrigin: '160px 160px' }}>
@@ -75,17 +77,17 @@ export function WheelOverlay({ question, spin, serverOffset, replay, onClose }: 
     return () => cancelAnimationFrame(raf);
   }, []);
   const elapsed = now - start.current;
-  const t = Math.min(1, Math.max(0, elapsed / spin.durationMs));
-  const ease = 1 - Math.pow(1 - t, 3);
+  const p = Math.min(1, Math.max(0, elapsed / spin.durationMs));
+  const ease = 1 - Math.pow(1 - p, 3);
   const rotation = finalRotation(spin) * ease;
-  const done = t >= 1;
+  const done = p >= 1;
   const countdown = elapsed < 0 ? Math.ceil(-elapsed / 1000) : 0;
   useEffect(() => { if (done && !replay) (navigator as any).vibrate?.(200); }, [done, replay]);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center p-6 text-white" style={{ paddingTop: 'var(--sa-top)', paddingBottom: 'var(--sa-bottom)' }}>
-      <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full bg-white/10" style={{ marginTop: 'var(--sa-top)' }} aria-label="Fermer"><X size={20} /></button>
-      <p className="text-sm uppercase tracking-widest text-white/60">Qui s’y colle ?</p>
+      <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full bg-white/10" style={{ marginTop: 'var(--sa-top)' }} aria-label={t('common.close')}><X size={20} /></button>
+      <p className="text-sm uppercase tracking-widest text-white/60">{t('votes.wheel.title')}</p>
       <p className="text-xl font-bold text-center mt-1 mb-6">{question}</p>
       <div className="w-full max-w-xs aspect-square"><WheelSvg candidates={spin.candidates} rotation={rotation} /></div>
       <div className="h-24 flex flex-col items-center justify-center mt-6">
@@ -93,9 +95,9 @@ export function WheelOverlay({ question, spin, serverOffset, replay, onClose }: 
           : done ? (
             <>
               <p className="text-3xl font-black text-center">🎉 {spin.winner.name} !</p>
-              <button onClick={onClose} className="mt-3 px-5 py-2 rounded-xl bg-white text-slate-900 font-semibold">OK</button>
+              <button onClick={onClose} className="mt-3 px-5 py-2 rounded-xl bg-white text-slate-900 font-semibold">{t('common.ok')}</button>
             </>
-          ) : <p className="text-white/70">La roue tourne…</p>}
+          ) : <p className="text-white/70">{t('votes.wheel.spinning')}</p>}
       </div>
     </div>
   );
@@ -104,8 +106,8 @@ export function WheelOverlay({ question, spin, serverOffset, replay, onClose }: 
 function ExcludedNote({ spin }: { spin: WheelSpin }) {
   return (
     <>
-      {spin.excluded.length > 0 && <p className="text-xs text-slate-500 mt-1">Retiré{spin.excluded.length > 1 ? 's' : ''} volontairement de la roue : {spin.excluded.map(p => p.name).join(', ')}</p>}
-      {spin.skipped.length > 0 && <p className="text-xs text-slate-400 mt-0.5">Déjà tombé{spin.skipped.length > 1 ? 's' : ''} (pas deux fois la même personne) : {spin.skipped.map(p => p.name).join(', ')}</p>}
+      {spin.excluded.length > 0 && <p className="text-xs text-slate-500 mt-1">{t('votes.wheel.excluded', { count: spin.excluded.length, names: spin.excluded.map(p => p.name).join(', ') })}</p>}
+      {spin.skipped.length > 0 && <p className="text-xs text-slate-400 mt-0.5">{t('votes.wheel.skipped', { count: spin.skipped.length, names: spin.skipped.map(p => p.name).join(', ') })}</p>}
     </>
   );
 }
@@ -125,34 +127,34 @@ function PeoplePicker({ people, excluded, onChange }: { people: P[]; excluded: s
 
 export function WheelCreateForm({ plan, onDone, onCancel }: { plan: Plan; onDone: () => void; onCancel: () => void }) {
   const people = useMemo(() => plan.members.filter(m => m.rsvp !== 'out').map(m => ({ id: m.userId, name: displayName(m.user) ?? m.user.pseudo }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'fr')), [plan.members]);
+    .sort((a, b) => a.name.localeCompare(b.name, currentLang())), [plan.members]);
   const [question, setQuestion] = useState('');
   const [excluded, setExcluded] = useState<string[]>([]);
   const [noRepeat, setNoRepeat] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   async function create() {
-    if (!question.trim()) { setError('Indique la question'); return; }
+    if (!question.trim()) { setError(t('votes.wheel.needQuestion')); return; }
     setBusy(true); setError('');
     try { await api.post(`/plans/${plan.id}/wheels`, { question: question.trim(), excludedUserIds: excluded, noRepeat }); onDone(); }
-    catch (err: any) { setError(err?.response?.data?.error || 'Erreur, réessaie dans un instant'); setBusy(false); }
+    catch (err: any) { setError(err?.response?.data?.error || t('common.retryError')); setBusy(false); }
   }
   return (
     <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-4 space-y-3">
-      <p className="font-semibold text-slate-800 text-sm">🎡 Qui s’y colle ?</p>
-      <input autoFocus value={question} onChange={e => setQuestion(e.target.value)} maxLength={120} placeholder="Qui paie la tournée ?" className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <p className="font-semibold text-slate-800 text-sm">🎡 {t('votes.wheel.title')}</p>
+      <input autoFocus value={question} onChange={e => setQuestion(e.target.value)} maxLength={120} placeholder={t('votes.wheel.questionPlaceholder')} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       <div>
-        <p className="text-sm text-slate-600 mb-1">Sur la roue (décoche pour retirer quelqu’un)</p>
+        <p className="text-sm text-slate-600 mb-1">{t('votes.wheel.onWheelPick')}</p>
         <PeoplePicker people={people} excluded={excluded} onChange={setExcluded} />
       </div>
       <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
         <input type="checkbox" checked={noRepeat} onChange={e => setNoRepeat(e.target.checked)} className="accent-indigo-600" />
-        Pas deux fois la même personne
+        {t('votes.wheel.noRepeat')}
       </label>
       {error && <p className="text-xs text-red-500">{error}</p>}
       <div className="flex gap-2">
-        <button onClick={create} disabled={busy} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">Créer la roue</button>
-        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-slate-600">Annuler</button>
+        <button onClick={create} disabled={busy} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{t('votes.wheel.create')}</button>
+        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-slate-600">{t('common.cancel')}</button>
       </div>
     </div>
   );
@@ -167,15 +169,15 @@ export function WheelCard({ wheel, plan, serverOffset, onChanged }: { wheel: Whe
   const [, rerender] = useState(0);
   useEffect(() => {
     if (endsIn <= 0) return;
-    const t = window.setTimeout(() => rerender(x => x + 1), endsIn + 100);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => rerender(x => x + 1), endsIn + 100);
+    return () => window.clearTimeout(timer);
   }, [endsIn > 0, last?.id]);
   const spinning = endsIn > 0;
   const excluded = wheel.participants.filter(p => p.excluded);
 
   async function run(action: () => Promise<unknown>) {
     setError('');
-    try { await action(); onChanged(); } catch (err: any) { setError(err?.response?.data?.error || 'Erreur, réessaie dans un instant'); }
+    try { await action(); onChanged(); } catch (err: any) { setError(err?.response?.data?.error || t('common.retryError')); }
   }
   async function spin() {
     setError('');
@@ -183,31 +185,31 @@ export function WheelCard({ wheel, plan, serverOffset, onChanged }: { wheel: Whe
       const { data } = await api.post(`/plans/wheels/${wheel.id}/spin`);
       openWheelSpin(plan.id, data.id);
       onChanged();
-    } catch (err: any) { setError(err?.response?.data?.error || 'Erreur, réessaie dans un instant'); }
+    } catch (err: any) { setError(err?.response?.data?.error || t('common.retryError')); }
   }
 
   return (
     <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-4">
       <div className="flex items-start gap-2">
         <p className="flex-1 font-semibold text-slate-800 text-sm">🎡 {wheel.question}</p>
-        {wheel.canDelete && <button onClick={() => { if (confirm('Supprimer cette roue ?')) run(() => api.delete(`/plans/wheels/${wheel.id}`)); }} className="text-slate-300 hover:text-red-500" aria-label="Supprimer la roue"><Trash2 size={14} /></button>}
+        {wheel.canDelete && <button onClick={() => { if (confirm(t('votes.wheel.deleteConfirm'))) run(() => api.delete(`/plans/wheels/${wheel.id}`)); }} className="text-slate-300 hover:text-red-500" aria-label={t('votes.wheel.delete')}><Trash2 size={14} /></button>}
       </div>
 
       {spinning && (
         <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2">
-          <p className="flex-1 text-sm text-amber-900">🎡 La roue tourne…</p>
-          <button onClick={() => openWheelSpin(plan.id, last.id)} className="text-xs text-amber-800 underline">Regarder</button>
+          <p className="flex-1 text-sm text-amber-900">🎡 {t('votes.wheel.spinning')}</p>
+          <button onClick={() => openWheelSpin(plan.id, last.id)} className="text-xs text-amber-800 underline">{t('votes.wheel.watch')}</button>
         </div>
       )}
       {last && !spinning && (
         <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
           <div className="flex items-center gap-2">
-            <p className="flex-1 text-sm text-amber-900">La roue a choisi : <strong className="text-base">{last.winner.name}</strong></p>
-            <button onClick={() => openWheelSpin(plan.id, last.id, true)} className="text-xs text-amber-800 underline flex items-center gap-1"><RotateCcw size={12} /> Revoir</button>
+            <p className="flex-1 text-sm text-amber-900"><Trans i18nKey="votes.wheel.chose" values={{ name: last.winner.name }} components={{ b: <strong className="text-base" /> }} /></p>
+            <button onClick={() => openWheelSpin(plan.id, last.id, true)} className="text-xs text-amber-800 underline flex items-center gap-1"><RotateCcw size={12} /> {t('votes.wheel.replay')}</button>
           </div>
           <ExcludedNote spin={last} />
           {wheel.spins.length > 1 && (
-            <p className="text-xs text-slate-400 mt-1.5">Tirages précédents : {wheel.spins.slice(0, -1).reverse().map(s => `${s.winner.name} · ${fmtTime(s.startAt)}`).join(' — ')}</p>
+            <p className="text-xs text-slate-400 mt-1.5">{t('votes.wheel.previous', { list: wheel.spins.slice(0, -1).reverse().map(s => `${s.winner.name} · ${fmtTime(s.startAt)}`).join(' — ') })}</p>
           )}
         </div>
       )}
@@ -215,8 +217,8 @@ export function WheelCard({ wheel, plan, serverOffset, onChanged }: { wheel: Whe
       <p className="text-xs text-slate-500 mt-3 flex items-start gap-1.5">
         <Users size={13} className="mt-0.5 flex-shrink-0" />
         <span>
-          Sur la roue : {wheel.candidates.length ? wheel.candidates.map(c => c.name).join(', ') : 'personne'}
-          {excluded.length > 0 && <> · <span className="text-slate-400">retiré{excluded.length > 1 ? 's' : ''} : {excluded.map(p => p.name).join(', ')}</span></>}
+          {t('votes.wheel.onWheel', { names: wheel.candidates.length ? wheel.candidates.map(c => c.name).join(', ') : t('votes.wheel.nobody') })}
+          {excluded.length > 0 && <> · <span className="text-slate-400">{t('votes.wheel.removed', { count: excluded.length, names: excluded.map(p => p.name).join(', ') })}</span></>}
         </span>
       </p>
       {editing ? (
@@ -224,16 +226,16 @@ export function WheelCard({ wheel, plan, serverOffset, onChanged }: { wheel: Whe
           <PeoplePicker people={wheel.participants} excluded={excluded.map(p => p.id)} onChange={ids => run(() => api.put(`/plans/wheels/${wheel.id}`, { excludedUserIds: ids }))} />
           <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer px-2">
             <input type="checkbox" checked={wheel.noRepeat} onChange={e => run(() => api.put(`/plans/wheels/${wheel.id}`, { noRepeat: e.target.checked }))} className="accent-indigo-600" />
-            Pas deux fois la même personne
+            {t('votes.wheel.noRepeat')}
           </label>
-          <button onClick={() => setEditing(false)} className="text-xs text-slate-500 px-2">Fermer</button>
+          <button onClick={() => setEditing(false)} className="text-xs text-slate-500 px-2">{t('common.close')}</button>
         </div>
       ) : (
-        <button onClick={() => setEditing(true)} className="mt-1 text-xs text-indigo-600 font-medium">Retirer ou remettre des personnes</button>
+        <button onClick={() => setEditing(true)} className="mt-1 text-xs text-indigo-600 font-medium">{t('votes.wheel.editPeople')}</button>
       )}
 
       <button onClick={spin} disabled={!wheel.candidates.length} className="mt-3 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold disabled:opacity-40">
-        🎡 {last ? 'Relancer la roue' : 'Lancer la roue'}
+        🎡 {last ? t('votes.wheel.spinAgain') : t('votes.wheel.spin')}
       </button>
       {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
     </div>

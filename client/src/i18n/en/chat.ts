@@ -1,0 +1,58 @@
+import type { Dict } from '../fr';
+
+const chat: Dict['chat'] = {
+  voice: {
+    pause: 'Pause',
+    listen: 'Play the voice message',
+    error: 'Can’t play it, try again',
+    label: 'Voice message',
+  },
+  report: {
+    title: 'Report this message',
+    thanks: 'Thank you. The message has been sent to the EvLY team, who will delete it if it breaks the terms of use.',
+    blocked: ' Their messages are no longer shown to you.',
+    intro: 'Is this message from <b>@{{pseudo}}</b> shocking, insulting or unwanted? The EvLY team will read it and decide what to do. @{{pseudo}} won’t know you reported it.',
+    reasonPlaceholder: 'Why? (optional)',
+    alsoHide: 'Also hide messages from @{{pseudo}}',
+    undoHint: 'You can undo this in “My profile”.',
+    submit: 'Report',
+  },
+  edit: {
+    deleteConfirm: 'Delete this message?',
+    deleted: 'Message deleted',
+  },
+  input: {
+    photoTooBig: 'Photo too large (max 10 MB)',
+    photoFailed: 'The photo couldn’t be sent',
+    noRecorder: 'Your device can’t record a voice message here',
+    allowMic: 'Allow microphone access to record a voice message',
+    voiceFailed: 'The voice message couldn’t be sent',
+    recording: 'Recording… {{time}}',
+    max: 'max {{time}}',
+    sendVoice: 'Send the voice message',
+    takePhoto: 'Take a photo',
+    chooseGallery: 'Choose from gallery',
+    sendPhoto: 'Send a photo',
+    placeholder: 'Message… (Enter to send, @ to mention)',
+    recordVoice: 'Record a voice message',
+  },
+  message: {
+    edited: ' (edited)',
+    photoRemoved: 'Photo removed',
+    deletePhotoConfirm: 'Delete this photo for everyone?',
+    deletePhotoFailed: 'The photo couldn’t be deleted',
+    deletePhoto: 'Delete the photo',
+    reactWith: 'React with {{emoji}}',
+    replies_one: '{{count}} reply',
+    replies_other: '{{count}} replies',
+    reply: 'Reply',
+    reportTitle: 'Report this message',
+    report: 'Report',
+    and: ' and ',
+    reactedYou: 'You reacted with {{emoji}}',
+    reactedOne: '{{name}} reacted with {{emoji}}',
+    reactedYouAnd: 'You and {{names}} reacted with {{emoji}}',
+    reactedMany: '{{names}} reacted with {{emoji}}',
+  },
+};
+export default chat;

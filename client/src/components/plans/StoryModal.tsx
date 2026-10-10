@@ -6,6 +6,7 @@ import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { mediaUrl } from '../../lib/media';
+import { intlLocale, t } from '../../i18n';
 
 interface Props {
   plan: Plan;
@@ -117,7 +118,7 @@ export function StoryModal({ plan, onClose }: Props) {
     ? [...allPresentNames.slice(0, nameLimit), `+${allPresentNames.length - nameLimit}`]
     : allPresentNames;
   const dateFmt = plan.eventDate
-    ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(plan.eventDate))
+    ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(plan.eventDate))
     : null;
 
   async function handleDownload() {
@@ -127,17 +128,17 @@ export function StoryModal({ plan, onClose }: Props) {
       const dataUrl = await toJpeg(cardRef.current, { pixelRatio: 4, cacheBust: true, quality: 0.92, backgroundColor: '#431a11' });
       // Apps : enregistrée dans la galerie du téléphone ; site : téléchargement
       const where = await saveImage(dataUrl, `${plan.title.replace(/[^a-z0-9]/gi, '_')}_story.jpg`);
-      if (where === 'gallery') alert('Story enregistrée dans tes photos (album « EvLY »).');
+      if (where === 'gallery') alert(t('plan.story.saved'));
     } catch (e) {
       console.error('[story generation]', e);
-      alert("Erreur lors de la génération de la story. Réessaie.");
+      alert(t('plan.story.error'));
     } finally {
       setGenerating(false);
     }
   }
 
   return (
-    <Modal title="Story du Plan" onClose={onClose}>
+    <Modal title={t('plan.story.title')} onClose={onClose}>
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1.5 bg-slate-100 rounded-lg p-1">
           <button
@@ -145,14 +146,14 @@ export function StoryModal({ plan, onClose }: Props) {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${orientation === 'portrait' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <RectangleVertical size={13} />
-            Portrait
+            {t('plan.story.portrait')}
           </button>
           <button
             onClick={() => setOrientation('landscape')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${orientation === 'landscape' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <RectangleHorizontal size={13} />
-            Paysage
+            {t('plan.story.landscape')}
           </button>
         </div>
 
@@ -207,7 +208,7 @@ export function StoryModal({ plan, onClose }: Props) {
             {plan.location && <p className={`text-white/70 ${isLandscape ? 'text-[9px] mb-1' : 'text-[11px] mb-1.5'}`}>{plan.location}</p>}
             {presentNames.length > 0 && (
               <p className={`text-white/90 leading-snug ${isLandscape ? 'text-[9px]' : 'text-[11px]'}`}>
-                <span className="text-white/60">Présents : </span>
+                <span className="text-white/60">{t('plan.story.present')}</span>
                 {presentNames.join(', ')}
               </p>
             )}
@@ -232,7 +233,7 @@ export function StoryModal({ plan, onClose }: Props) {
         {coverSrc && (
           <p className="flex items-center gap-1 text-xs text-slate-400 -mt-2">
             <Move size={11} />
-            Glisse la photo pour la repositionner
+            {t('plan.story.drag')}
           </p>
         )}
 
@@ -272,30 +273,30 @@ export function StoryModal({ plan, onClose }: Props) {
               className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-indigo-600 text-white text-base font-bold shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 active:scale-[0.98] transition"
             >
               <Camera size={22} />
-              Prendre la photo
+              {t('plan.story.takePhoto')}
             </button>
-            <p className="text-xs text-slate-500 -mt-2 text-center">Prends d'abord ta photo, elle s'affiche dans la story. Ensuite, télécharge-la.</p>
+            <p className="text-xs text-slate-500 -mt-2 text-center">{t('plan.story.takeHint')}</p>
             <button
               onClick={handleDownload}
               disabled={generating}
               className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 font-medium disabled:opacity-50"
             >
               {generating ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-              {imageAttachments.length > 0 ? 'Télécharger avec la photo du Plan' : 'Télécharger sans photo'}
+              {imageAttachments.length > 0 ? t('plan.story.withPlanPhoto') : t('plan.story.withoutPhoto')}
             </button>
           </>
         ) : (
           <>
             <Button onClick={handleDownload} disabled={generating} className="w-full flex items-center justify-center gap-2 !py-3 !text-base">
               {generating ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-              Télécharger la story
+              {t('plan.story.download')}
             </Button>
             <button
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
             >
               <Camera size={15} />
-              Reprendre la photo
+              {t('plan.story.retake')}
             </button>
           </>
         )}

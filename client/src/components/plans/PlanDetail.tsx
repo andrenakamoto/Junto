@@ -36,6 +36,8 @@ import { getSocket } from '../../lib/socket';
 import { WheelSpinHost, openWheelSpin } from './WheelSection';
 import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
+import { Trans } from 'react-i18next';
+import { intlLocale, t } from '../../i18n';
 
 // Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
 function useIsPhone() {
@@ -53,25 +55,25 @@ function useIsPhone() {
 type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
 
 const rsvpConfig = {
-  in:    { label: 'Je suis in',  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
-  maybe: { label: 'Peut-être',   active: 'bg-amber-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' },
-  out:   { label: 'Absent(e)',    active: 'bg-slate-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  in:    { label: t('common.rsvp.in'),  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
+  maybe: { label: t('common.rsvp.maybe'),   active: 'bg-amber-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' },
+  out:   { label: t('common.rsvp.out'),    active: 'bg-slate-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
 };
 
 const tabs = [
-  { key: 'chat' as Tab,       Icon: MessageSquare, label: 'Chat' },
-  { key: 'infos' as Tab,      Icon: CheckSquare,   label: 'Infos' },
-  { key: 'trajets' as Tab,    Icon: Car,           label: 'Trajets' },
-  { key: 'membres' as Tab,    Icon: Users,         label: 'Membres' },
-  { key: 'votes' as Tab,      Icon: BarChart2,     label: 'Votes' },
-  { key: 'depenses' as Tab,   Icon: Receipt,          label: 'Dépenses' },
-  { key: 'benevoles' as Tab,  Icon: HandHeart,        label: 'Bénévoles' },
-  { key: 'assemblee' as Tab,  Icon: Landmark,         label: 'Assemblée' },
-  { key: 'pere_noel' as Tab,  Icon: Gift,             label: 'Père Noël' },
-  { key: 'killer' as Tab,     Icon: Crosshair,        label: 'Killer' },
-  { key: 'mot_piege' as Tab,  Icon: Speech,           label: 'Mot piège' },
-  { key: 'equipes' as Tab,    Icon: Trophy,           label: 'Équipes' },
-  { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: 'Cagnotte' },
+  { key: 'chat' as Tab,       Icon: MessageSquare, label: t('plan.detail.tabs.chat') },
+  { key: 'infos' as Tab,      Icon: CheckSquare,   label: t('plan.detail.tabs.infos') },
+  { key: 'trajets' as Tab,    Icon: Car,           label: t('plan.detail.tabs.trajets') },
+  { key: 'membres' as Tab,    Icon: Users,         label: t('plan.detail.tabs.membres') },
+  { key: 'votes' as Tab,      Icon: BarChart2,     label: t('plan.detail.tabs.votes') },
+  { key: 'depenses' as Tab,   Icon: Receipt,          label: t('plan.detail.tabs.depenses') },
+  { key: 'benevoles' as Tab,  Icon: HandHeart,        label: t('plan.detail.tabs.benevoles') },
+  { key: 'assemblee' as Tab,  Icon: Landmark,         label: t('plan.detail.tabs.assemblee') },
+  { key: 'pere_noel' as Tab,  Icon: Gift,             label: t('plan.detail.tabs.pere_noel') },
+  { key: 'killer' as Tab,     Icon: Crosshair,        label: t('plan.detail.tabs.killer') },
+  { key: 'mot_piege' as Tab,  Icon: Speech,           label: t('plan.detail.tabs.mot_piege') },
+  { key: 'equipes' as Tab,    Icon: Trophy,           label: t('plan.detail.tabs.equipes') },
+  { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: t('plan.detail.tabs.cagnotte') },
 ];
 const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
 
@@ -366,7 +368,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       onPlanUpdated(data);
     } catch (err: any) {
       // Complet entre-temps : la fiche rechargée propose la liste d'attente
-      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setPlacesError(err?.response?.data?.error || t('common.retryError'));
       const { data } = await api.get(`/plans/${plan.id}`);
       onPlanUpdated(data);
     } finally {
@@ -384,7 +386,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       onPlanUpdated(data);
     } catch (err: any) {
       // Revenir sur un Plan complet : la liste d'attente est proposée juste en dessous
-      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setPlacesError(err?.response?.data?.error || t('common.retryError'));
     } finally {
       setUpdatingRsvp(false);
     }
@@ -398,7 +400,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       if (join) await api.post(`/plans/${plan.id}/waitlist`);
       else await api.delete(`/plans/${plan.id}/waitlist`);
     } catch (err: any) {
-      setPlacesError(err?.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setPlacesError(err?.response?.data?.error || t('common.retryError'));
     } finally {
       const { data } = await api.get(`/plans/${plan.id}`);
       onPlanUpdated(data);
@@ -477,31 +479,31 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const canManageSeries = isCreator && !!plan.recurrence && !plan.nextOccurrenceId;
 
   async function skipThisTime() {
-    if (!confirm('Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.')) return;
+    if (!confirm(t('plan.detail.skipConfirm'))) return;
     try {
       await api.post(`/plans/${plan.id}/skip`);
       onPlanDeleted();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      alert(err.response?.data?.error || t('common.retryError'));
     }
   }
 
   async function stopRepeating() {
-    if (!confirm('Arrêter la répétition ? Ce Plan reste, mais aucun Plan suivant ne sera créé.')) return;
+    if (!confirm(t('plan.detail.stopConfirm'))) return;
     try {
       await api.put(`/plans/${plan.id}/recurrence`, { recurrence: null });
       const { data } = await api.get(`/plans/${plan.id}`);
       onPlanUpdated(data);
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      alert(err.response?.data?.error || t('common.retryError'));
     }
   }
-  const deleteLabel = creatorDeletes ? 'Supprimer ce Plan' : 'Voter pour supprimer ce Plan';
+  const deleteLabel = creatorDeletes ? t('plan.detail.deleteOwn') : t('plan.detail.voteDelete');
   // Paramètre avancé : les participants (hors invités externes) peuvent modifier dates et lieu
   const canEdit = isCreator || (plan.editMode === 'all' && isMember && !plan.viewerIsGuest);
 
   const eventDateFmt = plan.eventDate
-    ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
+    ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
     : null;
 
 
@@ -518,20 +520,20 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     <div className="mt-3 p-4 bg-amber-50 rounded-xl border border-amber-200">
       {myWaitPos ? (
         <>
-          <p className="text-sm text-amber-900 font-medium">⏳ Tu es n°{myWaitPos} sur la liste d’attente.</p>
-          <p className="text-xs text-amber-800 mt-1">Dès qu’une place se libère, tu es inscrit(e) automatiquement et prévenu(e).</p>
-          <button onClick={() => handleWaitlist(false)} disabled={joining} className="mt-2 text-xs text-amber-900 underline">Quitter la liste d’attente</button>
+          <p className="text-sm text-amber-900 font-medium">{t('plan.detail.waitPos', { pos: myWaitPos })}</p>
+          <p className="text-xs text-amber-800 mt-1">{t('plan.detail.waitHint')}</p>
+          <button onClick={() => handleWaitlist(false)} disabled={joining} className="mt-2 text-xs text-amber-900 underline">{t('plan.detail.waitLeave')}</button>
         </>
       ) : (
         <>
-          <p className="text-sm text-amber-900 font-medium">Ce Plan est complet ({occupied}/{plan.maxParticipants}).</p>
+          <p className="text-sm text-amber-900 font-medium">{t('plan.detail.full', { occupied, max: plan.maxParticipants })}</p>
           <p className="text-xs text-amber-800 mt-1">
-            Inscris-toi sur la liste d’attente : tu prendras automatiquement la première place libérée.
-            {waitingCount > 0 && ` ${waitingCount} personne${waitingCount > 1 ? 's attendent' : ' attend'} déjà.`}
+            {t('plan.detail.waitJoinHint')}
+            {waitingCount > 0 && t('plan.detail.waiting', { count: waitingCount })}
           </p>
           {plan.viewerIsGuest ? null : (
             <Button onClick={() => handleWaitlist(true)} disabled={joining} size="sm" className="mt-3">
-              {joining ? '…' : 'Rejoindre la liste d’attente'}
+              {joining ? '…' : t('plan.detail.waitJoin')}
             </Button>
           )}
         </>
@@ -553,7 +555,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             <Icon size={20} />
           </span>
           <span className="font-semibold text-slate-800 text-sm truncate">{label}</span>
-          {hasNews(key) && <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-orange-500" aria-label="Nouveau" />}
+          {hasNews(key) && <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-orange-500" aria-label={t('plan.detail.new')} />}
         </button>
       ))}
     </div>
@@ -566,21 +568,21 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   async function downloadRecap() {
     setRecapBusy(true);
     try { await downloadPlanRecap(plan); }
-    catch { alert('Impossible de préparer le récapitulatif. Réessaie.'); }
+    catch { alert(t('plan.detail.recapError')); }
     finally { setRecapBusy(false); }
   }
   async function downloadPhotos() {
     setZipping(true);
     try { await downloadPlanPhotos(plan); }
-    catch { alert('Impossible de préparer le téléchargement. Réessaie.'); }
+    catch { alert(t('plan.detail.zipError')); }
     finally { setZipping(false); }
   }
   const actions = [
-    { key: 'invite', Icon: UserPlus, label: 'Inviter', onClick: () => setShowInvite(true) },
-    ...(photoCount > 0 ? [{ key: 'photos', Icon: Images, label: zipping ? '…' : 'Photos', onClick: downloadPhotos }] : []),
-    { key: 'ical', Icon: CalendarPlus, label: 'Agenda', onClick: handleExportIcal },
-    { key: 'story', Icon: ImageDown, label: 'Story', onClick: () => setShowStory(true) },
-    ...(plan.canRecap ? [{ key: 'recap', Icon: FileDown, label: recapBusy ? '…' : 'Récap', onClick: downloadRecap }] : []),
+    { key: 'invite', Icon: UserPlus, label: t('plan.detail.invite'), onClick: () => setShowInvite(true) },
+    ...(photoCount > 0 ? [{ key: 'photos', Icon: Images, label: zipping ? '…' : t('plan.detail.photos'), onClick: downloadPhotos }] : []),
+    { key: 'ical', Icon: CalendarPlus, label: t('plan.detail.agenda'), onClick: handleExportIcal },
+    { key: 'story', Icon: ImageDown, label: t('plan.detail.story'), onClick: () => setShowStory(true) },
+    ...(plan.canRecap ? [{ key: 'recap', Icon: FileDown, label: recapBusy ? '…' : t('plan.detail.recap'), onClick: downloadRecap }] : []),
   ];
   const actionBar = (
     <div className="flex-shrink-0 bg-white border-t border-slate-200 shadow-[0_-6px_16px_-8px_rgba(15,23,42,0.18)] px-3 pt-2.5 pb-3 short:sticky short:bottom-0">
@@ -603,7 +605,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   // Téléphone, une rubrique : seulement le titre du Plan et le nom de la rubrique
   const sectionHeader = (
     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
-      <button onClick={backToHub} aria-label="Retour au Plan" className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex-shrink-0">
+      <button onClick={backToHub} aria-label={t('plan.detail.backToPlan')} className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex-shrink-0">
         <ChevronLeft size={20} />
       </button>
       <button onClick={backToHub} className="min-w-0 text-left">
@@ -633,7 +635,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 {canEdit && (
                   <button
                     onClick={() => setShowEditPlan(true)}
-                    title="Modifier le plan"
+                    title={t('plan.detail.editPlan')}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex-shrink-0 mt-0.5"
                   >
                     <Pencil size={14} />
@@ -648,21 +650,21 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <>
                 <button
                   onClick={() => setShowInvite(true)}
-                  title="Inviter"
+                  title={t('plan.detail.invite')}
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <UserPlus size={16} />
                 </button>
                 <button
                   onClick={handleExportIcal}
-                  title="Exporter vers mon calendrier (.ics)"
+                  title={t('plan.detail.exportIcs')}
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <CalendarPlus size={16} />
                 </button>
                 <button
                   onClick={() => setShowStory(true)}
-                  title="Télécharger la story"
+                  title={t('plan.detail.downloadStory')}
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <ImageDown size={16} />
@@ -671,7 +673,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   <button
                     onClick={downloadRecap}
                     disabled={recapBusy}
-                    title="Télécharger le récapitulatif (PDF)"
+                    title={t('plan.detail.recapPdf')}
                     className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
                   >
                     <FileDown size={16} />
@@ -679,14 +681,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 )}
                 <button
                   onClick={() => setShowHistory(true)}
-                  title="Historique des modifications"
+                  title={t('plan.detail.history')}
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <History size={16} />
                 </button>
                 <button
                   onClick={() => setShowSettings(true)}
-                  title="Paramètres du Plan"
+                  title={t('plan.detail.settings')}
                   className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                 >
                   <SlidersHorizontal size={16} />
@@ -695,14 +697,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   <>
                     <button
                       onClick={skipThisTime}
-                      title="Annuler cette fois"
+                      title={t('plan.detail.skip')}
                       className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                     >
                       <CalendarX size={16} />
                     </button>
                     <button
                       onClick={stopRepeating}
-                      title="Arrêter la répétition"
+                      title={t('plan.detail.stop')}
                       className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                     >
                       <Repeat1 size={16} />
@@ -724,7 +726,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             )}
             <button
               onClick={onLogout}
-              title="Se déconnecter"
+              title={t('plan.detail.logout')}
               className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
               <LogOut size={16} />
@@ -734,7 +736,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           <div className="relative xl:hidden flex-shrink-0" ref={actionsMenuRef}>
             <button
               onClick={() => setShowActionsMenu(v => !v)}
-              title="Menu"
+              title={t('plan.detail.menu')}
               className={`p-2 rounded-lg transition-colors ${showActionsMenu ? 'bg-slate-100 text-slate-700' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
             >
               <MoreVertical size={18} />
@@ -751,21 +753,21 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                       >
                         <UserPlus size={15} className="text-slate-400" />
-                        Inviter
+                        {t('plan.detail.invite')}
                       </button>
                       <button
                         onClick={() => { setShowActionsMenu(false); handleExportIcal(); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                       >
                         <CalendarPlus size={15} className="text-slate-400" />
-                        Exporter vers mon calendrier
+                        {t('plan.detail.exportCalendar')}
                       </button>
                       <button
                         onClick={() => { setShowActionsMenu(false); setShowStory(true); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                       >
                         <ImageDown size={15} className="text-slate-400" />
-                        Télécharger la story
+                        {t('plan.detail.downloadStory')}
                       </button>
                       </>
                     )}
@@ -775,7 +777,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                       >
                         <FileDown size={15} className="text-slate-400" />
-                        Télécharger le récapitulatif
+                        {t('plan.detail.recapShort')}
                       </button>
                     )}
                     <button
@@ -783,14 +785,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                     >
                       <History size={15} className="text-slate-400" />
-                      Historique des modifications
+                      {t('plan.detail.history')}
                     </button>
                     <button
                       onClick={() => { setShowActionsMenu(false); setShowSettings(true); }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                     >
                       <SlidersHorizontal size={15} className="text-slate-400" />
-                      Paramètres du Plan
+                      {t('plan.detail.settings')}
                     </button>
                     {canManageSeries && (
                       <>
@@ -799,14 +801,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                         >
                           <CalendarX size={15} className="text-slate-400" />
-                          Annuler cette fois
+                          {t('plan.detail.skip')}
                         </button>
                         <button
                           onClick={() => { setShowActionsMenu(false); stopRepeating(); }}
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                         >
                           <Repeat1 size={15} className="text-slate-400" />
-                          Arrêter la répétition
+                          {t('plan.detail.stop')}
                         </button>
                       </>
                     )}
@@ -826,7 +828,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
                 >
                   <LogOut size={15} className="text-slate-400" />
-                  Se déconnecter
+                  {t('plan.detail.logout')}
                 </button>
               </div>
             )}
@@ -868,12 +870,12 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               </span>
             )}
             <span className="text-sm md:text-xs text-slate-400">
-              par @{plan.creator.pseudo} ·{' '}
-              <span className="text-emerald-600">{inCount} in</span>{' '}·{' '}
+              {t('plan.detail.by', { pseudo: plan.creator.pseudo })}{' '}
+              <span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span>{' '}·{' '}
               <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
-              <span className="text-slate-400">{outCount} non</span>
+              <span className="text-slate-400">{t('plan.detail.countOut', { count: outCount })}</span>
               {plan.maxParticipants != null && (
-                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600"> · {waitingCount} en attente</span>}</>
+                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600">{t('plan.detail.waitingCount', { count: waitingCount })}</span>}</>
               )}
             </span>
           </div>
@@ -883,15 +885,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-sm md:text-xs text-indigo-800">
             <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
             <span>
-              <strong>Plan surprise</strong> pour {(plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ')} :
-              {' '}{(plan.exclusions ?? []).length > 1 ? 'ils ne voient' : 'cette personne ne voit'} pas ce Plan. Chut, ne dis rien !
+              <Trans i18nKey="plan.detail.surprise" count={(plan.exclusions ?? []).length} values={{ names: (plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ') }} components={{ b: <strong /> }} />
             </span>
           </div>
         )}
 
         {plan.viewerIsGuest && (
           <p className="mt-2 text-sm md:text-xs text-slate-500">
-            Tu es <strong>invité(e)</strong> à ce Plan : tu y as accès, sans faire partie du Cercle.
+            <Trans i18nKey="plan.detail.guest" components={{ b: <strong /> }} />
           </p>
         )}
         </div>
@@ -899,7 +900,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         {isMember ? (
           <div className="grid grid-cols-3 md:flex items-center gap-2 mt-3 md:flex-wrap">
             {/* Téléphone : les trois réponses sur toute la largeur, sans libellé */}
-            <span className="hidden md:inline text-xs text-slate-400 font-medium">Mon RSVP :</span>
+            <span className="hidden md:inline text-xs text-slate-400 font-medium">{t('plan.detail.myRsvp')}</span>
             {(['in', 'maybe', 'out'] as const).map(rsvp => (
               <button
                 key={rsvp}
@@ -919,10 +920,10 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         ) : (
           <div className="mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
             <p className="text-sm text-slate-600 mb-3">
-              Ce Plan te tente ? Rejoins-le pour accéder au chat et aux infos.
+              {t('plan.detail.tempted')}
             </p>
             <Button onClick={handleJoin} disabled={joining} size="sm">
-              {joining ? 'Rejoindre...' : '→ Rejoindre ce Plan'}
+              {joining ? t('plan.detail.joining') : t('plan.detail.joinPlan')}
             </Button>
           </div>
         )}
@@ -959,7 +960,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
                 <span className="relative">
                   <Icon size={14} />
                   {tab !== key && ((plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen)) && (
-                    <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-white" aria-label="Nouveau" />
+                    <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-white" aria-label={t('plan.detail.new')} />
                   )}
                 </span>
                 <span className="truncate leading-tight">{label}</span>
@@ -972,7 +973,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <div ref={chatScrollRef} onScroll={onChatScroll} className="flex-1 overflow-y-auto px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
                 {visibleMessages.length === 0 ? (
                   <div className="text-center text-slate-400 text-sm pt-12">
-                    Aucun message encore. Lance la conversation !
+                    {t('plan.detail.noMessage')}
                   </div>
                 ) : (
                   visibleMessages.map(msg => (
@@ -1062,7 +1063,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
       )}
 
       {showHistory && (
-        <Modal title="Historique des modifications" onClose={() => setShowHistory(false)}>
+        <Modal title={t('plan.detail.history')} onClose={() => setShowHistory(false)}>
           <div className="-mx-6 -mb-6 max-h-[60vh] flex flex-col overflow-hidden rounded-b-2xl">
             <HistoriqueTab changeLogs={plan.changeLogs ?? []} />
           </div>

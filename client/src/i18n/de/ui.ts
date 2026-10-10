@@ -1,0 +1,61 @@
+import type { Dict } from '../fr';
+
+const ui: Dict['ui'] = {
+  demo: {
+    banner: 'Demo-Modus: Schau dich in Ruhe um, nichts wird gespeichert.',
+    createAccount: 'Konto erstellen',
+    quit: 'Beenden',
+  },
+  update: {
+    available: 'Eine neue Version von EvLY ist verfügbar.',
+    reload: 'Neu laden',
+  },
+  profileBanner: {
+    text: 'Gib deinen Vornamen an, damit dich die Mitglieder deiner Kreise erkennen.',
+    add: 'Hinzufügen',
+  },
+  pending: {
+    title: 'Warten auf Freigabe',
+    hello: 'Hallo <b>@{{pseudo}}</b>!',
+    text: 'Dein Konto wird gerade von einem Administrator geprüft.<br/>Du erhältst Zugang, sobald es freigegeben ist.',
+    logout: 'Abmelden',
+  },
+  dashboard: {
+    welcome: 'Willkommen!',
+    welcomeSub: 'Erstelle einen Kreis oder tritt einem bei, um loszulegen',
+    selectPlan: 'Wähle einen Plan',
+    selectPlanSub: 'oder erstelle einen neuen in diesem Kreis',
+  },
+  demoApi: {
+    notInDemo: 'Diese Aktion ist in der Demo nicht verfügbar. Erstelle dein kostenloses Konto, um sie richtig auszuprobieren!',
+    defaultObject: 'einen Löffel',
+    defaultPlace: 'in der Küche',
+    killerWon: '🏆 Du gewinnst das Killer-Spiel!',
+    killerNext: '🎯 Eliminierung bestätigt! Entdecke deine neue Mission',
+    match: '💘 Es ist ein Match: {{label}}!',
+    words: 'Regenschirm,Trampolin,Schnurrbart,Giraffe,Schokolade,Murmeltier,Karaoke,Kompass,Pyjama,Iglu',
+    wordOk: '🎯 Wort bestätigt! +1 Punkt, entdecke deine neue Mission',
+    santaReplyReceiver: 'Haha, geheimnisvoll… Danke, Wichtel! 😄',
+    santaReplyGiver: 'Alles klar, ich notiere es mir! 🎅',
+    playFirst: 'Spiel zuerst deine Karten, um die Ergebnisse zu sehen',
+    voteNotOpen: 'Die Abstimmung ist nicht geöffnet',
+    wheelEmpty: 'Es ist niemand auf dem Rad',
+    wheelSpinning: 'Das Rad dreht sich schon!',
+    noMission: 'Du hast gerade keine Mission',
+    accuseWait: 'Nach einer falschen Anschuldigung musst du etwas warten, bevor du wieder jemanden beschuldigst',
+    emptyIdea: 'Leere Idee',
+    ideaNotFound: 'Idee nicht gefunden',
+    shiftsManagers: 'Nur der Ersteller des Plans und die Organisatoren des Kreises erstellen Einsätze',
+    shiftTooSmall: '{{count}} Personen sind bereits eingetragen: Entferne zuerst Eingetragene',
+    alreadySigned: 'Du bist für diesen Einsatz bereits eingetragen',
+    creatorOnly: 'Nur für den Ersteller des Plans',
+    itemEditForbidden: 'Nur die Person, die es hinzugefügt hat, und der Ersteller des Plans können es bearbeiten',
+    itemNotFound: 'Eintrag nicht gefunden',
+    itemRemoveForbidden: 'Nur die Person, die es hinzugefügt hat, und der Ersteller des Plans können es entfernen',
+    taken: 'Schon vergeben',
+    expenseNotFound: 'Ausgabe nicht gefunden',
+    circleName: 'Gib deinem Kreis einen Namen',
+    error: 'Fehler in der Demo',
+  },
+};
+export default ui;

@@ -16,6 +16,8 @@ import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { JoinRequestList } from '../circles/JoinRequestList';
+import { t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 interface Props {
   circle: Circle;
@@ -103,8 +105,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                 {codeCopied
                   ? <Check size={10} className="text-emerald-600" />
                   : <Copy size={10} className="group-hover:text-indigo-700" />}
-                <span>Code : <span className="font-mono tracking-widest">{circle.code}</span></span>
-                {codeCopied && <span className="text-emerald-600 ml-1">Copié !</span>}
+                <span><Trans i18nKey="circle.planList.code" values={{ code: circle.code }} components={{ b: <span className="font-mono tracking-widest" /> }} /></span>
+                {codeCopied && <span className="text-emerald-600 ml-1">{t('circle.planList.copied')}</span>}
               </button>
             </div>
           </div>
@@ -113,7 +115,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Membres du Cercle */}
           <button
             onClick={() => setShowMembers(true)}
-            title={`Membres (${circle.members.length})`}
+            title={t('circle.planList.members', { count: circle.members.length })}
             className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <Users size={14} />
@@ -122,7 +124,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Invite button */}
           <button
             onClick={() => setShowInvite(true)}
-            title="Inviter"
+            title={t('circle.planList.invite')}
             className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <UserPlus size={14} />
@@ -131,7 +133,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Mode silencieux du Cercle : plus de notifications ni d'emails pour tous ses Plans */}
           <button
             onClick={() => setCircleMuted(circle, !circleMuted)}
-            title={circleMuted ? 'Cercle en silence — toucher pour réactiver les notifications' : 'Mettre ce Cercle en silence (plus de notifications ni d’emails)'}
+            title={circleMuted ? t('circle.planList.mutedTap') : t('circle.planList.mute')}
             aria-pressed={circleMuted}
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${circleMuted ? 'text-slate-600 bg-slate-200 hover:bg-slate-300' : 'text-indigo-600 hover:text-indigo-700 hover:bg-slate-100'}`}
           >
@@ -141,7 +143,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Paramètres avancés (lecture seule sauf pour le créateur) */}
           <button
             onClick={() => setShowSettings(true)}
-            title="Paramètres du Cercle"
+            title={t('circle.planList.settings')}
             className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <SlidersHorizontal size={14} />
@@ -150,7 +152,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Delete vote button */}
           {canDelete && <button
             onClick={() => setShowDelete(true)}
-            title={creatorDeletes ? 'Supprimer ce Cercle' : 'Voter pour supprimer ce Cercle'}
+            title={creatorDeletes ? t('circle.planList.delete') : t('circle.planList.voteDelete')}
             className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
               hasMyVote
                 ? 'text-red-600 bg-red-500/10 hover:bg-red-100'
@@ -163,7 +165,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           {/* Leave circle button */}
           <button
             onClick={() => setShowLeave(true)}
-            title="Quitter ce Cercle"
+            title={t('circle.planList.leave')}
             className="p-1.5 rounded-lg text-indigo-600 hover:text-amber-700 hover:bg-slate-100 transition-colors flex-shrink-0"
           >
             <LogOut size={14} />
@@ -195,7 +197,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
             <p className="px-1 mb-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
               <UserPlus size={12} />
-              {circle.joinRequests!.length > 1 ? `${circle.joinRequests!.length} personnes veulent` : '1 personne veut'} rejoindre le Cercle
+              {t('circle.planList.wantToJoin', { count: circle.joinRequests!.length })}
             </p>
             <JoinRequestList circle={circle} onCircleUpdated={onCircleUpdated} />
           </div>
@@ -203,18 +205,18 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
 
         <div className="mb-1">
           <div className="flex items-center justify-between px-1 mb-1.5">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sondages</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.polls')}</p>
             {canCreatePoll && (
               <button
                 onClick={() => setShowCreatePoll(true)}
                 className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                <CalendarRange size={12} />Proposer des dates
+                <CalendarRange size={12} />{t('circle.planList.proposeDates')}
               </button>
             )}
           </div>
           {polls.length === 0 ? (
-            <p className="px-1 mb-3 text-xs text-slate-400 italic">Aucun sondage en cours.</p>
+            <p className="px-1 mb-3 text-xs text-slate-400 italic">{t('circle.planList.noPoll')}</p>
           ) : (
             <div className="space-y-2 mb-3">
               {polls.map(poll => (
@@ -231,13 +233,13 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           )}
         </div>
 
-        <p className="px-1 pt-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Plans</p>
+        <p className="px-1 pt-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.plans')}</p>
         {loading ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Chargement...</div>
+          <div className="text-center py-8 text-slate-500 text-sm">{t('common.loading')}</div>
         ) : plans.length === 0 ? (
           <div className="text-center py-8 text-slate-500 text-sm px-4">
-            Aucun Plan pour l'instant.<br />
-            <span className="text-slate-400">{canCreate ? 'Crée le premier !' : 'Les organisateurs du Cercle proposeront les prochains.'}</span>
+            {t('circle.planList.noPlan')}<br />
+            <span className="text-slate-400">{canCreate ? t('circle.planList.createFirst') : t('circle.planList.organizersWill')}</span>
           </div>
         ) : (
           plans.map(plan => (
@@ -259,10 +261,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition-colors text-sm font-semibold"
           >
             <Plus size={16} />
-            Créer un Plan
+            {t('circle.planList.createPlan')}
           </button>
         ) : (
-          <p className="px-3 py-2 text-xs text-slate-400">Dans ce Cercle, seuls le créateur et les organisateurs créent les Plans.</p>
+          <p className="px-3 py-2 text-xs text-slate-400">{t('circle.planList.reserved')}</p>
         )}
       </div>
 

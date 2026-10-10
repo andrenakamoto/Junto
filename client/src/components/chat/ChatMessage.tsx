@@ -6,6 +6,7 @@ import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
 import { VoiceMessage } from './VoiceMessage';
+import { intlLocale, t } from '../../i18n';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -67,8 +68,8 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   const voice = !message.deletedAt && message.attachment?.mimeType.startsWith('audio/') ? message.attachment : null;
   // Message photo dont la photo a été retirée depuis l'onglet Infos (plus de texte ni de photo)
   const photoRemoved = !message.deletedAt && !message.attachment && !message.content;
-  const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
-    + (message.editedAt && !message.deletedAt ? ' (modifié)' : '');
+  const time = new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(message.createdAt))
+    + (message.editedAt && !message.deletedAt ? t('chat.message.edited') : '');
   const deleted = !!message.deletedAt;
   const editable = useEditWindow(message.createdAt, message.deletedAt, isMe && !!onEdit && !!onDelete);
   const [editing, setEditing] = useState(false);
@@ -139,7 +140,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
               {voice && <VoiceMessage attachment={voice} mediaToken={mediaToken} isMe={isMe} />}
               {photoRemoved && (
                 <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm italic text-slate-400 bg-slate-50 border border-dashed border-slate-200">
-                  <ImageOff size={14} /> Photo retirée
+                  <ImageOff size={14} /> {t('chat.message.photoRemoved')}
                 </div>
               )}
               {message.content && (
@@ -155,7 +156,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           )}
           {viewing && photo && (
             <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setViewing(false); }}>
-              <button type="button" aria-label="Fermer" className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }}>
+              <button type="button" aria-label={t('common.close')} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }}>
                 <X size={20} />
               </button>
               <img src={mediaUrl(photo.id, mediaToken, 1600)} alt={photo.name} className="max-w-full max-h-full object-contain rounded-lg" />
@@ -165,14 +166,14 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                   type="button"
                   onClick={async e => {
                     e.stopPropagation();
-                    if (!confirm('Supprimer cette photo pour tout le monde ?')) return;
+                    if (!confirm(t('chat.message.deletePhotoConfirm'))) return;
                     try { await api.delete(`/attachments/${photo.id}`); setViewing(false); }
-                    catch (err: any) { alert(err?.response?.data?.error || 'La photo n’a pas pu être supprimée'); }
+                    catch (err: any) { alert(err?.response?.data?.error || t('chat.message.deletePhotoFailed')); }
                   }}
                   className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/15 text-white text-sm font-medium hover:bg-red-600"
                   style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}
                 >
-                  <Trash2 size={16} /> Supprimer la photo
+                  <Trash2 size={16} /> {t('chat.message.deletePhoto')}
                 </button>
               )}
             </div>
@@ -185,7 +186,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
               <button
                 key={emoji}
                 onClick={e => { e.stopPropagation(); onReact(message.id, emoji); setShowReactions(false); }}
-                aria-label={`Réagir avec ${emoji}`}
+                aria-label={t('chat.message.reactWith', { emoji })}
                 className="text-2xl leading-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform"
               >
                 {emoji}
@@ -202,7 +203,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 emoji={emoji}
                 count={count}
                 mine={mine}
-                who={[...(mine ? ['Toi'] : []), ...names]}
+                who={[...(mine ? [ME] : []), ...names]}
                 alignRight={isMe}
                 onToggle={() => onReact(message.id, emoji)}
               />
@@ -218,17 +219,17 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"
               >
                 <MessageCircle size={11} />
-                {replyCount ? `${replyCount} réponse${replyCount > 1 ? 's' : ''}` : 'Répondre'}
+                {replyCount ? t('chat.message.replies', { count: replyCount }) : t('chat.message.reply')}
               </button>
             )}
             {onReport && !isMe && !deleted && (
               <button
                 onClick={() => onReport(message)}
-                title="Signaler ce message"
+                title={t('chat.message.reportTitle')}
                 className="flex items-center gap-1 text-xs text-slate-300 hover:text-red-500 transition-colors"
               >
                 <Flag size={11} />
-                Signaler
+                {t('chat.message.report')}
               </button>
             )}
           </span>
@@ -248,11 +249,13 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
 }
 
 // « Tu as réagi », « @marc a réagi », « @marc et @léa ont réagi », « Toi et @marc avez réagi »
+const ME = '\u0000me';
+const joinNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')}${t('chat.message.and')}${names[names.length - 1]}` : names[0] ?? '');
 export function reactionLabel(who: string[], emoji: string) {
-  const list = who.length > 1 ? `${who.slice(0, -1).join(', ')} et ${who[who.length - 1]}` : who[0] ?? '';
-  const withMe = who[0] === 'Toi';
-  const verb = who.length === 1 ? (withMe ? 'as' : 'a') : (withMe ? 'avez' : 'ont');
-  return `${who.length === 1 && withMe ? 'Tu' : list} ${verb} réagi avec ${emoji}`;
+  const withMe = who[0] === ME;
+  const others = withMe ? who.slice(1) : who;
+  if (withMe) return others.length ? t('chat.message.reactedYouAnd', { names: joinNames(others), emoji }) : t('chat.message.reactedYou', { emoji });
+  return others.length === 1 ? t('chat.message.reactedOne', { name: others[0], emoji }) : t('chat.message.reactedMany', { names: joinNames(others), emoji });
 }
 
 // Pastille de réaction : un clic ajoute/retire la sienne ; survol (ordinateur) ou appui

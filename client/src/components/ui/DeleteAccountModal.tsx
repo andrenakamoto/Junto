@@ -6,6 +6,8 @@ import { Button } from './Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { disconnectSocket } from '../../lib/socket';
 import api from '../../services/api';
+import { t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 interface Props {
   onClose: () => void;
@@ -21,41 +23,41 @@ export function DeleteAccountModal({ onClose }: Props) {
 
   // Compte Google sans mot de passe : on confirme en tapant SUPPRIMER
   const needsPassword = user?.hasPassword !== false;
-  const ready = needsPassword ? password.length > 0 : confirmation === 'SUPPRIMER';
+  const ready = needsPassword ? password.length > 0 : confirmation.trim().toUpperCase() === t('account.delete.word');
 
   async function handleDelete(e: React.FormEvent) {
     e.preventDefault();
     setDeleting(true);
     setError('');
     try {
-      await api.post('/auth/delete-account', needsPassword ? { password } : { confirmation });
+      await api.post('/auth/delete-account', needsPassword ? { password } : { confirmation: 'SUPPRIMER' });
       disconnectSocket();
       logout();
       navigate('/auth', { replace: true });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de la suppression');
+      setError(err.response?.data?.error || t('account.delete.error'));
       setDeleting(false);
     }
   }
 
   return (
-    <Modal title="Supprimer mon compte" onClose={onClose}>
+    <Modal title={t('account.delete.title')} onClose={onClose}>
       <form onSubmit={handleDelete} className="space-y-4">
         <div className="flex gap-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-800">
           <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
           <div className="space-y-1.5">
-            <p className="font-semibold">Cette action est définitive.</p>
+            <p className="font-semibold">{t('account.delete.definitive')}</p>
             <ul className="list-disc pl-4 space-y-1 text-red-700">
-              <li>Tes messages, réactions, votes, trajets et dépenses sont effacés.</li>
-              <li>Les Cercles et Plans que tu as créés sont confiés au membre le plus ancien (supprimés si tu y étais seul).</li>
-              <li>Les photos que tu as partagées restent dans les Plans.</li>
+              <li>{t('account.delete.point1')}</li>
+              <li>{t('account.delete.point2')}</li>
+              <li>{t('account.delete.point3')}</li>
             </ul>
           </div>
         </div>
 
         {needsPassword ? (
           <div className="flex flex-col gap-1">
-            <label htmlFor="delete-password" className="text-sm font-medium text-slate-700">Ton mot de passe, pour confirmer</label>
+            <label htmlFor="delete-password" className="text-sm font-medium text-slate-700">{t('account.delete.passwordLabel')}</label>
             <input
               id="delete-password"
               type="password"
@@ -69,7 +71,7 @@ export function DeleteAccountModal({ onClose }: Props) {
         ) : (
           <div className="flex flex-col gap-1">
             <label htmlFor="delete-confirmation" className="text-sm font-medium text-slate-700">
-              Tape <span className="font-mono font-bold">SUPPRIMER</span> pour confirmer
+              <Trans i18nKey="account.delete.typeWord" values={{ word: t('account.delete.word') }} components={{ b: <span className="font-mono font-bold" /> }} />
             </label>
             <input
               id="delete-confirmation"
@@ -85,10 +87,10 @@ export function DeleteAccountModal({ onClose }: Props) {
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           <Button type="submit" variant="danger" disabled={!ready || deleting} className="flex items-center gap-1.5">
             {deleting && <Loader2 size={14} className="animate-spin" />}
-            Supprimer définitivement
+            {t('account.delete.submit')}
           </Button>
         </div>
       </form>

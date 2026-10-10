@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, Loader2 } from 'lucide-react';
 import { voiceUrl, voiceSeconds } from '../../lib/media';
+import { t } from '../../i18n';
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
@@ -59,7 +60,7 @@ export function VoiceMessage({ attachment, mediaToken, isMe }: { attachment: { i
       <button
         type="button"
         onClick={toggle}
-        aria-label={state === 'playing' ? 'Pause' : 'Écouter le message vocal'}
+        aria-label={state === 'playing' ? t('chat.voice.pause') : t('chat.voice.listen')}
         className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center ${isMe ? 'bg-white text-indigo-600' : 'bg-indigo-600 text-white'}`}
       >
         {state === 'loading' ? <Loader2 size={18} className="animate-spin" /> : state === 'playing' ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
@@ -69,7 +70,7 @@ export function VoiceMessage({ attachment, mediaToken, isMe }: { attachment: { i
           <div className={`h-full rounded-full ${isMe ? 'bg-white' : 'bg-indigo-600'}`} style={{ width: `${progress}%` }} />
         </div>
         <p className={`text-[11px] mt-1 ${isMe ? 'text-white/80' : 'text-slate-400'}`}>
-          {state === 'error' ? 'Lecture impossible, réessaie' : `🎤 ${shown ? fmt(shown) : 'Message vocal'}`}
+          {state === 'error' ? t('chat.voice.error') : `🎤 ${shown ? fmt(shown) : t('chat.voice.label')}`}
         </p>
       </div>
     </div>

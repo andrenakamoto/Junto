@@ -26,10 +26,12 @@
     "@capgo/capacitor-social-login": "^8.5.12",
     "axios": "^1.7.2",
     "html-to-image": "^1.11.13",
+    "i18next": "^23.16.8",
     "lucide-react": "^0.395.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^15.1.4",
     "react-router-dom": "^6.24.0",
     "socket.io-client": "^4.7.5"
   },

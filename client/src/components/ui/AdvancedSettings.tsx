@@ -3,6 +3,7 @@ import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
 import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem } from '../../lib/settings';
+import { t } from '../../i18n';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
 // `readOnly` : affichage pour les membres qui ne sont pas le créateur.
@@ -17,7 +18,7 @@ export function AdvancedSection({ children, defaultOpen = false }: { children: R
         className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-700"
       >
         <SlidersHorizontal size={15} className="text-slate-400" />
-        Paramètres avancés
+        {t('settings.advanced')}
         <ChevronDown size={15} className={`ml-auto text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && <div className="px-3 pb-3 space-y-4 border-t border-slate-100 pt-3">{children}</div>}
@@ -62,27 +63,27 @@ function Choice<T extends string>({ label, options, value, onChange, readOnly }:
 }
 
 export function DeletionModeField(props: { value: DeletionMode; onChange: (v: DeletionMode) => void; readOnly?: boolean; subject: 'Cercle' | 'Plan' }) {
-  return <Choice label={`Suppression du ${props.subject}`} options={DELETION_OPTIONS} {...props} />;
+  return <Choice label={props.subject === 'Plan' ? t('settings.deletionOfPlan') : t('settings.deletionOfCircle')} options={DELETION_OPTIONS} {...props} />;
 }
 
 export function EditModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
-  return <Choice label="Modification des dates et du lieu" options={EDIT_OPTIONS} {...props} />;
+  return <Choice label={t('settings.editField')} options={EDIT_OPTIONS} {...props} />;
 }
 
 export function ImportantInfoModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
-  return <Choice label="Modification des informations importantes" options={IMPORTANT_INFO_OPTIONS} {...props} />;
+  return <Choice label={t('settings.importantInfoField')} options={IMPORTANT_INFO_OPTIONS} {...props} />;
 }
 
 export function PlanCreationModeField(props: { value: PlanCreationMode; onChange: (v: PlanCreationMode) => void; readOnly?: boolean }) {
-  return <Choice label="Création des Plans" options={PLAN_CREATION_OPTIONS} {...props} />;
+  return <Choice label={t('settings.planCreationField')} options={PLAN_CREATION_OPTIONS} {...props} />;
 }
 
 export function PollCreationModeField(props: { value: PlanCreationMode; onChange: (v: PlanCreationMode) => void; readOnly?: boolean }) {
-  return <Choice label="Création des sondages de dates" options={POLL_CREATION_OPTIONS} {...props} />;
+  return <Choice label={t('settings.pollCreationField')} options={POLL_CREATION_OPTIONS} {...props} />;
 }
 
 export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: AdmissionMode) => void; readOnly?: boolean }) {
-  return <Choice label="Admission des nouveaux membres" options={ADMISSION_OPTIONS} {...props} />;
+  return <Choice label={t('settings.admissionField')} options={ADMISSION_OPTIONS} {...props} />;
 }
 
 export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChange, readOnly }: {
@@ -102,8 +103,8 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
   }
   return (
     <fieldset>
-      <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">Fonctions du Plan</legend>
-      <p className="text-xs text-slate-400 mb-2">Infos et Membres sont toujours actifs. Décocher masque une fonction sans effacer ses données.</p>
+      <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">{t('settings.featuresField')}</legend>
+      <p className="text-xs text-slate-400 mb-2">{t('settings.featuresHint')}</p>
       <div className="space-y-2.5">
         {FEATURE_GROUPS.map(g => {
           const isOpen = open.has(g.key);
@@ -114,7 +115,7 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
                 <button type="button" onClick={() => setOpen(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}
                   className="w-full flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1">
                   <span aria-hidden>{g.icon}</span>{g.title}
-                  {count > 0 && <span className="normal-case font-medium text-indigo-600">· {count} activée{count > 1 ? 's' : ''}</span>}
+                  {count > 0 && <span className="normal-case font-medium text-indigo-600">{t('settings.enabled', { count })}</span>}
                   <ChevronDown size={14} className={`ml-auto text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
@@ -141,7 +142,7 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
                       {!readOnly && f.value === 'pere_noel' && isOn(f) && <div className="ml-7 mt-1"><SantaDatesNote compact /></div>}
                       {!readOnly && f.value === 'cagnotte' && isOn(f) && (
                         <p className="ml-7 mt-1 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                          🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Plan surprise »).
+                          {t('settings.potSurprise')}
                         </p>
                       )}
                     </div>

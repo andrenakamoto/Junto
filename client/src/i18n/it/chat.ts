@@ -1,0 +1,58 @@
+import type { Dict } from '../fr';
+
+const chat: Dict['chat'] = {
+  voice: {
+    pause: 'Pausa',
+    listen: 'Ascolta il messaggio vocale',
+    error: 'Riproduzione impossibile, riprova',
+    label: 'Messaggio vocale',
+  },
+  report: {
+    title: 'Segnala questo messaggio',
+    thanks: 'Grazie. Il messaggio è stato inoltrato al team EvLY, che lo eliminerà se non rispetta le condizioni d’uso.',
+    blocked: ' I suoi messaggi non ti vengono più mostrati.',
+    intro: 'Il messaggio di <b>@{{pseudo}}</b> è scioccante, offensivo o indesiderato? Il team EvLY lo leggerà e deciderà come procedere. @{{pseudo}} non saprà che l’hai segnalato.',
+    reasonPlaceholder: 'Perché? (facoltativo)',
+    alsoHide: 'Nascondi anche i messaggi di @{{pseudo}}',
+    undoHint: 'Puoi annullarlo in «Il mio profilo».',
+    submit: 'Segnala',
+  },
+  edit: {
+    deleteConfirm: 'Eliminare questo messaggio?',
+    deleted: 'Messaggio eliminato',
+  },
+  input: {
+    photoTooBig: 'Foto troppo pesante (max 10 MB)',
+    photoFailed: 'Non è stato possibile inviare la foto',
+    noRecorder: 'Il tuo dispositivo non permette di registrare un messaggio vocale qui',
+    allowMic: 'Consenti l’accesso al microfono per registrare un messaggio vocale',
+    voiceFailed: 'Non è stato possibile inviare il messaggio vocale',
+    recording: 'Registrazione… {{time}}',
+    max: 'max {{time}}',
+    sendVoice: 'Invia il messaggio vocale',
+    takePhoto: 'Scatta una foto',
+    chooseGallery: 'Scegli dalla galleria',
+    sendPhoto: 'Invia una foto',
+    placeholder: 'Messaggio… (Invio per inviare, @ per menzionare)',
+    recordVoice: 'Registra un messaggio vocale',
+  },
+  message: {
+    edited: ' (modificato)',
+    photoRemoved: 'Foto rimossa',
+    deletePhotoConfirm: 'Eliminare questa foto per tutti?',
+    deletePhotoFailed: 'Non è stato possibile eliminare la foto',
+    deletePhoto: 'Elimina la foto',
+    reactWith: 'Reagisci con {{emoji}}',
+    replies_one: '{{count}} risposta',
+    replies_other: '{{count}} risposte',
+    reply: 'Rispondi',
+    reportTitle: 'Segnala questo messaggio',
+    report: 'Segnala',
+    and: ' e ',
+    reactedYou: 'Hai reagito con {{emoji}}',
+    reactedOne: '{{name}} ha reagito con {{emoji}}',
+    reactedYouAnd: 'Tu e {{names}} avete reagito con {{emoji}}',
+    reactedMany: '{{names}} hanno reagito con {{emoji}}',
+  },
+};
+export default chat;

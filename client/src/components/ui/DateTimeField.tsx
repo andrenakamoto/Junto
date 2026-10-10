@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { intlLocale, t } from '../../i18n';
 
 // Choix d'une date avec un vrai calendrier (on voit le jour de la semaine), à la place des
 // listes défilantes des champs natifs sur téléphone. Même format de valeur que les champs natifs :
@@ -22,7 +23,8 @@ interface Props {
   className?: string;
 }
 
-const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+// Initiales des jours, lundi en premier (le 1er janvier 2024 est un lundi)
+const WEEKDAYS = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(intlLocale(), { weekday: 'narrow' }).format(new Date(2024, 0, 1 + i)));
 const pad = (n: number) => String(n).padStart(2, '0');
 const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const HOURS = Array.from({ length: 24 }, (_, i) => pad(i));
@@ -38,13 +40,13 @@ function formatValue(value: string, mode: 'datetime' | 'date') {
   const p = parse(value);
   if (!p) return '';
   const d = new Date(`${p.date}T12:00`);
-  const weekday = d.toLocaleDateString('fr-CH', { weekday: 'long' });
-  const day = `${weekday} ${d.toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  const day = d.toLocaleDateString(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const txt = day.charAt(0).toUpperCase() + day.slice(1);
-  return mode === 'datetime' && p.time ? `${txt} à ${p.time.replace(':', 'h')}` : txt;
+  const time = p.time ? new Date(`${p.date}T${p.time}`).toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' }) : '';
+  return mode === 'datetime' && p.time ? t('common.date.at', { date: txt, time }) : txt;
 }
 
-export function DateTimeField({ value, onChange, mode = 'datetime', label, placeholder = 'Choisir une date', required, clearable, defaultTime = '19:00', openAt, dark, className = '' }: Props) {
+export function DateTimeField({ value, onChange, mode = 'datetime', label, placeholder, required, clearable, defaultTime = '19:00', openAt, dark, className = '' }: Props) {
   const [open, setOpen] = useState(false);
   const parsed = parse(value);
   const start = parsed ?? parse(openAt ?? '') ?? parse(ymd(new Date()))!;
@@ -86,7 +88,7 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
     });
   }
 
-  const monthLabel = new Date(view.y, view.mo, 1).toLocaleDateString('fr-CH', { month: 'long', year: 'numeric' });
+  const monthLabel = new Date(view.y, view.mo, 1).toLocaleDateString(intlLocale(), { month: 'long', year: 'numeric' });
   const field = dark
     ? 'bg-slate-900/60 border-slate-700 text-white rounded-xl px-4 py-3'
     : 'bg-white border-slate-300 text-slate-900 rounded-lg px-3 py-2';
@@ -106,11 +108,11 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
         >
           <CalendarDays size={16} className={dark ? 'text-slate-400 flex-shrink-0' : 'text-slate-400 flex-shrink-0'} />
           <span className={`flex-1 truncate ${value ? '' : dark ? 'text-slate-500' : 'text-slate-400'}`}>
-            {value ? formatValue(value, mode) : placeholder}
+            {value ? formatValue(value, mode) : placeholder ?? t('common.date.pick')}
           </span>
         </button>
         {clearable && value && (
-          <button type="button" onClick={() => { onChange(''); setOpen(false); }} aria-label="Effacer la date"
+          <button type="button" onClick={() => { onChange(''); setOpen(false); }} aria-label={t('common.date.clear')}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-red-500">
             <X size={15} />
           </button>
@@ -125,9 +127,9 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
       {open && (
         <div className={`mt-1 rounded-xl border p-3 shadow-sm ${panel}`}>
           <div className="flex items-center justify-between mb-2">
-            <button type="button" onClick={() => move(-1)} className="p-1.5 rounded-lg hover:bg-slate-500/15" aria-label="Mois précédent"><ChevronLeft size={18} /></button>
+            <button type="button" onClick={() => move(-1)} className="p-1.5 rounded-lg hover:bg-slate-500/15" aria-label={t('common.date.prevMonth')}><ChevronLeft size={18} /></button>
             <span className="text-sm font-semibold capitalize">{monthLabel}</span>
-            <button type="button" onClick={() => move(1)} className="p-1.5 rounded-lg hover:bg-slate-500/15" aria-label="Mois suivant"><ChevronRight size={18} /></button>
+            <button type="button" onClick={() => move(1)} className="p-1.5 rounded-lg hover:bg-slate-500/15" aria-label={t('common.date.nextMonth')}><ChevronRight size={18} /></button>
           </div>
           <div className="grid grid-cols-7 gap-0.5 text-center">
             {WEEKDAYS.map((d, i) => (
@@ -156,18 +158,18 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
           </div>
           {mode === 'datetime' && (
             <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-500/20">
-              <span className="text-sm font-medium flex-1">Heure</span>
-              <select value={hh} onChange={e => setTime(e.target.value, mm)} aria-label="Heure"
+              <span className="text-sm font-medium flex-1">{t('common.date.time')}</span>
+              <select value={hh} onChange={e => setTime(e.target.value, mm)} aria-label={t('common.date.hour')}
                 className={`border rounded-lg px-2 py-1.5 text-sm ${select}`}>
-                {HOURS.map(h => <option key={h} value={h}>{h} h</option>)}
+                {HOURS.map(h => <option key={h} value={h}>{t('common.date.hourOption', { h })}</option>)}
               </select>
-              <select value={mm} onChange={e => setTime(hh, e.target.value)} aria-label="Minutes"
+              <select value={mm} onChange={e => setTime(hh, e.target.value)} aria-label={t('common.date.minutes')}
                 className={`border rounded-lg px-2 py-1.5 text-sm ${select}`}>
                 {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
               <button type="button" onClick={() => setOpen(false)}
                 className="ml-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
-                OK
+                {t('common.ok')}
               </button>
             </div>
           )}

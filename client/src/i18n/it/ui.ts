@@ -1,0 +1,61 @@
+import type { Dict } from '../fr';
+
+const ui: Dict['ui'] = {
+  demo: {
+    banner: 'Modalità demo: esplora liberamente, non viene salvato nulla.',
+    createAccount: 'Crea il mio account',
+    quit: 'Esci',
+  },
+  update: {
+    available: 'È disponibile una nuova versione di EvLY.',
+    reload: 'Ricarica',
+  },
+  profileBanner: {
+    text: 'Aggiungi il tuo nome perché i membri dei tuoi Cerchi ti riconoscano.',
+    add: 'Aggiungi',
+  },
+  pending: {
+    title: 'In attesa di approvazione',
+    hello: 'Ciao <b>@{{pseudo}}</b>!',
+    text: 'Il tuo account è in fase di verifica da parte di un amministratore.<br/>Avrai accesso non appena sarà approvato.',
+    logout: 'Esci',
+  },
+  dashboard: {
+    welcome: 'Benvenuto/a!',
+    welcomeSub: 'Crea un Cerchio o unisciti a uno per iniziare',
+    selectPlan: 'Seleziona un Plan',
+    selectPlanSub: 'o creane uno nuovo in questo Cerchio',
+  },
+  demoApi: {
+    notInDemo: 'Nella demo questa azione non è disponibile. Crea il tuo account gratuito per provarla davvero!',
+    defaultObject: 'un cucchiaio',
+    defaultPlace: 'in cucina',
+    killerWon: '🏆 Hai vinto il Killer!',
+    killerNext: '🎯 Eliminazione confermata! Scopri la tua nuova missione',
+    match: '💘 È un match: {{label}}!',
+    words: 'ombrello,trampolino,baffi,giraffa,cioccolato,marmotta,karaoke,bussola,pigiama,igloo',
+    wordOk: '🎯 Parola convalidata! +1 punto, scopri la tua nuova missione',
+    santaReplyReceiver: 'Ah ah, mistero… Grazie Babbo Natale! 😄',
+    santaReplyGiver: 'Ricevuto, me lo segno! 🎅',
+    playFirst: 'Gioca prima le tue carte per vedere i risultati',
+    voteNotOpen: 'La votazione non è aperta',
+    wheelEmpty: 'Non c’è nessuno sulla ruota',
+    wheelSpinning: 'La ruota sta già girando!',
+    noMission: 'Non hai nessuna missione in corso',
+    accuseWait: 'Dopo un’accusa sbagliata, aspetta un po’ prima di accusare di nuovo',
+    emptyIdea: 'Idea vuota',
+    ideaNotFound: 'Idea non trovata',
+    shiftsManagers: 'Solo il creatore del Plan e gli organizzatori del Cerchio creano i turni',
+    shiftTooSmall: '{{count}} persone sono già iscritte: rimuovi prima degli iscritti',
+    alreadySigned: 'Sei già iscritto/a a questo turno',
+    creatorOnly: 'Riservato al creatore del Plan',
+    itemEditForbidden: 'Solo chi l’ha aggiunto e il creatore del Plan possono modificarlo',
+    itemNotFound: 'Elemento non trovato',
+    itemRemoveForbidden: 'Solo chi l’ha aggiunto e il creatore del Plan possono toglierlo',
+    taken: 'Già preso',
+    expenseNotFound: 'Spesa non trovata',
+    circleName: 'Dai un nome al tuo Cerchio',
+    error: 'Errore della demo',
+  },
+};
+export default ui;

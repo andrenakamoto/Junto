@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import api from '../services/api';
+import { t } from '../i18n';
 
 // Mode silencieux (serveur : lib/mutes.ts) : plus de push, d'email ni de bulle pour un Plan ou un
 // Cercle ; les points orange restent. Chargé une fois par le tableau de bord.
@@ -31,13 +32,13 @@ export function MuteProvider({ children }: { children: ReactNode }) {
     const before = mutedPlans;
     setMutedPlans(muted ? [{ id: plan.id, title: plan.title }, ...before.filter(p => p.id !== plan.id)] : before.filter(p => p.id !== plan.id));
     try { await api.put('/mutes', { planId: plan.id, muted }); }
-    catch (err: any) { setMutedPlans(before); alert(err.response?.data?.error || 'Erreur, réessaie dans un instant'); }
+    catch (err: any) { setMutedPlans(before); alert(err.response?.data?.error || t('common.retryError')); }
   }
   async function setCircleMuted(circle: { id: string; name: string }, muted: boolean) {
     const before = mutedCircles;
     setMutedCircles(muted ? [{ id: circle.id, name: circle.name }, ...before.filter(c => c.id !== circle.id)] : before.filter(c => c.id !== circle.id));
     try { await api.put('/mutes', { circleId: circle.id, muted }); }
-    catch (err: any) { setMutedCircles(before); alert(err.response?.data?.error || 'Erreur, réessaie dans un instant'); }
+    catch (err: any) { setMutedCircles(before); alert(err.response?.data?.error || t('common.retryError')); }
   }
 
   return (

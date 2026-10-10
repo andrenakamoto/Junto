@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { publicOrigin } from '../../lib/siteUrl';
+import { t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 interface Props {
   /** Nom du Cercle */
@@ -57,7 +59,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
     if (!isGuestMode || guestToken || !planId) return;
     api.post(`/plans/${planId}/guest-link`)
       .then(res => setGuestToken(res.data.token))
-      .catch(err => setGuestError(err.response?.data?.error || 'Impossible de créer le lien'));
+      .catch(err => setGuestError(err.response?.data?.error || t('circle.invite.linkError')));
   }, [isGuestMode, guestToken, planId]);
 
   async function resetGuestLink() {
@@ -67,7 +69,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
       const { data } = await api.post(`/plans/${planId}/guest-link/reset`);
       setGuestToken(data.token);
     } catch (err: any) {
-      setGuestError(err.response?.data?.error || 'Erreur');
+      setGuestError(err.response?.data?.error || t('common.error'));
     } finally {
       setResetting(false);
     }
@@ -81,14 +83,14 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
   }, [showQr, joinLink]);
 
   const smsText = isGuestMode
-    ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nClique ici pour le rejoindre :\n${joinLink}`
+    ? t('circle.invite.planGuestText', { plan: planTitle, link: joinLink })
     : planTitle
-    ? `Salut ! Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉\nRejoins d'abord le Cercle "${circleName}" avec le code ${circleCode} :\n${joinLink}`
-    : `Salut ! Rejoins mon Cercle "${circleName}" sur EvLY 🎉\nCode d'accès : ${circleCode}\n${joinLink}`;
+    ? t('circle.invite.planCircleText', { plan: planTitle, circle: circleName, code: circleCode, link: joinLink })
+    : t('circle.invite.circleText', { circle: circleName, code: circleCode, link: joinLink });
 
   const shareMessage = isGuestMode || planTitle
-    ? `Je t'invite à mon Plan "${planTitle}" sur EvLY 🎉`
-    : `Rejoins mon Cercle "${circleName}" sur EvLY 🎉`;
+    ? t('circle.invite.planShareTitle', { plan: planTitle })
+    : t('circle.invite.circleShareTitle', { circle: circleName });
   const canShare = typeof navigator !== 'undefined' && !!(navigator as any).share;
 
   useEffect(() => {
@@ -126,7 +128,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
       setPhone('');
       setTimeout(() => setSent(false), 4000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de l\'envoi');
+      setError(err.response?.data?.error || t('circle.invite.sendError'));
     } finally {
       setSending(false);
     }
@@ -142,13 +144,13 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
       setEmail('');
       setTimeout(() => setEmailSent(false), 4000);
     } catch (err: any) {
-      setEmailError(err.response?.data?.error || 'Erreur lors de l\'envoi');
+      setEmailError(err.response?.data?.error || t('circle.invite.sendError'));
     } finally {
       setSendingEmail(false);
     }
   }
 
-  const title = planTitle ? `Inviter au Plan "${planTitle}"` : `Inviter au Cercle "${circleName}"`;
+  const title = planTitle ? t('circle.invite.titlePlan', { plan: planTitle }) : t('circle.invite.titleCircle', { circle: circleName });
 
   return (
     <Modal title={title} onClose={onClose}>
@@ -161,14 +163,14 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'circle' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Users size={13} />
-              Au Cercle
+              {t('circle.invite.toCircle')}
             </button>
             <button
               onClick={() => { setMode('guest'); setShowQr(false); }}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <UserPlus size={13} />
-              Personne extérieure
+              {t('circle.invite.guest')}
             </button>
           </div>
         )}
@@ -176,11 +178,11 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
         {/* Context */}
         <div className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 leading-relaxed">
           {isGuestMode ? (
-            <>La personne invitée rejoindra <strong className="text-slate-700">uniquement ce Plan</strong> : elle n'aura accès ni au Cercle, ni à ses autres Plans, ni à ses membres.</>
+            <Trans i18nKey="circle.invite.guestHint" components={{ b: <strong className="text-slate-700" /> }} />
           ) : planTitle ? (
-            <>Le destinataire rejoindra le Cercle <strong className="text-slate-700">"{circleName}"</strong> (code : <span className="font-mono font-bold text-slate-700">{circleCode}</span>), puis pourra accéder au Plan.</>
+            <Trans i18nKey="circle.invite.viaCircleHint" values={{ circle: circleName, code: circleCode }} components={{ b: <strong className="text-slate-700" />, c: <span className="font-mono font-bold text-slate-700" /> }} />
           ) : (
-            <>Partage le code <span className="font-mono font-bold text-slate-700">{circleCode}</span> pour inviter quelqu'un dans <strong className="text-slate-700">"{circleName}"</strong>.</>
+            <Trans i18nKey="circle.invite.codeHint" values={{ circle: circleName, code: circleCode }} components={{ b: <strong className="text-slate-700" />, c: <span className="font-mono font-bold text-slate-700" /> }} />
           )}
         </div>
 
@@ -189,7 +191,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
 
         {/* Copy link */}
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Lien d'invitation</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('circle.invite.link')}</p>
           <div className="flex gap-2">
             <input
               readOnly
@@ -204,7 +206,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
               }`}
             >
               {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? 'Copié !' : 'Copier'}
+              {copied ? t('circle.invite.copied') : t('circle.invite.copy')}
             </button>
             <button
               onClick={() => setShowQr(v => !v)}
@@ -223,17 +225,17 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
               className="mt-1.5 flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50"
             >
               <RefreshCw size={11} className={resetting ? 'animate-spin' : ''} />
-              Générer un nouveau lien (l'ancien ne fonctionnera plus)
+              {t('circle.invite.newLink')}
             </button>
           )}
           {showQr && (
             <div className="mt-3 flex flex-col items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
               {qrDataUrl ? (
-                <img src={qrDataUrl} alt="QR code d'invitation" className="w-40 h-40" />
+                <img src={qrDataUrl} alt={t('circle.invite.qrAlt')} className="w-40 h-40" />
               ) : (
-                <div className="w-40 h-40 flex items-center justify-center text-xs text-slate-400">Génération...</div>
+                <div className="w-40 h-40 flex items-center justify-center text-xs text-slate-400">{t('circle.invite.generating')}</div>
               )}
-              <p className="text-xs text-slate-400 text-center">À scanner avec l'appareil photo</p>
+              <p className="text-xs text-slate-400 text-center">{t('circle.invite.scan')}</p>
             </div>
           )}
         </div>
@@ -242,7 +244,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
 
         {/* Share section */}
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Partager</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t('circle.invite.share')}</p>
           <div className="flex gap-2">
             {canShare && (
               <button
@@ -250,7 +252,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
                 className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 <Share2 size={14} />
-                Partager
+                {t('circle.invite.share')}
               </button>
             )}
             <button
@@ -268,14 +270,14 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
         {/* Email section (invitation au Cercle uniquement : le modèle d'email contient le code) */}
         {!isGuestMode && <>
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Envoyer par email</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t('circle.invite.byEmail')}</p>
           <div className="space-y-2">
             <div className="flex gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="prenom@exemple.com"
+                placeholder={t('circle.invite.emailPlaceholder')}
                 className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 onKeyDown={e => e.key === 'Enter' && sendViaEmail()}
               />
@@ -284,12 +286,12 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
                 disabled={sendingEmail || !email.trim()}
                 className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
               >
-                {sendingEmail ? '...' : <><Mail size={14} />Envoyer</>}
+                {sendingEmail ? '...' : <><Mail size={14} />{t('common.send')}</>}
               </button>
             </div>
             {emailSent && (
               <p className="text-xs text-emerald-600 flex items-center gap-1.5">
-                <Check size={12} />Email envoyé avec succès !
+                <Check size={12} />{t('circle.invite.emailSent')}
               </p>
             )}
             {emailError && <p className="text-xs text-red-500">{emailError}</p>}
@@ -301,11 +303,11 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
 
         {/* SMS section */}
         <div>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Envoyer par SMS</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t('circle.invite.bySms')}</p>
 
           {/* Message preview */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
-            <p className="text-xs text-slate-500 mb-1 font-medium">Message qui sera envoyé :</p>
+            <p className="text-xs text-slate-500 mb-1 font-medium">{t('circle.invite.smsPreview')}</p>
             <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed">{smsText}</p>
           </div>
 
@@ -317,7 +319,7 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
                   type="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="+33 6 12 34 56 78"
+                  placeholder={t('circle.invite.phonePlaceholder')}
                   className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   onKeyDown={e => e.key === 'Enter' && sendViaTwilio()}
                 />
@@ -326,12 +328,12 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
                   disabled={sending || !phone.trim()}
                   className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
                 >
-                  {sending ? '...' : <><Send size={14} />Envoyer</>}
+                  {sending ? '...' : <><Send size={14} />{t('common.send')}</>}
                 </button>
               </div>
               {sent && (
                 <p className="text-xs text-emerald-600 flex items-center gap-1.5">
-                  <Check size={12} />SMS envoyé avec succès !
+                  <Check size={12} />{t('circle.invite.smsSent')}
                 </p>
               )}
               {error && <p className="text-xs text-red-500">{error}</p>}
@@ -344,14 +346,14 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 <MessageSquare size={16} />
-                Ouvrir mon application SMS
+                {t('circle.invite.openSms')}
                 <ExternalLink size={13} className="opacity-70" />
               </button>
               <p className="text-xs text-slate-400 text-center">
-                Le message est pré-rempli — il te reste à choisir le destinataire.
+                {t('circle.invite.prefilled')}
               </p>
               <p className="text-xs text-slate-400 text-center">
-                Pour l'envoi direct, configure Twilio dans <code className="text-slate-500">.env</code>.
+                <Trans i18nKey="circle.invite.twilio" components={{ c: <code className="text-slate-500" /> }} />
               </p>
             </div>
           )}
@@ -374,10 +376,10 @@ function MemberInvite({ circleId }: { circleId: string }) {
     setDone('');
     try {
       const { data } = await api.post(`/circles/${circleId}/invitations`, { identifier: identifier.trim() });
-      setDone(`Invitation envoyée à @${data.pseudo}. Elle pourra l'accepter dans EvLY.`);
+      setDone(t('circle.invite.invitedUser', { pseudo: data.pseudo }));
       setIdentifier('');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur, réessaie');
+      setError(err.response?.data?.error || t('circle.invite.retry'));
     } finally {
       setSending(false);
     }
@@ -385,13 +387,13 @@ function MemberInvite({ circleId }: { circleId: string }) {
 
   return (
     <div>
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Déjà sur EvLY ?</p>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('circle.invite.alreadyOn')}</p>
       <div className="flex gap-2">
         <input
           value={identifier}
           onChange={e => { setIdentifier(e.target.value); setDone(''); setError(''); }}
           onKeyDown={e => e.key === 'Enter' && invite()}
-          placeholder="Son pseudo ou son email"
+          placeholder={t('circle.invite.userPlaceholder')}
           autoCapitalize="none"
           autoCorrect="off"
           className="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -402,7 +404,7 @@ function MemberInvite({ circleId }: { circleId: string }) {
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 flex-shrink-0"
         >
           <UserPlus size={14} />
-          {sending ? '…' : 'Inviter'}
+          {sending ? '…' : t('circle.invite.invite')}
         </button>
       </div>
       {done && <p className="text-xs text-emerald-600 mt-1.5">{done}</p>}

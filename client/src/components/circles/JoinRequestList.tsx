@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { isCircleManager } from '../../lib/settings';
 import { Avatar } from '../ui/Avatar';
 import api from '../../services/api';
+import { t } from '../../i18n';
 
 // Demandes pour rejoindre un Cercle, avec les actions permises par le mode d'admission :
 // vote à la majorité (chaque membre approuve), ou validation par le créateur / les organisateurs
@@ -41,8 +42,8 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
               <p className="text-xs text-slate-800 truncate">@{r.user.pseudo}</p>
               <p className="text-xs text-indigo-600">
                 {byManager
-                  ? (isManager ? 'À toi de décider' : 'Validation par les organisateurs')
-                  : `${r.votes.length}/${threshold} vote${threshold > 1 ? 's' : ''}`}
+                  ? (isManager ? t('circle.requests.yourCall') : t('circle.requests.byManagers'))
+                  : t('circle.requests.votes', { n: r.votes.length, count: threshold })}
               </p>
             </div>
             {byManager ? isManager && (
@@ -50,7 +51,7 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
                 <button
                   onClick={() => accept(r.id)}
                   disabled={busy === r.id}
-                  title="Accepter"
+                  title={t('circle.requests.accept')}
                   className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700 transition-colors flex-shrink-0 disabled:opacity-50"
                 >
                   <Check size={12} />
@@ -58,7 +59,7 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
                 <button
                   onClick={() => refuse(r.id)}
                   disabled={busy === r.id}
-                  title="Refuser"
+                  title={t('circle.requests.refuse')}
                   className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-red-100 hover:text-red-700 transition-colors flex-shrink-0 disabled:opacity-50"
                 >
                   <X size={12} />
@@ -68,7 +69,7 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
               <button
                 onClick={() => accept(r.id)}
                 disabled={busy === r.id}
-                title={hasVoted ? 'Retirer mon vote' : 'Approuver'}
+                title={hasVoted ? t('circle.requests.withdrawVote') : t('circle.requests.approve')}
                 className={`p-1.5 rounded-lg transition-colors flex-shrink-0 disabled:opacity-50 ${
                   hasVoted ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-700'
                 }`}

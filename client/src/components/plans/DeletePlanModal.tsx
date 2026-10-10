@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
+import { t } from '../../i18n';
+import { Trans } from 'react-i18next';
 
 interface Props {
   plan: Plan;
@@ -41,24 +43,23 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
   // Paramètre avancé : le créateur supprime seul, sans vote
   if (plan.deletionMode === 'creator') {
     return (
-      <Modal title="Supprimer le Plan" onClose={onClose}>
+      <Modal title={t('common.deleteModal.planTitle')} onClose={onClose}>
         <div className="space-y-5">
           <div className="flex gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
             <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">
-              La suppression est <strong>irréversible</strong> : messages, photos, fichiers, trajets et
-              dépenses seront perdus pour tous les membres.
+              <Trans i18nKey="common.deleteModal.planCreator" components={{ b: <strong /> }} />
             </p>
           </div>
           <div className="flex gap-2 justify-end pt-1 border-t border-slate-100">
-            <Button variant="ghost" onClick={onClose}>Annuler</Button>
+            <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
             <button
               onClick={handleVote}
               disabled={loading}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               <Trash2 size={14} />
-              {loading ? '...' : 'Supprimer définitivement'}
+              {loading ? '...' : t('common.deleteModal.definitive')}
             </button>
           </div>
         </div>
@@ -67,19 +68,19 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
   }
 
   return (
-    <Modal title="Supprimer le Plan" onClose={onClose}>
+    <Modal title={t('common.deleteModal.planTitle')} onClose={onClose}>
       <div className="space-y-5">
         <div className="flex gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
           <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">
-            La suppression est <strong>irréversible</strong>. Tous les messages et votes seront perdus.
-            Il faut <strong>{threshold} vote{threshold > 1 ? 's' : ''}</strong> sur {memberCount} membre{memberCount > 1 ? 's' : ''} pour confirmer.
+            <Trans i18nKey="common.deleteModal.planVote" components={{ b: <strong /> }} />
+            <Trans i18nKey="common.deleteModal.threshold" count={threshold} values={{ members: memberCount }} components={{ b: <strong /> }} />
           </p>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-slate-700">Votes pour supprimer</span>
+            <span className="text-sm font-medium text-slate-700">{t('common.deleteModal.votes')}</span>
             <span className="text-sm font-bold text-slate-800">{voteCount} / {threshold}</span>
           </div>
           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
@@ -94,7 +95,7 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
           <div>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Users size={11} />
-              A voté pour supprimer
+              {t('common.deleteModal.voted')}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {votes.map(v => (
@@ -107,7 +108,7 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
         )}
 
         <div className="flex gap-2 justify-end pt-1 border-t border-slate-100">
-          <Button variant="ghost" onClick={onClose}>Fermer</Button>
+          <Button variant="ghost" onClick={onClose}>{t('common.close')}</Button>
           <button
             onClick={handleVote}
             disabled={loading}
@@ -118,7 +119,7 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
             }`}
           >
             <Trash2 size={14} />
-            {loading ? '...' : hasMyVote ? 'Retirer mon vote' : 'Voter pour supprimer'}
+            {loading ? '...' : hasMyVote ? t('common.deleteModal.withdraw') : t('common.deleteModal.vote')}
           </button>
         </div>
       </div>

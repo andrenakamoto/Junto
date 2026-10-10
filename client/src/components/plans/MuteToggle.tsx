@@ -1,5 +1,6 @@
 import { Bell, BellOff } from 'lucide-react';
 import { useMutes } from '../../contexts/MuteContext';
+import { useTranslation } from 'react-i18next';
 
 // Cloche « mode silencieux » d'un Plan (carte du Plan, en-tête de la fiche). Dans une carte
 // (elle-même un bouton) : élément « role=button » pour ne pas imbriquer deux boutons.
@@ -10,6 +11,7 @@ export function MuteToggle({ plan, size = 15, showWhenOn = true }: {
   showWhenOn?: boolean;
 }) {
   const { isPlanMuted, isCircleMuted, setPlanMuted } = useMutes();
+  const { t } = useTranslation();
   const planMuted = isPlanMuted(plan.id);
   const circleMuted = isCircleMuted(plan.circleId);
   const muted = planMuted || circleMuted;
@@ -19,15 +21,15 @@ export function MuteToggle({ plan, size = 15, showWhenOn = true }: {
     e.stopPropagation();
     e.preventDefault();
     if (circleMuted && !planMuted) {
-      alert('Tout le Cercle est en silence. Réactive ses notifications avec la cloche en haut de la liste des Plans.');
+      alert(t('plan.mute.circleMutedAlert'));
       return;
     }
     setPlanMuted(plan, !planMuted);
   }
 
   const title = muted
-    ? (circleMuted && !planMuted ? 'Cercle en silence' : 'En silence — toucher pour réactiver les notifications')
-    : 'Mettre ce Plan en silence (plus de notifications ni d’emails)';
+    ? (circleMuted && !planMuted ? t('plan.mute.circleMuted') : t('plan.mute.mutedTap'))
+    : t('plan.mute.mute');
   return (
     <span
       role="button"

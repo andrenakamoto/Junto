@@ -4,6 +4,7 @@ import { registerPush, unregisterPush } from '../lib/push';
 import { clearLightToken } from '../lib/lightGuest';
 import { DEMO_TOKEN, exitDemo, isDemo, loadDemo } from '../lib/demo';
 import { User } from '../types';
+import { asLang, currentLang, setLanguage } from '../i18n';
 
 interface AuthContextType {
   user: User | null;
@@ -42,6 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   }, []);
+
+  // Langue : celle du compte s'applique ; un compte sans langue reçoit celle de l'appareil
+  const accountLocale = user?.locale;
+  useEffect(() => {
+    if (!user || isDemo()) return;
+    const account = asLang(accountLocale);
+    if (!account) api.put('/auth/locale', { locale: currentLang() }).catch(() => {});
+    else if (account !== currentLang()) setLanguage(account);
+  }, [user?.id, accountLocale]);
 
   // Apps : enregistre l'appareil pour les notifications push une fois connecté
   const userId = user?.id;

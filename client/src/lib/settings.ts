@@ -1,60 +1,29 @@
+import { t } from '../i18n';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../types';
 
-// Libellés des paramètres avancés (partagés entre création, modification et consultation)
+// Libellés des paramètres avancés (partagés entre création, modification et consultation) : i18n/*/settings.ts
 
-export const DELETION_OPTIONS: { value: DeletionMode; label: string; hint: string }[] = [
-  { value: 'vote', label: 'Vote à la majorité', hint: 'La moitié des membres doit voter la suppression' },
-  { value: 'creator', label: 'Créateur seul', hint: 'Seul le créateur peut supprimer, sans vote' },
-];
+const opt = <V extends string>(group: string, values: V[]) =>
+  values.map(value => ({ value, label: t(`settings.${group}.${value}.label` as any), hint: t(`settings.${group}.${value}.hint` as any) }));
 
-export const ADMISSION_OPTIONS: { value: AdmissionMode; label: string; hint: string }[] = [
-  { value: 'vote', label: 'Vote à la majorité', hint: 'La moitié des membres valide chaque demande' },
-  { value: 'creator', label: 'Validation par les organisateurs', hint: 'Le créateur ou un organisateur accepte ou refuse chaque demande' },
-  { value: 'open', label: 'Entrée libre', hint: 'Le code suffit pour entrer' },
-];
+export const DELETION_OPTIONS: { value: DeletionMode; label: string; hint: string }[] = opt('deletion', ['vote', 'creator']);
+export const ADMISSION_OPTIONS: { value: AdmissionMode; label: string; hint: string }[] = opt('admission', ['vote', 'creator', 'open']);
+export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = opt('planCreation', ['all', 'creator']);
+export const POLL_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = opt('pollCreation', ['all', 'creator']);
+export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('edit', ['creator', 'all']);
+export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('importantInfo', ['creator', 'all']);
 
-export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = [
-  { value: 'all', label: 'Tous les membres', hint: 'Chaque membre peut créer des Plans' },
-  { value: 'creator', label: 'Créateur et organisateurs', hint: 'Seuls eux créent des Plans' },
-];
-
-export const POLL_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = [
-  { value: 'all', label: 'Tous les membres', hint: 'Chaque membre peut proposer des dates' },
-  { value: 'creator', label: 'Créateur et organisateurs', hint: 'Seuls eux lancent des sondages de dates' },
-];
-
-export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = [
-  { value: 'creator', label: 'Créateur seul', hint: 'Seul le créateur modifie le Plan' },
-  { value: 'all', label: 'Tous les participants', hint: 'Les participants peuvent changer les dates et le lieu (titre et description restent au créateur)' },
-];
-
-export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = [
-  { value: 'creator', label: 'Créateur seul', hint: 'Seul le créateur modifie les informations importantes' },
-  { value: 'all', label: 'Tous les participants', hint: 'Chaque participant peut compléter ou corriger les informations importantes' },
-];
-
-export const PLAN_FEATURES: { value: PlanFeature; label: string }[] = [
-  { value: 'chat', label: 'Chat' },
-  { value: 'trajets', label: 'Trajets (covoiturage)' },
-  { value: 'votes', label: 'Sondages' },
-  { value: 'depenses', label: 'Dépenses' },
-  { value: 'fichiers', label: 'Photos et fichiers' },
-];
+const featureLabel = (value: string) => t(`settings.features.${value}` as any);
+export const PLAN_FEATURES: { value: PlanFeature; label: string }[] = (['chat', 'trajets', 'votes', 'depenses', 'fichiers'] as PlanFeature[])
+  .map(value => ({ value, label: featureLabel(value) }));
 
 export function isEnabled(plan: { disabledFeatures?: PlanFeature[] }, feature: PlanFeature) {
   return !plan.disabledFeatures?.includes(feature);
 }
 
 // Fonctions à activer : absentes tant que le créateur ne les coche pas
-export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = [
-  { value: 'benevoles', label: 'Bénévoles (planning)' },
-  { value: 'pere_noel', label: 'Père Noël secret' },
-  { value: 'killer', label: 'Killer (jeu de l’assassin)' },
-  { value: 'mot_piege', label: 'Le mot piège (jeu)' },
-  { value: 'equipes', label: 'Tirage des équipes et tournoi' },
-  { value: 'cagnotte', label: 'Cagnotte cadeau' },
-  { value: 'assemblee', label: 'Assemblée (ordre du jour, votes, PV)' },
-];
+export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = (['benevoles', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'] as OptionalFeature[])
+  .map(value => ({ value, label: featureLabel(value) }));
 
 // Fonctions du Plan rangées par catégorie (fenêtres de création / modification / paramètres).
 // `base` : active par défaut (décocher la masque) ; `optional` : à activer. Les catégories `collapsible`
@@ -63,27 +32,14 @@ export type FeatureItem =
   | { kind: 'base'; value: PlanFeature; label: string; hint: string }
   | { kind: 'optional'; value: OptionalFeature; label: string; hint: string };
 
+const item = <K extends 'base' | 'optional'>(kind: K, value: K extends 'base' ? PlanFeature : OptionalFeature) =>
+  ({ kind, value, label: t(`settings.items.${value}.label` as any), hint: t(`settings.items.${value}.hint` as any) }) as FeatureItem;
+
 export const FEATURE_GROUPS: { key: string; title: string; icon: string; collapsible?: boolean; items: FeatureItem[] }[] = [
-  { key: 'echanger', title: 'Échanger', icon: '💬', items: [
-    { kind: 'base', value: 'chat', label: 'Chat', hint: 'Discuter, photos et messages vocaux' },
-    { kind: 'base', value: 'votes', label: 'Sondages', hint: 'Voter sur une question' },
-    { kind: 'base', value: 'fichiers', label: 'Photos et fichiers', hint: 'Galerie et documents partagés' },
-  ] },
-  { key: 'organiser', title: 'Organiser', icon: '🧭', items: [
-    { kind: 'base', value: 'trajets', label: 'Trajets', hint: 'Covoiturage : places et demandes' },
-    { kind: 'base', value: 'depenses', label: 'Dépenses', hint: 'Qui apporte quoi, frais partagés' },
-    { kind: 'optional', value: 'benevoles', label: 'Bénévoles', hint: 'Postes à pourvoir, chacun s’inscrit' },
-    { kind: 'optional', value: 'assemblee', label: 'Assemblée', hint: 'Ordre du jour, procurations, votes, procès-verbal' },
-  ] },
-  { key: 'feter', title: 'Fêter et offrir', icon: '🎁', collapsible: true, items: [
-    { kind: 'optional', value: 'cagnotte', label: 'Cagnotte cadeau', hint: 'Un cadeau commun, idées et votes' },
-    { kind: 'optional', value: 'pere_noel', label: 'Père Noël secret', hint: 'Tirage au sort et cadeaux anonymes' },
-  ] },
-  { key: 'jouer', title: 'Jouer', icon: '🎲', collapsible: true, items: [
-    { kind: 'optional', value: 'killer', label: 'Killer', hint: 'Une cible, un objet, un lieu' },
-    { kind: 'optional', value: 'mot_piege', label: 'Le mot piège', hint: 'Faire dire un mot secret' },
-    { kind: 'optional', value: 'equipes', label: 'Équipes et tournoi', hint: 'Tirage des équipes, scores' },
-  ] },
+  { key: 'echanger', title: t('settings.groups.echanger'), icon: '💬', items: [item('base', 'chat'), item('base', 'votes'), item('base', 'fichiers')] },
+  { key: 'organiser', title: t('settings.groups.organiser'), icon: '🧭', items: [item('base', 'trajets'), item('base', 'depenses'), item('optional', 'benevoles'), item('optional', 'assemblee')] },
+  { key: 'feter', title: t('settings.groups.feter'), icon: '🎁', collapsible: true, items: [item('optional', 'cagnotte'), item('optional', 'pere_noel')] },
+  { key: 'jouer', title: t('settings.groups.jouer'), icon: '🎲', collapsible: true, items: [item('optional', 'killer'), item('optional', 'mot_piege'), item('optional', 'equipes')] },
 ];
 
 export function hasFeature(plan: { enabledFeatures?: OptionalFeature[] }, feature: OptionalFeature) {

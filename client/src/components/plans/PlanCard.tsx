@@ -3,6 +3,8 @@ import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { isPlanFull, occupiedPlaces, placesLeft as placesLeftOf, waitlistPosition } from '../../lib/places';
+import { t } from '../../i18n';
+import { shortDateTime } from '../../lib/dates';
 
 interface Props {
   plan: Plan;
@@ -16,7 +18,7 @@ const rsvpBadge = {
   maybe: 'bg-amber-50 text-amber-700 border-amber-200',
   out: 'bg-slate-100 text-slate-500 border-slate-200',
 };
-const rsvpLabel = { in: 'Je suis in', maybe: 'Peut-être', out: 'Absent(e)' };
+const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 
 export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props) {
   const { user } = useAuth();
@@ -32,7 +34,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
   const waiting = plan.waitlist?.length ?? 0;
 
   const date = plan.eventDate
-    ? new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
+    ? shortDateTime(plan.eventDate)
     : null;
 
 
@@ -56,19 +58,19 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
         <MuteToggle plan={plan} />
         {myMember ? (
           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
-            {rsvpLabel[myMember.rsvp]}
+            {rsvpLabel(myMember.rsvp)}
           </span>
         ) : myWaitPos ? (
           <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            En attente n°{myWaitPos}
+            {t('plan.card.waitlistPos', { n: myWaitPos })}
           </span>
         ) : isFull ? (
           <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-600 border border-red-500/30">
-            Complet
+            {t('common.full')}
           </span>
         ) : (
           <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-500/20 text-indigo-600 border border-indigo-500/30">
-            Rejoindre
+            {t('common.join')}
           </span>
         )}
         </span>
@@ -77,25 +79,25 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
       {plan.description && <p className="text-slate-500 text-xs line-clamp-3 whitespace-pre-line break-words mb-2.5">{plan.description}</p>}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-        {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}{plan.recurrence && <Repeat size={10} className="ml-0.5 text-slate-400" aria-label="Se répète" />}</span>}
+        {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}{plan.recurrence && <Repeat size={10} className="ml-0.5 text-slate-400" aria-label={t('plan.card.repeats')} />}</span>}
         {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
         {myMember && (
           <span className="flex items-center gap-1">
             <Users size={10} />
-            <span className="text-emerald-600">{inCount} in</span>
+            <span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span>
             {maybeCount > 0 && <span className="text-amber-600">· {maybeCount} ?</span>}
           </span>
         )}
         {max != null && (
           isFull ? (
             myMember ? (
-              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-semibold">Complet · {occupied}/{max}{waiting > 0 ? ` · ${waiting} en attente` : ''}</span>
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-semibold">{t('plan.card.fullCount', { occupied, max })}{waiting > 0 ? t('plan.card.waiting', { count: waiting }) : ''}</span>
             ) : (
-              <span className="text-red-600 font-medium">{occupied}/{max} places{waiting > 0 ? ` · ${waiting} en attente` : ''}</span>
+              <span className="text-red-600 font-medium">{t('plan.card.places', { occupied, max })}{waiting > 0 ? t('plan.card.waiting', { count: waiting }) : ''}</span>
             )
           ) : (
             <span className={placesLeft === 1 ? 'text-amber-600 font-medium' : ''}>
-              {placesLeft} place{placesLeft! > 1 ? 's' : ''} restante{placesLeft! > 1 ? 's' : ''}
+              {t('plan.card.placesLeft', { count: placesLeft! })}
             </span>
           )
         )}

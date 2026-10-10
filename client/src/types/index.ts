@@ -19,6 +19,8 @@ export interface User {
   notificationChannel?: NotificationChannel;
   /** Personnes masquées : leurs messages ne sont pas affichés (serveur : lib/moderation.ts) */
   blockedUserIds?: string[];
+  /** Langue choisie (fr, de, it, en) ; null = pas encore choisie */
+  locale?: string | null;
 }
 
 export type NotificationChannel = 'push' | 'both' | 'email';

@@ -4,13 +4,14 @@ import { Plan, VolunteerShift } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
 import { DateTimeField } from '../ui/DateTimeField';
+import { intlLocale, t } from '../../i18n';
 
 // Planning des bénévoles (fonction à activer dans les paramètres avancés du Plan) : le créateur
 // du Plan et les gestionnaires du Cercle créent les postes, chacun s'inscrit — ce qui vaut
 // « Je suis in ». Serveur : routes/volunteers.ts.
 
-const dayTime = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-const timeOnly = new Intl.DateTimeFormat('fr-CH', { hour: '2-digit', minute: '2-digit' });
+const dayTime = new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const timeOnly = new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' });
 
 export function shiftHours(s: { startsAt: string | null; endsAt: string | null }) {
   if (!s.startsAt) return '';
@@ -67,7 +68,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
       if (reloadPlan) onPlanUpdated((await api.get(`/plans/${plan.id}`)).data);
       return true;
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur, réessaie dans un instant');
+      setError(err.response?.data?.error || t('common.retryError'));
       await load();
       return false;
     }
@@ -84,7 +85,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
 
   async function signUp(s: VolunteerShift) {
     const clash = mine.find(m => overlap(m, s));
-    if (clash && !confirm(`Tu es déjà inscrit(e) à « ${clash.title} » sur ce créneau. T’inscrire quand même ?`)) return;
+    if (clash && !confirm(t('games.volunteers.clashConfirm', { title: clash.title }))) return;
     await run(() => api.post(`/plans/shifts/${s.id}/signup`), myRsvp !== 'in');
   }
 
@@ -95,12 +96,12 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
         missing > 0 ? (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
             <AlertTriangle size={16} className="flex-shrink-0" />
-            Il manque {missing} personne{missing > 1 ? 's' : ''} sur {openShifts} poste{openShifts > 1 ? 's' : ''}
+            {t('games.volunteers.missing', { people: t('games.volunteers.people', { count: missing }), shifts: t('games.volunteers.shifts', { count: openShifts }) })}
           </div>
         ) : (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
             <CheckCircle2 size={16} className="flex-shrink-0" />
-            Tous les postes sont pourvus, merci à tous !
+            {t('games.volunteers.allFilled')}
           </div>
         )
       )}
@@ -113,13 +114,13 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
           onClick={() => setEditing('new')}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
         >
-          <Plus size={16} />Ajouter un poste
+          <Plus size={16} />{t('games.volunteers.addShift')}
         </button>
       ))}
 
       {shifts.length > 0 && (
         <div className="flex gap-1.5">
-          {[{ v: false, l: 'Tous les postes' }, { v: true, l: `Mes postes (${mine.length})` }].map(o => (
+          {[{ v: false, l: t('games.volunteers.all') }, { v: true, l: t('games.volunteers.mine', { count: mine.length }) }].map(o => (
             <button key={String(o.v)} onClick={() => setMineOnly(o.v)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${mineOnly === o.v ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
               {o.l}
@@ -132,11 +133,11 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
 
       {shifts.length === 0 && (
         <p className="text-sm text-slate-400 italic text-center py-6">
-          {canManage ? 'Aucun poste pour l’instant. Ajoute les postes à pourvoir : buvette, caisse, rangement…' : 'Aucun poste pour l’instant.'}
+          {canManage ? t('games.volunteers.emptyManager') : t('games.volunteers.empty')}
         </p>
       )}
       {mineOnly && mine.length === 0 && shifts.length > 0 && (
-        <p className="text-sm text-slate-400 italic text-center py-4">Tu n’es inscrit(e) à aucun poste.</p>
+        <p className="text-sm text-slate-400 italic text-center py-4">{t('games.volunteers.noneMine')}</p>
       )}
 
       <div className="space-y-2.5">
@@ -152,14 +153,14 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
             onRemove={uid => run(() => api.delete(`/plans/shifts/${s.id}/signups/${uid}`))}
             onEdit={() => setEditing(s.id)}
             onDelete={() => {
-              if (confirm(`Supprimer le poste « ${s.title} » ?${s.signups.length ? ' Les inscrits seront prévenus.' : ''}`)) run(() => api.delete(`/plans/shifts/${s.id}`));
+              if (confirm(t('games.volunteers.deleteConfirm', { title: s.title }) + (s.signups.length ? t('games.volunteers.deleteNotify') : ''))) run(() => api.delete(`/plans/shifts/${s.id}`));
             }}
           />
         ))}
       </div>
 
       {shifts.length > 0 && (
-        <p className="text-xs text-slate-400 text-center">S’inscrire à un poste vaut « Je suis in ». Répondre « Absent(e) » libère tes postes.</p>
+        <p className="text-xs text-slate-400 text-center">{t('games.volunteers.footer')}</p>
       )}
     </div>
   );
@@ -184,8 +185,8 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
         </span>
         {canManage && (
           <span className="flex-shrink-0 flex -mr-1">
-            <button onClick={onEdit} title="Modifier ce poste" className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
-            <button onClick={onDelete} title="Supprimer ce poste" className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
+            <button onClick={onEdit} title={t('games.volunteers.editShift')} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
+            <button onClick={onDelete} title={t('games.volunteers.deleteShift')} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
           </span>
         )}
       </div>
@@ -197,7 +198,7 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
             <span key={x.userId} className={`flex items-center gap-1 pl-2 ${canManage && x.userId !== userId ? 'pr-1' : 'pr-2'} py-0.5 rounded-full text-xs ${x.userId === userId ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}`}>
               {displayName(x.user) ? `${displayName(x.user)} ` : ''}<span className="opacity-70">@{x.user.pseudo}</span>
               {canManage && x.userId !== userId && (
-                <button onClick={() => { if (confirm(`Retirer @${x.user.pseudo} de ce poste ?`)) onRemove(x.userId); }} title="Retirer" className="p-0.5 rounded-full hover:bg-slate-200"><X size={11} /></button>
+                <button onClick={() => { if (confirm(t('games.volunteers.removeConfirm', { pseudo: x.user.pseudo }))) onRemove(x.userId); }} title={t('games.volunteers.remove')} className="p-0.5 rounded-full hover:bg-slate-200"><X size={11} /></button>
               )}
             </span>
           ))}
@@ -206,13 +207,13 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
 
       <div className="mt-3 flex items-center gap-2">
         {mine ? (
-          <button onClick={onWithdraw} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Me désinscrire</button>
+          <button onClick={onWithdraw} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">{t('games.volunteers.withdraw')}</button>
         ) : full ? (
-          <span className="text-xs text-slate-400">Complet</span>
+          <span className="text-xs text-slate-400">{t('common.full')}</span>
         ) : (
-          <button onClick={onSignUp} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">Je m’inscris</button>
+          <button onClick={onSignUp} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">{t('games.volunteers.signUp')}</button>
         )}
-        {clash && !full && <span className="text-xs text-amber-600">Chevauche un de tes postes</span>}
+        {clash && !full && <span className="text-xs text-amber-600">{t('games.volunteers.clash')}</span>}
       </div>
     </div>
   );
@@ -251,28 +252,28 @@ function ShiftForm({ plan, shift, onSubmit, onCancel }: {
   return (
     <form onSubmit={submit} className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2.5">
       <div className="flex gap-2">
-        <input autoFocus required value={title} onChange={e => setTitle(e.target.value)} maxLength={100} placeholder="Poste : buvette, caisse, rangement…" className={`flex-1 ${input}`} />
+        <input autoFocus required value={title} onChange={e => setTitle(e.target.value)} maxLength={100} placeholder={t('games.volunteers.titlePlaceholder')} className={`flex-1 ${input}`} />
         <label className="flex items-center gap-1.5 text-xs text-slate-500 flex-shrink-0">
-          <input type="number" min={1} max={200} required value={needed} onChange={e => setNeeded(e.target.value)} className={`w-16 ${input}`} aria-label="Nombre de personnes" />
-          pers.
+          <input type="number" min={1} max={200} required value={needed} onChange={e => setNeeded(e.target.value)} className={`w-16 ${input}`} aria-label={t('games.volunteers.peopleCount')} />
+          {t('games.volunteers.persons')}
         </label>
       </div>
       <div className="flex flex-wrap gap-2 items-start">
         <div className="text-xs text-slate-500 flex items-start gap-1.5 flex-1 min-w-[14rem]">
-          <span className="pt-2.5">Début</span>
-          <DateTimeField value={start} onChange={setStart} placeholder="Horaire (facultatif)" clearable
+          <span className="pt-2.5">{t('games.volunteers.start')}</span>
+          <DateTimeField value={start} onChange={setStart} placeholder={t('games.volunteers.timePlaceholder')} clearable
             openAt={toLocalInput(plan.eventDate)} defaultTime={toLocalInput(plan.eventDate).slice(11, 16) || '09:00'} className="flex-1 min-w-0" />
         </div>
         <label className="text-xs text-slate-500 flex items-center gap-1.5">
-          Fin
+          {t('games.volunteers.end')}
           <input type="time" value={end} onChange={e => setEnd(e.target.value)} disabled={!start} className={`w-28 ${input} disabled:opacity-50`} />
         </label>
       </div>
-      <input value={note} onChange={e => setNote(e.target.value)} maxLength={300} placeholder="Remarque (facultatif) : tenue, lieu de rendez-vous…" className={input} />
+      <input value={note} onChange={e => setNote(e.target.value)} maxLength={300} placeholder={t('games.volunteers.notePlaceholder')} className={input} />
       <div className="flex gap-2 justify-end">
-        <button type="button" onClick={onCancel} className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">Annuler</button>
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">{t('common.cancel')}</button>
         <button type="submit" disabled={busy || !title.trim()} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
-          {shift ? 'Enregistrer' : 'Ajouter le poste'}
+          {shift ? t('common.save') : t('games.volunteers.addSubmit')}
         </button>
       </div>
     </form>

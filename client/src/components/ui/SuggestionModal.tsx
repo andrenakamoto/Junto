@@ -5,8 +5,9 @@ import { Modal } from './Modal';
 import { Button } from './Button';
 import api from '../../services/api';
 import { kindLabel, statusOf, Suggestion, SuggestionKind, SUGGESTION_KINDS, SUGGESTION_MAX } from '../../lib/suggestions';
+import { intlLocale, t } from '../../i18n';
 
-const dateFmt = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short' });
+const dateFmt = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' });
 
 // Appareil et version, pour aider à reproduire un problème
 async function deviceInfo(): Promise<{ platform: string; appVersion?: string }> {
@@ -43,7 +44,7 @@ export function SuggestionModal({ onClose }: { onClose: () => void }) {
       setSent(true);
       loadMine();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Envoi impossible, réessaie plus tard');
+      setError(err.response?.data?.error || t('account.suggestion.sendError'));
     } finally {
       setSending(false);
     }
@@ -52,16 +53,16 @@ export function SuggestionModal({ onClose }: { onClose: () => void }) {
   const placeholder = SUGGESTION_KINDS.find(k => k.value === kind)!.placeholder;
 
   return (
-    <Modal title="Proposer une amélioration" onClose={onClose}>
+    <Modal title={t('account.suggestion.title')} onClose={onClose}>
       <div className="space-y-4">
         {sent ? (
           <div className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-3">
-            Merci ! Ta suggestion est bien arrivée. Tu seras prévenu(e) quand elle sera prévue ou réalisée.
-            <button onClick={() => setSent(false)} className="block mt-2 text-emerald-700 font-medium underline underline-offset-2">Envoyer une autre suggestion</button>
+            {t('account.suggestion.thanks')}
+            <button onClick={() => setSent(false)} className="block mt-2 text-emerald-700 font-medium underline underline-offset-2">{t('account.suggestion.another')}</button>
           </div>
         ) : (
           <>
-            <p className="text-sm text-slate-500">Une idée, un problème, une remarque ? Chaque message est lu.</p>
+            <p className="text-sm text-slate-500">{t('account.suggestion.intro')}</p>
             <div className="flex gap-2">
               {SUGGESTION_KINDS.map(k => (
                 <button
@@ -86,15 +87,15 @@ export function SuggestionModal({ onClose }: { onClose: () => void }) {
             </div>
             {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <div className="flex gap-2 justify-end">
-              <Button type="button" variant="ghost" onClick={onClose}>Fermer</Button>
-              <Button onClick={send} disabled={sending || !content.trim()}>{sending ? 'Envoi…' : 'Envoyer'}</Button>
+              <Button type="button" variant="ghost" onClick={onClose}>{t('common.close')}</Button>
+              <Button onClick={send} disabled={sending || !content.trim()}>{sending ? t('common.sending') : t('common.send')}</Button>
             </div>
           </>
         )}
 
         {mine && mine.length > 0 && (
           <section className="pt-3 border-t border-slate-100">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Mes suggestions</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{t('account.suggestion.mine')}</h3>
             <div className="space-y-2">
               {mine.map(s => {
                 const st = statusOf(s.status);
@@ -108,7 +109,7 @@ export function SuggestionModal({ onClose }: { onClose: () => void }) {
                     <p className="text-sm text-slate-700 whitespace-pre-line break-words line-clamp-4">{s.content}</p>
                     {s.reply && (
                       <p className="mt-2 text-sm text-slate-700 bg-indigo-50 border border-indigo-100 rounded-lg px-2.5 py-1.5">
-                        <span className="font-medium text-indigo-800">Réponse d’EvLY : </span>{s.reply}
+                        <span className="font-medium text-indigo-800">{t('account.suggestion.reply')}</span>{s.reply}
                       </p>
                     )}
                   </div>

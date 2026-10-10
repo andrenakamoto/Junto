@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Gift, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   members: { userId: string; user: { pseudo: string } }[];
@@ -10,7 +11,8 @@ interface Props {
   hint?: string;
 }
 
-export function SurpriseSelector({ members, currentUserId, value, onChange, label = 'Plan surprise', hint = 'Cacher ce Plan à (ils ne verront ni le Plan, ni ses notifications, ni ses emails) :' }: Props) {
+export function SurpriseSelector({ members, currentUserId, value, onChange, label, hint }: Props) {
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState(value.length > 0);
   const candidates = members.filter(m => m.userId !== currentUserId);
 
@@ -30,12 +32,12 @@ export function SurpriseSelector({ members, currentUserId, value, onChange, labe
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input type="checkbox" checked={enabled} onChange={toggleEnabled} className="accent-indigo-600" />
         <Gift size={15} className="text-indigo-500" />
-        <span className="text-sm font-medium text-slate-700">{label}</span>
+        <span className="text-sm font-medium text-slate-700">{label ?? t('plan.surprise.label')}</span>
       </label>
 
       {enabled && (
         <div className="mt-2.5">
-          <p className="text-xs text-slate-500 mb-2">{hint}</p>
+          <p className="text-xs text-slate-500 mb-2">{hint ?? t('plan.surprise.hint')}</p>
           <div className="flex flex-wrap gap-1.5">
             {candidates.map(m => {
               const selected = value.includes(m.userId);
@@ -55,7 +57,7 @@ export function SurpriseSelector({ members, currentUserId, value, onChange, labe
             })}
           </div>
           {value.length === 0 && (
-            <p className="text-xs text-amber-600 mt-2">Choisis au moins une personne à qui le cacher.</p>
+            <p className="text-xs text-amber-600 mt-2">{t('plan.surprise.pickOne')}</p>
           )}
         </div>
       )}

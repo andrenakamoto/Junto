@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, X, Loader2, CheckCircle } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { t } from '../../i18n';
 
 export function EmailMigrationBanner() {
   const { user, setUser } = useAuth();
@@ -24,7 +25,7 @@ export function EmailMigrationBanner() {
       // Mettre à jour le user local
       setUser({ ...user!, email, emailVerified: false });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur lors de l\'ajout de l\'email');
+      setError(err.response?.data?.error || t('account.email.addError'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +35,7 @@ export function EmailMigrationBanner() {
     return (
       <div className="bg-emerald-500/10 border-b border-emerald-500/30 px-4 py-3 short:py-1.5 flex items-center gap-3 text-sm text-emerald-600">
         <CheckCircle size={16} className="flex-shrink-0" />
-        <span>Email ajouté ! Vérifie ta boîte mail pour confirmer ton adresse.</span>
+        <span>{t('account.email.added')}</span>
         <button onClick={() => setDismissed(true)} className="ml-auto text-emerald-600 hover:text-emerald-700">
           <X size={15} />
         </button>
@@ -48,13 +49,13 @@ export function EmailMigrationBanner() {
         <div className="flex items-center gap-3">
           <Mail size={15} className="text-amber-600 flex-shrink-0" />
           <span className="text-amber-800 flex-1">
-            Ajoute un email à ton compte pour sécuriser ta connexion et récupérer ton mot de passe.
+            {t('account.email.addPrompt')}
           </span>
           <button
             onClick={() => setExpanded(true)}
             className="text-xs font-semibold px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors flex-shrink-0"
           >
-            Ajouter
+            {t('account.email.add')}
           </button>
           <button onClick={() => setDismissed(true)} className="text-amber-600 hover:text-amber-200 flex-shrink-0">
             <X size={15} />
@@ -64,7 +65,7 @@ export function EmailMigrationBanner() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Mail size={15} className="text-amber-600" />
-            <span className="text-amber-800 font-medium">Ajouter un email</span>
+            <span className="text-amber-800 font-medium">{t('account.email.addTitle')}</span>
             <button onClick={() => setExpanded(false)} className="ml-auto text-amber-600 hover:text-amber-200">
               <X size={15} />
             </button>
@@ -75,7 +76,7 @@ export function EmailMigrationBanner() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="toi@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               required
               autoFocus
               className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
@@ -86,7 +87,7 @@ export function EmailMigrationBanner() {
               className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors text-sm flex items-center gap-1.5"
             >
               {loading && <Loader2 size={13} className="animate-spin" />}
-              Confirmer
+              {t('account.email.confirm')}
             </button>
           </form>
         </div>

@@ -1,5 +1,7 @@
 import { Calendar, Check, MessageSquare, Gift, ChevronRight } from 'lucide-react';
 import { CirclePoll } from '../../types';
+import { useTranslation } from 'react-i18next';
+import { optionLabel } from '../../lib/dates';
 
 interface Props {
   poll: CirclePoll;
@@ -12,6 +14,7 @@ interface Props {
 // Aperçu d'un sondage de dates dans la colonne des Plans : vote rapide, et clic pour ouvrir
 // le détail (qui a voté quoi, pas intéressés, chat, création du Plan).
 export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props) {
+  const { t } = useTranslation();
   const maxVotes = Math.max(1, ...poll.options.map(o => o.votes.length));
   const declined = (poll.declines ?? []).some(d => d.userId === userId);
   const declineCount = poll.declines?.length ?? 0;
@@ -39,7 +42,7 @@ export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props
               key={opt.id}
               onClick={() => onVote(opt.id)}
               disabled={past}
-              title={past ? 'Date passée' : undefined}
+              title={past ? t('circle.pollCard.pastDate') : undefined}
               className={`w-full relative overflow-hidden rounded-lg border text-left text-xs transition-all disabled:opacity-50 disabled:cursor-default ${
                 iVoted ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
@@ -49,7 +52,7 @@ export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props
                 <span className={`flex items-center gap-1.5 ${iVoted ? 'text-emerald-700 font-medium' : 'text-slate-700'}`}>
                   {iVoted && <Check size={11} />}
                   <Calendar size={11} className="flex-shrink-0 opacity-70" />
-                  {opt.label}
+                  {optionLabel(opt)}
                 </span>
                 <span className="text-slate-500 flex-shrink-0 ml-2">{count}</span>
               </div>
@@ -62,10 +65,10 @@ export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props
         <span className="flex items-center gap-1"><MessageSquare size={11} />{messageCount}</span>
         {declineCount > 0 && (
           <span className={declined ? 'text-amber-800' : ''}>
-            {declined ? 'Tu n\'es pas intéressé(e)' : `${declineCount} pas intéressé${declineCount > 1 ? 's' : ''}`}
+            {declined ? t('circle.pollCard.youDeclined') : t('circle.pollCard.declined', { count: declineCount })}
           </span>
         )}
-        <span className="ml-auto text-indigo-600">Ouvrir</span>
+        <span className="ml-auto text-indigo-600">{t('common.open')}</span>
       </button>
     </div>
   );

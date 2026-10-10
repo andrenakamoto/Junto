@@ -4,6 +4,8 @@ import { Users, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
+import { t } from '../i18n';
+import { Trans } from 'react-i18next';
 
 export function JoinPage() {
   const [params] = useSearchParams();
@@ -51,9 +53,9 @@ export function JoinPage() {
         setTimeout(() => navigate(dest), 1800);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.error ?? 'Erreur';
-      // Already a member → just go to dashboard
-      if (msg === 'Tu es déjà dans ce Cercle') {
+      const msg = err.response?.data?.error ?? t('common.error');
+      // Déjà membre → tableau de bord
+      if (err.response?.data?.code === 'already_member') {
         navigate(planId ? `/dashboard?planId=${planId}` : '/dashboard');
       } else {
         setError(msg);
@@ -72,8 +74,8 @@ export function JoinPage() {
           <div className="flex justify-center mb-4">
             <LogoIcon size={72} />
           </div>
-          <h1 className="text-3xl font-black text-white">Invitation</h1>
-          <p className="text-slate-400 mt-1 text-sm">Tu as été invité(e) sur EvLY</p>
+          <h1 className="text-3xl font-black text-white">{t('circle.joinPage.title')}</h1>
+          <p className="text-slate-400 mt-1 text-sm">{t('circle.joinPage.invited')}</p>
         </div>
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50 space-y-5">
@@ -83,10 +85,10 @@ export function JoinPage() {
               <Users size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">{circleName || 'Cercle EvLY'}</p>
+              <p className="text-white font-bold text-sm">{circleName || t('circle.joinPage.defaultName')}</p>
               <p className="text-slate-400 text-xs">
-                Code : <span className="font-mono tracking-widest text-slate-300">{circleCode}</span>
-                {memberCount !== null && ` · ${memberCount} membre${memberCount > 1 ? 's' : ''}`}
+                <Trans i18nKey="circle.joinPage.code" values={{ code: circleCode }} components={{ b: <span className="font-mono tracking-widest text-slate-300" /> }} />
+                {memberCount !== null && t('circle.joinPage.members', { count: memberCount })}
               </p>
             </div>
           </div>
@@ -94,30 +96,30 @@ export function JoinPage() {
           {/* Plan info */}
           {planTitle && (
             <div className="px-4 py-3 bg-indigo-600/10 border border-indigo-500/20 rounded-xl">
-              <p className="text-xs text-indigo-400 font-medium mb-0.5">Plan associé</p>
-              <p className="text-sm text-indigo-200 font-semibold">"{planTitle}"</p>
-              <p className="text-xs text-indigo-400 mt-1">Tu y auras accès après avoir rejoint le Cercle.</p>
+              <p className="text-xs text-indigo-400 font-medium mb-0.5">{t('circle.joinPage.linkedPlan')}</p>
+              <p className="text-sm text-indigo-200 font-semibold">« {planTitle} »</p>
+              <p className="text-xs text-indigo-400 mt-1">{t('circle.joinPage.linkedPlanHint')}</p>
             </div>
           )}
 
           {done ? (
             <div className="py-4 text-center">
-              <p className="text-emerald-400 font-semibold text-sm">✓ Tu as rejoint le Cercle !</p>
-              <p className="text-slate-400 text-xs mt-1">Redirection vers EvLY...</p>
+              <p className="text-emerald-400 font-semibold text-sm">{t('circle.joinPage.joined')}</p>
+              <p className="text-slate-400 text-xs mt-1">{t('circle.joinPage.redirecting')}</p>
             </div>
           ) : pending ? (
             <div className="py-4 text-center space-y-3">
-              <p className="text-indigo-300 font-semibold text-sm">Demande envoyée</p>
+              <p className="text-indigo-300 font-semibold text-sm">{t('circle.joinPage.sent')}</p>
               <p className="text-slate-400 text-xs">
                 {pending === 'creator'
-                  ? "Le créateur ou un organisateur du Cercle doit valider ta demande avant que tu puisses y accéder."
-                  : 'Les membres du Cercle doivent valider ta demande (majorité requise) avant que tu puisses y accéder.'}
+                  ? t('circle.joinPage.byCreator')
+                  : t('circle.joinPage.byVote')}
               </p>
               <button
                 onClick={() => navigate('/dashboard')}
                 className="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-colors text-sm"
               >
-                Retour à EvLY
+                {t('circle.joinPage.backToEvly')}
               </button>
             </div>
           ) : (
@@ -130,9 +132,9 @@ export function JoinPage() {
                 disabled={joining || !circleCode}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm"
               >
-                {joining ? 'Envoi...' : (
+                {joining ? t('common.sending') : (
                   <>
-                    Demander à rejoindre
+                    {t('circle.join.submit')}
                     <ArrowRight size={16} />
                   </>
                 )}
@@ -141,7 +143,7 @@ export function JoinPage() {
                 onClick={() => navigate('/dashboard')}
                 className="w-full py-2 text-slate-500 hover:text-slate-300 text-sm transition-colors"
               >
-                Ignorer
+                {t('circle.joinPage.ignore')}
               </button>
             </>
           )}

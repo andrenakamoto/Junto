@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { LogoIcon } from '../components/ui/Logo';
+import { useTranslation } from 'react-i18next';
 
 export function ResendVerificationPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,15 +30,15 @@ export function ResendVerificationPage() {
 
         <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl p-7 shadow-2xl border border-slate-700/50">
           <button onClick={() => navigate('/auth')} className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm mb-5 transition-colors">
-            <ArrowLeft size={15} /> Retour
+            <ArrowLeft size={15} /> {t('auth.back')}
           </button>
 
-          <h2 className="text-white font-semibold text-lg mb-1">Renvoyer la confirmation</h2>
-          <p className="text-slate-400 text-sm mb-5">Entre ton email pour recevoir un nouveau lien de confirmation.</p>
+          <h2 className="text-white font-semibold text-lg mb-1">{t('auth.resend.title')}</h2>
+          <p className="text-slate-400 text-sm mb-5">{t('auth.resend.intro')}</p>
 
           {sent ? (
             <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-4 text-emerald-400 text-sm text-center">
-              Si cet email est en attente de confirmation, tu recevras un nouveau lien.
+              {t('auth.resend.sent')}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -44,7 +46,7 @@ export function ResendVerificationPage() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="toi@example.com"
+                placeholder={t('auth.emailPlaceholder')}
                 required
                 autoFocus
                 className="w-full px-4 py-3 bg-slate-900/80 border border-slate-600 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
@@ -55,7 +57,7 @@ export function ResendVerificationPage() {
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
               >
                 {loading && <Loader2 size={16} className="animate-spin" />}
-                Envoyer
+                {t('auth.resend.submit')}
               </button>
             </form>
           )}

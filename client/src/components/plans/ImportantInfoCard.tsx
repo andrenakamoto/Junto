@@ -3,6 +3,7 @@ import { Pencil, Pin, Plus } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { renderContent } from '../chat/ChatMessage';
+import { t } from '../../i18n';
 
 export const IMPORTANT_INFO_MAX = 500;
 
@@ -31,7 +32,7 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
       await onChanged();
       setEditing(false);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Impossible d'enregistrer");
+      setError(err.response?.data?.error || t('plan.importantInfo.saveError'));
     } finally {
       setSaving(false);
     }
@@ -42,21 +43,21 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
       <div className="bg-amber-50 rounded-xl p-4 border border-amber-300 shadow-sm space-y-2">
         <div className="flex items-center gap-2 text-amber-900 font-semibold text-sm">
           <Pin size={15} className="text-amber-600" />
-          Informations importantes
+          {t('plan.importantInfo.title')}
         </div>
         <textarea
           autoFocus
           value={text}
           onChange={e => setText(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
           rows={4}
-          placeholder="Ex : code de l'immeuble 4512B, prendre sa carte d'identité, départ à 8 h 15 précises…"
+          placeholder={t('plan.importantInfo.placeholder')}
           className="w-full px-3 py-2 rounded-lg border border-amber-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
         />
         <div className="flex items-center gap-2">
           <span className="text-xs text-amber-700/70 mr-auto">{text.length}/{IMPORTANT_INFO_MAX}</span>
-          <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">Annuler</button>
+          <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">{t('common.cancel')}</button>
           <button onClick={save} disabled={saving} className="px-3 py-1.5 text-sm rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50">
-            {saving ? 'Enregistrement…' : 'Enregistrer'}
+            {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
         {error && <p className="text-xs text-red-600">{error}</p>}
@@ -71,7 +72,7 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
         onClick={startEditing}
         className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-dashed border-amber-300 text-sm text-amber-800 hover:bg-amber-50"
       >
-        <Plus size={15} /> Ajouter des informations importantes
+        <Plus size={15} /> {t('plan.importantInfo.add')}
       </button>
     );
   }
@@ -80,9 +81,9 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
     <div className="bg-amber-50 rounded-xl p-4 border border-amber-300 shadow-sm">
       <div className="flex items-center gap-2 text-amber-900 font-semibold text-sm mb-1">
         <Pin size={15} className="text-amber-600" />
-        Informations importantes
+        {t('plan.importantInfo.title')}
         {canEdit && (
-          <button onClick={startEditing} title="Modifier les informations importantes" className="ml-auto p-1 rounded-md text-amber-700 hover:bg-amber-100">
+          <button onClick={startEditing} title={t('plan.importantInfo.edit')} className="ml-auto p-1 rounded-md text-amber-700 hover:bg-amber-100">
             <Pencil size={14} />
           </button>
         )}

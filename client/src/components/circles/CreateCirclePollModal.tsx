@@ -8,6 +8,8 @@ import { CirclePoll, CircleMember } from '../../types';
 import { SurpriseSelector } from '../plans/SurpriseSelector';
 import { useAuth } from '../../contexts/AuthContext';
 import { DateTimeField } from '../ui/DateTimeField';
+import { t } from '../../i18n';
+import { shortDateTime } from '../../lib/dates';
 
 function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -18,9 +20,7 @@ function localDateTimeToISO(str: string): string {
 
 function formatOptionLabel(localDateTime: string): string {
   const iso = localDateTimeToISO(localDateTime);
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  }).format(new Date(iso));
+  return shortDateTime(iso);
 }
 
 interface Props {
@@ -50,22 +50,22 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
       const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds });
       onCreated(data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Erreur');
+      setError(err.response?.data?.error || t('common.error'));
     } finally {
       setCreating(false);
     }
   }
 
   return (
-    <Modal title="Proposer plusieurs dates" onClose={onClose}>
+    <Modal title={t('circle.createPoll.title')} onClose={onClose}>
       <p className="text-sm text-slate-500 mb-4">
-        Chaque membre coche les dates qui lui conviennent. Une fois la meilleure date trouvée, tu pourras créer le Plan directement dessus.
+        {t('circle.createPoll.intro')}
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Question" value={question} onChange={e => setQuestion(e.target.value)} placeholder="On se voit quand pour le resto ?" required autoFocus />
+        <Input label={t('circle.createPoll.question')} value={question} onChange={e => setQuestion(e.target.value)} placeholder={t('circle.createPoll.questionPlaceholder')} required autoFocus />
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-slate-700">Dates proposées</label>
+          <label className="text-sm font-medium text-slate-700">{t('circle.createPoll.dates')}</label>
           {dates.map((d, i) => (
             <div key={i} className="flex gap-2">
               <DateTimeField
@@ -88,7 +88,7 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
               onClick={() => setDates([...dates, ''])}
               className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium self-start"
             >
-              <Plus size={13} />Ajouter une date
+              <Plus size={13} />{t('circle.createPoll.addDate')}
             </button>
           )}
         </div>
@@ -99,14 +99,14 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
             currentUserId={user.id}
             value={excludedUserIds}
             onChange={setExcludedUserIds}
-            label="Sondage surprise"
-            hint="Cacher ce sondage à (ils ne verront ni le sondage, ni ses notifications, ni son chat) :"
+            label={t('circle.createPoll.surpriseLabel')}
+            hint={t('circle.createPoll.surpriseHint')}
           />
         )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
-          <Button type="submit" disabled={creating}>{creating ? 'Création...' : 'Créer le sondage'}</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button type="submit" disabled={creating}>{creating ? t('common.creating') : t('circle.createPoll.submit')}</Button>
         </div>
       </form>
     </Modal>
