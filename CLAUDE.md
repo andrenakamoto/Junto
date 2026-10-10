@@ -165,7 +165,7 @@ Conséquences pratiques :
   publication. La régénérer quand une fonctionnalité mise en avant change.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
   (version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
-  numérotés automatiquement depuis `SECTIONS`) : en plus de la v3, réponses sans compte, **responsabilité des
+  numérotés automatiquement, une version par langue dans `components/ui/terms/*.tsx`) : en plus de la v3, réponses sans compte, **responsabilité des
   organisations** (usage du Service, données de leurs membres au sens de la nLPD), « Signaler » / masquer,
   **rôle d'hébergeur** (aucun contrôle préalable), participation aux événements **à ses propres risques**,
   **Assemblées et votes** (statuts et Code civil font foi, convocation EvLY ≠ forme statutaire, vote secret non
@@ -188,8 +188,8 @@ Conséquences pratiques :
   `client/src/pages/PrivacyPage.tsx`, route publique `/confidentialite`,
   liée depuis AuthPage (pied de page), TermsModal et le menu de la barre
   latérale. Tableau des prestataires (`processors`) avec pays et garantie
-  de transfert (DPF ou clauses contractuelles). **La mettre à jour** (et
-  sa constante `VERSION`) à chaque nouveau prestataire, nouvelle donnée
+  de transfert (DPF ou clauses contractuelles). **La mettre à jour** (dans les 4 langues, `pages/privacy/*.tsx`, et
+  sa date de version) à chaque nouveau prestataire, nouvelle donnée
   collectée ou changement de région d'hébergement (Railway est en `sfo`,
   États-Unis ; journaux conservés 7 jours en abonnement Hobby).
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
@@ -434,6 +434,41 @@ Conséquences pratiques :
   - Tester : simulateur iOS (`… capacitor run ios --target <id>`), émulateur
     Android `EvLY_Pixel` (Android 16, créé le 2026-10-01 ; outils
     `~/Library/Android/sdk/cmdline-tools/latest`).
+
+## Langues (i18n, 2026-10-10)
+
+EvLY existe en **français (langue d'origine, qui fait foi), allemand (tutoiement « du »), italien et anglais**.
+Vocabulaire : Cercle = Kreis / Cerchio / Circle ; **Plan reste « Plan »** partout. Panneau admin et SetupPage :
+français seulement. **Toute nouvelle fonction ou tout nouveau texte s'écrit dans les 4 langues.**
+
+- **Client** : i18next + react-i18next. Dictionnaires `client/src/i18n/fr/*.ts` (un fichier par domaine, réunis
+  dans `fr/index.ts`) et `de/`, `it/`, `en/` de même forme (`Dict`) : **TypeScript refuse une clé manquante**.
+  `import { t } from '../i18n'` directement (la page se recharge au changement de langue) ; `<Trans>` pour le
+  texte enrichi (`<b>`), pluriels `_one` / `_other` avec `count`, pas de clé numérique. Attention à une variable
+  locale nommée `t` qui masquerait l'import. Langue : `localStorage` `evly_lang` → `User.locale` (synchronisé
+  par AuthContext) → navigateur → français ; `setLanguage` (LanguagePicker : profil, page de connexion,
+  invitation, Plan express). Dates via `intlLocale()` (fr-CH, de-CH, it-CH, en-GB), jamais `'fr-CH'` en dur.
+  axios envoie `Accept-Language`. Textes longs par langue : conditions (`components/ui/terms/*.tsx`), guide
+  (`components/ui/guide/*.tsx`), confidentialité (`pages/privacy/*.tsx`), pages publiques (DeleteAccountInfo,
+  ChildSafety : objet `CONTENT` par langue). Les traductions des textes juridiques précisent que la version
+  française fait foi. Démo : textes traduits au chargement (`public/demo/i18n.json`, généré par
+  `client/scripts/demo-i18n.py` — à compléter quand `data.json` est régénéré). Fiche Découvrir :
+  `public/decouvrir-de|it|en.html` **générées** par `node client/scripts/decouvrir-i18n.mjs` (à relancer après
+  toute modification de `decouvrir.html` ; redirection automatique selon `evly_lang` / le navigateur, `?lang=fr`
+  force le français). La brochure PDF reste en français.
+- **Serveur** : `User.locale` (migration `20261012100000_user_locale`, fixée à l'inscription d'après
+  `Accept-Language`, PUT `/auth/locale`). `lib/i18n.ts` : **messages d'erreur et aperçus de notifications
+  écrits en français dans le code, traduits au dernier moment** par tables (`src/i18n/errors1.ts`,
+  `errors2.ts`, `notifications.ts`, motifs `{0}`… dont les morceaux sont eux-mêmes traduits) — erreurs par le
+  middleware `translateErrors` (langue de la requête), notifications dans `notifyUser` (langue du destinataire,
+  `userLocale`, cache 10 min). **Tout nouveau message d'erreur ou aperçu de notification s'ajoute dans ces
+  tables** (sinon il reste en français). Textes push fixes : `src/i18n/push.ts`. Emails et PDF (récapitulatif,
+  procès-verbal) : `src/i18n/emails/{fr,de,it,en}.ts` via `mail(locale)` (`lib/emailText.ts` : `.t()` échappe
+  les valeurs pour le HTML, `.s()` pour un sujet ; `notificationFooter(kind, locale)`) — destinataire
+  (`user.locale`, ajouter `locale: true` aux selects), invitation externe dans la langue de l'expéditeur, PDF
+  téléchargé dans celle de la requête. Listes par défaut des jeux (objets / lieux du Killer, mots piège, noms
+  d'équipes) : `src/i18n/games.ts`, dans la langue du **créateur du Plan**. Aperçu des liens d'invitation :
+  `src/i18n/share.ts`. Les dates insérées dans certains aperçus restent au format français.
 
 ## Structure du repo (monorepo, deux dossiers, pas de workspace tool)
 
