@@ -19,7 +19,7 @@ const T = {
     ['<span>Développé et hébergé en Suisse</span>', '<span>In der Schweiz entwickelt und gehostet</span>'],
     ['>Organiser une sortie</a>', '>Einen Ausflug organisieren</a>'],
     ['>Créer mon compte</a>', '>Konto erstellen</a>'],
-    ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'Ohne Konto: Du erstellst deinen Ausflug, teilst den Link, und deine Freunde antworten, ohne etwas zu installieren. <a href="/demo">Oder probier die Demo →</a>'],
+    ['<a href="/demo">Essaie la démo →</a>', '<a href="/demo">Probier die Demo →</a>'],
     ['>Comment ça marche</h2>', '>So funktioniert’s</h2>'],
     ['<b>Le Cercle</b><span>ton groupe</span>', '<b>Der Kreis</b><span>deine Gruppe</span>'],
     ['<b>Le Plan</b><span>un événement</span>', '<b>Der Plan</b><span>ein Anlass</span>'],
@@ -54,7 +54,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Familie &amp; Freunde</b><span>Omas Geburtstag</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Arbeitskollegen</b><span>Der Teamapéro</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Vereine</b><span>Die GV, von der Einladung bis zum Protokoll</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, in der Schweiz entwickelt und gehostet. Im Browser oder in der iPhone-App; Android folgt bald.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in der iPhone-App; Android folgt bald.</small>'],
   ],
   it: [
     ['<html lang="fr">', '<html lang="it">'],
@@ -68,7 +68,7 @@ const T = {
     ['<span>Développé et hébergé en Suisse</span>', '<span>Sviluppato e ospitato in Svizzera</span>'],
     ['>Organiser une sortie</a>', '>Organizza un’uscita</a>'],
     ['>Créer mon compte</a>', '>Crea il mio account</a>'],
-    ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'Senza account: crei la tua uscita, condividi il link, i tuoi amici rispondono senza installare nulla. <a href="/demo">Oppure prova la demo →</a>'],
+    ['<a href="/demo">Essaie la démo →</a>', '<a href="/demo">Prova la demo →</a>'],
     ['>Comment ça marche</h2>', '>Come funziona</h2>'],
     ['<b>Le Cercle</b><span>ton groupe</span>', '<b>Il Cerchio</b><span>il tuo gruppo</span>'],
     ['<b>Le Plan</b><span>un événement</span>', '<b>Il Plan</b><span>un evento</span>'],
@@ -103,7 +103,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Famiglia &amp; amici</b><span>Il compleanno della nonna</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleghi</b><span>L’aperitivo di squadra</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associazioni</b><span>L’assemblea, dalla convocazione al verbale</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, sviluppato e ospitato in Svizzera. Nel browser o nell’app per iPhone; Android a breve.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, nel browser o nell’app per iPhone; Android a breve.</small>'],
   ],
   en: [
     ['<html lang="fr">', '<html lang="en">'],
@@ -117,7 +117,7 @@ const T = {
     ['<span>Développé et hébergé en Suisse</span>', '<span>Developed and hosted in Switzerland</span>'],
     ['>Organiser une sortie</a>', '>Organise an outing</a>'],
     ['>Créer mon compte</a>', '>Create my account</a>'],
-    ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'No account needed: create your outing, share the link, and your friends reply without installing anything. <a href="/demo">Or try the demo →</a>'],
+    ['<a href="/demo">Essaie la démo →</a>', '<a href="/demo">Try the demo →</a>'],
     ['>Comment ça marche</h2>', '>How it works</h2>'],
     ['<b>Le Cercle</b><span>ton groupe</span>', '<b>The Circle</b><span>your group</span>'],
     ['<b>Le Plan</b><span>un événement</span>', '<b>The Plan</b><span>one event</span>'],
@@ -152,7 +152,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Family &amp; friends</b><span>Grandma’s birthday</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleagues</b><span>Team drinks after work</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associations</b><span>The AGM, from notice to minutes</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organise your next event.<small>Free, developed and hosted in Switzerland. In the browser or the iPhone app; Android coming soon.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organise your next event.<small>Free, in the browser or the iPhone app; Android coming soon.</small>'],
   ],
 };
 
