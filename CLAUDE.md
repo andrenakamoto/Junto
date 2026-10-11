@@ -861,6 +861,17 @@ Junto/
   publique `/ecran?t=<jeton>` (`QuizScreenPage`, GET `/api/quiz-screen/:token`, jeton `purpose: 'quiz-screen'` 24 h donné par
   GET /:id/quiz/screen-link, rechargement chaque seconde, jeton photo au nom de la personne qui anime seulement quand la question
   a une photo). « Rejouer » efface les réponses, garde les questions. Pas dans la démo.
+- **En bref** (2026-10-11, synthèse d'un Plan vue par la personne, `lib/planSummary.ts` testé, `routes/planSummary.ts` monté
+  dans le routeur des Plans, `components/plans/PlanSummarySheet.tsx`) : GET `/plans/:id/summary`, **réservé aux « Je suis in » et
+  « Peut-être »** (403 sinon). Renvoie seulement ce qui concerne la personne, rubrique par rubrique et en respectant les fonctions
+  masquées / à activer : réponses (+ liste d'attente), première ligne des informations importantes, **son trajet** (conducteur,
+  passager, en recherche, ou places proposées), « qui apporte quoi » (ce qu'elle apporte — `claimedBy` contient le **pseudo** —,
+  ce qui manque), **ses comptes** (virements suggérés qui la concernent), sa cagnotte, ses postes de bénévole, votes et matchs qui
+  l'attendent, nombre de photos (comme le ZIP). Pas de table. Ouverte par le bouton « En bref » de `PlanCard` (prop `onSummary`,
+  `PlanList`), la carte en tête de la page principale du Plan sur téléphone et une icône de l'en-tête sur grand écran ; chaque ligne
+  ouvre sa rubrique. **« Copier le résumé »** : texte sans rien de personnel (date, lieu, qui vient, infos importantes, places
+  libres, ce qui manque) + lien `/invitation?token=…` (réponse sans compte). Démo : calculée dans `lib/demo.ts` (`demoSummary`) à
+  partir des données en mémoire. Fiche « En bref » dans le guide.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet).
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
