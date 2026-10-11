@@ -248,7 +248,14 @@ Conséquences pratiques :
   (corrigé le 2026-09-27). Les origines `https://www.evly.ch` et
   `https://evly.ch` sont autorisées pour le client OAuth ; `localhost` ne
   l'est pas (le bouton s'affiche en local mais Google refuse la connexion). Rate limiting sur les routes sensibles (express-rate-limit).
-- **Fichiers joints** : Cloudinary (upload, download via proxy backend + token
+- **Fichiers joints** : **depuis le 2026-10-11, sur le disque du serveur suisse** (`lib/storage.ts`, `STORAGE_DIR` =
+  `/srv/evly/files`, un dossier par Plan ; `Attachment.url` = `local:<planId>/<uuid>.<ext>`, `publicId` = le même
+  chemin, `resourceType` image / video (messages vocaux) / raw comme avant). Miniatures (`?w=`) par **sharp** et MP3 des
+  messages vocaux par **ffmpeg**, gardés en cache à côté du fichier ; `destroyFiles` / `purgePlanFiles` /
+  `purgeCircleFiles` effacent fichier et variantes. Le fichier rapatrié de Cloudinary l'a été par
+  `scripts/migrateFilesToLocal.ts` ; plus de paquet `cloudinary`. En local, les fichiers vont dans `server/storage/`
+  (ignoré par git, ffmpeg nécessaire pour les vocaux). Le texte qui suit sur Cloudinary décrit l'ancien
+  fonctionnement. Ancien : Cloudinary (upload, download via proxy backend + token
   JWT temporaire pour contourner les limitations mobile/Cloudinary). Depuis le
   2026-09-27 (conformité nLPD) : **l'URL Cloudinary ne sort jamais du serveur**
   (ni dans GET /plans/:id, ni à l'upload). Le client affiche via
