@@ -102,6 +102,18 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'en-bref', emoji: '✨', title: 'In breve', summary: 'Il riepilogo del Plan a colpo d’occhio',
+        body: <>
+          <P>Il pulsante <strong>In breve</strong> (sulla scheda del Plan e in cima alla pagina del Plan) riassume il Plan
+            <strong>per te</strong>: data, luogo, chi viene, informazioni importanti, il tuo passaggio, cosa porti, quanto
+            devi o ti devono, la tua colletta, i tuoi turni da volontario e cosa aspetta la tua risposta. Tocca una riga per
+            aprire la sezione.</P>
+          <P><strong>Copia il riepilogo</strong> copia un testo da inviare a qualcuno (data, luogo, chi viene, posti liberi,
+            cosa manca) con un link per rispondere, anche senza account. Non contiene nulla di personale. Solo per chi ha
+            risposto «Ci sono» o «Forse».</P>
+        </>,
+      },
+      {
         id: 'chat', emoji: '💬', title: 'Chat', summary: 'Menzioni, reazioni, foto, messaggi vocali',
         body: <>
           <L items={[

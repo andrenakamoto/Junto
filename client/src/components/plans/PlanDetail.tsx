@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,6 +35,7 @@ import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import { WheelSpinHost, openWheelSpin } from './WheelSection';
 import { QuizLiveHost, QuizTab } from './QuizTab';
+import { PlanSummarySheet } from './PlanSummarySheet';
 import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
@@ -112,6 +113,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -131,6 +133,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   const myMember = plan.members.find(m => m.userId === user.id);
   const isMember = !!myMember;
+  // « En bref » : participants « Je suis in » et « Peut-être »
+  const canSummary = isMember && myMember!.rsvp !== 'out';
 
   // Chat « collé en bas » : tant que la personne est au bas de la conversation, chaque
   // chargement, nouveau message ou redimensionnement (clavier, ouverture depuis une
@@ -649,6 +653,15 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           <div className="hidden xl:flex gap-1 flex-shrink-0">
             {isMember && (
               <>
+                {canSummary && (
+                  <button
+                    onClick={() => setShowSummary(true)}
+                    title={t('plan.summary.button')}
+                    className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                  >
+                    <Sparkles size={16} />
+                  </button>
+                )}
                 <button
                   onClick={() => setShowInvite(true)}
                   title={t('plan.detail.invite')}
@@ -938,6 +951,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         <>
           <div className="flex-1 overflow-y-auto bg-slate-50 short:flex-none short:overflow-visible">
             {header}
+            {canSummary && (
+              <div className="px-4 pt-4 -mb-1">
+                <button onClick={() => setShowSummary(true)} className="w-full flex items-center gap-3 p-4 rounded-2xl bg-indigo-600 text-white shadow-sm text-left active:bg-indigo-700">
+                  <span className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0"><Sparkles size={20} /></span>
+                  <span className="font-semibold">{t('plan.summary.button')}</span>
+                </button>
+              </div>
+            )}
             {hubCards}
           </div>
           {actionBar}
@@ -1081,6 +1102,16 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         />
       )}
 
+      {showSummary && (
+        <PlanSummarySheet
+          planId={plan.id}
+          onClose={() => setShowSummary(false)}
+          onOpenTab={key => {
+            setShowSummary(false);
+            if (visibleTabs.some(v => v.key === key)) { setTab(key as Tab); setHub(false); }
+          }}
+        />
+      )}
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />
       )}

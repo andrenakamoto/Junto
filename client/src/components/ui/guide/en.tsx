@@ -98,6 +98,18 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'en-bref', emoji: '✨', title: 'At a glance', summary: 'Your summary of the Plan in one look',
+        body: <>
+          <P>The <strong>At a glance</strong> button (on the Plan card and at the top of the Plan page) sums up the Plan
+            <strong>for you</strong>: date, place, who’s coming, important info, your ride, what you’re bringing, what you owe
+            or are owed, your group gift, your volunteer shifts and what’s waiting for your answer. Tap a line to open that
+            section.</P>
+          <P><strong>Copy the summary</strong> copies a text to send to someone (date, place, who’s coming, free seats,
+            what’s still needed) with a link to reply, even without an account. Nothing personal is included. Only for
+            “I’m in” and “Maybe” answers.</P>
+        </>,
+      },
+      {
         id: 'chat', emoji: '💬', title: 'Chat', summary: 'Mentions, reactions, photos, voice messages',
         body: <>
           <L items={[

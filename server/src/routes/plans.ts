@@ -42,6 +42,7 @@ import wordGameRoutes from './wordGame';
 import matchPollRoutes from './matchPoll';
 import wheelRoutes from './wheel';
 import assemblyRoutes from './assembly';
+import planSummaryRoutes from './planSummary';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
@@ -58,6 +59,7 @@ router.use(giftPotRoutes);
 router.use(wordGameRoutes);
 // Match de groupe (/:id/matches, /matches/…)
 router.use(matchPollRoutes);
+router.use(planSummaryRoutes);
 // « Qui s'y colle ? » (/:id/wheels, /wheels/…)
 router.use(wheelRoutes);
 // Assemblée (/:id/assembly…, /assembly/…)

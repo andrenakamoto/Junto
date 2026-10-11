@@ -205,6 +205,60 @@ function plan(id: string) {
   return p;
 }
 
+// « En bref » (GET /plans/:id/summary) : même calcul que le serveur (server/src/lib/planSummary.ts),
+// à partir des données de la démo, pour suivre les actions du visiteur (trajet, cagnotte, postes…)
+function demoSummary(id: string) {
+  const p = plan(id);
+  const mine = p.members.find((m: any) => m.userId === me.id);
+  if (!mine || mine.rsvp === 'out') throw new DemoError(403, 'Le résumé est réservé aux participants');
+  const on = (f: string) => !(p.disabledFeatures ?? []).includes(f);
+  const optional = (f: string) => (p.enabledFeatures ?? []).includes(f);
+  const nameOf = (uid: string) => { const u = p.members.find((m: any) => m.userId === uid)?.user; return u ? u.firstName ?? u.pseudo : '?'; };
+  const counts = { in: 0, maybe: 0, out: 0, waitlist: p.waitlist?.length ?? 0 };
+  for (const m of p.members) counts[m.rsvp === 'maybe' ? 'maybe' : m.rsvp === 'out' ? 'out' : 'in']++;
+  const rides: any[] = on('trajets') ? fixtures![`GET /rides/plan/${id}`]?.rides ?? [] : [];
+  const requests: any[] = on('trajets') ? fixtures![`GET /rides/plan/${id}`]?.requests ?? [] : [];
+  const offers = rides.map(r => ({ driver: nameOf(r.driverId), seatsFree: r.seats - r.passengers.length })).filter(o => o.seatsFree > 0).sort((a, b) => b.seatsFree - a.seatsFree);
+  const driving = rides.find(r => r.driverId === me.id);
+  const aboard = rides.find(r => r.passengers.some((x: any) => x.userId === me.id));
+  const request = requests.find(r => r.userId === me.id);
+  const ride = driving ? { role: 'driver', seatsFree: Math.max(driving.seats - driving.passengers.length, 0), passengers: driving.passengers.length, departure: driving.departure, departureAt: driving.departureAt }
+    : aboard ? { role: 'passenger', driver: nameOf(aboard.driverId), departure: aboard.departure, departureAt: aboard.departureAt }
+    : request ? { role: 'searching', from: request.fromLocation }
+    : offers.length ? { role: 'none', offers } : null;
+  const items: any[] = on('depenses') ? p.items ?? [] : [];
+  const label = (i: any) => (i.quantity ? `${i.label} (${i.quantity})` : i.label);
+  const bringMine = items.filter(i => i.claimedBy === me.pseudo).map(label);
+  const bringMissing = items.filter(i => !i.claimedBy).map(label);
+  const exp = on('depenses') ? fixtures![`GET /plans/${id}/expenses`] : null;
+  const transfers: any[] = exp?.suggestedTransfers ?? [];
+  const money = exp && (exp.expenses?.length || exp.reimbursements?.length) ? {
+    owe: transfers.filter(t => t.fromUserId === me.id).map(t => ({ to: nameOf(t.toUserId), amount: t.amount, currency: t.currency })),
+    owed: transfers.filter(t => t.toUserId === me.id).map(t => ({ from: nameOf(t.fromUserId), amount: t.amount, currency: t.currency })),
+  } : null;
+  const pot = optional('cagnotte') ? fixtures![`GET /plans/${id}/pot`] : null;
+  const pledge = pot?.myPledge;
+  const shifts: any[] = optional('benevoles') ? (fixtures![`GET /plans/${id}/shifts`]?.shifts ?? []).filter((sh: any) => sh.signups.some((x: any) => x.userId === me.id)) : [];
+  const polls: any[] = on('votes') ? p.polls ?? [] : [];
+  const matches: any[] = on('votes') ? fixtures![`GET /plans/${id}/matches`] ?? [] : [];
+  return {
+    plan: { id: p.id, title: p.title, eventDate: p.eventDate, endDate: p.endDate, location: p.location, importantInfo: (p.importantInfo ?? '').split('\n').map((l: string) => l.trim()).find(Boolean) ?? null },
+    myRsvp: mine.rsvp,
+    counts,
+    ride,
+    rideOffers: offers,
+    bring: bringMine.length || bringMissing.length ? { mine: bringMine, missing: bringMissing } : null,
+    money,
+    pot: pot && !pot.closed ? { forWhom: pot.forWhom, currency: pot.currency, amount: pledge?.amount ?? null, status: !pledge ? 'none' : pledge.received ? 'received' : pledge.declaredPaid ? 'paid' : 'pledged' } : null,
+    shifts: shifts.map(sh => ({ title: sh.title, startsAt: sh.startsAt, endsAt: sh.endsAt })),
+    todo: {
+      polls: polls.filter(pl => !pl.options.some((o: any) => o.votes.some((v: any) => v.userId === me.id))).length,
+      matches: matches.filter(m => !m.closed && m.isPlayer !== false && (m.deck?.length ?? 0) > 0).length,
+    },
+    photos: (p.attachments ?? []).filter((a: any) => String(a.mimeType).startsWith('image/') && !/^(match|quiz)-/.test(a.name)).length,
+  };
+}
+
 // Copies d'un même Plan dans les listes (/plans, /circles/:id/plans)
 function planCopies(id: string): any[] {
   const out: any[] = [];
@@ -460,6 +514,7 @@ function route(method: string, path: string, body: any): any {
   if (method === 'GET') {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
     if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
+    if ((m = path.match(/^\/plans\/([^/]+)\/summary$/))) return demoSummary(m[1]);
     if (key in fixtures!) return fixtures![key];
     if ((m = path.match(/^\/plans\/messages\/([^/]+)\/replies$/))) return fixtures![key] ?? [];
     if (path === '/circles/invitations/mine' || path === '/suggestions/mine' || path === '/moderation/blocks') return [];

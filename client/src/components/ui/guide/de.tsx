@@ -103,6 +103,18 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'en-bref', emoji: '✨', title: 'Kurz & bündig', summary: 'Deine Übersicht des Plans auf einen Blick',
+        body: <>
+          <P>Der Knopf <strong>Kurz & bündig</strong> (auf der Karte des Plans und oben auf der Planseite) fasst den Plan
+            <strong>für dich</strong> zusammen: Datum, Ort, wer kommt, wichtige Informationen, deine Fahrt, was du mitbringst,
+            was du schuldest oder was man dir schuldet, deine Sammelkasse, deine Helfereinsätze und was auf deine Antwort
+            wartet. Tippe auf eine Zeile, um den Bereich zu öffnen.</P>
+          <P><strong>Übersicht kopieren</strong> kopiert einen Text zum Weiterschicken (Datum, Ort, wer kommt, freie Plätze,
+            was fehlt) mit einem Link zum Antworten, auch ohne Konto. Nichts Persönliches steht darin. Nur für die Antworten
+            «Ich bin dabei» und «Vielleicht».</P>
+        </>,
+      },
+      {
         id: 'chat', emoji: '💬', title: 'Chat', summary: 'Erwähnungen, Reaktionen, Fotos, Sprachnachrichten',
         body: <>
           <L items={[

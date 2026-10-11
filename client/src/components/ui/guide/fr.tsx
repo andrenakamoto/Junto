@@ -99,6 +99,18 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'en-bref', emoji: '✨', title: 'En bref', summary: 'Ta synthèse du Plan en un coup d’œil',
+        body: <>
+          <P>Le bouton <strong>En bref</strong> (sur la carte du Plan, et en tête de la fiche) résume le Plan <strong>pour
+            toi</strong> : date, lieu, qui vient, informations importantes, ton trajet, ce que tu apportes, ce que tu dois ou ce
+            qu’on te doit, ta cagnotte, tes postes de bénévole et ce qui attend ta réponse. Touche une ligne pour ouvrir la
+            rubrique.</P>
+          <P><strong>Copier le résumé</strong> copie un texte à envoyer à quelqu’un (date, lieu, qui vient, places libres, ce
+            qui manque), avec un lien pour répondre, même sans compte. Rien de personnel n’y figure. Réservé aux réponses
+            « Je suis in » et « Peut-être ».</P>
+        </>,
+      },
+      {
         id: 'chat', emoji: '💬', title: 'Chat', summary: 'Mentions, réactions, photos, messages vocaux',
         body: <>
           <L items={[

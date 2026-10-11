@@ -185,5 +185,6 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Trop tard : le temps est écoulé': ['Zu spät: Die Zeit ist abgelaufen', 'Troppo tardi: il tempo è scaduto', 'Too late: time’s up'],
   'Tu as déjà répondu': ['Du hast schon geantwortet', 'Hai già risposto', 'You’ve already answered'],
   'Pas de question en cours': ['Keine laufende Frage', 'Nessuna domanda in corso', 'No question in progress'],
+  'Le résumé est réservé aux participants': ['Die Übersicht ist den Teilnehmenden vorbehalten', 'Il riepilogo è riservato ai partecipanti', 'The summary is for participants only'],
   'Affiche d’abord la réponse': ['Zeig zuerst die Antwort', 'Mostra prima la risposta', 'Show the answer first'],
 };

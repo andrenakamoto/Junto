@@ -5,6 +5,7 @@ import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
+import { PlanSummarySheet } from './PlanSummarySheet';
 import { CreatePlanModal } from './CreatePlanModal';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
 import { LeaveCircleModal } from '../circles/LeaveCircleModal';
@@ -24,7 +25,7 @@ interface Props {
   plans: Plan[];
   loading: boolean;
   selectedPlanId: string | null;
-  onSelectPlan: (plan: Plan) => void;
+  onSelectPlan: (plan: Plan, tab?: string) => void;
   onPlanCreated: (plan: Plan) => void;
   onCircleDeleted: () => void;
   onCircleUpdated: (circle: Circle) => void;
@@ -45,6 +46,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [summaryPlan, setSummaryPlan] = useState<Plan | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
@@ -249,6 +251,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               isSelected={plan.id === selectedPlanId}
               isUnread={unreadPlans.has(plan.id)}
               onClick={() => onSelectPlan(plan)}
+              onSummary={() => setSummaryPlan(plan)}
             />
           ))
         )}
@@ -322,6 +325,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           onClose={() => setShowLeave(false)}
           onLeft={() => { setShowLeave(false); onCircleDeleted(); }}
         />
+      )}
+      {summaryPlan && (
+        <PlanSummarySheet planId={summaryPlan.id} onClose={() => setSummaryPlan(null)} onOpenTab={tab => { const p = summaryPlan; setSummaryPlan(null); onSelectPlan(p, tab); }} />
       )}
     </div>
   );

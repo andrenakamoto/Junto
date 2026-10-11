@@ -1,4 +1,4 @@
-import { Calendar, MapPin, MessageSquare, Users, Repeat } from 'lucide-react';
+import { Calendar, MapPin, MessageSquare, Users, Repeat, Sparkles } from 'lucide-react';
 import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,6 +11,8 @@ interface Props {
   isSelected: boolean;
   isUnread?: boolean;
   onClick: () => void;
+  /** « En bref » : synthèse du Plan (participants « Je suis in » et « Peut-être ») */
+  onSummary?: () => void;
 }
 
 const rsvpBadge = {
@@ -20,7 +22,7 @@ const rsvpBadge = {
 };
 const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 
-export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props) {
+export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummary }: Props) {
   const { user } = useAuth();
   const myMember = plan.members.find(m => m.userId === user?.id);
   const inCount = plan.members.filter(m => m.rsvp === 'in').length;
@@ -103,6 +105,18 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick }: Props)
         )}
         {myMember && (plan._count?.messages ?? 0) > 0 && (
           <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
+        )}
+        {onSummary && myMember && myMember.rsvp !== 'out' && (
+          // Dans la carte (elle-même un bouton) : « role=button » pour ne pas imbriquer deux boutons
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={e => { e.stopPropagation(); onSummary(); }}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSummary(); } }}
+            className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 hover:bg-indigo-100"
+          >
+            <Sparkles size={11} />{t('plan.summary.button')}
+          </span>
         )}
       </div>
     </button>
