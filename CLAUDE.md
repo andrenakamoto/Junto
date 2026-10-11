@@ -389,6 +389,9 @@ Conséquences pratiques :
     **Version 1.0.12** (2026-10-10) : Android `versionCode` 13 (`evly-1.0.12-(13).aab`), iOS build 14 envoyé — 4 langues
     (allemand, italien, anglais), quiz en direct, « Agenda » natif (autorisation agenda iOS), retour à la ligne dans le
     chat, cœur rouge des matchs, noms de fichiers accentués.
+    **Version 1.0.13** (2026-10-11) : Android `versionCode` 14 (`evly-1.0.13-(14).aab`), iOS build 15 envoyé — **API en
+    Suisse (`https://api.evly.ch`, Infomaniak)**, « En bref », message de fin du match. Les versions antérieures passent par
+    le relais Railway (`server/relay.js`) tant qu'il est allumé.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
