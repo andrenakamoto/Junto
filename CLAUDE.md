@@ -1436,7 +1436,10 @@ son Plan juste après avoir accepté l'invitation).
 > 2 vCPU / 4 Go, IP **179.237.127.103**) : nginx sert **www.evly.ch** (site, ex-Vercel) et **api.evly.ch** (API +
 > socket.io, ex-Railway), Node 22 (service systemd `evly-api`, `ENABLE_CRON=true`), **PostgreSQL 18 local** (base
 > `evly`), certificats Let's Encrypt (certbot, renouvellement automatique), sauvegarde quotidienne `pg_dump` à 3 h 15
-> (`/srv/evly/backups`, 14 jours) + Swiss Backup commandé (à brancher). Tout est dans **`deploy/infomaniak/`**
+> (`/srv/evly/backups`, 14 jours), copiée chaque nuit à 3 h 45 avec les fichiers vers **Swiss Backup** (S3, bucket
+> `evly-sauvegardes`, base gardée 30 jours, `deploy/infomaniak/offsite.sh`). **Emails** : SMTP Infomaniak
+> (`noreply@evly.ch`, mot de passe d'appareil « Serveur EvLY », variables `SMTP_*` dans app.env ; Resend seulement si
+> `SMTP_HOST` est absent). Tout est dans **`deploy/infomaniak/`**
 > (LISEZMOI). Accès depuis le Mac : clé **`~/.ssh/evly_infomaniak`**, `ubuntu@179.237.127.103` (sudo) ou
 > `evly@…` (mises en ligne). **Mettre en ligne** = pousser sur `main` **puis**
 > `ssh -i ~/.ssh/evly_infomaniak evly@179.237.127.103 'bash /srv/evly/app/deploy/infomaniak/deploy.sh'`
@@ -1446,7 +1449,7 @@ son Plan juste après avoir accepté l'invitation).
 > Pare-feu : Ubuntu (ufw) **et** pare-feu du Manager Infomaniak (ports 22, 80, 443 seulement).
 > **Railway ne sert plus que de relais** (`server/relay.js`, `server/railway.toml`) vers api.evly.ch pour les apps
 > antérieures à la 1.0.13 (adresse Railway codée en dur) ; ses tâches planifiées sont coupées. À arrêter quand tout le
-> monde a mis à jour. Vercel et Cloudinary (photos, encore utilisé) restent à quitter ; emails toujours via Resend.
+> monde a mis à jour. Vercel reste à fermer ; Cloudinary et Resend ne sont plus utilisés.
 > Le texte ci-dessous décrit l'ancienne installation (Vercel / Railway), gardé pour l'historique.
 
 - **Frontend** : Vercel, domaine principal **www.evly.ch** (evly.ch redirige

@@ -60,7 +60,10 @@ install -m 644 "$SRC/nginx-evly.conf" /etc/nginx/sites-available/evly.conf
 ln -sf /etc/nginx/sites-available/evly.conf /etc/nginx/sites-enabled/evly.conf
 rm -f /etc/nginx/sites-enabled/default
 install -m 755 "$SRC/backup.sh" /usr/local/bin/evly-backup
-echo '15 3 * * * evly /usr/local/bin/evly-backup' > /etc/cron.d/evly-backup
+install -m 755 "$SRC/offsite.sh" /usr/local/bin/evly-offsite
+# Sauvegarde locale à 3 h 15, copie vers Swiss Backup à 3 h 45 (si /etc/evly/backup.env existe)
+printf '15 3 * * * evly /usr/local/bin/evly-backup\n45 3 * * * evly [ -f /etc/evly/backup.env ] && /usr/local/bin/evly-offsite >> /srv/evly/backups/offsite.log 2>&1\n' > /etc/cron.d/evly-backup
+apt-get install -y -q rclone >/dev/null
 # Le compte evly peut redémarrer son service (mise en ligne), rien d'autre
 echo 'evly ALL=(root) NOPASSWD: /bin/systemctl restart evly-api, /bin/systemctl reload nginx' > /etc/sudoers.d/evly
 chmod 440 /etc/sudoers.d/evly
