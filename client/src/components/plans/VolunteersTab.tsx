@@ -78,8 +78,10 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
 
   const isMine = (s: VolunteerShift) => s.signups.some(x => x.userId === userId);
   const mine = shifts.filter(isMine);
-  const missing = shifts.reduce((n, s) => n + Math.max(0, s.needed - s.signups.length), 0);
-  const openShifts = shifts.filter(s => s.signups.length < s.needed).length;
+  // Les lignes à 0 personne sont du programme : pas d'inscription, pas comptées dans le résumé
+  const toFill = shifts.filter(s => s.needed > 0);
+  const missing = toFill.reduce((n, s) => n + Math.max(0, s.needed - s.signups.length), 0);
+  const openShifts = toFill.filter(s => s.signups.length < s.needed).length;
   const myRsvp = plan.members.find(m => m.userId === userId)?.rsvp;
   const list = mineOnly ? mine : shifts;
 
@@ -92,7 +94,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
       {/* Résumé */}
-      {shifts.length > 0 && (
+      {toFill.length > 0 && (
         missing > 0 ? (
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
             <AlertTriangle size={16} className="flex-shrink-0" />
@@ -159,7 +161,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
         ))}
       </div>
 
-      {shifts.length > 0 && (
+      {toFill.length > 0 && (
         <p className="text-xs text-slate-400 text-center">{t('games.volunteers.footer')}</p>
       )}
     </div>
@@ -173,6 +175,25 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
   const mine = s.signups.some(x => x.userId === userId);
   const full = s.signups.length >= s.needed;
   const hours = shiftHours(s);
+  const actions = canManage && (
+    <span className="flex-shrink-0 flex -mr-1">
+      <button onClick={onEdit} title={t('games.volunteers.editShift')} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
+      <button onClick={onDelete} title={t('games.volunteers.deleteShift')} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
+    </span>
+  );
+  // Ligne de programme (0 personne) : horaire et remarque, sans inscription
+  if (s.needed === 0) return (
+    <div className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100/70">
+      <div className="flex items-start gap-2">
+        <Clock size={14} className="flex-shrink-0 mt-0.5 text-slate-400" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-slate-700 break-words">{hours && <span className="font-semibold text-slate-800">{hours} · </span>}{s.title}</p>
+          {s.note && <p className="text-xs text-slate-500 mt-1 whitespace-pre-wrap break-words">{s.note}</p>}
+        </div>
+        {actions}
+      </div>
+    </div>
+  );
   return (
     <div className={`p-3.5 rounded-xl border shadow-sm ${mine ? 'bg-indigo-50/60 border-indigo-200' : 'bg-white border-slate-200'}`}>
       <div className="flex items-start gap-2">
@@ -183,12 +204,7 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
         <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${full ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
           {s.signups.length}/{s.needed}
         </span>
-        {canManage && (
-          <span className="flex-shrink-0 flex -mr-1">
-            <button onClick={onEdit} title={t('games.volunteers.editShift')} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
-            <button onClick={onDelete} title={t('games.volunteers.deleteShift')} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
-          </span>
-        )}
+        {actions}
       </div>
       {s.note && <p className="text-xs text-slate-500 mt-1.5 whitespace-pre-wrap break-words">{s.note}</p>}
 
@@ -254,7 +270,7 @@ function ShiftForm({ plan, shift, onSubmit, onCancel }: {
       <div className="flex gap-2">
         <input autoFocus required value={title} onChange={e => setTitle(e.target.value)} maxLength={100} placeholder={t('games.volunteers.titlePlaceholder')} className={`flex-1 ${input}`} />
         <label className="flex items-center gap-1.5 text-xs text-slate-500 flex-shrink-0">
-          <input type="number" min={1} max={200} required value={needed} onChange={e => setNeeded(e.target.value)} className={`w-16 ${input}`} aria-label={t('games.volunteers.peopleCount')} />
+          <input type="number" min={0} max={200} required value={needed} onChange={e => setNeeded(e.target.value)} className={`w-16 ${input}`} aria-label={t('games.volunteers.peopleCount')} />
           {t('games.volunteers.persons')}
         </label>
       </div>
@@ -269,6 +285,7 @@ function ShiftForm({ plan, shift, onSubmit, onCancel }: {
           <input type="time" value={end} onChange={e => setEnd(e.target.value)} disabled={!start} className={`w-28 ${input} disabled:opacity-50`} />
         </label>
       </div>
+      {needed === '0' && <p className="text-xs text-slate-500">{t('games.volunteers.zeroHint')}</p>}
       <input value={note} onChange={e => setNote(e.target.value)} maxLength={300} placeholder={t('games.volunteers.notePlaceholder')} className={input} />
       <div className="flex gap-2 justify-end">
         <button type="button" onClick={onCancel} className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">{t('common.cancel')}</button>

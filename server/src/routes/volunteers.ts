@@ -104,6 +104,7 @@ router.post('/shifts/:shiftId/signup', async (req: AuthRequest, res) => {
   const userId = req.userId!;
   const already = await prisma.volunteerSignup.findUnique({ where: { shiftId_userId: { shiftId: shift.id, userId } } });
   if (already) { res.status(409).json({ error: 'Tu es déjà inscrit(e) à ce poste' }); return; }
+  if (shift.needed === 0) { res.status(409).json({ error: 'Pas d’inscription pour cette ligne du planning' }); return; }
   if (shift._count.signups >= shift.needed) { res.status(409).json({ error: 'Ce poste est complet' }); return; }
 
   // S'inscrire = participer au Plan

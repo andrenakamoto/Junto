@@ -29,7 +29,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Nom du poste : {0} caractères maximum': ['Name des Einsatzes: höchstens {0} Zeichen', 'Nome del turno: al massimo {0} caratteri', 'Shift name: {0} characters at most'],
   'Nom du poste requis': ['Name des Einsatzes erforderlich', 'Nome del turno obbligatorio', 'Shift name required'],
   'Nom requis': ['Name erforderlich', 'Nome obbligatorio', 'Name required'],
-  'Nombre de personnes : entre 1 et {0}': ['Anzahl Personen: 1 bis {0}', 'Numero di persone: da 1 a {0}', 'Number of people: 1 to {0}'],
+  'Nombre de personnes : entre 0 et {0}': ['Anzahl Personen: 0 bis {0}', 'Numero di persone: da 0 a {0}', 'Number of people: 0 to {0}'],
   'Nombre de places invalide (1 à {0})': ['Ungültige Anzahl Plätze (1 bis {0})', 'Numero di posti non valido (da 1 a {0})', 'Invalid number of seats (1 to {0})'],
   'Non authentifié': ['Nicht angemeldet', 'Non autenticato', 'Not logged in'],
   'Numéro invalide': ['Ungültige Nummer', 'Numero non valido', 'Invalid number'],

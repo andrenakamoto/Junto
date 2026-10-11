@@ -6,10 +6,11 @@ const d = (h: number, m = 0) => new Date(Date.UTC(2026, 9, 10, h, m));
 describe('parseShiftInput', () => {
   it('accepte un poste sans horaire, 1 personne par défaut', () => {
     expect(parseShiftInput({ title: '  Buvette ' })).toEqual({ title: 'Buvette', needed: 1, note: null, startsAt: null, endsAt: null });
+    expect(parseShiftInput({ title: 'Ouverture des portes', needed: 0 })).toMatchObject({ needed: 0 });
   });
   it('refuse un nom vide, un nombre invalide, une fin sans début ou avant le début', () => {
     expect(parseShiftInput({ title: ' ' })).toHaveProperty('error');
-    expect(parseShiftInput({ title: 'A', needed: 0 })).toHaveProperty('error');
+    expect(parseShiftInput({ title: 'A', needed: -1 })).toHaveProperty('error');
     expect(parseShiftInput({ title: 'A', needed: 2.5 })).toHaveProperty('error');
     expect(parseShiftInput({ title: 'A', endsAt: d(10).toISOString() })).toHaveProperty('error');
     expect(parseShiftInput({ title: 'A', startsAt: d(10).toISOString(), endsAt: d(9).toISOString() })).toHaveProperty('error');

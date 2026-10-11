@@ -10,7 +10,7 @@ import { notifyUser } from './push';
 export const SHIFT_TITLE_MAX = 100;
 export const SHIFT_NOTE_MAX = 300;
 export const SHIFT_NEEDED_MAX = 200;
-export const VOLUNTEERS_DISABLED_ERROR = 'Le planning des bénévoles n’est pas activé pour ce Plan';
+export const VOLUNTEERS_DISABLED_ERROR = 'Le planning n’est pas activé pour ce Plan';
 
 export function volunteersEnabled(plan: { enabledFeatures: string[] }): boolean {
   return plan.enabledFeatures.includes('benevoles');
@@ -40,9 +40,10 @@ export function parseShiftInput(body: any): ShiftData | { error: string } {
   const title = typeof body?.title === 'string' ? body.title.trim() : '';
   if (!title) return { error: 'Nom du poste requis' };
   if (title.length > SHIFT_TITLE_MAX) return { error: `Nom du poste : ${SHIFT_TITLE_MAX} caractères maximum` };
+  // 0 = simple ligne de programme (horaire affiché, sans inscription)
   const needed = Number(body?.needed ?? 1);
-  if (!Number.isInteger(needed) || needed < 1 || needed > SHIFT_NEEDED_MAX) {
-    return { error: `Nombre de personnes : entre 1 et ${SHIFT_NEEDED_MAX}` };
+  if (!Number.isInteger(needed) || needed < 0 || needed > SHIFT_NEEDED_MAX) {
+    return { error: `Nombre de personnes : entre 0 et ${SHIFT_NEEDED_MAX}` };
   }
   const note = typeof body?.note === 'string' && body.note.trim() ? body.note.trim() : null;
   if (note && note.length > SHIFT_NOTE_MAX) return { error: `Remarque : ${SHIFT_NOTE_MAX} caractères maximum` };

@@ -779,7 +779,7 @@ function route(method: string, path: string, body: any): any {
     const list = route('GET', path, null);
     if (!list.canManage) throw new DemoError(403, tr('ui.demoApi.shiftsManagers'));
     if (!String(body.title ?? '').trim()) throw new DemoError(400, 'Nom du poste requis');
-    list.shifts.push({ id: newId('shift'), title: String(body.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null, signups: [] });
+    list.shifts.push({ id: newId('shift'), title: String(body.title).trim(), needed: Number(body.needed ?? 1), note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null, signups: [] });
     list.shifts.sort((a: any, b: any) => (a.startsAt ? 0 : 1) - (b.startsAt ? 0 : 1) || String(a.startsAt).localeCompare(String(b.startsAt)));
     changed(m[1]);
     return { ok: true };
@@ -790,8 +790,8 @@ function route(method: string, path: string, body: any): any {
     const { planId, list, shift } = found;
     if (!m[2] && method === 'PUT') {
       if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
-      if ((Number(body.needed) || 1) < shift.signups.length) throw new DemoError(400, tr('ui.demoApi.shiftTooSmall', { count: shift.signups.length }));
-      Object.assign(shift, { title: String(body.title ?? shift.title).trim(), needed: Number(body.needed) || 1, note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null });
+      if (Number(body.needed ?? 1) < shift.signups.length) throw new DemoError(400, tr('ui.demoApi.shiftTooSmall', { count: shift.signups.length }));
+      Object.assign(shift, { title: String(body.title ?? shift.title).trim(), needed: Number(body.needed ?? 1), note: body.note || null, startsAt: body.startsAt ?? null, endsAt: body.endsAt ?? null });
     } else if (!m[2] && method === 'DELETE') {
       if (!list.canManage) throw new DemoError(403, NOT_IN_DEMO);
       list.shifts = list.shifts.filter((x: any) => x !== shift);

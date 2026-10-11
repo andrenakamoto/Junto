@@ -128,11 +128,19 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     const shifts = sortShifts(plan.volunteerShifts);
     const filled = shifts.reduce((n, s) => n + Math.min(s.signups.length, s.needed), 0);
     const needed = shifts.reduce((n, s) => n + s.needed, 0);
-    section(m.s('recapPdf.volunteers'), m.s('recapPdf.volunteersSub', { filled, needed }));
+    section(m.s('recapPdf.volunteers'), needed > 0 ? m.s('recapPdf.volunteersSub', { filled, needed }) : undefined);
     for (const s of shifts) {
       if (doc.y > doc.page.height - 110) doc.addPage();
       const hours = shiftHours(s, m.intl);
       const missing = s.needed - s.signups.length;
+      // Ligne de programme (0 personne) : titre, horaire et remarque seulement
+      if (s.needed === 0) {
+        doc.font('semibold').fontSize(10.5).fillColor(INK).text(s.title, { continued: !!hours });
+        if (hours) doc.font('regular').fillColor(DIM).text(`  ·  ${hours}`);
+        if (s.note) para(s.note, DIM);
+        doc.moveDown(0.5);
+        continue;
+      }
       doc.font('semibold').fontSize(10.5).fillColor(INK).text(s.title, { continued: true })
         .font('regular').fillColor(DIM).text(`${hours ? `  ·  ${hours}` : ''}  ·  ${s.signups.length}/${s.needed}`, { continued: missing > 0 })
       if (missing > 0) doc.font('semibold').fillColor(CORAL).text(m.s('recapPdf.missing', { count: missing }));
