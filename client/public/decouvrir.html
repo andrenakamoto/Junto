@@ -74,10 +74,12 @@
   .wordmark .ev { font-style: italic; font-weight: 300; }
   .wordmark .ly { font-weight: 800; color: var(--coral-600); }
   .tagline { margin-top: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--coral-700); }
-  .hero { margin: 5mm 0 0; font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 38px; line-height: 1.05; text-wrap: balance; }
+  .hero { margin: 4mm 0 0; font-family: 'Fraunces', Georgia, serif; font-weight: 800; font-size: 38px; line-height: 1.05; text-wrap: balance; }
   .hero em { font-style: italic; font-weight: 300; color: var(--coral-600); }
   .sub { margin: 2.5mm 0 0; font-size: 13px; color: var(--ink-dim); }
   .sub2 { margin-top: 1mm; }
+  .swiss { display: inline-flex; align-items: center; gap: 2.2mm; margin: 3.5mm 0 0; padding: 2mm 4.5mm; border: 1.5px solid #da291c; border-radius: 999px; background: #fff5f5; font-size: 14px; font-weight: 800; color: var(--ink); }
+  .swiss .flag { width: 18px; height: 18px; flex-shrink: 0; }
 
   .label { margin: 9mm 0 3.5mm; font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--coral-700); text-align: center; }
 
@@ -155,9 +157,11 @@
     .who { margin-bottom: 0; }
     /* Tient sur une seule page A4 */
     .page { padding-top: 8mm; padding-bottom: 7mm; }
-    .label { margin: 5.5mm 0 2.5mm; }
-    .tile { padding: 3mm 1.5mm; }
-    .foot { padding-top: 3.5mm; }
+    .label { margin: 4.5mm 0 2mm; }
+    .tile { padding: 2.5mm 1.5mm; }
+    .tile .ico { margin-bottom: 1mm; }
+    .foot { padding-top: 3mm; }
+    .hero { margin-top: 3mm; }
   }
 
   @media (max-width: 560px) {
@@ -184,6 +188,7 @@
   <header class="head">
     <div class="wordmark"><span class="ev">Ev</span><span class="ly">LY</span></div>
     <div class="tagline">Events Linked to You</div>
+    <p class="swiss"><svg class="flag" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4" fill="#da291c"/><rect x="13" y="6" width="6" height="20" fill="#fff"/><rect x="6" y="13" width="20" height="6" fill="#fff"/></svg><span>Développé et hébergé en Suisse · tes données restent en Suisse</span></p>
     <h1 class="hero">Un événement, <em>une conversation.</em></h1>
     <p class="sub">La messagerie ordinaire mélange tout. EvLY range chaque sortie à sa place.</p>
     <p class="sub sub2">Une surprise à préparer ? Pas de nouveau groupe à créer : EvLY cache le Plan à la personne concernée.</p>
@@ -246,7 +251,7 @@
   </div>
 
   <footer class="foot">
-    <p class="cta">Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone. Android bientôt.</small><a class="cta-btn" href="/organiser" data-step="funnel_cta_express">Organiser une sortie</a><a class="cta-btn cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Créer mon compte</a></p>
+    <p class="cta">Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small><a class="cta-btn" href="/organiser" data-step="funnel_cta_express">Organiser une sortie</a><a class="cta-btn cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Créer mon compte</a></p>
     <div class="qr">
       <div class="qr-text">
         <div class="url"><a href="https://www.evly.ch">evly.ch</a></div>

@@ -16,6 +16,7 @@ const T = {
     ['Un événement, <em>une conversation.</em>', 'Ein Anlass, <em>ein Gespräch.</em>'],
     ['La messagerie ordinaire mélange tout. EvLY range chaque sortie à sa place.', 'Der gewöhnliche Messenger wirft alles durcheinander. EvLY gibt jedem Treffen seinen Platz.'],
     ['Une surprise à préparer ? Pas de nouveau groupe à créer : EvLY cache le Plan à la personne concernée.', 'Eine Überraschung vorbereiten? Keine neue Gruppe nötig: EvLY versteckt den Plan vor der betroffenen Person.'],
+    ['<span>Développé et hébergé en Suisse · tes données restent en Suisse</span>', '<span>In der Schweiz entwickelt und gehostet · deine Daten bleiben in der Schweiz</span>'],
     ['>Organiser une sortie</a>', '>Einen Ausflug organisieren</a>'],
     ['>Créer mon compte</a>', '>Konto erstellen</a>'],
     ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'Ohne Konto: Du erstellst deinen Ausflug, teilst den Link, und deine Freunde antworten, ohne etwas zu installieren. <a href="/demo">Oder probier die Demo →</a>'],
@@ -53,7 +54,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Familie &amp; Freunde</b><span>Omas Geburtstag</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Arbeitskollegen</b><span>Der Teamapéro</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Vereine</b><span>Die GV, von der Einladung bis zum Protokoll</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone. Android bientôt.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in der iPhone-App. Android folgt bald.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, in der Schweiz entwickelt und gehostet. Im Browser oder in der iPhone-App; Android folgt bald.</small>'],
   ],
   it: [
     ['<html lang="fr">', '<html lang="it">'],
@@ -64,6 +65,7 @@ const T = {
     ['Un événement, <em>une conversation.</em>', 'Un evento, <em>una conversazione.</em>'],
     ['La messagerie ordinaire mélange tout. EvLY range chaque sortie à sa place.', 'La messaggistica di sempre mescola tutto. EvLY mette ogni uscita al suo posto.'],
     ['Une surprise à préparer ? Pas de nouveau groupe à créer : EvLY cache le Plan à la personne concernée.', 'Una sorpresa da preparare? Nessun nuovo gruppo da creare: EvLY nasconde il Plan alla persona interessata.'],
+    ['<span>Développé et hébergé en Suisse · tes données restent en Suisse</span>', '<span>Sviluppato e ospitato in Svizzera · i tuoi dati restano in Svizzera</span>'],
     ['>Organiser une sortie</a>', '>Organizza un’uscita</a>'],
     ['>Créer mon compte</a>', '>Crea il mio account</a>'],
     ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'Senza account: crei la tua uscita, condividi il link, i tuoi amici rispondono senza installare nulla. <a href="/demo">Oppure prova la demo →</a>'],
@@ -101,7 +103,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Famiglia &amp; amici</b><span>Il compleanno della nonna</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleghi</b><span>L’aperitivo di squadra</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associazioni</b><span>L’assemblea, dalla convocazione al verbale</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone. Android bientôt.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, nel browser o nell’app per iPhone. Android a breve.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, sviluppato e ospitato in Svizzera. Nel browser o nell’app per iPhone; Android a breve.</small>'],
   ],
   en: [
     ['<html lang="fr">', '<html lang="en">'],
@@ -112,6 +114,7 @@ const T = {
     ['Un événement, <em>une conversation.</em>', 'One event, <em>one conversation.</em>'],
     ['La messagerie ordinaire mélange tout. EvLY range chaque sortie à sa place.', 'Ordinary messaging mixes everything up. EvLY gives every outing its own place.'],
     ['Une surprise à préparer ? Pas de nouveau groupe à créer : EvLY cache le Plan à la personne concernée.', 'Planning a surprise? No need for a new group: EvLY hides the Plan from the person concerned.'],
+    ['<span>Développé et hébergé en Suisse · tes données restent en Suisse</span>', '<span>Developed and hosted in Switzerland · your data stays in Switzerland</span>'],
     ['>Organiser une sortie</a>', '>Organise an outing</a>'],
     ['>Créer mon compte</a>', '>Create my account</a>'],
     ['Sans compte : tu crées ta sortie, tu partages le lien, tes amis répondent sans rien installer. <a href="/demo">Ou essaie la démo →</a>', 'No account needed: create your outing, share the link, and your friends reply without installing anything. <a href="/demo">Or try the demo →</a>'],
@@ -149,7 +152,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Family &amp; friends</b><span>Grandma’s birthday</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleagues</b><span>Team drinks after work</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associations</b><span>The AGM, from notice to minutes</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone. Android bientôt.</small>", 'Organise your next event.<small>Free, in the browser or the iPhone app. Android coming soon.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, développé et hébergé en Suisse. Dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organise your next event.<small>Free, developed and hosted in Switzerland. In the browser or the iPhone app; Android coming soon.</small>'],
   ],
 };
 
