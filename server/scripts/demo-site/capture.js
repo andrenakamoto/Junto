@@ -17,8 +17,8 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     if ((I.killerPlans || []).includes(id)) await take(`/plans/${id}/killer`);
     if ((I.matchPlans || []).includes(id)) {
       await take(`/plans/${id}/matches`);
-      // Vue complète d'un joueur qui a fini (Tom), pour simuler les résultats quand Alex a joué
-      const r = await fetch(`${API}/plans/${id}/matches`, { headers: { Authorization: `Bearer ${I.tom}` } });
+      // Vue complète d'un joueur qui a fini (Tom, ou matchViewers), pour simuler les résultats quand Alex a joué
+      const r = await fetch(`${API}/plans/${id}/matches`, { headers: { Authorization: `Bearer ${(I.matchViewers || {})[id] || I.tom}` } });
       if (r.ok) fx[`DEMO_FULL /plans/${id}/matches`] = await r.json();
     }
     if ((I.wheelPlans || []).includes(id)) await take(`/plans/${id}/wheels`);

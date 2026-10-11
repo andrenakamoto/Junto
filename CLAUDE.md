@@ -1330,7 +1330,7 @@ le 403 de la démo), **Killer** (« J'ai eu ma cible » : la cible confirme 3 s 
 mission), **tournoi** (scores du championnat, classement recalculé) et **cagnotte** (participation, « J'ai
 payé », idées, votes, réglages d'Alex) (2026-10-07). « Foot de la semaine » montre
 un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
-disponible… ». Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
+disponible… ». Deux Cercles de plus (2026-10-11) : **« Collègues »** (« Afterwork de fin de mois 🍻 » créé par Alex, match « Où va-t-on pour l'afterwork ? » : les collègues ont joué, oui de tous à la brasserie ; vue complète de Sarah via `matchViewers` dans `ids.json`) et **« Team évènements »** (« Atelier peinture 🎨 », planning des bénévoles, Alex organisateur du Cercle et « Peut-être » : s'inscrire le passe en « Je suis in »). Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans

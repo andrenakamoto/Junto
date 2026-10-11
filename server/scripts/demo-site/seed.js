@@ -186,7 +186,62 @@ const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() +
   await call('POST', `/plans/assembly/items/${agComptes}/close`, {}, T.lea_m);
   await call('POST', `/plans/assembly/items/${agCotis}/open`, {}, T.lea_m);
   for (const [p, ch] of [['lea_m', 'yes'], ['tom_b', 'yes'], ['julie_r', 'no'], ['noah_p', 'yes']]) await call('POST', `/plans/assembly/items/${agCotis}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
-  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id], plans: [ag.id, raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id], wheelPlans: [raclette.id], assemblyPlans: [ag.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
+  // Cercle 3 : les collègues de bureau. Afterwork organisé par Alex, le lieu se choisit avec un match :
+  // les collègues ont joué, tous ont dit oui à la brasserie (Alex dit oui aussi = c'est un match)
+  for (const [pseudo, firstName] of [['sarah_k', 'Sarah'], ['marc_l', 'Marc'], ['ines_b', 'Inès'], ['karim_a', 'Karim'], ['nadia_f', 'Nadia'], ['paul_r', 'Paul'], ['zoe_m', 'Zoé']]) {
+    U[pseudo] = await prisma.user.create({ data: { pseudo, firstName, email: `${pseudo}@exemple.test`, emailVerified: true, acceptedTermsVersion: 99 } });
+    T[pseudo] = jwt.sign({ userId: U[pseudo].id, pseudo }, 'test-secret');
+  }
+  const col = await prisma.circle.create({ data: { name: 'Collègues', description: 'Pauses café, afterworks et sorties d’équipe ☕', code: 'BUREAU', color: '#8b5cf6', creatorId: U.sarah_k.id,
+    members: { create: ['sarah_k', 'alex', 'marc_l', 'ines_b', 'karim_a'].map(p => ({ userId: U[p].id, role: p === 'sarah_k' ? 'admin' : 'member' })) } } });
+  const afterwork = await mk(col, 'alex', { title: 'Afterwork de fin de mois 🍻', description: 'On fête la fin du projet ! Le lieu se choisit avec le match dans l’onglet Votes 👇', eventDate: at(5, 18), endDate: at(5, 23, 30) });
+  for (const [p, rsvp] of [['sarah_k', 'in'], ['marc_l', 'in'], ['ines_b', 'in'], ['karim_a', 'maybe']]) {
+    await call('POST', `/plans/${afterwork.id}/join`, {}, T[p]);
+    if (rsvp !== 'in') await call('PUT', `/plans/${afterwork.id}/rsvp`, { rsvp }, T[p]);
+  }
+  const bar = await call('POST', `/plans/${afterwork.id}/matches`, { question: 'Où va-t-on pour l’afterwork ?', options: [
+    { label: 'Rooftop de la gare', note: 'Cocktails et vue sur les toits' }, { label: 'Brasserie artisanale', note: 'Bières locales et planchettes' },
+    { label: 'Bowling & burgers', note: 'Deux pistes à réserver' }, { label: 'Karaoké', note: 'Pour finir en chanson 🎤' }] }, T.sarah_k);
+  const bopts = await prisma.matchOption.findMany({ where: { matchId: bar.id } });
+  for (const [who, likes] of [['sarah_k', ['Rooftop', 'Brasserie']], ['marc_l', ['Brasserie', 'Bowling']], ['ines_b', ['Rooftop', 'Brasserie', 'Karaoké']], ['karim_a', ['Brasserie', 'Bowling']]])
+    for (const o of bopts) await call('POST', `/plans/matches/options/${o.id}/swipe`, { like: likes.some(l => o.label.startsWith(l)) }, T[who]);
+  // Cercle 4 : Team évènements. Atelier peinture avec planning des bénévoles (Alex, organisateur
+  // du Cercle, peut s'inscrire et gérer les postes)
+  const evt = await prisma.circle.create({ data: { name: 'Team évènements', description: 'Ateliers, fêtes de quartier et animations 🎨', code: 'EVENTS', color: '#10b981', creatorId: U.nadia_f.id,
+    members: { create: ['nadia_f', 'alex', 'paul_r', 'zoe_m', 'julie_r'].map(p => ({ userId: U[p].id, role: p === 'nadia_f' ? 'admin' : p === 'alex' ? 'organizer' : 'member' })) } } });
+  const atelier = await mk(evt, 'nadia_f', { title: 'Atelier peinture 🎨', description: 'Atelier ouvert aux familles : peinture sur toile, dès 6 ans. Matériel fourni, 25 places.', eventDate: at(9, 14), endDate: at(9, 17, 30),
+    location: 'Salle polyvalente de Montvert', enabledFeatures: ['benevoles'], importantInfo: 'Bénévoles : rendez-vous à 13 h devant la salle.\nPrévoir des habits qui ne craignent rien !' });
+  for (const p of ['paul_r', 'zoe_m', 'julie_r', 'alex']) await call('POST', `/plans/${atelier.id}/join`, {}, T[p]);
+  await call('PUT', `/plans/${atelier.id}/rsvp`, { rsvp: 'maybe' }, T.alex);
+  const aShift = (title, h0, m0, h1, m1, needed, note) => call('POST', `/plans/${atelier.id}/shifts`, { title, needed, note, startsAt: at(9, h0, m0), endsAt: at(9, h1, m1) }, T.nadia_f);
+  const aInstall = await aShift('Installer les chevalets et les bâches', 13, 0, 14, 0, 3, 'Les bâches sont au fond du local');
+  const aColors = await aShift('Préparer les couleurs et les pinceaux', 13, 30, 14, 0, 2, null);
+  const aWelcome = await aShift('Accueil des participants', 13, 45, 14, 30, 2, 'Liste des inscrits à l’entrée');
+  const aKids = await aShift('Aider les enfants pendant l’atelier', 14, 0, 16, 30, 3, 'Tablier fourni');
+  const aClean = await aShift('Rangement et nettoyage', 16, 30, 17, 30, 4, null);
+  for (const [sh, who] of [[aInstall, ['paul_r']], [aWelcome, ['zoe_m']], [aKids, ['nadia_f', 'julie_r']], [aClean, ['paul_r', 'zoe_m']]])
+    for (const p of who) await call('POST', `/plans/shifts/${sh.id}/signup`, {}, T[p]);
+  // Conversations de l'afterwork et de l'atelier
+  for (const p of ['sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'paul_r', 'zoe_m']) sock[p] = io('http://localhost:3999', { auth: { token: T[p] }, transports: ['websocket'] });
+  await sleep(1000);
+  const chat = async (planId, listener, lines) => {
+    sock[listener].emit('join-plan', planId); await sleep(300);
+    for (const [p, content] of lines) { const got = new Promise(res => sock[listener].once('message', res)); sock[p].emit('send-message', { planId, content }); await got; await sleep(300); }
+    sock[listener].emit('leave-plan', planId);
+  };
+  await chat(afterwork.id, 'sarah_k', [
+    ['sarah_k', 'Super idée ! J’ai mis 4 propositions dans le match, à vous de jouer 😄'],
+    ['marc_l', 'Je peux réserver dès qu’on a le lieu, j’ai le numéro de la brasserie 📞'],
+    ['ines_b', 'On part ensemble du bureau à 17 h 45 ?'],
+    ['karim_a', 'Je vous rejoins un peu plus tard, j’ai une réunion jusqu’à 18 h 30'],
+  ]);
+  await chat(atelier.id, 'nadia_f', [
+    ['nadia_f', 'Merci à tous ! Il manque encore du monde pour les couleurs et le rangement 🙏'],
+    ['paul_r', 'Je passe chercher les chevalets au local vendredi soir 🚐'],
+    ['zoe_m', 'Je m’occupe de l’accueil, j’imprime la liste des inscrits'],
+    ['julie_r', 'J’ai trouvé 20 tabliers chez ma tante, je les amène ! 🎨'],
+  ]);
+  fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({ alex: T.alex, alexId: U.alex.id, circles: [jeu.id, cop.id, col.id, evt.id], plans: [afterwork.id, atelier.id, ag.id, raclette.id, ski.id, loto.id, apero.id, anniv.id, foot.id, noel.id, chalet.id, petanque.id], santaPlans: [noel.id], matchPlans: [apero.id, afterwork.id], matchViewers: { [afterwork.id]: T.sarah_k }, wheelPlans: [raclette.id], assemblyPlans: [ag.id], tom: T.tom_b, killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id], potPlans: [anniv.id], pollId: poll.id }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });
