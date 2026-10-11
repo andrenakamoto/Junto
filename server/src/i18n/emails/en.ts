@@ -78,7 +78,7 @@ const en: EmailDict = {
     when: '<strong>{plan}</strong> takes place on {date}.',
     whenWhere: '<strong>{plan}</strong> takes place on {date} — {place}.',
     important: '📌 Important information',
-    shifts: '🙋 Your volunteer shifts',
+    shifts: '🙋 Your shifts',
     santa: '🎅 Don’t forget the gift for <strong>{who}</strong>.',
     santaBudget: '🎅 Don’t forget the gift for <strong>{who}</strong> (budget: {budget}).',
   },
@@ -159,7 +159,7 @@ const en: EmailDict = {
   recap: {
     subject: 'Summary — “{plan}”',
     title: 'The Plan “{plan}” is over, {name} 👋',
-    text: 'It has just been deleted automatically. Attached is its summary (PDF): info, participants, volunteers and expenses if there were any.',
+    text: 'It has just been deleted automatically. Attached is its summary (PDF): info, participants, schedule and expenses if there were any.',
     why: 'You’re receiving this email because you turned on “Summary before deletion”. To stop it: {menu}, and turn off “Summary before deletion”.',
   },
   recapPdf: {
@@ -181,7 +181,7 @@ const en: EmailDict = {
     countMaybe: '{count} maybe',
     countOut_one: '{count} not coming',
     countOut_other: '{count} not coming',
-    volunteers: 'Volunteers',
+    volunteers: 'Schedule',
     volunteersSub: '{filled} signed up out of {needed} spots',
     missing_one: '  ·  {count} person still needed',
     missing_other: '  ·  {count} people still needed',

@@ -19,7 +19,7 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '{0} cherche une place en voiture': ['{0} sucht einen Platz im Auto', '{0} cerca un posto in auto', '{0} is looking for a seat'],
   '{0} a modifié son trajet': ['{0} hat die Fahrt geändert', '{0} ha modificato il suo passaggio', '{0} changed their ride'],
   '{0} a annulé son trajet': ['{0} hat die Fahrt abgesagt', '{0} ha annullato il suo passaggio', '{0} cancelled their ride'],
-  '{0} a ajouté un poste de bénévole': ['{0} hat einen Helfereinsatz hinzugefügt', '{0} ha aggiunto un turno di volontariato', '{0} added a volunteer shift'],
+  '{0} a ajouté un poste au planning': ['{0} hat einen Einsatz zum Einsatzplan hinzugefügt', '{0} ha aggiunto un turno', '{0} added a shift to the schedule'],
   // Covoiturage
   '@{0} ne vient plus : son trajet est annulé': ['@{0} kommt nicht mehr: Die Fahrt ist abgesagt', '@{0} non viene più: il suo passaggio è annullato', '@{0} is no longer coming: their ride is cancelled'],
   '@{0} ne vient plus : une place se libère': ['@{0} kommt nicht mehr: Ein Platz wird frei', '@{0} non viene più: si libera un posto', '@{0} is no longer coming: a seat is free'],

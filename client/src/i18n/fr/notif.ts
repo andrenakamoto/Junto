@@ -20,7 +20,7 @@ export default {
   killerTitle: 'Killer — {{plan}}',
   assembly: 'Assemblée',
   waitlistBody: 'Une place s’est libérée, tu es dedans !',
-  shiftTitle: 'Bénévoles — {{plan}}',
+  shiftTitle: 'Planning — {{plan}}',
   wordsTitle: 'Le mot piège — {{plan}}',
   teamsTitle: 'Équipes — {{plan}}',
   potTitle: 'Cagnotte — {{plan}}',
@@ -34,7 +34,7 @@ export default {
   goneTitle: 'Plan fermé',
   goneBody: '« {{plan}} » a été supprimé ou n’est plus accessible.',
   center: {
-    sections: { chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses', benevoles: 'Bénévoles' },
+    sections: { chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses', benevoles: 'Planning' },
     justNow: 'à l’instant',
     minutesAgo: 'il y a {{n}} min',
     hoursAgo: 'il y a {{n}} h',

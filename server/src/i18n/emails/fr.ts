@@ -78,7 +78,7 @@ const fr = {
     when: '<strong>{plan}</strong> a lieu le {date}.',
     whenWhere: '<strong>{plan}</strong> a lieu le {date} — {place}.',
     important: '📌 Informations importantes',
-    shifts: '🙋 Tes postes de bénévole',
+    shifts: '🙋 Tes postes du planning',
     santa: '🎅 N’oublie pas le cadeau de <strong>{who}</strong>.',
     santaBudget: '🎅 N’oublie pas le cadeau de <strong>{who}</strong> (budget : {budget}).',
   },
@@ -159,7 +159,7 @@ const fr = {
   recap: {
     subject: 'Récapitulatif — « {plan} »',
     title: 'Le Plan « {plan} » est terminé, {name} 👋',
-    text: 'Il vient d’être supprimé automatiquement. Voici son récapitulatif en pièce jointe (PDF) : infos, participants, bénévoles et dépenses s’il y en avait.',
+    text: 'Il vient d’être supprimé automatiquement. Voici son récapitulatif en pièce jointe (PDF) : infos, participants, planning et dépenses s’il y en avait.',
     why: 'Tu reçois cet email parce que tu as activé « Récapitulatif avant suppression ». Pour l’arrêter : {menu}, et désactive « Récapitulatif avant suppression ».',
   },
   recapPdf: {
@@ -181,7 +181,7 @@ const fr = {
     countMaybe: '{count} peut-être',
     countOut_one: '{count} absent',
     countOut_other: '{count} absents',
-    volunteers: 'Bénévoles',
+    volunteers: 'Planning',
     volunteersSub: '{filled} inscrits sur {needed} places',
     missing_one: '  ·  il manque {count} personne',
     missing_other: '  ·  il manque {count} personnes',

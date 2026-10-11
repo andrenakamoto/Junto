@@ -78,7 +78,7 @@ const it: EmailDict = {
     when: '<strong>{plan}</strong> si tiene il {date}.',
     whenWhere: '<strong>{plan}</strong> si tiene il {date} — {place}.',
     important: '📌 Informazioni importanti',
-    shifts: '🙋 I tuoi turni di volontariato',
+    shifts: '🙋 I tuoi turni',
     santa: '🎅 Non dimenticare il regalo per <strong>{who}</strong>.',
     santaBudget: '🎅 Non dimenticare il regalo per <strong>{who}</strong> (budget: {budget}).',
   },
@@ -159,7 +159,7 @@ const it: EmailDict = {
   recap: {
     subject: 'Riepilogo — «{plan}»',
     title: 'Il Plan «{plan}» è terminato, {name} 👋',
-    text: 'È appena stato eliminato automaticamente. In allegato trovi il suo riepilogo (PDF): info, partecipanti, volontari e spese, se ce n’erano.',
+    text: 'È appena stato eliminato automaticamente. In allegato trovi il suo riepilogo (PDF): info, partecipanti, turni e spese, se ce n’erano.',
     why: 'Ricevi questa email perché hai attivato «Riepilogo prima dell’eliminazione». Per disattivarlo: {menu} e disattiva «Riepilogo prima dell’eliminazione».',
   },
   recapPdf: {
@@ -181,7 +181,7 @@ const it: EmailDict = {
     countMaybe: '{count} forse',
     countOut_one: '{count} assente',
     countOut_other: '{count} assenti',
-    volunteers: 'Volontari',
+    volunteers: 'Turni',
     volunteersSub: '{filled} iscritti su {needed} posti',
     missing_one: '  ·  manca {count} persona',
     missing_other: '  ·  mancano {count} persone',

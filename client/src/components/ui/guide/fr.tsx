@@ -37,7 +37,7 @@ const groups: Group[] = [
             informations importantes. Chaque changement est gardé dans l'<strong>historique</strong>.</P>
           <P>Dans <strong>« Paramètres avancés »</strong>, la liste <strong>« Fonctions du Plan »</strong> est rangée par catégorie
             (Échanger, Organiser, Fêter et offrir, Jouer) : décoche ce dont tu n'as pas besoin, coche les fonctions à activer
-            (bénévoles, assemblée, cagnotte, jeux…). Modifiable ensuite avec l'icône réglages du Plan.</P>
+            (planning, assemblée, cagnotte, jeux…). Modifiable ensuite avec l'icône réglages du Plan.</P>
         </>,
       },
       {
@@ -103,7 +103,7 @@ const groups: Group[] = [
         body: <>
           <P>Le bouton <strong>En bref</strong> (sur la carte du Plan, et en tête de la fiche) résume le Plan <strong>pour
             toi</strong> : date, lieu, qui vient, informations importantes, ton trajet, ce que tu apportes, ce que tu dois ou ce
-            qu’on te doit, ta cagnotte, tes postes de bénévole et ce qui attend ta réponse. Touche une ligne pour ouvrir la
+            qu’on te doit, ta cagnotte, tes postes du planning et ce qui attend ta réponse. Touche une ligne pour ouvrir la
             rubrique.</P>
           <P><strong>Copier le résumé</strong> copie un texte à envoyer à quelqu’un (date, lieu, qui vient, places libres, ce
             qui manque), avec un lien pour répondre, même sans compte. Rien de personnel n’y figure. Réservé aux réponses
@@ -163,10 +163,11 @@ const groups: Group[] = [
     title: 'Fonctions à activer',
     topics: [
       {
-        id: 'benevoles', emoji: '🙋', title: 'Bénévoles', summary: 'Postes à pourvoir, chacun s’inscrit',
+        id: 'benevoles', emoji: '🙋', title: 'Planning', summary: 'Postes et horaires, chacun s’inscrit',
         body: <P>Le créateur du Plan et les organisateurs du Cercle créent les postes (horaire, nombre de personnes). S'inscrire
           vaut « Je suis in ». Résumé « Il manque X personnes », filtre « Mes postes », avertissement si deux postes se
-          chevauchent. Rappel par notification <strong>une heure avant</strong> la prise de poste.</P>,
+          chevauchent. Rappel par notification <strong>une heure avant</strong> la prise de poste. Avec <strong>0 personne</strong>, la ligne s’affiche simplement au programme (ouverture
+          des portes, repas…), sans inscription.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblée', summary: 'Ordre du jour, procurations, votes, procès-verbal',
@@ -231,7 +232,7 @@ const groups: Group[] = [
             hebdomadaire ; récapitulatif PDF avant la suppression de tes Plans.</P>
           <P>La <strong>cloche</strong> 🔔 en bas de la liste des Cercles regroupe ce que tu n'as pas encore vu, les invitations et
             les demandes d'adhésion. Rappels automatiques : la veille d'un Plan, avant la fin d'un sondage de dates, une heure
-            avant un poste de bénévole.</P>
+            avant un poste du planning.</P>
         </>,
       },
       {
@@ -274,7 +275,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong> : une image souvenir (titre, date, lieu, présents) avec la photo de ton choix.</>,
           <><strong>Agenda</strong> : ajoute le Plan à ton calendrier (fichier .ics).</>,
-          <><strong>Récap</strong> (créateur du Plan et organisateurs) : un PDF avec infos, participants, bénévoles, dépenses et votes.</>,
+          <><strong>Récap</strong> (créateur du Plan et organisateurs) : un PDF avec infos, participants, planning, dépenses et votes.</>,
           <><strong>Historique</strong> des modifications : menu du Plan.</>,
         ]} />,
       },
@@ -317,7 +318,7 @@ const summary: GuideText['summary'] = [
   { emoji: '👥', text: <>Un <strong>Cercle</strong> pour chaque groupe, un <strong>Plan</strong> pour chaque événement, un chat par Plan.</> },
   { emoji: '✋', text: <>Chacun répond <strong>in / peut-être / absent</strong> ; liste d'attente si c'est complet.</> },
   { emoji: '🗳️', text: <>On décide ensemble : <strong>dates</strong>, sondages, <strong>Match</strong>, roue <strong>Qui s'y colle ?</strong></> },
-  { emoji: '🚗', text: <>On s'organise : <strong>trajets</strong>, <strong>qui apporte quoi</strong>, <strong>dépenses</strong>, <strong>bénévoles</strong>.</> },
+  { emoji: '🚗', text: <>On s'organise : <strong>trajets</strong>, <strong>qui apporte quoi</strong>, <strong>dépenses</strong>, <strong>planning</strong>.</> },
   { emoji: '🏛️', text: <>Les associations tiennent leur <strong>assemblée</strong> : votes, procurations, procès-verbal.</> },
   { emoji: '🎉', text: <>On s'amuse : <strong>quiz</strong>, <strong>cagnotte</strong>, <strong>Père Noël secret</strong>, <strong>Killer</strong>, <strong>mot piège</strong>, <strong>tournoi</strong>.</> },
   { emoji: '⏳', text: <>Un Plan <strong>disparaît à sa date de fin</strong> : garde photos, récap ou PV avant.</> },

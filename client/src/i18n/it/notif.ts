@@ -21,7 +21,7 @@ const notif: Dict['notif'] = {
   killerTitle: 'Killer — {{plan}}',
   assembly: 'Assemblea',
   waitlistBody: 'Si è liberato un posto, ci sei!',
-  shiftTitle: 'Volontari — {{plan}}',
+  shiftTitle: 'Turni — {{plan}}',
   wordsTitle: 'La parola trappola — {{plan}}',
   teamsTitle: 'Squadre — {{plan}}',
   potTitle: 'Colletta — {{plan}}',
@@ -35,7 +35,7 @@ const notif: Dict['notif'] = {
   goneTitle: 'Plan chiuso',
   goneBody: '«{{plan}}» è stato eliminato o non è più accessibile.',
   center: {
-    sections: { chat: 'Chat', infos: 'Info', trajets: 'Passaggi', membres: 'Membri', votes: 'Voti', depenses: 'Spese', benevoles: 'Volontari' },
+    sections: { chat: 'Chat', infos: 'Info', trajets: 'Passaggi', membres: 'Membri', votes: 'Voti', depenses: 'Spese', benevoles: 'Turni' },
     justNow: 'adesso',
     minutesAgo: '{{n}} min fa',
     hoursAgo: '{{n}} h fa',

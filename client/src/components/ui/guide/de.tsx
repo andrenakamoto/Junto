@@ -38,7 +38,7 @@ const groups: Group[] = [
             Infos zu ändern. Jede Änderung wird im <strong>Verlauf</strong> festgehalten.</P>
           <P>Unter <strong>«Erweiterte Einstellungen»</strong> ist die Liste <strong>«Funktionen des Plans»</strong> nach
             Kategorien geordnet (Austauschen, Organisieren, Feiern und schenken, Spielen): Wähle ab, was du nicht brauchst,
-            und wähle die zu aktivierenden Funktionen (Helfende, Versammlung, Geschenkkasse, Spiele…). Später über das
+            und wähle die zu aktivierenden Funktionen (Einsatzplan, Versammlung, Geschenkkasse, Spiele…). Später über das
             Einstellungssymbol des Plans änderbar.</P>
         </>,
       },
@@ -107,7 +107,7 @@ const groups: Group[] = [
         body: <>
           <P>Der Knopf <strong>Kurz & bündig</strong> (auf der Karte des Plans und oben auf der Planseite) fasst den Plan
             <strong>für dich</strong> zusammen: Datum, Ort, wer kommt, wichtige Informationen, deine Fahrt, was du mitbringst,
-            was du schuldest oder was man dir schuldet, deine Sammelkasse, deine Helfereinsätze und was auf deine Antwort
+            was du schuldest oder was man dir schuldet, deine Sammelkasse, deine Einsätze und was auf deine Antwort
             wartet. Tippe auf eine Zeile, um den Bereich zu öffnen.</P>
           <P><strong>Übersicht kopieren</strong> kopiert einen Text zum Weiterschicken (Datum, Ort, wer kommt, freie Plätze,
             was fehlt) mit einem Link zum Antworten, auch ohne Konto. Nichts Persönliches steht darin. Nur für die Antworten
@@ -167,10 +167,11 @@ const groups: Group[] = [
     title: 'Funktionen zum Aktivieren',
     topics: [
       {
-        id: 'benevoles', emoji: '🙋', title: 'Helfende', summary: 'Offene Einsätze, alle tragen sich ein',
+        id: 'benevoles', emoji: '🙋', title: 'Einsatzplan', summary: 'Einsätze mit Zeiten, alle tragen sich ein',
         body: <P>Der Ersteller des Plans und die Organisatoren des Kreises erstellen die Einsätze (Zeit, Anzahl Personen).
           Sich eintragen heisst «Ich bin dabei». Übersicht «Es fehlen X Personen», Filter «Meine Einsätze», Warnung bei
-          Überschneidungen. Erinnerung per Benachrichtigung <strong>eine Stunde vor</strong> Einsatzbeginn.</P>,
+          Überschneidungen. Erinnerung per Benachrichtigung <strong>eine Stunde vor</strong> Einsatzbeginn. Mit <strong>0 Personen</strong> erscheint die Zeile einfach im Programm (Türöffnung,
+          Essen…), ohne Anmeldung.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Versammlung', summary: 'Traktanden, Vollmachten, Abstimmungen, Protokoll',
@@ -237,7 +238,7 @@ const groups: Group[] = [
             Wochenübersicht; PDF-Zusammenfassung vor dem Löschen deiner Pläne.</P>
           <P>Die <strong>Glocke</strong> 🔔 unten in der Liste der Kreise sammelt, was du noch nicht gesehen hast,
             Einladungen und Beitrittsanfragen. Automatische Erinnerungen: am Vortag eines Plans, vor dem Ende einer
-            Terminumfrage, eine Stunde vor einem Helfereinsatz.</P>
+            Terminumfrage, eine Stunde vor einem Einsatz.</P>
         </>,
       },
       {
@@ -281,7 +282,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong>: ein Erinnerungsbild (Titel, Datum, Ort, Anwesende) mit einem Foto deiner Wahl.</>,
           <><strong>Kalender</strong>: füge den Plan deinem Kalender hinzu (.ics-Datei).</>,
-          <><strong>Übersicht</strong> (Ersteller des Plans und Organisatoren): ein PDF mit Infos, Teilnehmenden, Helfenden, Ausgaben und Abstimmungen.</>,
+          <><strong>Übersicht</strong> (Ersteller des Plans und Organisatoren): ein PDF mit Infos, Teilnehmenden, Einsatzplan, Ausgaben und Abstimmungen.</>,
           <><strong>Änderungsverlauf</strong>: Menü des Plans.</>,
         ]} />,
       },
@@ -326,7 +327,7 @@ const summary: GuideText['summary'] = [
   { emoji: '👥', text: <>Ein <strong>Kreis</strong> für jede Gruppe, ein <strong>Plan</strong> für jeden Anlass, ein Chat pro Plan.</> },
   { emoji: '✋', text: <>Alle antworten <strong>dabei / vielleicht / abwesend</strong>; Warteliste, wenn es voll ist.</> },
   { emoji: '🗳️', text: <>Gemeinsam entscheiden: <strong>Termine</strong>, Umfragen, <strong>Match</strong>, Rad <strong>Wer ist dran?</strong></> },
-  { emoji: '🚗', text: <>Sich organisieren: <strong>Fahrten</strong>, <strong>wer bringt was</strong>, <strong>Ausgaben</strong>, <strong>Helfende</strong>.</> },
+  { emoji: '🚗', text: <>Sich organisieren: <strong>Fahrten</strong>, <strong>wer bringt was</strong>, <strong>Ausgaben</strong>, <strong>Einsatzplan</strong>.</> },
   { emoji: '🏛️', text: <>Vereine halten ihre <strong>Versammlung</strong> ab: Abstimmungen, Vollmachten, Protokoll.</> },
   { emoji: '🎉', text: <>Spass haben: <strong>Quiz</strong>, <strong>Geschenkkasse</strong>, <strong>Wichteln</strong>, <strong>Killer</strong>, <strong>Fallenwort</strong>, <strong>Turnier</strong>.</> },
   { emoji: '⏳', text: <>Ein Plan <strong>verschwindet an seinem Enddatum</strong>: Sichere vorher Fotos, Übersicht oder Protokoll.</> },

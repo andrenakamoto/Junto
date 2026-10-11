@@ -38,7 +38,7 @@ const groups: Group[] = [
             informazioni importanti. Ogni modifica è conservata nella <strong>cronologia</strong>.</P>
           <P>In <strong>«Impostazioni avanzate»</strong>, la lista <strong>«Funzioni del Plan»</strong> è ordinata per
             categoria (Comunicare, Organizzare, Festeggiare e regalare, Giocare): togli la spunta a ciò che non ti serve e
-            spunta le funzioni da attivare (volontari, assemblea, colletta, giochi…). Modificabile in seguito con l’icona
+            spunta le funzioni da attivare (turni, assemblea, colletta, giochi…). Modificabile in seguito con l’icona
             impostazioni del Plan.</P>
         </>,
       },
@@ -106,7 +106,7 @@ const groups: Group[] = [
         body: <>
           <P>Il pulsante <strong>In breve</strong> (sulla scheda del Plan e in cima alla pagina del Plan) riassume il Plan
             <strong>per te</strong>: data, luogo, chi viene, informazioni importanti, il tuo passaggio, cosa porti, quanto
-            devi o ti devono, la tua colletta, i tuoi turni da volontario e cosa aspetta la tua risposta. Tocca una riga per
+            devi o ti devono, la tua colletta, i tuoi turni e cosa aspetta la tua risposta. Tocca una riga per
             aprire la sezione.</P>
           <P><strong>Copia il riepilogo</strong> copia un testo da inviare a qualcuno (data, luogo, chi viene, posti liberi,
             cosa manca) con un link per rispondere, anche senza account. Non contiene nulla di personale. Solo per chi ha
@@ -166,10 +166,11 @@ const groups: Group[] = [
     title: 'Funzioni da attivare',
     topics: [
       {
-        id: 'benevoles', emoji: '🙋', title: 'Volontari', summary: 'Turni da coprire, ognuno si iscrive',
+        id: 'benevoles', emoji: '🙋', title: 'Turni', summary: 'Turni da coprire, ognuno si iscrive',
         body: <P>Il creatore del Plan e gli organizzatori del Cerchio creano i turni (orario, numero di persone). Iscriversi
           vale «Ci sono». Riepilogo «Mancano X persone», filtro «I miei turni», avviso se due turni si sovrappongono.
-          Promemoria con notifica <strong>un’ora prima</strong> dell’inizio del turno.</P>,
+          Promemoria con notifica <strong>un’ora prima</strong> dell’inizio del turno. Con <strong>0 persone</strong> la riga compare semplicemente nel programma (apertura
+          delle porte, pranzo…), senza iscrizione.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblea', summary: 'Ordine del giorno, deleghe, voti, verbale',
@@ -236,7 +237,7 @@ const groups: Group[] = [
             riepilogo PDF prima dell’eliminazione dei tuoi Plan.</P>
           <P>La <strong>campanella</strong> 🔔 in fondo alla lista dei Cerchi raccoglie ciò che non hai ancora visto, gli
             inviti e le richieste di adesione. Promemoria automatici: il giorno prima di un Plan, prima della fine di un
-            sondaggio date, un’ora prima di un turno di volontariato.</P>
+            sondaggio date, un’ora prima di un turno.</P>
         </>,
       },
       {
@@ -280,7 +281,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong>: un’immagine ricordo (titolo, data, luogo, presenti) con la foto che preferisci.</>,
           <><strong>Agenda</strong>: aggiungi il Plan al tuo calendario (file .ics).</>,
-          <><strong>Riepilogo</strong> (creatore del Plan e organizzatori): un PDF con info, partecipanti, volontari, spese e voti.</>,
+          <><strong>Riepilogo</strong> (creatore del Plan e organizzatori): un PDF con info, partecipanti, turni, spese e voti.</>,
           <><strong>Cronologia</strong> delle modifiche: menu del Plan.</>,
         ]} />,
       },
@@ -323,7 +324,7 @@ const summary: GuideText['summary'] = [
   { emoji: '👥', text: <>Un <strong>Cerchio</strong> per ogni gruppo, un <strong>Plan</strong> per ogni evento, una chat per Plan.</> },
   { emoji: '✋', text: <>Ognuno risponde <strong>ci sono / forse / assente</strong>; lista d’attesa se è completo.</> },
   { emoji: '🗳️', text: <>Si decide insieme: <strong>date</strong>, sondaggi, <strong>Match</strong>, ruota <strong>A chi tocca?</strong></> },
-  { emoji: '🚗', text: <>Ci si organizza: <strong>passaggi</strong>, <strong>chi porta cosa</strong>, <strong>spese</strong>, <strong>volontari</strong>.</> },
+  { emoji: '🚗', text: <>Ci si organizza: <strong>passaggi</strong>, <strong>chi porta cosa</strong>, <strong>spese</strong>, <strong>turni</strong>.</> },
   { emoji: '🏛️', text: <>Le associazioni tengono la loro <strong>assemblea</strong>: voti, deleghe, verbale.</> },
   { emoji: '🎉', text: <>Ci si diverte: <strong>quiz</strong>, <strong>colletta</strong>, <strong>Babbo Natale segreto</strong>, <strong>Killer</strong>, <strong>parola trappola</strong>, <strong>torneo</strong>.</> },
   { emoji: '⏳', text: <>Un Plan <strong>sparisce alla sua data di fine</strong>: conserva prima foto, riepilogo o verbale.</> },

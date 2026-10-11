@@ -78,7 +78,7 @@ const de: EmailDict = {
     when: '<strong>{plan}</strong> findet am {date} statt.',
     whenWhere: '<strong>{plan}</strong> findet am {date} statt — {place}.',
     important: '📌 Wichtige Infos',
-    shifts: '🙋 Deine Helfereinsätze',
+    shifts: '🙋 Deine Einsätze',
     santa: '🎅 Vergiss das Geschenk für <strong>{who}</strong> nicht.',
     santaBudget: '🎅 Vergiss das Geschenk für <strong>{who}</strong> nicht (Budget: {budget}).',
   },
@@ -159,7 +159,7 @@ const de: EmailDict = {
   recap: {
     subject: 'Zusammenfassung — «{plan}»',
     title: 'Der Plan «{plan}» ist vorbei, {name} 👋',
-    text: 'Er wurde soeben automatisch gelöscht. Im Anhang findest du seine Zusammenfassung (PDF): Infos, Teilnehmende, Helfende und Ausgaben, falls vorhanden.',
+    text: 'Er wurde soeben automatisch gelöscht. Im Anhang findest du seine Zusammenfassung (PDF): Infos, Teilnehmende, Einsatzplan und Ausgaben, falls vorhanden.',
     why: 'Du erhältst diese E-Mail, weil du «Zusammenfassung vor dem Löschen» aktiviert hast. Zum Abstellen: {menu} und deaktiviere «Zusammenfassung vor dem Löschen».',
   },
   recapPdf: {
@@ -181,7 +181,7 @@ const de: EmailDict = {
     countMaybe: '{count} vielleicht',
     countOut_one: '{count} abwesend',
     countOut_other: '{count} abwesend',
-    volunteers: 'Helfende',
+    volunteers: 'Einsatzplan',
     volunteersSub: '{filled} von {needed} Plätzen besetzt',
     missing_one: '  ·  es fehlt {count} Person',
     missing_other: '  ·  es fehlen {count} Personen',

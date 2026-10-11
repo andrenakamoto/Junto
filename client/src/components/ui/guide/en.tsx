@@ -37,7 +37,7 @@ const groups: Group[] = [
           <P>The creator edits their Plan with the pencil; they can let everyone change the dates and place, or the important
             information. Every change is kept in the <strong>history</strong>.</P>
           <P>In <strong>“Advanced settings”</strong>, the <strong>“Plan features”</strong> list is sorted by category (Talk,
-            Organise, Celebrate and give, Play): untick what you don’t need and tick the features to turn on (volunteers,
+            Organise, Celebrate and give, Play): untick what you don’t need and tick the features to turn on (schedule,
             assembly, gift pot, games…). You can change this later with the Plan’s settings icon.</P>
         </>,
       },
@@ -102,7 +102,7 @@ const groups: Group[] = [
         body: <>
           <P>The <strong>At a glance</strong> button (on the Plan card and at the top of the Plan page) sums up the Plan
             <strong>for you</strong>: date, place, who’s coming, important info, your ride, what you’re bringing, what you owe
-            or are owed, your group gift, your volunteer shifts and what’s waiting for your answer. Tap a line to open that
+            or are owed, your group gift, your shifts and what’s waiting for your answer. Tap a line to open that
             section.</P>
           <P><strong>Copy the summary</strong> copies a text to send to someone (date, place, who’s coming, free seats,
             what’s still needed) with a link to reply, even without an account. Nothing personal is included. Only for
@@ -162,10 +162,11 @@ const groups: Group[] = [
     title: 'Features to turn on',
     topics: [
       {
-        id: 'benevoles', emoji: '🙋', title: 'Volunteers', summary: 'Shifts to fill, everyone signs up',
+        id: 'benevoles', emoji: '🙋', title: 'Schedule', summary: 'Shifts with times, everyone signs up',
         body: <P>The Plan’s creator and the Circle’s organisers create the shifts (time, number of people). Signing up counts
           as “I’m in”. Summary “X people still needed”, “My shifts” filter, warning if two shifts overlap. Reminder by
-          notification <strong>one hour before</strong> the shift starts.</P>,
+          notification <strong>one hour before</strong> the shift starts. With <strong>0 people</strong>, the line simply shows in the programme (doors open,
+          lunch…), with no sign-up.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assembly', summary: 'Agenda, proxies, votes, minutes',
@@ -230,7 +231,7 @@ const groups: Group[] = [
             summary before your Plans are deleted.</P>
           <P>The <strong>bell</strong> 🔔 at the bottom of the Circle list gathers what you haven’t seen yet, invitations and
             requests to join. Automatic reminders: the day before a Plan, before a date poll ends, one hour before a
-            volunteer shift.</P>
+            shift.</P>
         </>,
       },
       {
@@ -273,7 +274,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong>: a keepsake image (title, date, place, who came) with the photo of your choice.</>,
           <><strong>Calendar</strong>: add the Plan to your calendar (.ics file).</>,
-          <><strong>Summary</strong> (Plan creator and organisers): a PDF with info, participants, volunteers, expenses and votes.</>,
+          <><strong>Summary</strong> (Plan creator and organisers): a PDF with info, participants, schedule, expenses and votes.</>,
           <><strong>Change history</strong>: Plan menu.</>,
         ]} />,
       },
@@ -316,7 +317,7 @@ const summary: GuideText['summary'] = [
   { emoji: '👥', text: <>A <strong>Circle</strong> for each group, a <strong>Plan</strong> for each event, a chat per Plan.</> },
   { emoji: '✋', text: <>Everyone replies <strong>in / maybe / can’t make it</strong>; waiting list when it’s full.</> },
   { emoji: '🗳️', text: <>Decide together: <strong>dates</strong>, polls, <strong>Match</strong>, the <strong>Whose turn?</strong> wheel.</> },
-  { emoji: '🚗', text: <>Get organised: <strong>rides</strong>, <strong>who brings what</strong>, <strong>expenses</strong>, <strong>volunteers</strong>.</> },
+  { emoji: '🚗', text: <>Get organised: <strong>rides</strong>, <strong>who brings what</strong>, <strong>expenses</strong>, <strong>schedule</strong>.</> },
   { emoji: '🏛️', text: <>Associations hold their <strong>assembly</strong>: votes, proxies, minutes.</> },
   { emoji: '🎉', text: <>Have fun: <strong>quiz</strong>, <strong>gift pot</strong>, <strong>Secret Santa</strong>, <strong>Killer</strong>, <strong>trap word</strong>, <strong>tournament</strong>.</> },
   { emoji: '⏳', text: <>A Plan <strong>disappears on its end date</strong>: keep photos, summary or minutes before then.</> },

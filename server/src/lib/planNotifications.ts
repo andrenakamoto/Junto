@@ -74,7 +74,7 @@ export function activityText(kind: PlanActivityKind, pseudo: string): string {
     case 'ride_requested': return `${who} cherche une place en voiture`;
     case 'ride_updated': return `${who} a modifié son trajet`;
     case 'ride_cancelled': return `${who} a annulé son trajet`;
-    case 'shift_added': return `${who} a ajouté un poste de bénévole`;
+    case 'shift_added': return `${who} a ajouté un poste au planning`;
   }
 }
 

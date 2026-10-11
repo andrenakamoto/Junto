@@ -764,7 +764,7 @@ Junto/
   /plans/:id/skip : crée le suivant puis supprime celui-ci) et « Arrêter la répétition » (PUT
   /plans/:id/recurrence `{recurrence: null}`). Étiquette « 🔁 Chaque lundi » (`recurrenceLabel`,
   `client/src/lib/recurrence.ts`) dans la fiche, icône sur la carte. Pas géré dans la démo.
-- **Planning des bénévoles** (2026-10-05, `lib/volunteers.ts` testé, `routes/volunteers.ts` monté
+- **Planning des bénévoles** — **nommé « Planning » dans l'app depuis le 2026-10-11** (de « Einsatzplan », it « Turni », en « Schedule » ; le mot « bénévoles » ne reste que dans la ligne d'explication de la fonction ; clé interne `benevoles` inchangée ; une ligne à **0 personne** = simple ligne de programme, affichée sans inscription ni compteur, hors du résumé « Il manque… », horaire seul dans le PDF) (2026-10-05, `lib/volunteers.ts` testé, `routes/volunteers.ts` monté
   dans le routeur des Plans, onglet `VolunteersTab.tsx`) : fonction **à activer** — nouvelle liste
   `Plan.enabledFeatures` (`OPTIONAL_FEATURES` = `benevoles`, vide par défaut, y compris sur les
   anciens Plans ; case « Bénévoles (planning) » dans `FeaturesField`), l'inverse de
