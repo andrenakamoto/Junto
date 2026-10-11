@@ -116,9 +116,11 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 
 // En local, une base pointée sur l'environnement partagé ne doit pas être
 // mutée à chaque démarrage du serveur (suppression de plans, envoi d'emails).
-// RAILWAY_ENVIRONMENT_NAME n'existe que sur un déploiement Railway réel — un
-// `npm run dev` local ne l'a jamais, quel que soit le DATABASE_URL pointé.
-const cronEnabled = !!process.env.RAILWAY_ENVIRONMENT_NAME || process.env.ENABLE_CRON === 'true';
+// Production chez Infomaniak : ENABLE_CRON=true (deploy/infomaniak/evly-api.service). Railway : actif tant que
+// RAILWAY_ENVIRONMENT_NAME existe, sauf ENABLE_CRON=false — pendant la migration, l'ancien serveur Railway branché
+// sur la base suisse ne doit pas envoyer les rappels en double. Un `npm run dev` local n'a ni l'un ni l'autre.
+const cronEnabled = process.env.ENABLE_CRON === 'true'
+  || (!!process.env.RAILWAY_ENVIRONMENT_NAME && process.env.ENABLE_CRON !== 'false');
 
 if (cronEnabled) {
   // Plans récurrents : le Plan suivant est créé avant la suppression des Plans passés

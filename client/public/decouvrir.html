@@ -264,7 +264,7 @@
   try { var lang = new URLSearchParams(location.search).get('lang'); if (lang) localStorage.setItem('evly_lang', lang); } catch (e) {}
   try {
     var host = location.hostname;
-    var api = /(^|\.)evly\.ch$/.test(host) ? 'https://junto-production-8ded.up.railway.app'
+    var api = /(^|\.)evly\.ch$/.test(host) ? 'https://api.evly.ch'
       : host === 'localhost' ? 'http://localhost:3999' : null;
     if (!api || localStorage.getItem('estelle_token') || !navigator.sendBeacon) return;
     navigator.sendBeacon(api + '/api/stats/visit?page=decouvrir');

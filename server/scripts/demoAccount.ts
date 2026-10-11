@@ -18,7 +18,7 @@ import bcrypt from 'bcryptjs';
 import { io } from 'socket.io-client';
 import { PrismaClient } from '@prisma/client';
 
-const API = process.env.DEMO_API_URL || 'https://junto-production-8ded.up.railway.app';
+const API = process.env.DEMO_API_URL || 'https://api.evly.ch';
 const PASSWORD = process.env.DEMO_PASSWORD;
 const prisma = new PrismaClient();
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));

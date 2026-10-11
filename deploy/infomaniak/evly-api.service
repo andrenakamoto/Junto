@@ -1,0 +1,26 @@
+# Serveur EvLY (API + temps réel), derrière nginx (api.evly.ch → 127.0.0.1:3001)
+[Unit]
+Description=EvLY API
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+User=evly
+Group=evly
+WorkingDirectory=/srv/evly/app/server
+# database.env : base locale (créée par provision.sh) ; app.env : variables reprises de Railway
+EnvironmentFile=/etc/evly/database.env
+EnvironmentFile=/etc/evly/app.env
+Environment=NODE_ENV=production
+Environment=PORT=3001
+# Tâches planifiées (rappels, suppression des Plans expirés…) : ici, c'est la production
+Environment=ENABLE_CRON=true
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

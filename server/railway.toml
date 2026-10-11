@@ -1,5 +1,7 @@
+# Migration vers Infomaniak (2026-10) : Railway ne sert plus que de relais vers https://api.evly.ch pour les
+# apps installées avant la version 1.0.13 (server/relay.js). Plus de base ni de tâches planifiées ici.
 [deploy]
-startCommand = "npx prisma db push --accept-data-loss && node dist/index.js"
+startCommand = "node relay.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
