@@ -122,12 +122,12 @@
   /* Bas de page */
   .foot { margin-top: auto; padding-top: 5mm; }
   .who { margin-bottom: 8mm; }
-  .foot { border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 6mm; }
-  .cta { margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.2; }
-  .cta small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11px; color: var(--ink-dim); }
+  .foot { border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2mm 6mm; }
+  .cta { margin: 0; }
+  .cta-head { flex-basis: 100%; text-align: center; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700; font-size: 19px; line-height: 1.2; }
+  .cta-head small { display: block; margin-top: 1.5mm; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 500; font-size: 11px; color: var(--ink-dim); }
   .cta-btn { display: inline-block; margin-top: 3mm; padding: 10px 18px; border-radius: 10px; background: var(--coral-600); color: #fff; text-decoration: none; font-family: 'Inter', system-ui, sans-serif; font-style: normal; font-weight: 700; font-size: 14px; }
   .cta-top { margin-top: 4mm; }
-  .cta-head { display: block; text-align: center; }
   .cta-alt { background: transparent; color: var(--coral-700); border: 2px solid var(--coral-600); padding: 8px 16px; margin-left: 6px; }
   .cta-alt:hover { background: rgba(234, 90, 43, .08); }
   .cta-note a { color: var(--coral-700); font-weight: 600; }
@@ -160,6 +160,7 @@
     .tiles .tile { flex-basis: calc((100% - 2.5mm) / 2); }
     .who { grid-template-columns: 1fr; gap: 3mm; }
     .foot { flex-direction: column; align-items: center; text-align: center; margin-top: 24px; }
+    .foot .swiss { margin-left: auto; margin-right: auto; }
     .qr-text { text-align: left; }
   }
 </style>
@@ -238,7 +239,8 @@
   </div>
 
   <footer class="foot">
-    <p class="cta"><span class="cta-head">Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in der iPhone-App; Android folgt bald.</small></span><span class="swiss"><svg class="flag" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4" fill="#da291c"/><rect x="13" y="6" width="6" height="20" fill="#fff"/><rect x="6" y="13" width="20" height="6" fill="#fff"/></svg><span>In der Schweiz entwickelt und gehostet</span></span><a class="cta-btn" href="/organiser" data-step="funnel_cta_express">Einen Ausflug organisieren</a><a class="cta-btn cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Konto erstellen</a></p>
+    <div class="cta-head">Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in der iPhone-App; Android folgt bald.</small></div>
+    <p class="cta"><span class="swiss"><svg class="flag" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4" fill="#da291c"/><rect x="13" y="6" width="6" height="20" fill="#fff"/><rect x="6" y="13" width="20" height="6" fill="#fff"/></svg><span>In der Schweiz entwickelt und gehostet</span></span><a class="cta-btn" href="/organiser" data-step="funnel_cta_express">Einen Ausflug organisieren</a><a class="cta-btn cta-alt" href="/auth?mode=inscription" data-step="funnel_cta_signup">Konto erstellen</a></p>
     <div class="qr">
       <div class="qr-text">
         <div class="url"><a href="https://www.evly.ch">evly.ch</a></div>
