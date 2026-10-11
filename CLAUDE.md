@@ -66,7 +66,9 @@ Conséquences pratiques :
    est positionné explicitement. Voir `server/src/index.ts`. Ne pas retirer
    cette protection — elle a été ajoutée après qu'un simple `npm run dev`
    local a failli marquer à tort un vrai rappel comme envoyé.
-3. **`RESEND_API_KEY` n'est pas dans le `.env` local** (volontairement — il
+3. *(Depuis le 2026-10-11 : emails par le **SMTP d'Infomaniak**, `lib/mailer.ts` ; sans `SMTP_HOST` en local, aucun email
+   n'est envoyé et l'appel renvoie une erreur. Resend et son paquet sont supprimés ; le paragraphe suivant est historique.)*
+   **`RESEND_API_KEY` n'est pas dans le `.env` local** (volontairement — il
    l'est sur Railway). `server/src/lib/mailer.ts` retombe sur une clé
    factice `'dev-placeholder'` pour que le serveur démarre quand même en
    local ; les emails échouent silencieusement en local (401), c'est normal
@@ -1440,8 +1442,7 @@ son Plan juste après avoir accepté l'invitation).
 > `evly`), certificats Let's Encrypt (certbot, renouvellement automatique), sauvegarde quotidienne `pg_dump` à 3 h 15
 > (`/srv/evly/backups`, 14 jours), copiée chaque nuit à 3 h 45 avec les fichiers vers **Swiss Backup** (S3, bucket
 > `evly-sauvegardes`, base gardée 30 jours, `deploy/infomaniak/offsite.sh`). **Emails** : SMTP Infomaniak
-> (`noreply@evly.ch`, mot de passe d'appareil « Serveur EvLY », variables `SMTP_*` dans app.env ; Resend seulement si
-> `SMTP_HOST` est absent). Tout est dans **`deploy/infomaniak/`**
+> (`noreply@evly.ch`, mot de passe d'appareil « Serveur EvLY », variables `SMTP_*` dans app.env ; Resend supprimé). Tout est dans **`deploy/infomaniak/`**
 > (LISEZMOI). Accès depuis le Mac : clé **`~/.ssh/evly_infomaniak`**, `ubuntu@179.237.127.103` (sudo) ou
 > `evly@…` (mises en ligne). **Mettre en ligne** = pousser sur `main` **puis**
 > `ssh -i ~/.ssh/evly_infomaniak evly@179.237.127.103 'bash /srv/evly/app/deploy/infomaniak/deploy.sh'`

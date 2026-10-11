@@ -1,12 +1,11 @@
-import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import type { Locale } from './i18n';
 import { mail } from './emailText';
 
-// Envoi des emails. Depuis la migration chez Infomaniak : serveur d'envoi Infomaniak (SMTP, en Suisse) dès que
-// SMTP_HOST est défini, sinon Resend. Même forme de réponse dans les deux cas ({ data, error }) : le SDK Resend
-// ne lève pas d'exception, il renvoie error — toujours vérifier result.error. Les 23 appels gardent
-// `resend.emails.send(…)` (nom historique). FROM_EMAIL doit être l'adresse de la boîte SMTP (noreply@evly.ch).
+// Envoi des emails par le serveur d'envoi d'Infomaniak (SMTP, en Suisse, boîte noreply@evly.ch, variables SMTP_*
+// dans /etc/evly/app.env). Sans SMTP_HOST (développement local) : aucun email n'est envoyé, l'appel renvoie une
+// erreur journalisée. Réponse { data, error } comme l'ancien SDK Resend : toujours vérifier result.error. Les appels
+// gardent le nom historique `resend.emails.send(…)`. FROM_EMAIL doit être l'adresse de la boîte SMTP.
 type MailInput = { from: string; to: string | string[]; subject: string; html: string; attachments?: { filename: string; content: Buffer }[] };
 type MailResult = { data: { id: string } | null; error: { message: string } | null };
 interface Mailer { emails: { send(m: MailInput): Promise<MailResult> } }
@@ -31,10 +30,12 @@ function smtpMailer(): Mailer {
   };
 }
 
-export const MAIL_PROVIDER = process.env.SMTP_HOST ? 'smtp' : 'resend';
-export const resend: Mailer = process.env.SMTP_HOST
-  ? smtpMailer()
-  : (new Resend(process.env.RESEND_API_KEY || 'dev-placeholder') as unknown as Mailer);
+const noMailer: Mailer = {
+  emails: { async send(m) { return { data: null, error: { message: `SMTP non configuré : email « ${m.subject} » non envoyé` } }; } },
+};
+
+export const MAIL_PROVIDER = process.env.SMTP_HOST ? 'smtp' : 'aucun';
+export const resend: Mailer = process.env.SMTP_HOST ? smtpMailer() : noMailer;
 export const FROM_EMAIL = process.env.FROM_EMAIL || 'EvLY <noreply@estelle.app>';
 export const APP_URL = process.env.APP_URL || 'http://localhost:5173';
 

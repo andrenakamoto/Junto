@@ -1,4 +1,4 @@
-// Envoie un email d'essai avec la configuration du serveur (SMTP Infomaniak ou Resend). Sur le serveur, en evly :
+// Envoie un email d'essai avec la configuration du serveur (SMTP Infomaniak). Sur le serveur, en evly :
 //   cd /srv/evly/app/server && sudo systemd-run --uid=evly --pipe --wait -p EnvironmentFile=/etc/evly/app.env \
 //     -p WorkingDirectory=$PWD npx ts-node --transpile-only scripts/testEmail.ts info@evly.ch
 import { resend, FROM_EMAIL, MAIL_PROVIDER } from '../src/lib/mailer';
