@@ -67,6 +67,7 @@ export default {
     noStamp: 'NON',
     allSeen: 'Merci, tu as tout vu !',
     waiting: 'On attend les autres… {{n}} sur {{total}} ont fini.',
+    everyoneDone: 'Tout le monde a fini, découvre les résultats !',
     seeResults: 'Voir les résultats',
     no: 'Non',
     yes: 'Oui',

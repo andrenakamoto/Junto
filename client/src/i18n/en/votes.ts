@@ -68,6 +68,7 @@ const votes: Dict['votes'] = {
     noStamp: 'NO',
     allSeen: 'Thanks, you’ve seen them all!',
     waiting: 'Waiting for the others… {{n}} of {{total}} have finished.',
+    everyoneDone: 'Everyone has finished, check out the results!',
     seeResults: 'See the results',
     no: 'No',
     yes: 'Yes',

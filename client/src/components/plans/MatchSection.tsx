@@ -177,7 +177,10 @@ function SwipeDeck({ match, plan, onClose }: { match: Match; plan: Plan; onClose
           <div className="text-center text-white">
             <p className="text-5xl">🎉</p>
             <p className="text-lg font-semibold mt-2">{t('votes.match.allSeen')}</p>
-            <p className="text-sm text-white/70 mt-1">{t('votes.match.waiting', { n: match.finishedCount + (match.deck.length ? 1 : 0), total: match.playerCount })}</p>
+            {/* Fin des cartes : nombre de joueurs qui ont fini, en comptant la personne qui vient de finir */}
+            {match.finishedCount + (match.deck.length ? 1 : 0) >= match.playerCount
+              ? <p className="text-sm text-white/70 mt-1">{t('votes.match.everyoneDone')}</p>
+              : <p className="text-sm text-white/70 mt-1">{t('votes.match.waiting', { n: match.finishedCount + (match.deck.length ? 1 : 0), total: match.playerCount })}</p>}
             <button onClick={onClose} className="mt-5 px-5 py-2.5 rounded-xl bg-white text-slate-900 font-semibold">{t('votes.match.seeResults')}</button>
           </div>
         )}
