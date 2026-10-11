@@ -2,17 +2,15 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 
 // Politique de confidentialité en français : version qui fait foi.
 const processors: Processor[] = [
-  { name: 'Railway', role: 'hébergement du serveur et de la base de données (comptes, messages, Plans)', where: 'États-Unis (Californie)', safeguard: 'clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)' },
-  { name: 'Vercel', role: 'hébergement du site evly.ch', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
-  { name: 'Cloudinary', role: 'stockage des photos, messages vocaux et fichiers partagés dans les Plans', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
-  { name: 'Resend', role: 'envoi des emails (validation, rappels, notifications)', where: 'États-Unis', safeguard: 'clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)' },
+  { name: 'Infomaniak', role: "hébergement du serveur, de la base de données (comptes, messages, Plans), du site evly.ch, des photos, messages vocaux et fichiers ; envoi des emails ; sauvegardes (Swiss Backup)", where: "Suisse", safeguard: "aucun transfert à l’étranger" },
+  { name: 'Railway', role: "relais temporaire pour les anciennes versions des apps (antérieures à la 1.0.13) : les données ne font qu’y transiter, rien n’y est conservé", where: "États-Unis (Californie)", safeguard: "clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)" },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 10 octobre 2026',
+  version: 'Version du 11 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -114,11 +112,7 @@ const fr: PrivacyText = {
       <p>EvLY s'appuie sur les prestataires suivants, qui traitent des données pour notre compte :</p>
       <ProcessorTable rows={processors} head={['Prestataire', 'Rôle', 'Pays', 'Garantie']} />
       <p>
-        Les États-Unis n'offrent pas en général un niveau de protection équivalent à la Suisse.
-        Chaque transfert est donc encadré : soit le prestataire est certifié au Swiss-U.S. Data
-        Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit il
-        s'engage par les clauses contractuelles types, adaptées au droit suisse, de son contrat de
-        traitement des données.
+        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), Google pour la connexion avec un compte Google et les polices du site, et le relais Railway le temps que tout le monde ait mis à jour l’app. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
       </p>
     </Section>
 
@@ -137,6 +131,7 @@ const fr: PrivacyText = {
           proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
         <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
         <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
+        <li><strong>Sauvegardes</strong> : une copie de la base de données est faite chaque nuit, gardée 14 jours sur le serveur et 30 jours sur Swiss Backup (Infomaniak, Suisse), avec une copie des photos et fichiers. Elles servent uniquement à restaurer EvLY en cas de panne ; un Plan supprimé peut y subsister jusqu’à 30 jours.</li>
         <li><strong>Visites de la page de présentation et de la brochure, nombre de messages envoyés</strong> : uniquement des totaux par jour,
           qui ne contiennent aucune donnée personnelle.</li>
       </ul>

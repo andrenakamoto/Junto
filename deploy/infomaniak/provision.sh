@@ -21,6 +21,11 @@ if ! command -v node >/dev/null || ! node -v | grep -q '^v22'; then
 fi
 timedatectl set-timezone Europe/Zurich
 dpkg-reconfigure -f noninteractive unattended-upgrades
+# Politique de confidentialité : journaux du serveur gardés 7 jours (systemd et nginx)
+mkdir -p /etc/systemd/journald.conf.d
+printf '[Journal]\nMaxRetentionSec=7day\n' > /etc/systemd/journald.conf.d/evly.conf
+systemctl restart systemd-journald
+sed -i 's/^\s*rotate [0-9]*/\trotate 7/; s/^\s*weekly/\tdaily/' /etc/logrotate.d/nginx
 
 echo '== Pare-feu (SSH, HTTP, HTTPS seulement)'
 ufw allow OpenSSH >/dev/null
