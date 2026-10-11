@@ -192,8 +192,10 @@ Conséquences pratiques :
   latérale. Tableau des prestataires (`processors`) avec pays et garantie
   de transfert (DPF ou clauses contractuelles). **La mettre à jour** (dans les 4 langues, `pages/privacy/*.tsx`, et
   sa date de version) à chaque nouveau prestataire, nouvelle donnée
-  collectée ou changement de région d'hébergement (Railway est en `sfo`,
-  États-Unis ; journaux conservés 7 jours en abonnement Hobby).
+  collectée ou changement de région d'hébergement. Depuis le 11 octobre 2026 : **hébergement Infomaniak, Suisse**
+  (serveur, base, site, fichiers, emails, Swiss Backup) ; restent aux États-Unis Google / Apple (notifications push,
+  connexion Google, polices) et le **relais Railway** tant qu'il tourne ; journaux du serveur 7 jours (journald +
+  logrotate nginx), sauvegardes 14 jours (serveur) / 30 jours (Swiss Backup).
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
   quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
