@@ -1452,7 +1452,9 @@ son Plan juste après avoir accepté l'invitation).
 > Pare-feu : Ubuntu (ufw) **et** pare-feu du Manager Infomaniak (ports 22, 80, 443 seulement).
 > **Railway ne sert plus que de relais** (`server/relay.js`, `server/railway.toml`) vers api.evly.ch pour les apps
 > antérieures à la 1.0.13 (adresse Railway codée en dur) ; ses tâches planifiées sont coupées. À arrêter quand tout le
-> monde a mis à jour. Vercel reste à fermer ; Cloudinary et Resend ne sont plus utilisés.
+> monde a mis à jour. Le 2026-10-11 : projet Vercel supprimé, dossier `estelle` effacé chez Cloudinary (compte partagé avec
+> une autre app de l'utilisateur, garder le reste), compte Resend et ses DNS supprimés, **service Postgres de Railway
+> supprimé** (seul le service `Junto` = relais subsiste, sans `DATABASE_URL`).
 > Le texte ci-dessous décrit l'ancienne installation (Vercel / Railway), gardé pour l'historique.
 
 - **Frontend** : Vercel, domaine principal **www.evly.ch** (evly.ch redirige
