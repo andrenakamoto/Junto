@@ -403,6 +403,8 @@ Conséquences pratiques :
     **Version 1.0.13** (2026-10-11) : Android `versionCode` 14 (`evly-1.0.13-(14).aab`), iOS build 15 envoyé — **API en
     Suisse (`https://api.evly.ch`, Infomaniak)**, « En bref », message de fin du match. Les versions antérieures passent par
     le relais Railway (`server/relay.js`) tant qu'il est allumé.
+    **Version 1.0.14** (2026-10-11, soir) : Android `versionCode` 15 (`evly-1.0.14-(15).aab`), iOS build 16 envoyé — fonction
+    « Bénévoles » renommée « Planning », lignes de programme à 0 personne (le récapitulatif PDF complet est côté serveur).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
