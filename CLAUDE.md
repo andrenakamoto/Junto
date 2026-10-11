@@ -199,7 +199,7 @@ Conséquences pratiques :
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
   une page A4, refaite le 2026-09-28 en version **visuelle** (~100 mots :
   pictos Cercle → Plan → Chat, « avant/après » WhatsApp vs carte de Plan,
-  10 tuiles de fonctions depuis le 2026-10-10 — jeux, sondages, liste d'attente, cagnotte cités sans détail, à garder synthétique —, icônes Lucide inlinées en SVG ; versions de / it / en régénérées par `client/scripts/decouvrir-i18n.mjs`, à compléter pour tout texte modifié ; la version allemande déborde déjà sur 2 pages à l'impression), avec boutons
+  10 tuiles de fonctions depuis le 2026-10-10 — jeux, sondages, liste d'attente, cagnotte cités sans détail, à garder synthétique —, icônes Lucide inlinées en SVG ; versions de / it / en régénérées par `client/scripts/decouvrir-i18n.mjs`, à compléter pour tout texte modifié) ; sous-titre « La messagerie ordinaire mélange tout » + phrase sur les surprises (2026-10-11), « Collègues » à la place d'« Entreprises ». Pour vérifier qu'elle tient sur une page : imprimer chaque version dans un **nouvel onglet** Playwright (réutiliser l'onglet faussait le compte des pages), avec boutons
   « Créer mon compte » en haut et en bas (masqués à l'impression), qui
   pointent vers `/auth?mode=inscription` (AuthPage ouvre alors l'onglet
   inscription). L'ancienne version texte
