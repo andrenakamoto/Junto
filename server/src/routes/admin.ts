@@ -9,7 +9,7 @@ import { fillDays, TRACKED_PAGES, visitDay } from '../lib/pageVisits';
 import { requestEmailChange } from '../lib/emailChange';
 import { decryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { messageInclude } from '../lib/messageInclude';
-import { destroyFiles } from '../lib/cloudinary';
+import { destroyFiles } from '../lib/storage';
 
 import { notifyUser } from '../lib/push';
 import { isSuggestionStatus, NOTIFIED_STATUSES, SUGGESTION_REPLY_MAX } from '../lib/suggestions';

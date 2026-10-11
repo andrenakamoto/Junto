@@ -1,6 +1,6 @@
 import prisma from './prisma';
 import { nextCircleCreator } from './circleRoles';
-import { purgePlanFiles, purgeCircleFiles } from './cloudinary';
+import { purgePlanFiles, purgeCircleFiles } from './storage';
 
 // Supprime un compte sans pénaliser les autres membres :
 // - ses Cercles passent au membre le plus ancien (supprimés s'il était seul) ;

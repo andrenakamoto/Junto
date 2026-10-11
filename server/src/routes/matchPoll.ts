@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
-import { cloudinary } from '../lib/cloudinary';
+import { destroyFiles } from '../lib/storage';
 import { FEATURE_DISABLED_ERROR, IMPORTANT_INFO_MAX } from '../lib/settings';
 import {
   MATCH_LABEL_MAX, MATCH_NOTE_MAX, MATCH_OPTIONS_MAX, MATCH_QUESTION_MAX, Swipe, finishedCount, isUnanimous,
@@ -62,7 +62,7 @@ async function parseOption(planId: string, body: any, pseudo: string) {
 async function destroyPhotos(attachmentIds: string[]) {
   if (!attachmentIds.length) return;
   const atts = await prisma.attachment.findMany({ where: { id: { in: attachmentIds } } });
-  for (const a of atts) await cloudinary.uploader.destroy(a.publicId, { resource_type: a.resourceType as any }).catch(e => console.error('[match photo]', e));
+  await destroyFiles(atts).catch(e => console.error('[match photo]', e));
   await prisma.attachment.deleteMany({ where: { id: { in: attachmentIds } } });
 }
 

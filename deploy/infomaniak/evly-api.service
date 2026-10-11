@@ -13,6 +13,9 @@ EnvironmentFile=/etc/evly/database.env
 EnvironmentFile=/etc/evly/app.env
 Environment=NODE_ENV=production
 Environment=PORT=3001
+# Photos, documents et messages vocaux des Plans (lib/storage.ts)
+Environment=STORAGE_DIR=/srv/evly/files
+ReadWritePaths=/srv/evly/files
 # Tâches planifiées (rappels, suppression des Plans expirés…) : ici, c'est la production
 Environment=ENABLE_CRON=true
 ExecStart=/usr/bin/node dist/index.js

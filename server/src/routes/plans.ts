@@ -5,7 +5,7 @@ import { parseLocale, requestLocale } from '../lib/i18n';
 import { mail } from '../lib/emailText';
 import { isMuted } from '../lib/mutes';
 import { buildPlanRecapPdf, canDownloadRecap } from '../lib/planRecap';
-import { purgePlanFiles } from '../lib/cloudinary';
+import { purgePlanFiles } from '../lib/storage';
 import { mintMediaToken } from '../lib/mediaToken';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { computeByCurrency, parseCurrency } from '../lib/expenses';

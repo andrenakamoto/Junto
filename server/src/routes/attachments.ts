@@ -1,15 +1,12 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { fixUploadedFileName } from '../lib/fileName';
-import https from 'https';
-import http from 'http';
-import zlib from 'zlib';
 import jwt from 'jsonwebtoken';
 import archiver from 'archiver';
 import prisma from '../lib/prisma';
 import { getPlanAccess } from '../lib/planAccess';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { cloudinary } from '../lib/cloudinary';
+import { destroyFiles, readStored, storeFile, thumbnail, voiceMp3 } from '../lib/storage';
 import { verifyMediaToken } from '../lib/mediaToken';
 import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
@@ -35,16 +32,6 @@ const upload = multer({
 });
 
 const PLAN_ATTACHMENTS_LIMIT = 100 * 1024 * 1024; // 100 MB cumulés par plan
-
-function streamUpload(buffer: Buffer, options: Record<string, unknown>): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      options,
-      (err, result) => (result ? resolve(result) : reject(err)),
-    );
-    stream.end(buffer);
-  });
-}
 
 // POST /api/attachments/plans/:planId  — upload
 router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, res) => {
@@ -92,22 +79,18 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
       if (!isImageMime && !isVoice) { res.status(400).json({ error: 'Seules les photos et les messages vocaux peuvent être envoyés dans le chat' }); return; }
       if (plan.disabledFeatures.includes('chat')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
     }
-    // Messages vocaux → resource_type 'video' (Cloudinary range l'audio avec la vidéo), pour
-    // pouvoir les servir convertis en MP3, lisible partout (iPhone ne lit pas le WebM d'Android)
-    const result = await streamUpload(req.file.buffer, {
-      folder: `estelle/${req.params.planId}`,
-      resource_type: isImageMime ? 'image' : isVoice ? 'video' : 'raw',
-      use_filename: false,
-    });
+    // Messages vocaux : resourceType « video » (convention héritée de Cloudinary), servis convertis en MP3
+    const mimeType = req.file.mimetype.split(';')[0].trim();
+    const result = await storeFile(req.file.buffer, req.params.planId, mimeType, isImageMime ? 'image' : isVoice ? 'video' : 'raw');
 
     const attachment = await prisma.attachment.create({
       data: {
         planId:       req.params.planId,
         name:         fixUploadedFileName(req.file.originalname),
-        url:          result.secure_url,
-        publicId:     result.public_id,
-        resourceType: result.resource_type,
-        mimeType:     req.file.mimetype.split(';')[0].trim(),
+        url:          result.url,
+        publicId:     result.publicId,
+        resourceType: result.resourceType,
+        mimeType,
         size:         req.file.size,
         uploadedBy:   req.pseudo!,
       },
@@ -120,35 +103,6 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     res.status(500).json({ error: "Erreur lors de l'envoi du fichier" });
   }
 });
-
-function fetchBuffer(url: string, depth = 0): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    if (depth > 5) { reject(new Error('Trop de redirections')); return; }
-    const proto = url.startsWith('https') ? https : http;
-    proto.get(url, { headers: { 'User-Agent': 'Mozilla/5.0', Accept: '*/*' } }, (upstream) => {
-      const code = upstream.statusCode ?? 0;
-      if (code >= 300 && code < 400 && upstream.headers.location) {
-        upstream.resume();
-        fetchBuffer(upstream.headers.location, depth + 1).then(resolve, reject);
-        return;
-      }
-      if (code >= 400) {
-        upstream.resume();
-        reject(new Error(`HTTP ${code}`));
-        return;
-      }
-      const chunks: Buffer[] = [];
-      const enc = upstream.headers['content-encoding'];
-      let stream: NodeJS.ReadableStream = upstream;
-      if (enc === 'gzip')    stream = upstream.pipe(zlib.createGunzip());
-      else if (enc === 'br') stream = upstream.pipe(zlib.createBrotliDecompress());
-      else if (enc === 'deflate') stream = upstream.pipe(zlib.createInflate());
-      stream.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
-      stream.on('end', () => resolve(Buffer.concat(chunks)));
-      stream.on('error', reject);
-    }).on('error', reject);
-  });
-}
 
 // GET /api/attachments/:id/download-token — génère un token court (2 min) pour téléchargement mobile
 router.get('/:id/download-token', async (req: AuthRequest, res) => {
@@ -255,7 +209,7 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     const used = new Set<string>();
     for (const photo of photos) {
       try {
-        const buffer = await fetchBuffer(photo.url);
+        const buffer = await readStored(photo);
         if (buffer.length === 0) continue;
         archive.append(buffer, { name: uniqueZipEntryName(photo.name, used) });
       } catch (e) {
@@ -271,7 +225,7 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
 });
 
 // GET /api/attachments/:id/view?t=<jeton média>[&w=400] — affiche un fichier du Plan sans
-// jamais exposer son adresse Cloudinary au navigateur. `w` : miniature (images seulement).
+// jamais exposer son emplacement au navigateur. `w` : miniature (images seulement).
 router.get('/:id/view', async (req, res) => {
   try {
     const payload = verifyMediaToken(String(req.query.t || ''));
@@ -281,32 +235,28 @@ router.get('/:id/view', async (req, res) => {
     if (!att || att.planId !== payload.planId) { res.status(404).json({ error: 'Fichier introuvable' }); return; }
 
     const width = Number(req.query.w);
-    let buffer: Buffer | null = null;
-    // Message vocal (?format=mp3) : converti en MP3 par Cloudinary
-    const voice = req.query.format === 'mp3' && att.resourceType === 'video' && att.mimeType.startsWith('audio/') && /\.[a-z0-9]+$/i.test(att.url);
-    if (voice) {
-      buffer = await fetchBuffer(att.url.replace(/\.[a-z0-9]+$/i, '.mp3'));
-      if (buffer.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
+    // Message vocal (?format=mp3) : converti en MP3 par le serveur (ffmpeg, gardé en cache)
+    if (req.query.format === 'mp3' && att.resourceType === 'video' && att.mimeType.startsWith('audio/')) {
+      const mp3 = await voiceMp3(att);
+      if (mp3.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
       res.setHeader('Content-Type', 'audio/mpeg');
       res.setHeader('Content-Disposition', 'inline; filename="message-vocal.mp3"');
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('Cache-Control', 'private, max-age=3600');
-      res.setHeader('Content-Length', buffer.length.toString());
-      res.end(buffer);
+      res.setHeader('Content-Length', mp3.length.toString());
+      res.end(mp3);
       return;
     }
-    if (width > 0 && att.resourceType === 'image' && att.mimeType.startsWith('image/') && att.url.includes('/upload/')) {
-      const w = Math.min(Math.max(Math.round(width), 64), 1600);
-      buffer = await fetchBuffer(att.url.replace('/upload/', `/upload/c_limit,w_${w},q_auto/`)).catch(() => null);
-    }
-    if (!buffer || buffer.length === 0) buffer = await fetchBuffer(att.url);
+    // Miniature (?w=) : réduite par le serveur (sharp, gardée en cache) ; l'original sinon
+    const thumb = width > 0 && att.mimeType.startsWith('image/') ? await thumbnail(att, width) : null;
+    const buffer = thumb?.buffer ?? await readStored(att);
     if (buffer.length === 0) { res.status(502).json({ error: 'Fichier indisponible' }); return; }
 
     const encoded = encodeURIComponent(att.name).replace(/'/g, '%27');
     // Affiché « en page » seulement pour les images classiques et les PDF. Le reste (HTML, SVG, XML…)
     // est forcé en téléchargement : sinon un fichier piégé s'ouvrirait comme une page du domaine de l'API.
     const inline = SAFE_INLINE_TYPES.has((att.mimeType || '').toLowerCase());
-    res.setHeader('Content-Type', inline ? att.mimeType : 'application/octet-stream');
+    res.setHeader('Content-Type', thumb ? thumb.type : inline ? att.mimeType : 'application/octet-stream');
     res.setHeader('Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="${encoded}"; filename*=UTF-8''${encoded}`);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     if (inline && att.mimeType.startsWith('image/')) res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox");
@@ -348,18 +298,11 @@ router.get('/:id/download', async (req: AuthRequest, res) => {
     const access = await getPlanAccess(req.userId!, plan.id);
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
-    // Pour les PDFs anciens stockés comme 'image', ajouter fl_attachment aide le CDN
-    // à renvoyer le fichier brut plutôt qu'une image convertie
-    let fetchUrl = att.url;
-    if (att.resourceType === 'image' && att.url.includes('/upload/') && !att.url.includes('/upload/fl_attachment/')) {
-      fetchUrl = att.url.replace('/upload/', '/upload/fl_attachment/');
-    }
-
-    const buffer = await fetchBuffer(fetchUrl);
+    const buffer = await readStored(att);
 
     if (buffer.length === 0) {
       res.status(502).json({
-        error: 'Fichier introuvable chez Cloudinary (0 octets). Supprimez cette pièce jointe et ré-uploadez-la.',
+        error: 'Fichier vide. Supprimez cette pièce jointe et envoyez-la à nouveau.',
       });
       return;
     }
@@ -390,7 +333,7 @@ router.delete('/:id', async (req: AuthRequest, res) => {
     if (!canDelete) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const linked = await prisma.message.findUnique({ where: { attachmentId: att.id }, select: { id: true } });
-    await cloudinary.uploader.destroy(att.publicId, { resource_type: att.resourceType as any });
+    await destroyFiles([att]);
     await prisma.attachment.delete({ where: { id: req.params.id } });
 
     res.json({ deleted: true });

@@ -6,7 +6,7 @@ import { santaDateError } from '../lib/secretSanta';
 import { removeFromGamesInCircle } from '../lib/planGames';
 import { promoteFromWaitlist } from '../lib/waitlist';
 import { withoutMuted } from '../lib/mutes';
-import { purgeCircleFiles } from '../lib/cloudinary';
+import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { validateExclusions } from '../lib/planAccess';

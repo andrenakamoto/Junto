@@ -30,7 +30,7 @@ systemctl enable --now fail2ban >/dev/null
 
 echo '== Utilisateur evly'
 id evly >/dev/null 2>&1 || adduser --system --group --home /srv/evly --shell /bin/bash evly
-install -d -o evly -g evly -m 750 /srv/evly /srv/evly/backups
+install -d -o evly -g evly -m 750 /srv/evly /srv/evly/backups /srv/evly/files
 # nginx (www-data) lit le site construit dans /srv/evly/site
 usermod -aG evly www-data
 install -d -o root -g evly -m 750 /etc/evly

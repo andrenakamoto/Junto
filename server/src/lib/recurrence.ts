@@ -1,6 +1,6 @@
 import prisma from './prisma';
 import { copyShifts } from './volunteers';
-import { purgePlanFiles } from './cloudinary';
+import { purgePlanFiles } from './storage';
 
 // Plans récurrents : chaque semaine, toutes les 2 semaines ou chaque mois, jusqu'à une date
 // facultative. Il n'y a toujours qu'un seul Plan à venir : quand la date du Plan est passée,

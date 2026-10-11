@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
-import { destroyFiles } from '../lib/cloudinary';
+import { destroyFiles } from '../lib/storage';
 import { APP_URL } from '../lib/mailer';
 import {
   MAX_QUESTIONS, QUESTION_LEAD_MS, QUIZ_DISABLED_ERROR, TIME_LIMITS, answerPoints, canManageQuiz, distribution,
@@ -181,7 +181,7 @@ async function questionCtx(req: AuthRequest, res: any) {
 
 async function removePhoto(attachmentId: string | null) {
   if (!attachmentId) return;
-  const file = await prisma.attachment.findUnique({ where: { id: attachmentId }, select: { id: true, publicId: true, resourceType: true } });
+  const file = await prisma.attachment.findUnique({ where: { id: attachmentId }, select: { id: true, url: true, publicId: true, resourceType: true } });
   if (!file) return;
   await destroyFiles([file]);
   await prisma.attachment.delete({ where: { id: file.id } }).catch(() => {});

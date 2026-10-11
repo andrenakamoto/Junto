@@ -7,7 +7,7 @@ import { escapeHtml } from './escapeHtml';
 import { mutedAmong } from './mutes';
 import { sendRecapBeforeDeletion } from './planRecap';
 import { shiftHours, sortShifts } from './volunteers';
-import { purgePlanFiles } from './cloudinary';
+import { purgePlanFiles } from './storage';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { computeByCurrency, formatAmount } from './expenses';

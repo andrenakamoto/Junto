@@ -11,7 +11,7 @@ import { countMessageSent, touchUser } from '../lib/activity';
 import { touchPlanSection } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
 import { messageInclude } from '../lib/messageInclude';
-import { destroyFiles } from '../lib/cloudinary';
+import { destroyFiles } from '../lib/storage';
 import { wantsEmail } from '../lib/notificationPrefs';
 
 // userId -> nombre de connexions actives (plusieurs onglets/appareils)
@@ -251,7 +251,7 @@ export function setupSocketHandlers(io: Server) {
         data: { content: '', deletedAt: new Date(), attachmentId: null },
         include: messageInclude,
       });
-      // Photo envoyée avec ce message : supprimée aussi (Cloudinary + onglet Infos)
+      // Photo envoyée avec ce message : supprimée aussi (fichier + onglet Infos)
       if (message.attachmentId) {
         const att = await prisma.attachment.findUnique({ where: { id: message.attachmentId } });
         if (att) {
