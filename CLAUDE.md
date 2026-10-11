@@ -1162,10 +1162,14 @@ Junto/
     pour les autres liens evly.ch.
 
 **Récapitulatif PDF d'un Plan** (2026-10-05, `lib/planRecap.ts`, pdfkit + polices Inter / Fraunces de
-`server/assets/fonts`) : titre, Cercle, dates, lieu, organisateur, description, informations
-importantes, participants par réponse (prénom + @pseudo, jamais nom de famille ni email), planning
-des bénévoles (inscrits, places manquantes) et, s'il y a du contenu, « qui apporte quoi », dépenses
-(soldes, virements) et votes. **Réservé au créateur du Plan et aux gestionnaires du Cercle**
+`server/assets/fonts`) : titre (emoji retirés, absents des polices), Cercle, dates, lieu, organisateur, répétition,
+description, informations importantes, participants par réponse (prénom + @pseudo, jamais nom de famille ni email),
+liste d'attente, planning (inscrits, places manquantes, lignes de programme) et, s'il y a du contenu, « qui apporte
+quoi », dépenses (soldes, virements, remboursements faits), votes, et depuis le 2026-10-11 : assemblée (résultat de
+chaque point, totaux seulement ; le PV reste le document officiel), quiz (classement), équipes (composition,
+classement ou tableau), Killer et mot piège **une fois la partie terminée**, Père Noël secret **après la
+révélation**, cagnotte **détaillée** (montant et état de chacun : les destinataires gèrent la cagnotte). Chaque
+rubrique de jeu seulement si sa fonction est active. **Jamais le chat ni rien de ce que l'app cache encore.** **Réservé au créateur du Plan et aux gestionnaires du Cercle**
 (`canDownloadRecap` ; GET /plans/:id renvoie `canRecap`). GET /plans/:id/recap (PDF) ; client
 `lib/planRecap.ts` (`saveFile` : téléchargement sur le site, menu de partage dans les apps). Boutons :
 « Récap » de la barre d'actions (téléphone), icône de l'en-tête (grand écran), menu ⋮ (tablette),

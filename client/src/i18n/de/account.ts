@@ -53,7 +53,7 @@ const account: Dict['account'] = {
     digest: 'Wochenübersicht',
     digestHint: 'Jeden Montag eine E-Mail mit den aktiven Plänen deiner Kreise.',
     recap: 'Zusammenfassung vor dem Löschen',
-    recapHint: 'Für die Pläne, die du verwaltest (Ersteller des Plans, Organisator des Kreises): ein PDF per E-Mail kurz vor dem automatischen Löschen. Infos, Teilnehmende, Einsatzplan, Ausgaben.',
+    recapHint: 'Für die Pläne, die du verwaltest (Ersteller des Plans, Organisator des Kreises): ein PDF per E-Mail kurz vor dem automatischen Löschen. Infos, Teilnehmende, Einsatzplan, Ausgaben, Abstimmungen, Versammlung, Spiele, Geschenkkasse (nicht der Chat).',
     muted: 'Stummgeschaltet',
     mutedHint: 'Weder Benachrichtigung noch E-Mail (ausser wenn du erwähnt wirst). Die orangen Punkte bleiben in der App. Die Glocke 🔔 auf einem Plan oder Kreis schaltet sie stumm.',
     nothingMuted: 'Nichts ist stummgeschaltet.',

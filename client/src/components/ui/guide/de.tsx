@@ -282,7 +282,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong>: ein Erinnerungsbild (Titel, Datum, Ort, Anwesende) mit einem Foto deiner Wahl.</>,
           <><strong>Kalender</strong>: füge den Plan deinem Kalender hinzu (.ics-Datei).</>,
-          <><strong>Übersicht</strong> (Ersteller des Plans und Organisatoren): ein PDF mit Infos, Teilnehmenden, Einsatzplan, Ausgaben und Abstimmungen.</>,
+          <><strong>Übersicht</strong> (Ersteller des Plans und Organisatoren): ein PDF mit Infos, Teilnehmenden, Warteliste, Einsatzplan, Ausgaben, Abstimmungen, Ergebnissen der Versammlung und der beendeten Spiele, Geschenkkasse (nicht der Chat).</>,
           <><strong>Änderungsverlauf</strong>: Menü des Plans.</>,
         ]} />,
       },

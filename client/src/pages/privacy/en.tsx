@@ -109,7 +109,9 @@ const en: PrivacyText = {
         <li><strong>Plans</strong>: deleted automatically on their end date (3 weeks at most after they start), with all
           their content — messages, voice messages, photos, files, rides, expenses. If expenses were recorded, members
           receive a summary by email just before. The Plan’s creator and the Circle’s organisers can keep a{' '}
-          <strong>PDF summary</strong> (info, participants with first name and username, volunteers, expenses, votes): by
+          <strong>PDF summary</strong> (info, participants with first name and username, waiting list, schedule, expenses and
+          repayments, votes, results of the assembly and of finished games, Secret Santa after the reveal, gift pot with
+          each person’s contribution; never the chat): by
           downloading it, or by email just before deletion if they turned on that option. The minutes of an assembly are
           emailed to the Plan’s creator when it closes: it is then up to the association to keep them.</li>
         <li><strong>Date polls</strong>: deleted as soon as they become a Plan (their chat carries over to the Plan),

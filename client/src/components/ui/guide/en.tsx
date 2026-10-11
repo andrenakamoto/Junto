@@ -274,7 +274,7 @@ const groups: Group[] = [
         body: <L items={[
           <><strong>Story</strong>: a keepsake image (title, date, place, who came) with the photo of your choice.</>,
           <><strong>Calendar</strong>: add the Plan to your calendar (.ics file).</>,
-          <><strong>Summary</strong> (Plan creator and organisers): a PDF with info, participants, schedule, expenses and votes.</>,
+          <><strong>Summary</strong> (Plan creator and organisers): a PDF with info, participants, waiting list, schedule, expenses, votes, results of the assembly and of finished games, gift pot (not the chat).</>,
           <><strong>Change history</strong>: Plan menu.</>,
         ]} />,
       },

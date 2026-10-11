@@ -7,10 +7,20 @@ import { mail } from './emailText';
 import { isCircleManager } from './circleRoles';
 import { computeByCurrency, formatAmount } from './expenses';
 import { sortShifts, shiftHours } from './volunteers';
+import { countVotes, isAdopted } from './assembly';
+import { leaderboard } from './quiz';
+import { leagueStandings } from './teams';
+import { ranking as wordRanking } from './wordGame';
+import { potTotals } from './giftPot';
 
-// Récapitulatif PDF d'un Plan (à garder avant sa suppression automatique) : infos, participants,
-// bénévoles, « qui apporte quoi », dépenses et votes — ces dernières rubriques seulement si elles
-// ont du contenu. Réservé au créateur du Plan et aux gestionnaires du Cercle (canDownloadRecap).
+// Récapitulatif PDF d'un Plan (à garder avant sa suppression automatique) : infos, répétition,
+// participants, liste d'attente, planning, « qui apporte quoi », dépenses et remboursements, votes,
+// assemblée (résultats ; le PV reste le document officiel), quiz, équipes, Killer, mot piège, Père Noël
+// secret et cagnotte — chaque rubrique seulement si elle a du contenu et que sa fonction est active.
+// Réservé au créateur du Plan et aux gestionnaires du Cercle (canDownloadRecap). Pas le chat.
+// Les secrets restent secrets : jeux seulement une fois terminés, Père Noël seulement après la
+// révélation, bulletins secrets en totaux. La cagnotte est détaillée (montant de chacun) : les
+// destinataires sont ceux qui gèrent la cagnotte dans l'app.
 // Jamais de nom de famille ni d'email : prénom et @pseudo, comme dans l'app.
 
 const FONT_DIR = path.resolve(__dirname, '..', '..', 'assets', 'fonts');
@@ -28,6 +38,7 @@ export async function canDownloadRecap(userId: string, plan: { creatorId: string
 }
 
 type Person = { pseudo: string; firstName: string | null; isLight?: boolean };
+const PERSON = { pseudo: true, firstName: true, isLight: true } as const;
 type Mail = ReturnType<typeof mail>;
 const whoIn = (m: Mail) => (u: Person) => u.isLight
   ? m.s('recapPdf.guest', { name: u.firstName ?? u.pseudo })
@@ -49,6 +60,7 @@ export async function loadRecapData(planId: string) {
       circle: { select: { name: true, isPersonal: true } },
       creator: { select: { pseudo: true, firstName: true } },
       members: { include: { user: { select: { pseudo: true, firstName: true, isLight: true } } } },
+      waitlist: { orderBy: { createdAt: 'asc' }, include: { user: { select: PERSON } } },
       volunteerShifts: { include: { signups: { orderBy: { createdAt: 'asc' }, include: { user: { select: { pseudo: true, firstName: true } } } } } },
       items: true,
       expenses: { include: { paidBy: { select: { pseudo: true, firstName: true } }, splitWith: true }, orderBy: { createdAt: 'asc' } },
@@ -63,6 +75,19 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   if (!plan) return null;
   const m = mail(locale);
   const who = whoIn(m);
+  const has = (f: string) => plan.enabledFeatures.includes(f);
+  const [assembly, quiz, teamDraw, killer, words, santa, pot] = await Promise.all([
+    has('assemblee') ? prisma.assembly.findUnique({ where: { planId }, include: { items: { orderBy: { position: 'asc' }, include: { candidates: true, ballots: true } } } }) : null,
+    has('quiz') ? prisma.quiz.findUnique({ where: { planId }, include: { questions: { select: { id: true } } } }) : null,
+    has('equipes') ? prisma.teamDraw.findUnique({ where: { planId }, include: { teams: { orderBy: { position: 'asc' }, include: { members: { include: { user: { select: PERSON } } } } }, matches: { orderBy: [{ round: 'asc' }, { position: 'asc' }] } } }) : null,
+    has('killer') ? prisma.killerGame.findUnique({ where: { planId }, include: { players: { include: { user: { select: PERSON } } } } }) : null,
+    has('mot_piege') ? prisma.wordGame.findUnique({ where: { planId }, include: { players: { include: { user: { select: PERSON } } } } }) : null,
+    has('pere_noel') ? prisma.secretSanta.findUnique({ where: { planId }, include: { pairs: { include: { giver: { select: PERSON }, receiver: { select: PERSON } } } } }) : null,
+    has('cagnotte') ? prisma.giftPot.findUnique({ where: { planId }, include: { pledges: { orderBy: { createdAt: 'asc' }, include: { user: { select: PERSON } } }, ideas: true } }) : null,
+  ]);
+  // Quiz : seulement une fois la partie terminée
+  const quizAnswers = quiz?.endedAt ? await prisma.quizAnswer.findMany({ where: { planId }, select: { userId: true, points: true } }) : [];
+  const quizPeople = new Map((await prisma.user.findMany({ where: { id: { in: [...new Set(quizAnswers.map(a => a.userId))] } }, select: { id: true, ...PERSON } })).map(u => [u.id, u]));
 
   const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 52, right: 52 }, bufferPages: true, info: { Title: m.s('recapPdf.title', { plan: plan.title }), Author: 'EvLY' } });
   const chunks: Buffer[] = [];
@@ -79,12 +104,20 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   doc.y = 92;
 
   if (plan.circle && !plan.circle.isPersonal) doc.font('semibold').fontSize(9).fillColor(CORAL).text(plan.circle.name.toUpperCase(), { characterSpacing: 0.8 });
-  doc.moveDown(0.2).font('serif').fontSize(22).fillColor(INK).text(plan.title, { width });
+  // Les polices du PDF n'ont pas d'emoji : retirés du titre (sinon un carré vide)
+  const noEmoji = (s: string) => s.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').replace(/\s{2,}/g, ' ').trim();
+  doc.moveDown(0.2).font('serif').fontSize(22).fillColor(INK).text(noEmoji(plan.title) || plan.title, { width });
   doc.moveDown(0.4);
   const line = (label: string, value: string) => doc.font('semibold').fontSize(10).fillColor(DIM).text(`${label}  `, { continued: true }).font('regular').fillColor(INK).text(value);
   line(m.s('recapPdf.date'), planDates(m, plan.eventDate, plan.endDate));
   if (plan.location) line(m.s('recapPdf.place'), plan.location);
   line(m.s('recapPdf.by'), who(plan.creator));
+  if (plan.recurrence) {
+    const label = m.s(plan.recurrence === 'biweekly' ? 'recapPdf.recurBiweekly' : plan.recurrence === 'monthly' ? 'recapPdf.recurMonthly' : 'recapPdf.recurWeekly');
+    const until = plan.recurrenceUntil ? zurich(m, { day: 'numeric', month: 'long', year: 'numeric' }).format(plan.recurrenceUntil) : null;
+    const text = until ? m.s('recapPdf.recurUntil', { label, date: until }) : label;
+    line(m.s('recapPdf.repeat'), text.charAt(0).toUpperCase() + text.slice(1));
+  }
 
   const section = (title: string, sub?: string) => {
     if (doc.y > doc.page.height - 140) doc.addPage();
@@ -94,6 +127,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     doc.moveDown(0.35);
   };
   const para = (text: string, color = INK) => doc.font('regular').fontSize(10).fillColor(color).text(text, { width, lineGap: 1.5 });
+  const sub = (text: string) => { if (doc.y > doc.page.height - 110) doc.addPage(); doc.moveDown(0.3).font('semibold').fontSize(10).fillColor(INK).text(text, { width }); };
 
   if (plan.description?.trim()) { section(m.s('recapPdf.description')); para(plan.description.trim()); }
 
@@ -121,6 +155,12 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     doc.font('semibold').fontSize(10).fillColor(INK).text(`${RSVP_LABEL[g.r]} (${g.people.length})`);
     para(g.people.map(who).join(', '), DIM);
     doc.moveDown(0.4);
+  }
+
+  // Liste d'attente, dans l'ordre
+  if (plan.waitlist.length > 0) {
+    section(m.s('recapPdf.waitlist'), m.s('recapPdf.waitlistSub', { count: plan.waitlist.length }));
+    para(plan.waitlist.map((w, i) => `${i + 1}. ${who(w.user)}`).join('    '), DIM);
   }
 
   // Planning des bénévoles
@@ -172,6 +212,10 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     const transfers = byCurrency.flatMap(c => c.transfers.map(t => ({ ...t, currency: c.currency })));
     doc.moveDown(0.4).font('semibold').fontSize(10).fillColor(INK).text(transfers.length ? m.s('recapPdf.balance') : m.s('recapPdf.balanced'));
     for (const t of transfers) para(`@${pseudo(t.fromUserId)} → @${pseudo(t.toUserId)} : ${formatAmount(t.amount, t.currency, m.intl)}`, DIM);
+    if (plan.reimbursements.length > 0) {
+      sub(m.s('recapPdf.reimbursements'));
+      for (const r of plan.reimbursements) para(`@${pseudo(r.fromUserId)} → @${pseudo(r.toUserId)} : ${formatAmount(r.amount, r.currency, m.intl)}`, DIM);
+    }
   }
 
   // Votes (comptes seulement)
@@ -184,6 +228,99 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
         para(`•  ${o.text} — ${m.s('recapPdf.voices', { count: o.votes.length })}${total ? ` (${Math.round((o.votes.length / total) * 100)} %)` : ''}`, DIM);
       }
       doc.moveDown(0.4);
+    }
+  }
+
+  // Assemblée : résultat de chaque point (totaux seulement, jamais qui a voté quoi au scrutin secret)
+  if (assembly && assembly.items.length > 0) {
+    section(m.s('recapPdf.assembly'), m.s(assembly.closedAt ? 'recapPdf.assemblyClosed' : assembly.openedAt ? 'recapPdf.assemblyOpen' : 'recapPdf.assemblyNotOpened'));
+    assembly.items.forEach((it, i) => {
+      sub(`${i + 1}. ${it.title}`);
+      if (it.kind === 'info') return;
+      const elected = it.candidates.filter(c => c.elected).map(c => c.name);
+      if (it.status === 'tacit') {
+        if (it.kind === 'election') para(elected.length ? m.s('recapPdf.elected', { names: elected.join(', ') }) : m.s('recapPdf.nobodyElected'), DIM);
+        else para(m.s(it.tacitAdopted ? 'recapPdf.tacitAdopted' : 'recapPdf.tacitRejected'), DIM);
+      } else if (it.status === 'closed') {
+        if (it.kind === 'election') para(elected.length ? m.s('recapPdf.elected', { names: elected.join(', ') }) : m.s('recapPdf.nobodyElected'), DIM);
+        else {
+          const c = countVotes(it.ballots);
+          para(m.s('recapPdf.voteCounts', { verdict: m.s(isAdopted(c, it.majority) ? 'recapPdf.adopted' : 'recapPdf.rejected'), yes: c.yes, no: c.no, abstain: c.abstain }), DIM);
+        }
+      } else para(m.s(it.status === 'open' ? 'recapPdf.itemOpen' : 'recapPdf.itemPending'), DIM);
+    });
+    doc.moveDown(0.3);
+    para(m.s('recapPdf.pvHint'), DIM);
+  }
+
+  // Quiz : classement final
+  if (quiz?.endedAt && quizAnswers.length > 0) {
+    section(m.s('recapPdf.quiz'), m.s('recapPdf.quizSub', { count: quiz.questions.length }));
+    const board = leaderboard([...quizPeople.keys()], quizAnswers);
+    for (const l of board) {
+      const u = quizPeople.get(l.userId);
+      if (u) para(`${l.rank}. ${who(u)} — ${m.s('recapPdf.points', { count: l.points })}`, l.rank === 1 ? INK : DIM);
+    }
+  }
+
+  // Équipes : composition, puis classement ou tableau
+  if (teamDraw?.drawnAt && teamDraw.teams.length > 0) {
+    section(m.s('recapPdf.teams'));
+    const teamName = new Map(teamDraw.teams.map(t => [t.id, t.name]));
+    for (const t of teamDraw.teams) { sub(t.name); para(t.members.map(x => who(x.user)).join(', '), DIM); }
+    if (teamDraw.matches.length > 0 && teamDraw.format === 'league') {
+      sub(m.s('recapPdf.league'));
+      leagueStandings(teamDraw.teams.map(t => t.id), teamDraw.matches).forEach((s, i) =>
+        para(m.s('recapPdf.standing', { rank: i + 1, team: teamName.get(s.teamId) ?? '?', points: s.points, won: s.won, drawn: s.drawn, lost: s.lost, diff: s.diff > 0 ? `+${s.diff}` : s.diff }), i === 0 ? INK : DIM));
+    } else if (teamDraw.matches.length > 0 && teamDraw.format === 'knockout') {
+      sub(m.s('recapPdf.knockout'));
+      const rounds = [...new Set(teamDraw.matches.map(x => x.round))];
+      for (const r of rounds) {
+        const games = teamDraw.matches.filter(x => x.round === r && x.homeId && x.awayId);
+        if (games.length === 0) continue;
+        para(`${m.s('recapPdf.round', { n: r })} :  ` + games.map(g => `${teamName.get(g.homeId!) ?? '?'} ${g.homeScore ?? '–'} – ${g.awayScore ?? '–'} ${teamName.get(g.awayId!) ?? '?'}`).join('   ·   '), DIM);
+      }
+      const last = teamDraw.matches.filter(x => x.round === rounds[rounds.length - 1]);
+      if (last.length === 1 && last[0].winnerId) para(m.s('recapPdf.winnerTeam', { team: teamName.get(last[0].winnerId) ?? '?' }), INK);
+    }
+  }
+
+  // Killer : seulement une fois la partie terminée (missions secrètes avant)
+  if (killer?.endedAt && killer.players.length > 0) {
+    section(m.s('recapPdf.killer'));
+    const winner = killer.players.find(p => p.userId === killer.winnerId);
+    if (winner) para(m.s('recapPdf.winner', { who: who(winner.user) }), INK);
+    for (const p of [...killer.players].sort((a, b) => b.kills - a.kills)) para(`${who(p.user)} — ${m.s('recapPdf.kills', { count: p.kills })}`, DIM);
+  }
+
+  // Le mot piège : seulement une fois la partie terminée
+  if (words?.endedAt && words.players.length > 0) {
+    section(m.s('recapPdf.wordTrap'));
+    const winner = words.players.find(p => p.userId === words.winnerId);
+    if (winner) para(m.s('recapPdf.winner', { who: who(winner.user) }), INK);
+    wordRanking(words.players).forEach((p, i) => para(`${i + 1}. ${who(p.user)} — ${m.s('recapPdf.points', { count: p.points })}`, DIM));
+  }
+
+  // Père Noël secret : seulement après la révélation
+  if (santa?.revealedAt && santa.pairs.length > 0) {
+    section(m.s('recapPdf.santa'), santa.budget ? m.s('recapPdf.santaBudget', { budget: santa.budget }) : undefined);
+    for (const p of santa.pairs) para(m.s('recapPdf.santaPair', { giver: who(p.giver), receiver: who(p.receiver) }), DIM);
+  }
+
+  // Cagnotte : détail de chaque participation (pour savoir qui doit encore quoi après la suppression)
+  if (pot && (pot.pledges.length > 0 || pot.forWhom)) {
+    section(m.s('recapPdf.pot'), pot.closedAt ? m.s('recapPdf.potClosed') : undefined);
+    const money = (n: number) => formatAmount(n, pot.currency, m.intl);
+    if (pot.forWhom) para(m.s('recapPdf.potFor', { who: pot.forWhom }));
+    if (pot.target) para(m.s('recapPdf.potTarget', { amount: money(pot.target) }), DIM);
+    const totals = potTotals(pot.pledges);
+    para(m.s('recapPdf.potTotals', { total: money(totals.total), received: money(totals.received) }), DIM);
+    const idea = pot.ideas.find(i => i.id === pot.chosenIdeaId);
+    if (idea) para(m.s('recapPdf.potIdea', { idea: idea.text }), DIM);
+    for (const p of pot.pledges) {
+      const state = p.receivedAt ? m.s('recapPdf.pledgeReceived') : p.declaredPaidAt ? m.s('recapPdf.pledgePaid') : m.s('recapPdf.pledgeWaiting');
+      doc.font('regular').fontSize(10).fillColor(INK).text(`•  ${who(p.user)} — ${money(p.amount)}`, { continued: true })
+        .fillColor(p.receivedAt ? DIM : CORAL).text(`  (${state})`);
     }
   }
 

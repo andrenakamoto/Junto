@@ -53,7 +53,7 @@ const account: Dict['account'] = {
     digest: 'Riepilogo settimanale',
     digestHint: 'Un’email ogni lunedì con i Plan attivi dei tuoi Cerchi.',
     recap: 'Riepilogo prima dell’eliminazione',
-    recapHint: 'Per i Plan che gestisci (creatore del Plan, organizzatore del Cerchio): un PDF via email poco prima dell’eliminazione automatica. Info, partecipanti, turni, spese.',
+    recapHint: 'Per i Plan che gestisci (creatore del Plan, organizzatore del Cerchio): un PDF via email poco prima dell’eliminazione automatica. Info, partecipanti, turni, spese, voti, assemblea, giochi, colletta (non la chat).',
     muted: 'Silenziati',
     mutedHint: 'Né notifiche né email (salvo se vieni menzionato/a). I pallini arancioni restano nell’app. La campanella 🔔 su un Plan o un Cerchio li silenzia.',
     nothingMuted: 'Niente è silenziato.',

@@ -108,8 +108,9 @@ const it: PrivacyText = {
         <li><strong>Plan</strong>: eliminati automaticamente alla loro data di fine (al massimo 3 settimane dopo l’inizio),
           con tutto il loro contenuto — messaggi, messaggi vocali, foto, file, passaggi, spese. Se erano state registrate
           spese, poco prima i membri ricevono un riepilogo per email. Il creatore del Plan e gli organizzatori del Cerchio
-          possono conservarne un <strong>riepilogo PDF</strong> (info, partecipanti con nome e pseudonimo, volontari,
-          spese, voti): scaricandolo, o per email poco prima dell’eliminazione se hanno attivato questa opzione. Il
+          possono conservarne un <strong>riepilogo PDF</strong> (info, partecipanti con nome e pseudonimo, lista d’attesa,
+          turni, spese e rimborsi, voti, risultati dell’assemblea e dei giochi conclusi, Babbo Natale segreto dopo la
+          rivelazione, colletta con il contributo di ciascuno; mai la chat): scaricandolo, o per email poco prima dell’eliminazione se hanno attivato questa opzione. Il
           verbale di un’assemblea è inviato per email al creatore del Plan alla sua chiusura: spetta poi all’associazione
           conservarlo.</li>
         <li><strong>Sondaggi sulle date</strong>: eliminati appena diventano un Plan (la loro conversazione è ripresa nel

@@ -122,8 +122,9 @@ const fr: PrivacyText = {
           après leur début), avec tout leur contenu — messages, messages vocaux, photos, fichiers, trajets, dépenses.
           Si des dépenses avaient été enregistrées, un résumé est envoyé par email aux membres juste
           avant. Le créateur du Plan et les organisateurs du Cercle peuvent en garder un{' '}
-          <strong>récapitulatif PDF</strong> (infos, participants avec prénom et pseudo, bénévoles,
-          dépenses, votes) : en le téléchargeant, ou par email juste avant la suppression s'ils ont
+          <strong>récapitulatif PDF</strong> (infos, participants avec prénom et pseudo, liste d'attente,
+          planning, dépenses et remboursements, votes, résultats de l'assemblée et des jeux une fois terminés,
+          Père Noël secret après la révélation, cagnotte avec la participation de chacun ; jamais le chat) : en le téléchargeant, ou par email juste avant la suppression s'ils ont
           activé cette option. Le procès-verbal d'une assemblée est envoyé par email au créateur du
           Plan à sa clôture : c'est ensuite à l'association de le conserver.</li>
         <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur

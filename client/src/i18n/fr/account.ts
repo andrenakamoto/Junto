@@ -52,7 +52,7 @@ export default {
     digest: 'Résumé hebdomadaire',
     digestHint: 'Un email chaque lundi avec les Plans actifs de tes Cercles.',
     recap: 'Récapitulatif avant suppression',
-    recapHint: 'Pour les Plans que tu gères (créateur du Plan, organisateur du Cercle) : un PDF par email juste avant leur suppression automatique. Infos, participants, planning, dépenses.',
+    recapHint: 'Pour les Plans que tu gères (créateur du Plan, organisateur du Cercle) : un PDF par email juste avant leur suppression automatique. Infos, participants, planning, dépenses, votes, assemblée, jeux, cagnotte (pas le chat).',
     muted: 'En silence',
     mutedHint: 'Ni notification ni email (sauf si on te mentionne). Les points orange restent dans l’app. La cloche 🔔 sur un Plan ou un Cercle les met en silence.',
     nothingMuted: 'Rien n’est en silence.',

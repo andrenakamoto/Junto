@@ -115,7 +115,9 @@ const de: PrivacyText = {
           ihrem ganzen Inhalt — Nachrichten, Sprachnachrichten, Fotos, Dateien, Fahrten, Ausgaben. Wurden Ausgaben
           erfasst, erhalten die Mitglieder kurz vorher eine Übersicht per E-Mail. Der Ersteller des Plans und die
           Organisatoren des Kreises können eine <strong>PDF-Zusammenfassung</strong> behalten (Infos, Teilnehmende mit
-          Vorname und Pseudonym, Helfende, Ausgaben, Abstimmungen): indem sie sie herunterladen oder per E-Mail kurz vor
+          Vorname und Pseudonym, Warteliste, Einsatzplan, Ausgaben und Rückzahlungen, Abstimmungen, Ergebnisse der
+          Versammlung und der beendeten Spiele, Wichteln nach der Auflösung, Geschenkkasse mit dem Beitrag jeder Person; nie
+          der Chat): indem sie sie herunterladen oder per E-Mail kurz vor
           der Löschung, wenn sie diese Option aktiviert haben. Das Protokoll einer Versammlung wird bei ihrem Schluss
           per E-Mail an den Ersteller des Plans gesendet: Danach ist es Sache des Vereins, es aufzubewahren.</li>
         <li><strong>Terminumfragen</strong>: gelöscht, sobald daraus ein Plan wird (ihr Chat wird in den Plan
