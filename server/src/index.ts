@@ -128,6 +128,8 @@ if (cronEnabled) {
   const hourlyPlans = async () => { await spawnRecurringPlans(app, createPlanInCircle); await deleteExpiredPlans(); };
   hourlyPlans();
   setInterval(hourlyPlans, 60 * 60 * 1000);
+  // Le Plan suivant d'une série apparaît au plus 5 minutes après le début du Plan (pas une heure plus tard)
+  setInterval(() => spawnRecurringPlans(app, createPlanInCircle), 5 * 60 * 1000);
 
   sendPlanReminders();
   setInterval(sendPlanReminders, 15 * 60 * 1000);

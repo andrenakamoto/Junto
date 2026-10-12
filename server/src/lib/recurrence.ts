@@ -1,3 +1,4 @@
+import { copyVotes } from './recurrenceCopy';
 import prisma from './prisma';
 import { copyShifts } from './volunteers';
 import { purgePlanFiles } from './storage';
@@ -78,6 +79,14 @@ type CreatePlan = (app: any, circleId: string, creatorId: string, input: any) =>
 
 // Crée le Plan suivant de la série (une seule fois par Plan : nextOccurrenceId fait foi).
 // Renvoie l'id du nouveau Plan, ou null si la série s'arrête là.
+// Plan surprise : une personne exclue qui a quitté le Cercle n'est plus à exclure (sinon la création échouerait
+// et la série s'arrêterait)
+async function stillInCircle(circleId: string, userIds: string[]): Promise<string[]> {
+  if (userIds.length === 0) return [];
+  const members = await prisma.circleMember.findMany({ where: { circleId, userId: { in: userIds } }, select: { userId: true } });
+  return members.map(m => m.userId);
+}
+
 export async function createNextOccurrence(app: any, planId: string, createPlanInCircle: CreatePlan): Promise<string | null> {
   // Réservation atomique : le job horaire et « Annuler cette fois » ne créent jamais deux suivants
   const claimed = await prisma.plan.updateMany({ where: { id: planId, nextOccurrenceId: null, recurrence: { not: null } }, data: { nextOccurrenceId: 'pending' } });
@@ -99,7 +108,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   const result = await createPlanInCircle(app, plan.circleId, plan.creatorId, {
     title: plan.title, description: plan.description, location: plan.location,
     eventDate: eventDate.toISOString(), endDate: endDate.toISOString(),
-    maxParticipants: plan.maxParticipants, excludedUserIds: plan.exclusions.map(e => e.userId),
+    maxParticipants: plan.maxParticipants, excludedUserIds: await stillInCircle(plan.circleId, plan.exclusions.map(e => e.userId)),
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode,
   });
@@ -112,6 +121,8 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   ]);
   // Postes des bénévoles : mêmes horaires décalés, sans inscrits
   await copyShifts(plan.id, next.id, eventDate.getTime() - plan.eventDate.getTime());
+  // Sondages, matchs et roues : recopiés sans les réponses, pour revoter
+  await copyVotes(plan.id, next.id, eventDate.getTime() - plan.eventDate.getTime()).catch(e => console.error('[recurrence] votes', plan.id, e));
   return next.id;
 }
 
