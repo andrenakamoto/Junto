@@ -1093,6 +1093,24 @@ Junto/
   déborde déjà sur mobile), l'onglet Historique a été retiré : l'historique
   des modifications s'ouvre maintenant dans une modale depuis les actions
   du Plan (icône sur desktop, menu ⋮ sur mobile).
+- **En transports publics** (2026-10-12, `lib/transit.ts` testé, `routes/transit.ts` monté dans le routeur des Plans,
+  `components/plans/TransitSection.tsx` sous le covoiturage dans l'onglet **Trajets**, soumis à la fonction `trajets`,
+  migration `20261014100000_transit`) : horaires de **tous les transports publics suisses** (CFF, bus et trams TPG…) via
+  l'API officielle **OJP 2.0** d'**opentransportdata.swiss** (Suisse ; POST XML sur `/ojp20`, lu avec fast-xml-parser :
+  `parseStops` / `parseConnections`, testés), appelée **par le serveur seulement** avec la clé **`OJP_API_KEY`**
+  (`/etc/evly/app.env`, compte opentransportdata.swiss de l'utilisateur, application « Evly » ; sans clé en local, la
+  rubrique répond « horaires indisponibles »), cache 5 min. **Chaque participant choisit
+  SES arrêts** de départ et d'arrivée (table **TransitChoice**, **jamais renvoyée aux autres** : un trajet n'est visible que s'il est proposé ; liste de suggestions ; on choisit toujours un
+  arrêt) ; au toucher du champ d'arrivée, arrêts suggérés depuis le
+  lieu du Plan ; départ mémorisé **seulement si la personne coche** (table **TransitHome**). Correspondances pour
+  arriver 10 min avant le début (`ARRIVE_EARLY_MS`, les 3 dernières à l'heure ; prochains départs si le Plan a commencé) et
+  **dernier retour** de la nuit (dernier départ avant 5 h, bus de nuit compris, `fetchLastConnection`). **« On voyage
+  ensemble »** : **TransitGroup** (copie figée : lignes « Tram 15 › Bus 11 », départ, quai, rendez-vous) + **TransitGroupMember**
+  (un voyage par personne et par Plan) ; proposer = `plan_activity` `transit_proposed`, rejoindre = notification `transit` au
+  proposant, **rappel 30 min avant** (`sendTransitReminders`, toutes les 5 min, type `transit_reminder` exempté du mode
+  silencieux). « Je passe », exclusion (`removeUserFromRides`) et départ du Cercle (`removeFromGamesInCircle`) retirent des
+  voyages ; un voyage vide disparaît. Pas dans la démo (section masquée). Prestataire dans la politique de confidentialité
+  (version du 12 octobre 2026).
 - **Fiche d'un Plan sur téléphone** (2026-10-05, `PlanDetail`, `useIsPhone` < 768 px) : plus
   d'onglets. **Page principale** = en-tête du Plan + une carte par rubrique (Chat en premier sur
   toute la largeur, point orange « nouveau » seulement, pas de résumé — choix de l'utilisateur) ;
