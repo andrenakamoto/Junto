@@ -75,9 +75,15 @@ function rows(s: Summary): Row[] {
       : t('plan.summary.potReceived', { amount });
     out.push({ key: 'pot', Icon: PiggyBank, text: head, sub, tab: 'cagnotte', tone: s.pot.status === 'none' || s.pot.status === 'pledged' ? 'warn' : undefined });
   }
-  for (const [i, sh] of s.shifts.entries()) {
-    const when = sh.startsAt ? `${shortDateTime(sh.startsAt)}${sh.endsAt ? ` – ${time(sh.endsAt)}` : ''}` : undefined;
-    out.push({ key: `shift-${i}`, Icon: HandHeart, text: t('plan.summary.shift', { title: sh.title }), sub: when, tab: 'benevoles' });
+  // Postes : le détail s'il n'y en a qu'un ; sinon le nombre et le prochain (pour ne pas allonger le résumé)
+  const shiftWhen = (sh: Summary['shifts'][number]) => sh.startsAt ? `${shortDateTime(sh.startsAt)}${sh.endsAt ? ` – ${time(sh.endsAt)}` : ''}` : undefined;
+  if (s.shifts.length === 1) {
+    out.push({ key: 'shift', Icon: HandHeart, text: t('plan.summary.shift', { title: s.shifts[0].title }), sub: shiftWhen(s.shifts[0]), tab: 'benevoles' });
+  } else if (s.shifts.length > 1) {
+    const now = Date.now();
+    const next = s.shifts.find(sh => sh.startsAt && new Date(sh.endsAt ?? sh.startsAt).getTime() >= now) ?? s.shifts.find(sh => sh.startsAt);
+    const sub = next ? t('plan.summary.shiftNext', { title: next.title, when: shiftWhen(next) }) : t('plan.summary.shiftFirst', { title: s.shifts[0].title });
+    out.push({ key: 'shifts', Icon: HandHeart, text: t('plan.summary.shiftsMany', { count: s.shifts.length }), sub, tab: 'benevoles' });
   }
   if (s.todo.polls) out.push({ key: 'polls', Icon: ListTodo, text: t('plan.summary.polls', { count: s.todo.polls }), tab: 'votes', tone: 'warn' });
   if (s.todo.matches) out.push({ key: 'matches', Icon: ListTodo, text: t('plan.summary.matches', { count: s.todo.matches }), tab: 'votes', tone: 'warn' });
