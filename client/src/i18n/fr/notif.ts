@@ -11,6 +11,8 @@ export default {
   joinAcceptedBody: 'Tu as rejoint « {{circle}} »',
   pollTitle: 'Sondage de dates — {{circle}}',
   pollBody: '@{{from}} propose : {{plan}}',
+  pollDatesTitle: 'Nouvelles dates — {{circle}}',
+  pollDatesBody: '@{{from}} a ajouté des dates : {{plan}}',
   rideTitle: 'Covoiturage — {{plan}}',
   pollMessageTitle: 'Sondage — {{plan}}',
   membersTitle: 'Participants — {{plan}}',

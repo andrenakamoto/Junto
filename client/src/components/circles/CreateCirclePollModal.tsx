@@ -11,14 +11,14 @@ import { DateTimeField } from '../ui/DateTimeField';
 import { t } from '../../i18n';
 import { shortDateTime } from '../../lib/dates';
 
-function localDateTimeToISO(str: string): string {
+export function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
   const [y, m, d] = datePart.split('-').map(Number);
   const [h, min] = timePart.split(':').map(Number);
   return new Date(y, m - 1, d, h, min).toISOString();
 }
 
-function formatOptionLabel(localDateTime: string): string {
+export function formatOptionLabel(localDateTime: string): string {
   const iso = localDateTimeToISO(localDateTime);
   return shortDateTime(iso);
 }

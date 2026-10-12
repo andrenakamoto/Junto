@@ -1156,6 +1156,59 @@ router.post('/polls/:pollId/decline', async (req: AuthRequest, res) => {
   res.json(updatedPoll && withExpiry(updatedPoll));
 });
 
+// Le créateur du sondage ajoute des dates ; les personnes qui ont déjà répondu (dates cochées ou « Pas disponible »)
+// sont prévenues, pour qu'elles regardent les nouvelles dates
+const POLL_MAX_OPTIONS = 12;
+router.post('/polls/:pollId/options', async (req: AuthRequest, res) => {
+  const access = await getVisiblePoll(req.params.pollId, req.userId!);
+  if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }
+  if (access.poll.resolvedAt) { res.status(409).json({ error: 'Ce sondage est clos' }); return; }
+  const poll = await prisma.circlePoll.findUnique({
+    where: { id: access.poll.id },
+    select: { id: true, creatorId: true, circleId: true, question: true, options: { select: { eventDate: true } }, creator: { select: { pseudo: true } } },
+  });
+  if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
+  if (poll.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du sondage' }); return; }
+  const raw = Array.isArray(req.body?.options) ? (req.body.options as { label?: unknown; eventDate?: unknown }[]) : [];
+  const taken = new Set(poll.options.map(o => o.eventDate?.getTime()));
+  const fresh: { label: string; eventDate: Date }[] = [];
+  for (const o of raw) {
+    const label = typeof o?.label === 'string' ? o.label.trim().slice(0, 100) : '';
+    const date = typeof o?.eventDate === 'string' ? new Date(o.eventDate) : null;
+    if (!label || !date || isNaN(date.getTime())) continue;
+    if (isPastOption(date)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
+    // Une date déjà proposée n'est pas ajoutée une seconde fois
+    if (taken.has(date.getTime())) continue;
+    taken.add(date.getTime());
+    fresh.push({ label, eventDate: date });
+  }
+  if (fresh.length === 0) { res.status(400).json({ error: 'Ajoute au moins une nouvelle date' }); return; }
+  if (poll.options.length + fresh.length > POLL_MAX_OPTIONS) { res.status(400).json({ error: `${POLL_MAX_OPTIONS} dates au maximum par sondage` }); return; }
+  await prisma.circlePollOption.createMany({ data: fresh.map(o => ({ ...o, pollId: poll.id })) });
+  const updated = await prisma.circlePoll.findUnique({ where: { id: poll.id }, include: circlePollInclude });
+  res.json(updated && withExpiry(updated));
+
+  try {
+    const io = req.app.get('io');
+    const [circle, voters, declines] = await Promise.all([
+      prisma.circle.findUnique({ where: { id: poll.circleId }, select: { name: true } }),
+      prisma.circlePollVote.findMany({ where: { option: { pollId: poll.id } }, select: { userId: true } }),
+      prisma.circlePollDecline.findMany({ where: { pollId: poll.id }, select: { userId: true } }),
+    ]);
+    const answered = new Set([...voters, ...declines].map(x => x.userId));
+    const audience = await pollAudience(poll.id, poll.circleId);
+    for (const m of audience) {
+      if (m.userId === req.userId || !answered.has(m.userId)) continue;
+      notifyUser(io, m.userId, {
+        type: 'poll_dates_added', circleId: poll.circleId, circleName: circle?.name, pollId: poll.id,
+        planTitle: poll.question, from: poll.creator.pseudo, actorId: req.userId!,
+      });
+    }
+  } catch (e) {
+    console.error('[poll dates notify]', e);
+  }
+});
+
 // ─── Chat du sondage ───────────────────────────────────────────────────────
 const pollMessageInclude = { author: { select: { id: true, pseudo: true } } };
 

@@ -711,6 +711,10 @@ Junto/
     PlanExclusion (`getVisiblePoll` dans `circles.ts` → 404 pour un exclu,
     absent de la liste, des notifications, des emails et du chat).
     La conversion pré-coche les mêmes exclus dans le Plan surprise.
+  - **Ajouter des dates** (2026-10-12) : le créateur du sondage seul, POST /circles/polls/:pollId/options (dates passées
+    refusées, doublons ignorés, 12 dates au plus), bouton « Ajouter des dates » sous les dates dans `PollDetail`. Notification
+    `poll_dates_added` (app + push, pas d'email) **aux seules personnes qui ont déjà répondu** (dates cochées ou « Pas
+    disponible »). L'échéance du sondage suit la nouvelle dernière date (30 jours max).
   - **CirclePollDecline** : « Pas disponible » (s’appelait « Pas intéressé(e) » avant le 2026-10-12 ; aussi en bouton sur la carte du sondage), exclusif avec les votes
     (l'un efface l'autre). Votants, pas intéressés et « pas encore
     répondu » sont visibles de tous les membres qui voient le sondage.

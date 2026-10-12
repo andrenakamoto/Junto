@@ -4,7 +4,7 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
     | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
   pollId?: string;
   planId?: string;
@@ -49,6 +49,11 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     icon: CalendarRange, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => t('notif.pollTitle', { circle: n.circleName }),
     body: n => t('notif.pollBody', { from: n.from, plan: n.planTitle }),
+  },
+  poll_dates_added: {
+    icon: CalendarRange, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
+    title: n => t('notif.pollDatesTitle', { circle: n.circleName }),
+    body: n => t('notif.pollDatesBody', { from: n.from, plan: n.planTitle }),
   },
   ride: {
     icon: Car, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',

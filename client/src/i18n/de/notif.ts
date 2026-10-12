@@ -12,6 +12,8 @@ const notif: Dict['notif'] = {
   joinAcceptedBody: 'Du bist «{{circle}}» beigetreten',
   pollTitle: 'Terminumfrage — {{circle}}',
   pollBody: '@{{from}} schlägt vor: {{plan}}',
+  pollDatesTitle: 'Neue Termine – {{circle}}',
+  pollDatesBody: '@{{from}} hat Termine hinzugefügt: {{plan}}',
   rideTitle: 'Fahrgemeinschaft — {{plan}}',
   pollMessageTitle: 'Umfrage — {{plan}}',
   membersTitle: 'Teilnehmende — {{plan}}',

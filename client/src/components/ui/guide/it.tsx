@@ -58,7 +58,8 @@ const groups: Group[] = [
         body: <>
           <P>In un Cerchio, <strong>«Proponi delle date»</strong>: ognuno spunta tutte le date che gli vanno bene, oppure
             «Non disponibile». Il sondaggio ha la sua chat. Quando emerge una data, <strong>«Crea il Plan»</strong> lo
-            trasforma in Plan (la conversazione segue).</P>
+            trasforma in Plan (la conversazione segue). Chi l’ha creato può <strong>aggiungere delle date</strong> strada
+            facendo: chi ha già risposto viene avvisato.</P>
           <P>Termina il giorno dopo l’ultima data proposta, al massimo dopo 30 giorni; chi l’ha creato riceve un promemoria
             il giorno prima.</P>
         </>,

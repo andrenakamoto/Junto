@@ -57,7 +57,8 @@ const groups: Group[] = [
         body: <>
           <P>In a Circle, <strong>“Suggest dates”</strong>: everyone ticks all the dates that suit them, or “Not
             available”. The poll has its own chat. When a date stands out, <strong>“Create the Plan”</strong> turns it into
-            a Plan (the conversation carries over).</P>
+            a Plan (the conversation carries over). Its creator can <strong>add dates</strong> along the way: people who have
+            already answered are notified.</P>
           <P>It ends the day after the last suggested date, 30 days at most; its creator gets a reminder the day before.</P>
         </>,
       },

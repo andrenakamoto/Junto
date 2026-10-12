@@ -106,6 +106,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.planTitle ?? T.rides, body: n.preview ?? T.ridesNews, url: planUrl, group: `ride:${n.planId}` };
     case 'new_circle_poll':
       return { title: n.circleName ?? T.newPollTitle, body: fill(T.newPoll), url: pollUrl, group: `poll:${n.pollId}` };
+    case 'poll_dates_added':
+      return { title: n.circleName ?? T.poll, body: fill(T.pollDates), url: pollUrl, group: `poll:${n.pollId}` };
     case 'poll_message':
       return { title: n.planTitle ?? T.poll, body: fill(T.newMessage), url: pollUrl, group: `poll:${n.pollId}` };
     case 'join_request':

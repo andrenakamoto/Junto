@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, ThumbsDown, Trash2, Users } from 'lucide-react';
+import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, Plus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
+import { DateTimeField } from '../ui/DateTimeField';
+import { formatOptionLabel, localDateTimeToISO } from './CreateCirclePollModal';
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
@@ -42,6 +44,9 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [convertOption, setConvertOption] = useState<CirclePollOption | null>(null);
+  // Dates ajoutées par le créateur du sondage (null = formulaire fermé)
+  const [newDates, setNewDates] = useState<string[] | null>(null);
+  const [addError, setAddError] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
   function loadPoll() {
@@ -62,6 +67,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
     setMessages([]);
     setTab('dates');
     setConfirmDelete(false);
+    setNewDates(null);
     loadPoll();
     loadMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,6 +123,18 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
   async function run(action: () => Promise<{ data: CirclePoll }>) {
     setBusy(true);
     try { setPoll((await action()).data); } catch { /* le rechargement temps réel corrigera */ } finally { setBusy(false); }
+  }
+
+  async function addDates() {
+    const valid = (newDates ?? []).filter(Boolean);
+    if (!valid.length) return;
+    setBusy(true); setAddError('');
+    try {
+      const { data } = await api.post(`/circles/polls/${pollId}/options`, { options: valid.map(d => ({ label: formatOptionLabel(d), eventDate: localDateTimeToISO(d) })) });
+      setPoll(data); setNewDates(null);
+    } catch (err: any) {
+      setAddError(err.response?.data?.error || t('common.error'));
+    } finally { setBusy(false); }
   }
 
   async function handleSend(content: string) {
@@ -242,6 +260,36 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
               );
             })}
           </div>
+
+          {isCreator && (newDates ? (
+            <div className="bg-white rounded-xl border border-indigo-200 p-3 space-y-2">
+              <p className="text-sm font-medium text-slate-800">{t('circle.poll.addDates')}</p>
+              {newDates.map((d, i) => (
+                <div key={i} className="flex gap-2">
+                  <DateTimeField value={d} onChange={v => setNewDates(newDates.map((x, j) => j === i ? v : x))}
+                    openAt={newDates.find(Boolean) || poll.options.find(o => o.eventDate)?.eventDate?.slice(0, 16)} className="flex-1 min-w-0" />
+                  {newDates.length > 1 && (
+                    <button type="button" onClick={() => setNewDates(newDates.filter((_, j) => j !== i))} className="text-slate-400 hover:text-red-500 p-1"><X size={15} /></button>
+                  )}
+                </div>
+              ))}
+              {poll.options.length + newDates.length < 12 && (
+                <button type="button" onClick={() => setNewDates([...newDates, ''])} className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                  <Plus size={13} />{t('circle.createPoll.addDate')}
+                </button>
+              )}
+              <p className="text-xs text-slate-500">{t('circle.poll.addDatesHint')}</p>
+              {addError && <p className="text-xs text-red-500">{addError}</p>}
+              <div className="flex gap-2">
+                <button onClick={addDates} disabled={busy || !newDates.some(Boolean)} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">{t('circle.poll.addDatesConfirm')}</button>
+                <button onClick={() => { setNewDates(null); setAddError(''); }} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-sm">{t('common.cancel')}</button>
+              </div>
+            </div>
+          ) : poll.options.length < 12 && (
+            <button onClick={() => setNewDates([''])} className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-indigo-300 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors">
+              <Plus size={15} />{t('circle.poll.addDates')}
+            </button>
+          ))}
 
           <button
             onClick={() => run(() => api.post(`/circles/polls/${pollId}/decline`))}

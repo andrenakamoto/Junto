@@ -56,6 +56,8 @@ export const ERRORS_1: Record<string, [string, string, string]> = {
   'Cette adresse est déjà utilisée par un autre compte': ['Diese Adresse wird schon von einem anderen Konto verwendet', 'Questo indirizzo è già usato da un altro account', 'This address is already used by another account'],
   'Cette adresse est désormais utilisée par un autre compte': ['Diese Adresse wird inzwischen von einem anderen Konto verwendet', 'Questo indirizzo è ormai usato da un altro account', 'This address is now used by another account'],
   'Cette assemblée ne se suit pas à distance': ['An dieser Versammlung kann man nicht online teilnehmen', 'Questa assemblea non si segue a distanza', 'This assembly can’t be followed remotely'],
+  'Ajoute au moins une nouvelle date': ['Füge mindestens einen neuen Termin hinzu', 'Aggiungi almeno una nuova data', 'Add at least one new date'],
+  '{0} dates au maximum par sondage': ['Höchstens {0} Termine pro Umfrage', 'Al massimo {0} date per sondaggio', '{0} dates at most per poll'],
   'Cette date est déjà passée': ['Dieses Datum ist schon vorbei', 'Questa data è già passata', 'This date has already passed'],
   'Cette élimination ne correspond plus à une mission en cours': ['Diese Eliminierung gehört zu keiner laufenden Mission mehr', 'Questa eliminazione non corrisponde più a una missione in corso', 'This elimination no longer matches a current mission'],
   'Cette fonction est désactivée pour ce Plan': ['Diese Funktion ist für diesen Plan deaktiviert', 'Questa funzione è disattivata per questo Plan', 'This feature is turned off for this Plan'],

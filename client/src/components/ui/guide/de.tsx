@@ -58,7 +58,8 @@ const groups: Group[] = [
         body: <>
           <P>In einem Kreis <strong>«Termine vorschlagen»</strong>: Alle kreuzen die Termine an, die ihnen passen, oder
             «Kann nicht». Die Umfrage hat einen eigenen Chat. Zeichnet sich ein Termin ab, macht{' '}
-            <strong>«Plan erstellen»</strong> daraus einen Plan (der Chat wird übernommen).</P>
+            <strong>«Plan erstellen»</strong> daraus einen Plan (der Chat wird übernommen). Wer sie erstellt hat, kann
+            unterwegs <strong>Termine hinzufügen</strong>: Wer schon geantwortet hat, wird benachrichtigt.</P>
           <P>Sie endet am Tag nach dem letzten vorgeschlagenen Termin, höchstens nach 30 Tagen; die Person, die sie erstellt
             hat, erhält am Vortag eine Erinnerung.</P>
         </>,
