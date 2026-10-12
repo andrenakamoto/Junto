@@ -39,7 +39,7 @@ export function MuteToggle({ plan, size = 15, showWhenOn = true }: {
       aria-pressed={muted}
       onClick={toggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') toggle(e); }}
-      className={`flex-shrink-0 p-1 rounded-full transition-colors cursor-pointer ${muted ? 'text-slate-500 bg-slate-100 hover:bg-slate-200' : 'text-slate-300 hover:text-slate-500 hover:bg-slate-100'}`}
+      className={`inline-flex items-center justify-center flex-shrink-0 p-1 rounded-full transition-colors cursor-pointer ${muted ? 'text-slate-500 bg-slate-100 hover:bg-slate-200' : 'text-slate-300 hover:text-slate-500 hover:bg-slate-100'}`}
     >
       {muted ? <BellOff size={size} /> : <Bell size={size} />}
     </span>

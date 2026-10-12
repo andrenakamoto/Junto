@@ -637,7 +637,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
                 <h1 className="text-xl md:text-lg font-bold text-slate-900 leading-tight flex-1">{plan.title}</h1>
-                {isMember && <span className="mt-0.5"><MuteToggle plan={plan} size={16} /></span>}
+                {isMember && <span className="flex mt-0.5"><MuteToggle plan={plan} size={16} /></span>}
                 {canEdit && (
                   <button
                     onClick={() => setShowEditPlan(true)}
