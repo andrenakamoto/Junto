@@ -761,10 +761,13 @@ Junto/
   `biweekly` / `monthly` (null = ne se répète pas), `recurrenceUntil?` (« Jusqu'au », facultatif),
   `seriesId` (id du premier Plan de la série), `nextOccurrenceId` (id du suivant, `pending` pendant
   sa création, `ended` quand la série s'arrête). Choisi par le créateur (`RecurrenceField` dans
-  Create/EditPlanModal), date de l'événement obligatoire. Le job horaire `spawnRecurringPlans`
-  (avant `deleteExpiredPlans`, gated comme les autres crons) crée le Plan suivant **dès que la date
+  Create/EditPlanModal), date de l'événement obligatoire. Le job `spawnRecurringPlans`
+  (toutes les 5 minutes depuis le 2026-10-12, et dans le job horaire avant `deleteExpiredPlans`, gated comme les autres crons) crée le Plan suivant **dès que la date
   du Plan est passée** : mêmes titre, description, lieu, durée, réglages, exclusions et « qui
-  apporte quoi » (sans « Je prends ça »), **réponses remises à zéro** (seul le créateur y est),
+  apporte quoi » (sans « Je prends ça »), **réponses remises à zéro** (seul le créateur y est), **sondages, matchs (propositions et photos, échéance
+  décalée) et roues recopiés sans les votes** (`copyVotes`, `lib/recurrenceCopy.ts`, depuis le 2026-10-12), exclusions du
+  Plan surprise limitées aux personnes encore dans le Cercle (`stillInCircle` ; avant, le départ d'une personne exclue arrêtait
+  la série),
   notification « Nouveau Plan » comme une création normale (`createPlanInCircle`). Heure gardée à
   l'heure suisse (changements d'heure), mensuel le même jour (31 → dernier jour du mois), dates déjà
   passées sautées. Réservation atomique (`updateMany` sur `nextOccurrenceId: null`) : jamais deux
@@ -990,6 +993,9 @@ Junto/
   dans la réponse (voir `anonymizePoll`/`anonymizePlanPolls` dans
   `plans.ts`), la UI ne s'appuyait déjà que sur les comptes donc c'est
   surtout une protection côté API contre l'inspection réseau
+- **Supprimer un sondage** (2026-10-12, DELETE /plans/polls/:pollId, corbeille sur la carte du sondage dans `VotesTab`) :
+  créateur du Plan et gestionnaires du Cercle, ou **tous les participants membres du Cercle si `editMode` = `all`** (même
+  règle que les dates et le lieu, choix de l'utilisateur) ; `canDeletePolls` renvoyé par GET /plans/:id.
 - **Match de groupe** (2026-10-09, `lib/matchPoll.ts` testé, `routes/matchPoll.ts` monté dans le routeur des
   Plans, `components/plans/MatchSection.tsx`, migration `20261009180000_match_polls`) : dans l'onglet Votes, **à
   côté** du sondage classique (« 🗳️ Sondage » / « ❤️ Match »), soumis à la fonction `votes`. Tables **MatchPoll**

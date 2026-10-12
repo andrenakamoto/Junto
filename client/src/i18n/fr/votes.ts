@@ -14,6 +14,8 @@ export default {
   wheelHint: 'La roue tire au sort une personne du Plan',
   you: 'toi',
   anonymousBadge: '🔒 anonyme',
+  delete: 'Supprimer ce sondage',
+  deleteConfirm: 'Supprimer ce sondage et ses votes ?',
   votes_one: '{{count}} vote',
   votes_other: '{{count}} votes',
   notYet: ' · Pas encore voté : {{names}}',

@@ -15,6 +15,8 @@ const votes: Dict['votes'] = {
   wheelHint: 'The wheel picks someone from the Plan at random',
   you: 'you',
   anonymousBadge: '🔒 anonymous',
+  delete: 'Delete this poll',
+  deleteConfirm: 'Delete this poll and its votes?',
   votes_one: '{{count}} vote',
   votes_other: '{{count}} votes',
   notYet: ' · Not voted yet: {{names}}',

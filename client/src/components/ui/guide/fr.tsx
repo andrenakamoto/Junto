@@ -65,7 +65,7 @@ const groups: Group[] = [
         id: 'recurrent', emoji: '🔁', title: 'Plans récurrents', summary: 'Chaque semaine, toutes les 2 semaines, chaque mois',
         body: <>
           <P>À la création, choisis <strong>« Répéter »</strong> : chaque semaine, toutes les 2 semaines ou chaque mois, avec « Jusqu'au » facultatif. Dès que la date
-            est passée, le Plan suivant est créé avec les mêmes infos et réglages, réponses remises à zéro. Menu du Plan :{' '}
+            est passée, le Plan suivant est créé avec les mêmes infos et réglages, réponses remises à zéro. Sondages, matchs et roues sont repris sans les votes : chacun revote. Menu du Plan :{' '}
             <strong>« Annuler cette fois »</strong> ou <strong>« Arrêter la répétition »</strong>.</P>
         </>,
       },

@@ -15,6 +15,8 @@ const votes: Dict['votes'] = {
   wheelHint: 'Das Rad lost eine Person des Plans aus',
   you: 'du',
   anonymousBadge: '🔒 anonym',
+  delete: 'Diese Umfrage löschen',
+  deleteConfirm: 'Diese Umfrage mit allen Stimmen löschen?',
   votes_one: '{{count}} Stimme',
   votes_other: '{{count}} Stimmen',
   notYet: ' · Noch nicht abgestimmt: {{names}}',

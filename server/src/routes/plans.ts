@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { escapeHtml } from '../lib/escapeHtml';
 import prisma from '../lib/prisma';
+import { isCircleManager } from '../lib/circleRoles';
 import { parseLocale, requestLocale } from '../lib/i18n';
 import { mail } from '../lib/emailText';
 import { isMuted } from '../lib/mutes';
@@ -191,6 +192,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     mediaToken: mintMediaToken(plan.id, req.userId!),
     // Récapitulatif PDF : créateur du Plan et gestionnaires du Cercle
     canRecap: await canDownloadRecap(req.userId!, plan),
+    canDeletePolls: await canDeletePolls(req.userId!, plan),
   });
 });
 
@@ -632,6 +634,17 @@ router.get('/messages/:messageId/replies', async (req: AuthRequest, res) => {
   res.json(replies.map(withPlainContent));
 });
 
+// Qui peut supprimer un sondage du Plan (même règle que « qui modifie les dates et le lieu »)
+async function canDeletePolls(userId: string, plan: { id: string; creatorId: string; circleId: string; editMode: string }): Promise<boolean> {
+  if (plan.creatorId === userId || (await isCircleManager(userId, plan.circleId))) return true;
+  if (plan.editMode !== 'all') return false;
+  const [member, inCircle] = await Promise.all([
+    prisma.planMember.findUnique({ where: { userId_planId: { userId, planId: plan.id } }, select: { rsvp: true } }),
+    prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId: plan.circleId } }, select: { userId: true } }),
+  ]);
+  return !!member && !!inCircle;
+}
+
 // Create poll
 router.post('/:id/polls', async (req: AuthRequest, res) => {
   if (!(await assertPlanMember(req.userId!, req.params.id))) {
@@ -654,6 +667,17 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
     include: { options: { include: { votes: true } } },
   });
   res.json(anonymizePoll(poll, req.userId!));
+});
+
+// Supprimer un sondage : le créateur du Plan et les gestionnaires du Cercle ; tous les participants (hors invités
+// externes) si le Plan laisse tout le monde modifier les dates et le lieu (editMode « all »)
+router.delete('/polls/:pollId', async (req: AuthRequest, res) => {
+  const poll = await prisma.poll.findUnique({ where: { id: req.params.pollId }, select: { id: true, planId: true } });
+  if (!poll) { res.status(404).json({ error: 'Sondage introuvable' }); return; }
+  const plan = await prisma.plan.findUnique({ where: { id: poll.planId }, select: { id: true, creatorId: true, circleId: true, editMode: true } });
+  if (!plan || !(await canDeletePolls(req.userId!, plan))) { res.status(403).json({ error: 'Tu ne peux pas supprimer ce sondage' }); return; }
+  await prisma.poll.delete({ where: { id: poll.id } });
+  res.json({ ok: true });
 });
 
 // Vote on a poll option

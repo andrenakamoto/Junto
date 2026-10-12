@@ -200,6 +200,8 @@ export interface Plan {
   mediaToken?: string;
   /** Peut télécharger le récapitulatif PDF (créateur du Plan, gestionnaires du Cercle) */
   canRecap?: boolean;
+  /** Supprimer les sondages : créateur, gestionnaires du Cercle, ou tous si le Plan laisse modifier dates et lieu */
+  canDeletePolls?: boolean;
 }
 
 export interface MessageReaction {

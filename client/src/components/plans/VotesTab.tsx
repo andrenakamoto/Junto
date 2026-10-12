@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { Plan, Poll } from '../../types';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
@@ -64,6 +64,12 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
     await refresh();
   }
 
+  async function handleDelete(pollId: string) {
+    if (!window.confirm(t('votes.deleteConfirm'))) return;
+    try { await api.delete(`/plans/polls/${pollId}`); } catch { /* droits changés entre-temps */ }
+    await refresh();
+  }
+
   const polls = plan.polls || [];
 
   return (
@@ -74,7 +80,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
       {wheels.map(w => <WheelCard key={w.id} wheel={w} plan={plan} serverOffset={wheelOffset} onChanged={loadWheels} />)}
       {matches.map(m => <MatchCard key={m.id} match={m} plan={plan} onChanged={loadMatches} />)}
       {polls.map(poll => (
-        <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} />
+        <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} onDelete={plan.canDeletePolls ? () => handleDelete(poll.id) : undefined} />
       ))}
 
       {showCreate ? (
@@ -141,7 +147,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
 
 type Member = Plan['members'][number];
 
-function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: string; members: Member[]; onVote: (optionId: string) => void }) {
+function PollCard({ poll, userId, members, onVote, onDelete }: { poll: Poll; userId: string; members: Member[]; onVote: (optionId: string) => void; onDelete?: () => void }) {
   const total = poll.options.reduce((s, o) => s + o.votes.length, 0);
   const myVote = poll.options.find(o => o.votes.some(v => v.userId === userId));
   // Sondage non anonyme : qui a voté quoi (prénom + pseudo des participants du Plan)
@@ -160,6 +166,12 @@ function PollCard({ poll, userId, members, onVote }: { poll: Poll; userId: strin
         {poll.question}
         {poll.anonymous && (
           <span className="text-xs font-normal px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{t('votes.anonymousBadge')}</span>
+        )}
+        {onDelete && (
+          <button onClick={onDelete} title={t('votes.delete')} aria-label={t('votes.delete')}
+            className="ml-auto p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0">
+            <Trash2 size={14} />
+          </button>
         )}
       </p>
       <div className="space-y-2">

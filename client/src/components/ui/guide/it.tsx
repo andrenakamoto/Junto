@@ -68,7 +68,7 @@ const groups: Group[] = [
         id: 'recurrent', emoji: '🔁', title: 'Plan ricorrenti', summary: 'Ogni settimana, ogni 2 settimane, ogni mese',
         body: <P>Alla creazione, scegli <strong>«Ripeti»</strong>: ogni settimana, ogni 2 settimane o ogni mese, con «Fino
           al» facoltativo. Appena la data è passata, viene creato il Plan successivo con le stesse info e impostazioni, e le
-          risposte azzerate. Menu del Plan: <strong>«Annulla questa volta»</strong> o <strong>«Interrompi la
+          risposte azzerate. Sondaggi, match e ruote vengono ripresi senza i voti: ognuno vota di nuovo. Menu del Plan: <strong>«Annulla questa volta»</strong> o <strong>«Interrompi la
           ripetizione»</strong>.</P>,
       },
       {

@@ -68,7 +68,7 @@ const groups: Group[] = [
         id: 'recurrent', emoji: '🔁', title: 'Wiederkehrende Pläne', summary: 'Jede Woche, alle 2 Wochen, jeden Monat',
         body: <P>Wähle beim Erstellen <strong>«Wiederholen»</strong>: jede Woche, alle 2 Wochen oder jeden Monat, mit
           freiwilligem «Bis». Sobald das Datum vorbei ist, wird der nächste Plan mit denselben Infos und Einstellungen
-          erstellt, die Antworten werden zurückgesetzt. Menü des Plans: <strong>«Dieses Mal absagen»</strong> oder{' '}
+          erstellt, die Antworten werden zurückgesetzt. Umfragen, Matches und Glücksräder werden ohne Stimmen übernommen: Alle stimmen neu ab. Menü des Plans: <strong>«Dieses Mal absagen»</strong> oder{' '}
           <strong>«Wiederholung beenden»</strong>.</P>,
       },
       {

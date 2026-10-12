@@ -66,7 +66,7 @@ const groups: Group[] = [
         id: 'recurrent', emoji: '🔁', title: 'Repeating Plans', summary: 'Every week, every 2 weeks, every month',
         body: <P>When creating, choose <strong>“Repeat”</strong>: every week, every 2 weeks or every month, with an optional
           “Until”. As soon as the date has passed, the next Plan is created with the same info and settings, and replies are
-          reset. Plan menu: <strong>“Cancel this time”</strong> or <strong>“Stop repeating”</strong>.</P>,
+          reset. Polls, matches and wheels carry over without the votes: everyone votes again. Plan menu: <strong>“Cancel this time”</strong> or <strong>“Stop repeating”</strong>.</P>,
       },
       {
         id: 'surprise', emoji: '🤫', title: 'Surprise Plan and poll', summary: 'Hide a Plan from certain members',

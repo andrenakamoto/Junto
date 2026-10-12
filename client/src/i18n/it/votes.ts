@@ -15,6 +15,8 @@ const votes: Dict['votes'] = {
   wheelHint: 'La ruota estrae a sorte una persona del Plan',
   you: 'tu',
   anonymousBadge: '🔒 anonimo',
+  delete: 'Elimina questo sondaggio',
+  deleteConfirm: 'Eliminare questo sondaggio e i suoi voti?',
   votes_one: '{{count}} voto',
   votes_other: '{{count}} voti',
   notYet: ' · Non hanno ancora votato: {{names}}',

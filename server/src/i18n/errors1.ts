@@ -56,6 +56,7 @@ export const ERRORS_1: Record<string, [string, string, string]> = {
   'Cette adresse est déjà utilisée par un autre compte': ['Diese Adresse wird schon von einem anderen Konto verwendet', 'Questo indirizzo è già usato da un altro account', 'This address is already used by another account'],
   'Cette adresse est désormais utilisée par un autre compte': ['Diese Adresse wird inzwischen von einem anderen Konto verwendet', 'Questo indirizzo è ormai usato da un altro account', 'This address is now used by another account'],
   'Cette assemblée ne se suit pas à distance': ['An dieser Versammlung kann man nicht online teilnehmen', 'Questa assemblea non si segue a distanza', 'This assembly can’t be followed remotely'],
+  'Tu ne peux pas supprimer ce sondage': ['Du kannst diese Umfrage nicht löschen', 'Non puoi eliminare questo sondaggio', 'You can’t delete this poll'],
   'Ajoute au moins une nouvelle date': ['Füge mindestens einen neuen Termin hinzu', 'Aggiungi almeno una nuova data', 'Add at least one new date'],
   '{0} dates au maximum par sondage': ['Höchstens {0} Termine pro Umfrage', 'Al massimo {0} date per sondaggio', '{0} dates at most per poll'],
   'Cette date est déjà passée': ['Dieses Datum ist schon vorbei', 'Questa data è già passata', 'This date has already passed'],

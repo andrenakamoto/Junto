@@ -81,6 +81,10 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     const link = await prisma.planGuestLink.findUnique({ where: { token: b }, select: { planId: true } });
     return planTarget(link?.planId, true, 'membres');
   }
+  if (a === 'polls' && !c) {
+    const poll = await prisma.poll.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(poll?.planId, false, 'votes');
+  }
   if (a === 'polls' && c === 'vote') {
     const option = await prisma.pollOption.findUnique({ where: { id: b }, select: { poll: { select: { planId: true } } } });
     return planTarget(option?.poll.planId, false, 'votes');
