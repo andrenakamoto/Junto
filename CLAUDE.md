@@ -405,6 +405,9 @@ Conséquences pratiques :
     le relais Railway (`server/relay.js`) tant qu'il est allumé.
     **Version 1.0.14** (2026-10-11, soir) : Android `versionCode` 15 (`evly-1.0.14-(15).aab`), iOS build 16 envoyé — fonction
     « Bénévoles » renommée « Planning », lignes de programme à 0 personne (le récapitulatif PDF complet est côté serveur).
+    **Version 1.0.15** (2026-10-12) : Android `versionCode` 16 (`evly-1.0.15-(16).aab`), iOS build 17 envoyé — « En transports
+    publics » (horaires OJP, détail du trajet, voyages partagés), sondages de dates sur la carte du Cercle et « Pas disponible »
+    en un geste, dates ajoutées à un sondage par son créateur, « En bref » qui résume plusieurs postes.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
