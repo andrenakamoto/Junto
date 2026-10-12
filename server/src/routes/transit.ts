@@ -4,7 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
 import { notifyPlanActivity } from '../lib/planNotifications';
-import { ARRIVE_EARLY_MS, NOTE_MAX, fetchConnections, fetchLastConnection, linesText, parseStop, searchStops, type Connection } from '../lib/transit';
+import { ARRIVE_EARLY_MS, NOTE_MAX, fetchConnections, fetchLastConnection, linesText, parseStop, sanitizeLegs, searchStops, type Connection } from '../lib/transit';
 
 // « En transports publics » (rubrique Trajets, lib/transit.ts), monté dans le routeur des Plans. Chaque participant
 // choisit SES arrêts de départ et d'arrivée (TransitChoice) ; le départ peut être mémorisé (TransitHome) si la personne
@@ -129,6 +129,7 @@ router.post('/:id/transit/groups', async (req: AuthRequest, res) => {
         fromName: String(firstRide.from ?? '').slice(0, 120), toName: String(c.legs[c.legs.length - 1]?.to ?? '').slice(0, 120),
         departureAt: new Date(firstRide.departureAt ?? c.departureAt), arrivalAt: arr, lines,
         platform: typeof firstRide.platform === 'string' ? firstRide.platform.slice(0, 20) : null, note,
+        legs: sanitizeLegs(c.legs),
         members: { create: { userId, planId: p.plan.id } },
       },
       include: groupInclude,

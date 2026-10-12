@@ -180,6 +180,10 @@ const plan: Dict['plan'] = {
     join: 'I’m coming too',
     leave: 'I’m not coming any more',
     source: 'Swiss public transport timetables (opentransportdata.swiss)',
+    steps: 'Journey details',
+    hideSteps: 'Hide details',
+    towards: 'towards {{dir}}',
+    walkTo: '{{count}} min walk to {{to}}',
     unavailable: 'Timetables are temporarily unavailable.',
   },
   rides: {

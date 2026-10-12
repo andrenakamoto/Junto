@@ -179,6 +179,10 @@ export default {
     join: 'Je viens aussi',
     leave: 'Je ne viens plus',
     source: 'Horaires des transports publics suisses (opentransportdata.swiss)',
+    steps: 'Détail du trajet',
+    hideSteps: 'Masquer le détail',
+    towards: 'direction {{dir}}',
+    walkTo: '{{count}} min à pied jusqu’à {{to}}',
     unavailable: 'Les horaires sont momentanément indisponibles.',
   },
   rides: {

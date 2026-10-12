@@ -546,6 +546,8 @@ model TransitGroup {
   // Lignes empruntées, ex. « Bus 9 » ou « Tram 12 › Bus 23 »
   lines          String
   platform       String?
+  // Étapes du trajet (lignes, arrêts, quais, heures, marche), copie figée de la correspondance proposée
+  legs           Json?
   note           String?
   // Rappel 30 min avant le départ (anti-doublon)
   reminderSentAt DateTime?

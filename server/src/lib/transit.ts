@@ -164,6 +164,19 @@ export function linesText(legs: Leg[]): string {
   return legs.filter(l => l.kind !== 'walk' && l.line).map(l => l.line).join(' › ').slice(0, 120);
 }
 
+// Étapes d'une correspondance envoyée par le client, nettoyées avant d'être gardées avec un voyage partagé
+const LEG_KINDS = ['walk', 'bus', 'tram', 'train', 'boat', 'other'] as const;
+export function sanitizeLegs(v: unknown): Leg[] {
+  if (!Array.isArray(v)) return [];
+  const str = (x: unknown, max: number) => (typeof x === 'string' && x.trim() ? x.trim().slice(0, max) : null);
+  const date = (x: unknown) => (typeof x === 'string' && !isNaN(new Date(x).getTime()) ? new Date(x).toISOString() : null);
+  return v.slice(0, 12).flatMap((l: any): Leg[] => {
+    if (!l || typeof l !== 'object' || !LEG_KINDS.includes(l.kind)) return [];
+    const walkMinutes = typeof l.walkMinutes === 'number' && l.walkMinutes > 0 ? Math.min(Math.round(l.walkMinutes), 600) : null;
+    return [{ kind: l.kind, line: str(l.line, 40), direction: str(l.direction, STOP_NAME_MAX), from: str(l.from, STOP_NAME_MAX) ?? '', to: str(l.to, STOP_NAME_MAX) ?? '', platform: str(l.platform, 20), departureAt: date(l.departureAt), arrivalAt: date(l.arrivalAt), walkMinutes }];
+  });
+}
+
 export function parseStop(v: unknown): { id: string; name: string } | null | undefined {
   if (v === null) return null;
   if (!v || typeof v !== 'object') return undefined;

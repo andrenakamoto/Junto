@@ -180,6 +180,10 @@ const plan: Dict['plan'] = {
     join: 'Ich komme mit',
     leave: 'Ich komme nicht mehr mit',
     source: 'Fahrpläne des Schweizer ÖV (opentransportdata.swiss)',
+    steps: 'Reiseverlauf',
+    hideSteps: 'Verlauf ausblenden',
+    towards: 'Richtung {{dir}}',
+    walkTo: '{{count}} Min. zu Fuss bis {{to}}',
     unavailable: 'Die Fahrpläne sind vorübergehend nicht verfügbar.',
   },
   rides: {

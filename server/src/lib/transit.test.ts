@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isoMinutes, ojpParser as parser, lastBefore, lineOf, linesText, parseConnections, parseStop, parseStops, zurichDateTime, zurichOffset } from './transit';
+import { isoMinutes, ojpParser as parser, lastBefore, lineOf, linesText, parseConnections, parseStop, parseStops, sanitizeLegs, zurichDateTime, zurichOffset } from './transit';
 
 // Réponses réelles de l'API OJP 2.0 (opentransportdata.swiss), enregistrées le 12 octobre 2026
 const fixture = (name: string) => readFileSync(join(__dirname, '__fixtures__', name), 'utf8');
@@ -54,5 +54,17 @@ describe('transports publics', () => {
     expect(parseStop(null)).toBeNull();
     expect(parseStop({ id: '<script>', name: 'x' })).toBeUndefined();
     expect(parseStop({ id: '1', name: '' })).toBeUndefined();
+  });
+
+  it('nettoie les étapes d’un voyage partagé', () => {
+    const legs = sanitizeLegs([
+      { kind: 'bus', line: 'Bus 1', direction: 'Rive', from: 'Castan', to: 'Rive', platform: 'T', departureAt: '2026-10-17T16:15:00Z', arrivalAt: '2026-10-17T16:27:00Z', walkMinutes: null, extra: 'x' },
+      { kind: 'walk', to: 'Rive', walkMinutes: 3 },
+      { kind: '<script>' }, null,
+    ]);
+    expect(legs).toHaveLength(2);
+    expect(legs[0]).toEqual({ kind: 'bus', line: 'Bus 1', direction: 'Rive', from: 'Castan', to: 'Rive', platform: 'T', departureAt: '2026-10-17T16:15:00.000Z', arrivalAt: '2026-10-17T16:27:00.000Z', walkMinutes: null });
+    expect(legs[1]).toMatchObject({ kind: 'walk', walkMinutes: 3, from: '' });
+    expect(sanitizeLegs('x')).toEqual([]);
   });
 });

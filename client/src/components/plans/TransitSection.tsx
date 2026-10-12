@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bus, TrainFront, TramFront, Ship, Footprints, MapPin, Moon, Users, Loader2, X } from 'lucide-react';
+import { Bus, TrainFront, TramFront, Ship, Footprints, MapPin, Moon, Users, Loader2, X, ChevronDown } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 import { displayName } from '../../lib/names';
@@ -12,7 +12,7 @@ type Stop = { id: string; name: string; kind?: string | null };
 type Leg = { kind: 'walk' | 'bus' | 'tram' | 'train' | 'boat' | 'other'; line: string | null; direction: string | null; from: string; to: string; platform: string | null; departureAt: string | null; arrivalAt: string | null; walkMinutes: number | null };
 type Connection = { departureAt: string; arrivalAt: string; minutes: number; transfers: number; legs: Leg[] };
 type Person = { id: string; pseudo: string; firstName?: string | null };
-type Group = { id: string; creator: Person; fromName: string; toName: string; departureAt: string; arrivalAt: string; lines: string; platform: string | null; note: string | null; members: { userId: string; user: Person }[] };
+type Group = { id: string; creator: Person; fromName: string; toName: string; departureAt: string; arrivalAt: string; lines: string; platform: string | null; note: string | null; legs: Leg[] | null; members: { userId: string; user: Person }[] };
 type State = { from: Stop | null; to: Stop | null; home: Stop | null; location: string | null; eventDate: string | null; groups: Group[] };
 
 const time = (iso: string) => new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
@@ -82,6 +82,41 @@ function StopPicker({ planId, label, value, initialQuery, onChange }: { planId: 
   );
 }
 
+// Étapes d'un trajet : chaque ligne avec sa montée (heure, arrêt, quai) et sa descente, et les bouts à pied
+function LegSteps({ legs }: { legs: Leg[] }) {
+  return (
+    <ol className="mt-2 space-y-2 border-l-2 border-slate-200 ml-1.5 pl-3">
+      {legs.map((l, i) => l.kind === 'walk' ? (
+        <li key={i} className="flex items-center gap-1.5 text-xs text-slate-500">
+          <Footprints size={12} className="flex-shrink-0" />
+          {l.to ? t('plan.transit.walkTo', { count: l.walkMinutes ?? 1, to: l.to }) : t('plan.transit.walk', { count: l.walkMinutes ?? 1 })}
+        </li>
+      ) : (
+        <li key={i} className="text-xs text-slate-700">
+          <p className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 font-semibold text-slate-800"><LegIcon kind={l.kind} size={12} />{l.line}</span>
+            {l.direction && <span className="text-slate-500">{t('plan.transit.towards', { dir: l.direction })}</span>}
+          </p>
+          <p className="mt-1"><span className="font-semibold tabular-nums">{l.departureAt ? time(l.departureAt) : ''}</span> {l.from}{l.platform ? <span className="text-slate-500"> · {t('plan.transit.platform', { p: l.platform })}</span> : null}</p>
+          <p><span className="font-semibold tabular-nums">{l.arrivalAt ? time(l.arrivalAt) : ''}</span> {l.to}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function StepsToggle({ legs }: { legs: Leg[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(o => !o)} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-800">
+        <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />{open ? t('plan.transit.hideSteps') : t('plan.transit.steps')}
+      </button>
+      {open && <LegSteps legs={legs} />}
+    </>
+  );
+}
+
 function ConnectionLine({ c }: { c: Connection }) {
   const rides = c.legs.filter(l => l.kind !== 'walk');
   const firstRide = rides[0];
@@ -99,6 +134,7 @@ function ConnectionLine({ c }: { c: Connection }) {
         {firstRide && <span className="text-xs text-slate-500">{firstRide.from}{firstRide.platform ? ` · ${t('plan.transit.platform', { p: firstRide.platform })}` : ''}</span>}
         {walk ? <span className="text-xs text-slate-400">· {t('plan.transit.walk', { count: walk })}</span> : null}
       </div>
+      {c.legs.length > 1 && <StepsToggle legs={c.legs} />}
     </div>
   );
 }
@@ -170,6 +206,7 @@ export function TransitSection({ planId, userId, isAbsent, reloadKey }: { planId
                 <p className="text-xs text-slate-600 mt-0.5">
                   {t('plan.transit.departure', { time: time(g.departureAt), from: g.fromName })}{g.platform ? ` · ${t('plan.transit.platform', { p: g.platform })}` : ''} · {t('plan.transit.arrival', { time: time(g.arrivalAt) })}
                 </p>
+                {g.legs && g.legs.length > 1 && <LegSteps legs={g.legs} />}
                 {g.note && <p className="text-xs text-slate-500 mt-1 italic">{g.note}</p>}
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   {g.members.map(m => (
@@ -229,11 +266,14 @@ export function TransitSection({ planId, userId, isAbsent, reloadKey }: { planId
                 </div>
               ))}
               {conns.last && (
-                <p className="flex items-center gap-1.5 text-xs text-slate-600 px-1">
-                  <Moon size={12} className="text-indigo-500" />
-                  {t('plan.transit.last', { to: state.from.name, time: time(conns.last.departureAt) })}
-                  <span className="text-slate-400">({conns.last.legs.filter(l => l.kind !== 'walk').map(l => l.line).join(' › ')})</span>
-                </p>
+                <div className="px-1">
+                  <p className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <Moon size={12} className="text-indigo-500" />
+                    {t('plan.transit.last', { to: state.from.name, time: time(conns.last.departureAt) })}
+                    <span className="text-slate-400">({conns.last.legs.filter(l => l.kind !== 'walk').map(l => l.line).join(' › ')})</span>
+                  </p>
+                  {conns.last.legs.length > 1 && <StepsToggle legs={conns.last.legs} />}
+                </div>
               )}
             </>
           )}

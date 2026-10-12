@@ -1105,7 +1105,7 @@ Junto/
   lieu du Plan ; départ mémorisé **seulement si la personne coche** (table **TransitHome**). Correspondances pour
   arriver 10 min avant le début (`ARRIVE_EARLY_MS`, les 3 dernières à l'heure ; prochains départs si le Plan a commencé) et
   **dernier retour** de la nuit (dernier départ avant 5 h, bus de nuit compris, `fetchLastConnection`). **« On voyage
-  ensemble »** : **TransitGroup** (copie figée : lignes « Tram 15 › Bus 11 », départ, quai, rendez-vous) + **TransitGroupMember**
+  ensemble »** : **TransitGroup** (copie figée : lignes « Tram 15 › Bus 11 », départ, quai, rendez-vous, **étapes** `legs` — montée, descente, quai, heures et marche de chaque ligne, nettoyées par `sanitizeLegs`, affichées sur la carte du voyage ; « Détail du trajet » dépliable sur chaque correspondance et le dernier retour) + **TransitGroupMember**
   (un voyage par personne et par Plan) ; proposer = `plan_activity` `transit_proposed`, rejoindre = notification `transit` au
   proposant, **rappel 30 min avant** (`sendTransitReminders`, toutes les 5 min, type `transit_reminder` exempté du mode
   silencieux). « Je passe », exclusion (`removeUserFromRides`) et départ du Cercle (`removeFromGamesInCircle`) retirent des
