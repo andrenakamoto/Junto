@@ -85,6 +85,9 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? T.matchNews, url: `${planUrl}&tab=votes`, group: `match:${n.planId}` };
     case 'waitlist':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? T.waitlist, url: planUrl, group: `plan:${n.planId}` };
+    case 'transit':
+    case 'transit_reminder':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `${planUrl}&tab=trajets`, group: `transit:${n.planId}` };
     case 'shift_reminder':
       return { title: n.planTitle ?? T.volunteers, body: n.preview ?? T.shiftSoon, url: `${planUrl}&tab=benevoles`, group: `shift:${n.planId}` };
     case 'words':

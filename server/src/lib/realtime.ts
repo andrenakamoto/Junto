@@ -116,6 +116,12 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     const match = await prisma.matchPoll.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(match?.planId, c === 'choose', 'votes');
   }
+  // Transports publics : voyages partagés (rechargement de la rubrique Trajets) ; mes arrêts ne concernent que moi
+  if (a === 'transit-groups') {
+    const group = await prisma.transitGroup.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(group?.planId, false, 'trajets');
+  }
+  if (b === 'transit') return c === 'groups' ? planTarget(a, false, 'trajets') : null;
   if (a === 'items') {
     const item = await prisma.bringItem.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(item?.planId, false, 'depenses', 'items_updated');

@@ -152,6 +152,13 @@ const groups: Group[] = [
           passaggio.</P>,
       },
       {
+        id: 'transports', emoji: '🚌', title: 'Con i mezzi pubblici', summary: 'Orari, viaggiare insieme, ultimo ritorno',
+        body: <P>Nella sezione Passaggi scegli la fermata di partenza (da memorizzare se vuoi) e quella di arrivo vicino al luogo del
+          Plan. EvLY mostra i collegamenti per arrivare in orario (bus, tram e treni di tutta la Svizzera) e
+          l’<strong>ultimo ritorno</strong> della notte. <strong>«Propongo questo collegamento»</strong> invita gli altri a viaggiare con te;
+          promemoria 30 minuti prima della partenza.</P>,
+      },
+      {
         id: 'depenses', emoji: '💶', title: 'Spese e «chi porta cosa»', summary: 'Lista da portare, spese condivise, CHF o €',
         body: <>
           <P><strong>Chi porta cosa</strong>: una lista (con quantità) in cui ognuno tocca «Lo porto io».</P>

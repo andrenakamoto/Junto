@@ -3,6 +3,7 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 // Datenschutzerklärung auf Deutsch (Übersetzung; massgebend ist die französische Fassung)
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "Hosting des Servers, der Datenbank (Konten, Nachrichten, Pläne), der Website evly.ch, der Fotos, Sprachnachrichten und Dateien; Versand der E-Mails; Sicherungskopien (Swiss Backup)", where: "Schweiz", safeguard: "keine Übermittlung ins Ausland" },
+  { name: 'Opentransportdata.swiss (OJP)', role: "Fahrpläne des öffentlichen Verkehrs (Bereich Fahrten): Es werden nur die Kennungen der gewählten Haltestellen und die gesuchte Zeit von unserem Server gesendet, ohne deine Identität", where: "Schweiz (offizielle Plattform des öffentlichen Verkehrs, SBB im Auftrag des BAV)", safeguard: "keine Personendaten übermittelt" },
   { name: 'Railway', role: "vorübergehende Weiterleitung für ältere App-Versionen (vor 1.0.13): Die Daten werden nur durchgeleitet, nichts wird dort gespeichert", where: "USA (Kalifornien)", safeguard: "an das Schweizer Recht angepasste Standardvertragsklauseln (Auftragsbearbeitungsvertrag)" },
   { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst), Schriften der Website und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
@@ -10,7 +11,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 11. Oktober 2026',
+  version: 'Fassung vom 12. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">

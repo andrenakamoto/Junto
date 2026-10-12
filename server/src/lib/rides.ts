@@ -22,6 +22,9 @@ export function notifyRide(io: Server | undefined, userId: string, plan: PlanInf
 // Retire un membre de tout le covoiturage d'un Plan : son trajet (s'il conduit),
 // sa place (s'il est passager) et sa demande. Utilisé quand il passe « Absent(e) ».
 export async function removeUserFromRides(io: Server | undefined, planId: string, userId: string, pseudo: string) {
+  // Transports publics : quitte son voyage partagé (un voyage vide disparaît)
+  await prisma.transitGroupMember.deleteMany({ where: { planId, userId } });
+  await prisma.transitGroup.deleteMany({ where: { planId, members: { none: {} } } });
   const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, circleId: true } });
   if (!plan) return;
 

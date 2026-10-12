@@ -149,6 +149,13 @@ const groups: Group[] = [
           de ton trajet.</P>,
       },
       {
+        id: 'transports', emoji: '🚌', title: 'En transports publics', summary: 'Horaires, voyager ensemble, dernier retour',
+        body: <P>Dans la rubrique Trajets, choisis ton arrêt de départ (à mémoriser si tu veux) et ton arrêt d'arrivée près du lieu
+          du Plan. EvLY affiche les correspondances pour arriver à l'heure (bus, trams et trains de toute la Suisse) et le
+          <strong> dernier retour</strong> de la nuit. <strong>« Je propose ce trajet »</strong> invite les autres à voyager avec toi ;
+          rappel 30 minutes avant le départ.</P>,
+      },
+      {
         id: 'depenses', emoji: '💶', title: 'Dépenses et « qui apporte quoi »', summary: 'Liste à apporter, frais partagés, CHF ou €',
         body: <>
           <P><strong>Qui apporte quoi</strong> : une liste (avec quantité) où chacun touche « Je prends ça ».</P>

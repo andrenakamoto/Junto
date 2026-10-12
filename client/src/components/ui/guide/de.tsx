@@ -153,6 +153,13 @@ const groups: Group[] = [
           antwortet, wird aus seiner Fahrt genommen.</P>,
       },
       {
+        id: 'transports', emoji: '🚌', title: 'Mit dem ÖV', summary: 'Fahrpläne, gemeinsam reisen, letzte Rückfahrt',
+        body: <P>Wähle im Bereich Fahrten deine Abfahrtshaltestelle (auf Wunsch gespeichert) und deine Ankunftshaltestelle beim Ort
+          des Plans. EvLY zeigt die Verbindungen, um pünktlich anzukommen (Busse, Trams und Züge in der ganzen Schweiz), und die
+          <strong> letzte Rückfahrt</strong> der Nacht. <strong>«Ich schlage diese Verbindung vor»</strong> lädt die anderen ein, mit dir zu
+          reisen; Erinnerung 30 Minuten vor der Abfahrt.</P>,
+      },
+      {
         id: 'depenses', emoji: '💶', title: 'Ausgaben und «Wer bringt was»', summary: 'Mitbringliste, geteilte Kosten, CHF oder €',
         body: <>
           <P><strong>Wer bringt was</strong>: eine Liste (mit Menge), bei der alle «Ich bringe das» antippen.</P>

@@ -19,6 +19,10 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '{0} cherche une place en voiture': ['{0} sucht einen Platz im Auto', '{0} cerca un posto in auto', '{0} is looking for a seat'],
   '{0} a modifié son trajet': ['{0} hat die Fahrt geändert', '{0} ha modificato il suo passaggio', '{0} changed their ride'],
   '{0} a annulé son trajet': ['{0} hat die Fahrt abgesagt', '{0} ha annullato il suo passaggio', '{0} cancelled their ride'],
+  '{0} propose de voyager ensemble en transports publics': ['{0} schlägt vor, gemeinsam mit dem ÖV zu reisen', '{0} propone di viaggiare insieme con i mezzi pubblici', '{0} suggests travelling together by public transport'],
+  '@{0} voyage avec toi ({1})': ['@{0} reist mit dir ({1})', '@{0} viaggia con te ({1})', '@{0} is travelling with you ({1})'],
+  '🚌 Départ à {0} : {1}, {2} (quai {3})': ['🚌 Abfahrt um {0}: {1}, {2} (Kante {3})', '🚌 Partenza alle {0}: {1}, {2} (corsia {3})', '🚌 Departure at {0}: {1}, {2} (platform {3})'],
+  '🚌 Départ à {0} : {1}, {2}': ['🚌 Abfahrt um {0}: {1}, {2}', '🚌 Partenza alle {0}: {1}, {2}', '🚌 Departure at {0}: {1}, {2}'],
   '{0} a ajouté un poste au planning': ['{0} hat einen Einsatz zum Einsatzplan hinzugefügt', '{0} ha aggiunto un turno', '{0} added a shift to the schedule'],
   // Covoiturage
   '@{0} ne vient plus : son trajet est annulé': ['@{0} kommt nicht mehr: Die Fahrt ist abgesagt', '@{0} non viene più: il suo passaggio è annullato', '@{0} is no longer coming: their ride is cancelled'],

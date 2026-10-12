@@ -27,6 +27,7 @@ import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/r
 import { sendSantaReminders } from './lib/secretSanta';
 import { endDueWordGames } from './lib/wordGame';
 import { sendShiftReminders } from './lib/volunteers';
+import { sendTransitReminders } from './lib/transit';
 import { sendMatchReminders } from './lib/matchPoll';
 import { spawnRecurringPlans } from './lib/recurrence';
 import { createPlanInCircle } from './routes/circles';
@@ -138,6 +139,8 @@ if (cronEnabled) {
   // Bénévoles : rappel une heure avant la prise de poste
   sendShiftReminders(io);
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);
+  // Transports publics : rappel 30 minutes avant un voyage partagé
+  setInterval(() => sendTransitReminders(io), 5 * 60 * 1000);
   // Le mot piège : fin des parties à l'heure choisie
   setInterval(() => endDueWordGames(io), 60 * 1000);
 

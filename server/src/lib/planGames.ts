@@ -1,3 +1,4 @@
+import prisma from './prisma';
 import { removeFromSanta, removeFromSantaInCircle } from './secretSanta';
 import { removeFromKiller, removeFromKillerInCircle } from './killer';
 import { removeFromTeams, removeFromTeamsInCircle } from './teams';
@@ -17,4 +18,8 @@ export async function removeFromGamesInCircle(circleId: string, userId: string) 
   await removeFromKillerInCircle(circleId, userId).catch(e => console.error('[killer cleanup]', e));
   await removeFromTeamsInCircle(circleId, userId).catch(e => console.error('[teams cleanup]', e));
   await removeFromWordGameInCircle(circleId, userId).catch(e => console.error('[word game cleanup]', e));
+  // Transports publics : voyages partagés des Plans du Cercle
+  const plans = { plan: { circleId } };
+  await prisma.transitGroupMember.deleteMany({ where: { userId, group: plans } }).catch((e: unknown) => console.error('[transit cleanup]', e));
+  await prisma.transitGroup.deleteMany({ where: { ...plans, members: { none: {} } } }).catch((e: unknown) => console.error('[transit cleanup]', e));
 }

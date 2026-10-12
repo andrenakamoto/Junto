@@ -16,6 +16,7 @@ import { DepensesTab } from './DepensesTab';
 import { HistoriqueTab } from './HistoriqueTab';
 import { InviteModal } from '../circles/InviteModal';
 import { StoryModal } from './StoryModal';
+import { TransitSection } from './TransitSection';
 import { CarpoolSection } from './CarpoolSection';
 import { Modal } from '../ui/Modal';
 import { DeletePlanModal } from './DeletePlanModal';
@@ -1062,6 +1063,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
           {activeTab === 'trajets' && (
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
               <CarpoolSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} />
+              <TransitSection planId={plan.id} userId={user.id} isAbsent={myMember?.rsvp === 'out'} reloadKey={plan} />
             </div>
           )}
         </>

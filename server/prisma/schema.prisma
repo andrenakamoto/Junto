@@ -98,6 +98,10 @@ model User {
   circleInvitesSent      CircleInvitation[]    @relation("InviteFrom")
   circleInvitesReceived  CircleInvitation[]    @relation("InviteTo")
   circleChangeLogs       CircleChangeLog[]     @relation("CircleChangeLogAuthor")
+  transitChoices         TransitChoice[]
+  transitHome            TransitHome?
+  transitGroups          TransitGroup[]
+  transitGroupMembers    TransitGroupMember[]
 
   @@index([lastActiveAt])
 }
@@ -332,6 +336,8 @@ model Plan {
   killer            KillerGame?
   wordGame          WordGame?
   waitlist          PlanWaitlist[]
+  transitGroups     TransitGroup[]
+  transitChoices    TransitChoice[]
   matchPolls        MatchPoll[]
   wheels            Wheel[]
   assembly          Assembly?
@@ -500,6 +506,67 @@ model PlanMember {
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@id([userId, planId])
+}
+
+// Transports publics : arrêts de départ et d'arrivée choisis par une personne pour un Plan. Table à part pour
+// qu'ils ne remontent jamais avec les participants : seule la personne les voit (routes/transit.ts)
+model TransitChoice {
+  planId   String
+  plan     Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromId   String?
+  fromName String?
+  toId     String?
+  toName   String?
+
+  @@id([planId, userId])
+}
+
+// Transports publics : arrêt de départ habituel, mémorisé seulement si la personne le veut
+model TransitHome {
+  userId   String @id
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stopId   String
+  stopName String
+}
+
+// « On voyage ensemble » : une correspondance proposée par un participant (bus, tram, train), que
+// d'autres rejoignent. Copie figée des horaires au moment de la proposition (lib/transit.ts).
+model TransitGroup {
+  id             String               @id @default(cuid())
+  planId         String
+  plan           Plan                 @relation(fields: [planId], references: [id], onDelete: Cascade)
+  creatorId      String
+  creator        User                 @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  fromName       String
+  toName         String
+  departureAt    DateTime
+  arrivalAt      DateTime
+  // Lignes empruntées, ex. « Bus 9 » ou « Tram 12 › Bus 23 »
+  lines          String
+  platform       String?
+  note           String?
+  // Rappel 30 min avant le départ (anti-doublon)
+  reminderSentAt DateTime?
+  createdAt      DateTime             @default(now())
+  members        TransitGroupMember[]
+
+  @@index([planId])
+  @@index([departureAt])
+}
+
+model TransitGroupMember {
+  groupId   String
+  group     TransitGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Dupliqué : un seul voyage partagé par personne et par Plan
+  planId    String
+  createdAt DateTime     @default(now())
+
+  @@id([groupId, userId])
+  @@unique([planId, userId])
 }
 
 // Dernière activité de chaque onglet d'un Plan (chat, infos, trajets, membres, votes,
