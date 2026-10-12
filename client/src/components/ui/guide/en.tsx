@@ -150,7 +150,8 @@ const groups: Group[] = [
       },
       {
         id: 'transports', emoji: '🚌', title: 'By public transport', summary: 'Timetables, travelling together, last ride back',
-        body: <P>In the Rides section, pick your departure stop (saved if you want) and your arrival stop near the Plan’s place. EvLY
+        body: <P>In the Rides section, say where you’re leaving from and where you’re going: an address, a place or a stop
+          (departure saved if you want). Nobody else sees your address. EvLY
           shows the connections to arrive on time (buses, trams and trains across Switzerland) and the <strong>last ride back</strong>{' '}
           of the night. <strong>“I suggest this connection”</strong> invites the others to travel with you; reminder 30 minutes
           before departure.</P>,

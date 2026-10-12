@@ -155,8 +155,8 @@ const groups: Group[] = [
       },
       {
         id: 'transports', emoji: '🚌', title: 'Mit dem ÖV', summary: 'Fahrpläne, gemeinsam reisen, letzte Rückfahrt',
-        body: <P>Wähle im Bereich Fahrten deine Abfahrtshaltestelle (auf Wunsch gespeichert) und deine Ankunftshaltestelle beim Ort
-          des Plans. EvLY zeigt die Verbindungen, um pünktlich anzukommen (Busse, Trams und Züge in der ganzen Schweiz), und die
+        body: <P>Wähle im Bereich Fahrten wo du losgehst und wohin: eine Adresse, einen Ort oder eine Haltestelle
+          (Abfahrt auf Wunsch gespeichert). Niemand sonst sieht deine Adresse. EvLY zeigt die Verbindungen, um pünktlich anzukommen (Busse, Trams und Züge in der ganzen Schweiz), und die
           <strong> letzte Rückfahrt</strong> der Nacht. <strong>«Ich schlage diese Verbindung vor»</strong> lädt die anderen ein, mit dir zu
           reisen; Erinnerung 30 Minuten vor der Abfahrt.</P>,
       },

@@ -4,7 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
 import { notifyPlanActivity } from '../lib/planNotifications';
-import { ARRIVE_EARLY_MS, NOTE_MAX, fetchConnections, fetchLastConnection, linesText, parseStop, sanitizeLegs, searchStops, type Connection } from '../lib/transit';
+import { ARRIVE_EARLY_MS, NOTE_MAX, fetchConnections, fetchLastConnection, linesText, parseStop, sanitizeLegs, sharedLegs, searchStops, type Connection } from '../lib/transit';
 
 // « En transports publics » (rubrique Trajets, lib/transit.ts), monté dans le routeur des Plans. Chaque participant
 // choisit SES arrêts de départ et d'arrivée (TransitChoice) ; le départ peut être mémorisé (TransitHome) si la personne
@@ -88,15 +88,15 @@ router.get('/:id/transit/connections', async (req: AuthRequest, res) => {
   if (!p.plan || !p.member) { res.status(p.status).json({ error: p.error }); return; }
   const choice = await prisma.transitChoice.findUnique({ where: { planId_userId: { planId: p.plan.id, userId: req.userId! } } });
   if (!choice?.fromId || !choice.toId) { res.json({ go: [], last: null }); return; }
-  const fromId = choice.fromId, toId = choice.toId;
+  const from = { id: choice.fromId, name: choice.fromName ?? '' }, to = { id: choice.toId, name: choice.toName ?? '' };
   if (!p.plan.eventDate) { res.json({ go: [], last: null, noDate: true }); return; }
   try {
     const arriveBy = new Date(p.plan.eventDate.getTime() - ARRIVE_EARLY_MS);
     // Plan déjà commencé : les prochains départs plutôt qu'une arrivée dans le passé
     const started = arriveBy.getTime() < Date.now();
     const [go, last] = await Promise.all([
-      fetchConnections(fromId, toId, started ? new Date() : arriveBy, !started, 4),
-      fetchLastConnection(toId, fromId, p.plan.eventDate).catch(() => null),
+      fetchConnections(from, to, started ? new Date() : arriveBy, !started, 4),
+      fetchLastConnection(to, from, p.plan.eventDate).catch(() => null),
     ]);
     // En arrivée visée, l'API renvoie les correspondances qui arrivent autour de l'heure : on garde les 3 dernières à l'heure
     const onTime = started ? go.slice(0, 3) : go.filter(c => new Date(c.arrivalAt).getTime() <= arriveBy.getTime() + 60_000).slice(-3);
@@ -129,7 +129,7 @@ router.post('/:id/transit/groups', async (req: AuthRequest, res) => {
         fromName: String(firstRide.from ?? '').slice(0, 120), toName: String(c.legs[c.legs.length - 1]?.to ?? '').slice(0, 120),
         departureAt: new Date(firstRide.departureAt ?? c.departureAt), arrivalAt: arr, lines,
         platform: typeof firstRide.platform === 'string' ? firstRide.platform.slice(0, 20) : null, note,
-        legs: sanitizeLegs(c.legs),
+        legs: sharedLegs(sanitizeLegs(c.legs)),
         members: { create: { userId, planId: p.plan.id } },
       },
       include: groupInclude,

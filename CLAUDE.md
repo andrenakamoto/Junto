@@ -1107,8 +1107,10 @@ Junto/
   `parseStops` / `parseConnections`, testés), appelée **par le serveur seulement** avec la clé **`OJP_API_KEY`**
   (`/etc/evly/app.env`, compte opentransportdata.swiss de l'utilisateur, application « Evly » ; sans clé en local, la
   rubrique répond « horaires indisponibles »), cache 5 min. **Chaque participant choisit
-  SES arrêts** de départ et d'arrivée (table **TransitChoice**, **jamais renvoyée aux autres** : un trajet n'est visible que s'il est proposé ; liste de suggestions ; on choisit toujours un
-  arrêt) ; au toucher du champ d'arrivée, arrêts suggérés depuis le
+  SON départ et SON arrivée** (table **TransitChoice**, **jamais renvoyée aux autres** : un trajet n'est visible que s'il est proposé ; liste de suggestions :
+  **arrêt, adresse ou lieu** — depuis le 2026-10-12, recherche OJP `stop` + `address` + `poi` ; une adresse ou un lieu est gardé par
+  ses coordonnées, id `geo:lon,lat`, envoyé à OJP en `GeoPosition` par `placeRef`, OJP ajoute la marche jusqu'à l'arrêt ; un voyage
+  proposé ne garde pas la marche du début, `sharedLegs`, pour ne pas montrer l'adresse de la personne) ; au toucher du champ d'arrivée, arrêts suggérés depuis le
   lieu du Plan ; départ mémorisé **seulement si la personne coche** (table **TransitHome**). Correspondances pour
   arriver 10 min avant le début (`ARRIVE_EARLY_MS`, les 3 dernières à l'heure ; prochains départs si le Plan a commencé) et
   **dernier retour** de la nuit (dernier départ avant 5 h, bus de nuit compris, `fetchLastConnection`). **« On voyage

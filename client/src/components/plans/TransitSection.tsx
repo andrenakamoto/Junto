@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bus, TrainFront, TramFront, Ship, Footprints, MapPin, Moon, Users, Loader2, X, ChevronDown } from 'lucide-react';
+import { Bus, TrainFront, TramFront, Ship, Footprints, MapPin, Moon, Users, Loader2, X, ChevronDown, Home, Landmark } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 import { displayName } from '../../lib/names';
@@ -73,7 +73,8 @@ function StopPicker({ planId, label, value, initialQuery, onChange }: { planId: 
           {results.map(s => (
             <button key={s.id} onClick={() => { onChange({ id: s.id, name: s.name }); setEditing(false); setQ(''); setResults([]); }}
               className="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 flex items-center gap-2 border-b border-slate-100 last:border-0">
-              <LegIcon kind={s.kind === 'tram' ? 'tram' : s.kind === 'train' ? 'train' : s.kind === 'ship' ? 'boat' : 'bus'} />{s.name}
+              {s.kind === 'address' ? <Home size={13} className="flex-shrink-0" /> : s.kind === 'poi' ? <Landmark size={13} className="flex-shrink-0" />
+                : <LegIcon kind={s.kind === 'tram' ? 'tram' : s.kind === 'train' ? 'train' : s.kind === 'ship' ? 'boat' : 'bus'} />}{s.name}
             </button>
           ))}
         </div>

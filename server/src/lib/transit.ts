@@ -5,7 +5,9 @@ import { notifyUser } from './push';
 // Transports publics (rubrique Trajets) : horaires de tous les transports publics suisses (CFF, bus et trams
 // urbains comme les TPG, Léman Express…) via l'API officielle **OJP 2.0** d'opentransportdata.swiss (données en
 // Suisse). Appelée depuis le serveur seulement, avec la clé OJP_API_KEY (/etc/evly/app.env, jamais dans le dépôt) et
-// un cache de quelques minutes. Les arrêts se choisissent dans une liste (recherche par nom).
+// un cache de quelques minutes. Départ et arrivée se choisissent dans une liste : arrêt, adresse ou lieu (salle,
+// restaurant…). Une adresse ou un lieu est gardé par ses coordonnées (id « geo:lon,lat »), et OJP ajoute la marche
+// jusqu'au premier arrêt.
 
 const API = 'https://api.opentransportdata.swiss/ojp20';
 const CACHE_MS = 5 * 60 * 1000;
@@ -16,6 +18,8 @@ export const NOTE_MAX = 200;
 export const STOP_NAME_MAX = 120;
 
 export type Stop = { id: string; name: string; kind: string | null };
+export type Place = { id: string; name: string };
+const GEO_ID = /^geo:(-?\d{1,3}\.\d{1,7}),(-?\d{1,3}\.\d{1,7})$/;
 export type Leg = { kind: 'walk' | 'bus' | 'tram' | 'train' | 'boat' | 'other'; line: string | null; direction: string | null; from: string; to: string; platform: string | null; departureAt: string | null; arrivalAt: string | null; walkMinutes: number | null };
 export type Connection = { departureAt: string; arrivalAt: string; minutes: number; transfers: number; legs: Leg[] };
 
@@ -84,7 +88,15 @@ export function isoMinutes(d: string | null | undefined): number {
 export function parseStops(data: any): Stop[] {
   const results = data?.OJP?.OJPResponse?.ServiceDelivery?.OJPLocationInformationDelivery?.PlaceResult ?? [];
   return results.flatMap((r: any): Stop[] => {
-    const sp = r?.Place?.StopPlace;
+    const place = r?.Place;
+    // Adresse ou lieu (salle, restaurant…) : gardé par ses coordonnées
+    if (place?.Address || place?.PointOfInterest) {
+      const lon = Number(place.GeoPosition?.Longitude), lat = Number(place.GeoPosition?.Latitude);
+      const name = text(place.Name) ?? text(place.Address?.Name) ?? text(place.PointOfInterest?.PointOfInterestName);
+      if (!name || !Number.isFinite(lon) || !Number.isFinite(lat)) return [];
+      return [{ id: `geo:${lon.toFixed(5)},${lat.toFixed(5)}`, name, kind: place.Address ? 'address' : 'poi' }];
+    }
+    const sp = place?.StopPlace;
     const id = sp?.StopPlaceRef;
     const name = text(sp?.StopPlaceName);
     if (!id || !name) return [];
@@ -121,15 +133,23 @@ export function parseConnections(data: any): Connection[] {
 export async function searchStops(query: string): Promise<Stop[]> {
   const q = query.trim().slice(0, 80);
   if (q.length < 2) return [];
-  const data = await ojp(`<OJPLocationInformationRequest><siri:RequestTimestamp>{now}</siri:RequestTimestamp><InitialInput><Name>${xmlEscape(q)}</Name></InitialInput><Restrictions><Type>stop</Type><NumberOfResults>8</NumberOfResults></Restrictions></OJPLocationInformationRequest>`);
+  const data = await ojp(`<OJPLocationInformationRequest><siri:RequestTimestamp>{now}</siri:RequestTimestamp><InitialInput><Name>${xmlEscape(q)}</Name></InitialInput><Restrictions><Type>stop</Type><Type>address</Type><Type>poi</Type><NumberOfResults>10</NumberOfResults></Restrictions></OJPLocationInformationRequest>`);
   return parseStops(data).slice(0, 8);
 }
 
+// Point de départ ou d'arrivée d'une recherche : arrêt (StopPlaceRef) ou coordonnées d'une adresse / d'un lieu
+export function placeRef(p: Place): string {
+  const geo = GEO_ID.exec(p.id);
+  const ref = geo
+    ? `<GeoPosition><siri:Longitude>${geo[1]}</siri:Longitude><siri:Latitude>${geo[2]}</siri:Latitude></GeoPosition>`
+    : `<StopPlaceRef>${xmlEscape(p.id)}</StopPlaceRef>`;
+  return `<PlaceRef>${ref}<Name><Text>${xmlEscape(p.name)}</Text></Name></PlaceRef>`;
+}
+
 // Correspondances pour arriver avant `at` (isArrival) ou partir après `at`
-export async function fetchConnections(fromId: string, toId: string, at: Date, isArrival: boolean, limit = 4): Promise<Connection[]> {
+export async function fetchConnections(from: Place, to: Place, at: Date, isArrival: boolean, limit = 4): Promise<Connection[]> {
   const when = `<DepArrTime>${at.toISOString().replace(/\.\d{3}Z$/, 'Z')}</DepArrTime>`;
-  const place = (id: string, withTime: boolean) => `<PlaceRef><StopPlaceRef>${xmlEscape(id)}</StopPlaceRef><Name><Text>${xmlEscape(id)}</Text></Name></PlaceRef>${withTime ? when : ''}`;
-  const data = await ojp(`<OJPTripRequest><siri:RequestTimestamp>{now}</siri:RequestTimestamp><Origin>${place(fromId, !isArrival)}</Origin><Destination>${place(toId, isArrival)}</Destination><Params><NumberOfResults>${limit}</NumberOfResults><IncludeIntermediateStops>false</IncludeIntermediateStops></Params></OJPTripRequest>`);
+  const data = await ojp(`<OJPTripRequest><siri:RequestTimestamp>{now}</siri:RequestTimestamp><Origin>${placeRef(from)}${isArrival ? '' : when}</Origin><Destination>${placeRef(to)}${isArrival ? when : ''}</Destination><Params><NumberOfResults>${limit}</NumberOfResults><IncludeIntermediateStops>false</IncludeIntermediateStops></Params></OJPTripRequest>`);
   return parseConnections(data);
 }
 
@@ -139,16 +159,16 @@ export function lastBefore(connections: Connection[], limit: Date): Connection |
   return ok.length ? ok.reduce((a, b) => (new Date(b.departureAt) > new Date(a.departureAt) ? b : a)) : null;
 }
 
-export async function fetchLastConnection(fromId: string, toId: string, eventDay: Date): Promise<Connection | null> {
+export async function fetchLastConnection(from: Place, to: Place, eventDay: Date): Promise<Connection | null> {
   const { date } = zurichDateTime(eventDay);
   const next = new Date(new Date(`${date}T12:00:00Z`).getTime() + 24 * 3600 * 1000);
   const nextDate = zurichDateTime(next).date;
   const limit = new Date(`${nextDate}T05:00:00${zurichOffset(next)}`);
   // Après minuit d'abord (bus de nuit), sinon le soir même
-  const late = await fetchConnections(fromId, toId, new Date(`${nextDate}T00:00:00${zurichOffset(next)}`), false, 10);
+  const late = await fetchConnections(from, to, new Date(`${nextDate}T00:00:00${zurichOffset(next)}`), false, 10);
   const night = lastBefore(late, limit);
   if (night) return night;
-  const evening = await fetchConnections(fromId, toId, new Date(`${date}T22:30:00${zurichOffset(eventDay)}`), false, 10);
+  const evening = await fetchConnections(from, to, new Date(`${date}T22:30:00${zurichOffset(eventDay)}`), false, 10);
   return lastBefore(evening, limit);
 }
 
@@ -177,11 +197,18 @@ export function sanitizeLegs(v: unknown): Leg[] {
   });
 }
 
+// Étapes gardées avec un voyage proposé aux autres : sans la marche du début, qui part de l'adresse de la personne
+// (le rendez-vous est au premier arrêt)
+export function sharedLegs(legs: Leg[]): Leg[] {
+  const first = legs.findIndex(l => l.kind !== 'walk');
+  return first < 0 ? [] : legs.slice(first);
+}
+
 export function parseStop(v: unknown): { id: string; name: string } | null | undefined {
   if (v === null) return null;
   if (!v || typeof v !== 'object') return undefined;
   const { id, name } = v as any;
-  if (typeof id !== 'string' || typeof name !== 'string' || !/^[0-9A-Za-z:_-]{1,40}$/.test(id) || !name.trim()) return undefined;
+  if (typeof id !== 'string' || typeof name !== 'string' || !(/^[0-9A-Za-z:_-]{1,40}$/.test(id) || GEO_ID.test(id)) || !name.trim()) return undefined;
   return { id, name: name.trim().slice(0, STOP_NAME_MAX) };
 }
 

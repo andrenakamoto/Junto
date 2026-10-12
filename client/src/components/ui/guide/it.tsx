@@ -154,8 +154,8 @@ const groups: Group[] = [
       },
       {
         id: 'transports', emoji: '🚌', title: 'Con i mezzi pubblici', summary: 'Orari, viaggiare insieme, ultimo ritorno',
-        body: <P>Nella sezione Passaggi scegli la fermata di partenza (da memorizzare se vuoi) e quella di arrivo vicino al luogo del
-          Plan. EvLY mostra i collegamenti per arrivare in orario (bus, tram e treni di tutta la Svizzera) e
+        body: <P>Nella sezione Passaggi indica da dove parti e dove vai: un indirizzo, un luogo o una fermata
+          (partenza da memorizzare se vuoi). Nessun altro vede il tuo indirizzo. EvLY mostra i collegamenti per arrivare in orario (bus, tram e treni di tutta la Svizzera) e
           l’<strong>ultimo ritorno</strong> della notte. <strong>«Propongo questo collegamento»</strong> invita gli altri a viaggiare con te;
           promemoria 30 minuti prima della partenza.</P>,
       },

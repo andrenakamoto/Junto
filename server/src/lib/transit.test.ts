@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isoMinutes, ojpParser as parser, lastBefore, lineOf, linesText, parseConnections, parseStop, parseStops, sanitizeLegs, zurichDateTime, zurichOffset } from './transit';
+import { isoMinutes, ojpParser as parser, lastBefore, lineOf, linesText, parseConnections, parseStop, parseStops, placeRef, sanitizeLegs, sharedLegs, zurichDateTime, zurichOffset } from './transit';
 
 // Réponses réelles de l'API OJP 2.0 (opentransportdata.swiss), enregistrées le 12 octobre 2026
 const fixture = (name: string) => readFileSync(join(__dirname, '__fixtures__', name), 'utf8');
@@ -66,5 +66,27 @@ describe('transports publics', () => {
     expect(legs[0]).toEqual({ kind: 'bus', line: 'Bus 1', direction: 'Rive', from: 'Castan', to: 'Rive', platform: 'T', departureAt: '2026-10-17T16:15:00.000Z', arrivalAt: '2026-10-17T16:27:00.000Z', walkMinutes: null });
     expect(legs[1]).toMatchObject({ kind: 'walk', walkMinutes: 3, from: '' });
     expect(sanitizeLegs('x')).toEqual([]);
+  });
+
+  it('lit les adresses et les lieux', () => {
+    const [a] = parseStops(parser.parse(fixture('ojp-addresses.xml')));
+    expect(a).toEqual({ id: 'geo:6.14345,46.19419', name: 'Rue de Carouge 50 (Genève)', kind: 'address' });
+    expect(parseStop({ id: a.id, name: a.name })).toEqual({ id: a.id, name: a.name });
+    expect(parseStop({ id: 'geo:6.1,46.2,<x>', name: 'x' })).toBeUndefined();
+  });
+
+  it('cherche un trajet depuis une adresse (coordonnées) ou un arrêt', () => {
+    expect(placeRef({ id: 'geo:6.14345,46.19419', name: 'Rue de Carouge 50' })).toContain('<siri:Longitude>6.14345</siri:Longitude><siri:Latitude>46.19419</siri:Latitude>');
+    expect(placeRef({ id: 'ch:1:sloid:87907', name: 'Genève, Plainpalais' })).toContain('<StopPlaceRef>ch:1:sloid:87907</StopPlaceRef>');
+    expect(placeRef({ id: 'ch:1:sloid:1', name: 'A & B' })).toContain('A &amp; B');
+  });
+
+  it('lit un trajet qui part d’une adresse, sans la montrer aux autres', () => {
+    const [c] = parseConnections(parser.parse(fixture('ojp-trip-address.xml')));
+    expect(c.legs[0]).toMatchObject({ kind: 'walk', from: 'Rue de Carouge 50', walkMinutes: 2 });
+    expect(c.legs[1]).toMatchObject({ kind: 'tram', line: 'Tram 18' });
+    const shared = sharedLegs(c.legs);
+    expect(shared[0].kind).toBe('tram');
+    expect(JSON.stringify(shared)).not.toContain('Rue de Carouge');
   });
 });
