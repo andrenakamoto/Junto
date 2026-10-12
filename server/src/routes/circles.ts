@@ -87,7 +87,13 @@ router.get('/', async (req: AuthRequest, res) => {
     }),
     prisma.circlePoll.findMany({
       where: { circleId: { in: circleIds }, resolvedAt: null, exclusions: { none: { userId: req.userId } } },
-      select: { circleId: true, createdAt: true, messages: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, question: true, circleId: true, createdAt: true,
+        messages: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 },
+        options: { select: { eventDate: true, votes: { where: { userId: req.userId }, select: { userId: true } } } },
+        declines: { where: { userId: req.userId }, select: { userId: true } },
+      },
     }),
   ]);
   const last = new Map<string, number>();
@@ -95,9 +101,16 @@ router.get('/', async (req: AuthRequest, res) => {
   for (const c of circles) bump(c.id, c.members.find(m => m.userId === req.userId)?.joinedAt ?? c.createdAt);
   for (const p of visiblePlans) bump(p.circleId, planLastActivity(p));
   for (const p of polls) bump(p.circleId, new Date(Math.max(p.createdAt.getTime(), p.messages[0]?.createdAt.getTime() ?? 0)));
+  // Sondages de dates ouverts (non expirés) et ceux qui attendent ma réponse (ni vote ni « Pas disponible »)
+  const openPolls = polls.filter(p => pollExpiresAt(p.createdAt, p.options.map(o => o.eventDate)) > now);
+  const pollInfo = (circleId: string) => {
+    const mine = openPolls.filter(p => p.circleId === circleId);
+    const pending = mine.filter(p => p.declines.length === 0 && !p.options.some(o => o.votes.length > 0));
+    return { pollCount: mine.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })) };
+  };
   // Le Cercle le plus récemment actif en premier
   res.json(sortCirclesByActivity(circles.map(c => ({ ...c, lastActivityAt: new Date(last.get(c.id) ?? 0).toISOString() })))
-    .map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id) })));
+    .map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id), ...pollInfo(c.id) })));
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
@@ -1094,7 +1107,7 @@ router.delete('/polls/:pollId', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
-// Vote (bascule), plusieurs options possibles à la fois. Voter retire le « pas intéressé(e) ».
+// Vote (bascule), plusieurs options possibles à la fois. Voter retire le « pas disponible ».
 router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   const option = await prisma.circlePollOption.findUnique({
     where: { id: req.params.optionId },
@@ -1122,7 +1135,7 @@ router.post('/polls/options/:optionId/vote', async (req: AuthRequest, res) => {
   res.json(updatedPoll && withExpiry(updatedPoll));
 });
 
-// « Pas intéressé(e) » (bascule) — retire aussi les dates cochées
+// « Pas disponible » (bascule) — retire aussi les dates cochées
 router.post('/polls/:pollId/decline', async (req: AuthRequest, res) => {
   const access = await getVisiblePoll(req.params.pollId, req.userId!);
   if ('error' in access) { res.status(access.status).json({ error: access.error }); return; }

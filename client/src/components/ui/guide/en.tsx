@@ -56,7 +56,7 @@ const groups: Group[] = [
         id: 'sondage-dates', emoji: '🗓️', title: 'Date poll', summary: 'Find the date before creating the Plan',
         body: <>
           <P>In a Circle, <strong>“Suggest dates”</strong>: everyone ticks all the dates that suit them, or “Not
-            interested”. The poll has its own chat. When a date stands out, <strong>“Create the Plan”</strong> turns it into
+            available”. The poll has its own chat. When a date stands out, <strong>“Create the Plan”</strong> turns it into
             a Plan (the conversation carries over).</P>
           <P>It ends the day after the last suggested date, 30 days at most; its creator gets a reminder the day before.</P>
         </>,

@@ -477,7 +477,7 @@ export function DashboardPage() {
   const circlesWithNews = useMemo(() => {
     const set = new Set(unreadCircles);
     for (const c of circles) {
-      const news = c.id === selectedCircleId ? plans.some(p => (p.unseen?.length ?? 0) > 0) : !!c.hasUnseen;
+      const news = (c.id === selectedCircleId ? plans.some(p => (p.unseen?.length ?? 0) > 0) : !!c.hasUnseen) || (c.pendingPolls?.length ?? 0) > 0;
       if (news) set.add(c.id);
     }
     return set;
@@ -583,6 +583,7 @@ export function DashboardPage() {
           onOpenNotifications={() => setShowNotifCenter(true)}
           unreadCircles={circlesWithNews}
           onlineUserIds={onlineUserIds}
+          onOpenPoll={(circleId, pollId) => { handleSelectCircle(circleId); openPoll(pollId); }}
         />
       </div>
 

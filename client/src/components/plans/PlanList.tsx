@@ -50,6 +50,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showSettings, setShowSettings] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
+  // Cercle dont les sondages sont chargés (évite de mettre à jour la carte avec ceux d'un autre Cercle)
+  const [pollsFor, setPollsFor] = useState<string | null>(null);
   const [showCreatePoll, setShowCreatePoll] = useState(false);
 
   function copyCode() {
@@ -59,7 +61,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   }
 
   function refreshPolls() {
-    api.get(`/circles/${circle.id}/polls`).then(res => setPolls(res.data)).catch(() => {});
+    const id = circle.id;
+    api.get(`/circles/${id}/polls`).then(res => { setPolls(res.data); setPollsFor(id); }).catch(() => {});
   }
 
   useEffect(() => { refreshPolls(); }, [circle.id]);
@@ -72,6 +75,22 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
 
   async function handleVotePoll(optionId: string) {
     const { data } = await api.post(`/circles/polls/options/${optionId}/vote`);
+    setPolls(prev => prev.map(p => p.id === data.id ? data : p));
+  }
+
+  // Carte du Cercle (barre latérale) : bandeau « À toi de voter » mis à jour dès qu'on répond, sans attendre
+  // le rechargement de la liste des Cercles
+  useEffect(() => {
+    if (!user || pollsFor !== circle.id) return;
+    const pending = polls
+      .filter(p => !(p.declines ?? []).some(d => d.userId === user.id) && !p.options.some(o => o.votes.some(v => v.userId === user.id)))
+      .map(p => ({ id: p.id, question: p.question }));
+    const same = pending.length === (circle.pendingPolls?.length ?? 0) && pending.every((p, i) => circle.pendingPolls![i]?.id === p.id);
+    if (!same || (circle.pollCount ?? 0) !== polls.length) onCircleUpdated({ ...circle, pollCount: polls.length, pendingPolls: pending });
+  }, [polls, pollsFor]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleDeclinePoll(pollId: string) {
+    const { data } = await api.post(`/circles/polls/${pollId}/decline`);
     setPolls(prev => prev.map(p => p.id === data.id ? data : p));
   }
 
@@ -228,6 +247,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   userId={user!.id}
                   selected={poll.id === selectedPollId}
                   onVote={handleVotePoll}
+                  onDecline={() => handleDeclinePoll(poll.id)}
                   onOpen={() => onSelectPoll(poll.id)}
                 />
               ))}

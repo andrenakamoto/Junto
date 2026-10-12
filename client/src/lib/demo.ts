@@ -515,6 +515,12 @@ function route(method: string, path: string, body: any): any {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
     if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
     if ((m = path.match(/^\/plans\/([^/]+)\/summary$/))) return demoSummary(m[1]);
+    // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
+    if (path === '/circles') return (fixtures![key] as any[]).map(c => {
+      const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());
+      const pending = polls.filter(p => !(p.declines ?? []).some((d: any) => d.userId === me.id) && !p.options.some((o: any) => o.votes.some((v: any) => v.userId === me.id)));
+      return { ...c, pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })) };
+    });
     if (key in fixtures!) return fixtures![key];
     if ((m = path.match(/^\/plans\/messages\/([^/]+)\/replies$/))) return fixtures![key] ?? [];
     if (path === '/circles/invitations/mine' || path === '/suggestions/mine' || path === '/moderation/blocks') return [];
@@ -969,7 +975,7 @@ function route(method: string, path: string, body: any): any {
     throw new DemoError(404, 'Trajet introuvable');
   }
 
-  // Sondages de dates (Cercle) : vote multiple, « pas intéressé », chat
+  // Sondages de dates (Cercle) : vote multiple, « pas disponible », chat
   if ((m = path.match(/^\/circles\/polls\/options\/([^/]+)\/vote$/))) {
     for (const [k, v] of Object.entries(fixtures!)) {
       if (!/^GET \/circles\/polls\/[^/]+$/.test(k)) continue;

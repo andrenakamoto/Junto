@@ -76,6 +76,9 @@ export interface Circle {
   joinRequests?: CircleJoinRequest[];
   /** Un de mes Plans dans ce Cercle a du nouveau depuis ma dernière visite */
   hasUnseen?: boolean;
+  /** Sondages de dates ouverts, et ceux qui attendent ma réponse (ni vote ni « Pas disponible ») */
+  pollCount?: number;
+  pendingPolls?: { id: string; question: string }[];
   _count?: { plans: number };
   plans?: { id: string; title: string; eventDate?: string | null; endDate: string }[];
 }
@@ -314,7 +317,7 @@ export interface CirclePoll {
   options: CirclePollOption[];
   /** Sondage surprise : membres du Cercle à qui il est caché */
   exclusions?: { userId: string; user: { id: string; pseudo: string } }[];
-  /** « Pas intéressé(e) » */
+  /** « Pas disponible » */
   declines?: { userId: string; user: { id: string; pseudo: string } }[];
   _count?: { messages: number };
 }

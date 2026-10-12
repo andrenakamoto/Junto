@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -38,9 +38,11 @@ interface Props {
   unreadCircles: Set<string>;
   /** Présence en ligne (fenêtre des membres) */
   onlineUserIds?: Set<string>;
+  /** Ouvrir directement un sondage de dates (bandeau « À toi de voter ») */
+  onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -207,10 +209,10 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                     <p className={`font-semibold text-sm truncate ${selected ? 'text-white' : 'text-slate-800'}`}>
                       {circle.name}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-x-1.5 mt-0.5">
                       <button
                         onClick={e => { e.stopPropagation(); setMembersPopover(circle.id); }}
-                        className={`text-xs hover:underline ${selected ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-700'}`}
+                        className={`text-xs whitespace-nowrap hover:underline ${selected ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-700'}`}
                       >
                         {t('circle.members.count', { count: circle.members.length })}
                       </button>
@@ -220,8 +222,16 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       {(circle._count?.plans ?? 0) > 0 && (
                         <>
                           <span className="text-xs text-slate-300">·</span>
-                          <span className={`text-xs ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
+                          <span className={`text-xs whitespace-nowrap ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
                             {t('circle.sidebar.plans', { count: circle._count!.plans })}
+                          </span>
+                        </>
+                      )}
+                      {(circle.pollCount ?? 0) > 0 && (
+                        <>
+                          <span className="text-xs text-slate-300">·</span>
+                          <span className={`text-xs whitespace-nowrap ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
+                            {t('circle.sidebar.polls', { count: circle.pollCount })}
                           </span>
                         </>
                       )}
@@ -246,6 +256,29 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                     </button>
                   )}
                 </div>
+
+                {/* Sondages de dates qui attendent ma réponse : un seul → il s'ouvre ; plusieurs → le Cercle s'ouvre */}
+                {(circle.pendingPolls?.length ?? 0) > 0 && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={e => {
+                      e.stopPropagation();
+                      const pending = circle.pendingPolls!;
+                      if (pending.length === 1 && onOpenPoll) onOpenPoll(circle.id, pending[0].id); else onSelect(circle.id);
+                    }}
+                    className={`mx-3 mb-2 px-2.5 py-2 rounded-lg flex items-center gap-2 ${selected ? 'bg-white/15 hover:bg-white/25' : 'bg-amber-50 border border-amber-200 hover:bg-amber-100'}`}
+                  >
+                    <Vote size={14} className={`flex-shrink-0 ${selected ? 'text-white' : 'text-amber-700'}`} />
+                    <span className="flex-1 min-w-0">
+                      <span className={`block text-xs font-semibold ${selected ? 'text-white' : 'text-amber-800'}`}>{t('circle.sidebar.voteNow')}</span>
+                      <span className={`block text-xs truncate ${selected ? 'text-indigo-100' : 'text-amber-900/80'}`}>
+                        {circle.pendingPolls!.length === 1 ? circle.pendingPolls![0].question : t('circle.sidebar.pendingPolls', { count: circle.pendingPolls!.length })}
+                      </span>
+                    </span>
+                    <ChevronRight size={14} className={`flex-shrink-0 ${selected ? 'text-white' : 'text-amber-700'}`} />
+                  </span>
+                )}
 
                 {nextPlan && (
                   <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg ${selected ? 'bg-indigo-500/30' : 'bg-slate-50'}`}>

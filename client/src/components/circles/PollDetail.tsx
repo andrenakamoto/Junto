@@ -28,7 +28,7 @@ interface Props {
   onPlanCreated: (plan: Plan) => void;
 }
 
-// Détail d'un sondage de dates : qui est disponible à quelle date, qui n'est pas intéressé,
+// Détail d'un sondage de dates : qui est disponible à quelle date, qui n'est pas disponible,
 // qui n'a pas encore répondu, et un chat pour en discuter.
 export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: Props) {
   const { user } = useAuth();
@@ -71,7 +71,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
     if (tab === 'chat') endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [tab, messages.length]);
 
-  // Temps réel : votes / pas intéressés / suppression (circle-updated), messages (poll-message),
+  // Temps réel : votes / pas disponibles / suppression (circle-updated), messages (poll-message),
   // et rattrapage après une coupure de connexion.
   useSocketEvent<{ circleId: string }>('circle-updated', p => { if (p.circleId === circle.id) loadPoll(); });
   useSocketEvent<{ pollId: string; message: CirclePollMessage }>('poll-message', p => {

@@ -57,7 +57,7 @@ const groups: Group[] = [
         id: 'sondage-dates', emoji: '🗓️', title: 'Terminumfrage', summary: 'Den Termin finden, bevor der Plan entsteht',
         body: <>
           <P>In einem Kreis <strong>«Termine vorschlagen»</strong>: Alle kreuzen die Termine an, die ihnen passen, oder
-            «Nicht interessiert». Die Umfrage hat einen eigenen Chat. Zeichnet sich ein Termin ab, macht{' '}
+            «Kann nicht». Die Umfrage hat einen eigenen Chat. Zeichnet sich ein Termin ab, macht{' '}
             <strong>«Plan erstellen»</strong> daraus einen Plan (der Chat wird übernommen).</P>
           <P>Sie endet am Tag nach dem letzten vorgeschlagenen Termin, höchstens nach 30 Tagen; die Person, die sie erstellt
             hat, erhält am Vortag eine Erinnerung.</P>

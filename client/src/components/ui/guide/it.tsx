@@ -57,7 +57,7 @@ const groups: Group[] = [
         id: 'sondage-dates', emoji: '🗓️', title: 'Sondaggio date', summary: 'Trovare la data prima di creare il Plan',
         body: <>
           <P>In un Cerchio, <strong>«Proponi delle date»</strong>: ognuno spunta tutte le date che gli vanno bene, oppure
-            «Non mi interessa». Il sondaggio ha la sua chat. Quando emerge una data, <strong>«Crea il Plan»</strong> lo
+            «Non disponibile». Il sondaggio ha la sua chat. Quando emerge una data, <strong>«Crea il Plan»</strong> lo
             trasforma in Plan (la conversazione segue).</P>
           <P>Termina il giorno dopo l’ultima data proposta, al massimo dopo 30 giorni; chi l’ha creato riceve un promemoria
             il giorno prima.</P>

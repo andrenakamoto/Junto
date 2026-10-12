@@ -8,12 +8,14 @@ interface Props {
   userId: string;
   selected?: boolean;
   onVote: (optionId: string) => void;
+  /** « Pas disponible » (bascule), sans ouvrir le sondage */
+  onDecline?: () => void;
   onOpen: () => void;
 }
 
 // Aperçu d'un sondage de dates dans la colonne des Plans : vote rapide, et clic pour ouvrir
-// le détail (qui a voté quoi, pas intéressés, chat, création du Plan).
-export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props) {
+// le détail (qui a voté quoi, pas disponibles, chat, création du Plan).
+export function CirclePollCard({ poll, userId, selected, onVote, onDecline, onOpen }: Props) {
   const { t } = useTranslation();
   const maxVotes = Math.max(1, ...poll.options.map(o => o.votes.length));
   const declined = (poll.declines ?? []).some(d => d.userId === userId);
@@ -61,15 +63,23 @@ export function CirclePollCard({ poll, userId, selected, onVote, onOpen }: Props
         })}
       </div>
 
-      <button onClick={onOpen} className="mt-2 w-full flex items-center gap-3 text-xs text-slate-500 hover:text-slate-900">
-        <span className="flex items-center gap-1"><MessageSquare size={11} />{messageCount}</span>
-        {declineCount > 0 && (
-          <span className={declined ? 'text-amber-800' : ''}>
-            {declined ? t('circle.pollCard.youDeclined') : t('circle.pollCard.declined', { count: declineCount })}
-          </span>
+      <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+        <button onClick={onOpen} className="flex items-center gap-1 hover:text-slate-900"><MessageSquare size={11} />{messageCount}</button>
+        {declineCount > 0 && !declined && (
+          <span>{t('circle.pollCard.declined', { count: declineCount })}</span>
         )}
-        <span className="ml-auto text-indigo-600">{t('common.open')}</span>
-      </button>
+        {onDecline && (declined ? (
+          <span className="flex items-center gap-1.5 text-amber-800">
+            {t('circle.pollCard.youDeclined')}
+            <button onClick={onDecline} className="underline hover:text-amber-900">{t('circle.pollCard.undoDecline')}</button>
+          </span>
+        ) : (
+          <button onClick={onDecline} className="px-2 py-0.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+            {t('circle.pollCard.decline')}
+          </button>
+        ))}
+        <button onClick={onOpen} className="ml-auto text-indigo-600 hover:text-indigo-700">{t('common.open')}</button>
+      </div>
     </div>
   );
 }
