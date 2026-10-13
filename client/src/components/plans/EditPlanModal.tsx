@@ -4,26 +4,14 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { AdvancedSection, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
+import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
+import { OptionRow, OptionsBox, WhenField, featuresSummary, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { recurrenceLabel } from '../../lib/recurrence';
+import { Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
 import { SurpriseSelector } from './SurpriseSelector';
-import { DateTimeField } from '../ui/DateTimeField';
 import { t } from '../../i18n';
-
-function isoToLocal(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function localToISO(str: string): string {
-  const [datePart, timePart] = str.split('T');
-  const [y, m, d] = datePart.split('-').map(Number);
-  const [h, min] = timePart.split(':').map(Number);
-  return new Date(y, m - 1, d, h, min).toISOString();
-}
 
 interface Props {
   plan: Plan;
@@ -50,11 +38,13 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(plan.deletionMode ?? 'vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(plan.enabledFeatures ?? []);
+  const [endTouched, setEndTouched] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!endDate) { setError(t('plan.form.endRequired')); return; }
     setLoading(true);
     setError('');
     try {
@@ -112,28 +102,15 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            rows={3}
+            rows={2}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 resize-none text-sm"
           />
           <p className="text-xs text-slate-400 mt-1">{t('plan.form.descriptionUpdated')}</p>
         </div>
         </>}
-        <div>
-          <DateTimeField label={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : t('plan.form.eventDate')} value={eventDate} onChange={setEventDate} clearable />
-        </div>
-        {isCreator && (
-          <RecurrenceField
-            value={recurrence}
-            until={recurrenceUntil}
-            eventDateISO={eventDate ? localToISO(eventDate) : null}
-            onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
-          />
-        )}
-        <div>
-          <DateTimeField label={t('plan.form.endDate')} value={endDate} onChange={setEndDate} required openAt={eventDate} defaultTime="23:00" />
-          <p className="text-sm font-medium text-red-500 mt-1">{t('plan.form.endDateWarning')}</p>
-          {isCreator && enabledFeatures.includes('pere_noel') && <div className="mt-2"><SantaDatesNote /></div>}
-        </div>
+        <WhenField start={eventDate} end={endDate} onStart={setEventDate} onEnd={setEndDate} endTouched={endTouched} onEndTouched={() => setEndTouched(true)}
+          startLabel={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : undefined} />
+        {isCreator && enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.location')}</label>
           <input
@@ -145,36 +122,52 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
-        {isCreator && <>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.maxParticipants')}</label>
-          <input
-            type="number"
-            min={1}
-            value={maxParticipants}
-            onChange={e => setMaxParticipants(e.target.value)}
-            placeholder={t('plan.form.maxPlaceholder')}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
-          />
-        </div>
-        <SurpriseSelector
-          members={circleMembers}
-          currentUserId={plan.creatorId}
-          value={excludedUserIds}
-          onChange={setExcludedUserIds}
-        />
-        {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
-          <p className="text-xs text-amber-600 -mt-2">
-            {t('plan.form.excludedMember')}
-          </p>
+        {isCreator && (
+          <OptionsBox>
+            <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
+              summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
+              <RecurrenceField
+                value={recurrence}
+                until={recurrenceUntil}
+                eventDateISO={eventDate ? localToISO(eventDate) : null}
+                onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
+              />
+            </OptionRow>
+            <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0}
+              summary={participantsSummary(maxParticipants, excludedUserIds.length)}>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.maxParticipants')}</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={maxParticipants}
+                  onChange={e => setMaxParticipants(e.target.value)}
+                  placeholder={t('plan.form.maxPlaceholder')}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
+                />
+              </div>
+              <SurpriseSelector
+                members={circleMembers}
+                currentUserId={plan.creatorId}
+                value={excludedUserIds}
+                onChange={setExcludedUserIds}
+              />
+              {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
+                <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>
+              )}
+            </OptionRow>
+            <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
+              summary={featuresSummary(disabledFeatures, enabledFeatures)}>
+              <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
+            </OptionRow>
+            <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode)}
+              summary={rulesAreDefault(editMode, importantInfoMode, deletionMode) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+              <EditModeField value={editMode} onChange={setEditMode} />
+              <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
+              <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
+            </OptionRow>
+          </OptionsBox>
         )}
-        <AdvancedSection>
-          <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
-          <EditModeField value={editMode} onChange={setEditMode} />
-          <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
-          <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
-        </AdvancedSection>
-        </>}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>

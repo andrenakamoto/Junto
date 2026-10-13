@@ -19,6 +19,8 @@ interface Props {
   defaultTime?: string;
   /** Mois affiché à l'ouverture quand le champ est vide (AAAA-MM-JJ…) */
   openAt?: string;
+  /** À l'ouverture d'un champ vide : aujourd'hui, à l'heure actuelle (arrondie aux 5 minutes suivantes) */
+  defaultNow?: boolean;
   dark?: boolean;
   className?: string;
 }
@@ -29,6 +31,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const HOURS = Array.from({ length: 24 }, (_, i) => pad(i));
 const MINUTES = Array.from({ length: 12 }, (_, i) => pad(i * 5));
+
+// Maintenant, arrondi aux 5 minutes suivantes (« AAAA-MM-JJTHH:MM »)
+function nowRounded() {
+  const d = new Date(Math.ceil(Date.now() / 300_000) * 300_000);
+  return `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function parse(value: string) {
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(value);
@@ -46,7 +54,7 @@ function formatValue(value: string, mode: 'datetime' | 'date') {
   return mode === 'datetime' && p.time ? t('common.date.at', { date: txt, time }) : txt;
 }
 
-export function DateTimeField({ value, onChange, mode = 'datetime', label, placeholder, required, clearable, defaultTime = '19:00', openAt, dark, className = '' }: Props) {
+export function DateTimeField({ value, onChange, mode = 'datetime', label, placeholder, required, clearable, defaultTime = '19:00', openAt, defaultNow, dark, className = '' }: Props) {
   const [open, setOpen] = useState(false);
   const parsed = parse(value);
   const start = parsed ?? parse(openAt ?? '') ?? parse(ymd(new Date()))!;
@@ -103,7 +111,10 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
       <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen(o => !o)}
+          onClick={() => {
+            if (!open && defaultNow && !value && mode === 'datetime') onChange(nowRounded());
+            setOpen(o => !o);
+          }}
           className={`w-full flex items-center gap-2 border text-left text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${field} ${open ? 'ring-2 ring-indigo-500 border-transparent' : ''}`}
         >
           <CalendarDays size={16} className={dark ? 'text-slate-400 flex-shrink-0' : 'text-slate-400 flex-shrink-0'} />

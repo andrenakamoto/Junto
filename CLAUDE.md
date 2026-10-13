@@ -640,6 +640,12 @@ Junto/
   pastille du Cercle (bouton ambre avec le nombre de demandes) et dans un
   bloc ambre en tête de `PlanList`, au-dessus des sondages, affiché
   seulement s'il y a des demandes.
+- **Fenêtres « Créer un Plan » / « Modifier le Plan »** (refaites le 2026-10-13, `components/plans/PlanFormParts.tsx`) :
+  l'essentiel en haut (titre, **quand** — la fin se remplit seule, début + 3 h, `DEFAULT_DURATION_MS`, affichée en petit avec
+  « Modifier » ; sans date, un lien fait choisir la fin, obligatoire —, lieu, description), puis **« Plus d'options »** : une
+  ligne repliée par sujet (`OptionRow`) avec le réglage actuel en gris, en corail s'il sort de l'ordinaire — Répétition,
+  Participants (limite, Plan surprise), Infos importantes (création seulement), Fonctions (`FeaturesField`), Règles (dates et
+  lieu, infos importantes, suppression). Participant non créateur : dates et lieu seulement.
 - **Paramètres avancés** (2026-09-27, pour associations/entreprises) —
   constantes et validation dans `server/src/lib/settings.ts`, libellés
   côté client dans `client/src/lib/settings.ts`, champs UI dans
