@@ -84,6 +84,13 @@ const groups: Group[] = [
           avvisato che persone di altri Cerchi vedranno il suo nome e il suo pseudonimo.</P>,
       },
       {
+        id: 'annonce', emoji: '📣', title: 'Modalità annuncio', summary: 'Informare e sapere chi viene (spettacolo, corso…)',
+        body: <P>Alla creazione, attiva la <strong>«Modalità annuncio»</strong>: tutte le funzioni sono disattivate e l’elenco
+          dei partecipanti è riservato al creatore e agli organizzatori. I partecipanti vedono le info, la locandina e i
+          documenti e rispondono; vedono solo la propria risposta (e i posti rimasti se il Plan è limitato). Il creatore e gli
+          organizzatori aggiungono la locandina (foto in grande in cima alle info) e i documenti.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Invitare qualcuno di esterno', summary: 'Un link verso un solo Plan, con o senza account',
         body: <>
           <P><strong>Invita</strong> → «Persona esterna»: un link da condividere (WhatsApp, SMS, codice QR). La persona vede{' '}

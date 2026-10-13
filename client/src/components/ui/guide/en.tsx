@@ -81,6 +81,13 @@ const groups: Group[] = [
           that people from other Circles will see their first name and username.</P>,
       },
       {
+        id: 'annonce', emoji: '📣', title: 'Announcement mode', summary: 'Inform people and know who’s coming (show, class…)',
+        body: <P>When creating, turn on <strong>“Announcement mode”</strong>: all features are off and the participant list is
+          reserved for the creator and organisers. Participants see the info, poster and documents, and reply; they only see
+          their own reply (and the places left if the Plan is limited). The creator and organisers add the poster (photos shown
+          large at the top of the info) and documents.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Invite someone from outside', summary: 'A link to a single Plan, with or without an account',
         body: <>
           <P><strong>Invite</strong> → “Outside guest”: a link to share (WhatsApp, text, QR code). The person sees{' '}

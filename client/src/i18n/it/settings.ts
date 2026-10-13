@@ -22,6 +22,14 @@ const settings: Dict['settings'] = {
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore modifica il Plan' },
     all: { label: 'Tutti i partecipanti', hint: 'I partecipanti possono cambiare date e luogo (titolo e descrizione restano al creatore)' },
   },
+  membersVisibility: {
+    all: { label: 'Tutti i partecipanti', hint: 'Ognuno vede chi viene e quante persone partecipano' },
+    managers: { label: 'Il creatore e gli organizzatori', hint: 'I partecipanti vedono solo la propria risposta (e i posti rimasti se il Plan è limitato)' },
+  },
+  annonce: {
+    title: 'Modalità annuncio',
+    hint: 'Voi informate, i partecipanti rispondono. Funzioni disattivate; l’elenco dei partecipanti, la locandina e i documenti sono riservati al creatore e agli organizzatori.',
+  },
   importantInfo: {
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore modifica le informazioni importanti' },
     all: { label: 'Tutti i partecipanti', hint: 'Ogni partecipante può completare o correggere le informazioni importanti' },
@@ -89,6 +97,7 @@ const settings: Dict['settings'] = {
   deletionOfPlan: 'Eliminazione del Plan',
   deletionOfCircle: 'Eliminazione del Cerchio',
   editField: 'Modifica di date e luogo',
+  membersField: 'Chi vede i partecipanti',
   importantInfoField: 'Modifica delle informazioni importanti',
   planCreationField: 'Creazione dei Plan',
   pollCreationField: 'Creazione dei sondaggi sulle date',

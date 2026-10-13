@@ -1,6 +1,7 @@
 import type { Server } from 'socket.io';
 import prisma from './prisma';
 import { notifyUser } from './push';
+import { canSeeMembers } from './memberPrivacy';
 
 // Notifications aux participants d'un Plan (dans l'app + push) :
 //   - arrivées, désistements et retours (plan_member) ;
@@ -36,10 +37,14 @@ export async function notifyMembershipChange(
 ) {
   const plan = await prisma.plan.findUnique({
     where: { id: planId },
-    select: { title: true, circleId: true, members: { where: { userId: { not: actor.id }, rsvp: { not: 'out' } }, select: { userId: true } } },
+    select: { title: true, circleId: true, creatorId: true, membersVisibility: true, members: { where: { userId: { not: actor.id }, rsvp: { not: 'out' } }, select: { userId: true } } },
   });
   if (!plan) return;
-  for (const m of plan.members) {
+  // Liste des participants réservée (Mode annonce) : seuls le créateur et les organisateurs sont prévenus
+  const recipients = plan.membersVisibility === 'managers'
+    ? (await Promise.all(plan.members.map(async m => (await canSeeMembers(plan, m.userId)) ? m : null))).filter((m): m is { userId: string } => !!m)
+    : plan.members;
+  for (const m of recipients) {
     notifyUser(io, m.userId, {
       type: 'plan_member',
       planId,

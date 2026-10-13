@@ -84,7 +84,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                   {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
-                    <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span></span>
+                    {!plan.membersHidden && <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span></span>}
                     {(plan._count?.messages ?? 0) > 0 && (
                       <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
                     )}

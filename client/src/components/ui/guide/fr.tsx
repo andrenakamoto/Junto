@@ -82,6 +82,13 @@ const groups: Group[] = [
           rejoindre, chacun est prévenu que des personnes d'autres Cercles verront son prénom et son pseudo.</P>,
       },
       {
+        id: 'annonce', emoji: '📣', title: 'Mode annonce', summary: 'Informer et savoir qui vient (spectacle, cours…)',
+        body: <P>À la création, active <strong>« Mode annonce »</strong> : toutes les fonctions sont décochées et la liste des
+          participants est réservée au créateur et aux organisateurs. Les participants voient les infos, l'affiche et les
+          documents, et répondent ; ils ne voient que leur propre réponse (et les places restantes si le Plan est limité). Le
+          créateur et les organisateurs ajoutent l'affiche (photos en grand en haut des infos) et les documents.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Inviter quelqu’un d’extérieur', summary: 'Un lien vers un seul Plan, avec ou sans compte',
         body: <>
           <P><strong>Inviter</strong> → « Personne extérieure » : un lien à partager (WhatsApp, SMS, QR code). La personne voit{' '}

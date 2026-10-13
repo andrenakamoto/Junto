@@ -86,6 +86,13 @@ const groups: Group[] = [
           Pseudonym sehen.</P>,
       },
       {
+        id: 'annonce', emoji: '📣', title: 'Ankündigungsmodus', summary: 'Informieren und wissen, wer kommt (Aufführung, Kurs…)',
+        body: <P>Aktiviere beim Erstellen den <strong>«Ankündigungsmodus»</strong>: Alle Funktionen sind ausgeschaltet und die
+          Teilnehmerliste ist der erstellenden Person und den Organisatoren vorbehalten. Teilnehmende sehen die Infos, das Plakat
+          und die Dokumente und antworten; sie sehen nur ihre eigene Antwort (und die freien Plätze, wenn der Plan begrenzt ist).
+          Die erstellende Person und die Organisatoren fügen das Plakat (Fotos gross oben in den Infos) und die Dokumente hinzu.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Jemanden von aussen einladen', summary: 'Ein Link zu einem einzigen Plan, mit oder ohne Konto',
         body: <>
           <P><strong>Einladen</strong> → «Externe Person»: ein Link zum Teilen (WhatsApp, SMS, QR-Code). Die Person sieht{' '}

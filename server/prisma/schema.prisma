@@ -305,6 +305,8 @@ model Plan {
   // "creator" (créateur du Plan) ou "all" (tous les participants) — indépendant de editMode
   importantInfo     String?
   importantInfoMode String    @default("creator")
+  // Qui voit les participants : "all" (défaut) ou "managers" (créateur du Plan et gestionnaires du Cercle)
+  membersVisibility String    @default("all")
   // Plans récurrents (lib/recurrence.ts) : fréquence weekly | biweekly | monthly (null = ne
   // se répète pas), jusqu'à quand (facultatif), série commune (id du premier Plan) et Plan
   // suivant déjà créé (anti-doublon du job horaire)

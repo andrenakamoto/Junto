@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { canSeeMembers } from '../lib/memberPrivacy';
 import { getPlanAccess } from '../lib/planAccess';
 import { computeByCurrency } from '../lib/expenses';
 import { bringSummary, moneySummary, pendingMatches, personName, rideOffers, rideSummary, unansweredPolls } from '../lib/planSummary';
@@ -19,7 +20,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
   const planId = req.params.id;
   const plan = await prisma.plan.findUnique({
     where: { id: planId },
-    select: { id: true, title: true, eventDate: true, endDate: true, location: true, importantInfo: true, disabledFeatures: true, enabledFeatures: true },
+    select: { id: true, title: true, eventDate: true, endDate: true, location: true, importantInfo: true, disabledFeatures: true, enabledFeatures: true, creatorId: true, circleId: true, membersVisibility: true, maxParticipants: true },
   });
   if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const members = await prisma.planMember.findMany({ where: { planId }, select: { userId: true, rsvp: true, user: person } });
@@ -55,7 +56,9 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
       importantInfo: plan.importantInfo?.split('\n').map(l => l.trim()).find(Boolean) ?? null,
     },
     myRsvp: me.rsvp,
-    counts: { ...counts, waitlist },
+    // Liste des participants réservée (Mode annonce) : pas de nombre, sauf les places d'un Plan limité
+    counts: (await canSeeMembers(plan, userId)) ? { ...counts, waitlist } : null,
+    places: plan.maxParticipants != null ? { taken: counts.in + counts.maybe, max: plan.maxParticipants } : null,
     ride: rideSummary(rides, requests, userId),
     rideOffers: rideOffers(rides),
     bring: bringSummary(items, me.user.pseudo),

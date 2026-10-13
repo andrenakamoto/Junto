@@ -252,6 +252,9 @@ export default {
     retake: 'Reprendre la photo',
   },
   infos: {
+    documents: 'Documents',
+    addPoster: 'Ajouter une affiche ou un document',
+    posterHint: 'Les photos s’affichent en grand en haut des infos. Seuls le créateur et les organisateurs peuvent en ajouter.',
     kb: '{{n}} Ko',
     mb: '{{n}} Mo',
     zipError: 'Impossible de préparer le téléchargement. Réessaie.',
@@ -330,6 +333,7 @@ export default {
     waitingCount: ' · {{count}} en attente',
   },
   summary: {
+    places: '{{taken}} / {{max}} places prises',
     button: "En bref",
     title: "En bref",
     error: "Impossible de charger le résumé",

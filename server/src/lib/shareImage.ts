@@ -15,7 +15,7 @@ const FONT_FILES = ['Fraunces-ExtraBold.ttf', 'Fraunces-LightItalic.ttf', 'Inter
 export type ShareCard = {
   title: string;
   date: string | null;      // déjà formatée (« Samedi 4 octobre · 19:00 »)
-  participants: number;
+  participants: number | null;
   creatorName: string;
   /** Langue du créateur du Plan (français par défaut) */
   locale?: Locale;
@@ -74,8 +74,8 @@ export function shareCardSvg(card: ShareCard): string {
     .join('');
   const infoY = titleY + (lines.length - 1) * gap + (lines.length === 1 ? 76 : 64);
   const T = SHARE_TEXTS[card.locale ?? 'fr'];
-  const count = (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants));
-  const who = `${count} · ${T.proposedBy.replace('{name}', card.creatorName)}`;
+  const count = card.participants == null ? null : (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants));
+  const who = [count, T.proposedBy.replace('{name}', card.creatorName)].filter(Boolean).join(' · ');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     ${background}${logo}

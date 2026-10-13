@@ -37,7 +37,7 @@ async function findPlan(token: string) {
       plan: {
         select: {
           id: true, title: true, description: true, eventDate: true, endDate: true, location: true,
-          maxParticipants: true, circleId: true,
+          maxParticipants: true, circleId: true, membersVisibility: true,
           creator: { select: { firstName: true, pseudo: true } },
           members: { select: { userId: true, rsvp: true, user: { select: { firstName: true, pseudo: true } } } },
         },
@@ -66,13 +66,15 @@ function preview(plan: InvitePlan, meId: string | null) {
     endDate: plan.endDate,
     location: plan.location,
     creatorName: displayName(plan.creator),
-    counts: {
+    // Liste des participants réservée (Mode annonce) : ni nombre, ni prénoms (seulement les places d'un Plan limité)
+    counts: plan.membersVisibility === 'managers' ? null : {
       in: plan.members.filter(m => m.rsvp === 'in').length,
       maybe: plan.members.filter(m => m.rsvp === 'maybe').length,
     },
+    places: plan.maxParticipants != null ? { taken: plan.members.filter(m => m.rsvp !== 'out').length, max: plan.maxParticipants } : null,
     full: isFull(plan),
     me: me ? { firstName: me.user.firstName, rsvp: me.rsvp } : null,
-    participants: me
+    participants: me && plan.membersVisibility !== 'managers'
       ? plan.members
           .filter(m => m.rsvp !== 'out')
           .map(m => ({ name: displayName(m.user), rsvp: m.rsvp, isMe: m.userId === meId }))

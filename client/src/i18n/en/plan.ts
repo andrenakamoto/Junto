@@ -253,6 +253,9 @@ const plan: Dict['plan'] = {
     retake: 'Retake the photo',
   },
   infos: {
+    documents: 'Documents',
+    addPoster: 'Add a poster or a document',
+    posterHint: 'Photos appear large at the top of the info. Only the creator and organisers can add them.',
     kb: '{{n}} KB',
     mb: '{{n}} MB',
     zipError: 'Couldn’t prepare the download. Try again.',
@@ -331,6 +334,7 @@ const plan: Dict['plan'] = {
     waitingCount: ' · {{count}} waiting',
   },
   summary: {
+    places: '{{taken}} / {{max}} places taken',
     button: "At a glance",
     title: "At a glance",
     error: "Couldn’t load the summary",

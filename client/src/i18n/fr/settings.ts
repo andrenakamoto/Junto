@@ -21,6 +21,14 @@ export default {
     creator: { label: 'Créateur seul', hint: 'Seul le créateur modifie le Plan' },
     all: { label: 'Tous les participants', hint: 'Les participants peuvent changer les dates et le lieu (titre et description restent au créateur)' },
   },
+  membersVisibility: {
+    all: { label: 'Tous les participants', hint: 'Chacun voit qui vient et combien de personnes participent' },
+    managers: { label: 'Le créateur et les organisateurs', hint: 'Les participants ne voient que leur propre réponse (et les places restantes si le Plan est limité)' },
+  },
+  annonce: {
+    title: 'Mode annonce',
+    hint: 'Vous informez, les participants répondent. Fonctions désactivées ; la liste des participants, l’affiche et les documents sont réservés au créateur et aux organisateurs.',
+  },
   importantInfo: {
     creator: { label: 'Créateur seul', hint: 'Seul le créateur modifie les informations importantes' },
     all: { label: 'Tous les participants', hint: 'Chaque participant peut compléter ou corriger les informations importantes' },
@@ -88,6 +96,7 @@ export default {
   deletionOfPlan: 'Suppression du Plan',
   deletionOfCircle: 'Suppression du Cercle',
   editField: 'Modification des dates et du lieu',
+  membersField: 'Qui voit les participants',
   importantInfoField: 'Modification des informations importantes',
   planCreationField: 'Création des Plans',
   pollCreationField: 'Création des sondages de dates',

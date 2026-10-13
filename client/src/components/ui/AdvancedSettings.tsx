@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem } from '../../lib/settings';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem } from '../../lib/settings';
 import { t } from '../../i18n';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
@@ -68,6 +68,10 @@ export function DeletionModeField(props: { value: DeletionMode; onChange: (v: De
 
 export function EditModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
   return <Choice label={t('settings.editField')} options={EDIT_OPTIONS} {...props} />;
+}
+
+export function MembersVisibilityField(props: { value: MembersVisibility; onChange: (v: MembersVisibility) => void; readOnly?: boolean }) {
+  return <Choice label={t('settings.membersField')} options={MEMBERS_VISIBILITY_OPTIONS} {...props} />;
 }
 
 export function ImportantInfoModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {

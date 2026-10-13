@@ -74,11 +74,12 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
           <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-red-700">
             <Trans i18nKey="common.deleteModal.planVote" components={{ b: <strong /> }} />
-            <Trans i18nKey="common.deleteModal.threshold" count={threshold} values={{ members: memberCount }} components={{ b: <strong /> }} />
+            {!plan.membersHidden && <Trans i18nKey="common.deleteModal.threshold" count={threshold} values={{ members: memberCount }} components={{ b: <strong /> }} />}
           </p>
         </div>
 
-        <div>
+        {/* Liste des participants réservée (Mode annonce) : pas de compte des votes */}
+        {!plan.membersHidden && <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-slate-700">{t('common.deleteModal.votes')}</span>
             <span className="text-sm font-bold text-slate-800">{voteCount} / {threshold}</span>
@@ -89,7 +90,7 @@ export function DeletePlanModal({ plan, onClose, onDeleted, onUpdated }: Props) 
               style={{ width: `${progress}%` }}
             />
           </div>
-        </div>
+        </div>}
 
         {votes.length > 0 && (
           <div>

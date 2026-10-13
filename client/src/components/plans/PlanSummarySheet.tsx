@@ -18,7 +18,9 @@ type Ride =
 
 interface Summary {
   plan: { id: string; title: string; eventDate: string | null; endDate: string; location: string | null; importantInfo: string | null };
-  counts: { in: number; maybe: number; out: number; waitlist: number };
+  /** null : liste des participants réservée (Mode annonce) */
+  counts: { in: number; maybe: number; out: number; waitlist: number } | null;
+  places?: { taken: number; max: number } | null;
   ride: Ride | null;
   rideOffers: { driver: string; seatsFree: number }[];
   bring: { mine: string[]; missing: string[] } | null;
@@ -48,8 +50,12 @@ type Row = { key: string; Icon: typeof Users; text: string; sub?: string; tab: s
 
 function rows(s: Summary): Row[] {
   const out: Row[] = [];
-  const who = t('plan.summary.who', { in: s.counts.in, maybe: s.counts.maybe, out: s.counts.out }) + (s.counts.waitlist ? t('plan.summary.whoWaiting', { count: s.counts.waitlist }) : '');
-  out.push({ key: 'who', Icon: Users, text: who, tab: 'membres' });
+  if (s.counts) {
+    const who = t('plan.summary.who', { in: s.counts.in, maybe: s.counts.maybe, out: s.counts.out }) + (s.counts.waitlist ? t('plan.summary.whoWaiting', { count: s.counts.waitlist }) : '');
+    out.push({ key: 'who', Icon: Users, text: who, tab: 'membres' });
+  } else if (s.places) {
+    out.push({ key: 'who', Icon: Users, text: t('plan.summary.places', { taken: s.places.taken, max: s.places.max }), tab: 'infos' });
+  }
   if (s.plan.importantInfo) out.push({ key: 'info', Icon: AlertTriangle, text: s.plan.importantInfo, tab: 'infos', tone: 'warn' });
   const r = s.ride;
   if (r) {
@@ -96,7 +102,8 @@ function shareText(s: Summary, link: string | null): string {
   const lines = [s.plan.title];
   if (s.plan.eventDate) lines.push(`📅 ${longDate(s.plan.eventDate)}`);
   if (s.plan.location) lines.push(`📍 ${s.plan.location}`);
-  lines.push(`✅ ${t('plan.summary.who', { in: s.counts.in, maybe: s.counts.maybe, out: s.counts.out })}`);
+  if (s.counts) lines.push(`✅ ${t('plan.summary.who', { in: s.counts.in, maybe: s.counts.maybe, out: s.counts.out })}`);
+  else if (s.places) lines.push(`✅ ${t('plan.summary.places', { taken: s.places.taken, max: s.places.max })}`);
   if (s.plan.importantInfo) lines.push(`⚠️ ${s.plan.importantInfo}`);
   for (const o of s.rideOffers.slice(0, 2)) lines.push(`🚗 ${t('plan.summary.rideOffer', { count: o.seatsFree, driver: o.driver })}`);
   if (s.bring?.missing.length) lines.push(`🛒 ${t('plan.summary.bringMissing', { items: list(s.bring.missing) })}`);

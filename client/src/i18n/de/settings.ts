@@ -22,6 +22,14 @@ const settings: Dict['settings'] = {
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller bearbeitet den Plan' },
     all: { label: 'Alle Teilnehmenden', hint: 'Die Teilnehmenden können Daten und Ort ändern (Titel und Beschreibung bleiben beim Ersteller)' },
   },
+  membersVisibility: {
+    all: { label: 'Alle Teilnehmenden', hint: 'Alle sehen, wer kommt und wie viele dabei sind' },
+    managers: { label: 'Die erstellende Person und die Organisatoren', hint: 'Teilnehmende sehen nur ihre eigene Antwort (und die freien Plätze, wenn der Plan begrenzt ist)' },
+  },
+  annonce: {
+    title: 'Ankündigungsmodus',
+    hint: 'Ihr informiert, die Teilnehmenden antworten. Funktionen ausgeschaltet; die Teilnehmerliste, das Plakat und die Dokumente bleiben der erstellenden Person und den Organisatoren vorbehalten.',
+  },
   importantInfo: {
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller bearbeitet die wichtigen Infos' },
     all: { label: 'Alle Teilnehmenden', hint: 'Alle Teilnehmenden können die wichtigen Infos ergänzen oder korrigieren' },
@@ -89,6 +97,7 @@ const settings: Dict['settings'] = {
   deletionOfPlan: 'Löschen des Plans',
   deletionOfCircle: 'Löschen des Kreises',
   editField: 'Ändern von Daten und Ort',
+  membersField: 'Wer die Teilnehmenden sieht',
   importantInfoField: 'Ändern der wichtigen Infos',
   planCreationField: 'Erstellen von Plänen',
   pollCreationField: 'Erstellen von Terminumfragen',

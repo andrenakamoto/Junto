@@ -253,6 +253,9 @@ const plan: Dict['plan'] = {
     retake: 'Rifai la foto',
   },
   infos: {
+    documents: 'Documenti',
+    addPoster: 'Aggiungi una locandina o un documento',
+    posterHint: 'Le foto appaiono in grande in cima alle info. Solo il creatore e gli organizzatori possono aggiungerne.',
     kb: '{{n}} KB',
     mb: '{{n}} MB',
     zipError: 'Impossibile preparare il download. Riprova.',
@@ -331,6 +334,7 @@ const plan: Dict['plan'] = {
     waitingCount: ' · {{count}} in attesa',
   },
   summary: {
+    places: '{{taken}} / {{max}} posti occupati',
     button: "In breve",
     title: "In breve",
     error: "Impossibile caricare il riepilogo",

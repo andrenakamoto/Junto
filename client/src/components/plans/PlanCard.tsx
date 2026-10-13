@@ -88,7 +88,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
           </span>
         )}
         {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
-        {myMember && (
+        {myMember && !plan.membersHidden && (
           <span className="flex items-center gap-1">
             <Users size={10} />
             <span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span>

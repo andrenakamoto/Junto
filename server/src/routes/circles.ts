@@ -11,6 +11,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
 import { prepareCancelNotice } from '../lib/planCancel';
+import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
@@ -675,8 +676,9 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
   const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
+  const managed = await managedCircleIds(req.userId!);
   // Le Plan le plus récemment modifié en premier (création, chat, infos, réponses…)
-  res.json(plans
+  res.json(plans.map(p => forViewer(p, req.userId!, managed))
     .map(({ activities, extraCircles, circle, ...p }) => ({ ...p, circles: extraCircles.length ? [circle, ...extraCircles.map(e => e.circle)] : undefined, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
     .sort(compareByActivity));
 });
@@ -718,6 +720,8 @@ interface NewPlanInput {
   recurrenceUntil?: unknown;
   /** Plan pour plusieurs Cercles : autres Cercles (créateur ou organisateur de chacun), à la création seulement */
   extraCircleIds?: unknown;
+  /** Qui voit les participants (lib/memberPrivacy.ts) */
+  membersVisibility?: unknown;
 }
 
 const MAX_EXTRA_CIRCLES = 20;
@@ -791,6 +795,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       editMode: parseEditMode(input.editMode) ?? 'creator',
       importantInfo,
       importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
+      membersVisibility: parseMembersVisibility(input.membersVisibility) ?? 'all',
       recurrence: repeat.recurrence,
       recurrenceUntil: repeat.recurrenceUntil,
       creatorId,
@@ -1392,14 +1397,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil,
+    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

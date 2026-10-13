@@ -4,8 +4,9 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
-import { OptionRow, OptionsBox, WhenField, featuresSummary, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
+import { MembersVisibility } from '../../lib/settings';
+import { OptionRow, OptionsBox, WhenField, featuresSummary, AnnonceToggle, ALL_BASE_FEATURES, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
@@ -39,6 +40,15 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(plan.enabledFeatures ?? []);
   const [endTouched, setEndTouched] = useState(true);
+  const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>(plan.membersVisibility ?? 'all');
+  const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
+  // Mode annonce : toutes les fonctions décochées, liste des participants réservée (et retour au standard)
+  function setAnnonce(on: boolean) {
+    setDisabledFeatures(on ? ALL_BASE_FEATURES : []);
+    setEnabledFeatures([]);
+    setMembersVisibility(on ? 'managers' : 'all');
+    if (on) setImportantInfoMode('creator');
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -61,6 +71,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         enabledFeatures,
         editMode,
         importantInfoMode,
+        membersVisibility,
         recurrence: recurrence || null,
         recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
         location,
@@ -124,10 +135,11 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
           />
         </div>
-        {isCreator && (
+        {isCreator && (<>
+          <AnnonceToggle active={annonce} onChange={setAnnonce} />
           <OptionsBox>
             <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
-              summary={featuresSummary(disabledFeatures, enabledFeatures)}>
+              summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
               <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
             </OptionRow>
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
@@ -162,14 +174,15 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                 <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>
               )}
             </OptionRow>
-            <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode)}
-              summary={rulesAreDefault(editMode, importantInfoMode, deletionMode) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+            <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility)}
+              summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
               <EditModeField value={editMode} onChange={setEditMode} />
               <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
+              <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
               <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
             </OptionRow>
           </OptionsBox>
-        )}
+        </>)}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>

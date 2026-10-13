@@ -112,7 +112,8 @@ export function StoryModal({ plan, onClose }: Props) {
   }
 
   const isLandscape = orientation === 'landscape';
-  const allPresentNames = plan.members.filter(m => m.rsvp === 'in').map(m => m.user.pseudo);
+  // Mode annonce (liste réservée) : la story ne montre ni les participants ni leur nombre
+  const allPresentNames = plan.membersVisibility === 'managers' || plan.membersHidden ? [] : plan.members.filter(m => m.rsvp === 'in').map(m => m.user.pseudo);
   const nameLimit = isLandscape ? 3 : 8;
   const presentNames = allPresentNames.length > nameLimit
     ? [...allPresentNames.slice(0, nameLimit), `+${allPresentNames.length - nameLimit}`]

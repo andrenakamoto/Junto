@@ -9,6 +9,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { destroyFiles, readStored, storeFile, thumbnail, voiceMp3 } from '../lib/storage';
 import { verifyMediaToken } from '../lib/mediaToken';
 import { FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { isCircleManager } from '../lib/circleRoles';
 import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
 import { messageInclude } from '../lib/messageInclude';
 import { withPlainContent } from '../lib/messageCrypto';
@@ -49,7 +50,9 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const viaQuiz = req.query.via === 'quiz' && plan.enabledFeatures.includes('quiz');
     // Document de l'ordre du jour d'une assemblée (?via=assemblee) : possible même sans « Photos et fichiers »
     const viaAssembly = req.query.via === 'assemblee' && plan.enabledFeatures.includes('assemblee');
-    if (!viaMatch && !viaQuiz && !viaAssembly && plan.disabledFeatures.includes('fichiers')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    // « Photos et fichiers » décoché : seuls le créateur et les organisateurs ajoutent (affiche et documents de l'onglet Infos)
+    const organizer = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
+    if (!viaMatch && !viaQuiz && !viaAssembly && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -329,7 +332,7 @@ router.delete('/:id', async (req: AuthRequest, res) => {
     if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
 
     // La personne qui a mis le fichier (à tout moment) ou le créateur du Plan
-    const canDelete = att.uploadedBy.toLowerCase() === (req.pseudo ?? '').toLowerCase() || plan.creatorId === req.userId;
+    const canDelete = att.uploadedBy.toLowerCase() === (req.pseudo ?? '').toLowerCase() || plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
     if (!canDelete) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const linked = await prisma.message.findUnique({ where: { attachmentId: att.id }, select: { id: true } });

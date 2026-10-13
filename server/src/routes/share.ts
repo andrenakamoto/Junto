@@ -35,7 +35,7 @@ async function shareCardFor(token: string): Promise<ShareCard> {
     select: {
       plan: {
         select: {
-          title: true, eventDate: true, endDate: true,
+          title: true, eventDate: true, endDate: true, membersVisibility: true,
           creator: { select: { firstName: true, pseudo: true, locale: true } },
           _count: { select: { members: { where: { rsvp: 'in' } } } },
         },
@@ -49,7 +49,8 @@ async function shareCardFor(token: string): Promise<ShareCard> {
     title: plan.title,
     date: shareDate(plan.eventDate, intlLocale(locale)),
     locale,
-    participants: plan._count.members,
+    // Liste des participants réservée (Mode annonce) : pas de nombre dans l'aperçu
+    participants: plan.membersVisibility === 'managers' ? null : plan._count.members,
     creatorName: plan.creator.firstName || plan.creator.pseudo,
   };
 }
@@ -75,7 +76,7 @@ async function siteIndex(): Promise<string | null> {
 export function injectMeta(html: string, card: ShareCard, token: string): string {
   const T = SHARE_TEXTS[card?.locale ?? 'fr'];
   const title = card ? T.title.replace('{title}', card.title) : 'Invitation EvLY';
-  const count = card ? (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants)) : '';
+  const count = card && card.participants != null ? (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants)) : '';
   const parts = card ? [card.date, count].filter(Boolean).join(' · ') : '';
   const description = card
     ? T.description.replace('{parts}', parts)

@@ -237,7 +237,8 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
   // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
   // Bénévoles : fonction à activer (absente par défaut)
-  const visibleTabs = tabs.filter(t => t.key === 'infos' || t.key === 'membres' || (OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)));
+  // Liste des participants réservée (Mode annonce) : pas de rubrique Membres pour les participants
+  const visibleTabs = tabs.filter(t => t.key === 'infos' || (t.key === 'membres' ? !plan.membersHidden : OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)));
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
   const showHub = isPhone && isMember && hub;
   const phoneSection = isPhone && isMember && !hub;
@@ -898,12 +899,16 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               </span>
             )}
             <span className="text-sm md:text-xs text-slate-400">
-              {t('plan.detail.by', { pseudo: plan.creator.pseudo })}{' '}
+              {plan.membersHidden && plan.maxParticipants == null
+                ? t('plan.detail.by', { pseudo: plan.creator.pseudo }).replace(/\s*·\s*$/, '')
+                : t('plan.detail.by', { pseudo: plan.creator.pseudo })}{' '}
+              {!plan.membersHidden && <>
               <span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span>{' '}·{' '}
               <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
               <span className="text-slate-400">{t('plan.detail.countOut', { count: outCount })}</span>
+              </>}
               {plan.maxParticipants != null && (
-                <>{' '}· <span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600">{t('plan.detail.waitingCount', { count: waitingCount })}</span>}</>
+                <>{plan.membersHidden ? ' ' : <>{' '}· </>}<span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600">{t('plan.detail.waitingCount', { count: waitingCount })}</span>}</>
               )}
             </span>
           </div>

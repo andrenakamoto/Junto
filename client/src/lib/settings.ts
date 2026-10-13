@@ -12,6 +12,8 @@ export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hi
 export const POLL_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = opt('pollCreation', ['all', 'creator']);
 export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('edit', ['creator', 'all']);
 export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('importantInfo', ['creator', 'all']);
+export type MembersVisibility = 'all' | 'managers';
+export const MEMBERS_VISIBILITY_OPTIONS: { value: MembersVisibility; label: string; hint: string }[] = opt('membersVisibility', ['all', 'managers']);
 
 const featureLabel = (value: string) => t(`settings.features.${value}` as any);
 export const PLAN_FEATURES: { value: PlanFeature; label: string }[] = (['chat', 'trajets', 'votes', 'depenses', 'fichiers'] as PlanFeature[])

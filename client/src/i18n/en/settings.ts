@@ -22,6 +22,14 @@ const settings: Dict['settings'] = {
     creator: { label: 'Creator only', hint: 'Only the creator edits the Plan' },
     all: { label: 'All participants', hint: 'Participants can change the dates and place (title and description stay with the creator)' },
   },
+  membersVisibility: {
+    all: { label: 'All participants', hint: 'Everyone sees who’s coming and how many people are taking part' },
+    managers: { label: 'The creator and organisers', hint: 'Participants only see their own reply (and the places left if the Plan is limited)' },
+  },
+  annonce: {
+    title: 'Announcement mode',
+    hint: 'You inform, participants reply. Features turned off; the participant list, poster and documents are reserved for the creator and organisers.',
+  },
   importantInfo: {
     creator: { label: 'Creator only', hint: 'Only the creator edits the important information' },
     all: { label: 'All participants', hint: 'Every participant can add to or correct the important information' },
@@ -89,6 +97,7 @@ const settings: Dict['settings'] = {
   deletionOfPlan: 'Deleting the Plan',
   deletionOfCircle: 'Deleting the Circle',
   editField: 'Changing the dates and place',
+  membersField: 'Who sees the participants',
   importantInfoField: 'Changing the important information',
   planCreationField: 'Creating Plans',
   pollCreationField: 'Creating date polls',

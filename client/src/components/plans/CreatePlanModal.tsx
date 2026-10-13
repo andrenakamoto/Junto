@@ -5,8 +5,9 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
-import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
+import { MembersVisibility } from '../../lib/settings';
+import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, AnnonceToggle, ALL_BASE_FEATURES, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { AlertTriangle, Layers, Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
@@ -53,6 +54,15 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   // Plan surprise : on peut cacher le Plan à des membres de tous les Cercles choisis
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
+  const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>('all');
+  const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
+  // Mode annonce : toutes les fonctions décochées, liste des participants réservée (et retour au standard)
+  function setAnnonce(on: boolean) {
+    setDisabledFeatures(on ? ALL_BASE_FEATURES : []);
+    setEnabledFeatures([]);
+    setMembersVisibility(on ? 'managers' : 'all');
+    if (on) setImportantInfoMode('creator');
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -76,6 +86,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       editMode,
       importantInfo,
       importantInfoMode,
+      membersVisibility,
       recurrence: recurrence || null,
       recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
       extraCircleIds: chosenExtra,
@@ -112,6 +123,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
           />
         </div>
 
+        <AnnonceToggle active={annonce} onChange={setAnnonce} />
         <OptionsBox>
           <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
             summary={importantInfo.trim() ? importantInfo.trim().split('\n')[0] : t('plan.form.sum.none')}>
@@ -124,7 +136,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
             />
           </OptionRow>
           <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
-            summary={featuresSummary(disabledFeatures, enabledFeatures)}>
+            summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
             <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
           </OptionRow>
           {!fromPoll && (
@@ -180,10 +192,11 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               />
             )}
           </OptionRow>
-          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode)}
-            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility)}
+            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
             <EditModeField value={editMode} onChange={setEditMode} />
             <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
+            <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
             <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
           </OptionRow>
         </OptionsBox>

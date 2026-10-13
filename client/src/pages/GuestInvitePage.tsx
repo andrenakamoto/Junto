@@ -32,7 +32,9 @@ interface PublicPreview {
   endDate: string;
   location: string | null;
   creatorName: string;
-  counts: { in: number; maybe: number };
+  /** null : liste des participants réservée (Mode annonce) */
+  counts: { in: number; maybe: number } | null;
+  places?: { taken: number; max: number } | null;
   full: boolean;
   me: { firstName: string | null; rsvp: Rsvp } | null;
   participants?: { name: string; rsvp: Rsvp; isMe: boolean }[];
@@ -274,7 +276,6 @@ function RsvpButtons({ value, sending, onChoose, disabled, disabledIn }: {
 
 function PlanSummary({ preview }: { preview: PublicPreview }) {
   const date = formatDate(preview.eventDate);
-  const going = preview.counts.in;
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-3">
@@ -289,10 +290,14 @@ function PlanSummary({ preview }: { preview: PublicPreview }) {
       <div className="space-y-1.5 text-sm">
         {date && <p className="flex items-center gap-2 text-indigo-200 first-letter:uppercase"><CalendarDays size={14} className="text-indigo-400 flex-shrink-0" /><span className="first-letter:uppercase">{date}</span></p>}
         {preview.location && <p className="flex items-center gap-2 text-slate-300"><MapPin size={14} className="text-indigo-400 flex-shrink-0" />{preview.location}</p>}
-        <p className="flex items-center gap-2 text-slate-300">
-          <Users size={14} className="text-indigo-400 flex-shrink-0" />
-          {t('auth.guest.participants', { count: going })}{preview.counts.maybe > 0 ? t('auth.guest.maybeCount', { count: preview.counts.maybe }) : ''}
-        </p>
+        {(preview.counts || preview.places) && (
+          <p className="flex items-center gap-2 text-slate-300">
+            <Users size={14} className="text-indigo-400 flex-shrink-0" />
+            {preview.counts
+              ? <>{t('auth.guest.participants', { count: preview.counts.in })}{preview.counts.maybe > 0 ? t('auth.guest.maybeCount', { count: preview.counts.maybe }) : ''}</>
+              : t('plan.summary.places', { taken: preview.places!.taken, max: preview.places!.max })}
+          </p>
+        )}
       </div>
       {preview.description && (
         <p className="text-sm text-slate-300 whitespace-pre-line line-clamp-6 bg-slate-900/50 rounded-xl p-3 border border-slate-700/40">{preview.description}</p>

@@ -253,6 +253,9 @@ const plan: Dict['plan'] = {
     retake: 'Foto neu aufnehmen',
   },
   infos: {
+    documents: 'Dokumente',
+    addPoster: 'Plakat oder Dokument hinzufügen',
+    posterHint: 'Fotos erscheinen gross oben in den Infos. Nur die Person, die den Plan erstellt hat, und die Organisatoren können welche hinzufügen.',
     kb: '{{n}} KB',
     mb: '{{n}} MB',
     zipError: 'Download kann nicht vorbereitet werden. Versuch es nochmal.',
@@ -331,6 +334,7 @@ const plan: Dict['plan'] = {
     waitingCount: ' · {{count}} wartend',
   },
   summary: {
+    places: '{{taken}} / {{max}} Plätze belegt',
     button: "Kurz & bündig",
     title: "Kurz & bündig",
     error: "Die Übersicht konnte nicht geladen werden",

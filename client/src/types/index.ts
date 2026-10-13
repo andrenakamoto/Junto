@@ -149,6 +149,14 @@ export interface PlanChangeLog {
 }
 
 export interface Plan {
+  /** Qui voit les participants : tout le monde, ou le créateur et les organisateurs (Mode annonce) */
+  membersVisibility?: 'all' | 'managers';
+  /** La liste est réservée et la personne ne la voit pas : `members` ne contient que sa propre réponse */
+  membersHidden?: boolean;
+  /** Places occupées d'un Plan limité, quand la liste est masquée */
+  participantCount?: number;
+  /** Créateur ou organisateur : ajoute photos et fichiers même si la fonction est décochée (affiche) */
+  canManageFiles?: boolean;
   /** Plan pour plusieurs Cercles : les Cercles réunis (absent sinon, et pour un invité externe) */
   circles?: { id: string; name: string; color?: string | null }[];
   /** Dernière activité (GET /circles/:id/plans) : sert à l'ordre de la liste du Cercle */
