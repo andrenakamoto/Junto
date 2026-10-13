@@ -13,6 +13,7 @@ import { computeByCurrency, parseCurrency } from '../lib/expenses';
 import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
+import { prepareCancelNotice } from '../lib/planCancel';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions, planCircleIds } from '../lib/planAccess';
 import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
@@ -852,9 +853,11 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   if (plan.deletionMode === 'creator') {
     // Paramètre avancé : le créateur supprime seul, sans vote
     if (plan.creatorId !== userId) { res.status(403).json({ error: 'Seul le créateur peut supprimer ce Plan' }); return; }
+    const notice = await prepareCancelNotice([planId], 'deleted', userId);
     await purgePlanFiles([planId]);
     await prisma.plan.delete({ where: { id: planId } });
     res.json({ deleted: true });
+    notice(req.app.get('io'));
     return;
   }
 
@@ -875,9 +878,13 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   const threshold = Math.ceil(updated!.members.length / 2);
 
   if (voteCount >= threshold) {
+    // Le créateur seul à voter (petit Plan) : annulé par lui ; sinon par le vote des participants
+    const byCreator = userId === plan.creatorId && voteCount === 1;
+    const notice = await prepareCancelNotice([planId], byCreator ? 'deleted' : 'voted', byCreator ? userId : null);
     await purgePlanFiles([planId]);
     await prisma.plan.delete({ where: { id: planId } });
     res.json({ deleted: true });
+    notice(req.app.get('io'));
     return;
   }
 

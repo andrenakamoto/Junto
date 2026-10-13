@@ -24,6 +24,11 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '🚌 Départ à {0} : {1}, {2} (quai {3})': ['🚌 Abfahrt um {0}: {1}, {2} (Kante {3})', '🚌 Partenza alle {0}: {1}, {2} (corsia {3})', '🚌 Departure at {0}: {1}, {2} (platform {3})'],
   '🚌 Départ à {0} : {1}, {2}': ['🚌 Abfahrt um {0}: {1}, {2}', '🚌 Partenza alle {0}: {1}, {2}', '🚌 Departure at {0}: {1}, {2}'],
   '{0} a ajouté un poste au planning': ['{0} hat einen Einsatz zum Einsatzplan hinzugefügt', '{0} ha aggiunto un turno', '{0} added a shift to the schedule'],
+  // Plan annulé (lib/planCancel.ts)
+  '🚫 Annulé cette fois-ci : le Plan suivant est déjà prévu': ['🚫 Diesmal abgesagt: Der nächste Plan ist schon geplant', '🚫 Annullato questa volta: il Plan successivo è già previsto', '🚫 Cancelled this time: the next Plan is already scheduled'],
+  '🚫 Plan annulé : le Cercle a été supprimé': ['🚫 Plan abgesagt: Der Kreis wurde gelöscht', '🚫 Plan annullato: il Cerchio è stato eliminato', '🚫 Plan cancelled: the Circle was deleted'],
+  '🚫 Plan annulé par @{0}': ['🚫 Plan von @{0} abgesagt', '🚫 Plan annullato da @{0}', '🚫 Plan cancelled by @{0}'],
+  '🚫 Plan supprimé par le vote des participants': ['🚫 Plan durch Abstimmung der Teilnehmenden gelöscht', '🚫 Plan eliminato con il voto dei partecipanti', '🚫 Plan deleted by the participants’ vote'],
   // Covoiturage
   '@{0} ne vient plus : son trajet est annulé': ['@{0} kommt nicht mehr: Die Fahrt ist abgesagt', '@{0} non viene più: il suo passaggio è annullato', '@{0} is no longer coming: their ride is cancelled'],
   '@{0} ne vient plus : une place se libère': ['@{0} kommt nicht mehr: Ein Platz wird frei', '@{0} non viene più: si libera un posto', '@{0} is no longer coming: a seat is free'],

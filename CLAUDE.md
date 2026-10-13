@@ -1346,6 +1346,13 @@ précisément : menu ☰ en bas de la liste des Cercles (à côté du pseudo) �
 la cloche 🔔 du mode silencieux ; variante `'simple'` sans la cloche (mentions, que le silence ne
 coupe pas ; invitation et admission dans un Cercle).
 
+**Plan annulé** (2026-10-13, `lib/planCancel.ts`, testé) : un Plan **à venir** supprimé à la main (créateur, vote,
+« Annuler cette fois ») ou avec son Cercle prévient ses participants « Je suis in » et « Peut-être » (comptes, hors auteur) :
+notification `plan_cancelled` (app + push, **jamais d'email**, **exemptée du mode silencieux**, sans `planId` — ouvre le
+Cercle), aperçu « 🚫 Plan annulé par @x » / « supprimé par le vote des participants » / « Annulé cette fois-ci… » / « le
+Cercle a été supprimé ». `prepareCancelNotice` lit les participants **avant** la suppression et renvoie l'envoi à faire
+après. Rien pour la suppression automatique après la date de fin.
+
 **Mode silencieux** (2026-10-05, `lib/mutes.ts`, `routes/mutes.ts` sur `/api/mutes`) : table
 **NotificationMute** (userId + planId **ou** circleId, sans durée). Un Plan en silence, ou tout son
 Cercle : **ni bulle dans l'app, ni push, ni email** — les points orange et la cloche (Plans avec du

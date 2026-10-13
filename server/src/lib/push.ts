@@ -86,6 +86,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
     case 'waitlist':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? T.waitlist, url: planUrl, group: `plan:${n.planId}` };
     case 'transit':
+    case 'plan_cancelled':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: circleUrl, group: `cancel:${n.planTitle}` };
     case 'transit_reminder':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `${planUrl}&tab=trajets`, group: `transit:${n.planId}` };
     case 'shift_reminder':

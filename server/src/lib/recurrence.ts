@@ -1,4 +1,5 @@
 import { copyVotes } from './recurrenceCopy';
+import { prepareCancelNotice } from './planCancel';
 import { isCircleManager } from './circleRoles';
 import prisma from './prisma';
 import { copyShifts } from './volunteers';
@@ -150,7 +151,10 @@ export async function spawnRecurringPlans(app: any, createPlanInCircle: CreatePl
 // « Annuler cette fois » : le suivant est créé tout de suite, puis ce Plan est supprimé
 export async function skipOccurrence(app: any, planId: string, createPlanInCircle: CreatePlan): Promise<string | null> {
   const nextId = await createNextOccurrence(app, planId, createPlanInCircle);
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { creatorId: true } });
+  const notice = await prepareCancelNotice([planId], 'skipped', plan?.creatorId);
   await purgePlanFiles([planId]);
   await prisma.plan.delete({ where: { id: planId } });
+  notice(app.get('io'));
   return nextId;
 }

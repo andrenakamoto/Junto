@@ -34,6 +34,7 @@ const notif: Dict['notif'] = {
   suggestionBody: 'Grazie per la tua idea! Tocca per seguirla.',
   inviteTitle: 'Invito — {{circle}}',
   inviteBody: '@{{from}} ti invita a unirti al Cerchio',
+  cancelledTitle: 'Plan annullato — {{plan}}',
   goneTitle: 'Plan chiuso',
   goneBody: '«{{plan}}» è stato eliminato o non è più accessibile.',
   center: {

@@ -33,6 +33,7 @@ export default {
   suggestionBody: 'Merci pour ton idée ! Touche pour voir le suivi.',
   inviteTitle: 'Invitation — {{circle}}',
   inviteBody: '@{{from}} t’invite à rejoindre le Cercle',
+  cancelledTitle: 'Plan annulé — {{plan}}',
   goneTitle: 'Plan fermé',
   goneBody: '« {{plan}} » a été supprimé ou n’est plus accessible.',
   center: {

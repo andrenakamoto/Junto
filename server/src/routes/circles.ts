@@ -10,6 +10,7 @@ import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
+import { prepareCancelNotice } from '../lib/planCancel';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
@@ -892,6 +893,11 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
   res.json(result.plan);
 });
 
+// Plans créés dans un Cercle (supprimés avec lui ; un Plan pour plusieurs Cercles créé ailleurs reste)
+async function circleOwnPlanIds(circleId: string): Promise<string[]> {
+  return (await prisma.plan.findMany({ where: { circleId }, select: { id: true } })).map(p => p.id);
+}
+
 // Toggle delete vote — deletes circle if threshold reached
 router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   const circleId = req.params.id;
@@ -912,9 +918,11 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
       res.status(403).json({ error: 'Seul le créateur peut supprimer ce Cercle' });
       return;
     }
+    const notice = await prepareCancelNotice(await circleOwnPlanIds(circleId), 'circle', userId);
     await purgeCircleFiles(circleId);
     await prisma.circle.delete({ where: { id: circleId } });
     res.json({ deleted: true });
+    notice(req.app.get('io'));
     return;
   }
 
@@ -938,9 +946,11 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
   const voteCount = circle.deleteVotes.length;
 
   if (voteCount >= threshold) {
+    const notice = await prepareCancelNotice(await circleOwnPlanIds(circleId), 'circle', userId);
     await purgeCircleFiles(circleId);
     await prisma.circle.delete({ where: { id: circleId } });
     res.json({ deleted: true });
+    notice(req.app.get('io'));
     return;
   }
 
