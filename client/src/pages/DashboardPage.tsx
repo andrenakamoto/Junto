@@ -111,7 +111,7 @@ export function DashboardPage() {
   }, [notifHistory, historyKey]);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [plansRefreshSignal, setPlansRefreshSignal] = useState(0);
-  const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan } = useUnread();
+  const { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan, clearAll: clearAllUnread } = useUnread();
   // Onglet à ouvrir dans le Plan sélectionné depuis la cloche
   const [openTab, setOpenTab] = useState<{ tab: string; n: number } | null>(null);
   const selectedCircleIdRef = useRef(selectedCircleId);
@@ -438,11 +438,16 @@ export function DashboardPage() {
     handleSelectPlan(plan, plan.unseen?.[0]);
   }
 
-  // Cloche : « Tout effacer » vide la cloche seulement (les invitations et demandes
-  // d'adhésion, qui attendent une réponse, restent affichées)
+  // Cloche : « Tout effacer » vide la cloche ET enlève les points orange des Cercles, des Plans et des onglets
+  // (tout est marqué « vu »). Les invitations et demandes d'adhésion, qui attendent une réponse, restent affichées.
   function clearAllNotifications() {
     setNotifHistory([]);
     dismissBellPlans(bellPlanList.map(p => p.id));
+    clearAllUnread();
+    setCircles(prev => prev.map(c => ({ ...c, hasUnseen: false })));
+    setPlans(prev => prev.map(p => ({ ...p, unseen: [] })));
+    setSelectedPlan(prev => (prev ? { ...prev, unseen: [] } : prev));
+    api.post('/plans/seen-all').then(() => refreshAll()).catch(() => {});
   }
 
   function handleCircleDeleted() {

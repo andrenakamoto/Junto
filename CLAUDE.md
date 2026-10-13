@@ -942,8 +942,10 @@ Junto/
   activité non vue — `unseenDetails` dans `lib/planActivity.ts`) ; l'effacement est une date
   par Plan sur l'appareil (`evly_bell_dismissed_<userId>`), l'entrée revient si `unseenAt` est
   plus récent. Toucher un Plan l'ouvre sur son premier onglet non vu (prop `openTab` de
-  `PlanDetail`) ; « Tout effacer » vide la cloche (invitations et demandes d'adhésion restent,
-  elles attendent une réponse). Le nombre sur la cloche compte ses entrées (Plans, « À voir »
+  `PlanDetail`) ; « Tout effacer » vide la cloche **et, depuis le 2026-10-13 (demande de l'utilisateur), enlève tous
+  les points orange** : POST /plans/seen-all marque vus tous les onglets de tous mes Plans en cours, `clearAll` de
+  `useUnread` (invitations et demandes d'adhésion restent, elles attendent une réponse). Toucher une seule notification
+  efface toujours seulement son entrée de la cloche. Le nombre sur la cloche compte ses entrées (Plans, « À voir »
   regroupés par Plan / sondage, invitations).
   Bouton retour Android : ferme le panneau. Apps :
   à l'ouverture et à chaque retour, les notifications EvLY du volet du
@@ -1148,6 +1150,17 @@ Junto/
   corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
   partagé avec InfosTab) · Agenda (.ics) · Story. Sur téléphone, ces trois entrées ne sont plus
   dans le menu ⋮ (toujours là sur tablette, où la barre n'existe pas).
+- **Mode annonce** (2026-10-13, pour les professionnels : spectacle, cours…) : case `AnnonceToggle` (`PlanFormParts.tsx`)
+  dans la création / modification = toutes les fonctions décochées + **`Plan.membersVisibility` = `managers`** (migration
+  `20261016100000_members_visibility`, réglage « Qui voit les participants » dans Règles, `lib/memberPrivacy.ts` testé).
+  Liste réservée : les personnes qui ne sont ni créatrices du Plan ni gestionnaires de son Cercle ne reçoivent **que leur
+  propre réponse** (`maskMembers` / `forViewer` sur GET /plans/:id, PUT, join, vote-delete, GET /plans, GET
+  /circles/:id/plans), `participantCount` seulement si le Plan est limité (« X / Y places »), liste d'attente anonymisée
+  (positions gardées), sondages anonymes ; pas de rubrique Membres, pas de compteurs (carte, fiche, « En bref » → `counts:
+  null` + `places`, aperçu `/invitation` et image de partage sans nombre, story sans participants) ; notifications
+  « @x a rejoint » seulement au créateur et aux organisateurs. **Photos et fichiers décochés** : le créateur et les
+  organisateurs du Cercle en ajoutent / suppriment quand même (`canManageFiles` de GET /plans/:id, attachments.ts) ; dans
+  Infos, photos **en grand en haut (affiche)** + « Documents ». Récap PDF déjà réservé. Fiche du guide « Mode annonce ».
 - **Plan pour plusieurs Cercles** (2026-10-13, demandé pour une école de danse) : table **PlanCircle** (planId + circleId,
   migration `20261015100000_plan_circles`) = Cercles **en plus** de `Plan.circleId`. Choisis **à la création seulement**
   (`extraCircleIds` de POST /circles/:id/plans, `parseExtraCircles` dans `circles.ts`) par une personne **créatrice ou

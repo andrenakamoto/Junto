@@ -47,5 +47,11 @@ export function useUnread() {
     });
   }, []);
 
-  return { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan };
+  // « Tout effacer » de la cloche : plus aucun point « nouveau » venu des notifications reçues
+  const clearAll = useCallback(() => {
+    setUnreadCircles(new Set()); save('estelle_unread_circles', new Set());
+    setUnreadPlans(new Set()); save('estelle_unread_plans', new Set());
+  }, []);
+
+  return { unreadCircles, unreadPlans, markCircle, markPlan, clearCircle, clearPlan, clearAll };
 }
