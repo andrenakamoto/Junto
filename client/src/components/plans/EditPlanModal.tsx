@@ -44,7 +44,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!endDate) { setError(t('plan.form.endRequired')); return; }
+    if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
+    if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
     setLoading(true);
     setError('');
     try {
@@ -112,11 +113,12 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           startLabel={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : undefined} />
         {isCreator && enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.location')}</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.place')}</label>
           <input
             type="text"
             value={location}
             onChange={e => setLocation(e.target.value)}
+            required
             maxLength={200}
             placeholder={t('plan.form.locationPlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"

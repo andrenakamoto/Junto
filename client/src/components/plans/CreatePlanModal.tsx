@@ -4,11 +4,11 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
-import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
+import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
-import { AlertTriangle, Lock, Puzzle, Repeat, Users } from 'lucide-react';
+import { AlertTriangle, Layers, Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
 import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
@@ -22,11 +22,13 @@ interface Props {
   circleMembers?: CircleMember[];
   onClose: () => void;
   onCreated: (plan: Plan) => void;
+  /** Plan pour plusieurs Cercles : les autres Cercles dont la personne est créatrice ou organisatrice */
+  otherCircles?: Circle[];
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
   fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[] };
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreated, fromPoll }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll }: Props) {
   const { user } = useAuth();
   const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? '');
@@ -44,12 +46,20 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
   const [importantInfoMode, setImportantInfoMode] = useState<EditMode>('creator');
   const [recurrence, setRecurrence] = useState<Recurrence | ''>('');
   const [recurrenceUntil, setRecurrenceUntil] = useState('');
+  // Plan pour plusieurs Cercles (à la création seulement)
+  const [multi, setMulti] = useState(false);
+  const [extraCircleIds, setExtraCircleIds] = useState<string[]>([]);
+  const chosenExtra = multi ? extraCircleIds : [];
+  // Plan surprise : on peut cacher le Plan à des membres de tous les Cercles choisis
+  const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
+    .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!endDate) { setError(t('plan.form.endRequired')); return; }
+    if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
+    if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
     setLoading(true);
     setError('');
     const payload = {
@@ -68,6 +78,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
       importantInfoMode,
       recurrence: recurrence || null,
       recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
+      extraCircleIds: chosenExtra,
     };
     try {
       const { data } = fromPoll
@@ -89,7 +100,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
         <WhenField start={eventDate} end={endDate} onStart={setEventDate} onEnd={setEndDate} endTouched={endTouched} onEndTouched={() => setEndTouched(true)}
           startLabel={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : undefined} />
         {enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
-        <Input label={t('plan.form.location')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} />
+        <Input label={t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-slate-700">{t('plan.form.description')}</label>
           <textarea
@@ -113,8 +124,31 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
               />
             </OptionRow>
           )}
-          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0}
-            summary={participantsSummary(maxParticipants, excludedUserIds.length)}>
+          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0 || chosenExtra.length > 0}
+            summary={participantsSummary(maxParticipants, excludedUserIds.length, 1 + chosenExtra.length)}>
+            {!fromPoll && otherCircles.length > 0 && (
+              <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" checked={multi} onChange={e => setMulti(e.target.checked)} className="accent-indigo-600" />
+                  <Layers size={15} className="text-indigo-500" />
+                  <span className="text-sm font-medium text-slate-700">{t('plan.multi.label')}</span>
+                </label>
+                {multi && (
+                  <div className="mt-2.5 space-y-1.5">
+                    <p className="text-xs text-slate-500">{t('plan.multi.hint')}</p>
+                    {otherCircles.map(c => (
+                      <label key={c.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                        <input type="checkbox" className="accent-indigo-600" checked={extraCircleIds.includes(c.id)}
+                          onChange={e => setExtraCircleIds(e.target.checked ? [...extraCircleIds, c.id] : extraCircleIds.filter(id => id !== c.id))} />
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c.color ?? '#94a3b8' }} />
+                        {c.name}
+                      </label>
+                    ))}
+                    <p className="text-xs text-amber-700">{t('plan.multi.final')}</p>
+                  </div>
+                )}
+              </div>
+            )}
             <Input
               label={t('plan.form.maxParticipants')}
               type="number"
@@ -125,7 +159,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], onClose, onCreat
             />
             {user && (
               <SurpriseSelector
-                members={circleMembers}
+                members={surpriseMembers}
                 currentUserId={user.id}
                 value={excludedUserIds}
                 onChange={setExcludedUserIds}

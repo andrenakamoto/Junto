@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { DateTimeField } from '../ui/DateTimeField';
 import { DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { FEATURE_GROUPS } from '../../lib/settings';
-import { intlLocale, t } from '../../i18n';
+import { t } from '../../i18n';
 
 // Morceaux communs aux fenêtres « Créer un Plan » et « Modifier le Plan » : l'essentiel en haut
 // (titre, quand, où), le reste rangé dans des lignes « Plus d'options » qui s'ouvrent sur place.
@@ -27,46 +27,28 @@ export function addDefaultDuration(local: string): string {
   return isoToLocal(new Date(new Date(localToISO(local)).getTime() + DEFAULT_DURATION_MS).toISOString());
 }
 
-// Début et fin du Plan. Sans début, la fin se choisit directement (elle est obligatoire : le Plan
-// est supprimé après). Avec un début, la fin s'affiche en petit avec « modifier ».
+// Début et fin du Plan : deux champs distincts, obligatoires. Quand on choisit le début, la fin se remplit
+// toute seule (début + 3 h) tant qu'on ne l'a pas modifiée soi-même.
 export function WhenField({ start, end, onStart, onEnd, startLabel, endTouched, onEndTouched }: {
   start: string; end: string;
   onStart: (v: string) => void; onEnd: (v: string) => void;
   startLabel?: string;
   endTouched: boolean; onEndTouched: () => void;
 }) {
-  const [editEnd, setEditEnd] = useState(false);
   function changeStart(v: string) {
     onStart(v);
     if (v && !endTouched) onEnd(addDefaultDuration(v));
   }
-  const endText = end
-    ? new Intl.DateTimeFormat(intlLocale(), sameDay(start, end) ? { hour: '2-digit', minute: '2-digit' } : { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(localToISO(end)))
-    : '';
-  const showEnd = editEnd || (!!start && !end);
   return (
-    <div>
-      <DateTimeField label={startLabel ?? t('plan.form.when')} value={start} onChange={changeStart} clearable defaultNow />
-      {showEnd ? (
-        <div className="mt-2">
-          <DateTimeField label={t('plan.form.endDate')} value={end} onChange={v => { onEndTouched(); onEnd(v); }} required openAt={start} defaultTime="23:00" />
-          <p className="text-xs text-slate-500 mt-1">{t('plan.form.endDateWarning')}</p>
-        </div>
-      ) : !start ? (
-        <p className="text-xs text-slate-500 mt-1.5">
-          {end ? t('plan.form.openUntil', { time: endText }) : t('plan.form.noDateHint')}{' '}
-          <button type="button" onClick={() => setEditEnd(true)} className="font-medium text-indigo-600 hover:underline">{end ? t('plan.form.change') : t('plan.form.chooseEnd')}</button>
-        </p>
-      ) : (
-        <p className="text-xs text-slate-500 mt-1.5">
-          {t('plan.form.endsAt', { time: endText })}{' '}
-          <button type="button" onClick={() => setEditEnd(true)} className="font-medium text-indigo-600 hover:underline">{t('plan.form.change')}</button>
-        </p>
-      )}
+    <div className="space-y-3">
+      <DateTimeField label={startLabel ?? t('plan.form.start')} value={start} onChange={changeStart} required defaultNow />
+      <div>
+        <DateTimeField label={t('plan.form.end')} value={end} onChange={v => { onEndTouched(); onEnd(v); }} required openAt={start} defaultTime="23:00" />
+        <p className="text-xs text-slate-500 mt-1">{t('plan.form.endDateWarning')}</p>
+      </div>
     </div>
   );
 }
-const sameDay = (a: string, b: string) => !!a && !!b && a.slice(0, 10) === b.slice(0, 10);
 
 // Une ligne de « Plus d'options » : icône, nom, réglage actuel en gris (corail s'il sort de l'ordinaire)
 export function OptionRow({ icon, label, summary, modified, children }: {

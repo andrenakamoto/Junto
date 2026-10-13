@@ -3,13 +3,13 @@ import { escapeHtml } from '../lib/escapeHtml';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { santaDateError } from '../lib/secretSanta';
-import { removeFromGamesInCircle } from '../lib/planGames';
+import { removeFromGamesInPlans } from '../lib/planGames';
 import { promoteFromWaitlist } from '../lib/waitlist';
 import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
-import { validateExclusions } from '../lib/planAccess';
+import { plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
@@ -67,24 +67,28 @@ router.get('/', async (req: AuthRequest, res) => {
     },
     orderBy: { createdAt: 'asc' },
   });
-  // Pastille « nouveau » du Cercle : un de ses Plans (dont je suis participant) a un onglet non vu
-  const myPlans = await prisma.planMember.findMany({
+  const circleIds = circles.map(c => c.id);
+  // Plans visibles de mes Cercles, y compris les Plans pour plusieurs Cercles (comptés dans chacun de leurs Cercles)
+  const visiblePlans = (await prisma.plan.findMany({
     where: {
-      userId: req.userId!,
-      plan: { circleId: { in: circles.map(c => c.id) }, archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
+      archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } },
+      OR: [{ circleId: { in: circleIds } }, { extraCircles: { some: { circleId: { in: circleIds } } } }],
     },
-    select: { planId: true, plan: { select: { circleId: true } } },
-  });
-  const unseen = await unseenByPlan(req.userId!, myPlans.map(m => m.planId));
-  const circlesWithNews = new Set(myPlans.filter(m => (unseen.get(m.planId)?.length ?? 0) > 0).map(m => m.plan.circleId));
+    orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
+    select: {
+      id: true, title: true, eventDate: true, endDate: true, circleId: true, createdAt: true,
+      extraCircles: { select: { circleId: true } },
+      activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 },
+      members: { where: { userId: req.userId! }, select: { userId: true } },
+    },
+  })).map(p => ({ ...p, circleIds: [p.circleId, ...p.extraCircles.map(e => e.circleId)].filter(id => circleIds.includes(id)) }));
+  // Pastille « nouveau » du Cercle : un de ses Plans (dont je suis participant) a un onglet non vu
+  const myPlans = visiblePlans.filter(p => p.members.length > 0);
+  const unseen = await unseenByPlan(req.userId!, myPlans.map(p => p.id));
+  const circlesWithNews = new Set(myPlans.filter(p => (unseen.get(p.id)?.length ?? 0) > 0).flatMap(p => p.circleIds));
   // Dernière activité de chaque Cercle : son arrivée dans le Cercle, ses Plans visibles (création,
   // rubriques modifiées) et ses sondages de dates (création, messages)
-  const circleIds = circles.map(c => c.id);
-  const [visiblePlans, polls] = await Promise.all([
-    prisma.plan.findMany({
-      where: { circleId: { in: circleIds }, archived: false, endDate: { gt: now }, exclusions: { none: { userId: req.userId } } },
-      select: { circleId: true, createdAt: true, activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 } },
-    }),
+  const [polls] = await Promise.all([
     prisma.circlePoll.findMany({
       where: { circleId: { in: circleIds }, resolvedAt: null, exclusions: { none: { userId: req.userId } } },
       orderBy: { createdAt: 'desc' },
@@ -99,7 +103,7 @@ router.get('/', async (req: AuthRequest, res) => {
   const last = new Map<string, number>();
   const bump = (id: string, d: Date) => last.set(id, Math.max(last.get(id) ?? 0, d.getTime()));
   for (const c of circles) bump(c.id, c.members.find(m => m.userId === req.userId)?.joinedAt ?? c.createdAt);
-  for (const p of visiblePlans) bump(p.circleId, planLastActivity(p));
+  for (const p of visiblePlans) for (const id of p.circleIds) bump(id, planLastActivity(p));
   for (const p of polls) bump(p.circleId, new Date(Math.max(p.createdAt.getTime(), p.messages[0]?.createdAt.getTime() ?? 0)));
   // Sondages de dates ouverts (non expirés) et ceux qui attendent ma réponse (ni vote ni « Pas disponible »)
   const openPolls = polls.filter(p => pollExpiresAt(p.createdAt, p.options.map(o => o.eventDate)) > now);
@@ -110,7 +114,16 @@ router.get('/', async (req: AuthRequest, res) => {
   };
   // Le Cercle le plus récemment actif en premier
   res.json(sortCirclesByActivity(circles.map(c => ({ ...c, lastActivityAt: new Date(last.get(c.id) ?? 0).toISOString() })))
-    .map(c => ({ ...c, hasUnseen: circlesWithNews.has(c.id), ...pollInfo(c.id) })));
+    .map(c => {
+      // Nombre de Plans et prochain Plan, Plans pour plusieurs Cercles compris
+      const mine = visiblePlans.filter(p => p.circleIds.includes(c.id));
+      const next = mine[0];
+      return {
+        ...c, hasUnseen: circlesWithNews.has(c.id), ...pollInfo(c.id),
+        _count: { ...c._count, plans: mine.length },
+        plans: next ? [{ id: next.id, title: next.title, eventDate: next.eventDate, endDate: next.endDate }] : [],
+      };
+    }));
 });
 
 const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
@@ -646,9 +659,12 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     return;
   }
   const plans = await prisma.plan.findMany({
-    where: { circleId: req.params.id, archived: false, endDate: { gt: new Date() }, exclusions: { none: { userId: req.userId! } } },
+    where: { ...plansOfCircleWhere(req.params.id), archived: false, endDate: { gt: new Date() }, exclusions: { none: { userId: req.userId! } } },
     include: {
       creator: { select: { id: true, pseudo: true } },
+      // Plan pour plusieurs Cercles : les Cercles réunis (étiquette sur la carte)
+      circle: { select: { id: true, name: true, color: true } },
+      extraCircles: { select: { circle: { select: { id: true, name: true, color: true } } } },
       members: { include: { user: { select: { id: true, pseudo: true } } } },
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
@@ -660,7 +676,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
   const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
   // Le Plan le plus récemment modifié en premier (création, chat, infos, réponses…)
   res.json(plans
-    .map(({ activities, ...p }) => ({ ...p, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
+    .map(({ activities, extraCircles, circle, ...p }) => ({ ...p, circles: extraCircles.length ? [circle, ...extraCircles.map(e => e.circle)] : undefined, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
     .sort(compareByActivity));
 });
 
@@ -673,6 +689,13 @@ async function canCreatePlans(userId: string, circleId: string): Promise<boolean
 async function canCreatePolls(userId: string, circleId: string): Promise<boolean> {
   const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { pollCreationMode: true } });
   return !!circle && (circle.pollCreationMode !== 'creator' || await isCircleManager(userId, circleId));
+}
+
+// Début, fin et lieu d'un Plan créé depuis la fenêtre « Créer un Plan »
+function missingPlanBasics(body: any): string | null {
+  if (!body?.eventDate || !body?.endDate) return 'Indique la date de début et la date de fin';
+  if (typeof body.location !== 'string' || !body.location.trim()) return 'Indique le lieu';
+  return null;
 }
 
 // Create a plan in a circle
@@ -692,6 +715,26 @@ interface NewPlanInput {
   importantInfoMode?: unknown;
   recurrence?: unknown;
   recurrenceUntil?: unknown;
+  /** Plan pour plusieurs Cercles : autres Cercles (créateur ou organisateur de chacun), à la création seulement */
+  extraCircleIds?: unknown;
+}
+
+const MAX_EXTRA_CIRCLES = 20;
+
+// Plan pour plusieurs Cercles : Cercles en plus du Cercle du Plan, dont la personne est créatrice ou
+// organisatrice (jamais un Cercle personnel « Mes Plans »)
+async function parseExtraCircles(circleId: string, creatorId: string, raw: unknown): Promise<{ ids: string[] } | { error: string }> {
+  if (raw === undefined || raw === null) return { ids: [] };
+  if (!Array.isArray(raw) || raw.some(x => typeof x !== 'string')) return { error: 'Liste des Cercles invalide' };
+  const ids = [...new Set(raw as string[])].filter(id => id !== circleId);
+  if (ids.length > MAX_EXTRA_CIRCLES) return { error: 'Trop de Cercles pour un seul Plan' };
+  for (const id of ids) {
+    const circle = await prisma.circle.findUnique({ where: { id }, select: { isPersonal: true } });
+    if (!circle || circle.isPersonal || !(await isCircleManager(creatorId, id))) {
+      return { error: 'Tu dois être créateur ou organisateur de chaque Cercle choisi' };
+    }
+  }
+  return { ids };
 }
 
 // Crée un Plan dans un Cercle et notifie les membres (temps réel + email).
@@ -722,7 +765,14 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
   if ('error' in repeat) return { error: repeat.error };
   const santaError = santaDateError(parseEnabledFeatures(input.enabledFeatures) ?? [], parsedEventDate, parsedEndDate);
   if (santaError) return { error: santaError };
-  const excl = await validateExclusions(circleId, creatorId, input.excludedUserIds);
+  const extra = await parseExtraCircles(circleId, creatorId, input.extraCircleIds);
+  if ('error' in extra) return { error: extra.error };
+  if (extra.ids.length) {
+    if (!(await isCircleManager(creatorId, circleId))) return { error: 'Tu dois être créateur ou organisateur de chaque Cercle choisi' };
+    // L'Assemblée réunit les membres d'un seul Cercle (ses votants)
+    if ((parseEnabledFeatures(input.enabledFeatures) ?? []).includes('assemblee')) return { error: 'L’Assemblée n’est pas disponible dans un Plan pour plusieurs Cercles' };
+  }
+  const excl = await validateExclusions([circleId, ...extra.ids], creatorId, input.excludedUserIds);
   if ('error' in excl) return { error: excl.error };
   const exclusions = excl.ids;
 
@@ -746,6 +796,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       circleId,
       members: { create: { userId: creatorId, rsvp: 'in' } },
       exclusions: { create: exclusions.map(userId => ({ userId })) },
+      extraCircles: { create: extra.ids.map(id => ({ circleId: id })) },
     },
     include: {
       creator: { select: { id: true, pseudo: true } },
@@ -755,7 +806,10 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
     },
   });
 
-  notifyNewPlan(app, circleId, plan).catch(e => console.error('[new_plan notify]', e));
+  // Les sockets des membres des autres Cercles rechargent aussi leur liste
+  const io = app.get('io');
+  for (const id of extra.ids) io?.to(`circle:${id}`).emit('circle-updated', { circleId: id });
+  notifyNewPlan(app, [circleId, ...extra.ids], plan).catch(e => console.error('[new_plan notify]', e));
   // Parcours d'inscription : premier Plan d'un vrai compte (pas d'un organisateur sans compte)
   prisma.plan.count({ where: { creatorId, creator: { isLight: false } } })
     .then(n => { if (n === 1) countFunnel('funnel_first_plan'); })
@@ -765,7 +819,13 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
 }
 
 // Notifier les membres du cercle (sauf le créateur) — temps réel + email
-async function notifyNewPlan(app: any, circleId: string, plan: any) {
+// Plan pour plusieurs Cercles : chaque Cercle à son tour, une seule notification par personne
+async function notifyNewPlan(app: any, circleIds: string[], plan: any) {
+  const done = new Set<string>([plan.creatorId]);
+  for (const circleId of circleIds) await notifyNewPlanInCircle(app, circleId, plan, done);
+}
+
+async function notifyNewPlanInCircle(app: any, circleId: string, plan: any, done: Set<string>) {
   const io = app.get('io');
   const circle = await prisma.circle.findUnique({
     where: { id: circleId },
@@ -776,7 +836,8 @@ async function notifyNewPlan(app: any, circleId: string, plan: any) {
   });
   if (!circle) return;
   const excluded = new Set((plan.exclusions ?? []).map((e: { userId: string }) => e.userId));
-  const otherMembers = circle.members.filter(m => m.userId !== plan.creatorId && !excluded.has(m.userId));
+  const otherMembers = circle.members.filter(m => !done.has(m.userId) && !excluded.has(m.userId));
+  for (const m of otherMembers) done.add(m.userId);
 
   if (io) {
     for (const m of otherMembers) {
@@ -823,6 +884,9 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
     return;
   }
   if (!(await canCreatePlans(req.userId!, req.params.id))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
+  // Fenêtre « Créer un Plan » : début, fin et lieu obligatoires (le Plan express et les répétitions ont leurs propres règles)
+  const missing = missingPlanBasics(req.body);
+  if (missing) { res.status(400).json({ error: missing }); return; }
   const result = await createPlanInCircle(req.app, req.params.id, req.userId!, req.body);
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }
   res.json(result.plan);
@@ -898,8 +962,17 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: circleId } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
   leaveCircleRoom(req.app.get('io'), userId, circleId);
-  // Places occupées dans les Plans du Cercle : libérées par le départ (liste d'attente ensuite)
-  const heldPlans = (await prisma.planMember.findMany({ where: { userId, rsvp: { not: 'out' }, plan: { circleId } }, select: { planId: true } })).map(m => m.planId);
+  // Plans du Cercle auxquels la personne n'aura plus accès : un Plan pour plusieurs Cercles reste accessible
+  // si elle est encore membre d'un autre de ses Cercles
+  const [circlePlans, otherCircles] = await Promise.all([
+    prisma.plan.findMany({ where: plansOfCircleWhere(circleId), select: { id: true, circleId: true, extraCircles: { select: { circleId: true } } } }),
+    prisma.circleMember.findMany({ where: { userId, circleId: { not: circleId } }, select: { circleId: true } }),
+  ]);
+  const stillIn = new Set(otherCircles.map(c => c.circleId));
+  const lost = circlePlans.filter(p => ![p.circleId, ...p.extraCircles.map(e => e.circleId)].some(id => id !== circleId && stillIn.has(id))).map(p => p.id);
+  const lostPlans = { planId: { in: lost } };
+  // Places occupées dans ces Plans : libérées par le départ (liste d'attente ensuite)
+  const heldPlans = (await prisma.planMember.findMany({ where: { userId, rsvp: { not: 'out' }, ...lostPlans }, select: { planId: true } })).map(m => m.planId);
   const freeSpots = () => { for (const id of heldPlans) promoteFromWaitlist(req.app.get('io'), id).catch(e => console.error('[waitlist leave]', e)); };
 
   if (circle.creatorId === userId) {
@@ -912,7 +985,7 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
       return;
     }
 
-    await removeFromGamesInCircle(circleId, userId);
+    await removeFromGamesInPlans(lost, userId);
     await prisma.$transaction([
       prisma.circle.update({ where: { id: circleId }, data: { creatorId: nextMember.userId } }),
       prisma.circleMember.update({
@@ -920,9 +993,9 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
         data: { role: 'admin' },
       }),
       prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
-      prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
-      prisma.planWaitlist.deleteMany({ where: { userId, plan: { circleId } } }),
-      prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
+      prisma.planMember.deleteMany({ where: { userId, ...lostPlans } }),
+      prisma.planWaitlist.deleteMany({ where: { userId, ...lostPlans } }),
+      prisma.volunteerSignup.deleteMany({ where: { userId, ...lostPlans } }),
       prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
     ]);
     res.json({ left: true, circleDeleted: false });
@@ -930,12 +1003,12 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
     return;
   }
 
-  await removeFromGamesInCircle(circleId, userId);
+  await removeFromGamesInPlans(lost, userId);
   await prisma.$transaction([
     prisma.circleDeleteVote.deleteMany({ where: { userId, circleId } }),
-    prisma.planMember.deleteMany({ where: { userId, plan: { circleId } } }),
-    prisma.planWaitlist.deleteMany({ where: { userId, plan: { circleId } } }),
-    prisma.volunteerSignup.deleteMany({ where: { userId, plan: { circleId } } }),
+    prisma.planMember.deleteMany({ where: { userId, ...lostPlans } }),
+    prisma.planWaitlist.deleteMany({ where: { userId, ...lostPlans } }),
+    prisma.volunteerSignup.deleteMany({ where: { userId, ...lostPlans } }),
     prisma.circleMember.delete({ where: { userId_circleId: { userId, circleId } } }),
   ]);
   res.json({ left: true, circleDeleted: false });
