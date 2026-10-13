@@ -408,6 +408,9 @@ Conséquences pratiques :
     **Version 1.0.15** (2026-10-12) : Android `versionCode` 16 (`evly-1.0.15-(16).aab`), iOS build 17 envoyé — « En transports
     publics » (horaires OJP, détail du trajet, voyages partagés), sondages de dates sur la carte du Cercle et « Pas disponible »
     en un geste, dates ajoutées à un sondage par son créateur, « En bref » qui résume plusieurs postes.
+    **Version 1.0.16** (2026-10-13) : Android `versionCode` 17 (`evly-1.0.16-(17).aab`), iOS build 18 envoyé — Plan pour plusieurs
+    Cercles, Mode annonce (affiche, liste des participants réservée), nouvelle fenêtre de création (début, fin, lieu obligatoires),
+    transports publics par adresse ou lieu, suppression des sondages, annulation d'un Plan notifiée, « Tout effacer » de la cloche.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
