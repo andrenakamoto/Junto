@@ -123,7 +123,6 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
           />
         </div>
 
-        <AnnonceToggle active={annonce} onChange={setAnnonce} />
         <OptionsBox>
           <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
             summary={importantInfo.trim() ? importantInfo.trim().split('\n')[0] : t('plan.form.sum.none')}>
@@ -137,6 +136,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
           </OptionRow>
           <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
             summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
+            <AnnonceToggle active={annonce} onChange={setAnnonce} />
             <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
           </OptionRow>
           {!fromPoll && (

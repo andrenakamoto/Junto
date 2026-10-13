@@ -136,10 +136,10 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           />
         </div>
         {isCreator && (<>
-          <AnnonceToggle active={annonce} onChange={setAnnonce} />
           <OptionsBox>
             <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
               summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
+              <AnnonceToggle active={annonce} onChange={setAnnonce} />
               <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
             </OptionRow>
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
