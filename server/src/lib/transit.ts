@@ -111,23 +111,41 @@ export function parseConnections(data: any): Connection[] {
   return results.flatMap((r: any): Connection[] => {
     const trip = r?.Trip;
     if (!trip?.StartTime || !trip?.EndTime) return [];
-    const legs: Leg[] = (trip.Leg ?? []).flatMap((l: any): Leg[] => {
-      if (l.TimedLeg) {
-        const t = l.TimedLeg, s = t.Service ?? {};
-        const { kind, line } = lineOf(s.Mode?.[0]?.PtMode, text(s.PublishedServiceName) ?? s.PublicCode, text(s.ProductCategory?.ShortName));
-        return [{
-          kind, line, direction: text(s.DestinationText),
-          from: text(t.LegBoard?.StopPointName) ?? '', to: text(t.LegAlight?.StopPointName) ?? '',
-          platform: text(t.LegBoard?.EstimatedQuay) ?? text(t.LegBoard?.PlannedQuay),
-          departureAt: t.LegBoard?.ServiceDeparture?.TimetabledTime ?? null, arrivalAt: t.LegAlight?.ServiceArrival?.TimetabledTime ?? null, walkMinutes: null,
-        }];
-      }
-      const w = l.TransferLeg ?? l.ContinuousLeg;
-      if (!w) return [];
-      return [{ kind: 'walk', line: null, direction: null, from: text(w.LegStart?.Name) ?? '', to: text(w.LegEnd?.Name) ?? '', platform: null, departureAt: null, arrivalAt: null, walkMinutes: Math.max(1, isoMinutes(w.Duration ?? l.Duration)) }];
-    });
+    // « Rester à bord » (remainInVehicle) : le même train change de numéro de ligne (souvent à la frontière) ;
+    // les deux morceaux n'en font qu'un, sans changement ni marche
+    let stayAboard = false;
+    const legs: Leg[] = [];
+    for (const l of trip.Leg ?? []) {
+      if (l.TransferLeg?.TransferType === 'remainInVehicle') { stayAboard = true; continue; }
+      const parsed = parseLeg(l);
+      const prev = legs[legs.length - 1];
+      if (stayAboard && parsed && parsed.kind !== 'walk' && prev && prev.kind !== 'walk') {
+        prev.to = parsed.to; prev.arrivalAt = parsed.arrivalAt; prev.direction = parsed.direction ?? prev.direction;
+      } else if (parsed) legs.push(parsed);
+      stayAboard = false;
+    }
     return [{ departureAt: trip.StartTime, arrivalAt: trip.EndTime, minutes: isoMinutes(trip.Duration), transfers: Number(trip.Transfers ?? 0), legs }];
   });
+}
+
+function parseLeg(l: any): Leg | null {
+  if (l.TimedLeg) {
+    const t = l.TimedLeg, s = t.Service ?? {};
+    // Train nommé seulement par sa catégorie (« TGV ») : on ajoute son numéro (« TGV 9760 »)
+    const category = text(s.ProductCategory?.ShortName);
+    const published = text(s.PublishedServiceName) ?? s.PublicCode;
+    const named = published && category && published === category && s.TrainNumber ? `${published} ${s.TrainNumber}` : published;
+    const { kind, line } = lineOf(s.Mode?.[0]?.PtMode, named, category);
+    return {
+      kind, line, direction: text(s.DestinationText),
+      from: text(t.LegBoard?.StopPointName) ?? '', to: text(t.LegAlight?.StopPointName) ?? '',
+      platform: text(t.LegBoard?.EstimatedQuay) ?? text(t.LegBoard?.PlannedQuay),
+      departureAt: t.LegBoard?.ServiceDeparture?.TimetabledTime ?? null, arrivalAt: t.LegAlight?.ServiceArrival?.TimetabledTime ?? null, walkMinutes: null,
+    };
+  }
+  const w = l.TransferLeg ?? l.ContinuousLeg;
+  if (!w) return null;
+  return { kind: 'walk', line: null, direction: null, from: text(w.LegStart?.Name) ?? '', to: text(w.LegEnd?.Name) ?? '', platform: null, departureAt: null, arrivalAt: null, walkMinutes: Math.max(1, isoMinutes(w.Duration ?? l.Duration)) };
 }
 
 export async function searchStops(query: string): Promise<Stop[]> {

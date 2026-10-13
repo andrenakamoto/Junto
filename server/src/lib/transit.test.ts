@@ -89,4 +89,12 @@ describe('transports publics', () => {
     expect(shared[0].kind).toBe('tram');
     expect(JSON.stringify(shared)).not.toContain('Rue de Carouge');
   });
+
+  it('fusionne un train qui reste le même (« rester à bord »)', () => {
+    const [c] = parseConnections(parser.parse(fixture('ojp-trip-tgv.xml')));
+    const rides = c.legs.filter(l => l.kind !== 'walk');
+    expect(c.legs.some(l => l.kind === 'walk')).toBe(false);
+    expect(rides).toHaveLength(1);
+    expect(rides[0]).toMatchObject({ line: 'TGV 9760', from: 'Genève', to: 'Paris Gare de Lyon', platform: '7' });
+  });
 });
