@@ -126,6 +126,10 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         </div>
         {isCreator && (
           <OptionsBox>
+            <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
+              summary={featuresSummary(disabledFeatures, enabledFeatures)}>
+              <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
+            </OptionRow>
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
               summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
               <RecurrenceField
@@ -157,10 +161,6 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
               {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
                 <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>
               )}
-            </OptionRow>
-            <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
-              summary={featuresSummary(disabledFeatures, enabledFeatures)}>
-              <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
             </OptionRow>
             <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode)}
               summary={rulesAreDefault(editMode, importantInfoMode, deletionMode) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>

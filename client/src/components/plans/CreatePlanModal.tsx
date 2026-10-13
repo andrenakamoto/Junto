@@ -113,6 +113,20 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
         </div>
 
         <OptionsBox>
+          <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
+            summary={importantInfo.trim() ? importantInfo.trim().split('\n')[0] : t('plan.form.sum.none')}>
+            <textarea
+              value={importantInfo}
+              onChange={e => setImportantInfo(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
+              placeholder={t('plan.form.importantInfoPlaceholder')}
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
+            />
+          </OptionRow>
+          <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
+            summary={featuresSummary(disabledFeatures, enabledFeatures)}>
+            <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
+          </OptionRow>
           {!fromPoll && (
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
               summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
@@ -165,20 +179,6 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
                 onChange={setExcludedUserIds}
               />
             )}
-          </OptionRow>
-          <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
-            summary={importantInfo.trim() ? importantInfo.trim().split('\n')[0] : t('plan.form.sum.none')}>
-            <textarea
-              value={importantInfo}
-              onChange={e => setImportantInfo(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
-              placeholder={t('plan.form.importantInfoPlaceholder')}
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
-            />
-          </OptionRow>
-          <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
-            summary={featuresSummary(disabledFeatures, enabledFeatures)}>
-            <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
           </OptionRow>
           <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode)}
             summary={rulesAreDefault(editMode, importantInfoMode, deletionMode) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
