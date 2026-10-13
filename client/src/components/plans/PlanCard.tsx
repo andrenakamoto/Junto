@@ -1,4 +1,4 @@
-import { Calendar, MapPin, MessageSquare, Users, Repeat, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, MessageSquare, Users, Repeat, Sparkles, Layers } from 'lucide-react';
 import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -82,6 +82,11 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}{plan.recurrence && <Repeat size={10} className="ml-0.5 text-slate-400" aria-label={t('plan.card.repeats')} />}</span>}
+        {plan.circles && plan.circles.length > 1 && (
+          <span className="flex items-center gap-1 text-indigo-600 font-medium" title={plan.circles.map(c => c.name).join(', ')}>
+            <Layers size={10} />{t('plan.multi.badge', { count: plan.circles.length })}
+          </span>
+        )}
         {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
         {myMember && (
           <span className="flex items-center gap-1">

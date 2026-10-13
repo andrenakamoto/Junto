@@ -13,6 +13,14 @@ export async function removeFromPlanGames(planId: string, userId: string) {
   await removeFromWordGame(planId, userId).catch(e => console.error('[word game cleanup]', e));
 }
 
+// Départ d'un Cercle : jeux et voyages partagés des Plans auxquels la personne n'a plus accès
+// (un Plan pour plusieurs Cercles reste accessible par un autre de ses Cercles)
+export async function removeFromGamesInPlans(planIds: string[], userId: string) {
+  for (const planId of planIds) await removeFromPlanGames(planId, userId);
+  await prisma.transitGroupMember.deleteMany({ where: { userId, planId: { in: planIds } } }).catch((e: unknown) => console.error('[transit cleanup]', e));
+  await prisma.transitGroup.deleteMany({ where: { planId: { in: planIds }, members: { none: {} } } }).catch((e: unknown) => console.error('[transit cleanup]', e));
+}
+
 export async function removeFromGamesInCircle(circleId: string, userId: string) {
   await removeFromSantaInCircle(circleId, userId).catch(e => console.error('[santa cleanup]', e));
   await removeFromKillerInCircle(circleId, userId).catch(e => console.error('[killer cleanup]', e));

@@ -1,4 +1,5 @@
 import { copyVotes } from './recurrenceCopy';
+import { isCircleManager } from './circleRoles';
 import prisma from './prisma';
 import { copyShifts } from './volunteers';
 import { purgePlanFiles } from './storage';
@@ -81,9 +82,9 @@ type CreatePlan = (app: any, circleId: string, creatorId: string, input: any) =>
 // Renvoie l'id du nouveau Plan, ou null si la série s'arrête là.
 // Plan surprise : une personne exclue qui a quitté le Cercle n'est plus à exclure (sinon la création échouerait
 // et la série s'arrêterait)
-async function stillInCircle(circleId: string, userIds: string[]): Promise<string[]> {
+async function stillInCircle(circleIds: string[], userIds: string[]): Promise<string[]> {
   if (userIds.length === 0) return [];
-  const members = await prisma.circleMember.findMany({ where: { circleId, userId: { in: userIds } }, select: { userId: true } });
+  const members = await prisma.circleMember.findMany({ where: { circleId: { in: circleIds }, userId: { in: userIds } }, select: { userId: true }, distinct: ['userId'] });
   return members.map(m => m.userId);
 }
 
@@ -92,7 +93,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   const claimed = await prisma.plan.updateMany({ where: { id: planId, nextOccurrenceId: null, recurrence: { not: null } }, data: { nextOccurrenceId: 'pending' } });
   if (claimed.count === 0) return null;
   const end = async () => { await prisma.plan.update({ where: { id: planId }, data: { nextOccurrenceId: ENDED, recurrence: null } }); return null; };
-  const plan = await prisma.plan.findUnique({ where: { id: planId }, include: { items: true, exclusions: true } });
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, include: { items: true, exclusions: true, extraCircles: { select: { circleId: true } } } });
   if (!plan?.recurrence || !plan.eventDate) return end();
   const recurrence = parseRecurrence(plan.recurrence);
   if (!recurrence) return end();
@@ -105,10 +106,14 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   const stillMember = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId: plan.creatorId, circleId: plan.circleId } } });
   if (!stillMember) return end();
   const endDate = new Date(eventDate.getTime() + duration);
+  // Plan pour plusieurs Cercles : les mêmes Cercles, tant que le créateur en reste créateur ou organisateur
+  const extraCircleIds: string[] = [];
+  for (const { circleId } of plan.extraCircles) if (await isCircleManager(plan.creatorId, circleId)) extraCircleIds.push(circleId);
   const result = await createPlanInCircle(app, plan.circleId, plan.creatorId, {
     title: plan.title, description: plan.description, location: plan.location,
     eventDate: eventDate.toISOString(), endDate: endDate.toISOString(),
-    maxParticipants: plan.maxParticipants, excludedUserIds: await stillInCircle(plan.circleId, plan.exclusions.map(e => e.userId)),
+    maxParticipants: plan.maxParticipants, excludedUserIds: await stillInCircle([plan.circleId, ...extraCircleIds], plan.exclusions.map(e => e.userId)),
+    extraCircleIds,
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode,
   });

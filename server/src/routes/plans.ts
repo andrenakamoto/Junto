@@ -13,7 +13,7 @@ import { computeByCurrency, parseCurrency } from '../lib/expenses';
 import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
-import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions } from '../lib/planAccess';
+import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions, planCircleIds } from '../lib/planAccess';
 import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
@@ -95,11 +95,14 @@ const planInclude = {
     orderBy: { createdAt: 'asc' as const },
   },
   exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
+  // Plan pour plusieurs Cercles : les Cercles réunis (en plus de celui du Plan)
+  circle: { select: { id: true, name: true, color: true } },
+  extraCircles: { select: { circle: { select: { id: true, name: true, color: true } } } },
 };
 
-// Ajoute `isGuest` à chaque membre (invité externe = pas membre du Cercle)
-async function withGuestFlags<T extends { circleId: string; members: { userId: string }[] }>(plan: T) {
-  const guests = await guestIdsAmong(plan.circleId, plan.members.map(m => m.userId));
+// Ajoute `isGuest` à chaque membre (invité externe = membre d'aucun des Cercles du Plan)
+async function withGuestFlags<T extends { id: string; circleId: string; members: { userId: string }[] }>(plan: T) {
+  const guests = await guestIdsAmong(await planCircleIds(plan), plan.members.map(m => m.userId));
   return { ...plan, members: plan.members.map(m => ({ ...m, isGuest: guests.has(m.userId) })) };
 }
 
@@ -143,6 +146,7 @@ router.get('/', async (req: AuthRequest, res) => {
         members: { include: { user: { select: { id: true, pseudo: true } } } },
         deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
         circle: { select: { id: true, name: true } },
+        extraCircles: { select: { circle: { select: { id: true, name: true } } } },
         _count: { select: { messages: true } },
         waitlist: { select: { userId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
       },
@@ -152,10 +156,13 @@ router.get('/', async (req: AuthRequest, res) => {
     // Un invité externe ne doit rien savoir du Cercle : on masque son nom
     const circleIds = new Set(myCircles.map(c => c.circleId));
     const unseen = await unseenDetails(userId, plans.map(p => p.id));
-    res.json(plans.map(p => {
+    res.json(plans.map(({ extraCircles, ...p }) => {
       const u = unseen.get(p.id);
-      const withUnseen = { ...p, unseen: u?.sections ?? [], unseenAt: u?.at ?? null };
-      return circleIds.has(p.circleId) ? withUnseen : { ...withUnseen, circle: null, isGuest: true };
+      // Plan pour plusieurs Cercles : affiché sous le Cercle de la personne, avec la liste des Cercles réunis
+      const all = [p.circle, ...extraCircles.map(e => e.circle)];
+      const mine = all.find(c => circleIds.has(c.id));
+      const withUnseen = { ...p, circle: mine ?? p.circle, circles: extraCircles.length ? all : undefined, unseen: u?.sections ?? [], unseenAt: u?.at ?? null };
+      return mine ? withUnseen : { ...withUnseen, circle: null, circles: undefined, isGuest: true };
     }));
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
@@ -181,10 +188,13 @@ router.get('/:id', async (req: AuthRequest, res) => {
     res.status(404).json({ error: 'Plan introuvable' });
     return;
   }
-  const withGuests = await withGuestFlags(plan);
+  const { extraCircles, circle, ...rest } = plan;
+  const withGuests = await withGuestFlags(rest);
   const unseen = (await unseenDetails(req.userId!, [plan.id])).get(plan.id);
   res.json({
     ...anonymizePlanPolls(withGuests, req.userId!),
+    // Plan pour plusieurs Cercles : noms des Cercles réunis (jamais montrés à un invité externe)
+    circles: extraCircles.length && !access.isGuest ? [circle, ...extraCircles.map(e => e.circle)] : undefined,
     // Onglets avec du nouveau depuis la dernière visite (pastilles)
     unseen: unseen?.sections ?? [],
     unseenAt: unseen?.at ?? null,
@@ -334,7 +344,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const isCreator = plan.creatorId === req.userId;
     if (!isCreator) {
       const member = plan.editMode === 'all' && await assertPlanMember(req.userId!, plan.id);
-      const isGuest = member && (await guestIdsAmong(plan.circleId, [req.userId!])).has(req.userId!);
+      const isGuest = member && (await guestIdsAmong(await planCircleIds(plan), [req.userId!])).has(req.userId!);
       if (!member || isGuest) { res.status(403).json({ error: 'Réservé au créateur' }); return; }
     }
 
@@ -378,7 +388,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     // Plan surprise : `excludedUserIds` absent = liste inchangée
     let exclusions: string[] | null = null;
     if (isCreator && req.body.excludedUserIds !== undefined) {
-      const v = await validateExclusions(plan.circleId, plan.creatorId, req.body.excludedUserIds);
+      const v = await validateExclusions(await planCircleIds(plan), plan.creatorId, req.body.excludedUserIds);
       if ('error' in v) { res.status(400).json({ error: v.error }); return; }
       exclusions = v.ids;
     }
@@ -396,6 +406,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
       : parseRecurrenceInput(settings.recurrence, settings.recurrenceUntil, eventDate ? new Date(eventDate) : null);
     if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
     if (!deletionMode || !disabledFeatures || !enabledFeatures || !editMode || !importantInfoMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+    // L'Assemblée réunit les membres d'un seul Cercle : pas dans un Plan pour plusieurs Cercles
+    if (enabledFeatures.includes('assemblee') && !plan.enabledFeatures.includes('assemblee') && (await planCircleIds(plan)).length > 1) {
+      res.status(400).json({ error: 'L’Assemblée n’est pas disponible dans un Plan pour plusieurs Cercles' }); return;
+    }
     // Père Noël secret : la date du Plan est celle de l'échange, la fin vient après
     const santaError = santaDateError(enabledFeatures, newEventDate, newEndDate);
     if (santaError) { res.status(400).json({ error: santaError }); return; }

@@ -142,6 +142,8 @@ model Circle {
   creator           User                @relation("CircleCreator", fields: [creatorId], references: [id])
   members           CircleMember[]
   plans             Plan[]
+  // Plans pour plusieurs Cercles créés dans un autre Cercle et partagés avec celui-ci
+  sharedPlans       PlanCircle[]
   deleteVotes       CircleDeleteVote[]
   joinRequests      CircleJoinRequest[]
   polls             CirclePoll[]
@@ -345,6 +347,8 @@ model Plan {
   teamDraw          TeamDraw?
   giftPot           GiftPot?
   exclusions        PlanExclusion[]
+  // Plan pour plusieurs Cercles : Cercles en plus de circleId (choisis à la création seulement)
+  extraCircles      PlanCircle[]
   guestLink         PlanGuestLink?
 }
 
@@ -1387,4 +1391,16 @@ model QuizAnswer {
 
   @@id([questionId, userId])
   @@index([planId])
+}
+
+// Plan pour plusieurs Cercles (2026-10-13) : un Plan créé dans `Plan.circleId` et partagé avec d'autres Cercles,
+// choisis à la création par une personne qui est créatrice ou organisatrice de chacun. Non modifiable ensuite.
+model PlanCircle {
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  circleId String
+  circle   Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@id([planId, circleId])
+  @@index([circleId])
 }

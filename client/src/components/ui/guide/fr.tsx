@@ -75,6 +75,13 @@ const groups: Group[] = [
           notification, ni email). Les autres voient un bandeau qui rappelle pour qui c'est une surprise.</P>,
       },
       {
+        id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan pour plusieurs Cercles', summary: 'Un même Plan pour plusieurs groupes',
+        body: <P>Si tu es créateur ou organisateur de plusieurs Cercles (une école, un club avec plusieurs groupes), coche
+          <strong> « Plan pour plusieurs Cercles »</strong> dans « Participants » à la création : le Plan apparaît dans chaque Cercle
+          choisi, avec un seul chat et une seule liste de participants. Les Cercles ne se changent plus ensuite. Avant de
+          rejoindre, chacun est prévenu que des personnes d'autres Cercles verront son prénom et son pseudo.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Inviter quelqu’un d’extérieur', summary: 'Un lien vers un seul Plan, avec ou sans compte',
         body: <>
           <P><strong>Inviter</strong> → « Personne extérieure » : un lien à partager (WhatsApp, SMS, QR code). La personne voit{' '}

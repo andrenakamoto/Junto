@@ -78,6 +78,14 @@ const groups: Group[] = [
           erinnert, für wen es eine Überraschung ist.</P>,
       },
       {
+        id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan für mehrere Kreise', summary: 'Ein Plan für mehrere Gruppen',
+        body: <P>Wenn du mehrere Kreise erstellt hast oder organisierst (eine Schule, ein Verein mit mehreren Gruppen), kreuze
+          beim Erstellen unter «Teilnehmende» <strong>«Plan für mehrere Kreise»</strong> an: Der Plan erscheint in jedem gewählten
+          Kreis, mit einem einzigen Chat und einer einzigen Teilnehmerliste. Die Kreise lassen sich danach nicht mehr ändern. Vor
+          dem Beitreten wird jede Person darauf hingewiesen, dass Personen aus anderen Kreisen ihren Vornamen und ihr
+          Pseudonym sehen.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Jemanden von aussen einladen', summary: 'Ein Link zu einem einzigen Plan, mit oder ohne Konto',
         body: <>
           <P><strong>Einladen</strong> → «Externe Person»: ein Link zum Teilen (WhatsApp, SMS, QR-Code). Die Person sieht{' '}

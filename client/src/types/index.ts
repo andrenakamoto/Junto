@@ -72,6 +72,8 @@ export interface Circle {
   creatorId: string;
   creator: User;
   members: CircleMember[];
+  /** Cercle personnel « Mes Plans » (Plan express) */
+  isPersonal?: boolean;
   deleteVotes?: CircleDeleteVote[];
   joinRequests?: CircleJoinRequest[];
   /** Un de mes Plans dans ce Cercle a du nouveau depuis ma dernière visite */
@@ -147,6 +149,8 @@ export interface PlanChangeLog {
 }
 
 export interface Plan {
+  /** Plan pour plusieurs Cercles : les Cercles réunis (absent sinon, et pour un invité externe) */
+  circles?: { id: string; name: string; color?: string | null }[];
   /** Dernière activité (GET /circles/:id/plans) : sert à l'ordre de la liste du Cercle */
   lastActivityAt?: string | null;
   id: string;

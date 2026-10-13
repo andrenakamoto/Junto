@@ -35,9 +35,11 @@ interface Props {
   onSelectPoll: (pollId: string) => void;
   /** Présence en ligne (fenêtre des membres) */
   onlineUserIds?: Set<string>;
+  /** Plan pour plusieurs Cercles : mes autres Cercles dont je suis créateur ou organisateur */
+  otherManagedCircles?: Circle[];
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [] }: Props) {
   const { user } = useAuth();
   const { isCircleMuted, setCircleMuted } = useMutes();
   const circleMuted = isCircleMuted(circle.id);
@@ -308,6 +310,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         <CreatePlanModal
           circleId={circle.id}
           circleMembers={circle.members}
+          otherCircles={user && isCircleManager(circle, user.id) ? otherManagedCircles : []}
           onClose={() => setShowCreate(false)}
           onCreated={(plan) => { onPlanCreated(plan); setShowCreate(false); }}
         />

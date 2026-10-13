@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -367,6 +367,14 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showActionsMenu]);
 
+  // Plan pour plusieurs Cercles : avertissement avant la première réponse (rejoindre, liste d'attente)
+  const [multiWarning, setMultiWarning] = useState<null | (() => void)>(null);
+  const isMulti = !!plan.circles && plan.circles.length > 1;
+  function withMultiWarning(action: () => void) {
+    if (isMulti && !myMember) setMultiWarning(() => action);
+    else action();
+  }
+
   async function handleJoin() {
     setJoining(true);
     setPlacesError('');
@@ -538,7 +546,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             {waitingCount > 0 && t('plan.detail.waiting', { count: waitingCount })}
           </p>
           {plan.viewerIsGuest ? null : (
-            <Button onClick={() => handleWaitlist(true)} disabled={joining} size="sm" className="mt-3">
+            <Button onClick={() => withMultiWarning(() => handleWaitlist(true))} disabled={joining} size="sm" className="mt-3">
               {joining ? '…' : t('plan.detail.waitJoin')}
             </Button>
           )}
@@ -870,6 +878,11 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
               <Repeat size={13} /> {repeatLabel}
             </span>
           )}
+          {plan.circles && plan.circles.length > 1 && (
+            <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 text-sm md:text-xs font-medium text-indigo-700">
+              <Layers size={13} /> {t('plan.multi.detail', { names: plan.circles.map(c => c.name).join(', ') })}
+            </span>
+          )}
         </div>
         {/* Date de suppression du Plan, sur sa propre ligne */}
         <div className="flex mt-2">
@@ -937,7 +950,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
             <p className="text-sm text-slate-600 mb-3">
               {t('plan.detail.tempted')}
             </p>
-            <Button onClick={handleJoin} disabled={joining} size="sm">
+            <Button onClick={() => withMultiWarning(handleJoin)} disabled={joining} size="sm">
               {joining ? t('plan.detail.joining') : t('plan.detail.joinPlan')}
             </Button>
           </div>
@@ -1085,6 +1098,22 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
 
       {reporting && (
         <ReportMessageModal kind="plan" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />
+      )}
+
+      {multiWarning && plan.circles && (
+        <Modal title={t('plan.multi.warnTitle')} onClose={() => setMultiWarning(null)}>
+          <div className="space-y-3">
+            <div className="flex items-start gap-2.5 rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2.5">
+              <Layers size={18} className="text-indigo-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-slate-700">{t('plan.multi.warnCircles', { names: plan.circles.map(c => c.name).join(', ') })}</p>
+            </div>
+            <p className="text-sm text-slate-600">{t('plan.multi.warnText')}</p>
+            <div className="flex gap-2 justify-end pt-1">
+              <Button type="button" variant="ghost" onClick={() => setMultiWarning(null)}>{t('common.cancel')}</Button>
+              <Button type="button" onClick={() => { const go = multiWarning; setMultiWarning(null); go(); }}>{t('plan.multi.warnConfirm')}</Button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {showHistory && (

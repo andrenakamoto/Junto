@@ -74,6 +74,13 @@ const groups: Group[] = [
           notification or email). Others see a banner reminding them who the surprise is for.</P>,
       },
       {
+        id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan for several Circles', summary: 'One Plan for several groups',
+        body: <P>If you created or organise several Circles (a school, a club with several groups), tick
+          <strong> “Plan for several Circles”</strong> under “Participants” when creating: the Plan appears in every chosen Circle,
+          with one chat and one list of participants. The Circles can’t be changed afterwards. Before joining, everyone is told
+          that people from other Circles will see their first name and username.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Invite someone from outside', summary: 'A link to a single Plan, with or without an account',
         body: <>
           <P><strong>Invite</strong> → “Outside guest”: a link to share (WhatsApp, text, QR code). The person sees{' '}

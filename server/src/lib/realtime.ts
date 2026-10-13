@@ -15,6 +15,8 @@ import { notifyPlanActivity, PlanActivityKind } from './planNotifications';
 // photo ou fichier selon le fichier envoyé
 export type WriteTarget = {
   planId?: string; circleId?: string; circleWide?: boolean; section?: PlanSection;
+  /** Plan pour plusieurs Cercles : autres Cercles dont les listes se rechargent aussi */
+  extraCircleIds?: string[];
   activity?: PlanActivityKind | 'file';
 } | null;
 
@@ -43,7 +45,7 @@ export function broadcastWrites(resolve: (req: Request) => Promise<WriteTarget>)
         }
         if (target.planId) io.to(`plan:${target.planId}`).emit('plan-updated', { planId: target.planId });
         if (target.circleId && target.circleWide !== false) {
-          io.to(`circle:${target.circleId}`).emit('circle-updated', { circleId: target.circleId });
+          for (const id of [target.circleId, ...(target.extraCircleIds ?? [])]) io.to(`circle:${id}`).emit('circle-updated', { circleId: id });
         }
       });
     }
@@ -55,9 +57,9 @@ const segments = (req: Request) => req.path.split('/').filter(Boolean);
 
 async function planTarget(planId: string | undefined, circleWide: boolean, section?: PlanSection, activity?: PlanActivityKind | 'file'): Promise<WriteTarget> {
   if (!planId) return null;
-  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, circleId: true } });
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, circleId: true, extraCircles: { select: { circleId: true } } } });
   // Une activité dans un onglet rafraîchit aussi la liste du Cercle, pour la pastille de la carte
-  return plan ? { planId: plan.id, circleId: plan.circleId, circleWide: circleWide || !!section, section, activity } : null;
+  return plan ? { planId: plan.id, circleId: plan.circleId, extraCircleIds: plan.extraCircles.map(e => e.circleId), circleWide: circleWide || !!section, section, activity } : null;
 }
 
 // Notification d'activité pour POST|PUT /api/plans/:id/<b>. Pas pour join / rsvp / lien

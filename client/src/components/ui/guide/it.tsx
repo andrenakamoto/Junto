@@ -77,6 +77,13 @@ const groups: Group[] = [
           notifica, né email). Gli altri vedono una fascia che ricorda per chi è la sorpresa.</P>,
       },
       {
+        id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan per più Cerchi', summary: 'Un solo Plan per più gruppi',
+        body: <P>Se sei creatore o organizzatore di più Cerchi (una scuola, un club con più gruppi), spunta
+          <strong> «Plan per più Cerchi»</strong> in «Partecipanti» alla creazione: il Plan appare in ogni Cerchio scelto, con una
+          sola chat e un solo elenco di partecipanti. I Cerchi non si possono più cambiare dopo. Prima di unirsi, ognuno viene
+          avvisato che persone di altri Cerchi vedranno il suo nome e il suo pseudonimo.</P>,
+      },
+      {
         id: 'invites', emoji: '🔗', title: 'Invitare qualcuno di esterno', summary: 'Un link verso un solo Plan, con o senza account',
         body: <>
           <P><strong>Invita</strong> → «Persona esterna»: un link da condividere (WhatsApp, SMS, codice QR). La persona vede{' '}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { MuteProvider } from '../contexts/MuteContext';
+import { isCircleManager } from '../lib/settings';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
@@ -622,6 +623,7 @@ export function DashboardPage() {
             selectedPollId={selectedPollId}
             onSelectPoll={openPoll}
             onlineUserIds={onlineUserIds}
+            otherManagedCircles={circles.filter(c => c.id !== selectedCircle.id && !c.isPersonal && isCircleManager(c, user?.id))}
           />
         </div>
       ) : (

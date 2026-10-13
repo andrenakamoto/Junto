@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
-import { getPlanAccess } from '../lib/planAccess';
+import { getPlanAccess, planCircleIds } from '../lib/planAccess';
 import { ensureInviteToken } from '../lib/express';
 import { escapeHtml } from '../lib/escapeHtml';
 
@@ -65,6 +65,11 @@ async function resolveInvite(req: AuthRequest): Promise<Invite | { error: string
     plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, circleId: true } });
     if (!plan) return { error: 'Plan introuvable', status: 404 };
     circleId = plan.circleId;
+    // Plan pour plusieurs Cercles : le lien « rejoindre » mène au Cercle de la personne qui invite
+    if (!guest) {
+      const mine = await prisma.circleMember.findFirst({ where: { userId: req.userId!, circleId: { in: await planCircleIds(plan) } }, select: { circleId: true }, orderBy: { joinedAt: 'asc' } });
+      if (mine) circleId = mine.circleId;
+    }
   }
   if (guest && plan) {
     const token = await ensureInviteToken(plan.id);

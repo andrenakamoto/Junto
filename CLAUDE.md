@@ -641,8 +641,10 @@ Junto/
   bloc ambre en tête de `PlanList`, au-dessus des sondages, affiché
   seulement s'il y a des demandes.
 - **Fenêtres « Créer un Plan » / « Modifier le Plan »** (refaites le 2026-10-13, `components/plans/PlanFormParts.tsx`) :
-  l'essentiel en haut (titre, **quand** — la fin se remplit seule, début + 3 h, `DEFAULT_DURATION_MS`, affichée en petit avec
-  « Modifier » ; sans date, un lien fait choisir la fin, obligatoire —, lieu, description), puis **« Plus d'options »** : une
+  l'essentiel en haut (titre, **date et heure de début** et **de fin** — deux champs distincts, **obligatoires**, la fin se
+  remplit seule à début + 3 h tant qu'on ne l'a pas touchée, `DEFAULT_DURATION_MS` ; le début propose la date et l'heure
+  actuelles au toucher —, **lieu obligatoire**, description ; contrôlé aussi par POST /circles/:id/plans, `missingPlanBasics`),
+  puis **« Plus d'options »** : une
   ligne repliée par sujet (`OptionRow`) avec le réglage actuel en gris, en corail s'il sort de l'ordinaire — Répétition,
   Participants (limite, Plan surprise), Infos importantes (création seulement), Fonctions (`FeaturesField`), Règles (dates et
   lieu, infos importantes, suppression). Participant non créateur : dates et lieu seulement.
@@ -1146,6 +1148,21 @@ Junto/
   corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
   partagé avec InfosTab) · Agenda (.ics) · Story. Sur téléphone, ces trois entrées ne sont plus
   dans le menu ⋮ (toujours là sur tablette, où la barre n'existe pas).
+- **Plan pour plusieurs Cercles** (2026-10-13, demandé pour une école de danse) : table **PlanCircle** (planId + circleId,
+  migration `20261015100000_plan_circles`) = Cercles **en plus** de `Plan.circleId`. Choisis **à la création seulement**
+  (`extraCircleIds` de POST /circles/:id/plans, `parseExtraCircles` dans `circles.ts`) par une personne **créatrice ou
+  organisatrice de chacun** (et du Cercle du Plan), jamais un Cercle personnel ; PUT /plans/:id ne les change pas. Assemblée
+  refusée (ses votants = un seul Cercle). Accès : `getPlanAccess` (membre de l'un des Cercles), `visiblePlansWhere`,
+  `plansOfCircleWhere` (liste d'un Cercle), `planCircleIds`, `guestIdsAmong` / `validateExclusions` acceptent plusieurs Cercles.
+  Carte du Cercle (nombre de Plans, prochain Plan, pastille) et « Tous mes plans » (affiché sous le Cercle de la personne)
+  les comptent ; `circles` renvoyé par GET /circles/:id/plans, GET /plans et GET /plans/:id (jamais à un invité externe).
+  Notification « Nouveau Plan » aux membres de chaque Cercle, une seule fois par personne ; temps réel vers tous les Cercles
+  (`extraCircleIds` du WriteTarget). Quitter un Cercle ne fait sortir que des Plans qu'on ne voit plus par un autre Cercle
+  (`removeFromGamesInPlans`). Répétitions : mêmes Cercles tant que le créateur en reste gestionnaire. Gestionnaires d'un tel
+  Plan (jeux, planning, récap…) = ceux du Cercle du Plan. Client : case dans la ligne « Participants » de la création
+  (`otherManagedCircles`, passé par DashboardPage → PlanList), étiquette « N Cercles » (`PlanCard`, `PlanDetail`) et
+  **avertissement avant de rejoindre** (`withMultiWarning` dans `PlanDetail` : rejoindre ou liste d'attente, si pas encore
+  membre). Fiche du guide « Plan pour plusieurs Cercles ».
 - **Invités externes et Plans surprise** (2026-09-27) — règles d'accès
   centralisées dans `server/src/lib/planAccess.ts` (`getPlanAccess`,
   `visiblePlansWhere`, `guestIdsAmong`, `validateExclusions`) : **toute
