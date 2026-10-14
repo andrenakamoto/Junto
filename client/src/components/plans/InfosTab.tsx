@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { AlignLeft, MapPin, Paperclip, FileText, File, Trash2, Download, Loader2, Images } from 'lucide-react';
+import { AlignLeft, MapPin, Paperclip, FileText, File, Trash2, Download, Loader2, Images, ImagePlus } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Plan, Attachment } from '../../types';
 import api from '../../services/api';
@@ -88,8 +88,10 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   }
 
   const showFiles = isEnabled(plan, 'fichiers');
+  // Affiche du Plan (flyer…) : « affiche-… », une seule, en grand tout en haut (serveur : ?via=affiche)
+  const poster = (plan.attachments || []).find(a => a.name.startsWith('affiche-') && isImage(a.mimeType));
   // Les messages vocaux restent dans le chat (ils ne sont pas des fichiers du Plan à consulter)
-  const attachments = (plan.attachments || []).filter(a => !isVoiceNote(a));
+  const attachments = (plan.attachments || []).filter(a => !isVoiceNote(a) && a !== poster);
   const imageAttachments = attachments.filter(a => isImage(a.mimeType));
   const fileAttachments = attachments.filter(a => !isImage(a.mimeType));
   const isCreator = plan.creatorId === userId;
@@ -98,6 +100,9 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6 short:flex-none short:overflow-visible">
+      {(poster || plan.canManageFiles) && (
+        <PosterSection plan={plan} poster={poster} onChanged={refresh} onDelete={() => poster && handleDelete(poster)} />
+      )}
       {organizerFiles && (
         <div className="space-y-3">
           {imageAttachments.map(att => (
@@ -226,6 +231,53 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
         </button>
         <p className="text-xs text-slate-400 mt-1">{t('plan.infos.formats')}</p>
       </div>}
+    </div>
+  );
+}
+
+// Affiche du Plan (le flyer d'une soirée…) : en grand tout en haut ; le créateur et les organisateurs l'ajoutent ou la changent
+function PosterSection({ plan, poster, onChanged, onDelete }: { plan: Plan; poster?: Attachment; onChanged: () => Promise<void> | void; onDelete: () => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function upload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setError(t('plan.infos.fileTooBig')); return; }
+    setBusy(true); setError('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      await api.post(`/attachments/plans/${plan.id}?via=affiche`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await onChanged();
+    } catch (err: any) {
+      setError(err.response?.data?.error || t('plan.infos.uploadError'));
+    } finally { setBusy(false); }
+  }
+  return (
+    <div className="space-y-2">
+      {poster && <Poster att={poster} token={plan.mediaToken} canDelete={!!plan.canManageFiles} onDelete={onDelete} />}
+      {plan.canManageFiles && (
+        <div>
+          <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={upload} />
+          {poster ? (
+            <button onClick={() => inputRef.current?.click()} disabled={busy} className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 disabled:opacity-50">
+              {busy ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />}{busy ? t('plan.infos.uploading') : t('plan.infos.changeFlyer')}
+            </button>
+          ) : (
+            <>
+              <button onClick={() => inputRef.current?.click()} disabled={busy}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-indigo-300 text-sm font-medium text-indigo-600 hover:bg-indigo-50 disabled:opacity-50">
+                {busy ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+                {busy ? t('plan.infos.uploading') : t('plan.infos.addFlyer')}
+              </button>
+              <p className="text-xs text-slate-400 mt-1">{t('plan.infos.flyerHint')}</p>
+            </>
+          )}
+          {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        </div>
+      )}
     </div>
   );
 }

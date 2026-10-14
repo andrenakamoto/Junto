@@ -28,7 +28,7 @@ const settings: Dict['settings'] = {
   },
   annonce: {
     title: 'Modalità annuncio',
-    hint: 'Voi informate, i partecipanti rispondono. Funzioni disattivate; l’elenco dei partecipanti, la locandina e i documenti sono riservati al creatore e agli organizzatori.',
+    hint: 'Voi informate, i partecipanti rispondono. Restano attivi solo «Foto e file», e l’elenco dei partecipanti è riservato al creatore e agli organizzatori. Aggiungete il vostro volantino come locandina nella scheda Info.',
   },
   importantInfo: {
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore modifica le informazioni importanti' },

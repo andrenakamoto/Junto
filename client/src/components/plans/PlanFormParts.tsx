@@ -98,10 +98,12 @@ export function rulesAreDefault(editMode: EditMode, importantInfoMode: EditMode,
   return editMode === 'creator' && importantInfoMode === 'creator' && deletionMode === 'vote' && membersVisibility === 'all';
 }
 
-// Mode annonce (spectacle, cours, sortie de club) : toutes les fonctions décochées, liste des participants réservée
+// Mode annonce (soirée, spectacle, cours, sortie de club) : fonctions décochées sauf « Photos et fichiers » (l'affiche,
+// les documents), liste des participants réservée
 export const ALL_BASE_FEATURES: PlanFeature[] = ['chat', 'trajets', 'votes', 'depenses', 'fichiers'];
+export const ANNONCE_DISABLED: PlanFeature[] = ['chat', 'trajets', 'votes', 'depenses'];
 export function isAnnonce(disabled: PlanFeature[], enabled: OptionalFeature[], membersVisibility: string) {
-  return ALL_BASE_FEATURES.every(f => disabled.includes(f)) && enabled.length === 0 && membersVisibility === 'managers';
+  return ANNONCE_DISABLED.every(f => disabled.includes(f)) && enabled.length === 0 && membersVisibility === 'managers';
 }
 
 export function AnnonceToggle({ active, onChange }: { active: boolean; onChange: (on: boolean) => void }) {

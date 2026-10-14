@@ -52,7 +52,12 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const viaAssembly = req.query.via === 'assemblee' && plan.enabledFeatures.includes('assemblee');
     // « Photos et fichiers » décoché : seuls le créateur et les organisateurs ajoutent (affiche et documents de l'onglet Infos)
     const organizer = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
-    if (!viaMatch && !viaQuiz && !viaAssembly && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    // Affiche du Plan (?via=affiche, flyer d'une soirée…) : une seule, en grand en haut de l'onglet Infos, nommée « affiche-… » ;
+    // créateur du Plan et gestionnaires du Cercle, que « Photos et fichiers » soit coché ou non
+    const viaPoster = req.query.via === 'affiche';
+    if (viaPoster && !organizer) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
+    if (viaPoster && !req.file.mimetype.startsWith('image/')) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
+    if (!viaMatch && !viaQuiz && !viaAssembly && !viaPoster && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -86,10 +91,19 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const mimeType = req.file.mimetype.split(';')[0].trim();
     const result = await storeFile(req.file.buffer, req.params.planId, mimeType, isImageMime ? 'image' : isVoice ? 'video' : 'raw');
 
+    // Nouvelle affiche : l'ancienne est supprimée (fichier compris)
+    if (viaPoster) {
+      const old = await prisma.attachment.findMany({ where: { planId: plan.id, name: { startsWith: 'affiche-' } } });
+      if (old.length) {
+        await destroyFiles(old).catch(e => console.error('[poster replace]', e));
+        await prisma.attachment.deleteMany({ where: { id: { in: old.map(a => a.id) } } });
+      }
+    }
+    const baseName = fixUploadedFileName(req.file.originalname);
     const attachment = await prisma.attachment.create({
       data: {
         planId:       req.params.planId,
-        name:         fixUploadedFileName(req.file.originalname),
+        name:         viaPoster ? `affiche-${baseName.replace(/^affiche-/, '')}` : baseName,
         url:          result.url,
         publicId:     result.publicId,
         resourceType: result.resourceType,

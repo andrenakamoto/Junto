@@ -7,7 +7,7 @@ import api from '../../services/api';
 import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
 import { MembersVisibility } from '../../lib/settings';
-import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, AnnonceToggle, ALL_BASE_FEATURES, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, AnnonceToggle, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { AlertTriangle, Layers, Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
@@ -58,7 +58,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
   // Mode annonce : toutes les fonctions décochées, liste des participants réservée (et retour au standard)
   function setAnnonce(on: boolean) {
-    setDisabledFeatures(on ? ALL_BASE_FEATURES : []);
+    setDisabledFeatures(on ? ANNONCE_DISABLED : []);
     setEnabledFeatures([]);
     setMembersVisibility(on ? 'managers' : 'all');
     if (on) setImportantInfoMode('creator');

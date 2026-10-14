@@ -28,7 +28,7 @@ const settings: Dict['settings'] = {
   },
   annonce: {
     title: 'Ankündigungsmodus',
-    hint: 'Ihr informiert, die Teilnehmenden antworten. Funktionen ausgeschaltet; die Teilnehmerliste, das Plakat und die Dokumente bleiben der erstellenden Person und den Organisatoren vorbehalten.',
+    hint: 'Ihr informiert, die Teilnehmenden antworten. Nur «Fotos und Dateien» bleiben aktiv, und die Teilnehmerliste bleibt der erstellenden Person und den Organisatoren vorbehalten. Fügt euren Flyer als Plakat im Tab Infos hinzu.',
   },
   importantInfo: {
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller bearbeitet die wichtigen Infos' },

@@ -27,7 +27,7 @@ export default {
   },
   annonce: {
     title: 'Mode annonce',
-    hint: 'Vous informez, les participants répondent. Fonctions désactivées ; la liste des participants, l’affiche et les documents sont réservés au créateur et aux organisateurs.',
+    hint: 'Vous informez, les participants répondent. Seuls « Photos et fichiers » restent actifs, et la liste des participants est réservée au créateur et aux organisateurs. Ajoutez votre flyer en affiche dans l’onglet Infos.',
   },
   importantInfo: {
     creator: { label: 'Créateur seul', hint: 'Seul le créateur modifie les informations importantes' },

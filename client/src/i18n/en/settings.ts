@@ -28,7 +28,7 @@ const settings: Dict['settings'] = {
   },
   annonce: {
     title: 'Announcement mode',
-    hint: 'You inform, participants reply. Features turned off; the participant list, poster and documents are reserved for the creator and organisers.',
+    hint: 'You inform, participants reply. Only “Photos and files” stay on, and the participant list is reserved for the creator and organisers. Add your flyer as a poster in the Info tab.',
   },
   importantInfo: {
     creator: { label: 'Creator only', hint: 'Only the creator edits the important information' },
