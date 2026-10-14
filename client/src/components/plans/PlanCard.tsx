@@ -111,19 +111,22 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
         {myMember && (plan._count?.messages ?? 0) > 0 && (
           <span className="flex items-center gap-1"><MessageSquare size={10} />{plan._count!.messages}</span>
         )}
-        {onSummary && myMember && myMember.rsvp !== 'out' && (
-          // Dans la carte (elle-même un bouton) : « role=button » pour ne pas imbriquer deux boutons
+      </div>
+      {onSummary && myMember && myMember.rsvp !== 'out' && (
+        // Sur sa propre ligne, en bouton à contour gris : une action, à ne pas confondre avec les pastilles de statut.
+        // Dans la carte (elle-même un bouton) : « role=button » pour ne pas imbriquer deux boutons
+        <div className="flex justify-end mt-2.5">
           <span
             role="button"
             tabIndex={0}
             onClick={e => { e.stopPropagation(); onSummary(); }}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSummary(); } }}
-            className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200 hover:bg-indigo-100"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-slate-600 text-xs font-semibold border border-slate-300 hover:bg-slate-50 hover:border-slate-400"
           >
             <Sparkles size={11} />{t('plan.summary.button')}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </button>
   );
 }
