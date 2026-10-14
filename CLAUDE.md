@@ -411,6 +411,9 @@ Conséquences pratiques :
     **Version 1.0.16** (2026-10-13) : Android `versionCode` 18 (`evly-1.0.16-(18).aab`, remplace le 17), iOS build 19 envoyé (remplace le 18) — Plan pour plusieurs
     Cercles, Mode annonce (affiche, liste des participants réservée), nouvelle fenêtre de création (début, fin, lieu obligatoires),
     transports publics par adresse ou lieu, suppression des sondages, annulation d'un Plan notifiée, « Tout effacer » de la cloche.
+    **Version 1.0.17** (2026-10-14) : Android `versionCode` 19 (`evly-1.0.17-(19).aab`), iOS build 20 envoyé — photos de profil et
+    de Cercle, affiche du Plan (Mode annonce avec « Photos et fichiers »), participants dans l'ordre d'arrivée, bouton retour
+    Android qui ferme d'abord les fenêtres, Plan multi-Cercles ouvert dans le bon Cercle, « En bref » en bouton gris.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
