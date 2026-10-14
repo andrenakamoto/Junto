@@ -1,6 +1,7 @@
 import prisma from './prisma';
 import { nextCircleCreator } from './circleRoles';
 import { purgePlanFiles, purgeCircleFiles } from './storage';
+import { deletePhoto } from './photos';
 
 // Supprime un compte sans pénaliser les autres membres :
 // - ses Cercles passent au membre le plus ancien (supprimés s'il était seul) ;
@@ -50,5 +51,8 @@ export async function deleteUserAccount(userId: string) {
     await prisma.plan.update({ where: { id: plan.id }, data: { creatorId: heir.userId } });
   }
 
+  // Photo de profil
+  const me = await prisma.user.findUnique({ where: { id: userId }, select: { avatarKey: true } });
+  await deletePhoto(me?.avatarKey).catch(() => {});
   await prisma.user.delete({ where: { id: userId } });
 }

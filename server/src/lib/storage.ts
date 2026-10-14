@@ -144,4 +144,9 @@ export async function purgePlanFiles(planIds: string[]) {
 export async function purgeCircleFiles(circleId: string) {
   const plans = await prisma.plan.findMany({ where: { circleId }, select: { id: true } });
   await purgePlanFiles(plans.map(p => p.id));
+  // Photo du Cercle (lib/photos.ts) : même dossier STORAGE_DIR/photos
+  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { photoKey: true } });
+  if (circle?.photoKey && /^[0-9a-f-]{36}$/.test(circle.photoKey)) {
+    await Promise.all(['', '-s'].map(s => fs.rm(path.join(STORAGE_DIR, 'photos', `${circle.photoKey}${s}.jpg`), { force: true })));
+  }
 }

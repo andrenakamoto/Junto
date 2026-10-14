@@ -9,9 +9,10 @@ import account from './account';
 import notif from './notif';
 import votes from './votes';
 import games from './games';
+import photos from './photos';
 
 // Textes français d'EvLY, langue d'origine. Chaque fichier = un domaine de l'app.
-const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games };
+const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos };
 export default fr;
 
 // Même structure, chaînes de caractères dans une autre langue

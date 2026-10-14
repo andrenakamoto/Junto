@@ -89,6 +89,7 @@ export default {
     fields: {
       name: 'Nom',
       description: 'Description',
+      photo: 'Photo',
       admissionMode: 'Admission',
       planCreationMode: 'Création des Plans',
       pollCreationMode: 'Création des sondages',

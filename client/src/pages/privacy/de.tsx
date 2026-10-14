@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 12. Oktober 2026',
+  version: 'Fassung vom 14. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -46,6 +46,11 @@ const de: PrivacyText = {
         <li><strong>Vorschläge</strong> («Eine Verbesserung vorschlagen»): deine Nachricht, ihre Art (Idee, Problem,
           anderes), das verwendete Gerät und die App-Version sowie die allfällige Antwort des Teams. Nur vom
           Administrator von EvLY gelesen, der sie auch per E-Mail erhält; gelöscht mit deinem Konto.</li>
+        <li><strong>Profilfoto und Foto eines Kreises</strong> (freiwillig): das Foto, das du deinem Profil oder einem von dir
+          verwalteten Kreis hinzufügst. EvLY schneidet es zu und entfernt vor dem Speichern alle Metadaten (darunter den
+          GPS-Standort). Ein ersetztes oder entferntes Foto wird gelöscht; dein Profilfoto auch mit deinem Konto, das Foto eines
+          Kreises mit dem Kreis. Meldet jemand ein Foto, sieht die Administration von EvLY es mit dem allfälligen Grund und kann
+          es entfernen.</li>
         <li><strong>Was du veröffentlichst</strong>: Nachrichten und Reaktionen, Antworten auf Pläne (ja / vielleicht /
           nein), Stimmen, Infos zu Plänen, Fotos, Sprachnachrichten und Dateien, Fahrten der Fahrgemeinschaft,
           Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate, Antworten und Punkte im Quiz) und an einer Geschenkkasse (Betrag,
@@ -94,6 +99,9 @@ const de: PrivacyText = {
         <li>Ein Überraschungsplan ist für die Personen, vor denen er verborgen ist, unsichtbar.</li>
         <li>Fotos, Sprachnachrichten und Dateien sind nur über EvLY zugänglich, mit befristeten, den Mitgliedern
           vorbehaltenen Links.</li>
+        <li>Dein <strong>Profilfoto</strong> sehen die Personen, mit denen du einen Kreis oder einen Plan teilst, das Foto eines
+          Kreises seine Mitglieder. Damit sie schnell angezeigt werden, haben diese beiden Fotos eine feste, lange und nicht
+          zu erratende Adresse, die nur diesen Personen mitgeteilt wird.</li>
         <li>Die Nachrichten (Chat der Pläne und Umfragen) sind <strong>in der Datenbank verschlüsselt</strong>, mit einem
           getrennt aufbewahrten Schlüssel: Eine Kopie der Datenbank erlaubt es nicht, sie zu lesen. E-Mails zu
           Erwähnungen nennen nur, wer dich erwähnt hat und in welchem Plan, ohne den Inhalt der Nachricht.</li>

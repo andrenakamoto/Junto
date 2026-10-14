@@ -312,6 +312,19 @@ const groups: Group[] = [
     title: 'Ton compte',
     topics: [
       {
+        id: 'photos', emoji: '🖼️', title: 'Photos de profil et de Cercle', summary: 'Ta tête, et celle de ton groupe',
+        body: <>
+          <P><strong>Photo de profil</strong> : menu ☰ → <strong>Mon profil</strong> → « Ajouter une photo ». Cadre-la en la faisant
+            glisser, zoome à deux doigts. Elle remplace tes initiales partout : chat, membres, votes… Seules les personnes avec qui tu
+            partages un Cercle ou un Plan la voient.</P>
+          <P><strong>Photo du Cercle</strong> : le créateur et les organisateurs l'ajoutent dans les réglages du Cercle (⚙︎). Elle
+            s'affiche en bandeau en haut de la carte du Cercle et de la liste de ses Plans.</P>
+          <P>Touche l'avatar de quelqu'un pour voir sa photo en grand. Une photo choquante ? <strong>Signaler la photo</strong>{' '}
+            (dans sa fiche, ou dans les réglages du Cercle) : l'équipe d'EvLY la vérifie et peut la retirer. Les photos sont gardées en
+            Suisse, sans leur position GPS.</P>
+        </>,
+      },
+      {
         id: 'compte', emoji: '👤', title: 'Compte, apps et suggestions', summary: 'Profil, applications, proposer une idée',
         body: <>
           <P>Menu ☰ en bas à gauche : <strong>Mon profil</strong> (prénom, nom, email), mot de passe, notifications,{' '}

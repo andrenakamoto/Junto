@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 12 October 2026',
+  version: 'Version of 14 October 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -44,6 +44,10 @@ const en: PrivacyText = {
         <li><strong>Suggestions</strong> (“Suggest an improvement”): your message, its type (idea, problem, other), the
           device and app version used, and any reply from the team. Read only by the EvLY administrator, who also
           receives them by email; deleted with your account.</li>
+        <li><strong>Profile photo and Circle photo</strong> (optional): the photo you add to your profile, or to a Circle you
+          manage. EvLY crops it and removes all its metadata (including the GPS location) before storing it. A replaced or
+          removed photo is deleted; your profile photo is also deleted with your account, a Circle's photo with the Circle. If
+          someone reports a photo, the EvLY administrator sees it with the reason given, if any, and can remove it.</li>
         <li><strong>What you publish</strong>: messages and reactions, replies to Plans (yes / maybe / no), votes, Plan
           information, photos, voice messages and files, car-sharing rides, participation in games (Secret Santa,
           Killer, trap word, teams and scores, quiz answers and points) and in a gift pot (amount, payment reported), expenses and
@@ -89,6 +93,9 @@ const en: PrivacyText = {
         <li>A Surprise Plan is invisible to the people it is hidden from.</li>
         <li>Photos, voice messages and files are only accessible from EvLY, through temporary links reserved for
           members.</li>
+        <li>Your <strong>profile photo</strong> is visible to the people you share a Circle or a Plan with, and a Circle's
+          photo to its members. To load quickly, these two photos have a fixed, long address that cannot be guessed and is
+          only given to those people.</li>
         <li>Messages (Plan and poll chats) are <strong>encrypted in the database</strong>, with a key kept separately: a
           copy of the database does not make them readable. Mention emails only say who mentioned you and in which Plan,
           without the content of the message.</li>

@@ -507,6 +507,8 @@ function recomputeStandings(st: any) {
   st.championId = st.matches.every((m: any) => m.homeScore != null) ? st.standings[0]?.teamId ?? null : null;
 }
 
+const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'zoe_m'];
+
 function route(method: string, path: string, body: any): any {
   const key = `${method} ${path}`;
   let m: RegExpMatchArray | null;
@@ -515,6 +517,8 @@ function route(method: string, path: string, body: any): any {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
     if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
     if ((m = path.match(/^\/plans\/([^/]+)\/summary$/))) return demoSummary(m[1]);
+    // Photos de profil : avatars dessinés (public/demo/avatars, client/scripts/demo-avatars.py)
+    if (path === '/photos/people') return Object.fromEntries(DEMO_AVATARS.map(p => [p, `demo/avatars/${p}.svg`]));
     // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
     if (path === '/circles') return (fixtures![key] as any[]).map(c => {
       const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());

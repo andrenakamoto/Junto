@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 12 ottobre 2026',
+  version: 'Versione del 14 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -44,6 +44,11 @@ const it: PrivacyText = {
         <li><strong>Suggerimenti</strong> («Proponi un miglioramento»): il tuo messaggio, il suo tipo (idea, problema,
           altro), il dispositivo e la versione dell’app usati e l’eventuale risposta del team. Letti solo
           dall’amministratore di EvLY, che li riceve anche per email; eliminati con il tuo account.</li>
+        <li><strong>Foto del profilo e foto del Cerchio</strong> (facoltative): la foto che aggiungi al tuo profilo, o a un
+          Cerchio che gestisci. EvLY la ritaglia e ne rimuove tutti i metadati (compresa la posizione GPS) prima di salvarla.
+          Una foto sostituita o rimossa viene cancellata; la tua foto del profilo anche con il tuo account, quella di un Cerchio
+          con il Cerchio. Se qualcuno segnala una foto, l'amministrazione di EvLY la vede con l'eventuale motivo e può
+          rimuoverla.</li>
         <li><strong>Ciò che pubblichi</strong>: messaggi e reazioni, risposte ai Plan (sì / forse / no), voti, informazioni
           dei Plan, foto, messaggi vocali e file, passaggi in car pooling, partecipazioni ai giochi (Babbo Natale segreto,
           Killer, parola trappola, squadre e punteggi, risposte e punti del quiz) e a una colletta (importo, pagamento segnalato), spese e
@@ -88,6 +93,9 @@ const it: PrivacyText = {
           rinnovare il link in qualsiasi momento; quello vecchio smette allora di funzionare.</li>
         <li>Un Plan a sorpresa è invisibile alle persone a cui è nascosto.</li>
         <li>Foto, messaggi vocali e file sono accessibili solo da EvLY, tramite link temporanei riservati ai membri.</li>
+        <li>La tua <strong>foto del profilo</strong> è visibile alle persone con cui condividi un Cerchio o un Plan, e la foto
+          di un Cerchio ai suoi membri. Per essere mostrate rapidamente, queste due foto hanno un indirizzo fisso, lungo e
+          impossibile da indovinare, comunicato solo a queste persone.</li>
         <li>I messaggi (chat dei Plan e dei sondaggi) sono <strong>cifrati nella banca dati</strong>, con una chiave
           conservata separatamente: una copia della banca dati non permette di leggerli. Le email di menzione indicano
           solo chi ti ha menzionato e in quale Plan, senza il contenuto del messaggio.</li>

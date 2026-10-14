@@ -187,4 +187,11 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Pas de question en cours': ['Keine laufende Frage', 'Nessuna domanda in corso', 'No question in progress'],
   'Le résumé est réservé aux participants': ['Die Übersicht ist den Teilnehmenden vorbehalten', 'Il riepilogo è riservato ai partecipanti', 'The summary is for participants only'],
   'Affiche d’abord la réponse': ['Zeig zuerst die Antwort', 'Mostra prima la risposta', 'Show the answer first'],
+  // Photos de profil et de Cercle (2026-10-14)
+  'Signalement invalide': ['Ungültige Meldung', 'Segnalazione non valida', 'Invalid report'],
+  'Image manquante': ['Bild fehlt', 'Immagine mancante', 'Image missing'],
+  'Image illisible': ['Bild nicht lesbar', 'Immagine illeggibile', 'Unreadable image'],
+  'Photo introuvable': ['Foto nicht gefunden', 'Foto non trovata', 'Photo not found'],
+  'Réservé au créateur et aux organisateurs du Cercle': ['Der Person, die den Kreis erstellt hat, und den Organisatoren vorbehalten', 'Riservato a chi ha creato il Cerchio e agli organizzatori', 'Only for the Circle’s creator and organizers'],
+  'Trop de photos envoyées, réessaie plus tard.': ['Zu viele Fotos gesendet, versuch es später noch einmal.', 'Troppe foto inviate, riprova più tardi.', 'Too many photos sent, try again later.'],
 };

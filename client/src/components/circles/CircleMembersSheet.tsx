@@ -125,7 +125,7 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
                   const first = displayName(m.user);
                   return (
                     <li key={m.userId} className="flex items-center gap-3 py-1.5">
-                      <Avatar pseudo={m.user.pseudo} online={onlineUserIds?.has(m.userId)} />
+                      <Avatar pseudo={m.user.pseudo} size="xl" online={onlineUserIds?.has(m.userId)} person={{ userId: m.userId, pseudo: m.user.pseudo, firstName: m.user.firstName }} />
                       <span className="flex-1 min-w-0">
                         <span className="block text-sm font-medium text-slate-800 truncate">
                           {first ?? `@${m.user.pseudo}`}{m.userId === user?.id && <span className="text-slate-400 font-normal">{t('circle.members.you')}</span>}

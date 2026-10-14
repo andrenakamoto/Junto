@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { deletePhoto } from '../lib/photos';
 import prisma from '../lib/prisma';
 import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
@@ -266,6 +267,58 @@ router.post('/reports/:id/resolve', async (req: AuthRequest, res) => {
   await prisma.messageReport.updateMany({
     where: { kind: report.kind, messageId: report.messageId, resolvedAt: null },
     data: { resolvedAt: new Date(), resolution: action === 'delete' ? 'deleted' : 'dismissed', content: '' },
+  });
+  res.json({ ok: true });
+});
+
+// ─── Signalements de photos (profil, Cercle — lib/photos.ts) ───────────────────
+
+// GET /api/admin/photo-reports — en attente, regroupés par photo
+router.get('/photo-reports', async (_req, res) => {
+  const reports = await prisma.photoReport.findMany({
+    where: { resolvedAt: null }, orderBy: { createdAt: 'desc' },
+    include: { reporter: { select: { pseudo: true } } },
+  });
+  const userIds = reports.filter(r => r.kind === 'user').map(r => r.targetId);
+  const circleIds = reports.filter(r => r.kind === 'circle').map(r => r.targetId);
+  const [users, circles] = await Promise.all([
+    prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, pseudo: true, firstName: true, lastName: true, avatarKey: true } }),
+    prisma.circle.findMany({ where: { id: { in: circleIds } }, select: { id: true, name: true, photoKey: true } }),
+  ]);
+  res.json(reports.map(r => {
+    const u = users.find(x => x.id === r.targetId);
+    const c = circles.find(x => x.id === r.targetId);
+    const current = r.kind === 'user' ? u?.avatarKey : c?.photoKey;
+    return {
+      id: r.id, kind: r.kind, createdAt: r.createdAt, reason: r.reason, reporter: r.reporter.pseudo, photoKey: r.photoKey,
+      // La photo a pu changer depuis : on ne montre (et ne retire) que celle qui a été signalée
+      stillOnline: current === r.photoKey,
+      target: r.kind === 'user' ? (u ? `@${u.pseudo}${u.firstName ? ` (${[u.firstName, u.lastName].filter(Boolean).join(' ')})` : ''}` : 'Compte supprimé') : (c ? `Cercle « ${c.name} »` : 'Cercle supprimé'),
+    };
+  }));
+});
+
+// POST /api/admin/photo-reports/:id/resolve { action: 'remove' | 'dismiss' } — tous les signalements de la même photo
+router.post('/photo-reports/:id/resolve', async (req: AuthRequest, res) => {
+  const action = req.body?.action;
+  if (action !== 'remove' && action !== 'dismiss') { res.status(400).json({ error: 'Action invalide' }); return; }
+  const report = await prisma.photoReport.findUnique({ where: { id: req.params.id } });
+  if (!report) { res.status(404).json({ error: 'Signalement introuvable' }); return; }
+  if (action === 'remove') {
+    if (report.kind === 'user') {
+      const n = await prisma.user.updateMany({ where: { id: report.targetId, avatarKey: report.photoKey }, data: { avatarKey: null } });
+      if (n.count) await deletePhoto(report.photoKey);
+    } else {
+      const n = await prisma.circle.updateMany({ where: { id: report.targetId, photoKey: report.photoKey }, data: { photoKey: null } });
+      if (n.count) {
+        await deletePhoto(report.photoKey);
+        req.app.get('io')?.to(`circle:${report.targetId}`).emit('circle-updated', { circleId: report.targetId });
+      }
+    }
+  }
+  await prisma.photoReport.updateMany({
+    where: { kind: report.kind, targetId: report.targetId, photoKey: report.photoKey, resolvedAt: null },
+    data: { resolvedAt: new Date(), resolution: action === 'remove' ? 'removed' : 'dismissed' },
   });
   res.json({ ok: true });
 });

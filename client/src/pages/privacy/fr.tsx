@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 12 octobre 2026',
+  version: 'Version du 14 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -50,6 +50,11 @@ const fr: PrivacyText = {
           problème, autre), l'appareil et la version de l'app utilisés, et la réponse éventuelle de
           l'équipe. Lus uniquement par l'administrateur d'EvLY, qui les reçoit aussi par email ;
           supprimés avec ton compte.</li>
+        <li><strong>Photo de profil et photo de Cercle</strong> (facultatives) : la photo que tu ajoutes à ton profil, ou à un
+          Cercle que tu gères. EvLY la recadre et en retire toutes les métadonnées (dont la position GPS) avant de
+          l'enregistrer. Une photo remplacée ou retirée est effacée ; ta photo de profil l'est aussi avec ton compte, celle d'un
+          Cercle avec le Cercle. Si quelqu'un signale une photo, l'administrateur d'EvLY la voit avec le motif éventuel et
+          peut la retirer.</li>
         <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
           peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
           aux jeux (Père Noël secret, Killer, mot piège, équipes et scores, réponses et points du quiz) et à une cagnotte (montant, paiement signalé),
@@ -99,6 +104,9 @@ const fr: PrivacyText = {
         <li>Un Plan surprise est invisible pour les personnes à qui il est caché.</li>
         <li>Les photos, messages vocaux et fichiers ne sont accessibles que depuis EvLY, par des liens temporaires
           réservés aux membres.</li>
+        <li>Ta <strong>photo de profil</strong> est visible par les personnes avec qui tu partages un Cercle ou un Plan, et la
+          photo d'un Cercle par ses membres. Pour s'afficher rapidement, ces deux photos ont une adresse fixe, longue et
+          impossible à deviner, qui n'est communiquée qu'à ces personnes.</li>
         <li>Les messages (chat des Plans et des sondages) sont <strong>chiffrés dans la base de
           données</strong>, avec une clé conservée séparément : une copie de la base ne permet pas de
           les lire. Les emails de mention indiquent seulement qui t'a mentionné et dans quel Plan,

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
 import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight } from 'lucide-react';
@@ -201,10 +202,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                 }`}
               >
                 {hasUnread && !selected && (
-                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-orange-500 rounded-full" />
+                  <span className="absolute top-2 right-2 z-10 w-2.5 h-2.5 bg-orange-500 rounded-full ring-2 ring-white" />
+                )}
+                {/* Photo du Cercle : bandeau en haut de la carte, à la place de la lettre */}
+                {circle.photoKey && (
+                  <img src={photoUrl(circle.photoKey, true)} alt="" loading="lazy" className="block w-full h-[88px] object-cover rounded-tr-[11px] bg-slate-200" />
                 )}
                 <div className="flex items-center gap-3 px-3 pt-3 pb-2">
-                  <Avatar pseudo={circle.name} size="sm" />
+                  {!circle.photoKey && <Avatar pseudo={circle.name} size="sm" noPhoto />}
                   <div className="flex-1 min-w-0">
                     <p className={`font-semibold text-sm truncate ${selected ? 'text-white' : 'text-slate-800'}`}>
                       {circle.name}

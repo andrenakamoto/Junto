@@ -321,6 +321,19 @@ const groups: Group[] = [
     title: 'Dein Konto',
     topics: [
       {
+        id: 'photos', emoji: '🖼️', title: 'Profilfoto und Foto des Kreises', summary: 'Dein Gesicht und das deiner Gruppe',
+        body: <>
+          <P><strong>Profilfoto</strong>: Menü ☰ → <strong>Mein Profil</strong> → «Foto hinzufügen». Zieh das Foto für den
+            Ausschnitt, zoom mit zwei Fingern. Es ersetzt überall deine Initialen: Chat, Mitglieder, Abstimmungen… Nur Personen,
+            mit denen du einen Kreis oder einen Plan teilst, sehen es.</P>
+          <P><strong>Foto des Kreises</strong>: Die Person, die den Kreis erstellt hat, und die Organisatoren fügen es in den
+            Einstellungen des Kreises hinzu (⚙︎). Es erscheint als Banner oben auf der Karte des Kreises und über seiner Liste der Pläne.</P>
+          <P>Tipp auf das Avatar einer Person, um ihr Foto gross zu sehen. Ein anstössiges Foto? <strong>Foto melden</strong>{' '}
+            (in ihrem Profil oder in den Einstellungen des Kreises): Das Team von EvLY prüft es und kann es entfernen. Die Fotos
+            werden in der Schweiz gespeichert, ohne GPS-Standort.</P>
+        </>,
+      },
+      {
         id: 'compte', emoji: '👤', title: 'Konto, Apps und Vorschläge', summary: 'Profil, Apps, eine Idee vorschlagen',
         body: <>
           <P>Menü ☰ unten links: <strong>Mein Profil</strong> (Vorname, Nachname, E-Mail), Passwort, Benachrichtigungen,{' '}

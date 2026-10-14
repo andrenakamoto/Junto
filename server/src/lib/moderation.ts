@@ -50,22 +50,22 @@ export async function createReport(target: ReportTarget, reporterId: string, rea
     },
     update: { reason, resolvedAt: null, resolution: null },
   });
-  notifyAdmins().catch(e => console.error('[report email]', e));
+  notifyAdmins('message').catch(e => console.error('[report email]', e));
   return report;
 }
 
 // Alerte de signalement : une seule adresse (pas les comptes administrateurs)
 const REPORTS_EMAIL = process.env.REPORTS_EMAIL || 'info@evly.ch';
 
-async function notifyAdmins() {
+export async function notifyAdmins(what: 'message' | 'photo') {
   const r = await resend.emails.send({
     from: FROM_EMAIL,
     to: REPORTS_EMAIL,
     subject: 'Nouveau signalement sur EvLY',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
-        <h2>Un message a été signalé</h2>
-        <p>Un membre a signalé un message. Ouvre le panneau admin pour le lire et décider de la suite.</p>
+        <h2>${what === 'photo' ? 'Une photo a été signalée' : 'Un message a été signalé'}</h2>
+        <p>Un membre a signalé ${what === 'photo' ? 'une photo (profil ou Cercle)' : 'un message'}. Ouvre le panneau admin pour ${what === 'photo' ? 'la voir' : 'le lire'} et décider de la suite.</p>
         <a href="${APP_URL}/admin" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
           Ouvrir le panneau admin
         </a>

@@ -909,8 +909,10 @@ Junto/
   ouvre sa rubrique. **« Copier le résumé »** : texte sans rien de personnel (date, lieu, qui vient, infos importantes, places
   libres, ce qui manque) + lien `/invitation?token=…` (réponse sans compte). Démo : calculée dans `lib/demo.ts` (`demoSummary`) à
   partir des données en mémoire. Fiche « En bref » dans le guide.
-- **PlanMember** : userId+planId, rsvp ("in" par défaut), seen (Json,
-  2026-10-01 : date de dernière consultation de chaque onglet).
+- **PlanMember** : userId+planId, rsvp ("in" par défaut), joinedAt, seen (Json,
+  2026-10-01 : date de dernière consultation de chaque onglet). Depuis le 2026-10-14, les participants sont
+  toujours renvoyés **dans l'ordre d'arrivée** (`orderBy: { joinedAt: 'asc' }` sur tous les includes `members`) et la
+  rubrique Membres est une seule liste dans cet ordre, la réponse sur chaque ligne.
 - **Pastilles « nouveau »** (2026-10-01, `lib/planActivity.ts`) :
   **PlanActivity** (planId+section → date de dernière activité ; sections
   `chat`, `infos`, `trajets`, `membres`, `votes`, `depenses`). Mise à jour
@@ -1153,8 +1155,9 @@ Junto/
   corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
   partagé avec InfosTab) · Agenda (.ics) · Story. Sur téléphone, ces trois entrées ne sont plus
   dans le menu ⋮ (toujours là sur tablette, où la barre n'existe pas).
-- **Mode annonce** (2026-10-13, pour les professionnels : spectacle, cours…) : case `AnnonceToggle` (`PlanFormParts.tsx`)
-  dans la création / modification = toutes les fonctions décochées + **`Plan.membersVisibility` = `managers`** (migration
+- **Mode annonce** (2026-10-13, pour les professionnels : soirée, spectacle, cours…) : case `AnnonceToggle` (`PlanFormParts.tsx`)
+  dans la création / modification = toutes les fonctions décochées **sauf « Photos et fichiers »** (`ANNONCE_DISABLED`, depuis le
+  2026-10-14) + **`Plan.membersVisibility` = `managers`** (migration
   `20261016100000_members_visibility`, réglage « Qui voit les participants » dans Règles, `lib/memberPrivacy.ts` testé).
   Liste réservée : les personnes qui ne sont ni créatrices du Plan ni gestionnaires de son Cercle ne reçoivent **que leur
   propre réponse** (`maskMembers` / `forViewer` sur GET /plans/:id, PUT, join, vote-delete, GET /plans, GET
@@ -1164,6 +1167,10 @@ Junto/
   « @x a rejoint » seulement au créateur et aux organisateurs. **Photos et fichiers décochés** : le créateur et les
   organisateurs du Cercle en ajoutent / suppriment quand même (`canManageFiles` de GET /plans/:id, attachments.ts) ; dans
   Infos, photos **en grand en haut (affiche)** + « Documents ». Récap PDF déjà réservé. Fiche du guide « Mode annonce ».
+- **Affiche d'un Plan** (2026-10-14, le flyer d'une soirée…) : une seule image par Plan, en grand **tout en haut de l'onglet
+  Infos** (`PosterSection` de `InfosTab`), tous les Plans. Envoyée par POST `/attachments/plans/:id?via=affiche` : créateur du
+  Plan et gestionnaires du Cercle seulement, images seulement, que « Photos et fichiers » soit coché ou non ; le serveur la
+  nomme `affiche-…` et supprime l'ancienne (fichier compris). Exclue de la galerie d'Infos (comptée dans le ZIP et « En bref »).
 - **Plan pour plusieurs Cercles** (2026-10-13, demandé pour une école de danse) : table **PlanCircle** (planId + circleId,
   migration `20261015100000_plan_circles`) = Cercles **en plus** de `Plan.circleId`. Choisis **à la création seulement**
   (`extraCircleIds` de POST /circles/:id/plans, `parseExtraCircles` dans `circles.ts`) par une personne **créatrice ou
@@ -1178,7 +1185,8 @@ Junto/
   Plan (jeux, planning, récap…) = ceux du Cercle du Plan. Client : case dans la ligne « Participants » de la création
   (`otherManagedCircles`, passé par DashboardPage → PlanList), étiquette « N Cercles » (`PlanCard`, `PlanDetail`) et
   **avertissement avant de rejoindre** (`withMultiWarning` dans `PlanDetail` : rejoindre ou liste d'attente, si pas encore
-  membre). Fiche du guide « Plan pour plusieurs Cercles ».
+  membre). Ouvrir un tel Plan garde le Cercle depuis lequel on le touche (`handleSelectPlan` de DashboardPage : Cercle
+  ouvert s'il en fait partie, sinon `plan.circle`, sinon un de ses Cercles dont on est membre) ; « Inviter » utilise ce Cercle. Fiche du guide « Plan pour plusieurs Cercles ».
 - **Invités externes et Plans surprise** (2026-09-27) — règles d'accès
   centralisées dans `server/src/lib/planAccess.ts` (`getPlanAccess`,
   `visiblePlansWhere`, `guestIdsAmong`, `validateExclusions`) : **toute
@@ -1380,6 +1388,31 @@ Rappel de la veille : gardé pour ceux qui ont répondu « Je suis in », coupé
 `contexts/MuteContext.tsx` (chargé par DashboardPage), cloche `MuteToggle` sur la **carte du Plan à
 côté de la réponse** et à côté du titre de la fiche, cloche du Cercle dans l'en-tête de `PlanList`,
 🔕 sur la pastille du Cercle, liste « En silence » (réactiver) dans `NotificationSettingsModal`.
+
+**Photos de profil et de Cercle** (2026-10-14, `lib/photos.ts`, `routes/photos.ts` sur `/api/photos`, migration
+`20261017100000_photos`) : `User.avatarKey` et `Circle.photoKey` = clé uuid d'un fichier de `STORAGE_DIR/photos`
+(`<clé>.jpg` grande, `<clé>-s.jpg` miniature). Le client recadre (`PhotoCropper` : carré avec masque rond pour le profil,
+2:1 pour le Cercle, glisser / pincer / curseur) ; le serveur refait l'image par **sharp** (512×512 et 160 ; 1200×600 et
+480×240), ce qui **retire toutes les métadonnées (GPS)**. Image servie **sans connexion** (GET `/api/photos/<clé>.jpg`,
+adresse impossible à deviner, cache 1 an `immutable`) : une nouvelle photo = une nouvelle clé, l'ancienne est effacée.
+PUT/DELETE `/photos/me` ; PUT/DELETE `/photos/circles/:id` (créateur et organisateurs, `isCircleManager`, ligne `photo`
+dans `CircleChangeLog`, `circle-updated`). GET `/photos/people` = `{ pseudo: clé }` des personnes avec qui on partage un
+Cercle ou un Plan (et soi-même) → `contexts/PhotosContext.tsx` (monté dans DashboardPage, rechargé au plus toutes les
+10 s) ; **`Avatar` affiche la photo d'après le pseudo** (`noPhoto` pour la lettre d'un Cercle), prop `person` = toucher
+ouvre `PersonSheet` (grande photo, prénom, @pseudo, « Signaler la photo »). Avatars en 48 px (`xl`) dans la fenêtre
+Membres du Cercle et la rubrique Membres du Plan ; photo du Cercle en bandeau en haut de sa carte (`CircleSidebar`) et
+de la liste des Plans (`PlanList`, nom écrit dessus) ; section photo dans `ProfileModal` et `CircleSettingsModal` (les
+membres y signalent la photo du Cercle). Signalement : table **PhotoReport** (POST `/photos/reports`, email sans image à
+info@evly.ch), admin `PhotoReportsPanel` (GET `/admin/photo-reports`, « Retirer la photo » / « Classer »). Effacées avec
+le compte (`accountDeletion.ts`) et le Cercle (`purgeCircleFiles`). Démo : avatars dessinés (`public/demo/avatars`,
+`client/scripts/demo-avatars.py`, clés `demo/…`), paul_r et max_g gardent leurs initiales. Politique de confidentialité
+(version du 14 octobre 2026) et fiche « Photos de profil et de Cercle » du guide.
+
+**Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
+fenêtre dans une pile ; `NativeChrome` ferme d'abord celle du dessus (`closeTopOverlay`) avant `evly-back`. Branché dans
+`Modal` (toutes les fenêtres standard), `GuideModal`, `PersonSheet`, la visionneuse photo du chat, le menu photo du chat,
+la roue plein écran, les cartes du Match et « Choisir ». **Toute nouvelle fenêtre plein écran hors `Modal` doit
+l'appeler.** (Conditions d'utilisation exclues : à accepter.)
 
 **Signaler / masquer** (2026-10-02, exigence Apple 1.2 et Google pour le contenu
 des utilisateurs, `lib/moderation.ts`, `routes/moderation.ts`) : « Signaler »

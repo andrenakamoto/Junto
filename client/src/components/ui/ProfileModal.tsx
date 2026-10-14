@@ -8,6 +8,9 @@ import api from '../../services/api';
 import { t } from '../../i18n';
 import { Trans } from 'react-i18next';
 import { LanguagePicker } from './LanguagePicker';
+import { Avatar } from './Avatar';
+import { PhotoCropper } from './PhotoCropper';
+import { usePhotos } from '../../contexts/PhotosContext';
 
 interface Props {
   onClose: () => void;
@@ -38,6 +41,7 @@ export function ProfileModal({ onClose }: Props) {
   return (
     <Modal title={t('account.profile.title')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <ProfilePhotoSection />
         <p className="text-sm text-slate-500">
           {t('account.profile.intro', { pseudo: user?.pseudo })}
         </p>
@@ -57,6 +61,45 @@ export function ProfileModal({ onClose }: Props) {
         </div>
       </form>
     </Modal>
+  );
+}
+
+// Photo de profil : recadrée en carré (masque rond), envoyée au serveur qui la refait et en retire les métadonnées
+function ProfilePhotoSection() {
+  const { user } = useAuth();
+  const { avatarOf, setMine } = usePhotos();
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState('');
+  if (!user) return null;
+  const has = !!avatarOf(user.pseudo);
+
+  async function upload(blob: Blob) {
+    const fd = new FormData();
+    fd.append('file', blob, 'photo.jpg');
+    const { data } = await api.put('/photos/me', fd);
+    setMine(user!.pseudo, data.avatarKey);
+    setFile(null);
+  }
+  async function remove() {
+    setError('');
+    try { await api.delete('/photos/me'); setMine(user!.pseudo, null); }
+    catch (err: any) { setError(err.response?.data?.error || t('common.error')); }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <Avatar pseudo={user.pseudo} size="xxl" />
+      <div className="flex gap-2">
+        <label className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 cursor-pointer">
+          {has ? t('photos.change') : t('photos.add')}
+          <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setFile(f); }} />
+        </label>
+        {has && <button type="button" onClick={remove} className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100">{t('photos.remove')}</button>}
+      </div>
+      <p className="text-xs text-slate-400 text-center">{t('photos.profileHint')}</p>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      {file && <PhotoCropper file={file} aspect={1} title={t('photos.profileTitle')} onCancel={() => setFile(null)} onDone={upload} />}
+    </div>
   );
 }
 

@@ -90,6 +90,7 @@ const circle: Dict['circle'] = {
     fields: {
       name: 'Nome',
       description: 'Descrizione',
+      photo: 'Foto',
       admissionMode: 'Ammissione',
       planCreationMode: 'Creazione dei Plan',
       pollCreationMode: 'Creazione dei sondaggi',

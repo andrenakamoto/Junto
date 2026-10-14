@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { useBackClose } from '../../lib/backClose';
 import { Flag, ImageOff, MessageCircle, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
@@ -64,6 +65,7 @@ export function renderContent(content: string, isMe: boolean) {
 
 export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken }: Props) {
   const [viewing, setViewing] = useState(false);
+  useBackClose(() => setViewing(false), viewing);
   const photo = !message.deletedAt && message.attachment?.mimeType.startsWith('image/') ? message.attachment : null;
   const voice = !message.deletedAt && message.attachment?.mimeType.startsWith('audio/') ? message.attachment : null;
   // Message photo dont la photo a été retirée depuis l'onglet Infos (plus de texte ni de photo)
@@ -108,7 +110,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
 
   return (
     <div className={`group flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`} onMouseEnter={placeReactions}>
-      {!isMe && <Avatar pseudo={message.author.pseudo} size="sm" />}
+      {!isMe && <Avatar pseudo={message.author.pseudo} size="sm" person={{ userId: message.author.id, pseudo: message.author.pseudo }} />}
       <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
         {!isMe && (
           <div className="flex items-center gap-2">

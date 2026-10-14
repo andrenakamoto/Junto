@@ -14,6 +14,8 @@ model User {
   // Nullable en base : les comptes créés avant le 2026-09-27 n'en ont pas.
   firstName            String?
   lastName             String?
+  // Photo de profil (lib/photos.ts) : clé du fichier dans STORAGE_DIR/photos, null = initiales
+  avatarKey            String?
   // Langue de l'app, des emails et des notifications (fr, de, it, en) ; null = pas encore choisie
   locale               String?
   password             String?
@@ -91,6 +93,7 @@ model User {
   circlePollMessages     CirclePollMessage[]   @relation("CirclePollMessages")
   pushTokens             PushToken[]
   reportsMade            MessageReport[]       @relation("ReportReporter")
+  photoReportsMade       PhotoReport[]         @relation("PhotoReportReporter")
   reportsReceived        MessageReport[]       @relation("ReportAuthor")
   suggestions            Suggestion[]
   blocking               UserBlock[]           @relation("BlockBy")
@@ -127,6 +130,8 @@ model Circle {
   code             String   @unique
   description      String?
   color            String?
+  // Photo de couverture du Cercle (lib/photos.ts, format 2:1), null = lettre colorée
+  photoKey         String?
   createdAt        DateTime @default(now())
   // Cercle personnel « Mes Plans » (Plans express, lib/express.ts) : un par personne
   isPersonal       Boolean  @default(false)
@@ -1405,4 +1410,21 @@ model PlanCircle {
 
   @@id([planId, circleId])
   @@index([circleId])
+}
+
+// Signalement d'une photo (profil ou Cercle), traité dans le panneau admin : retirer la photo ou classer
+model PhotoReport {
+  id         String    @id @default(cuid())
+  kind       String // user | circle
+  targetId   String // id du compte ou du Cercle
+  photoKey   String // photo signalée (si elle a déjà changé, le signalement ne porte plus sur rien)
+  reason     String?
+  reporterId String
+  reporter   User      @relation("PhotoReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+  resolution String? // removed | dismissed
+
+  @@unique([reporterId, kind, targetId, photoKey])
+  @@index([resolvedAt])
 }

@@ -394,7 +394,7 @@ function PollChatMessage({ message: m, isMe, onEdit, onDelete, onReport }: {
     + (m.editedAt && !m.deletedAt ? t('chat.message.edited') : '');
   return (
     <div className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-      {!isMe && <Avatar pseudo={m.author.pseudo} size="sm" />}
+      {!isMe && <Avatar pseudo={m.author.pseudo} size="sm" person={{ userId: m.author.id, pseudo: m.author.pseudo }} />}
       <div className={`max-w-xs lg:max-w-md flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
         <div className="flex items-center gap-2">
           {!isMe && <span className="text-xs font-semibold text-slate-600">{m.author.pseudo}</span>}

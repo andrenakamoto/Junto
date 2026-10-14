@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
 import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users } from 'lucide-react';
@@ -109,7 +110,15 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
 
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
-      <div className="px-4 py-4 border-b border-slate-200">
+      {/* Photo du Cercle : bandeau en tête, le nom écrit dessus */}
+      {circle.photoKey && (
+        <div className="relative h-[140px] md:h-[112px] short:h-[72px] flex-shrink-0 bg-slate-200">
+          <img src={photoUrl(circle.photoKey)} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+          <h2 className="absolute left-4 right-4 bottom-2.5 text-white font-bold text-lg leading-tight truncate drop-shadow">{circle.name}</h2>
+        </div>
+      )}
+      <div className={`px-4 border-b border-slate-200 ${circle.photoKey ? 'py-2.5' : 'py-4'}`}>
         {/* Grand écran (colonne étroite) : actions sur une 2e ligne, sous le nom du Cercle */}
         <div className="flex items-start justify-between gap-2 md:flex-wrap md:gap-y-1.5">
           <div className="flex items-center gap-2 flex-1 min-w-0 md:basis-full">
@@ -120,10 +129,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               <ChevronLeft size={18} />
             </button>
             <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-slate-900 text-sm leading-tight truncate">{circle.name}</h2>
+              {!circle.photoKey && <h2 className="font-bold text-slate-900 text-sm leading-tight truncate">{circle.name}</h2>}
               <button
                 onClick={copyCode}
-                className="flex items-center gap-1.5 mt-1 text-xs text-indigo-600 hover:text-indigo-700 transition-colors group"
+                className={`flex items-center gap-1.5 ${circle.photoKey ? '' : 'mt-1'} text-xs text-indigo-600 hover:text-indigo-700 transition-colors group`}
               >
                 {codeCopied
                   ? <Check size={10} className="text-emerald-600" />
@@ -339,6 +348,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circle={circle}
           onClose={() => setShowSettings(false)}
           onUpdated={(c) => { onCircleUpdated(c); setShowSettings(false); }}
+          onPhotoChanged={onCircleUpdated}
         />
       )}
 

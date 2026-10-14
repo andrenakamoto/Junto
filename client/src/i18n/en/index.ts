@@ -10,6 +10,7 @@ import account from './account';
 import notif from './notif';
 import votes from './votes';
 import games from './games';
+import photos from './photos';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos };
 export default dict;

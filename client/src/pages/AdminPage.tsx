@@ -8,6 +8,7 @@ import api from '../services/api';
 import { fullName } from '../lib/names';
 import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
 import { ReportsPanel } from '../components/admin/ReportsPanel';
+import { PhotoReportsPanel } from '../components/admin/PhotoReportsPanel';
 import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
 import { FunnelPanel } from '../components/admin/FunnelPanel';
 
@@ -212,6 +213,8 @@ export function AdminPage() {
         <FunnelPanel />
 
         <ReportsPanel />
+
+        <PhotoReportsPanel />
 
         <SuggestionsPanel />
 

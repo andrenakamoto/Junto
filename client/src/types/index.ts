@@ -61,6 +61,8 @@ export interface Circle {
   code: string;
   description?: string | null;
   color?: string | null;
+  /** Photo de couverture 2:1 (lib/photos.ts), null = lettre colorée */
+  photoKey?: string | null;
   /** Paramètres avancés : suppression à la majorité ou par le créateur seul */
   deletionMode?: DeletionMode;
   /** Admission : vote à la majorité, validation par le créateur, ou entrée libre avec le code */
@@ -89,6 +91,8 @@ export interface PlanMember {
   userId: string;
   planId: string;
   rsvp: 'in' | 'maybe' | 'out';
+  /** Arrivée dans le Plan (inchangée quand la réponse change) */
+  joinedAt?: string;
   user: User;
   /** Invité externe : membre du Plan sans être membre du Cercle */
   isGuest?: boolean;

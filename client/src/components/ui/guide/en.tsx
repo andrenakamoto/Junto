@@ -312,6 +312,19 @@ const groups: Group[] = [
     title: 'Your account',
     topics: [
       {
+        id: 'photos', emoji: '🖼️', title: 'Profile and Circle photos', summary: 'Your face, and your group’s',
+        body: <>
+          <P><strong>Profile photo</strong>: menu ☰ → <strong>My profile</strong> → “Add a photo”. Drag it to frame it, pinch to
+            zoom. It replaces your initials everywhere: chat, members, votes… Only people you share a Circle or a Plan with can see
+            it.</P>
+          <P><strong>Circle photo</strong>: the Circle’s creator and organizers add it in the Circle settings (⚙︎). It appears as a
+            banner at the top of the Circle’s card and above its list of Plans.</P>
+          <P>Tap someone’s avatar to see their photo in large. An offensive photo? <strong>Report photo</strong>{' '}
+            (on their card, or in the Circle settings): the EvLY team checks it and can remove it. Photos are stored in
+            Switzerland, without their GPS location.</P>
+        </>,
+      },
+      {
         id: 'compte', emoji: '👤', title: 'Account, apps and suggestions', summary: 'Profile, apps, suggest an idea',
         body: <>
           <P>Menu ☰ at the bottom left: <strong>My profile</strong> (first name, last name, email), password,

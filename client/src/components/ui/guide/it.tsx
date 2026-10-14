@@ -318,6 +318,19 @@ const groups: Group[] = [
     title: 'Il tuo account',
     topics: [
       {
+        id: 'photos', emoji: '🖼️', title: 'Foto del profilo e del Cerchio', summary: 'Il tuo volto e quello del tuo gruppo',
+        body: <>
+          <P><strong>Foto del profilo</strong>: menu ☰ → <strong>Il mio profilo</strong> → «Aggiungi una foto». Trascinala per
+            inquadrarla, zooma con due dita. Sostituisce le tue iniziali ovunque: chat, membri, voti… La vedono solo le persone con
+            cui condividi un Cerchio o un Plan.</P>
+          <P><strong>Foto del Cerchio</strong>: chi ha creato il Cerchio e gli organizzatori la aggiungono nelle impostazioni del
+            Cerchio (⚙︎). Appare come banner in alto nella scheda del Cerchio e sopra l’elenco dei suoi Plan.</P>
+          <P>Tocca l’avatar di qualcuno per vedere la sua foto in grande. Una foto inappropriata? <strong>Segnala la foto</strong>{' '}
+            (nella sua scheda o nelle impostazioni del Cerchio): il team di EvLY la verifica e può rimuoverla. Le foto sono
+            conservate in Svizzera, senza la posizione GPS.</P>
+        </>,
+      },
+      {
         id: 'compte', emoji: '👤', title: 'Account, app e suggerimenti', summary: 'Profilo, applicazioni, proporre un’idea',
         body: <>
           <P>Menu ☰ in basso a sinistra: <strong>Il mio profilo</strong> (nome, cognome, email), password, notifiche,{' '}
