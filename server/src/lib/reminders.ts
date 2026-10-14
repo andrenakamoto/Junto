@@ -25,7 +25,7 @@ export async function deleteExpiredPlans() {
     const expiredPlans = await prisma.plan.findMany({
       where: { endDate: { lt: new Date() } },
       include: {
-        members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, locale: true } } } },
+        members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, locale: true } } }, orderBy: { joinedAt: 'asc' as const } },
         // splitWith indispensable : sans lui, chaque dépense serait répartie entre tous les membres
         expenses: { include: { paidBy: { select: { id: true, pseudo: true } }, splitWith: { select: { userId: true } } } },
         reimbursements: true,

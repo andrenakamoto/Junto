@@ -59,7 +59,7 @@ export async function loadRecapData(planId: string) {
     include: {
       circle: { select: { name: true, isPersonal: true } },
       creator: { select: { pseudo: true, firstName: true } },
-      members: { include: { user: { select: { pseudo: true, firstName: true, isLight: true } } } },
+      members: { include: { user: { select: { pseudo: true, firstName: true, isLight: true } } }, orderBy: { joinedAt: 'asc' as const } },
       waitlist: { orderBy: { createdAt: 'asc' }, include: { user: { select: PERSON } } },
       volunteerShifts: { include: { signups: { orderBy: { createdAt: 'asc' }, include: { user: { select: { pseudo: true, firstName: true } } } } } },
       items: true,

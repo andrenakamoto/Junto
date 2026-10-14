@@ -82,7 +82,7 @@ async function assertPlanMember(userId: string, planId: string): Promise<boolean
 const planInclude = {
   creator: { select: { id: true, pseudo: true } },
   // Les autres membres voient le pseudo et le prénom, jamais le nom de famille
-  members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } } },
+  members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } }, orderBy: { joinedAt: 'asc' as const } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   polls: { include: { options: { include: { votes: true } } }, orderBy: { createdAt: 'asc' as const } },
   // Liste d'attente (Plan complet), dans l'ordre d'inscription
@@ -145,7 +145,7 @@ router.get('/', async (req: AuthRequest, res) => {
       },
       include: {
         creator: { select: { id: true, pseudo: true } },
-        members: { include: { user: { select: { id: true, pseudo: true } } } },
+        members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
         deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
         circle: { select: { id: true, name: true } },
         extraCircles: { select: { circle: { select: { id: true, name: true } } } },
@@ -545,7 +545,7 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     where: { id: req.params.id },
     include: {
       creator: { select: { id: true, pseudo: true } },
-      members: { include: { user: { select: { id: true, pseudo: true } } } },
+      members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       polls: { include: { options: { include: { votes: true } } } },
       items: true,
@@ -909,7 +909,7 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
     where: { id: planId },
     include: {
       creator: { select: { id: true, pseudo: true } },
-      members: { include: { user: { select: { id: true, pseudo: true } } } },
+      members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       polls: { include: { options: { include: { votes: true } } } },
       items: true,

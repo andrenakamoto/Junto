@@ -39,7 +39,7 @@ export function generateCode(length = 6): string {
 
 const circleInclude = {
   // Les autres membres voient le pseudo et le prénom, jamais le nom de famille
-  members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } } },
+  members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } }, orderBy: { joinedAt: 'asc' as const } },
   creator: { select: { id: true, pseudo: true } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   joinRequests: {
@@ -667,7 +667,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
       // Plan pour plusieurs Cercles : les Cercles réunis (étiquette sur la carte)
       circle: { select: { id: true, name: true, color: true } },
       extraCircles: { select: { circle: { select: { id: true, name: true, color: true } } } },
-      members: { include: { user: { select: { id: true, pseudo: true } } } },
+      members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
       deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
       activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 },
@@ -806,7 +806,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
     },
     include: {
       creator: { select: { id: true, pseudo: true } },
-      members: { include: { user: { select: { id: true, pseudo: true } } } },
+      members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
       exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
       _count: { select: { messages: true } },
     },

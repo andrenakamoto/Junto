@@ -9,11 +9,10 @@ const rsvpCfg = {
   out: { label: 'plan.members.rsvpOut', cls: 'bg-slate-100 text-slate-600' },
 } as const;
 
-const rsvpOrder: Record<string, number> = { in: 0, maybe: 1, out: 2 };
-
 export function MembresTab({ members, onlineUserIds, waitlist = [] }: { members: PlanMember[]; onlineUserIds?: Set<string>; waitlist?: NonNullable<Plan['waitlist']> }) {
   const { t } = useTranslation();
-  const sorted = [...members].sort((a, b) => rsvpOrder[a.rsvp] - rsvpOrder[b.rsvp]);
+  // Une seule liste, dans l'ordre d'arrivée dans le Plan (la réponse est indiquée sur chaque ligne)
+  const sorted = [...members].sort((a, b) => (a.joinedAt ?? '').localeCompare(b.joinedAt ?? ''));
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 short:flex-none short:overflow-visible">
@@ -23,7 +22,7 @@ export function MembresTab({ members, onlineUserIds, waitlist = [] }: { members:
       <div className="space-y-2">
         {sorted.map(m => (
           <div key={m.userId} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-            <Avatar pseudo={m.user.pseudo} size="sm" online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
+            <Avatar pseudo={m.user.pseudo} size="xl" person={{ userId: m.userId, pseudo: m.user.pseudo, firstName: m.user.firstName }} online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
             <span className="flex-1 min-w-0">
               <span className="text-sm font-medium text-slate-800">{displayName(m.user) ?? `@${m.user.pseudo}`}</span>
               {m.isGuest && (
