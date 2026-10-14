@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useBackClose } from '../../lib/backClose';
 import { Heart, X, Undo2, ExternalLink, ImagePlus, Loader2, Plus, Trash2, Check } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
@@ -115,6 +116,7 @@ export function MatchCreateForm({ plan, onDone, onCancel }: { plan: Plan; onDone
 
 // Les cartes à faire glisser (plein écran)
 function SwipeDeck({ match, plan, onClose }: { match: Match; plan: Plan; onClose: () => void }) {
+  useBackClose(onClose);
   const [cards, setCards] = useState(match.deck);
   const [history, setHistory] = useState<Card[]>([]);
   const [dx, setDx] = useState(0);
@@ -197,6 +199,7 @@ function SwipeDeck({ match, plan, onClose }: { match: Match; plan: Plan; onClose
 }
 
 function ChooseModal({ match, option, plan, onClose, onDone }: { match: Match; option: Result; plan: Plan; onClose: () => void; onDone: () => void }) {
+  useBackClose(onClose);
   const [setLocation, setSetLocation] = useState(true);
   const [addToInfo, setAddToInfo] = useState(true);
   const [busy, setBusy] = useState(false);

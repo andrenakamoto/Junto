@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useBackClose } from '../../lib/backClose';
 
 interface ModalProps {
   title: string;
@@ -8,6 +9,7 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children }: ModalProps) {
+  useBackClose(onClose);
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);

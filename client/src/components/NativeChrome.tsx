@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
+import { closeTopOverlay } from '../lib/backClose';
 import { listenPush } from '../lib/push';
 
 // Couleur des marges de sécurité (encoche, barre d'accueil, barres système) : bleu nuit
@@ -22,6 +23,8 @@ export function NativeChrome() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== 'android') return;
     const sub = CapApp.addListener('backButton', () => {
+      // Une fenêtre ouverte (Inviter, réglages, photo…) se ferme d'abord
+      if (closeTopOverlay()) return;
       const ev = new Event('evly-back', { cancelable: true });
       window.dispatchEvent(ev);
       if (ev.defaultPrevented) return;

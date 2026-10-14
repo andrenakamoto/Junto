@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useBackClose } from '../../lib/backClose';
 import { Trash2, X, RotateCcw, Users } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
@@ -68,6 +69,7 @@ function WheelSvg({ candidates, rotation }: { candidates: P[]; rotation: number 
 
 // La roue en plein écran : attend l'heure de départ commune, tourne, s'arrête sur le résultat
 export function WheelOverlay({ question, spin, serverOffset, replay, onClose }: { question: string; spin: WheelSpin; serverOffset: number; replay: boolean; onClose: () => void }) {
+  useBackClose(onClose);
   const start = useRef(replay ? Date.now() + 800 : spin.startAt - serverOffset);
   const [now, setNow] = useState(Date.now());
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
+import { useBackClose } from '../../lib/backClose';
 import { Send, X, ImagePlus, Loader2, Camera, Images, Mic, Trash2 } from 'lucide-react';
 import { t } from '../../i18n';
 import { isTouchDevice, sendsOnEnter } from '../../lib/keyboard';
@@ -31,6 +32,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
   const cameraInputRef = useRef<HTMLInputElement>(null);
   // Sur téléphone, le sélecteur Android n'ouvre que la galerie : on propose aussi l'appareil photo
   const [photoMenu, setPhotoMenu] = useState(false);
+  useBackClose(() => setPhotoMenu(false), photoMenu);
   const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
 
   async function handlePhoto(e: ChangeEvent<HTMLInputElement>) {

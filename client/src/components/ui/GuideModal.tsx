@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useBackClose } from '../../lib/backClose';
 import { BookOpen, ChevronDown } from 'lucide-react';
 import { Button } from './Button';
 import { currentLang, type Lang } from '../../i18n';
@@ -18,6 +19,7 @@ interface Props {
 const TEXTS: Record<Lang, GuideText> = { fr, de, it, en };
 
 export function GuideModal({ onClose }: Props) {
+  useBackClose(onClose);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const scroller = useRef<HTMLDivElement>(null);
   const T = TEXTS[currentLang()] ?? fr;
