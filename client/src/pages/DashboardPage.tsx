@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { MuteProvider } from '../contexts/MuteContext';
+import { PhotosProvider, usePhotos } from '../contexts/PhotosContext';
 import { isCircleManager } from '../lib/settings';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -415,9 +416,15 @@ export function DashboardPage() {
     setSelectedPollId(null);
     clearPlan(plan.id);
     dismissHistory(n => n.planId === plan.id);
-    if (plan.circleId && circles.some(c => c.id === plan.circleId)) {
-      clearCircle(plan.circleId);
-      setSelectedCircleId(plan.circleId);
+    // Plan pour plusieurs Cercles : rester dans le Cercle ouvert s'il en fait partie, sinon prendre un Cercle dont on est membre
+    const planCircleIds = [plan.circleId, ...(plan.circles?.map(c => c.id) ?? [])].filter(Boolean) as string[];
+    const mine = (id?: string | null) => !!id && planCircleIds.includes(id) && circles.some(c => c.id === id);
+    const target = mine(selectedCircleId) ? selectedCircleId
+      : mine(plan.circle?.id) ? plan.circle!.id
+      : planCircleIds.find(id => mine(id)) ?? null;
+    if (target) {
+      clearCircle(target);
+      setSelectedCircleId(target);
       setAllPlansActive(false);
       setCalendarActive(false);
     } else if (plan.circleId) {
@@ -534,6 +541,8 @@ export function DashboardPage() {
 
   return (
     <MuteProvider>
+    <PhotosProvider>
+    <PhotosRefresher signal={plansRefreshSignal} />
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
     )}
@@ -652,6 +661,7 @@ export function DashboardPage() {
             plan={selectedPlan}
             circleName={selectedCircle?.name ?? ''}
             circleCode={selectedCircle?.code ?? ''}
+            circleId={selectedCircle?.id}
             onPlanUpdated={handlePlanUpdated}
             onPlanDeleted={handlePlanDeleted}
             onLogout={handleLogout}
@@ -667,6 +677,7 @@ export function DashboardPage() {
       </div>
     </div>
     </div>
+    </PhotosProvider>
     </MuteProvider>
   );
 }
@@ -684,4 +695,11 @@ function EmptyState({ message, sub }: { message: string; sub: string }) {
       </div>
     </div>
   );
+}
+
+// Photos de profil : rechargées avec le reste du tableau de bord (nouveau membre, photo changée…)
+function PhotosRefresher({ signal }: { signal: unknown }) {
+  const { refresh } = usePhotos();
+  useEffect(() => { refresh(); }, [signal, refresh]);
+  return null;
 }

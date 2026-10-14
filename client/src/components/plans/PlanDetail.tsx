@@ -85,6 +85,8 @@ interface Props {
   plan: Plan;
   circleName: string;
   circleCode: string;
+  // Cercle depuis lequel le Plan est ouvert (un Plan peut appartenir à plusieurs Cercles)
+  circleId?: string;
   onPlanUpdated: (plan: Plan) => void;
   onPlanDeleted: () => void;
   onLogout: () => void;
@@ -97,7 +99,7 @@ interface Props {
   openTab?: { tab: string; n: number } | null;
 }
 
-export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab }: Props) {
   const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   // Téléphone : page principale du Plan (en-tête + une carte par rubrique), puis une rubrique
@@ -1091,7 +1093,7 @@ export function PlanDetail({ plan, circleName, circleCode, onPlanUpdated, onPlan
         <InviteModal
           circleName={circleName}
           circleCode={circleCode}
-          circleId={plan.viewerIsGuest ? undefined : plan.circleId}
+          circleId={plan.viewerIsGuest ? undefined : (circleId ?? plan.circleId)}
           planTitle={plan.title}
           planId={plan.id}
           allowGuest
