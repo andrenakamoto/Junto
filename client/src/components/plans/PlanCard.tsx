@@ -43,12 +43,13 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-xl transition-all border relative ${
+      // Contour marqué (comme les cartes des Cercles) : les cartes se détachent nettement du fond gris
+      className={`w-full text-left p-4 rounded-2xl transition-all border relative ${
         isSelected
-          ? 'bg-indigo-50 border-indigo-400 shadow-md shadow-indigo-500/10'
+          ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500 shadow-md shadow-indigo-500/20'
           : isUnread
-          ? 'bg-white border-orange-300 shadow-sm hover:shadow'
-          : 'bg-white border-slate-200 shadow-sm hover:border-slate-300 hover:shadow'
+          ? 'bg-white border-orange-300 shadow-md hover:shadow-lg'
+          : 'bg-white border-slate-300 shadow-md hover:border-slate-400 hover:shadow-lg'
       }`}
     >
       {(isUnread || (plan.unseen?.length ?? 0) > 0) && !isSelected && (

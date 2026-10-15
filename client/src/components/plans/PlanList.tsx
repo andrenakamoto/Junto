@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { usePlanSort } from '../../lib/planSort';
+import { sortPlans } from '../../lib/order';
+import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
@@ -42,6 +45,9 @@ interface Props {
 
 export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [] }: Props) {
   const { user } = useAuth();
+  // Tri choisi sur l'appareil : « Activité » (ordre reçu) ou « Date » de début
+  const [planSort, setPlanSort] = usePlanSort('activity');
+  const shownPlans = planSort === 'date' ? sortPlans(plans) : plans;
   const { isCircleMuted, setCircleMuted } = useMutes();
   const circleMuted = isCircleMuted(circle.id);
   const [showCreate, setShowCreate] = useState(false);
@@ -223,7 +229,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 short:flex-none short:overflow-visible">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 short:flex-none short:overflow-visible">
         {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
         {(circle.joinRequests?.length ?? 0) > 0 && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
@@ -266,7 +272,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           )}
         </div>
 
-        <p className="px-1 pt-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.plans')}</p>
+        <div className="flex items-center justify-between gap-2 px-1 pt-1">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.plans')}</p>
+          {plans.length > 1 && <PlanSortToggle value={planSort} onChange={setPlanSort} />}
+        </div>
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">{t('common.loading')}</div>
         ) : plans.length === 0 ? (
@@ -275,7 +284,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             <span className="text-slate-400">{canCreate ? t('circle.planList.createFirst') : t('circle.planList.organizersWill')}</span>
           </div>
         ) : (
-          plans.map(plan => (
+          shownPlans.map(plan => (
             <PlanCard
               key={plan.id}
               plan={plan}
@@ -348,7 +357,6 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circle={circle}
           onClose={() => setShowSettings(false)}
           onUpdated={(c) => { onCircleUpdated(c); setShowSettings(false); }}
-          onPhotoChanged={onCircleUpdated}
         />
       )}
 

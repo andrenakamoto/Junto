@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { planLastActivity } from '../lib/planOrder';
 import { escapeHtml } from '../lib/escapeHtml';
 import prisma from '../lib/prisma';
 import { isCircleManager } from '../lib/circleRoles';
@@ -151,6 +152,8 @@ router.get('/', async (req: AuthRequest, res) => {
         extraCircles: { select: { circle: { select: { id: true, name: true } } } },
         _count: { select: { messages: true } },
         waitlist: { select: { userId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
+        // Dernière activité (tri « Activité » de « Tous mes plans »)
+        activities: { select: { at: true }, orderBy: { at: 'desc' }, take: 1 },
       },
       orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
     }), prisma.circleMember.findMany({ where: { userId }, select: { circleId: true } })]);
@@ -159,12 +162,12 @@ router.get('/', async (req: AuthRequest, res) => {
     const circleIds = new Set(myCircles.map(c => c.circleId));
     const unseen = await unseenDetails(userId, plans.map(p => p.id));
     const managed = await managedCircleIds(userId);
-    res.json(plans.map(p => forViewer(p, userId, managed)).map(({ extraCircles, ...p }) => {
+    res.json(plans.map(p => forViewer(p, userId, managed)).map(({ extraCircles, activities, ...p }) => {
       const u = unseen.get(p.id);
       // Plan pour plusieurs Cercles : affiché sous le Cercle de la personne, avec la liste des Cercles réunis
       const all = [p.circle, ...extraCircles.map(e => e.circle)];
       const mine = all.find(c => circleIds.has(c.id));
-      const withUnseen = { ...p, circle: mine ?? p.circle, circles: extraCircles.length ? all : undefined, unseen: u?.sections ?? [], unseenAt: u?.at ?? null };
+      const withUnseen = { ...p, circle: mine ?? p.circle, circles: extraCircles.length ? all : undefined, unseen: u?.sections ?? [], unseenAt: u?.at ?? null, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString() };
       return mine ? withUnseen : { ...withUnseen, circle: null, circles: undefined, isGuest: true };
     }));
   } catch {
