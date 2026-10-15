@@ -9,7 +9,7 @@ import { Trans } from 'react-i18next';
 // Signaler un message (chat d'un Plan ou d'un sondage) et, au choix, masquer son auteur.
 // Serveur : routes/moderation.ts, lib/moderation.ts.
 interface Props {
-  kind: 'plan' | 'poll';
+  kind: 'plan' | 'poll' | 'circle';
   messageId: string;
   author: { id: string; pseudo: string };
   onClose: () => void;

@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  chatMode: {
+    label: "Circle discussion",
+    open: { label: "Open", hint: "Everyone writes" },
+    announce: { label: "Announcements", hint: "Only the creator and organisers write, the others react" },
+    off: { label: "Off", hint: "No discussion, only Plans" },
+  },
   deletion: {
     vote: { label: 'Majority vote', hint: 'Half of the members must vote for deletion' },
     creator: { label: 'Creator only', hint: 'Only the creator can delete, without a vote' },

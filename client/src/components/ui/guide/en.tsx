@@ -6,6 +6,18 @@ const groups: Group[] = [
     title: 'The basics',
     topics: [
       {
+        id: 'discussion', emoji: '💬', title: 'Circle discussion', summary: 'Talk between outings, without mixing everything up',
+        body: <>
+          <P>Each Circle can have its <strong>Discussion</strong>: the “💬 Discussion” card at the top of the list of Plans. It's for anything
+            that isn't an outing yet (“Anyone free on Saturday?”). Messages <strong>disappear after 7 days</strong>: what matters goes into a Plan.</P>
+          <P><strong>Make a Plan</strong> under a message opens “Create a Plan” with that message as the title. Reactions, photos and
+            @username mentions, like in a Plan's chat.</P>
+          <P>The creator and organisers choose in the Circle settings: <strong>Open</strong> (everyone writes),{' '}
+            <strong>Announcements</strong> (only they write, the others react) or <strong>Off</strong>. Discreet notifications: an orange dot,
+            and a push only when someone mentions you (or for every message, if you turn it on in Notifications).</P>
+        </>,
+      },
+      {
         id: 'vocabulaire', emoji: '🧭', title: 'Circle, Plan, Chat', summary: 'The three words to know',
         body: <>
           <P>A <strong>Circle</strong> is your group: friends, family, colleagues, club, association. A <strong>Plan</strong>{' '}
@@ -302,9 +314,11 @@ const groups: Group[] = [
         ]} />,
       },
       {
-        id: 'suppression', emoji: '⏳', title: 'Automatic deletion', summary: 'A Plan disappears on its end date',
-        body: <P>On its end date, a Plan is deleted with all its content: it’s intentional, EvLY stays light. Before then:
-          download the photos, the summary or the minutes. The time left shows on the Plan page (⏳).</P>,
+        id: 'suppression', emoji: '⏳', title: 'Automatic deletion', summary: 'A Plan disappears 24 hours after it ends',
+        body: <P>On its end date, a Plan becomes <strong>“Ended”</strong>: it stays visible <strong>for 24 hours, read-only</strong>, then it is
+          deleted with all its content (it’s intentional, EvLY stays light). During those 24 hours: download the photos, the summary or the
+          minutes; people who answered “I’m in” are notified 4 hours before deletion. Running longer? Push back the end date in “Edit”.
+          The time left shows on the Plan page (⏳).</P>,
       },
     ],
   },
@@ -356,7 +370,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🚗', text: <>Get organised: <strong>rides</strong>, <strong>who brings what</strong>, <strong>expenses</strong>, <strong>schedule</strong>.</> },
   { emoji: '🏛️', text: <>Associations hold their <strong>assembly</strong>: votes, proxies, minutes.</> },
   { emoji: '🎉', text: <>Have fun: <strong>quiz</strong>, <strong>gift pot</strong>, <strong>Secret Santa</strong>, <strong>Killer</strong>, <strong>trap word</strong>, <strong>tournament</strong>.</> },
-  { emoji: '⏳', text: <>A Plan <strong>disappears on its end date</strong>: keep photos, summary or minutes before then.</> },
+  { emoji: '⏳', text: <>A Plan <strong>disappears 24 hours after it ends</strong> (read-only in between): keep photos, summary or minutes.</> },
 ];
 
 const en: GuideText = {

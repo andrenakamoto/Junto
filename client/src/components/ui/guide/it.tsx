@@ -6,6 +6,19 @@ const groups: Group[] = [
     title: 'Le basi',
     topics: [
       {
+        id: 'discussion', emoji: '💬', title: 'Discussione del Cerchio', summary: "Parlare tra un'uscita e l'altra, senza mescolare tutto",
+        body: <>
+          <P>Ogni Cerchio può avere la sua <strong>Discussione</strong>: la scheda «💬 Discussione» in cima all'elenco dei Plan. Lì si parla di
+            tutto ciò che non è ancora un'uscita («Qualcuno è libero sabato?»). I messaggi <strong>scompaiono dopo 7 giorni</strong>:
+            ciò che conta va in un Plan.</P>
+          <P><strong>Fare un Plan</strong> sotto un messaggio apre «Crea un Plan» con quel messaggio come titolo. Reazioni, foto e menzioni
+            @pseudo come nella chat di un Plan.</P>
+          <P>Chi ha creato il Cerchio e gli organizzatori scelgono nelle impostazioni del Cerchio: <strong>Aperta</strong> (tutti scrivono),{' '}
+            <strong>Annunci</strong> (scrivono solo loro, gli altri reagiscono) o <strong>Disattivata</strong>. Notifiche discrete: un punto
+            arancione, e un push solo quando qualcuno ti menziona (o a ogni messaggio, se lo attivi in Notifiche).</P>
+        </>,
+      },
+      {
         id: 'vocabulaire', emoji: '🧭', title: 'Cerchio, Plan, Chat', summary: 'Le tre parole da conoscere',
         body: <>
           <P>Un <strong>Cerchio</strong> è il tuo gruppo: amici, famiglia, colleghi, club, associazione. Un{' '}
@@ -308,9 +321,11 @@ const groups: Group[] = [
         ]} />,
       },
       {
-        id: 'suppression', emoji: '⏳', title: 'Eliminazione automatica', summary: 'Un Plan sparisce alla sua data di fine',
-        body: <P>Alla sua data di fine, un Plan è eliminato con tutto il suo contenuto: è voluto, EvLY resta leggero. Prima:
-          scarica le foto, il riepilogo o il verbale. Il tempo restante appare nella scheda (⏳).</P>,
+        id: 'suppression', emoji: '⏳', title: 'Eliminazione automatica', summary: 'Un Plan sparisce 24 ore dopo la fine',
+        body: <P>Alla sua data di fine, un Plan diventa <strong>«Terminato»</strong>: resta visibile <strong>24 ore in sola lettura</strong>, poi è
+          eliminato con tutto il suo contenuto (è voluto, EvLY resta leggero). In queste 24 ore: scarica le foto, il riepilogo o il verbale;
+          chi aveva risposto «Ci sono» riceve un avviso 4 ore prima dell’eliminazione. L’evento dura di più? Sposta la data di fine in
+          «Modifica». Il tempo restante appare nella scheda (⏳).</P>,
       },
     ],
   },
@@ -362,7 +377,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🚗', text: <>Ci si organizza: <strong>passaggi</strong>, <strong>chi porta cosa</strong>, <strong>spese</strong>, <strong>turni</strong>.</> },
   { emoji: '🏛️', text: <>Le associazioni tengono la loro <strong>assemblea</strong>: voti, deleghe, verbale.</> },
   { emoji: '🎉', text: <>Ci si diverte: <strong>quiz</strong>, <strong>colletta</strong>, <strong>Babbo Natale segreto</strong>, <strong>Killer</strong>, <strong>parola trappola</strong>, <strong>torneo</strong>.</> },
-  { emoji: '⏳', text: <>Un Plan <strong>sparisce alla sua data di fine</strong>: conserva prima foto, riepilogo o verbale.</> },
+  { emoji: '⏳', text: <>Un Plan <strong>sparisce 24 ore dopo la fine</strong> (nel frattempo in sola lettura): conserva foto, riepilogo o verbale.</> },
 ];
 
 const it: GuideText = {

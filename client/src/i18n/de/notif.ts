@@ -16,6 +16,10 @@ const notif: Dict['notif'] = {
   pollDatesBody: '@{{from}} hat Termine hinzugefügt: {{plan}}',
   rideTitle: 'Fahrgemeinschaft — {{plan}}',
   pollMessageTitle: 'Umfrage — {{plan}}',
+  deletingTitle: "Bald gelöscht — {{plan}}",
+  circleMentionTitle: "Diskussion — {{circle}}",
+  circleMessageTitle: "Diskussion — {{circle}}",
+  circleMentionBody: "@{{from}} hat dich erwähnt: {{preview}}",
   membersTitle: 'Teilnehmende — {{plan}}',
   activityTitle: 'Neuigkeiten — {{plan}}',
   santaTitle: 'Wichteln — {{plan}}',
@@ -61,6 +65,7 @@ const notif: Dict['notif'] = {
     pending_one: ' · {{count}} offene Anfrage',
     pending_other: ' · {{count}} offene Anfragen',
     toSee: 'Anschauen',
+    chats: 'Diskussionen',
   },
 };
 export default notif;

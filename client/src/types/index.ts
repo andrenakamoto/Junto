@@ -15,6 +15,8 @@ export interface User {
   weeklyDigestEnabled: boolean;
   /** Récapitulatif PDF par email avant la suppression des Plans gérés */
   recapEmailEnabled?: boolean;
+  /** Discussions des Cercles : un push pour chaque message */
+  circleChatPush?: boolean;
   /** Canal des notifications : push, push + email (défaut) ou email */
   notificationChannel?: NotificationChannel;
   /** Personnes masquées : leurs messages ne sont pas affichés (serveur : lib/moderation.ts) */
@@ -62,6 +64,12 @@ export interface Circle {
   description?: string | null;
   color?: string | null;
   /** Photo de couverture 2:1 (lib/photos.ts), null = lettre colorée */
+  /** Discussion du Cercle : open (tout le monde écrit), announce (créateur et organisateurs), off */
+  chatMode?: 'open' | 'announce' | 'off';
+  /** Message de la discussion non lu */
+  chatUnseen?: boolean;
+  /** Dernier message (7 derniers jours) : auteur, aperçu, date */
+  chatLast?: { author: string; text: string; at: string } | null;
   photoKey?: string | null;
   /** Paramètres avancés : suppression à la majorité ou par le créateur seul */
   deletionMode?: DeletionMode;
@@ -358,4 +366,17 @@ export interface VolunteerShift {
   startsAt: string | null;
   endsAt: string | null;
   signups: { userId: string; user: { id: string; pseudo: string; firstName?: string | null } }[];
+}
+
+// Message de la discussion d'un Cercle (effacé après 7 jours)
+export interface CircleMessage {
+  id: string;
+  circleId: string;
+  author: { id: string; pseudo: string; firstName?: string | null };
+  content: string;
+  imageKey: string | null;
+  createdAt: string;
+  editedAt?: string | null;
+  deletedAt?: string | null;
+  reactions: { emoji: string; userId: string }[];
 }

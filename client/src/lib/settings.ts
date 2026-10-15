@@ -12,6 +12,8 @@ export const PLAN_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hi
 export const POLL_CREATION_OPTIONS: { value: PlanCreationMode; label: string; hint: string }[] = opt('pollCreation', ['all', 'creator']);
 export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('edit', ['creator', 'all']);
 export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('importantInfo', ['creator', 'all']);
+export type ChatMode = 'open' | 'announce' | 'off';
+export const CHAT_MODE_OPTIONS: { value: ChatMode; label: string; hint: string }[] = opt('chatMode', ['open', 'announce', 'off']);
 export type MembersVisibility = 'all' | 'managers';
 export const MEMBERS_VISIBILITY_OPTIONS: { value: MembersVisibility; label: string; hint: string }[] = opt('membersVisibility', ['all', 'managers']);
 

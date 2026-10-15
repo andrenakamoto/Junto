@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { endedLast } from '../../lib/planEnd';
 import { usePlanSort } from '../../lib/planSort';
 import { sortPlans } from '../../lib/order';
 import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -21,7 +22,7 @@ import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { JoinRequestList } from '../circles/JoinRequestList';
-import { t } from '../../i18n';
+import { intlLocale, t } from '../../i18n';
 import { Trans } from 'react-i18next';
 
 interface Props {
@@ -37,17 +38,21 @@ interface Props {
   unreadPlans: Set<string>;
   selectedPollId?: string | null;
   onSelectPoll: (pollId: string) => void;
+  /** Discussion du Cercle : ouverte (carte en surbrillance) et ouverture */
+  chatActive?: boolean;
+  onOpenChat?: () => void;
   /** Présence en ligne (fenêtre des membres) */
   onlineUserIds?: Set<string>;
   /** Plan pour plusieurs Cercles : mes autres Cercles dont je suis créateur ou organisateur */
   otherManagedCircles?: Circle[];
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [] }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [], chatActive = false, onOpenChat }: Props) {
   const { user } = useAuth();
   // Tri choisi sur l'appareil : « Activité » (ordre reçu) ou « Date » de début
   const [planSort, setPlanSort] = usePlanSort('activity');
-  const shownPlans = planSort === 'date' ? sortPlans(plans) : plans;
+  // Plans terminés (lecture seule 24 h) toujours en bas
+  const shownPlans = endedLast(planSort === 'date' ? sortPlans(plans) : plans);
   const { isCircleMuted, setCircleMuted } = useMutes();
   const circleMuted = isCircleMuted(circle.id);
   const [showCreate, setShowCreate] = useState(false);
@@ -230,6 +235,25 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 short:flex-none short:overflow-visible">
+        {/* Discussion du Cercle (si elle est activée) : dernier message, point orange s'il y a du nouveau */}
+        {circle.chatMode && circle.chatMode !== 'off' && onOpenChat && (
+          <button onClick={onOpenChat}
+            className={`w-full text-left p-3.5 rounded-2xl border transition-all relative ${chatActive ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500 shadow-md' : circle.chatUnseen ? 'bg-white border-orange-300 shadow-md hover:shadow-lg' : 'bg-white border-slate-300 shadow-md hover:border-slate-400 hover:shadow-lg'}`}>
+            {circle.chatUnseen && !chatActive && <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+            <p className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+              <MessageCircle size={15} className="text-indigo-500" />{t('circle.chat.title')}
+              {circle.chatMode === 'announce' && <Megaphone size={13} className="text-amber-600" aria-label={t('circle.chat.announce')} />}
+            </p>
+            {circle.chatLast ? (
+              <>
+                <p className="text-xs text-slate-600 mt-1 truncate"><span className="font-semibold">{circle.chatLast.author}</span> : {circle.chatLast.text}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(circle.chatLast.at))}</p>
+              </>
+            ) : (
+              <p className="text-xs text-slate-400 mt-1">{t('circle.chat.noMessage')}</p>
+            )}
+          </button>
+        )}
         {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
         {(circle.joinRequests?.length ?? 0) > 0 && (
           <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl p-2.5">

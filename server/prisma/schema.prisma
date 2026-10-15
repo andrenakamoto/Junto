@@ -38,6 +38,8 @@ model User {
   // Canal des notifications (lib/notificationPrefs.ts) : push | both | email. N'affecte ni les
   // emails indispensables (validation, mot de passe…) ni les notifications dans l'app.
   notificationChannel  String    @default("both")
+  // Discussion des Cercles : push à chaque message (sinon pastille seulement, push pour les mentions)
+  circleChatPush       Boolean   @default(false)
   // Réponse à un Plan sans compte (lib/lightGuest.ts) : prénom seulement, pseudo « prenom.invite »,
   // ni email ni mot de passe. Devient un compte normal à l'inscription, ou est fusionné dans le
   // compte existant à la connexion ; supprimé quand il n'a plus aucun Plan.
@@ -54,31 +56,31 @@ model User {
   planMemberships        PlanMember[]
   messages               Message[]
   messageReactions       MessageReaction[]
-  createdCircles         Circle[]              @relation("CircleCreator")
-  createdPlans           Plan[]                @relation("PlanCreator")
+  createdCircles         Circle[]                @relation("CircleCreator")
+  createdPlans           Plan[]                  @relation("PlanCreator")
   pollVotes              PollVote[]
   deleteVotes            CircleDeleteVote[]
   planDeleteVotes        PlanDeleteVote[]
-  expensesPaid           Expense[]             @relation("ExpensePaidBy")
+  expensesPaid           Expense[]               @relation("ExpensePaidBy")
   expenseShares          ExpenseShare[]
-  reimbursementsSent     Reimbursement[]       @relation("ReimbursementFrom")
-  reimbursementsReceived Reimbursement[]       @relation("ReimbursementTo")
+  reimbursementsSent     Reimbursement[]         @relation("ReimbursementFrom")
+  reimbursementsReceived Reimbursement[]         @relation("ReimbursementTo")
   circleJoinRequests     CircleJoinRequest[]
   circleJoinVotes        CircleJoinVote[]
-  circlePollsCreated     CirclePoll[]          @relation("CirclePollCreator")
+  circlePollsCreated     CirclePoll[]            @relation("CirclePollCreator")
   circlePollVotes        CirclePollVote[]
-  ridesDriven            Ride[]                @relation("RideDriver")
+  ridesDriven            Ride[]                  @relation("RideDriver")
   ridePassengers         RidePassenger[]
   volunteerSignups       VolunteerSignup[]
   notificationMutes      NotificationMute[]
   santaWishes            SecretSantaWish[]
-  santaGiving            SecretSantaPair[]     @relation("SantaGiver")
-  santaReceiving         SecretSantaPair[]     @relation("SantaReceiver")
+  santaGiving            SecretSantaPair[]       @relation("SantaGiver")
+  santaReceiving         SecretSantaPair[]       @relation("SantaReceiver")
   killerPlayers          KillerPlayer[]
   wordPlayers            WordPlayer[]
   waitlists              PlanWaitlist[]
-  matchPollsCreated      MatchPoll[]           @relation("MatchPollCreator")
-  matchOptionsCreated    MatchOption[]         @relation("MatchOptionCreator")
+  matchPollsCreated      MatchPoll[]             @relation("MatchPollCreator")
+  matchOptionsCreated    MatchOption[]           @relation("MatchOptionCreator")
   matchSwipes            MatchSwipe[]
   teamLevels             TeamLevel[]
   teamMemberships        TeamMember[]
@@ -87,20 +89,22 @@ model User {
   giftIdeaVotes          GiftIdeaVote[]
   rideRequests           RideRequest[]
   planExclusions         PlanExclusion[]
-  planChangeLogs         PlanChangeLog[]       @relation("PlanChangeLogAuthor")
-  circlePollExclusions   CirclePollExclusion[] @relation("CirclePollExclusions")
-  circlePollDeclines     CirclePollDecline[]   @relation("CirclePollDeclines")
-  circlePollMessages     CirclePollMessage[]   @relation("CirclePollMessages")
+  planChangeLogs         PlanChangeLog[]         @relation("PlanChangeLogAuthor")
+  circlePollExclusions   CirclePollExclusion[]   @relation("CirclePollExclusions")
+  circlePollDeclines     CirclePollDecline[]     @relation("CirclePollDeclines")
+  circlePollMessages     CirclePollMessage[]     @relation("CirclePollMessages")
   pushTokens             PushToken[]
-  reportsMade            MessageReport[]       @relation("ReportReporter")
-  photoReportsMade       PhotoReport[]         @relation("PhotoReportReporter")
-  reportsReceived        MessageReport[]       @relation("ReportAuthor")
+  reportsMade            MessageReport[]         @relation("ReportReporter")
+  photoReportsMade       PhotoReport[]           @relation("PhotoReportReporter")
+  circleMessages         CircleMessage[]         @relation("CircleMessages")
+  circleMessageReactions CircleMessageReaction[]
+  reportsReceived        MessageReport[]         @relation("ReportAuthor")
   suggestions            Suggestion[]
-  blocking               UserBlock[]           @relation("BlockBy")
-  blockedBy              UserBlock[]           @relation("BlockTarget")
-  circleInvitesSent      CircleInvitation[]    @relation("InviteFrom")
-  circleInvitesReceived  CircleInvitation[]    @relation("InviteTo")
-  circleChangeLogs       CircleChangeLog[]     @relation("CircleChangeLogAuthor")
+  blocking               UserBlock[]             @relation("BlockBy")
+  blockedBy              UserBlock[]             @relation("BlockTarget")
+  circleInvitesSent      CircleInvitation[]      @relation("InviteFrom")
+  circleInvitesReceived  CircleInvitation[]      @relation("InviteTo")
+  circleChangeLogs       CircleChangeLog[]       @relation("CircleChangeLogAuthor")
   transitChoices         TransitChoice[]
   transitHome            TransitHome?
   transitGroups          TransitGroup[]
@@ -132,6 +136,8 @@ model Circle {
   color            String?
   // Photo de couverture du Cercle (lib/photos.ts, format 2:1), null = lettre colorée
   photoKey         String?
+  // Discussion du Cercle (lib/circleChat.ts) : open (tout le monde écrit), announce (créateur et organisateurs), off
+  chatMode         String   @default("off")
   createdAt        DateTime @default(now())
   // Cercle personnel « Mes Plans » (Plans express, lib/express.ts) : un par personne
   isPersonal       Boolean  @default(false)
@@ -155,6 +161,7 @@ model Circle {
   invitations       CircleInvitation[]
   changeLogs        CircleChangeLog[]
   notificationMutes NotificationMute[]
+  messages          CircleMessage[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -277,10 +284,12 @@ model CircleDeleteVote {
 }
 
 model CircleMember {
-  userId   String
-  circleId String
-  role     String   @default("member")
-  joinedAt DateTime @default(now())
+  userId     String
+  circleId   String
+  role       String    @default("member")
+  joinedAt   DateTime  @default(now())
+  // Dernière lecture de la discussion du Cercle (pastille « nouveau »)
+  chatSeenAt DateTime?
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
@@ -289,36 +298,38 @@ model CircleMember {
 }
 
 model Plan {
-  id                String    @id @default(cuid())
-  title             String
-  description       String
-  eventDate         DateTime?
-  endDate           DateTime
-  location          String?
-  archived          Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  reminderSentAt    DateTime?
-  maxParticipants   Int?
+  id                   String    @id @default(cuid())
+  title                String
+  description          String
+  eventDate            DateTime?
+  endDate              DateTime
+  location             String?
+  archived             Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  reminderSentAt       DateTime?
+  // Notification « supprimé dans 4 heures » envoyée (lib/planLifecycle.ts)
+  deletionNoticeSentAt DateTime?
+  maxParticipants      Int?
   // Paramètres avancés : suppression "vote" ou "creator" ; fonctions masquées (chat, trajets, votes, depenses, fichiers)
-  deletionMode      String    @default("vote")
-  disabledFeatures  String[]  @default([])
+  deletionMode         String    @default("vote")
+  disabledFeatures     String[]  @default([])
   // Fonctions à activer (absentes par défaut) : benevoles, pere_noel
-  enabledFeatures   String[]  @default([])
+  enabledFeatures      String[]  @default([])
   // "creator" : seul le créateur modifie ; "all" : les membres du Plan (hors invités) modifient dates et lieu
-  editMode          String    @default("creator")
+  editMode             String    @default("creator")
   // Informations importantes (affichées après la description) et qui peut les modifier :
   // "creator" (créateur du Plan) ou "all" (tous les participants) — indépendant de editMode
-  importantInfo     String?
-  importantInfoMode String    @default("creator")
+  importantInfo        String?
+  importantInfoMode    String    @default("creator")
   // Qui voit les participants : "all" (défaut) ou "managers" (créateur du Plan et gestionnaires du Cercle)
-  membersVisibility String    @default("all")
+  membersVisibility    String    @default("all")
   // Plans récurrents (lib/recurrence.ts) : fréquence weekly | biweekly | monthly (null = ne
   // se répète pas), jusqu'à quand (facultatif), série commune (id du premier Plan) et Plan
   // suivant déjà créé (anti-doublon du job horaire)
-  recurrence        String?
-  recurrenceUntil   DateTime?
-  seriesId          String?
-  nextOccurrenceId  String?
+  recurrence           String?
+  recurrenceUntil      DateTime?
+  seriesId             String?
+  nextOccurrenceId     String?
 
   creatorId String
   creator   User   @relation("PlanCreator", fields: [creatorId], references: [id])
@@ -1427,4 +1438,33 @@ model PhotoReport {
 
   @@unique([reporterId, kind, targetId, photoKey])
   @@index([resolvedAt])
+}
+
+// Discussion d'un Cercle (lib/circleChat.ts) : messages chiffrés comme ceux des Plans, effacés après 7 jours
+model CircleMessage {
+  id        String                  @id @default(cuid())
+  circleId  String
+  circle    Circle                  @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User                    @relation("CircleMessages", fields: [authorId], references: [id], onDelete: Cascade)
+  content   String // chiffré (encryptMessage), vide une fois supprimé
+  imageKey  String? // photo jointe (lib/photos.ts, kind « chat »)
+  createdAt DateTime                @default(now())
+  editedAt  DateTime?
+  deletedAt DateTime?
+  reactions CircleMessageReaction[]
+
+  @@index([circleId, createdAt])
+}
+
+model CircleMessageReaction {
+  id        String        @id @default(cuid())
+  emoji     String
+  createdAt DateTime      @default(now())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  message   CircleMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
 }

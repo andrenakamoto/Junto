@@ -80,5 +80,11 @@ export function parsePlanCreationMode(v: unknown): string | undefined {
 
 export const parsePollCreationMode = parsePlanCreationMode;
 
+// Discussion du Cercle : ouverte à tous, annonces (créateur et organisateurs écrivent), désactivée
+export const CHAT_MODES = ['open', 'announce', 'off'] as const;
+export function parseChatMode(v: unknown): string | undefined {
+  return typeof v === 'string' && (CHAT_MODES as readonly string[]).includes(v) ? v : undefined;
+}
+
 export const PLAN_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent créer des Plans';
 export const POLL_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent lancer des sondages de dates';

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { visibleSince } from '../lib/planLifecycle';
+import { lockEndedPlans, planRouterLock } from '../lib/planLifecycle';
 import { planLastActivity } from '../lib/planOrder';
 import { escapeHtml } from '../lib/escapeHtml';
 import prisma from '../lib/prisma';
@@ -51,6 +53,8 @@ import planSummaryRoutes from './planSummary';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
 router.use(requireAuth as any);
+// Plan terminé (lib/planLifecycle.ts) : lecture seule pendant les 24 h qui précèdent sa suppression
+router.use(lockEndedPlans(resolvePlanWrite, planRouterLock));
 router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
@@ -141,7 +145,8 @@ router.get('/', async (req: AuthRequest, res) => {
     const [plans, myCircles] = await Promise.all([prisma.plan.findMany({
       where: {
         archived: false,
-        endDate: { gt: now },
+        // Plans terminés depuis moins de 24 h compris (« Terminé », lecture seule)
+        endDate: { gt: visibleSince(now) },
         ...visiblePlansWhere(userId),
       },
       include: {
@@ -235,7 +240,7 @@ router.get('/:id/recap', async (req: AuthRequest, res) => {
 // « Tout effacer » de la cloche : tous les onglets de tous mes Plans en cours sont marqués vus
 // (exclu de la diffusion temps réel, comme /:id/seen)
 router.post('/seen-all', async (req: AuthRequest, res) => {
-  const mine = await prisma.planMember.findMany({ where: { userId: req.userId!, plan: { archived: false, endDate: { gt: new Date() } } }, select: { planId: true } });
+  const mine = await prisma.planMember.findMany({ where: { userId: req.userId!, plan: { archived: false, endDate: { gt: visibleSince() } } }, select: { planId: true } });
   for (const { planId } of mine) await markAllSeen(planId, req.userId!);
   res.json({ ok: true, count: mine.length });
 });
@@ -450,7 +455,9 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil },
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil,
+        // Fin repoussée : la notification « supprimé dans 4 heures » pourra repartir (lib/planLifecycle.ts)
+        ...(!sameMinute(plan.endDate, newEndDate) && { deletionNoticeSentAt: null }) },
     });
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });

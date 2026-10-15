@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { visibleSince } from '../lib/planLifecycle';
+import { chatStateFor } from '../lib/circleChat';
 import { escapeHtml } from '../lib/escapeHtml';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
@@ -14,7 +16,7 @@ import { prepareCancelNotice } from '../lib/planCancel';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR, parseChatMode } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
@@ -107,6 +109,9 @@ router.get('/', async (req: AuthRequest, res) => {
   for (const c of circles) bump(c.id, c.members.find(m => m.userId === req.userId)?.joinedAt ?? c.createdAt);
   for (const p of visiblePlans) for (const id of p.circleIds) bump(id, planLastActivity(p));
   for (const p of polls) bump(p.circleId, new Date(Math.max(p.createdAt.getTime(), p.messages[0]?.createdAt.getTime() ?? 0)));
+  // Discussion du Cercle : dernier message (aperçu) et pastille « nouveau » ; un message fait aussi remonter le Cercle
+  const chat = await chatStateFor(req.userId!, circles);
+  for (const [id, st] of chat) if (st.last) bump(id, st.last.at);
   // Sondages de dates ouverts (non expirés) et ceux qui attendent ma réponse (ni vote ni « Pas disponible »)
   const openPolls = polls.filter(p => pollExpiresAt(p.createdAt, p.options.map(o => o.eventDate)) > now);
   const pollInfo = (circleId: string) => {
@@ -122,6 +127,7 @@ router.get('/', async (req: AuthRequest, res) => {
       const next = mine[0];
       return {
         ...c, hasUnseen: circlesWithNews.has(c.id), ...pollInfo(c.id),
+        chatUnseen: chat.get(c.id)?.unseen ?? false, chatLast: chat.get(c.id)?.last ?? null,
         _count: { ...c._count, plans: mine.length },
         plans: next ? [{ id: next.id, title: next.title, eventDate: next.eventDate, endDate: next.endDate }] : [],
       };
@@ -162,6 +168,8 @@ router.post('/', async (req: AuthRequest, res) => {
       planCreationMode: parsePlanCreationMode(req.body.planCreationMode) ?? 'all',
       pollCreationMode: parsePollCreationMode(req.body.pollCreationMode) ?? 'all',
       admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
+      // Ancienne app (sans discussion) : rien n'est envoyé → désactivée
+      chatMode: parseChatMode(req.body.chatMode) ?? 'off',
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -248,6 +256,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   const planCreationMode = req.body.planCreationMode === undefined ? undefined : parsePlanCreationMode(req.body.planCreationMode);
   if (planCreationMode === undefined && req.body.planCreationMode !== undefined) { res.status(400).json({ error: 'Mode de création des Plans invalide' }); return; }
   const pollCreationMode = req.body.pollCreationMode === undefined ? undefined : parsePollCreationMode(req.body.pollCreationMode);
+  const chatMode = req.body.chatMode === undefined ? undefined : parseChatMode(req.body.chatMode);
+  if (chatMode === undefined && req.body.chatMode !== undefined) { res.status(400).json({ error: 'Mode de discussion invalide' }); return; }
   const description = typeof req.body.description === 'string' ? req.body.description.trim().slice(0, 500) : undefined;
   const name = typeof req.body.name === 'string' ? req.body.name.trim() : undefined;
   if (name !== undefined && (name.length < 1 || name.length > CIRCLE_NAME_MAX)) {
@@ -262,7 +272,7 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(description !== undefined && { description: description || null }) },
+    data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(chatMode && { chatMode }), ...(description !== undefined && { description: description || null }) },
   });
 
   // Historique des modifications (CircleChangeLog), visible des membres dans les paramètres
@@ -276,6 +286,7 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   track('planCreationMode', circle.planCreationMode, planCreationMode);
   track('pollCreationMode', circle.pollCreationMode, pollCreationMode);
   track('deletionMode', circle.deletionMode, deletionMode);
+  track('chatMode', circle.chatMode, chatMode);
   if (changes.length) {
     await prisma.circleChangeLog.createMany({ data: changes.map(c => ({ ...c, circleId: circle.id, changedById: req.userId! })) });
   }
@@ -661,7 +672,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     return;
   }
   const plans = await prisma.plan.findMany({
-    where: { ...plansOfCircleWhere(req.params.id), archived: false, endDate: { gt: new Date() }, exclusions: { none: { userId: req.userId! } } },
+    where: { ...plansOfCircleWhere(req.params.id), archived: false, endDate: { gt: visibleSince() }, exclusions: { none: { userId: req.userId! } } },
     include: {
       creator: { select: { id: true, pseudo: true } },
       // Plan pour plusieurs Cercles : les Cercles réunis (étiquette sur la carte)

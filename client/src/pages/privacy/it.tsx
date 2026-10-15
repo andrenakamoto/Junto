@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 14 ottobre 2026',
+  version: 'Versione del 15 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -49,6 +49,9 @@ const it: PrivacyText = {
           Una foto sostituita o rimossa viene cancellata; la tua foto del profilo anche con il tuo account, quella di un Cerchio
           con il Cerchio. Se qualcuno segnala una foto, l'amministrazione di EvLY la vede con l'eventuale motivo e può
           rimuoverla.</li>
+        <li><strong>Discussione dei Cerchi</strong> (se il Cerchio l'ha attivata): i tuoi messaggi, foto e reazioni, visibili ai membri
+          del Cerchio. Sono cifrati nella banca dati come quelli dei Plan e <strong>cancellati automaticamente dopo 7 giorni</strong>,
+          foto comprese.</li>
         <li><strong>Ciò che pubblichi</strong>: messaggi e reazioni, risposte ai Plan (sì / forse / no), voti, informazioni
           dei Plan, foto, messaggi vocali e file, passaggi in car pooling, partecipazioni ai giochi (Babbo Natale segreto,
           Killer, parola trappola, squadre e punteggi, risposte e punti del quiz) e a una colletta (importo, pagamento segnalato), spese e
@@ -114,7 +117,7 @@ const it: PrivacyText = {
 
     <Section title="6. Per quanto tempo li conserviamo">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li><strong>Plan</strong>: eliminati automaticamente alla loro data di fine (al massimo 3 settimane dopo l’inizio),
+        <li><strong>Plan</strong>: eliminati automaticamente 24 ore dopo la loro data di fine (al massimo 3 settimane dopo l’inizio),
           con tutto il loro contenuto — messaggi, messaggi vocali, foto, file, passaggi, spese. Se erano state registrate
           spese, poco prima i membri ricevono un riepilogo per email. Il creatore del Plan e gli organizzatori del Cerchio
           possono conservarne un <strong>riepilogo PDF</strong> (info, partecipanti con nome e pseudonimo, lista d’attesa,

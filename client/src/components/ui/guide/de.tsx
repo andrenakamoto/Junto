@@ -6,6 +6,20 @@ const groups: Group[] = [
     title: 'Die Grundlagen',
     topics: [
       {
+        id: 'discussion', emoji: '💬', title: 'Diskussion des Kreises', summary: 'Zwischen zwei Treffen reden, ohne alles zu vermischen',
+        body: <>
+          <P>Jeder Kreis kann seine <strong>Diskussion</strong> haben: die Karte «💬 Diskussion» oben in der Liste der Pläne. Dort redet man über
+            alles, was noch kein Treffen ist («Hat jemand am Samstag Zeit?»). Die Nachrichten <strong>verschwinden nach 7 Tagen</strong>:
+            was zählt, gehört in einen Plan.</P>
+          <P><strong>Einen Plan machen</strong> unter einer Nachricht öffnet «Plan erstellen» mit dieser Nachricht als Titel. Reaktionen,
+            Fotos und Erwähnungen @pseudo wie im Chat eines Plans.</P>
+          <P>Die erstellende Person und die Organisatoren wählen in den Einstellungen des Kreises: <strong>Offen</strong> (alle schreiben),{' '}
+            <strong>Ankündigungen</strong> (nur sie schreiben, die anderen reagieren) oder <strong>Ausgeschaltet</strong>. Dezente
+            Benachrichtigungen: ein orangefarbener Punkt, und ein Push nur, wenn dich jemand erwähnt (oder bei jeder Nachricht, wenn du es unter
+            Benachrichtigungen einschaltest).</P>
+        </>,
+      },
+      {
         id: 'vocabulaire', emoji: '🧭', title: 'Kreis, Plan, Chat', summary: 'Die drei Begriffe, die du kennen musst',
         body: <>
           <P>Ein <strong>Kreis</strong> ist deine Gruppe: Freunde, Familie, Arbeitskollegen, Club, Verein. Ein{' '}
@@ -310,10 +324,11 @@ const groups: Group[] = [
         ]} />,
       },
       {
-        id: 'suppression', emoji: '⏳', title: 'Automatisches Löschen', summary: 'Ein Plan verschwindet an seinem Enddatum',
-        body: <P>An seinem Enddatum wird ein Plan mit seinem ganzen Inhalt gelöscht: Das ist gewollt, EvLY bleibt schlank.
-          Vorher: Lade die Fotos, die Zusammenfassung oder das Protokoll herunter. Die verbleibende Zeit steht in der
-          Ansicht (⏳).</P>,
+        id: 'suppression', emoji: '⏳', title: 'Automatisches Löschen', summary: 'Ein Plan verschwindet 24 Std. nach seinem Ende',
+        body: <P>An seinem Enddatum wird ein Plan <strong>«Beendet»</strong>: Er bleibt <strong>24 Stunden nur zum Ansehen</strong> sichtbar und
+          wird dann mit seinem ganzen Inhalt gelöscht (das ist gewollt, EvLY bleibt schlank). In diesen 24 Std.: Lade die Fotos, die
+          Zusammenfassung oder das Protokoll herunter; wer «Ich bin dabei» geantwortet hat, wird 4 Std. vor dem Löschen benachrichtigt.
+          Dauert der Anlass länger? Verschiebe das Enddatum unter «Bearbeiten». Die verbleibende Zeit steht in der Ansicht (⏳).</P>,
       },
     ],
   },
@@ -366,7 +381,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🚗', text: <>Sich organisieren: <strong>Fahrten</strong>, <strong>wer bringt was</strong>, <strong>Ausgaben</strong>, <strong>Einsatzplan</strong>.</> },
   { emoji: '🏛️', text: <>Vereine halten ihre <strong>Versammlung</strong> ab: Abstimmungen, Vollmachten, Protokoll.</> },
   { emoji: '🎉', text: <>Spass haben: <strong>Quiz</strong>, <strong>Geschenkkasse</strong>, <strong>Wichteln</strong>, <strong>Killer</strong>, <strong>Fallenwort</strong>, <strong>Turnier</strong>.</> },
-  { emoji: '⏳', text: <>Ein Plan <strong>verschwindet an seinem Enddatum</strong>: Sichere vorher Fotos, Übersicht oder Protokoll.</> },
+  { emoji: '⏳', text: <>Ein Plan <strong>verschwindet 24 Std. nach seinem Ende</strong> (dazwischen nur zum Ansehen): Sichere Fotos, Übersicht oder Protokoll.</> },
 ];
 
 const de: GuideText = {

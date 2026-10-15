@@ -4,7 +4,8 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../types';
-import { AdvancedSection, AdmissionModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
+import { AdvancedSection, AdmissionModeField, ChatModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
+import type { ChatMode } from '../../lib/settings';
 import { useTranslation } from 'react-i18next';
 import { CirclePhotoField, PendingPhoto, applyCirclePhoto } from './CirclePhotoField';
 
@@ -23,6 +24,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
   const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('vote');
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>('all');
   const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>('all');
+  const [chatMode, setChatMode] = useState<ChatMode>('open');
   const [photo, setPhoto] = useState<PendingPhoto>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode, pollCreationMode });
+      const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode, pollCreationMode, chatMode });
       // Photo envoyée une fois le Cercle créé ; si elle échoue, le Cercle existe quand même (photo à remettre dans ses réglages)
       let photoKey: string | null | undefined;
       try { photoKey = await applyCirclePhoto(data.id, photo); } catch { photoKey = undefined; }
@@ -69,6 +71,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
           <AdmissionModeField value={admissionMode} onChange={setAdmissionMode} />
           <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} />
           <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} />
+          <ChatModeField value={chatMode} onChange={setChatMode} />
           <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} />
           <p className="text-xs text-slate-400">{t('circle.create.advancedHint')}</p>
         </AdvancedSection>

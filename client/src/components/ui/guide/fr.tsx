@@ -6,6 +6,19 @@ const groups: Group[] = [
     title: 'Les bases',
     topics: [
       {
+        id: 'discussion', emoji: '💬', title: 'Discussion du Cercle', summary: 'Parler entre deux sorties, sans tout mélanger',
+        body: <>
+          <P>Chaque Cercle peut avoir sa <strong>Discussion</strong> : la carte « 💬 Discussion » en haut de la liste des Plans. On y parle de
+            tout ce qui n'est pas encore une sortie (« Quelqu'un dispo samedi ? »). Les messages <strong>disparaissent au bout de 7 jours</strong> :
+            ce qui compte va dans un Plan.</P>
+          <P><strong>Faire un Plan</strong> sous un message ouvre « Créer un Plan » avec ce message en titre. Réactions, photos et mentions
+            @pseudo comme dans le chat d'un Plan.</P>
+          <P>Le créateur et les organisateurs choisissent dans les réglages du Cercle : <strong>Ouverte</strong> (tout le monde écrit),{' '}
+            <strong>Annonces</strong> (eux seuls écrivent, les autres réagissent) ou <strong>Désactivée</strong>. Notifications discrètes :
+            un point orange, et un push seulement quand on te mentionne (ou à chaque message, si tu l'actives dans Notifications).</P>
+        </>,
+      },
+      {
         id: 'vocabulaire', emoji: '🧭', title: 'Cercle, Plan, Chat', summary: 'Les trois mots à connaître',
         body: <>
           <P>Un <strong>Cercle</strong> est ton groupe : amis, famille, collègues, club, association. Un <strong>Plan</strong> est
@@ -32,7 +45,7 @@ const groups: Group[] = [
         body: <>
           <P><strong>« Créer un Plan »</strong> en bas de la liste des Plans : titre, description, date, lieu, limite de participants,{' '}
             <strong>informations importantes</strong> (encadré bien visible). La <strong>date de fin est obligatoire</strong> : le
-            Plan est supprimé ce jour-là (3 semaines au plus après son début). Les membres du Cercle sont prévenus.</P>
+            Plan passe alors en lecture seule, puis il est supprimé 24 h plus tard (3 semaines au plus après son début). Les membres du Cercle sont prévenus.</P>
           <P>Le créateur modifie son Plan avec le crayon ; il peut laisser tout le monde changer les dates et le lieu, ou les
             informations importantes. Chaque changement est gardé dans l'<strong>historique</strong>.</P>
           <P>Dans <strong>« Paramètres avancés »</strong>, la liste <strong>« Fonctions du Plan »</strong> est rangée par catégorie
@@ -205,7 +218,7 @@ const groups: Group[] = [
               procuration. Quorum en direct, votes au <strong>bulletin secret</strong> ou à main levée, majorité simple, absolue
               ou des deux tiers, élections, décisions par acclamation.</>,
             <><strong>Après</strong> : procès-verbal PDF (présents, procurations, résultats, élus), envoyé au créateur du Plan à
-              la clôture. Pense à le conserver : le Plan sera supprimé à sa date de fin.</>,
+              la clôture. Pense à le conserver : le Plan sera supprimé 24 h après sa date de fin.</>,
           ]} />
           <P>Au bulletin secret, personne ne peut savoir qui a voté quoi. Ce sont les statuts de l'association qui font foi.</P>
         </>,
@@ -302,9 +315,11 @@ const groups: Group[] = [
         ]} />,
       },
       {
-        id: 'suppression', emoji: '⏳', title: 'Suppression automatique', summary: 'Un Plan disparaît à sa date de fin',
-        body: <P>À sa date de fin, un Plan est supprimé avec tout son contenu : c'est voulu, EvLY reste léger. Avant : télécharge
-          les photos, le récapitulatif ou le procès-verbal. Le temps restant s'affiche dans la fiche (⏳).</P>,
+        id: 'suppression', emoji: '⏳', title: 'Suppression automatique', summary: 'Un Plan disparaît 24 h après sa fin',
+        body: <P>À sa date de fin, un Plan passe <strong>« Terminé »</strong> : il reste visible <strong>24 heures en lecture seule</strong>, puis il est
+          supprimé avec tout son contenu (c'est voulu, EvLY reste léger). Pendant ces 24 h : télécharge les photos, le récapitulatif ou
+          le procès-verbal ; ceux qui avaient répondu « Je suis in » sont prévenus 4 h avant la suppression. L'évènement déborde ?
+          Repousse la date de fin dans « Modifier ». Le temps restant s'affiche dans la fiche (⏳).</P>,
       },
     ],
   },
@@ -356,7 +371,7 @@ const summary: GuideText['summary'] = [
   { emoji: '🚗', text: <>On s'organise : <strong>trajets</strong>, <strong>qui apporte quoi</strong>, <strong>dépenses</strong>, <strong>planning</strong>.</> },
   { emoji: '🏛️', text: <>Les associations tiennent leur <strong>assemblée</strong> : votes, procurations, procès-verbal.</> },
   { emoji: '🎉', text: <>On s'amuse : <strong>quiz</strong>, <strong>cagnotte</strong>, <strong>Père Noël secret</strong>, <strong>Killer</strong>, <strong>mot piège</strong>, <strong>tournoi</strong>.</> },
-  { emoji: '⏳', text: <>Un Plan <strong>disparaît à sa date de fin</strong> : garde photos, récap ou PV avant.</> },
+  { emoji: '⏳', text: <>Un Plan <strong>disparaît 24 h après sa fin</strong> (lecture seule entre-temps) : garde photos, récap ou PV.</> },
 ];
 
 const fr: GuideText = {

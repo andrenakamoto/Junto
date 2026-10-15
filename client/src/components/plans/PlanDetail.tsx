@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -521,6 +522,8 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   const deleteLabel = creatorDeletes ? t('plan.detail.deleteOwn') : t('plan.detail.voteDelete');
   // Paramètre avancé : les participants (hors invités externes) peuvent modifier dates et lieu
   const canEdit = isCreator || (plan.editMode === 'all' && isMember && !plan.viewerIsGuest);
+  // Plan terminé : lecture seule pendant les 24 h avant sa suppression (lib/planEnd.ts) ; seule la date de fin se repousse
+  const ended = isPlanEnded(plan);
 
   const eventDateFmt = plan.eventDate
     ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate))
@@ -598,7 +601,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
     finally { setZipping(false); }
   }
   const actions = [
-    { key: 'invite', Icon: UserPlus, label: t('plan.detail.invite'), onClick: () => setShowInvite(true) },
+    ...(!ended ? [{ key: 'invite', Icon: UserPlus, label: t('plan.detail.invite'), onClick: () => setShowInvite(true) }] : []),
     ...(photoCount > 0 ? [{ key: 'photos', Icon: Images, label: zipping ? '…' : t('plan.detail.photos'), onClick: downloadPhotos }] : []),
     { key: 'ical', Icon: CalendarPlus, label: t('plan.detail.agenda'), onClick: handleExportIcal },
     { key: 'story', Icon: ImageDown, label: t('plan.detail.story'), onClick: () => setShowStory(true) },
@@ -946,7 +949,16 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         )}
         </div>
 
-        {isMember ? (
+        {ended && (
+          <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm md:text-xs text-amber-900 flex gap-2">
+            <Hourglass size={15} className="flex-shrink-0 mt-0.5 text-amber-600" />
+            <span>
+              {t('plan.expiry.banner', { date: new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(planDeletionAt(plan)) })}
+              {canEdit && <span className="block mt-1 text-amber-800/80">{t('plan.expiry.bannerExtend')}</span>}
+            </span>
+          </div>
+        )}
+        {ended ? null : isMember ? (
           <div className="grid grid-cols-3 md:flex items-center gap-2 mt-3 md:flex-wrap">
             {/* Téléphone : les trois réponses sur toute la largeur, sans libellé */}
             <span className="hidden md:inline text-xs text-slate-400 font-medium">{t('plan.detail.myRsvp')}</span>
@@ -1069,14 +1081,16 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                 )}
                 <div ref={messagesEndRef} />
               </div>
-              <ChatInput
+              {ended ? (
+                <p className="px-4 py-3 text-sm text-slate-500 bg-white border-t border-slate-200 text-center short:sticky short:bottom-0">{t('plan.expiry.chatClosed')}</p>
+              ) : <ChatInput
                 onSend={handleSend}
                 onSendPhoto={isEnabled(plan, 'fichiers') ? handleSendPhoto : undefined}
                 onSendVoice={isEnabled(plan, 'fichiers') ? handleSendVoice : undefined}
                 members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
                 replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment ? '📷 Photo' : '')).slice(0, 40) } : null}
                 onCancelReply={() => setReplyTo(null)}
-              />
+              />}
             </div>
           )}
 

@@ -194,4 +194,11 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Photo introuvable': ['Foto nicht gefunden', 'Foto non trovata', 'Photo not found'],
   'Réservé au créateur et aux organisateurs du Cercle': ['Der Person, die den Kreis erstellt hat, und den Organisatoren vorbehalten', 'Riservato a chi ha creato il Cerchio e agli organizzatori', 'Only for the Circle’s creator and organizers'],
   'Trop de photos envoyées, réessaie plus tard.': ['Zu viele Fotos gesendet, versuch es später noch einmal.', 'Troppe foto inviate, riprova più tardi.', 'Too many photos sent, try again later.'],
+  // Discussion des Cercles (2026-10-15)
+  'Mode de discussion invalide': ['Ungültiger Diskussionsmodus', 'Modalità di discussione non valida', 'Invalid discussion mode'],
+  'Seuls le créateur et les organisateurs écrivent dans cette discussion': ['In dieser Diskussion schreiben nur die Person, die den Kreis erstellt hat, und die Organisatoren', 'In questa discussione scrivono solo chi ha creato il Cerchio e gli organizzatori', 'Only the creator and organisers can write in this discussion'],
+  'La discussion de ce Cercle est désactivée': ['Die Diskussion dieses Kreises ist ausgeschaltet', 'La discussione di questo Cerchio è disattivata', 'This Circle’s discussion is turned off'],
+  'Photo déjà envoyée': ['Foto bereits gesendet', 'Foto già inviata', 'Photo already sent'],
+  'Réaction invalide': ['Ungültige Reaktion', 'Reazione non valida', 'Invalid reaction'],
+  'Ce Plan est terminé : il est en lecture seule jusqu’à sa suppression': ['Dieser Plan ist beendet: Bis zu seiner Löschung kann er nur noch angesehen werden', 'Questo Plan è terminato: è in sola lettura fino alla sua eliminazione', 'This Plan has ended: it is read-only until it is deleted'],
 };

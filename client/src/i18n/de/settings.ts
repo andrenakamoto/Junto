@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  chatMode: {
+    label: "Diskussion des Kreises",
+    open: { label: "Offen", hint: "Alle schreiben" },
+    announce: { label: "Ankündigungen", hint: "Nur die erstellende Person und die Organisatoren schreiben, die anderen reagieren" },
+    off: { label: "Ausgeschaltet", hint: "Keine Diskussion, nur die Pläne" },
+  },
   deletion: {
     vote: { label: 'Mehrheitsabstimmung', hint: 'Die Hälfte der Mitglieder muss fürs Löschen stimmen' },
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller kann löschen, ohne Abstimmung' },

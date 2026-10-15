@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { sendDeletionNotices } from './lib/planLifecycle';
+import { notifyUser } from './lib/push';
 import helmet from 'helmet';
 import express from 'express';
 import cors from 'cors';
@@ -22,6 +24,7 @@ import { translateErrors } from './lib/i18n';
 import quizScreenRoutes from './routes/quizScreen';
 import muteRoutes from './routes/mutes';
 import photoRoutes from './routes/photos';
+import circleChatRoutes from './routes/circleChat';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
@@ -35,6 +38,7 @@ import { createPlanInCircle } from './routes/circles';
 import { encryptLegacyMessages } from './lib/messageBackfill';
 import { deleteExpiredPolls, sendPollReminders } from './lib/pollCleanup';
 import { deleteOrphanLightUsers } from './lib/lightGuest';
+import { deleteExpiredCircleMessages } from './lib/circleChat';
 
 process.on('unhandledRejection', (reason) => {
   console.error('[unhandledRejection]', reason);
@@ -107,6 +111,7 @@ app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/express', expressPlanRoutes);
 app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
+app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/quiz-screen', quizScreenRoutes);
 
 app.set('io', io);
@@ -153,11 +158,19 @@ if (cronEnabled) {
 
   deleteExpiredPolls();
   setInterval(deleteExpiredPolls, 60 * 60 * 1000);
+  // Discussion des Cercles : messages de plus de 7 jours effacés (photos comprises)
+  const cleanCircleChat = () => deleteExpiredCircleMessages().catch(e => console.error('[circle chat cleanup]', e));
+  cleanCircleChat();
+  setInterval(cleanCircleChat, 60 * 60 * 1000);
   deleteOrphanLightUsers();
   setInterval(deleteOrphanLightUsers, 60 * 60 * 1000);
 
   sendPollReminders();
   setInterval(sendPollReminders, 15 * 60 * 1000);
+  // Plans supprimés dans 4 heures : notification aux « Je suis in » (lib/planLifecycle.ts)
+  const deletionNotices = () => sendDeletionNotices(io, notifyUser).catch(e => console.error('[deletion notice]', e));
+  deletionNotices();
+  setInterval(deletionNotices, 15 * 60 * 1000);
 } else {
   console.log('[cron] Désactivé en local. Active avec ENABLE_CRON=true si besoin.');
 }

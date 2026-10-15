@@ -10,6 +10,7 @@ import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
 import { PollDetail } from '../components/circles/PollDetail';
+import { CircleChat } from '../components/circles/CircleChat';
 import { AllPlansView } from '../components/plans/AllPlansView';
 import { CalendarView } from '../components/plans/CalendarView';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
@@ -41,6 +42,10 @@ export function DashboardPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   // Sondage de dates ouvert dans le panneau de droite (exclusif avec selectedPlan)
   const [selectedPollId, setSelectedPollId] = useState<string | null>(null);
+  // Discussion du Cercle ouverte dans le panneau de droite (exclusive avec un Plan ou un sondage)
+  const [chatCircleId, setChatCircleId] = useState<string | null>(null);
+  const chatCircleIdRef = useRef(chatCircleId);
+  useEffect(() => { chatCircleIdRef.current = chatCircleId; }, [chatCircleId]);
   const selectedPollIdRef = useRef(selectedPollId);
   useEffect(() => { selectedPollIdRef.current = selectedPollId; }, [selectedPollId]);
   const [loadingPlans, setLoadingPlans] = useState(false);
@@ -177,6 +182,16 @@ export function DashboardPage() {
     refreshSelectedPlan();
   }
 
+  useSocketEvent<{ circleId: string; message: { author: { id: string; pseudo: string }; content: string; imageKey: string | null; createdAt: string } }>('circle-message', ({ circleId, message }) => {
+    const mine = message.author.id === user?.id;
+    const open = circleId === chatCircleIdRef.current;
+    setCircles(prev => prev.map(c => c.id !== circleId ? c : {
+      ...c,
+      chatUnseen: c.chatUnseen || (!mine && !open),
+      chatLast: { author: message.author.pseudo, text: message.content ? message.content.replace(/\s+/g, ' ').slice(0, 90) : t('circle.chat.photo'), at: message.createdAt },
+    }));
+  });
+
   useSocketEvent<{ circleId: string }>('circle-updated', ({ circleId }) => {
     refreshCircles();
     if (circleId === selectedCircleIdRef.current) refreshPlans();
@@ -251,11 +266,14 @@ export function DashboardPage() {
   useEffect(() => {
     const deepLinkPollId = searchParams.get('pollId');
     const deepLinkCircleId = searchParams.get('circleId');
+    // ?chat=1 : notification d'un message de la discussion du Cercle
+    const deepLinkChat = searchParams.get('chat') === '1';
     if (!deepLinkCircleId || !circlesLoaded) return;
-    setSearchParams(prev => { prev.delete('pollId'); prev.delete('circleId'); return prev; }, { replace: true });
+    setSearchParams(prev => { prev.delete('pollId'); prev.delete('circleId'); prev.delete('chat'); return prev; }, { replace: true });
     if (!circles.some(c => c.id === deepLinkCircleId)) return;
     handleSelectCircle(deepLinkCircleId);
     if (deepLinkPollId) openPoll(deepLinkPollId);
+    else if (deepLinkChat) openCircleChat(deepLinkCircleId);
   }, [circles, circlesLoaded, searchParams]);
 
   useEffect(() => {
@@ -266,6 +284,7 @@ export function DashboardPage() {
     function onNotification(data: Omit<AppNotification, 'id' | 'at'>) {
       // Message dans le sondage déjà ouvert : pas de notification
       if (data.type === 'poll_message' && data.pollId === selectedPollIdRef.current) return;
+      if ((data.type === 'circle_mention' || data.type === 'circle_message') && data.circleId === chatCircleIdRef.current) return;
       const notification = { ...data, id: crypto.randomUUID(), at: Date.now() };
       setNotifications(prev => [...prev, notification]);
       setNotifHistory(prev => [notification, ...prev].slice(0, 30));
@@ -364,6 +383,8 @@ export function DashboardPage() {
     } else if (n.planId) {
       // Message ou mention : directement dans le chat ; le reste, page principale du Plan
       handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'quiz' ? 'quiz' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' ? 'benevoles' : n.type === 'transit' || n.type === 'transit_reminder' ? 'trajets' : n.type === 'match' || n.type === 'wheel' ? 'votes' : n.type.startsWith('assembly') ? 'assemblee' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
+    } else if ((n.type === 'circle_mention' || n.type === 'circle_message') && n.circleId) {
+      openCircleChat(n.circleId);
     } else if (n.pollId && n.circleId) {
       handleSelectCircle(n.circleId);
       openPoll(n.pollId);
@@ -380,13 +401,28 @@ export function DashboardPage() {
 
   function openPoll(pollId: string) {
     dismissHistory(n => n.pollId === pollId);
+    setChatCircleId(null);
     setSelectedPlan(null);
     setSelectedPollId(pollId);
     setMobileView('detail');
   }
 
+  // Discussion du Cercle : s'ouvre à droite (grand écran) ou en plein écran (téléphone)
+  function openCircleChat(id: string) {
+    if (id !== selectedCircleIdRef.current) handleSelectCircle(id);
+    setSelectedPlan(null);
+    setSelectedPollId(null);
+    setChatCircleId(id);
+    setMobileView('detail');
+    dismissHistory(n => n.circleId === id && (n.type === 'circle_mention' || n.type === 'circle_message'));
+  }
+  function markChatSeen(id: string) {
+    setCircles(prev => prev.map(c => (c.id === id && c.chatUnseen ? { ...c, chatUnseen: false } : c)));
+  }
+
   function handleSelectCircle(id: string) {
     setSelectedPollId(null);
+    if (id !== selectedCircleIdRef.current) setChatCircleId(null);
     setSelectedCircleId(id);
     setAllPlansActive(false);
     setCalendarActive(false);
@@ -397,6 +433,7 @@ export function DashboardPage() {
 
   function handleAllPlans() {
     setSelectedPollId(null);
+    setChatCircleId(null);
     setAllPlansActive(true);
     setCalendarActive(false);
     setSelectedCircleId(null);
@@ -406,6 +443,7 @@ export function DashboardPage() {
 
   function handleCalendar() {
     setSelectedPollId(null);
+    setChatCircleId(null);
     setCalendarActive(true);
     setAllPlansActive(false);
     setSelectedCircleId(null);
@@ -416,6 +454,7 @@ export function DashboardPage() {
   function handleSelectPlan(plan: Plan, tab?: string) {
     setOpenTab(tab ? { tab, n: Date.now() } : null);
     setSelectedPollId(null);
+    setChatCircleId(null);
     clearPlan(plan.id);
     dismissHistory(n => n.planId === plan.id);
     // Plan pour plusieurs Cercles : rester dans le Cercle ouvert s'il en fait partie, sinon prendre un Cercle dont on est membre
@@ -453,7 +492,9 @@ export function DashboardPage() {
     setNotifHistory([]);
     dismissBellPlans(bellPlanList.map(p => p.id));
     clearAllUnread();
-    setCircles(prev => prev.map(c => ({ ...c, hasUnseen: false })));
+    // Discussions de Cercle lues aussi
+    for (const c of circles) if (c.chatUnseen) api.post(`/circle-chat/${c.id}/seen`).catch(() => {});
+    setCircles(prev => prev.map(c => ({ ...c, hasUnseen: false, chatUnseen: false })));
     setPlans(prev => prev.map(p => ({ ...p, unseen: [] })));
     setSelectedPlan(prev => (prev ? { ...prev, unseen: [] } : prev));
     api.post('/plans/seen-all').then(() => refreshAll()).catch(() => {});
@@ -486,13 +527,15 @@ export function DashboardPage() {
   // ouvert, on suit directement ses cartes, qui se mettent à jour dès qu'un onglet est consulté.
   const bellCount = useMemo(() => {
     const keys = new Set(bellPlanList.map(p => `plan:${p.id}`));
-    for (const n of notifHistory) keys.add(n.planId ? `plan:${n.planId}` : n.pollId ? `poll:${n.pollId}` : `n:${n.id}`);
+    for (const n of notifHistory) keys.add(n.planId ? `plan:${n.planId}` : n.pollId ? `poll:${n.pollId}` : (n.type === 'circle_mention' || n.type === 'circle_message') ? `chat:${n.circleId}` : `n:${n.id}`);
+    // Discussions de Cercle non lues
+    for (const c of circles) if (c.chatUnseen) keys.add(`chat:${c.id}`);
     return keys.size + invitesCount;
-  }, [bellPlanList, notifHistory, invitesCount]);
+  }, [bellPlanList, notifHistory, invitesCount, circles]);
   const circlesWithNews = useMemo(() => {
     const set = new Set(unreadCircles);
     for (const c of circles) {
-      const news = (c.id === selectedCircleId ? plans.some(p => (p.unseen?.length ?? 0) > 0) : !!c.hasUnseen) || (c.pendingPolls?.length ?? 0) > 0;
+      const news = (c.id === selectedCircleId ? plans.some(p => (p.unseen?.length ?? 0) > 0) : !!c.hasUnseen) || (c.pendingPolls?.length ?? 0) > 0 || !!c.chatUnseen;
       if (news) set.add(c.id);
     }
     return set;
@@ -501,7 +544,7 @@ export function DashboardPage() {
   // Bouton retour Android (événement « evly-back » de NativeChrome) : écran étroit →
   // Plan/sondage → Plans → Cercles ; écran large → fermer le Plan ou le sondage ouvert.
   const backState = useRef({ mobileView, open: false, notifCenter: false });
-  backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId, notifCenter: showNotifCenter };
+  backState.current = { mobileView, open: !!selectedPlan || !!selectedPollId || !!chatCircleId, notifCenter: showNotifCenter };
   useEffect(() => {
     function onBack(e: Event) {
       // Déjà traité (ex. une rubrique du Plan ouverte sur téléphone revient à la page principale)
@@ -524,6 +567,7 @@ export function DashboardPage() {
         if (!open) return;
         setSelectedPlan(null);
         setSelectedPollId(null);
+        setChatCircleId(null);
       } else if (view === 'detail') {
         setMobileView('plans');
       } else if (view === 'plans') {
@@ -568,6 +612,7 @@ export function DashboardPage() {
         plansWithNews={bellPlanList}
         onOpenPlan={openPlanFromBell}
         onOpenCircle={handleSelectCircle}
+        onOpenChat={openCircleChat}
         onOpenNotification={n => { dismissHistory(x => x.id === n.id); openNotification(n); }}
         onClearAll={clearAllNotifications}
         onInvitationsChanged={(remaining, joinedCircleId) => {
@@ -641,6 +686,8 @@ export function DashboardPage() {
             onBack={() => setMobileView('circles')}
             unreadPlans={unreadPlans}
             selectedPollId={selectedPollId}
+            chatActive={chatCircleId === selectedCircle.id}
+            onOpenChat={() => openCircleChat(selectedCircle.id)}
             onSelectPoll={openPoll}
             onlineUserIds={onlineUserIds}
             otherManagedCircles={circles.filter(c => c.id !== selectedCircle.id && !c.isPersonal && isCircleManager(c, user?.id))}
@@ -654,7 +701,14 @@ export function DashboardPage() {
 
       {/* Colonne 3 — Détail */}
       <div className={`${showDetail ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
-        {selectedPollId && selectedCircle ? (
+        {chatCircleId && selectedCircle?.id === chatCircleId ? (
+          <CircleChat
+            circle={selectedCircle}
+            onBack={() => { setChatCircleId(null); setMobileView('plans'); }}
+            onSeen={markChatSeen}
+            onPlanCreated={plan => { setChatCircleId(null); handlePlanCreated(plan); }}
+          />
+        ) : selectedPollId && selectedCircle ? (
           <PollDetail
             pollId={selectedPollId}
             circle={selectedCircle}

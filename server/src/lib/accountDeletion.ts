@@ -54,5 +54,8 @@ export async function deleteUserAccount(userId: string) {
   // Photo de profil
   const me = await prisma.user.findUnique({ where: { id: userId }, select: { avatarKey: true } });
   await deletePhoto(me?.avatarKey).catch(() => {});
+  // Photos de ses messages dans les discussions de Cercle (les messages partent en cascade)
+  const chatPhotos = await prisma.circleMessage.findMany({ where: { authorId: userId, imageKey: { not: null } }, select: { imageKey: true } });
+  for (const m of chatPhotos) await deletePhoto(m.imageKey).catch(() => {});
   await prisma.user.delete({ where: { id: userId } });
 }

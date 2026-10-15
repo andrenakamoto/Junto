@@ -15,7 +15,8 @@ export const REPORT_REASON_MAX = 500;
 
 export type ReportTarget =
   | { kind: 'plan'; messageId: string; planId: string; pollId: null; authorId: string; content: string; deletedAt: Date | null }
-  | { kind: 'poll'; messageId: string; planId: null; pollId: string; authorId: string; content: string; deletedAt: Date | null };
+  | { kind: 'poll'; messageId: string; planId: null; pollId: string; authorId: string; content: string; deletedAt: Date | null }
+  | { kind: 'circle'; messageId: string; planId: null; pollId: null; authorId: string; content: string; deletedAt: Date | null };
 
 // Message signalable par userId : il doit pouvoir le voir (membre du Plan, ou membre du Cercle
 // non exclu du sondage), et ne pas en être l'auteur
@@ -35,6 +36,13 @@ export async function findReportTarget(kind: unknown, messageId: unknown, userId
     if (!m || m.authorId === userId || m.poll.exclusions.length > 0) return null;
     const member = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId: m.poll.circleId } } });
     return member ? { kind, messageId: m.id, planId: null, pollId: m.poll.id, authorId: m.authorId, content: m.content, deletedAt: m.deletedAt } : null;
+  }
+  // Discussion d'un Cercle (lib/circleChat.ts) : membre du Cercle
+  if (kind === 'circle') {
+    const m = await prisma.circleMessage.findUnique({ where: { id: messageId }, select: { id: true, circleId: true, authorId: true, content: true, deletedAt: true } });
+    if (!m || m.authorId === userId) return null;
+    const member = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId: m.circleId } } });
+    return member ? { kind, messageId: m.id, planId: null, pollId: null, authorId: m.authorId, content: m.content, deletedAt: m.deletedAt } : null;
   }
   return null;
 }

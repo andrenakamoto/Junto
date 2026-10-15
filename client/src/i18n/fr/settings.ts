@@ -1,5 +1,11 @@
 // Paramètres avancés, fonctions du Plan, répétition, suggestions
 export default {
+  chatMode: {
+    label: "Discussion du Cercle",
+    open: { label: "Ouverte", hint: "Tout le monde écrit" },
+    announce: { label: "Annonces", hint: "Seuls le créateur et les organisateurs écrivent, les autres réagissent" },
+    off: { label: "Désactivée", hint: "Pas de discussion, seulement les Plans" },
+  },
   deletion: {
     vote: { label: 'Vote à la majorité', hint: 'La moitié des membres doit voter la suppression' },
     creator: { label: 'Créateur seul', hint: 'Seul le créateur peut supprimer, sans vote' },

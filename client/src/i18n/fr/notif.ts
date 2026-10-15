@@ -15,6 +15,10 @@ export default {
   pollDatesBody: '@{{from}} a ajouté des dates : {{plan}}',
   rideTitle: 'Covoiturage — {{plan}}',
   pollMessageTitle: 'Sondage — {{plan}}',
+  deletingTitle: "Bientôt supprimé — {{plan}}",
+  circleMentionTitle: "Discussion — {{circle}}",
+  circleMessageTitle: "Discussion — {{circle}}",
+  circleMentionBody: "@{{from}} t’a mentionné(e) : {{preview}}",
   membersTitle: 'Participants — {{plan}}',
   activityTitle: 'Du nouveau — {{plan}}',
   santaTitle: 'Père Noël secret — {{plan}}',
@@ -60,5 +64,6 @@ export default {
     pending_one: ' · {{count}} demande en attente',
     pending_other: ' · {{count}} demandes en attente',
     toSee: 'À voir',
+    chats: 'Discussions',
   },
 };

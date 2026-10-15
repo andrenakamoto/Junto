@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem } from '../../lib/settings';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem, CHAT_MODE_OPTIONS, ChatMode } from '../../lib/settings';
 import { t } from '../../i18n';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
@@ -84,6 +84,11 @@ export function PlanCreationModeField(props: { value: PlanCreationMode; onChange
 
 export function PollCreationModeField(props: { value: PlanCreationMode; onChange: (v: PlanCreationMode) => void; readOnly?: boolean }) {
   return <Choice label={t('settings.pollCreationField')} options={POLL_CREATION_OPTIONS} {...props} />;
+}
+
+// Discussion du Cercle : ouverte, annonces (créateur et organisateurs écrivent) ou désactivée
+export function ChatModeField(props: { value: ChatMode; onChange: (v: ChatMode) => void; readOnly?: boolean }) {
+  return <Choice label={t('settings.chatMode.label')} options={CHAT_MODE_OPTIONS} {...props} />;
 }
 
 export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: AdmissionMode) => void; readOnly?: boolean }) {

@@ -27,12 +27,14 @@ interface Props {
   otherCircles?: Circle[];
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
   fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[] };
+  /** Titre proposé (« Faire un Plan » depuis un message de la discussion du Cercle) */
+  suggestedTitle?: string;
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle }: Props) {
   const { user } = useAuth();
   const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
-  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? '');
+  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? '');
   const [description, setDescription] = useState('');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO));
   const [endDate, setEndDate] = useState(fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : '');

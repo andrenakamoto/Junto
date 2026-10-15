@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { storageStats } from '../lib/storageStats';
+import { circleMessageInclude } from '../lib/circleChat';
 import { deletePhoto } from '../lib/photos';
 import prisma from '../lib/prisma';
 import { deleteUserAccount } from '../lib/accountDeletion';
@@ -152,6 +154,11 @@ router.get('/page-visits', async (req, res) => {
 });
 
 // Stats summary
+// GET /api/admin/storage — espace utilisé (base, fichiers, sauvegardes) et disque libre (lib/storageStats.ts)
+router.get('/storage', async (_req, res) => {
+  try { res.json(await storageStats()); } catch (e) { console.error('[storage stats]', e); res.status(500).json({ error: 'Erreur serveur' }); }
+});
+
 router.get('/stats', async (_req, res) => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   // Jours civils suisses : aujourd'hui compris, 7 jours au total
@@ -220,18 +227,21 @@ router.get('/reports', async (_req, res) => {
   });
   const planIds = reports.map(r => r.planId).filter((x): x is string => !!x);
   const pollIds = reports.map(r => r.pollId).filter((x): x is string => !!x);
-  const [plans, polls] = await Promise.all([
+  const circleMsgIds = reports.filter(r => r.kind === 'circle').map(r => r.messageId);
+  const [plans, polls, circleMsgs] = await Promise.all([
     prisma.plan.findMany({ where: { id: { in: planIds } }, select: { id: true, title: true, circle: { select: { name: true } } } }),
     prisma.circlePoll.findMany({ where: { id: { in: pollIds } }, select: { id: true, question: true, circle: { select: { name: true } } } }),
+    prisma.circleMessage.findMany({ where: { id: { in: circleMsgIds } }, select: { id: true, circle: { select: { name: true } } } }),
   ]);
   res.json(reports.map(r => {
     const plan = plans.find(p => p.id === r.planId);
     const poll = polls.find(p => p.id === r.pollId);
+    const circleMsg = r.kind === 'circle' ? circleMsgs.find(m => m.id === r.messageId) : undefined;
     return {
       id: r.id, kind: r.kind, messageId: r.messageId, createdAt: r.createdAt, reason: r.reason,
       content: decryptMessage(r.content),
       reporter: r.reporter.pseudo, author: r.author,
-      where: plan ? `Plan « ${plan.title} » (${plan.circle.name})` : poll ? `Sondage « ${poll.question} » (${poll.circle.name})` : 'Plan ou sondage supprimé',
+      where: plan ? `Plan « ${plan.title} » (${plan.circle.name})` : poll ? `Sondage « ${poll.question} » (${poll.circle.name})` : circleMsg ? `Discussion du Cercle « ${circleMsg.circle.name} »` : r.kind === 'circle' ? 'Message déjà effacé (7 jours)' : 'Plan ou sondage supprimé',
     };
   }));
 });
@@ -259,6 +269,13 @@ router.post('/reports/:id/resolve', async (req: AuthRequest, res) => {
           include: messageInclude,
         });
         if (message) req.app.get('io')?.to(`plan:${report.planId}`).emit('message-updated', withPlainContent(message));
+      }
+    } else if (report.kind === 'circle') {
+      const original = await prisma.circleMessage.findUnique({ where: { id: report.messageId } });
+      if (original) {
+        await deletePhoto(original.imageKey).catch(() => {});
+        const updated = await prisma.circleMessage.update({ where: { id: original.id }, data: { content: '', imageKey: null, deletedAt: now }, include: circleMessageInclude });
+        req.app.get('io')?.to(`circle:${original.circleId}`).emit('circle-message-updated', { circleId: original.circleId, message: withPlainContent(updated) });
       }
     } else {
       await prisma.circlePollMessage.updateMany({ where: { id: report.messageId }, data: { content: '', deletedAt: now } });

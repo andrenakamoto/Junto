@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 14 October 2026',
+  version: 'Version of 15 October 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -48,6 +48,9 @@ const en: PrivacyText = {
           manage. EvLY crops it and removes all its metadata (including the GPS location) before storing it. A replaced or
           removed photo is deleted; your profile photo is also deleted with your account, a Circle's photo with the Circle. If
           someone reports a photo, the EvLY administrator sees it with the reason given, if any, and can remove it.</li>
+        <li><strong>Circle discussions</strong> (if the Circle has turned them on): your messages, photos and reactions, visible to the
+          Circle's members. They are encrypted in the database like Plan messages and <strong>automatically deleted after 7 days</strong>,
+          photos included.</li>
         <li><strong>What you publish</strong>: messages and reactions, replies to Plans (yes / maybe / no), votes, Plan
           information, photos, voice messages and files, car-sharing rides, participation in games (Secret Santa,
           Killer, trap word, teams and scores, quiz answers and points) and in a gift pot (amount, payment reported), expenses and
@@ -114,7 +117,7 @@ const en: PrivacyText = {
 
     <Section title="6. How long we keep it">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li><strong>Plans</strong>: deleted automatically on their end date (3 weeks at most after they start), with all
+        <li><strong>Plans</strong>: deleted automatically 24 hours after their end date (3 weeks at most after they start), with all
           their content — messages, voice messages, photos, files, rides, expenses. If expenses were recorded, members
           receive a summary by email just before. The Plan’s creator and the Circle’s organisers can keep a{' '}
           <strong>PDF summary</strong> (info, participants with first name and username, waiting list, schedule, expenses and

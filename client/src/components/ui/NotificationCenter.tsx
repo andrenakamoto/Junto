@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronRight, Mail, Trash2, UserPlus, X } from 'lucide-react';
+import { Check, ChevronRight, Mail, Trash2, UserPlus, X, MessageCircle } from 'lucide-react';
 import { Modal } from './Modal';
 import { NOTIF_CONFIG, type AppNotification } from './NotificationToast';
 import api from '../../services/api';
@@ -38,6 +38,8 @@ interface Props {
   onClose: () => void;
   onOpenPlan: (plan: Plan) => void;
   onOpenCircle: (circleId: string) => void;
+  /** Discussion d'un Cercle avec des messages non lus */
+  onOpenChat: (circleId: string) => void;
   onOpenNotification: (n: AppNotification) => void;
   /** « Tout effacer » : vide la cloche (sans toucher aux pastilles des onglets) */
   onClearAll: () => void;
@@ -51,7 +53,7 @@ interface CircleInvite {
   inviter: { pseudo: string; firstName: string | null };
 }
 
-export function NotificationCenter({ circles, plansWithNews, history, onClose, onOpenPlan, onOpenCircle, onOpenNotification, onClearAll, onInvitationsChanged }: Props) {
+export function NotificationCenter({ circles, plansWithNews, history, onClose, onOpenPlan, onOpenCircle, onOpenChat, onOpenNotification, onClearAll, onInvitationsChanged }: Props) {
   // Invitations à rejoindre un Cercle (CircleInvitation, envoyées par pseudo ou email)
   const [invites, setInvites] = useState<CircleInvite[]>([]);
   const [busyInvite, setBusyInvite] = useState<string | null>(null);
@@ -82,8 +84,9 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
   }
 
   const requests = circles.filter(c => (c.joinRequests?.length ?? 0) > 0);
-  const clearable = plansWithNews.length > 0 || history.length > 0;
-  const nothing = plansWithNews.length === 0 && requests.length === 0 && history.length === 0 && invites.length === 0 && !inviteMsg;
+  const chats = circles.filter(c => c.chatUnseen);
+  const clearable = plansWithNews.length > 0 || history.length > 0 || chats.length > 0;
+  const nothing = plansWithNews.length === 0 && requests.length === 0 && chats.length === 0 && history.length === 0 && invites.length === 0 && !inviteMsg;
 
   return (
     <Modal title={t('notif.center.title')} onClose={onClose}>
@@ -166,6 +169,25 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                   <span className="flex-1 min-w-0 text-sm text-slate-800">
                     <span className="font-medium">{c.name}</span>
                     <span className="text-slate-500">{t('notif.center.pending', { count: c.joinRequests!.length })}</span>
+                  </span>
+                  <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {chats.length > 0 && (
+          <section>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{t('notif.center.chats')}</h3>
+            <div className="space-y-1.5">
+              {chats.map(c => (
+                <button key={c.id} onClick={() => { onClose(); onOpenChat(c.id); }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left">
+                  <MessageCircle size={16} className="text-indigo-500 flex-shrink-0" />
+                  <span className="flex-1 min-w-0 text-sm">
+                    <span className="block font-medium text-slate-800 truncate">{c.name}</span>
+                    {c.chatLast && <span className="block text-xs text-slate-500 truncate">{c.chatLast.author} : {c.chatLast.text}</span>}
                   </span>
                   <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                 </button>

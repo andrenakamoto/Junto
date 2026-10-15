@@ -110,6 +110,12 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.circleName ?? T.newPollTitle, body: fill(T.newPoll), url: pollUrl, group: `poll:${n.pollId}` };
     case 'poll_dates_added':
       return { title: n.circleName ?? T.poll, body: fill(T.pollDates), url: pollUrl, group: `poll:${n.pollId}` };
+    case 'plan_deleting':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: planUrl, group: `deleting:${n.planId}` };
+    case 'circle_mention':
+      return { title: n.circleName ?? 'EvLY', body: fill(T.mention), url: `${circleUrl}&chat=1`, group: `cchat:${n.circleId}` };
+    case 'circle_message':
+      return { title: n.circleName ?? 'EvLY', body: fill(T.newMessage), url: `${circleUrl}&chat=1`, group: `cchat:${n.circleId}` };
     case 'poll_message':
       return { title: n.planTitle ?? T.poll, body: fill(T.newMessage), url: pollUrl, group: `poll:${n.pollId}` };
     case 'join_request':

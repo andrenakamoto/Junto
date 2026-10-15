@@ -132,4 +132,6 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   // Quiz
   '🧠 Le quiz commence : viens jouer !': ['🧠 Das Quiz beginnt: Spiel mit!', '🧠 Il quiz inizia: vieni a giocare!', '🧠 The quiz is starting: come and play!'],
   '🏆 {0} remporte le quiz ! Découvre le classement': ['🏆 {0} gewinnt das Quiz! Entdecke die Rangliste', '🏆 {0} vince il quiz! Scopri la classifica', '🏆 {0} wins the quiz! See the leaderboard'],
+  // Plan terminé (lib/planLifecycle.ts)
+  'Ce Plan sera supprimé dans 4 heures : pense à récupérer les photos et les documents.': ['Dieser Plan wird in 4 Stunden gelöscht: Denk daran, die Fotos und Dokumente zu sichern.', 'Questo Plan sarà eliminato tra 4 ore: ricordati di recuperare foto e documenti.', 'This Plan will be deleted in 4 hours: remember to save the photos and documents.'],
 };

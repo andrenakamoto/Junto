@@ -509,9 +509,69 @@ function recomputeStandings(st: any) {
 
 const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'zoe_m'];
 
+// Discussion des Cercles (démo) : « Les copains » ouverte, « Jeunesse de Montvert » en annonces, en mémoire
+const demoChats = new Map<string, { mode: 'open' | 'announce'; seen: boolean; messages: any[] }>();
+function chatOf(circleId: string) {
+  if (demoChats.size === 0) {
+    const circles = fixtures!['GET /circles'] as any[];
+    const ago = (h: number) => new Date(Date.now() - h * 3600 * 1000).toISOString();
+    const msg = (c: any, pseudo: string, content: string, h: number, reactions: [string, string][] = []) => {
+      const u = c.members.find((x: any) => x.user.pseudo === pseudo)?.user ?? meRef();
+      const id = `demo-cm-${Math.random().toString(36).slice(2)}`;
+      return { id, circleId: c.id, author: { id: u.id, pseudo: u.pseudo, firstName: u.firstName ?? null }, content, imageKey: null, createdAt: ago(h), editedAt: null, deletedAt: null,
+        reactions: reactions.map(([emoji, who]) => ({ emoji, userId: c.members.find((x: any) => x.user.pseudo === who)?.user.id ?? me.id })) };
+    };
+    const copains = circles.find(c => c.name === 'Les copains');
+    if (copains) demoChats.set(copains.id, { mode: 'open', seen: false, messages: [
+      msg(copains, 'tom_b', 'Quelqu’un a vu le nouveau resto thaï près de la gare ? 🍜', 26, [['👍', 'emma_v']]),
+      msg(copains, 'emma_v', 'Oui ! Il paraît que le pad thaï est top', 25),
+      msg(copains, 'julie_r', 'On y va un soir la semaine prochaine ?', 3, [['❤️', 'tom_b'], ['❤️', 'noah_p']]),
+      msg(copains, 'noah_p', 'Chaud pour jeudi 😄 @alex tu viens ?', 1),
+    ] });
+    const jeunesse = circles.find(c => c.name === 'Jeunesse de Montvert');
+    if (jeunesse) {
+      const creator = jeunesse.members.find((x: any) => x.user.id === jeunesse.creatorId)?.user.pseudo ?? me.pseudo;
+      demoChats.set(jeunesse.id, { mode: 'announce', seen: true, messages: [
+        msg(jeunesse, creator, 'Rappel : les inscriptions pour le loto ferment vendredi. Merci à tous les bénévoles ! 🎉', 30, [['👏', 'lea_m'], ['👍', 'tom_b']]),
+      ] });
+    }
+  }
+  return demoChats.get(circleId);
+}
+
 function route(method: string, path: string, body: any): any {
   const key = `${method} ${path}`;
   let m: RegExpMatchArray | null;
+
+  // Discussion du Cercle
+  if ((m = path.match(/^\/circle-chat\/([^/]+)$/)) && method === 'GET') {
+    const chat = chatOf(m[1]);
+    if (!chat) return { mode: 'off', canWrite: false, canModerate: false, messages: [] };
+    const circle = (fixtures!['GET /circles'] as any[]).find(c => c.id === m![1]);
+    const manager = circle?.creatorId === me.id || circle?.members.some((x: any) => x.userId === me.id && x.role !== 'member');
+    return { mode: chat.mode, canWrite: chat.mode === 'open' || manager, canModerate: manager, messages: chat.messages };
+  }
+  if ((m = path.match(/^\/circle-chat\/([^/]+)\/seen$/))) { const chat = chatOf(m[1]); if (chat) chat.seen = true; return { ok: true }; }
+  if ((m = path.match(/^\/circle-chat\/([^/]+)\/messages$/)) && method === 'POST') {
+    const chat = chatOf(m[1]);
+    if (!chat || !body?.content?.trim()) throw new DemoError(403, NOT_IN_DEMO);
+    const msg = { id: `demo-cm-${Date.now()}`, circleId: m[1], author: { ...meRef(), firstName: me.firstName }, content: body.content.trim(), imageKey: null, createdAt: new Date().toISOString(), editedAt: null, deletedAt: null, reactions: [] };
+    chat.messages.push(msg);
+    return msg;
+  }
+  if ((m = path.match(/^\/circle-chat\/messages\/([^/]+)(\/reactions)?$/))) {
+    for (const chat of demoChats.values()) {
+      const msg = chat.messages.find(x => x.id === m![1]);
+      if (!msg) continue;
+      if (m[2]) {
+        const i = msg.reactions.findIndex((r: any) => r.userId === me.id && r.emoji === body?.emoji);
+        if (i >= 0) msg.reactions.splice(i, 1); else msg.reactions.push({ emoji: body?.emoji, userId: me.id });
+      } else if (method === 'PUT') { msg.content = String(body?.content ?? '').trim(); msg.editedAt = new Date().toISOString(); }
+      else if (method === 'DELETE') { msg.content = ''; msg.deletedAt = new Date().toISOString(); }
+      return { ...msg, reactions: [...msg.reactions] };
+    }
+    throw new DemoError(404, NOT_IN_DEMO);
+  }
 
   if (method === 'GET') {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
@@ -523,7 +583,13 @@ function route(method: string, path: string, body: any): any {
     if (path === '/circles') return (fixtures![key] as any[]).map(c => {
       const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());
       const pending = polls.filter(p => !(p.declines ?? []).some((d: any) => d.userId === me.id) && !p.options.some((o: any) => o.votes.some((v: any) => v.userId === me.id)));
-      return { ...c, pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })) };
+      const chat = chatOf(c.id);
+      const last = chat?.messages.filter(x => !x.deletedAt).slice(-1)[0];
+      return {
+        ...c, pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })),
+        chatMode: chat?.mode ?? 'off', chatUnseen: !!chat && !chat.seen,
+        chatLast: last ? { author: last.author.pseudo, text: last.content.slice(0, 90), at: last.createdAt } : null,
+      };
     });
     if (key in fixtures!) return fixtures![key];
     if ((m = path.match(/^\/plans\/messages\/([^/]+)\/replies$/))) return fixtures![key] ?? [];

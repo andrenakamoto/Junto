@@ -54,6 +54,8 @@ const account: Dict['account'] = {
     digestHint: 'Un’email ogni lunedì con i Plan attivi dei tuoi Cerchi.',
     recap: 'Riepilogo prima dell’eliminazione',
     recapHint: 'Per i Plan che gestisci (creatore del Plan, organizzatore del Cerchio): un PDF via email poco prima dell’eliminazione automatica. Info, partecipanti, turni, spese, voti, assemblea, giochi, colletta (non la chat).',
+    circleChatPush: "Discussioni dei Cerchi: ogni messaggio",
+    circleChatPushHint: "Una notifica sul telefono per ogni nuovo messaggio. Altrimenti: solo quando qualcuno ti menziona, e un punto arancione segnala i nuovi messaggi.",
     muted: 'Silenziati',
     mutedHint: 'Né notifiche né email (salvo se vieni menzionato/a). I pallini arancioni restano nell’app. La campanella 🔔 su un Plan o un Cerchio li silenzia.',
     nothingMuted: 'Niente è silenziato.',

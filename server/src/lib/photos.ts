@@ -11,11 +11,13 @@ import { STORAGE_DIR } from './storage';
 // La clé est un uuid impossible à deviner : l'image est servie sans connexion (GET /api/photos/<clé>.jpg),
 // en cache longue durée. Une nouvelle photo = une nouvelle clé ; l'ancienne est effacée du disque.
 
-export type PhotoKind = 'avatar' | 'circle';
+// chat : photo d'un message de la discussion du Cercle, proportions gardées (dans 1600 × 1600 et 480 × 480)
+export type PhotoKind = 'avatar' | 'circle' | 'chat';
 
 const SIZES: Record<PhotoKind, { big: [number, number]; small: [number, number] }> = {
   avatar: { big: [512, 512], small: [160, 160] },
   circle: { big: [1200, 600], small: [480, 240] },
+  chat: { big: [1600, 1600], small: [480, 480] },
 };
 
 const KEY_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -32,7 +34,7 @@ export async function savePhoto(buffer: Buffer, kind: PhotoKind): Promise<string
   const { big, small } = SIZES[kind];
   const render = ([w, h]: [number, number]) => sharp(buffer, { limitInputPixels: 50_000_000 })
     .rotate() // orientation EXIF appliquée avant que les métadonnées ne disparaissent
-    .resize(w, h, { fit: 'cover' })
+    .resize(w, h, kind === 'chat' ? { fit: 'inside', withoutEnlargement: true } : { fit: 'cover' })
     .flatten({ background: '#ffffff' })
     .jpeg({ quality: 82, mozjpeg: true })
     .toBuffer();

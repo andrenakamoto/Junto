@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 14 octobre 2026',
+  version: 'Version du 15 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -55,6 +55,9 @@ const fr: PrivacyText = {
           l'enregistrer. Une photo remplacée ou retirée est effacée ; ta photo de profil l'est aussi avec ton compte, celle d'un
           Cercle avec le Cercle. Si quelqu'un signale une photo, l'administrateur d'EvLY la voit avec le motif éventuel et
           peut la retirer.</li>
+        <li><strong>Discussion des Cercles</strong> (si le Cercle l'a activée) : tes messages, photos et réactions, visibles par les
+          membres du Cercle. Ils sont chiffrés en base comme ceux des Plans et <strong>effacés automatiquement au bout de 7 jours</strong>,
+          photos comprises.</li>
         <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
           peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
           aux jeux (Père Noël secret, Killer, mot piège, équipes et scores, réponses et points du quiz) et à une cagnotte (montant, paiement signalé),
@@ -127,7 +130,7 @@ const fr: PrivacyText = {
 
     <Section title="6. Combien de temps nous les gardons">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li><strong>Plans</strong> : supprimés automatiquement à leur date de fin (3 semaines au plus
+        <li><strong>Plans</strong> : supprimés automatiquement 24 h après leur date de fin (3 semaines au plus
           après leur début), avec tout leur contenu — messages, messages vocaux, photos, fichiers, trajets, dépenses.
           Si des dépenses avaient été enregistrées, un résumé est envoyé par email aux membres juste
           avant. Le créateur du Plan et les organisateurs du Cercle peuvent en garder un{' '}

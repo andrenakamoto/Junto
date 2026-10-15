@@ -9,6 +9,7 @@ import { fullName } from '../lib/names';
 import { PageVisitsPanel } from '../components/admin/PageVisitsPanel';
 import { ReportsPanel } from '../components/admin/ReportsPanel';
 import { PhotoReportsPanel } from '../components/admin/PhotoReportsPanel';
+import { StoragePanel } from '../components/admin/StoragePanel';
 import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
 import { FunnelPanel } from '../components/admin/FunnelPanel';
 
@@ -209,6 +210,8 @@ export function AdminPage() {
           le 29 septembre 2026. Personnes sans compte en cours (réponses à un Plan ou sorties organisées
           sans s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
         </p>
+
+        <StoragePanel />
 
         <FunnelPanel />
 

@@ -11,7 +11,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 14. Oktober 2026',
+  version: 'Fassung vom 15. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -51,6 +51,9 @@ const de: PrivacyText = {
           GPS-Standort). Ein ersetztes oder entferntes Foto wird gelöscht; dein Profilfoto auch mit deinem Konto, das Foto eines
           Kreises mit dem Kreis. Meldet jemand ein Foto, sieht die Administration von EvLY es mit dem allfälligen Grund und kann
           es entfernen.</li>
+        <li><strong>Diskussion der Kreise</strong> (falls der Kreis sie eingeschaltet hat): deine Nachrichten, Fotos und Reaktionen,
+          sichtbar für die Mitglieder des Kreises. Sie werden in der Datenbank verschlüsselt wie die der Pläne und <strong>nach 7 Tagen
+          automatisch gelöscht</strong>, Fotos inbegriffen.</li>
         <li><strong>Was du veröffentlichst</strong>: Nachrichten und Reaktionen, Antworten auf Pläne (ja / vielleicht /
           nein), Stimmen, Infos zu Plänen, Fotos, Sprachnachrichten und Dateien, Fahrten der Fahrgemeinschaft,
           Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate, Antworten und Punkte im Quiz) und an einer Geschenkkasse (Betrag,
@@ -120,7 +123,7 @@ const de: PrivacyText = {
 
     <Section title="6. Wie lange wir sie aufbewahren">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li><strong>Pläne</strong>: automatisch an ihrem Enddatum gelöscht (höchstens 3 Wochen nach ihrem Beginn), mit
+        <li><strong>Pläne</strong>: automatisch 24 Std. nach ihrem Enddatum gelöscht (höchstens 3 Wochen nach ihrem Beginn), mit
           ihrem ganzen Inhalt — Nachrichten, Sprachnachrichten, Fotos, Dateien, Fahrten, Ausgaben. Wurden Ausgaben
           erfasst, erhalten die Mitglieder kurz vorher eine Übersicht per E-Mail. Der Ersteller des Plans und die
           Organisatoren des Kreises können eine <strong>PDF-Zusammenfassung</strong> behalten (Infos, Teilnehmende mit

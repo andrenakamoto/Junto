@@ -4,7 +4,7 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update'
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting'
     | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
   pollId?: string;
   planId?: string;
@@ -59,6 +59,21 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     icon: Car, iconClass: 'text-indigo-400', bgClass: 'bg-indigo-600/30',
     title: n => t('notif.rideTitle', { plan: n.planTitle }),
     body: n => n.preview ?? '',
+  },
+  plan_deleting: {
+    icon: Bell, iconClass: 'text-amber-400', bgClass: 'bg-amber-600/30',
+    title: n => t('notif.deletingTitle', { plan: n.planTitle }),
+    body: n => n.preview ?? '',
+  },
+  circle_mention: {
+    icon: AtSign, iconClass: 'text-amber-400', bgClass: 'bg-amber-600/30',
+    title: n => t('notif.circleMentionTitle', { circle: n.circleName }),
+    body: n => t('notif.circleMentionBody', { from: n.from, preview: n.preview }),
+  },
+  circle_message: {
+    icon: MessageSquare, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',
+    title: n => t('notif.circleMessageTitle', { circle: n.circleName }),
+    body: n => t('notif.messageBody', { from: n.from, preview: n.preview }),
   },
   poll_message: {
     icon: MessageSquare, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',

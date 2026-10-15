@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  chatMode: {
+    label: "Discussione del Cerchio",
+    open: { label: "Aperta", hint: "Tutti scrivono" },
+    announce: { label: "Annunci", hint: "Scrivono solo chi ha creato il Cerchio e gli organizzatori, gli altri reagiscono" },
+    off: { label: "Disattivata", hint: "Nessuna discussione, solo i Plan" },
+  },
   deletion: {
     vote: { label: 'Voto a maggioranza', hint: 'La metà dei membri deve votare l’eliminazione' },
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore può eliminare, senza voto' },
