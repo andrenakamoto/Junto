@@ -163,8 +163,8 @@ const sections: TermsSection[] = [
   },
   {
     title: 'Data retention and loss',
-    body: <P>EvLY is not an archiving tool. Plans are <strong>deleted automatically and permanently on their end
-      date</strong>, along with their chat, photos, files, votes and expenses; date polls are deleted when they expire
+    body: <P>EvLY is not an archiving tool. Plans are <strong>deleted automatically and permanently 24 hours after
+      their end date</strong> (read-only during those 24 hours), along with their chat, photos, files, votes and expenses; date polls are deleted when they expire
       (30 days at most). It is up to you to download in time anything you want to keep (photos, summary, minutes,
       documents). The Publisher does not guarantee data backup and <strong>is not liable for its loss</strong>, whether
       it results from this automatic deletion, a user’s action or a technical incident.</P>,

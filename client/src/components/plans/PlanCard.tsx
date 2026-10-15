@@ -1,4 +1,5 @@
 import { Calendar, MapPin, MessageSquare, Users, Repeat, Sparkles, Layers } from 'lucide-react';
+import { isPlanEnded } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +34,8 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
   const placesLeft = placesLeftOf(plan);
   const occupied = occupiedPlaces(plan);
   const myWaitPos = waitlistPosition(plan, user?.id);
+  // Terminé : visible 24 h en lecture seule avant sa suppression (lib/planEnd.ts)
+  const ended = isPlanEnded(plan);
   const waiting = plan.waitlist?.length ?? 0;
 
   const date = plan.eventDate
@@ -44,7 +47,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
     <button
       onClick={onClick}
       // Contour marqué (comme les cartes des Cercles) : les cartes se détachent nettement du fond gris
-      className={`w-full text-left p-4 rounded-2xl transition-all border relative ${
+      className={`w-full text-left p-4 rounded-2xl transition-all border relative ${ended && !isSelected ? 'opacity-70 ' : ''}${
         isSelected
           ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500 shadow-md shadow-indigo-500/20'
           : isUnread
@@ -59,7 +62,9 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
         <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
         <span className="flex-shrink-0 flex items-center gap-1">
         <MuteToggle plan={plan} />
-        {myMember ? (
+        {ended ? (
+          <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border bg-slate-100 text-slate-500 border-slate-300">{t('plan.expiry.ended')}</span>
+        ) : myMember ? (
           <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
             {rsvpLabel(myMember.rsvp)}
           </span>

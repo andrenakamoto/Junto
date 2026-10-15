@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { lockEndedPlans } from '../lib/planLifecycle';
 import prisma from '../lib/prisma';
 import { notifyPlanActivity, PlanActivityKind } from '../lib/planNotifications';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -8,6 +9,13 @@ import { FEATURE_DISABLED_ERROR } from '../lib/settings';
 
 const router = Router();
 router.use(requireAuth as any);
+// Plan terminé : covoiturage en lecture seule (lib/planLifecycle.ts) — /plan/:planId… ou /:rideId…
+router.use(lockEndedPlans(async req => {
+  const [a, b] = req.path.split('/').filter(Boolean);
+  if (a === 'plan') return { planId: b };
+  const ride = await prisma.ride.findUnique({ where: { id: a }, select: { planId: true } });
+  return ride ? { planId: ride.planId } : null;
+}));
 
 const MAX_SEATS = 8;
 

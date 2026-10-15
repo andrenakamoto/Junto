@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { endedLast, isPlanEnded } from '../../lib/planEnd';
 import { Calendar, Users, MessageSquare, ChevronLeft } from 'lucide-react';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,7 +36,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
   // Une seule liste, par date (du plus proche au plus lointain, par défaut) ou par dernière activité, au choix ; le
   // Cercle est indiqué sur chaque carte (« Invitation » pour un invité externe, sans révéler le Cercle)
   const [planSort, setPlanSort] = usePlanSort('date');
-  const sorted = planSort === 'date' ? sortPlans(plans) : sortPlansByActivity(plans);
+  const sorted = endedLast(planSort === 'date' ? sortPlans(plans) : sortPlansByActivity(plans));
 
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
@@ -75,7 +76,9 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                   {circleName && <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{circleName}</p>}
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-semibold text-slate-900 text-sm leading-tight">{plan.title}</h3>
-                    {myMember ? (
+                    {isPlanEnded(plan) ? (
+                      <span className="flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border bg-slate-100 text-slate-500 border-slate-300">{t('plan.expiry.ended')}</span>
+                    ) : myMember ? (
                       <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium border ${rsvpBadge[myMember.rsvp]}`}>
                         {rsvpLabel(myMember.rsvp)}
                       </span>

@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { isPlanEnded } from '../lib/planLifecycle';
 import { escapeHtml } from '../lib/escapeHtml';
 import { verifySessionToken } from '../middleware/auth';
 import prisma from '../lib/prisma';
@@ -98,9 +99,10 @@ export function setupSocketHandlers(io: Server) {
       if (!text && !attachmentId) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
-        include: { plan: { select: { disabledFeatures: true } } },
+        include: { plan: { select: { disabledFeatures: true, endDate: true } } },
       });
-      if (!member || member.plan.disabledFeatures.includes('chat')) return;
+      // Plan terminé : lecture seule (lib/planLifecycle.ts)
+      if (!member || member.plan.disabledFeatures.includes('chat') || isPlanEnded(member.plan.endDate)) return;
 
       // Photo ou message vocal envoyé depuis le chat : déjà importé dans le Plan par son auteur
       // (POST /attachments/plans/:planId?via=chat), pas encore rattaché à un message
@@ -209,9 +211,9 @@ export function setupSocketHandlers(io: Server) {
       if (typeof messageId !== 'string') return null;
       const message = await prisma.message.findUnique({
         where: { id: messageId },
-        include: { plan: { select: { disabledFeatures: true, title: true, circleId: true } } },
+        include: { plan: { select: { disabledFeatures: true, title: true, circleId: true, endDate: true } } },
       });
-      if (!message || message.plan.disabledFeatures.includes('chat')) return null;
+      if (!message || message.plan.disabledFeatures.includes('chat') || isPlanEnded(message.plan.endDate)) return null;
       return checkMessageEdit(message, socket.data.userId) ? null : message;
     }
 
@@ -265,8 +267,8 @@ export function setupSocketHandlers(io: Server) {
 
     socket.on('toggle-reaction', async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
       if (!emoji || emoji.length > 8) return;
-      const message = await prisma.message.findUnique({ where: { id: messageId } });
-      if (!message) return;
+      const message = await prisma.message.findUnique({ where: { id: messageId }, include: { plan: { select: { endDate: true } } } });
+      if (!message || isPlanEnded(message.plan.endDate)) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId: message.planId } },
       });

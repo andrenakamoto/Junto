@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { lockEndedPlans } from '../lib/planLifecycle';
 import multer from 'multer';
 import { fixUploadedFileName } from '../lib/fileName';
 import jwt from 'jsonwebtoken';
@@ -25,6 +26,7 @@ router.use((req, res, next) => {
   if (req.method === 'GET' && req.path.endsWith('/view') && req.query.t) return next();
   return (requireAuth as any)(req, res, next);
 });
+router.use(lockEndedPlans(resolveAttachmentWrite, { fromPath: segs => (segs[0] === 'plans' ? segs[1] : undefined) }));
 router.use(broadcastWrites(resolveAttachmentWrite));
 
 const upload = multer({

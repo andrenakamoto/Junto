@@ -167,8 +167,8 @@ const sections: TermsSection[] = [
   },
   {
     title: 'Conservation et perte de données',
-    body: <P>EvLY n'est pas un outil d'archivage. Les Plans sont <strong>supprimés automatiquement et définitivement à
-      leur date de fin</strong>, avec leur conversation, leurs photos, leurs fichiers, leurs votes et leurs dépenses ;
+    body: <P>EvLY n'est pas un outil d'archivage. Les Plans sont <strong>supprimés automatiquement et définitivement
+      24 heures après leur date de fin</strong> (en lecture seule pendant ces 24 heures), avec leur conversation, leurs photos, leurs fichiers, leurs votes et leurs dépenses ;
       les sondages de dates le sont à leur échéance (30 jours au plus). Il t'appartient de télécharger à temps ce que tu
       souhaites conserver (photos, récapitulatif, procès-verbal, documents). L'Éditeur ne garantit pas la sauvegarde des
       données et <strong>ne répond pas de leur perte</strong>, qu'elle résulte de cette suppression automatique, d'une

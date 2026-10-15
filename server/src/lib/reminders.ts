@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { visibleSince } from './planLifecycle';
 import { parseLocale, type Locale } from './i18n';
 import { mail } from './emailText';
 
@@ -17,13 +18,13 @@ import { sendPush } from './push';
 const REMINDER_WINDOW_START_H = 23;
 const REMINDER_WINDOW_END_H = 25;
 
-// Plans dont la date de fin est passée : envoie un résumé des dépenses aux
+// Plans terminés depuis plus de 24 h (délai de grâce, lib/planLifecycle.ts) : envoie un résumé des dépenses aux
 // membres (s'il y en a) avant suppression, puis supprime le Plan. Fait au
 // cas par cas (pas de deleteMany en masse) pour pouvoir mailer chaque Plan.
 export async function deleteExpiredPlans() {
   try {
     const expiredPlans = await prisma.plan.findMany({
-      where: { endDate: { lt: new Date() } },
+      where: { endDate: { lt: visibleSince() } },
       include: {
         members: { include: { user: { select: { id: true, pseudo: true, email: true, emailVerified: true, locale: true } } }, orderBy: { joinedAt: 'asc' as const } },
         // splitWith indispensable : sans lui, chaque dépense serait répartie entre tous les membres

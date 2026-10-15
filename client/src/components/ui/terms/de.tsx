@@ -176,8 +176,8 @@ const sections: TermsSection[] = [
   },
   {
     title: 'Aufbewahrung und Verlust von Daten',
-    body: <P>EvLY ist kein Archivierungswerkzeug. Pläne werden <strong>an ihrem Enddatum automatisch und endgültig
-      gelöscht</strong>, mit ihrem Chat, ihren Fotos, Dateien, Abstimmungen und Ausgaben; Terminumfragen bei ihrem
+    body: <P>EvLY ist kein Archivierungswerkzeug. Pläne werden <strong>24 Stunden nach ihrem Enddatum automatisch und endgültig
+      gelöscht</strong> (in diesen 24 Stunden nur zum Ansehen), mit ihrem Chat, ihren Fotos, Dateien, Abstimmungen und Ausgaben; Terminumfragen bei ihrem
       Ablauf (höchstens 30 Tage). Es liegt an dir, rechtzeitig herunterzuladen, was du behalten möchtest (Fotos,
       Zusammenfassung, Protokoll, Dokumente). Die Herausgeberin garantiert keine Datensicherung und{' '}
       <strong>haftet nicht für deren Verlust</strong>, sei er Folge dieser automatischen Löschung, einer Handlung einer

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { planDeletionAt } from '../../lib/planEnd';
 import { Hourglass } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { intlLocale } from '../../i18n';
 
-const DAY_MS = 24 * 3600 * 1000;
 
 // Étiquette « ⏳ Jusqu'au 9 oct. à 19:00 » sous la date du Plan (remplace la phrase « Ce plan
 // disparaît le… ») ; le détail s'affiche au toucher. Orange dans les dernières 24 heures.
@@ -36,13 +36,17 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
     };
   }, [open]);
 
+  // Fin du Plan, puis suppression 24 h plus tard (lib/planEnd.ts) ; terminé : compte à rebours de la suppression
   const end = new Date(endDate);
-  const left = end.getTime() - Date.now();
-  const soon = left < DAY_MS;
-  const label = soon
-    ? t('plan.expiry.deletedIn', { time: left < 3600e3 ? t('plan.expiry.minutes', { n: Math.max(1, Math.round(left / 60e3)) }) : t('plan.expiry.hours', { n: Math.round(left / 3600e3) }) })
+  const deletion = planDeletionAt({ endDate });
+  const ended = end.getTime() <= Date.now();
+  const left = deletion.getTime() - Date.now();
+  const soon = ended;
+  const remaining = left < 3600e3 ? t('plan.expiry.minutes', { n: Math.max(1, Math.round(left / 60e3)) }) : t('plan.expiry.hours', { n: Math.round(left / 3600e3) });
+  const label = ended
+    ? t('plan.expiry.endedLabel', { time: remaining })
     : t('plan.expiry.until', { date: new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' }).format(end), time: new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(end) });
-  const full = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(end);
+  const fmt = (d: Date) => new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
 
   return (
     <span ref={ref}>
@@ -59,7 +63,9 @@ export function ExpiryChip({ endDate, onRecap }: { endDate: string; /** Récapit
       </button>
       {open && pos && (
         <span role="tooltip" style={{ left: pos.left, top: pos.top, width: BUBBLE_W }} className="fixed z-50 p-3 rounded-xl bg-slate-800 text-white text-xs leading-relaxed shadow-xl">
-          <Trans i18nKey="plan.expiry.bubble" values={{ date: full }} components={{ b: <strong /> }} />
+          {ended
+            ? <Trans i18nKey="plan.expiry.endedBubble" values={{ date: fmt(deletion) }} components={{ b: <strong /> }} />
+            : <Trans i18nKey="plan.expiry.bubble" values={{ end: fmt(end), date: fmt(deletion) }} components={{ b: <strong /> }} />}
           {soon && t('plan.expiry.downloadPhotos')}
           {onRecap && (
             <button type="button" onClick={() => { setOpen(false); onRecap(); }} className="block mt-2 font-semibold text-orange-300 underline underline-offset-2">

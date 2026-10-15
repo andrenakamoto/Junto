@@ -167,7 +167,7 @@ const sections: TermsSection[] = [
   {
     title: 'Conservazione e perdita di dati',
     body: <P>EvLY non è uno strumento di archiviazione. I Plan sono <strong>eliminati automaticamente e definitivamente
-      alla loro data di fine</strong>, con la loro conversazione, le foto, i file, i voti e le spese; i sondaggi sulle
+      24 ore dopo la loro data di fine</strong> (in sola lettura durante queste 24 ore), con la loro conversazione, le foto, i file, i voti e le spese; i sondaggi sulle
       date lo sono alla loro scadenza (al massimo 30 giorni). Spetta a te scaricare in tempo ciò che desideri conservare
       (foto, riepilogo, verbale, documenti). L’Editore non garantisce il salvataggio dei dati e{' '}
       <strong>non risponde della loro perdita</strong>, che derivi da questa eliminazione automatica, da un’azione di
