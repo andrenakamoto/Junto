@@ -54,7 +54,7 @@ function StopPicker({ planId, label, value, initialQuery, onChange }: { planId: 
     return (
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500 w-24 flex-shrink-0">{label}</span>
-        <span className="flex-1 min-w-0 flex items-center gap-1.5 text-sm font-medium text-slate-800 truncate"><MapPin size={13} className="text-indigo-500 flex-shrink-0" />{value.name}</span>
+        <span className="flex-1 min-w-0 flex items-start gap-1.5 text-sm font-medium text-slate-800 break-words"><MapPin size={13} className="text-indigo-500 flex-shrink-0 mt-0.5" /><span className="min-w-0">{value.name}</span></span>
         <button onClick={() => { setEditing(true); setQ(''); }} className="text-xs text-indigo-600 hover:underline flex-shrink-0">{t('plan.transit.change')}</button>
       </div>
     );
@@ -149,9 +149,16 @@ export function TransitSection({ planId, userId, isAbsent, reloadKey }: { planId
   const [note, setNote] = useState('');
   const [remember, setRemember] = useState(false);
 
+  // Départ mémorisé : repris tout seul dans un Plan où la personne n'a pas encore choisi de départ (une fois par ouverture)
+  const homeApplied = useRef(false);
   async function load() {
     try {
       const { data } = await api.get(`/plans/${planId}/transit`);
+      if (!data.from && data.home && !homeApplied.current) {
+        homeApplied.current = true;
+        await api.put(`/plans/${planId}/transit/me`, { from: data.home });
+        data.from = data.home;
+      }
       setState(data);
       setRemember(!!data.home && !!data.from && data.home.id === data.from.id);
     } catch { setState(null); }
