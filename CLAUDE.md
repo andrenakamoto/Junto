@@ -1274,6 +1274,24 @@ canal de notification ni du mode silencieux (choix explicite). Mentionné dans l
 confidentialité. **pdfkit : écrire sous la marge du bas ajoute une page** (pied de page : marge
 remise à 0 le temps de l'écrire).
 
+**Suivi du stockage** (2026-10-15, `lib/storageStats.ts`, GET `/admin/storage`, `components/admin/StoragePanel.tsx`) : panneau admin
+« Stockage » — taille de la base (`pg_database_size`), des fichiers (`du` sur `STORAGE_DIR`, dont `photos/`), des sauvegardes locales
+(`BACKUP_DIR`, défaut `/srv/evly/backups`) et disque du serveur (`statfs`, barre orange dès 70 %, rouge dès 85 %). Calculé seulement
+à l'ouverture du panneau. **Pas de vidéos dans les chats** (décision du 2026-10-15 : poids, recodage trop lourd pour le serveur) —
+à revoir si les utilisateurs le demandent (clips courts recodés).
+
+**Fin d'un Plan : 24 h de lecture seule** (2026-10-15, `lib/planLifecycle.ts` testé, miroir client `lib/planEnd.ts`) : à sa date de
+fin, un Plan passe **« Terminé »** et reste visible `PLAN_GRACE_MS` = 24 h, **en lecture seule**, puis `deleteExpiredPlans` le supprime
+(`endDate < visibleSince()`). Lecture seule = middleware `lockEndedPlans` sur les routeurs plans (`planRouterLock`), attachments et
+rides (409 `PLAN_ENDED_ERROR`, traduit) + socket (envoi, modification, réactions du chat). **Exceptions** : PUT /plans/:id (repousser la
+date de fin, ce qui réactive le Plan et remet `Plan.deletionNoticeSentAt` à null), DELETE, vote-delete, seen ; les GET (photos, PV,
+récap) restent possibles. Listes (GET /plans, GET /circles/:id/plans) : Plans terminés compris, **en bas** (`endedLast`), étiquette
+« Terminé » grisée ; le « prochain évènement » du Cercle les ignore. Fiche : bandeau ambre (date de suppression, « repousse la date de fin
+dans Modifier » pour qui peut modifier), réponses et « Inviter » masqués, chat fermé ; bulle ⏳ : fin puis suppression. **Notification
+`plan_deleting` 4 h avant la suppression** aux « Je suis in » (comptes), app + push, exemptée du mode silencieux (`sendDeletionNotices`,
+toutes les 15 min, gated, anti-doublon `Plan.deletionNoticeSentAt`, migration `20261019100000_plan_grace`). Guide, conditions
+d'utilisation et politique de confidentialité disent « supprimé 24 h après la date de fin ».
+
 Suppression des Plans expirés (`lib/reminders.ts` `deleteExpiredPlans`,
 appelée par le cron dans `index.ts`) : si un Plan expiré a des dépenses,
 un email de résumé (dépenses + virements suggérés pour équilibrer les
@@ -1425,6 +1443,24 @@ info@evly.ch), admin `PhotoReportsPanel` (GET `/admin/photo-reports`, « Retirer
 le compte (`accountDeletion.ts`) et le Cercle (`purgeCircleFiles`). Démo : avatars dessinés (`public/demo/avatars`,
 `client/scripts/demo-avatars.py`, clés `demo/…`), paul_r et max_g gardent leurs initiales. Politique de confidentialité
 (version du 14 octobre 2026) et fiche « Photos de profil et de Cercle » du guide.
+
+**Discussion du Cercle** (2026-10-15, `lib/circleChat.ts` testé, `routes/circleChat.ts` sur `/api/circle-chat`, migration
+`20261018100000_circle_chat`, `components/circles/CircleChat.tsx`) : un chat par Cercle, **messages effacés après 7 jours**
+(`deleteExpiredCircleMessages`, job horaire gated, photos comprises ; GET ne renvoie que les 7 derniers jours). `Circle.chatMode` =
+`open` (tout le monde écrit) / `announce` (créateur et organisateurs écrivent, les autres réagissent) / `off` ; **défaut `off` en base
+(Cercles existants et anciennes apps), `open` proposé à la création** (`ChatModeField` dans `CreateCircleModal`, paramètres avancés) ;
+changé dans `CircleSettingsModal` (ligne `chatMode` de l'historique). Tables **CircleMessage** (chiffré comme `Message`, `imageKey` =
+photo `lib/photos.ts` kind `chat`, proportions gardées) et **CircleMessageReaction** (mêmes 6 réactions que le chat des Plans) ;
+`CircleMember.chatSeenAt` (pastille). Temps réel : `circle-message` / `circle-message-updated` dans `circle:{id}` (avec le message :
+la room ne contient que des membres). Modifier / supprimer : auteur 15 min ; **créateur et organisateurs suppriment tout message**.
+Notifications discrètes : point orange (carte de la Discussion, carte du Cercle via `chatUnseen` de GET /circles, cloche : section
+« Discussions », « Tout effacer » les marque lues) ; push **seulement pour les mentions** (`circle_mention`, exemptée du mode silencieux),
+ou pour chaque message si `User.circleChatPush` (réglage « Discussions des Cercles : chaque message » de `NotificationSettingsModal`,
+type `circle_message`). Lien `?circleId=…&chat=1`. **« Faire un Plan »** sous un message ouvre `CreatePlanModal` (`suggestedTitle`).
+Accès : carte « 💬 Discussion » en tête de `PlanList` (dernier message, `chatLast`) → panneau de droite (`chatCircleId` dans
+DashboardPage, exclusif avec Plan et sondage). Signalement : `MessageReport` kind `circle` (admin : « Discussion du Cercle … »).
+Démo : discussion de « Les copains » (ouverte) et de « Jeunesse de Montvert » (annonces), en mémoire (`chatOf` dans `lib/demo.ts`).
+Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
 
 **Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
 fenêtre dans une pile ; `NativeChrome` ferme d'abord celle du dessus (`closeTopOverlay`) avant `evly-back`. Branché dans
