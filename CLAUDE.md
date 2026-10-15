@@ -414,6 +414,9 @@ Conséquences pratiques :
     **Version 1.0.17** (2026-10-14) : Android `versionCode` 19 (`evly-1.0.17-(19).aab`), iOS build 20 envoyé — photos de profil et
     de Cercle, affiche du Plan (Mode annonce avec « Photos et fichiers »), participants dans l'ordre d'arrivée, bouton retour
     Android qui ferme d'abord les fenêtres, Plan multi-Cercles ouvert dans le bon Cercle, « En bref » en bouton gris.
+    **Version 1.0.18** (2026-10-15) : Android `versionCode` 20 (`evly-1.0.18-(20).aab`), iOS build 21 envoyé — cartes des Cercles
+    (photo 2:1, dégradé de couleur), photo à la création du Cercle, tri « Activité / Date » des Plans, bouton « Ajouter une affiche »
+    toujours présent, départ mémorisé repris dans les Trajets, Plan en plein écran (grand écran).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
