@@ -254,8 +254,8 @@ const plan: Dict['plan'] = {
   },
   infos: {
     documents: 'Documents',
-    addPoster: 'Add a poster or a document',
-    posterHint: 'Photos appear large at the top of the info. Only the creator and organisers can add them.',
+    addPoster: 'Add a photo or a document',
+    posterHint: 'Photos and documents from the organisers. Only the creator and organisers can add them.',
     addFlyer: 'Add a poster',
     changeFlyer: 'Change poster',
     flyerHint: 'The flyer for the evening, for example: it appears large at the top of the info.',
@@ -286,6 +286,8 @@ const plan: Dict['plan'] = {
     recapFile: 'summary',
   },
   detail: {
+    fullscreen: 'Full screen (hide the lists)',
+    exitFullscreen: 'Exit full screen',
     tabs: {
       chat: 'Chat', infos: 'Info', trajets: 'Rides', membres: 'Members', votes: 'Votes', depenses: 'Expenses',
       benevoles: 'Schedule', assemblee: 'Assembly', pere_noel: 'Secret Santa', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Trap word',
@@ -380,5 +382,6 @@ const plan: Dict['plan'] = {
     today: "today",
     ongoing: "happening now",
   },
+  sort: { label: 'Sort Plans', activity: 'Activity', date: 'Date' },
 };
 export default plan;

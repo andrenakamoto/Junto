@@ -336,7 +336,9 @@ export function DashboardPage() {
     setBellPlans(prev => prev
       .map(p => p.id === updated.id && updated.unseen ? { ...p, unseen: updated.unseen, unseenAt: updated.unseenAt } : p)
       .filter(p => (p.unseen?.length ?? 0) > 0));
-    setSelectedPlan(updated);
+    // Les réponses d'écriture (réponse, modification…) ne contiennent pas les champs propres à la personne
+    // (canManageFiles, mediaToken, canRecap…) : on garde ceux du Plan ouvert pour ne pas les perdre
+    setSelectedPlan(prev => (prev && prev.id === updated.id ? { ...prev, ...updated } : updated));
   }
 
   function handlePlanDeleted() {
@@ -535,6 +537,10 @@ export function DashboardPage() {
     return () => window.removeEventListener('evly-back', onBack);
   }, []);
 
+  // Grand écran : Plan en pleine page (listes masquées), le temps d'une projection ; se referme avec le Plan
+  const [planExpanded, setPlanExpanded] = useState(false);
+  useEffect(() => { if (!selectedPlan) setPlanExpanded(false); }, [selectedPlan]);
+  const hideLists = planExpanded && !!selectedPlan;
   const showCircles = mobileView === 'circles';
   const showPlans   = mobileView === 'plans';
   const showDetail  = mobileView === 'detail';
@@ -577,7 +583,7 @@ export function DashboardPage() {
     <ProfileNameBanner />
     <div className="flex flex-1 min-h-0 bg-slate-100 overflow-hidden">
       {/* Colonne 1 — Cercles */}
-      <div className={`${showCircles ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-64 flex-shrink-0 h-full`}>
+      <div className={`${showCircles ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
           circles={sortedCircles}
           selectedId={allPlansActive ? null : selectedCircleId}
@@ -604,7 +610,7 @@ export function DashboardPage() {
 
       {/* Colonne 2 — Plans */}
       {calendarActive ? (
-        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+        <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <CalendarView
             onSelectPlan={handleSelectPlan}
             selectedPlanId={selectedPlan?.id ?? null}
@@ -613,7 +619,7 @@ export function DashboardPage() {
           />
         </div>
       ) : allPlansActive ? (
-        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+        <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <AllPlansView
             onSelectPlan={handleSelectPlan}
             selectedPlanId={selectedPlan?.id ?? null}
@@ -622,7 +628,7 @@ export function DashboardPage() {
           />
         </div>
       ) : selectedCircle ? (
-        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+        <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <PlanList
             circle={selectedCircle}
             plans={sortedPlans}
@@ -641,7 +647,7 @@ export function DashboardPage() {
           />
         </div>
       ) : (
-        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1`}>
+        <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-1`}>
           <EmptyState message={t('ui.dashboard.welcome')} sub={t('ui.dashboard.welcomeSub')} />
         </div>
       )}
@@ -670,6 +676,8 @@ export function DashboardPage() {
             onlineUserIds={onlineUserIds}
             circleMembers={selectedCircle?.members ?? []}
             openTab={openTab}
+            expanded={planExpanded}
+            onToggleExpand={() => setPlanExpanded(v => !v)}
           />
         ) : (
           <EmptyState message={t('ui.dashboard.selectPlan')} sub={t('ui.dashboard.selectPlanSub')} />

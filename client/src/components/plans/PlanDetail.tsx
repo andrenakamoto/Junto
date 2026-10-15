@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2 } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -97,9 +97,12 @@ interface Props {
   circleMembers?: CircleMember[];
   /** Onglet à afficher à l'ouverture (notification de la cloche) ; `n` change à chaque demande */
   openTab?: { tab: string; n: number } | null;
+  /** Grand écran : le Plan occupe toute la page (listes des Cercles et des Plans masquées, pour une projection) */
+  expanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab, expanded = false, onToggleExpand }: Props) {
   const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   // Téléphone : page principale du Plan (en-tête + une carte par rubrique), puis une rubrique
@@ -661,6 +664,17 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
               </div>
             </div>
           </div>
+          {/* Plein écran (ordinateur, tablette) : masque les listes des Cercles et des Plans, pour projeter le Plan */}
+          {onToggleExpand && (
+            <button
+              onClick={onToggleExpand}
+              title={expanded ? t('plan.detail.exitFullscreen') : t('plan.detail.fullscreen')}
+              aria-pressed={expanded}
+              className={`hidden md:inline-flex p-2 rounded-lg transition-colors flex-shrink-0 ${expanded ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+            >
+              {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+          )}
           {/* Actions — icônes en ligne sur grand écran, menu compact sinon (colonne étroite) */}
           <div className="hidden xl:flex gap-1 flex-shrink-0">
             {isMember && (

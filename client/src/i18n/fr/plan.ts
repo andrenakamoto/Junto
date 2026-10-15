@@ -253,8 +253,8 @@ export default {
   },
   infos: {
     documents: 'Documents',
-    addPoster: 'Ajouter une affiche ou un document',
-    posterHint: 'Les photos s’affichent en grand en haut des infos. Seuls le créateur et les organisateurs peuvent en ajouter.',
+    addPoster: 'Ajouter une photo ou un document',
+    posterHint: 'Photos et documents de l’organisation. Seuls le créateur et les organisateurs peuvent en ajouter.',
     addFlyer: 'Ajouter une affiche',
     changeFlyer: 'Changer l’affiche',
     flyerHint: 'Le flyer de la soirée, par exemple : il s’affiche en grand en haut des infos.',
@@ -285,6 +285,8 @@ export default {
     recapFile: 'récapitulatif',
   },
   detail: {
+    fullscreen: 'Plein écran (masquer les listes)',
+    exitFullscreen: 'Quitter le plein écran',
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
       benevoles: 'Planning', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
@@ -379,4 +381,5 @@ export default {
     today: "aujourd’hui",
     ongoing: "en cours",
   },
+  sort: { label: 'Trier les Plans', activity: 'Activité', date: 'Date' },
 };
