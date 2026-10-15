@@ -754,6 +754,9 @@ Junto/
   **au plus une fois par minute et par Plan** (`chatListRefresh` dans `socket/handlers.ts`) pour que
   les listes se réordonnent. Démo : `touchActivity` dans `lib/demo.ts`. Les jeux (Père Noël, Killer,
   équipes, cagnotte) ne comptent pas comme activité (pas de section).
+  **Tri au choix** (2026-10-15, `lib/planSort.ts`, `PlanSortToggle`) : boutons « Activité » / « Date » en tête de la liste
+  d'un Cercle (défaut Activité) et de « Tous mes plans » (défaut Date) ; choix **mémorisé sur l'appareil** (`localStorage`
+  `evly_plan_sort`, le même pour les deux listes). GET /plans renvoie aussi `lastActivityAt` pour le tri par activité.
 - **Plan** : title, description, eventDate?, endDate (obligatoire, auto-
   archivage), location?, maxParticipants? (limite optionnelle ; depuis le 2026-10-09 **une place = « Je suis
   in » ou « Peut-être »**, un « Je passe » libère la sienne — `occupiedCount` / `hasFreeSpot` dans
@@ -1135,7 +1138,8 @@ Junto/
   **arrêt, adresse ou lieu** — depuis le 2026-10-12, recherche OJP `stop` + `address` + `poi` ; une adresse ou un lieu est gardé par
   ses coordonnées, id `geo:lon,lat`, envoyé à OJP en `GeoPosition` par `placeRef`, OJP ajoute la marche jusqu'à l'arrêt ; un voyage
   proposé ne garde pas la marche du début, `sharedLegs`, pour ne pas montrer l'adresse de la personne) ; au toucher du champ d'arrivée, arrêts suggérés depuis le
-  lieu du Plan ; départ mémorisé **seulement si la personne coche** (table **TransitHome**). Correspondances pour
+  lieu du Plan ; départ mémorisé **seulement si la personne coche** (table **TransitHome**) ; depuis le 2026-10-15, il est **repris tout seul** dans un
+  Plan où elle n'a pas encore de départ (`load` de `TransitSection`, une fois par ouverture). Correspondances pour
   arriver 10 min avant le début (`ARRIVE_EARLY_MS`, les 3 dernières à l'heure ; prochains départs si le Plan a commencé) et
   **dernier retour** de la nuit (dernier départ avant 5 h, bus de nuit compris, `fetchLastConnection`). **« On voyage
   ensemble »** : **TransitGroup** (copie figée : lignes « Tram 15 › Bus 11 », départ, quai, rendez-vous, **étapes** `legs` — montée, descente, quai, heures et marche de chaque ligne, nettoyées par `sanitizeLegs`, affichées sur la carte du voyage ; « Détail du trajet » dépliable sur chaque correspondance et le dernier retour) + **TransitGroupMember**
@@ -1153,6 +1157,8 @@ Junto/
   bord gauche. Un Plan s'ouvre toujours sur sa page principale, sauf rubrique demandée (`openTab` :
   cloche, notification de message ou de mention → chat, push `?planId=…&tab=chat`). Rien n'est
   marqué « vu » sur la page principale (`activeTab` null). Grand écran : onglets inchangés.
+  **Plein écran** (2026-10-15, grand écran et tablette) : bouton ⤢ de l'en-tête du Plan (`expanded` / `onToggleExpand`) qui
+  masque les colonnes des Cercles et des Plans (`planExpanded` dans DashboardPage, pour projeter un Plan) ; refermé avec le Plan.
   **Barre d'actions** (même date) fixée en bas de la page principale uniquement (pas dans une
   rubrique), nettement séparée des cartes (fond blanc, trait et ombre vers le haut, boutons
   corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
@@ -1404,8 +1410,14 @@ Cercle ou un Plan (et soi-même) → `contexts/PhotosContext.tsx` (monté dans D
 10 s) ; **`Avatar` affiche la photo d'après le pseudo** (`noPhoto` pour la lettre d'un Cercle), prop `person` = toucher
 ouvre `PersonSheet` (grande photo, prénom, @pseudo, « Signaler la photo »). Avatars en 48 px (`xl`) dans la fenêtre
 Membres du Cercle et la rubrique Membres du Plan ; photo du Cercle en bandeau en haut de sa carte (`CircleSidebar`) et
-de la liste des Plans (`PlanList`, nom écrit dessus) ; section photo dans `ProfileModal` et `CircleSettingsModal` (les
-membres y signalent la photo du Cercle). Signalement : table **PhotoReport** (POST `/photos/reports`, email sans image à
+de la liste des Plans (`PlanList`, nom écrit dessus) ; section photo dans `ProfileModal`. Photo du Cercle choisie **à la création
+(`CreateCircleModal`) ou dans les réglages** avec `CirclePhotoField` (`components/circles/CirclePhotoField.tsx`) : recadrée puis
+**gardée en attente** et envoyée au clic sur « Créer » / « Enregistrer » (`applyCirclePhoto`), qui s'active donc dès que la photo
+change ; les autres membres la voient et la signalent dans les réglages (`CirclePhotoView`).
+**Carte du Cercle** (`CircleSidebar`, refaite le 2026-10-15) : en-tête 2:1 = la photo telle que cadrée, ou un dégradé de la couleur
+du Cercle avec son initiale en Fraunces (taille en `cqw`) ; nom, membres, plans, sondages et pastille de couleur écrits dessus ;
+fine ligne de couleur sous la photo ; cartes espacées de 16 px, ombre `shadow-md` ; sélection = contour corail (la carte reste blanche). Cartes des Plans (`PlanCard`) au même style : `rounded-2xl`, bordure
+`slate-300`, `shadow-md`, 12 px entre elles, sélection = contour corail. Signalement : table **PhotoReport** (POST `/photos/reports`, email sans image à
 info@evly.ch), admin `PhotoReportsPanel` (GET `/admin/photo-reports`, « Retirer la photo » / « Classer »). Effacées avec
 le compte (`accountDeletion.ts`) et le Cercle (`purgeCircleFiles`). Démo : avatars dessinés (`public/demo/avatars`,
 `client/scripts/demo-avatars.py`, clés `demo/…`), paul_r et max_g gardent leurs initiales. Politique de confidentialité
