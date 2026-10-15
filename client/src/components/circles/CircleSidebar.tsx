@@ -189,78 +189,83 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           const isCreator = circle.creatorId === user?.id;
           const isManager = isCircleManager(circle, user?.id);
           return (
-            <div key={circle.id}>
+            // pt-2.5 : plus d'espace entre les cartes (le conteneur n'en met que 6 px)
+            <div key={circle.id} className="pt-2.5">
               <button
                 onClick={() => onSelect(circle.id)}
-                style={circleColor ? { borderLeftColor: circleColor, borderLeftWidth: 3 } : undefined}
-                className={`w-full text-left rounded-xl transition-all border relative ${
+                className={`w-full text-left rounded-2xl overflow-hidden transition-all border relative bg-white ${
                   selected
-                    ? 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20'
+                    ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-lg shadow-indigo-500/20'
                     : hasUnread
-                    ? 'bg-white border-orange-300 shadow-sm hover:bg-slate-50 hover:border-orange-400'
-                    : 'bg-white border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300'
+                    ? 'border-orange-300 shadow-md hover:shadow-lg'
+                    : 'border-slate-200 shadow-md hover:shadow-lg hover:border-slate-300'
                 }`}
               >
-                {hasUnread && !selected && (
-                  <span className="absolute top-2 right-2 z-10 w-2.5 h-2.5 bg-orange-500 rounded-full ring-2 ring-white" />
-                )}
-                {/* Photo du Cercle : bandeau en haut de la carte, à la place de la lettre */}
-                {circle.photoKey && (
-                  <img src={photoUrl(circle.photoKey, true)} alt="" loading="lazy" className="block w-full h-[88px] object-cover rounded-tr-[11px] bg-slate-200" />
-                )}
-                <div className="flex items-center gap-3 px-3 pt-3 pb-2">
-                  {!circle.photoKey && <Avatar pseudo={circle.name} size="sm" noPhoto />}
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm truncate ${selected ? 'text-white' : 'text-slate-800'}`}>
-                      {circle.name}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-x-1.5 mt-0.5">
-                      <button
-                        onClick={e => { e.stopPropagation(); setMembersPopover(circle.id); }}
-                        className={`text-xs whitespace-nowrap hover:underline ${selected ? 'text-indigo-100 hover:text-white' : 'text-indigo-600 hover:text-indigo-700'}`}
-                      >
-                        {t('circle.members.count', { count: circle.members.length })}
-                      </button>
-                      {isCircleMuted(circle.id) && (
-                        <span title={t('circle.sidebar.muted')} className={selected ? 'text-indigo-100' : 'text-slate-400'}><BellOff size={12} /></span>
-                      )}
-                      {(circle._count?.plans ?? 0) > 0 && (
-                        <>
-                          <span className="text-xs text-slate-300">·</span>
-                          <span className={`text-xs whitespace-nowrap ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
-                            {t('circle.sidebar.plans', { count: circle._count!.plans })}
-                          </span>
-                        </>
-                      )}
-                      {(circle.pollCount ?? 0) > 0 && (
-                        <>
-                          <span className="text-xs text-slate-300">·</span>
-                          <span className={`text-xs whitespace-nowrap ${selected ? 'text-indigo-200/80' : 'text-indigo-600'}`}>
-                            {t('circle.sidebar.polls', { count: circle.pollCount })}
-                          </span>
-                        </>
-                      )}
-                      {isManager && (
-                        <button
-                          onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
-                          title={t('circle.sidebar.color')}
-                          className="w-3 h-3 rounded-full border border-slate-300 flex-shrink-0 ml-0.5"
-                          style={{ backgroundColor: circleColor || '#64748b' }}
-                        />
-                      )}
+                {/* En-tête 2:1 : la photo du Cercle telle qu'elle a été cadrée, ou un dégradé de sa couleur avec son
+                    initiale ; nom et compteurs écrits dessus. Toutes les cartes ont ainsi la même forme. */}
+                <div className="relative aspect-[2/1] bg-slate-200 [container-type:inline-size]">
+                  {circle.photoKey ? (
+                    <img src={photoUrl(circle.photoKey, true)} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-start justify-center pt-[4%]"
+                      style={{ background: `linear-gradient(135deg, ${circleColor || '#64748b'} 0%, ${circleColor || '#64748b'}cc 55%, #0f172a 140%)` }}>
+                      <span className="font-['Fraunces'] italic font-light text-white/90 text-[22cqw] leading-none select-none">{circle.name[0]?.toUpperCase()}</span>
                     </div>
-                  </div>
-                  {(circle.joinRequests?.length ?? 0) > 0 && (
-                    <button
-                      onClick={e => { e.stopPropagation(); setRequestsPopover(requestsPopover === circle.id ? null : circle.id); }}
-                      title={t('circle.sidebar.pending')}
-                      className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors flex-shrink-0 text-xs font-semibold"
-                    >
-                      <UserPlus size={12} />
-                      {circle.joinRequests!.length}
-                    </button>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                  {hasUnread && !selected && (
+                    <span className="absolute top-2.5 right-2.5 w-3 h-3 bg-orange-500 rounded-full ring-2 ring-white" />
+                  )}
+                  <div className="absolute left-0 right-0 bottom-0 px-3 pb-2.5 flex items-end gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-white truncate drop-shadow">{circle.name}</p>
+                      <div className="flex flex-wrap items-center gap-x-1.5 mt-0.5 text-white/90">
+                        <button
+                          onClick={e => { e.stopPropagation(); setMembersPopover(circle.id); }}
+                          className="text-xs whitespace-nowrap hover:underline"
+                        >
+                          {t('circle.members.count', { count: circle.members.length })}
+                        </button>
+                        {isCircleMuted(circle.id) && (
+                          <span title={t('circle.sidebar.muted')}><BellOff size={12} /></span>
+                        )}
+                        {(circle._count?.plans ?? 0) > 0 && (
+                          <>
+                            <span className="text-xs text-white/60">·</span>
+                            <span className="text-xs whitespace-nowrap">{t('circle.sidebar.plans', { count: circle._count!.plans })}</span>
+                          </>
+                        )}
+                        {(circle.pollCount ?? 0) > 0 && (
+                          <>
+                            <span className="text-xs text-white/60">·</span>
+                            <span className="text-xs whitespace-nowrap">{t('circle.sidebar.polls', { count: circle.pollCount })}</span>
+                          </>
+                        )}
+                        {isManager && (
+                          <button
+                            onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
+                            title={t('circle.sidebar.color')}
+                            className="w-3.5 h-3.5 rounded-full border-2 border-white/90 flex-shrink-0 ml-0.5"
+                            style={{ backgroundColor: circleColor || '#64748b' }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    {(circle.joinRequests?.length ?? 0) > 0 && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setRequestsPopover(requestsPopover === circle.id ? null : circle.id); }}
+                        title={t('circle.sidebar.pending')}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors flex-shrink-0 text-xs font-semibold"
+                      >
+                        <UserPlus size={12} />
+                        {circle.joinRequests!.length}
+                      </button>
+                    )}
+                  </div>
                 </div>
+                {/* Couleur du Cercle en fine ligne sous la photo */}
+                {circle.photoKey && circleColor && <div className="h-1" style={{ backgroundColor: circleColor }} />}
+                <div className="h-3" />
 
                 {/* Sondages de dates qui attendent ma réponse : un seul → il s'ouvre ; plusieurs → le Cercle s'ouvre */}
                 {(circle.pendingPolls?.length ?? 0) > 0 && (
@@ -272,28 +277,28 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                       const pending = circle.pendingPolls!;
                       if (pending.length === 1 && onOpenPoll) onOpenPoll(circle.id, pending[0].id); else onSelect(circle.id);
                     }}
-                    className={`mx-3 mb-2 px-2.5 py-2 rounded-lg flex items-center gap-2 ${selected ? 'bg-white/15 hover:bg-white/25' : 'bg-amber-50 border border-amber-200 hover:bg-amber-100'}`}
+                    className="mx-3 mb-3 px-2.5 py-2 rounded-lg flex items-center gap-2 bg-amber-50 border border-amber-200 hover:bg-amber-100"
                   >
-                    <Vote size={14} className={`flex-shrink-0 ${selected ? 'text-white' : 'text-amber-700'}`} />
+                    <Vote size={14} className={`flex-shrink-0 text-amber-700`} />
                     <span className="flex-1 min-w-0">
-                      <span className={`block text-xs font-semibold ${selected ? 'text-white' : 'text-amber-800'}`}>{t('circle.sidebar.voteNow')}</span>
-                      <span className={`block text-xs truncate ${selected ? 'text-indigo-100' : 'text-amber-900/80'}`}>
+                      <span className={`block text-xs font-semibold text-amber-800`}>{t('circle.sidebar.voteNow')}</span>
+                      <span className={`block text-xs truncate text-amber-900/80`}>
                         {circle.pendingPolls!.length === 1 ? circle.pendingPolls![0].question : t('circle.sidebar.pendingPolls', { count: circle.pendingPolls!.length })}
                       </span>
                     </span>
-                    <ChevronRight size={14} className={`flex-shrink-0 ${selected ? 'text-white' : 'text-amber-700'}`} />
+                    <ChevronRight size={14} className={`flex-shrink-0 text-amber-700`} />
                   </span>
                 )}
 
                 {nextPlan && (
-                  <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg ${selected ? 'bg-indigo-500/30' : 'bg-slate-50'}`}>
-                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${selected ? 'text-indigo-200/70' : 'text-indigo-600'}`}>
+                  <div className={`mx-3 mb-3 px-2.5 py-2 rounded-lg bg-slate-50`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wide mb-1 text-indigo-600`}>
                       {t('circle.sidebar.nextEvent')}
                     </p>
-                    <p className={`text-xs font-semibold truncate ${selected ? 'text-white' : 'text-slate-800'}`}>
+                    <p className={`text-xs font-semibold truncate text-slate-800`}>
                       {nextPlan.title}
                     </p>
-                    <div className={`flex items-center gap-1 mt-0.5 ${selected ? 'text-indigo-200/80' : 'text-slate-500'}`}>
+                    <div className={`flex items-center gap-1 mt-0.5 text-slate-500`}>
                       <Calendar size={10} className="flex-shrink-0" />
                       <span className="text-xs">
                         {nextPlan.eventDate
