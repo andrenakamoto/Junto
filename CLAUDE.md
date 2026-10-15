@@ -417,6 +417,8 @@ Conséquences pratiques :
     **Version 1.0.18** (2026-10-15) : Android `versionCode` 20 (`evly-1.0.18-(20).aab`), iOS build 21 envoyé — cartes des Cercles
     (photo 2:1, dégradé de couleur), photo à la création du Cercle, tri « Activité / Date » des Plans, bouton « Ajouter une affiche »
     toujours présent, départ mémorisé repris dans les Trajets, Plan en plein écran (grand écran).
+    **Version 1.0.19** (2026-10-15) : Android `versionCode` 21 (`evly-1.0.19-(21).aab`), iOS build 22 envoyé — discussion du Cercle,
+    Plans terminés en lecture seule 24 h (notification 4 h avant la suppression), suivi du stockage (admin).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
