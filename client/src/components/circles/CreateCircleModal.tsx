@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../types';
 import { AdvancedSection, AdmissionModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
 import { useTranslation } from 'react-i18next';
+import { CirclePhotoField, PendingPhoto, applyCirclePhoto } from './CirclePhotoField';
 
 export const CIRCLE_COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6', '#14b8a6'];
 
@@ -22,6 +23,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
   const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('vote');
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>('all');
   const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>('all');
+  const [photo, setPhoto] = useState<PendingPhoto>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { t } = useTranslation();
@@ -32,7 +34,10 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
     setError('');
     try {
       const { data } = await api.post('/circles', { name, description, color, deletionMode, admissionMode, planCreationMode, pollCreationMode });
-      onCreated(data);
+      // Photo envoyée une fois le Cercle créé ; si elle échoue, le Cercle existe quand même (photo à remettre dans ses réglages)
+      let photoKey: string | null | undefined;
+      try { photoKey = await applyCirclePhoto(data.id, photo); } catch { photoKey = undefined; }
+      onCreated(photoKey !== undefined ? { ...data, photoKey } : data);
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
     } finally {
@@ -45,6 +50,7 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label={t('circle.create.name')} value={name} onChange={e => setName(e.target.value)} placeholder={t('circle.create.namePlaceholder')} required autoFocus />
         <Input label={t('circle.create.description')} value={description} onChange={e => setDescription(e.target.value)} placeholder={t('circle.create.descriptionPlaceholder')} />
+        <CirclePhotoField currentKey={null} pending={photo} onPending={setPhoto} />
         <div>
           <label className="text-sm font-medium text-slate-700 mb-1.5 block">{t('circle.create.color')}</label>
           <div className="flex gap-2">

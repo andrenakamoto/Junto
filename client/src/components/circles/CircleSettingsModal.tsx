@@ -8,20 +8,18 @@ import { AdmissionModeField, DeletionModeField, PlanCreationModeField, PollCreat
 import api from '../../services/api';
 import { ADMISSION_OPTIONS, DELETION_OPTIONS, isCircleManager, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS } from '../../lib/settings';
 import { intlLocale, t } from '../../i18n';
-import { PhotoCropper } from '../ui/PhotoCropper';
+import { CirclePhotoField, PendingPhoto, applyCirclePhoto } from './CirclePhotoField';
 import { photoUrl } from '../../lib/photos';
-import { Flag, ImagePlus } from 'lucide-react';
+import { Flag } from 'lucide-react';
 
 interface Props {
   circle: Circle;
   onClose: () => void;
   onUpdated: (circle: Circle) => void;
-  // Photo changée (sans fermer la fenêtre)
-  onPhotoChanged?: (circle: Circle) => void;
 }
 
 // Paramètres avancés du Cercle : modifiables par le créateur, visibles par tous les membres
-export function CircleSettingsModal({ circle, onClose, onUpdated, onPhotoChanged }: Props) {
+export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
   const { user } = useAuth();
   const isCreator = circle.creatorId === user?.id;
   const canEdit = isCircleManager(circle, user?.id);
@@ -32,6 +30,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated, onPhotoChanged
   const [name, setName] = useState(circle.name);
   const [description, setDescription] = useState(circle.description ?? '');
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<PendingPhoto>(null);
   const [error, setError] = useState('');
 
   const pendingCount = circle.joinRequests?.length ?? 0;
@@ -39,13 +38,21 @@ export function CircleSettingsModal({ circle, onClose, onUpdated, onPhotoChanged
   const changed = deletionMode !== (circle.deletionMode ?? 'vote') || admissionMode !== (circle.admissionMode ?? 'vote')
     || planCreationMode !== (circle.planCreationMode ?? 'all') || pollCreationMode !== (circle.pollCreationMode ?? 'all')
     || description.trim() !== (circle.description ?? '') || (name.trim() !== circle.name && name.trim().length > 0);
+  const settingsChanged = changed;
+  const anyChange = changed || photo !== null;
 
   async function handleSave() {
     setSaving(true);
     setError('');
     try {
-      const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode, description, name: name.trim() });
-      onUpdated(data);
+      // Photo d'abord (elle a sa propre route), puis les réglages s'ils ont changé
+      const key = await applyCirclePhoto(circle.id, photo);
+      let updated: Circle = { ...circle, ...(key !== undefined ? { photoKey: key } : {}) };
+      if (settingsChanged) {
+        const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode, description, name: name.trim() });
+        updated = { ...data, ...(key !== undefined ? { photoKey: key } : {}) };
+      }
+      onUpdated(updated);
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
     } finally {
@@ -56,7 +63,9 @@ export function CircleSettingsModal({ circle, onClose, onUpdated, onPhotoChanged
   return (
     <Modal title={t('circle.settings.title')} onClose={onClose}>
       <div className="space-y-4">
-        <CirclePhotoSection circle={circle} canEdit={canEdit} onChanged={key => onPhotoChanged?.({ ...circle, photoKey: key })} />
+        {canEdit
+          ? <CirclePhotoField currentKey={circle.photoKey ?? null} pending={photo} onPending={setPhoto} />
+          : <CirclePhotoView circle={circle} />}
         {canEdit && (
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('circle.settings.name')}</label>
@@ -101,7 +110,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated, onPhotoChanged
           {canEdit ? (
             <>
               <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
-              <Button onClick={handleSave} disabled={saving || !changed}>{saving ? t('common.saving') : t('common.save')}</Button>
+              <Button onClick={handleSave} disabled={saving || !anyChange}>{saving ? t('common.saving') : t('common.save')}</Button>
             </>
           ) : (
             <>
@@ -164,56 +173,22 @@ function CircleHistory({ circleId }: { circleId: string }) {
   );
 }
 
-// Photo du Cercle (format 2:1, en haut de la carte et de la liste des Plans) : le créateur et les organisateurs
-// la changent ; les autres membres la voient et peuvent la signaler
-function CirclePhotoSection({ circle, canEdit, onChanged }: { circle: Circle; canEdit: boolean; onChanged: (key: string | null) => void }) {
-  const [key, setKey] = useState(circle.photoKey ?? null);
-  const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState('');
+// Photo du Cercle vue par un membre qui ne la gère pas : affichage et « Signaler la photo »
+function CirclePhotoView({ circle }: { circle: Circle }) {
   const [report, setReport] = useState<'idle' | 'open' | 'busy' | 'done'>('idle');
   const [reason, setReason] = useState('');
-  if (!canEdit && !key) return null;
-
-  async function upload(blob: Blob) {
-    const fd = new FormData();
-    fd.append('file', blob, 'photo.jpg');
-    const { data } = await api.put(`/photos/circles/${circle.id}`, fd);
-    setKey(data.photoKey); onChanged(data.photoKey); setFile(null);
-  }
-  async function remove() {
-    setError('');
-    try { await api.delete(`/photos/circles/${circle.id}`); setKey(null); onChanged(null); }
-    catch (err: any) { setError(err.response?.data?.error || t('common.error')); }
-  }
+  const [error, setError] = useState('');
+  if (!circle.photoKey) return null;
   async function sendReport() {
-    setReport('busy');
+    setReport('busy'); setError('');
     try { await api.post('/photos/reports', { kind: 'circle', targetId: circle.id, reason: reason.trim() || undefined }); setReport('done'); }
     catch { setReport('open'); setError(t('common.error')); }
   }
-
   return (
     <div>
       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('photos.circleLabel')}</label>
-      {key ? (
-        <img src={photoUrl(key)} alt="" className="w-full aspect-[2/1] object-cover rounded-xl bg-slate-200" />
-      ) : (
-        <label className="w-full aspect-[2/1] rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 text-slate-400 cursor-pointer hover:border-indigo-300 hover:text-indigo-500">
-          <ImagePlus size={24} />
-          <span className="text-sm font-medium">{t('photos.add')}</span>
-          <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setFile(f); }} />
-        </label>
-      )}
-      {canEdit && key && (
-        <div className="flex gap-2 mt-2">
-          <label className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 cursor-pointer">
-            {t('photos.change')}
-            <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setFile(f); }} />
-          </label>
-          <button type="button" onClick={remove} className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100">{t('photos.remove')}</button>
-        </div>
-      )}
-      {canEdit && <p className="text-xs text-slate-400 mt-1">{t('photos.circleHint')}</p>}
-      {!canEdit && key && (report === 'done' ? (
+      <img src={photoUrl(circle.photoKey)} alt="" className="w-full aspect-[2/1] object-cover rounded-xl bg-slate-200" />
+      {report === 'done' ? (
         <p className="mt-2 text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{t('photos.reported')}</p>
       ) : report === 'idle' ? (
         <button type="button" onClick={() => setReport('open')} className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-600"><Flag size={12} />{t('photos.report')}</button>
@@ -226,9 +201,8 @@ function CirclePhotoSection({ circle, canEdit, onChanged }: { circle: Circle; ca
             <button type="button" onClick={sendReport} disabled={report === 'busy'} className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-red-600 text-white disabled:opacity-50">{t('photos.reportSend')}</button>
           </div>
         </div>
-      ))}
+      )}
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-      {file && <PhotoCropper file={file} aspect={2} title={t('photos.circleTitle')} onCancel={() => setFile(null)} onDone={upload} />}
     </div>
   );
 }
