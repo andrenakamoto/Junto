@@ -10,7 +10,8 @@
 //
 // Comptes : « camille_evly » (Camille Démo, info@evly.ch, le compte donné aux vérificateurs) et
 // quatre membres fictifs sans email (julie_morel, tom_favre, lea_rochat, pierre_dubois), tous avec
-// DEMO_PASSWORD. Ils ne voient que leurs deux Cercles de démonstration.
+// DEMO_PASSWORD. Ils ne voient que leurs deux Cercles de démonstration (discussion ouverte chez les amis, annonces au
+// club vélo : messages effacés après 7 jours, relancer si la vérification dure plus longtemps).
 // (Anciens pseudos demo_* de la première version : supprimés aussi au nettoyage.)
 const LEGACY = ['demo_evly', 'demo_julie', 'demo_tom', 'demo_lea', 'demo_pierre'];
 import 'dotenv/config';
@@ -100,7 +101,7 @@ async function main() {
     data: {
       name: 'Les amis du lundi', code: `DEMO${Date.now().toString(36).toUpperCase().slice(-4)}`,
       description: 'Le Cercle des copains de la coloc : apéros, sorties et week-ends.',
-      color: '#f43f5e', creatorId: ids.camille_evly,
+      color: '#f43f5e', creatorId: ids.camille_evly, chatMode: 'open',
       members: { create: [
         { userId: ids.camille_evly, role: 'admin' }, { userId: ids.julie_morel, role: 'organizer' },
         { userId: ids.tom_favre, role: 'member' }, { userId: ids.lea_rochat, role: 'member' }, { userId: ids.pierre_dubois, role: 'member' },
@@ -111,7 +112,7 @@ async function main() {
     data: {
       name: 'Club vélo Les Rayons', code: `DEMV${Date.now().toString(36).toUpperCase().slice(-4)}`,
       description: 'Sorties route et gravel autour de Genève, tous niveaux.',
-      color: '#10b981', creatorId: ids.pierre_dubois,
+      color: '#10b981', creatorId: ids.pierre_dubois, chatMode: 'announce',
       members: { create: [
         { userId: ids.pierre_dubois, role: 'admin' }, { userId: ids.camille_evly, role: 'member' }, { userId: ids.tom_favre, role: 'member' },
       ] },
@@ -169,6 +170,22 @@ async function main() {
   });
   for (const who of ['camille_evly', 'tom_favre'] as Who[]) await call(who, 'POST', `/plans/${salève.id}/join`);
   await say('pierre_dubois', salève.id, ['Prévoyez une chambre à air de rechange 🚴']);
+
+  // 6. Discussions des Cercles : ouverte chez les amis, annonces au club vélo (messages gardés 7 jours)
+  async function post(who: Who, circleId: string, content: string) {
+    const m = await call(who, 'POST', `/circle-chat/${circleId}/messages`, { content });
+    await sleep(400);
+    return m as { id: string };
+  }
+  await post('julie_morel', amis.id, 'Salut la team ! Quelqu’un est partant pour un ciné cette semaine ? 🎬');
+  const tomMsg = await post('tom_favre', amis.id, 'Grave ! Jeudi ou vendredi pour moi');
+  await call('lea_rochat', 'POST', `/circle-chat/messages/${tomMsg.id}/reactions`, { emoji: '👍' });
+  await post('lea_rochat', amis.id, 'Jeudi c’est parfait 🙌');
+  await post('pierre_dubois', amis.id, '@camille_evly tu viens aussi ?');
+  await post('julie_morel', amis.id, 'Je crée un Plan dès qu’on a choisi le film 😉');
+  const cotisation = await post('pierre_dubois', velo.id, '📣 La cotisation 2027 est ouverte : 50 CHF à verser avant fin novembre. Merci à tous !');
+  for (const who of ['camille_evly', 'tom_favre'] as Who[]) await call(who, 'POST', `/circle-chat/messages/${cotisation.id}/reactions`, { emoji: '👍' });
+  await post('pierre_dubois', velo.id, 'Nouveau parcours gravel pour dimanche, tous les détails sont dans le Plan 🚴');
 
   console.log('Démo prête : pseudo camille_evly (ou info@evly.ch) — mot de passe : DEMO_PASSWORD');
 }
