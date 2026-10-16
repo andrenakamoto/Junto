@@ -97,7 +97,7 @@ function withMeta(html: string, m: { title: string; description: string; image: 
 }
 
 // Image générique EvLY dans une langue (slogan) : /apercu/evly-de.png ; le français reste /og-evly.png
-const genericImage = (locale: Locale) => (locale === 'fr' ? `${SITE}/og-evly.png?v=2` : `${SITE}/apercu/evly-${locale}.png?v=2`);
+const genericImage = (locale: Locale) => (locale === 'fr' ? `${SITE}/og-evly.png?v=3` : `${SITE}/apercu/evly-${locale}.png?v=3`);
 
 export function injectMeta(html: string, card: ShareCard, token: string): string {
   const T = SHARE_TEXTS[card?.locale ?? 'fr'];

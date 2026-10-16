@@ -1260,8 +1260,8 @@ Junto/
     par `InviteModal` et `routes/invitations.ts`) passe aussi par le serveur (`GET /api/share/rejoindre`, bloc
     `location = /rejoindre` ajouté **à la main** dans `/etc/nginx/sites-available/evly.conf` — deploy.sh ne touche
     pas à nginx) : aperçu générique traduit, sans nom de Cercle ; secours `/rejoindre-cercle`. Slogan de l'image
-    générique : « Vos évènements ensemble, enfin simples. » (`SHARE_TEXTS.slogan1|slogan2|tagline`), image
-    `/og-evly.png?v=2` (français, régénérée avec `renderShareCard(null, 'fr')`) ou `/apercu/evly-de|it|en.png?v=2`.
+    générique : « Events Linked to You. / Tu as une invitation. » (2026-10-16) (`SHARE_TEXTS.slogan1|slogan2|tagline`), image
+    `/og-evly.png?v=3` (français, régénérée avec `renderShareCard(null, 'fr')`) ou `/apercu/evly-de|it|en.png?v=3`.
     Changer le slogan → changer aussi le `?v=` (WhatsApp garde l'image par adresse).
 
 **Récapitulatif PDF d'un Plan** (2026-10-05, `lib/planRecap.ts`, pdfkit + polices Inter / Fraunces de
