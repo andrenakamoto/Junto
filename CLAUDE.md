@@ -419,6 +419,11 @@ Conséquences pratiques :
     toujours présent, départ mémorisé repris dans les Trajets, Plan en plein écran (grand écran).
     **Version 1.0.19** (2026-10-15) : Android `versionCode` 21 (`evly-1.0.19-(21).aab`), iOS build 22 envoyé — discussion du Cercle,
     Plans terminés en lecture seule 24 h (notification 4 h avant la suppression), suivi du stockage (admin).
+    **2026-10-16 : 1.0.19 refusée par Apple** (5.1.1 textes d'autorisation, 2.1 discussion vide) → **iOS build 23** : textes
+    caméra / contacts / photos / micro / agenda réécrits **avec un exemple**, et traduits dans `ios/App/App/{fr,en,de,it}.lproj/
+    InfoPlist.strings` (groupe localisé ajouté au projet Xcode ; dossier `ios/` non commité). `NSContactsUsageDescription` ajouté :
+    l'écran natif « Ajouter à l'agenda » (EKEventEditViewController) propose les contacts pour inviter. Compte de démo : discussions
+    des Cercles remplies (`demoAccount.ts`, lancé **sur le serveur** : `cd /srv/evly/app/server`, `. /etc/evly/database.env`).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
