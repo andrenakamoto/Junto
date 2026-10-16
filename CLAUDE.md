@@ -1256,6 +1256,13 @@ Junto/
     injoignable : redirection vers `/invitation-plan` (même page, sans
     aperçu). Balises génériques + `public/og-evly.png` dans `index.html`
     pour les autres liens evly.ch.
+    **Liens d'un Cercle** (2026-10-16) : `/rejoindre?code=…&lang=xx` (langue de la personne qui invite, ajoutée
+    par `InviteModal` et `routes/invitations.ts`) passe aussi par le serveur (`GET /api/share/rejoindre`, bloc
+    `location = /rejoindre` ajouté **à la main** dans `/etc/nginx/sites-available/evly.conf` — deploy.sh ne touche
+    pas à nginx) : aperçu générique traduit, sans nom de Cercle ; secours `/rejoindre-cercle`. Slogan de l'image
+    générique : « Vos évènements ensemble, enfin simples. » (`SHARE_TEXTS.slogan1|slogan2|tagline`), image
+    `/og-evly.png?v=2` (français, régénérée avec `renderShareCard(null, 'fr')`) ou `/apercu/evly-de|it|en.png?v=2`.
+    Changer le slogan → changer aussi le `?v=` (WhatsApp garde l'image par adresse).
 
 **Récapitulatif PDF d'un Plan** (2026-10-05, `lib/planRecap.ts`, pdfkit + polices Inter / Fraunces de
 `server/assets/fonts`) : titre (emoji retirés, absents des polices), Cercle, dates, lieu, organisateur, répétition,
