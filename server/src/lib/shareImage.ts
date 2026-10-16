@@ -45,7 +45,7 @@ export function wrapTitle(title: string, maxChars: number, maxLines = 2): string
   return lines;
 }
 
-export function shareCardSvg(card: ShareCard): string {
+export function shareCardSvg(card: ShareCard, genericLocale: Locale = 'fr'): string {
   const W = 1200, H = 630;
   const logo = `
     <text x="80" y="122" font-family="Fraunces" font-size="64">
@@ -58,11 +58,14 @@ export function shareCardSvg(card: ShareCard): string {
     <rect x="0" y="0" width="12" height="${H}" fill="#ea5a2b"/>`;
 
   if (!card) {
+    const G = SHARE_TEXTS[genericLocale];
+    // Ligne grise : rétrécie si la traduction est longue (largeur moyenne d'Inter ≈ 0,52 em)
+    const taglineSize = Math.min(34, Math.floor(1040 / (G.tagline.length * 0.52)));
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
       ${background}${logo}
-      <text x="80" y="330" font-family="Inter" font-weight="800" font-size="72" fill="#ffffff">Vos sorties entre proches,</text>
-      <text x="80" y="420" font-family="Inter" font-weight="800" font-size="72" fill="#ea5a2b">enfin simples.</text>
-      <text x="80" y="520" font-family="Inter" font-weight="500" font-size="34" fill="#94a3b8">Cercles, Plans, chat, covoiturage, dépenses — evly.ch</text>
+      <text x="80" y="330" font-family="Inter" font-weight="800" font-size="72" fill="#ffffff">${esc(G.slogan1)}</text>
+      <text x="80" y="420" font-family="Inter" font-weight="800" font-size="72" fill="#ea5a2b">${esc(G.slogan2)}</text>
+      <text x="80" y="520" font-family="Inter" font-weight="500" font-size="${taglineSize}" fill="#94a3b8">${esc(G.tagline)}</text>
     </svg>`;
   }
 
@@ -90,8 +93,8 @@ export function shareCardSvg(card: ShareCard): string {
   </svg>`;
 }
 
-export function renderShareCard(card: ShareCard): Buffer {
-  const resvg = new Resvg(shareCardSvg(card), {
+export function renderShareCard(card: ShareCard, genericLocale: Locale = 'fr'): Buffer {
+  const resvg = new Resvg(shareCardSvg(card, genericLocale), {
     font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' },
     fitTo: { mode: 'width', value: 1200 },
   });

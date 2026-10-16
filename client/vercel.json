@@ -17,6 +17,10 @@
       "destination": "https://api.evly.ch/api/share/invitation"
     },
     {
+      "source": "/rejoindre",
+      "destination": "https://api.evly.ch/api/share/rejoindre"
+    },
+    {
       "source": "/apercu/:file",
       "destination": "https://api.evly.ch/api/share/image/:file"
     },

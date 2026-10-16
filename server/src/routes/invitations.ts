@@ -80,7 +80,7 @@ async function resolveInvite(req: AuthRequest): Promise<Invite | { error: string
   if (!member) return { error: 'Accès refusé', status: 403 };
   const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { name: true, code: true } });
   if (!circle) return { error: 'Cercle introuvable', status: 404 };
-  const link = `${APP_URL}/rejoindre?code=${circle.code}${plan ? `&planId=${plan.id}&plan=${encodeURIComponent(plan.title)}` : ''}`;
+  const link = `${APP_URL}/rejoindre?code=${circle.code}${plan ? `&planId=${plan.id}&plan=${encodeURIComponent(plan.title)}` : ''}&lang=${requestLocale(req)}`;
   return { link, circleName: circle.name, planTitle: plan?.title ?? null, code: circle.code, guest: false };
 }
 

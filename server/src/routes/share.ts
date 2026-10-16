@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import prisma from '../lib/prisma';
 import { APP_URL } from '../lib/mailer';
 import { renderShareCard, type ShareCard } from '../lib/shareImage';
-import { parseLocale } from '../lib/i18n';
+import { parseLocale, type Locale } from '../lib/i18n';
 import { intlLocale } from '../lib/emailText';
 import { SHARE_TEXTS } from '../i18n/share';
 
@@ -73,36 +73,51 @@ async function siteIndex(): Promise<string | null> {
   return indexCache?.html ?? null; // dernière copie connue si le site ne répond pas
 }
 
+// Balises d'aperçu de la page servie (les balises génériques du site sont remplacées)
+function withMeta(html: string, m: { title: string; description: string; image: string; url: string; ogLocale: string }): string {
+  const meta = `
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="${esc(m.description)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="EvLY" />
+    <meta property="og:locale" content="${m.ogLocale}" />
+    <meta property="og:url" content="${esc(m.url)}" />
+    <meta property="og:title" content="${esc(m.title)}" />
+    <meta property="og:description" content="${esc(m.description)}" />
+    <meta property="og:image" content="${esc(m.image)}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="${esc(m.title)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+  `;
+  return html
+    .replace(/\s*<meta (?:property="og:[^"]+"|name="(?:twitter:[^"]+|description)")[^>]*>/g, '')
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(m.title)}</title>`)
+    .replace('</head>', `${meta}</head>`);
+}
+
+// Image générique EvLY dans une langue (slogan) : /apercu/evly-de.png ; le français reste /og-evly.png
+const genericImage = (locale: Locale) => (locale === 'fr' ? `${SITE}/og-evly.png?v=2` : `${SITE}/apercu/evly-${locale}.png?v=2`);
+
 export function injectMeta(html: string, card: ShareCard, token: string): string {
   const T = SHARE_TEXTS[card?.locale ?? 'fr'];
   const title = card ? T.title.replace('{title}', card.title) : 'Invitation EvLY';
   const count = card && card.participants != null ? (card.participants === 1 ? T.participants_one : T.participants_other).replace('{count}', String(card.participants)) : '';
   const parts = card ? [card.date, count].filter(Boolean).join(' · ') : '';
-  const description = card
-    ? T.description.replace('{parts}', parts)
-    : 'Cette invitation n\'est plus valide. Découvre EvLY pour organiser tes sorties entre proches.';
-  const image = card ? `${SITE}/apercu/${token}.png?v=${cardVersion(card)}` : `${SITE}/og-evly.png`;
-  const url = `${SITE}/invitation?token=${encodeURIComponent(token)}`;
-  const meta = `
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="description" content="${esc(description)}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="EvLY" />
-    <meta property="og:locale" content="${T.ogLocale}" />
-    <meta property="og:url" content="${esc(url)}" />
-    <meta property="og:title" content="${esc(title)}" />
-    <meta property="og:description" content="${esc(description)}" />
-    <meta property="og:image" content="${esc(image)}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="${esc(title)}" />
-    <meta name="twitter:card" content="summary_large_image" />
-  `;
-  return html
-    // Balises génériques du site (index.html) remplacées par celles de l'invitation
-    .replace(/\s*<meta (?:property="og:[^"]+"|name="(?:twitter:[^"]+|description)")[^>]*>/g, '')
-    .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
-    .replace('</head>', `${meta}</head>`);
+  return withMeta(html, {
+    title,
+    description: card ? T.description.replace('{parts}', parts) : T.expired,
+    image: card ? `${SITE}/apercu/${token}.png?v=${cardVersion(card)}` : genericImage('fr'),
+    url: `${SITE}/invitation?token=${encodeURIComponent(token)}`,
+    ogLocale: T.ogLocale,
+  });
+}
+
+// Lien d'un Cercle (/rejoindre?code=…&lang=…) : aperçu générique dans la langue de la personne qui invite,
+// sans le nom du Cercle (les messageries gardent l'aperçu)
+export function injectJoinMeta(html: string, locale: Locale, query: string): string {
+  const T = SHARE_TEXTS[locale];
+  return withMeta(html, { title: T.joinTitle, description: T.joinDescription, image: genericImage(locale), url: `${SITE}/rejoindre${query}`, ogLocale: T.ogLocale });
 }
 
 // GET /api/share/invitation?token=… — la page /invitation, avec l'aperçu du Plan
@@ -118,11 +133,32 @@ router.get('/invitation', async (req, res) => {
   res.type('html').send(injectMeta(html, card, token));
 });
 
+// GET /api/share/rejoindre?code=… — la page /rejoindre (invitation à un Cercle), avec l'aperçu dans la langue du lien
+router.get('/rejoindre', async (req, res) => {
+  const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+  const html = await siteIndex();
+  if (!html) {
+    // Site injoignable et aucune copie : la même page, servie sans aperçu
+    res.redirect(302, `/rejoindre-cercle${query}`);
+    return;
+  }
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send(injectJoinMeta(html, parseLocale(req.query.lang) ?? 'fr', query));
+});
+
 // GET /api/share/image/:file — /apercu/<jeton>.png (image de l'aperçu), gardée 10 minutes
 const imageCache = new Map<string, { png: Buffer; at: number }>();
 router.get('/image/:file', async (req, res) => {
   try {
     const token = req.params.file.replace(/\.png$/, '');
+    // Image générique dans une langue (evly-de, evly-it, evly-en)
+    const generic = /^evly-([a-z]{2})$/.exec(token);
+    const genericLocale = generic ? parseLocale(generic[1]) : null;
+    if (genericLocale) {
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.type('png').send(renderShareCard(null, genericLocale));
+      return;
+    }
     const card = await shareCardFor(token);
     const key = `${token}:${cardVersion(card)}`;
     let entry = imageCache.get(key);

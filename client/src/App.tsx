@@ -57,6 +57,7 @@ export default function App() {
         <Route path="/dashboard"             element={<Protected><DashboardPage /></Protected>} />
         <Route path="/admin"                 element={<Protected><AdminOnly><AdminPage /></AdminOnly></Protected>} />
         <Route path="/rejoindre"             element={<JoinPage />} />
+        <Route path="/rejoindre-cercle"      element={<JoinPage />} />
         <Route path="/invitation"            element={<GuestInvitePage />} />
         <Route path="/organiser"             element={<OrganizePage />} />
         <Route path="/demo"                  element={<DemoPage />} />

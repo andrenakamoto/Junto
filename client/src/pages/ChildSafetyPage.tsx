@@ -14,7 +14,7 @@ const CONTENT: Record<Lang, ReactNode> = {
       <header>
         <h1 className="text-2xl font-bold text-slate-900">EvLY — Normes de sécurité des enfants</h1>
         <p className="mt-3">
-          EvLY (« Events Linked to You ») est une application d'organisation de sorties entre proches,
+          EvLY (« Events Linked to You ») est une application d'organisation d'évènements entre amis, en famille, en club ou en association,
           réservée aux personnes de 16 ans et plus. EvLY applique une tolérance zéro envers les abus et
           l'exploitation sexuelle des enfants.
         </p>
@@ -72,7 +72,7 @@ const CONTENT: Record<Lang, ReactNode> = {
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
       <header>
         <h1 className="text-2xl font-bold text-slate-900">EvLY — Standards zum Schutz von Kindern</h1>
-        <p className="mt-3">EvLY («Events Linked to You») ist eine App zum Organisieren von Treffen unter Angehörigen, vorbehalten für Personen ab 16 Jahren. EvLY verfolgt eine Null-Toleranz-Politik gegenüber sexuellem Missbrauch und sexueller Ausbeutung von Kindern.</p>
+        <p className="mt-3">EvLY («Events Linked to You») ist eine App zum Organisieren von Anlässen unter Freunden, in der Familie, im Verein oder in einer Organisation, vorbehalten für Personen ab 16 Jahren. EvLY verfolgt eine Null-Toleranz-Politik gegenüber sexuellem Missbrauch und sexueller Ausbeutung von Kindern.</p>
       </header>
       <section className="space-y-2">
         <h2 className="text-base font-bold text-slate-900">Was strikt verboten ist</h2>
@@ -107,7 +107,7 @@ const CONTENT: Record<Lang, ReactNode> = {
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
       <header>
         <h1 className="text-2xl font-bold text-slate-900">EvLY — Standard di sicurezza dei minori</h1>
-        <p className="mt-3">EvLY («Events Linked to You») è un’app per organizzare uscite tra persone care, riservata alle persone dai 16 anni in su. EvLY applica una tolleranza zero verso gli abusi e lo sfruttamento sessuale dei minori.</p>
+        <p className="mt-3">EvLY («Events Linked to You») è un’app per organizzare eventi tra amici, in famiglia, in un club o in un’associazione, riservata alle persone dai 16 anni in su. EvLY applica una tolleranza zero verso gli abusi e lo sfruttamento sessuale dei minori.</p>
       </header>
       <section className="space-y-2">
         <h2 className="text-base font-bold text-slate-900">Ciò che è severamente vietato</h2>
@@ -142,7 +142,7 @@ const CONTENT: Record<Lang, ReactNode> = {
     <article className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
       <header>
         <h1 className="text-2xl font-bold text-slate-900">EvLY — Child safety standards</h1>
-        <p className="mt-3">EvLY (“Events Linked to You”) is an app for organising outings with people close to you, for people aged 16 and over. EvLY has zero tolerance for child sexual abuse and exploitation.</p>
+        <p className="mt-3">EvLY (“Events Linked to You”) is an app for organising events with friends, family, clubs or associations, for people aged 16 and over. EvLY has zero tolerance for child sexual abuse and exploitation.</p>
       </header>
       <section className="space-y-2">
         <h2 className="text-base font-bold text-slate-900">What is strictly forbidden</h2>

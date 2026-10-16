@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { publicOrigin } from '../../lib/siteUrl';
-import { t } from '../../i18n';
+import { t, currentLang } from '../../i18n';
 import { Trans } from 'react-i18next';
 
 interface Props {
@@ -50,7 +50,8 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
   const appUrl = publicOrigin();
 
   // Le code suffit (le nom du Cercle peut changer) ; titre et id du Plan pour une invitation à un Plan
-  const circleLink = `${appUrl}/rejoindre?code=${circleCode}${planId ? `&planId=${planId}` : ''}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}`;
+  // lang : aperçu du lien (image, texte) dans la langue de la personne qui invite
+  const circleLink = `${appUrl}/rejoindre?code=${circleCode}${planId ? `&planId=${planId}` : ''}${planTitle ? `&plan=${encodeURIComponent(planTitle)}` : ''}&lang=${currentLang()}`;
   const guestLink = guestToken ? `${appUrl}/invitation?token=${guestToken}` : '';
   const isGuestMode = mode === 'guest';
   const joinLink = isGuestMode ? guestLink : circleLink;
