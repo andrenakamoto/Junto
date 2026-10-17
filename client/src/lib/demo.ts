@@ -53,8 +53,8 @@ export function loadDemo(): Promise<void> {
   if (!loading) {
     const lang = currentLang();
     loading = Promise.all([
-      fetch('/demo/data.json').then(r => r.json()),
-      lang === 'fr' ? Promise.resolve(null) : fetch('/demo/i18n.json').then(r => r.json()).catch(() => null),
+      fetch('/demo/data.json', { cache: 'no-cache' }).then(r => r.json()),
+      lang === 'fr' ? Promise.resolve(null) : fetch('/demo/i18n.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => null),
     ])
       .then(([data, i18n]) => {
         // Décalage en jours entiers : les heures restent rondes (19:00, pas 19:04)
