@@ -7,6 +7,7 @@ import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
 import { VoiceMessage } from './VoiceMessage';
+import { SavePhotoButton } from './SavePhotoButton';
 import { intlLocale, t } from '../../i18n';
 
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -162,22 +163,24 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 <X size={20} />
               </button>
               <img src={mediaUrl(photo.id, mediaToken, 1600)} alt={photo.name} className="max-w-full max-h-full object-contain rounded-lg" />
-              {/* L'auteur peut retirer sa photo à tout moment (le message reste : « Photo retirée ») */}
-              {isMe && (
-                <button
-                  type="button"
-                  onClick={async e => {
-                    e.stopPropagation();
-                    if (!confirm(t('chat.message.deletePhotoConfirm'))) return;
-                    try { await api.delete(`/attachments/${photo.id}`); setViewing(false); }
-                    catch (err: any) { alert(err?.response?.data?.error || t('chat.message.deletePhotoFailed')); }
-                  }}
-                  className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/15 text-white text-sm font-medium hover:bg-red-600"
-                  style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}
-                >
-                  <Trash2 size={16} /> {t('chat.message.deletePhoto')}
-                </button>
-              )}
+              {/* Enregistrer la photo ; l'auteur peut aussi la retirer à tout moment (le message reste : « Photo retirée ») */}
+              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2" style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}>
+                <SavePhotoButton url={mediaUrl(photo.id, mediaToken)} filename={photo.name || 'photo-evly.jpg'} />
+                {isMe && (
+                  <button
+                    type="button"
+                    onClick={async e => {
+                      e.stopPropagation();
+                      if (!confirm(t('chat.message.deletePhotoConfirm'))) return;
+                      try { await api.delete(`/attachments/${photo.id}`); setViewing(false); }
+                      catch (err: any) { alert(err?.response?.data?.error || t('chat.message.deletePhotoFailed')); }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/65 backdrop-blur text-white text-sm font-medium shadow-lg hover:bg-red-600"
+                  >
+                    <Trash2 size={16} /> {t('chat.message.deletePhoto')}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

@@ -21,8 +21,8 @@ const photoLimiter = rateLimit({
   keyGenerator: (req: any) => req.userId ?? 'anonyme',
   message: { error: 'Trop de photos envoyées, réessaie plus tard.' },
 });
-// Mêmes réactions rapides que le chat des Plans (ChatMessage, QUICK_EMOJIS)
-const ALLOWED_EMOJIS = new Set(['👍', '❤️', '😂', '😮', '😢', '🙏']);
+// Réactions possibles (même liste que QUICK_EMOJIS de client/src/components/circles/CircleChat.tsx, 16 depuis le 2026-10-17)
+const ALLOWED_EMOJIS = new Set(['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥', '👏', '😍', '🤔', '😅', '👌', '💪', '🥳', '✅']);
 
 // Membre du Cercle, mode du chat et droit d'écrire
 async function context(userId: string, circleId: string) {

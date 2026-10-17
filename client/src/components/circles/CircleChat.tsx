@@ -6,6 +6,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
 import { renderContent } from '../chat/ChatMessage';
+import { SavePhotoButton } from '../chat/SavePhotoButton';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
@@ -15,7 +16,8 @@ import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 
-const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+// Réactions de la discussion du Cercle (même liste que REACTION_EMOJIS de server/src/routes/circleChat.ts)
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥', '👏', '😍', '🤔', '😅', '👌', '💪', '🥳', '✅'];
 
 interface Props {
   circle: Circle;
@@ -128,6 +130,9 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setViewing(null)}>
           <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }} aria-label={t('common.close')}><X size={20} /></button>
           <img src={photoUrl(viewing)} alt="" className="max-w-full max-h-full object-contain" />
+          <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}>
+            <SavePhotoButton url={photoUrl(viewing)} filename={`${circle.name.replace(/[/\\:*?"<>|]/g, '_').slice(0, 60)} - photo.jpg`} />
+          </div>
         </div>
       )}
       {reporting && <ReportMessageModal kind="circle" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />}
@@ -151,6 +156,14 @@ function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePla
 }) {
   const [editing, setEditing] = useState(false);
   const [picker, setPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  // Liste des réactions ouverte : un toucher ou un clic n'importe où ailleurs la referme
+  useEffect(() => {
+    if (!picker) return;
+    const close = (e: PointerEvent) => { if (!pickerRef.current?.contains(e.target as Node)) setPicker(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [picker]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const editable = useEditWindow(m.createdAt, m.deletedAt ?? null, isMe);
   const time = new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(m.createdAt))
@@ -200,11 +213,12 @@ function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePla
         {!m.deletedAt && !editing && (
           <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 ${isMe ? 'justify-end' : ''}`}>
             {picker ? (
-              <span className="flex items-center gap-1 bg-white border border-slate-200 rounded-full px-1.5 py-0.5 shadow-sm">
+              <div ref={pickerRef} className="grid grid-cols-8 gap-0.5 bg-white border border-slate-200 rounded-2xl p-1.5 shadow-lg">
                 {QUICK_EMOJIS.map(e => (
-                  <button key={e} type="button" onClick={() => { setPicker(false); onReact(e); }} className="text-base leading-none hover:scale-125 transition-transform">{e}</button>
+                  <button key={e} type="button" onClick={() => { setPicker(false); onReact(e); }} aria-label={e}
+                    className="text-2xl leading-none w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform">{e}</button>
                 ))}
-              </span>
+              </div>
             ) : (
               <button type="button" onClick={() => setPicker(true)} title={t('circle.chat.react')} className="hover:text-indigo-600"><SmilePlus size={13} /></button>
             )}
