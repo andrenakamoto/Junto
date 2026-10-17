@@ -162,7 +162,7 @@ Conséquences pratiques :
   (`TRACKED_FILES` dans `lib/pageVisits.ts`). Ne pas remettre le PDF à la
   racine de `public/` : la redirection de l'ancienne adresse bouclerait. Sources (HTML → PDF avec
   Playwright, captures réelles de l'app sur une base jetable, club fictif « Les Rayons », club
-  cycliste de Carouge) dans **`~/Desktop/EvLY - Brochure associations (sources)/`** sur le Mac de
+  cycliste de Carouge) dans **`~/Desktop/01-EvLY/03_Marketing/02_Associations/Brochure associations (sources)/`** sur le Mac de
   l'utilisateur, avec un LISEZMOI pour tout régénérer (`seed-club.js`, `capture.js`, `build.js`).
   Annonce l'app iPhone disponible et **Android « bientôt »** (p. 1, p. 6 et FAQ) : à mettre à jour à la
   publication Android. `seed-ag-seance.js` (séance de l'AG, après `seed-club.js`) et `add-icons.js` (icônes
@@ -292,7 +292,7 @@ Conséquences pratiques :
 - **SMS** : Twilio (optionnel, invitations)
 - **Apps Android / iOS** (2026-10-01) : Capacitor 8, identifiant **`ch.evly.app`**
   (définitif une fois publié ; remplace `com.estelle.app`, jamais publié — anciens
-  dossiers sauvegardés dans `~/Desktop/EvLY - Sauvegarde projets mobiles (avant
+  dossiers sauvegardés dans `~/Desktop/01-EvLY/99_Archives/Projets mobiles (avant
   ch.evly.app)/`). L'app web (`dist`) est embarquée et appelle l'API de prod
   (`.env.production`) ; CORS autorise déjà `https://localhost` (Android) et
   `capacitor://localhost` (iOS). Points clés :
@@ -440,7 +440,10 @@ Conséquences pratiques :
     soumission, les Plans expirent ; ne nettoie pas les éventuelles photos
     Cloudinary envoyées par un vérificateur). Textes des fiches, captures,
     icône, bannière, AAB et identifiants de démo : dossier
-    `~/Desktop/EvLY - Publication stores/` sur le Mac de l'utilisateur.
+    `~/Desktop/01-EvLY/04_Publication_stores/` sur le Mac de l'utilisateur (dossier synchronisé avec Google Drive,
+    rangé le 2026-10-16 : `Android/` = dernier AAB, `iOS/Signature (ent.plist, export.plist)` = droits et options d'envoi
+    iPhone, `Captures stores (1.0.15)/`). Charte graphique : `~/Desktop/01-EvLY/02_Charte_graphique/` ; marketing :
+    `03_Marketing/` (associations, réseaux sociaux, vidéos, captures) ; anciennes versions : `99_Archives/`.
     **Envoi iPhone (équipe Apple `LDRKKV8GR7`)** — validé le 2026-10-02 (build 1
     envoyé) : aucun iPhone n'est enregistré dans le compte, donc la signature
     automatique (« développement ») échoue à l'archive, et la signature
@@ -783,7 +786,7 @@ Junto/
   d'autre en attente avant** (rejoindre, revenir de « Je passe », lien invité, réponse sans compte, poste de
   bénévole) ; sinon 409 `{ full: true }`. Invités externes et réponses sans compte : pas de liste d'attente
   (« complet »). Client : encadré ambre dans `PlanDetail` (non-membre ou « Je passe » sur un Plan complet),
-  « En attente n°X » sur `PlanCard`, section « Liste d'attente » dans `MembresTab`. Pas dans la démo.
+  « En attente n°X » sur `PlanCard`, section « Liste d'attente » dans `MembresTab`. Démo : Salsa débutants (Alex n°3) et course des 10 km (`setWaitlist`).
 - **Plans récurrents** (2026-10-05, `lib/recurrence.ts`, testé) : `Plan.recurrence` = `weekly` /
   `biweekly` / `monthly` (null = ne se répète pas), `recurrenceUntil?` (« Jusqu'au », facultatif),
   `seriesId` (id du premier Plan de la série), `nextOccurrenceId` (id du suivant, `pending` pendant
@@ -802,7 +805,7 @@ Junto/
   (`recurrence` remis à null). Menu du Plan (créateur) : « Annuler cette fois » (POST
   /plans/:id/skip : crée le suivant puis supprime celui-ci) et « Arrêter la répétition » (PUT
   /plans/:id/recurrence `{recurrence: null}`). Étiquette « 🔁 Chaque lundi » (`recurrenceLabel`,
-  `client/src/lib/recurrence.ts`) dans la fiche, icône sur la carte. Pas géré dans la démo.
+  `client/src/lib/recurrence.ts`) dans la fiche, icône sur la carte. Démo : cours de salsa, de bachata et entraînement de boxe (étiquette seulement ; « Annuler cette fois » / « Arrêter » renvoient le 403 de la démo).
 - **Planning des bénévoles** — **nommé « Planning » dans l'app depuis le 2026-10-11** (de « Einsatzplan », it « Turni », en « Schedule » ; le mot « bénévoles » ne reste que dans la ligne d'explication de la fonction ; clé interne `benevoles` inchangée ; une ligne à **0 personne** = simple ligne de programme, affichée sans inscription ni compteur, hors du résumé « Il manque… », horaire seul dans le PDF) (2026-10-05, `lib/volunteers.ts` testé, `routes/volunteers.ts` monté
   dans le routeur des Plans, onglet `VolunteersTab.tsx`) : fonction **à activer** — nouvelle liste
   `Plan.enabledFeatures` (`OPTIONAL_FEATURES` = `benevoles`, vide par défaut, y compris sur les
@@ -913,7 +916,7 @@ Junto/
   `broadcastWrites`) ; `QuizLiveHost` (PlanDetail) ouvre la partie en plein écran chez les membres. **Écran de salle** : page
   publique `/ecran?t=<jeton>` (`QuizScreenPage`, GET `/api/quiz-screen/:token`, jeton `purpose: 'quiz-screen'` 24 h donné par
   GET /:id/quiz/screen-link, rechargement chaque seconde, jeton photo au nom de la personne qui anime seulement quand la question
-  a une photo). « Rejouer » efface les réponses, garde les questions. Pas dans la démo.
+  a une photo). « Rejouer » efface les réponses, garde les questions. Démo : « Soirée quiz au village » (Jeunesse), partie terminée, podium (Alex gagne), Plan « Terminé ».
 - **En bref** (2026-10-11, synthèse d'un Plan vue par la personne, `lib/planSummary.ts` testé, `routes/planSummary.ts` monté
   dans le routeur des Plans, `components/plans/PlanSummarySheet.tsx`) : GET `/plans/:id/summary`, **réservé aux « Je suis in » et
   « Peut-être »** (403 sinon). Renvoie seulement ce qui concerne la personne, rubrique par rubrique et en respectant les fonctions
@@ -1040,7 +1043,7 @@ Junto/
   **Tout participant peut ajouter des propositions** (15 max). Le **créateur du Plan** « Choisit » (après avoir
   joué) : lieu du Plan et / ou informations importantes mis à jour (historique `PlanChangeLog`), match clos,
   participants prévenus. Rappel la veille de l'échéance (`sendMatchReminders`, horaire). Notifications `match` →
-  `?tab=votes`. Démo : « On regarde quel film après l'apéro ? » (apéro au bord du lac ; vue complète de Tom dans
+  `?tab=votes`. Démo : « Où va-t-on pour l'afterwork ? » (Best collègues ; vue complète de Sarah dans
   `DEMO_FULL /plans/:id/matches`, `findDemoMatch` / `revealDemoMatch`).
 - **Qui s'y colle ?** (2026-10-09, roue de la décision, `lib/wheel.ts` testé, `routes/wheel.ts` monté dans le
   routeur des Plans, `components/plans/WheelSection.tsx`, migration `20261010100000_wheels`) : 3e choix de l'onglet
@@ -1055,7 +1058,7 @@ Junto/
   rotation, la carte cache le résultat (« La roue tourne… / Regarder »). **Le résultat affiche les noms des
   personnes retirées volontairement** (et des déjà tombées) ; « Revoir », tirages précédents. Notification `wheel`
   (→ `?tab=votes`) à l'arrêt de la roue, seulement aux comptes qui ne regardent pas le Plan. Démo : « Qui fait la
-  vaisselle ? » (soirée raclette, Léa retirée, un tirage fait ; `findDemoWheel` / `refreshDemoWheel`).
+  vaisselle ? » (Noël en famille, Mamie retirée, un tirage fait ; `findDemoWheel` / `refreshDemoWheel`).
 - **Assemblée** (2026-10-09, `lib/assembly.ts` testé, `routes/assembly.ts` monté dans le routeur des Plans, PV
   `lib/assemblyPv.ts`, onglet `AssemblyTab.tsx`, migration `20261011100000_assembly`) : fonction **à activer**
   (`assemblee`, catégorie Organiser). La date du Plan = celle de l'assemblée. Organisateur = créateur du Plan ou
@@ -1156,7 +1159,7 @@ Junto/
   (un voyage par personne et par Plan) ; proposer = `plan_activity` `transit_proposed`, rejoindre = notification `transit` au
   proposant, **rappel 30 min avant** (`sendTransitReminders`, toutes les 5 min, type `transit_reminder` exempté du mode
   silencieux). « Je passe », exclusion (`removeUserFromRides`) et départ du Cercle (`removeFromGamesInCircle`) retirent des
-  voyages ; un voyage vide disparaît. Pas dans la démo (section masquée). Prestataire dans la politique de confidentialité
+  voyages ; un voyage vide disparaît. Démo : « Vacances au Tessin » (voyage proposé par Pierre) et « Concert au bord du lac » (dernier bus de nuit), correspondances fictives écrites par `seed.js` (`transitPlans`), arrêts et voyages simulés dans `lib/demo.ts`. Prestataire dans la politique de confidentialité
   (version du 12 octobre 2026).
 - **Fiche d'un Plan sur téléphone** (2026-10-05, `PlanDetail`, `useIsPhone` < 768 px) : plus
   d'onglets. **Page principale** = en-tête du Plan + une carte par rubrique (Chat en premier sur
@@ -1543,6 +1546,20 @@ payé », idées, votes, réglages d'Alex) (2026-10-07). « Foot de la semaine �
 un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
 disponible… ». Deux Cercles de plus (2026-10-11) : **« Collègues »** (« Afterwork de fin de mois 🍻 » créé par Alex, match « Où va-t-on pour l'afterwork ? » : les collègues ont joué, oui de tous à la brasserie ; vue complète de Sarah via `matchViewers` dans `ids.json`) et **« Team évènements »** (« Atelier peinture 🎨 », planning des bénévoles, Alex organisateur du Cercle et « Peut-être » : s'inscrire le passe en « Je suis in »). Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
+**Démo refaite le 2026-10-17** (`server/scripts/demo-site/seed.js`, demande de l'utilisateur : des cas concrets pour chaque type
+d'utilisateur, toutes les fonctions parcourues). Alex est membre des **7 Cercles**, tous avec la discussion ouverte (messages dans
+`CIRCLE_CHATS` de `lib/demo.ts`, Cercles reconnus par leur code `DEMO1X`…`DEMO7X`, textes traduits par `i18n.json`) :
+**Studio Danse Arc-en-Ciel** (Salsa débutants récurrent et complet avec liste d'attente, Bachata intermédiaire avec sondage
+Homme / Femme pour équilibrer les couples, Stage hip-hop avec infos importantes et programme, Gala en Mode annonce avec affiche),
+**Boxing Club du Rhône** (entraînement récurrent en silence, Trophée du Rhône avec planning et affiche, AG ouverte avec procuration
+de Yann), **Association Jeunesse de Montvert** (pétanque / équipes, soirée quiz terminée, Europa-Park avec dépenses CHF et
+covoiturage, AG de printemps convoquée), **Best collègues** (afterwork / match, pot de départ surprise de Sophie avec cagnotte, repas
+de Noël avec Père Noël secret, sondage et covoiturage, sondage de dates « Sortie bowling »), **Famille Rochat** (80 ans surprise de
+Mamie avec qui apporte quoi et photo, Noël en famille avec roue et dépenses, vacances au Tessin avec transports publics),
+**Les copains** (raclette chez Tom, week-end au chalet Killer + mot piège, concert avec réponses sans compte et dernier retour,
+Noël entre copains, anniversaire surprise de Tom avec cagnotte) et **Team events** (fête du village pour 2 Cercles avec planning et
+affiche, réunion du comité avec plan du site, course des 10 km en Mode annonce complète avec liste d'attente). Affiches et documents
+fictifs : `affiches.html` → `node affiches.js`. Nouvelles personnes : avatars dans `client/scripts/demo-avatars.py`.
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
