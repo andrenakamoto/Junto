@@ -198,6 +198,9 @@ Conséquences pratiques :
   (serveur, base, site, fichiers, emails, Swiss Backup) ; restent aux États-Unis Google / Apple (notifications push,
   connexion Google, polices) et le **relais Railway** tant qu'il tourne ; journaux du serveur 7 jours (journald +
   logrotate nginx), sauvegardes 14 jours (serveur) / 30 jours (Swiss Backup).
+- **Badge App Store** sur la page de connexion (2026-10-17, `AuthPage`, masqué dans les apps) : badge officiel d'Apple dans la
+  langue de la page (`public/badges/app-store-{fr,de,it,en}.svg`, outil marketing d'Apple), lien `https://apps.apple.com/app/id6818454100`,
+  et « Android : bientôt disponible » (à retirer à la publication Android).
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
   quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
@@ -1400,7 +1403,10 @@ une nouvelle route d'écriture doit y déclarer son activité ; covoiturage via
 `notifyRideActivity` dans `routes/rides.ts`. Pas de notification pour les
 votes, réactions, « vu », demandes de suppression.
 **Canal des notifications** (2026-10-02) : `User.notificationChannel` =
-`push` / `both` (défaut) / `email`, choisi dans `NotificationSettingsModal`
+`push` (**défaut depuis le 2026-10-17**, comptes en `both` passés en `push` par la migration `20261020100000_notification_defaults` ;
+**sans téléphone avec l'app, les emails partent en secours** : `wantsEmail(channel, userId)` consulte la liste en mémoire des comptes
+qui ont un `PushToken`, `refreshPhoneUsers`, rechargée au démarrage, toutes les 10 min et à chaque enregistrement / retrait d'appareil —
+**toujours passer l'id de la personne à `wantsEmail`**) / `both` / `email`, choisi dans `NotificationSettingsModal`
 (PUT /auth/notification-settings, GET /api/push/devices pour le nombre de
 téléphones). `lib/notificationPrefs.ts` (`wantsEmail`/`wantsPush`) : **tout
 email de notification doit filtrer avec `wantsEmail`** (nouveau Plan,
@@ -1453,7 +1459,8 @@ de la liste des Plans (`PlanList`, nom écrit dessus) ; section photo dans `Prof
 **gardée en attente** et envoyée au clic sur « Créer » / « Enregistrer » (`applyCirclePhoto`), qui s'active donc dès que la photo
 change ; les autres membres la voient et la signalent dans les réglages (`CirclePhotoView`).
 **Carte du Cercle** (`CircleSidebar`, refaite le 2026-10-15) : en-tête 2:1 = la photo telle que cadrée, ou un dégradé de la couleur
-du Cercle avec son initiale en Fraunces (taille en `cqw`) ; nom, membres, plans, sondages et pastille de couleur écrits dessus ;
+du Cercle avec son initiale en Fraunces (taille en `cqw`) ; nom, membres, plans et sondages écrits dessus (**plus de pastille de couleur** depuis le 2026-10-17 : elle se confondait avec le point
+de notification ; la couleur se choisit à la création et dans `CircleSettingsModal`, PUT /circles/:id/color) ;
 fine ligne de couleur sous la photo ; cartes espacées de 16 px, ombre `shadow-md` ; sélection = contour corail (la carte reste blanche). Cartes des Plans (`PlanCard`) au même style : `rounded-2xl`, bordure
 `slate-300`, `shadow-md`, 12 px entre elles, sélection = contour corail. Signalement : table **PhotoReport** (POST `/photos/reports`, email sans image à
 info@evly.ch), admin `PhotoReportsPanel` (GET `/admin/photo-reports`, « Retirer la photo » / « Classer »). Effacées avec
@@ -1467,16 +1474,18 @@ le compte (`accountDeletion.ts`) et le Cercle (`purgeCircleFiles`). Démo : avat
 `open` (tout le monde écrit) / `announce` (créateur et organisateurs écrivent, les autres réagissent) / `off` ; **défaut `off` en base
 (Cercles existants et anciennes apps), `open` proposé à la création** (`ChatModeField` dans `CreateCircleModal`, paramètres avancés) ;
 changé dans `CircleSettingsModal` (ligne `chatMode` de l'historique). Tables **CircleMessage** (chiffré comme `Message`, `imageKey` =
-photo `lib/photos.ts` kind `chat`, proportions gardées) et **CircleMessageReaction** (mêmes 6 réactions que le chat des Plans) ;
+photo `lib/photos.ts` kind `chat`, proportions gardées) et **CircleMessageReaction** (16 réactions depuis le 2026-10-17, `ALLOWED_EMOJIS` du serveur = `QUICK_EMOJIS` de `CircleChat` ; panneau qui se referme d’un toucher à côté) ;
 `CircleMember.chatSeenAt` (pastille). Temps réel : `circle-message` / `circle-message-updated` dans `circle:{id}` (avec le message :
 la room ne contient que des membres). Modifier / supprimer : auteur 15 min ; **créateur et organisateurs suppriment tout message**.
 Notifications discrètes : point orange (carte de la Discussion, carte du Cercle via `chatUnseen` de GET /circles, cloche : section
 « Discussions », « Tout effacer » les marque lues) ; push **seulement pour les mentions** (`circle_mention`, exemptée du mode silencieux),
 ou pour chaque message si `User.circleChatPush` (réglage « Discussions des Cercles : chaque message » de `NotificationSettingsModal`,
-type `circle_message`). Lien `?circleId=…&chat=1`. **« Faire un Plan »** sous un message ouvre `CreatePlanModal` (`suggestedTitle`).
+type `circle_message` ; **activé par défaut pour tous les comptes depuis le 2026-10-17**, même migration). Lien `?circleId=…&chat=1`. **« Faire un Plan »** sous un message ouvre `CreatePlanModal` (`suggestedTitle`).
 Accès : carte « 💬 Discussion » en tête de `PlanList` (dernier message, `chatLast`) → panneau de droite (`chatCircleId` dans
 DashboardPage, exclusif avec Plan et sondage). Signalement : `MessageReport` kind `circle` (admin : « Discussion du Cercle … »).
 Démo : discussion de « Les copains » (ouverte) et de « Jeunesse de Montvert » (annonces), en mémoire (`chatOf` dans `lib/demo.ts`).
+**« Enregistrer la photo »** (2026-10-17, `components/chat/SavePhotoButton.tsx`) dans la visionneuse des deux chats (Cercle et Plan) :
+photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
 
 **Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
