@@ -3,7 +3,7 @@ import { currentLang, t as tr } from '../i18n';
 
 // Démo sans compte (/demo) : tout tourne dans le navigateur. Les données (public/demo/data.json)
 // sont de vraies réponses du serveur, enregistrées une fois sur une base jetable avec des
-// personnes et des Cercles fictifs (Alex, « Jeunesse de Montvert », « Les copains »). Les dates
+// personnes et des Cercles fictifs (Alex et 7 Cercles : danse, boxe, jeunesse, collègues, famille, copains, events). Les dates
 // sont décalées pour rester à venir. Les actions (répondre, écrire, voter, prendre une place,
 // ajouter une dépense…) ne modifient qu'une copie en mémoire : rien n'est envoyé au serveur, et
 // tout disparaît en quittant ou en rechargeant la page.
@@ -33,6 +33,7 @@ let fixtures: Fixtures | null = null;
 let me: { id: string; pseudo: string; firstName: string } = { id: '', pseudo: '', firstName: '' };
 let loading: Promise<void> | null = null;
 
+let texts: Record<string, string> = {};
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
 // Décale toutes les dates du nombre de jours écoulés depuis l'enregistrement et traduit les textes
@@ -58,7 +59,8 @@ export function loadDemo(): Promise<void> {
       .then(([data, i18n]) => {
         // Décalage en jours entiers : les heures restent rondes (19:00, pas 19:04)
         const delta = Math.floor((Date.now() - new Date(data.capturedAt).getTime()) / 864e5) * 864e5;
-        fixtures = shiftDates(data.fixtures, delta, i18n?.[lang] ?? {});
+        texts = i18n?.[lang] ?? {};
+        fixtures = shiftDates(data.fixtures, delta, texts);
         const u = fixtures!['GET /auth/me'];
         me = { id: u.id, pseudo: u.pseudo, firstName: u.firstName };
       });
@@ -507,36 +509,82 @@ function recomputeStandings(st: any) {
   st.championId = st.matches.every((m: any) => m.homeScore != null) ? st.standings[0]?.teamId ?? null : null;
 }
 
-const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'zoe_m'];
+const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'zoe_m',
+  'sofia_g', 'hugo_t', 'manon_c', 'yann_k', 'elena_r', 'marco_p', 'sophie_d', 'pierre_r', 'monique_r', 'nathalie_r', 'leo_r'];
 
-// Discussion des Cercles (démo) : « Les copains » ouverte, « Jeunesse de Montvert » en annonces, en mémoire
+// Discussion des Cercles (démo) : ouverte dans les 7 Cercles, en mémoire. Cercles reconnus par leur code
+// (server/scripts/demo-site/seed.js), les noms étant traduits.
+const CIRCLE_CHATS: Record<string, [string, string, number, [string, string][]?][]> = {
+  DEMO1X: [ // Studio Danse Arc-en-Ciel
+    ['ines_b', 'Les inscriptions au gala sont ouvertes : réservez vos places dans le Plan ✨', 30, [['👏', 'sofia_g'], ['❤️', 'manon_c']]],
+    ['sofia_g', 'Quelqu’un a la playlist du cours de bachata ? 🎶', 5],
+    ['marco_p', 'Je l’ai, je la mets ici ce soir 😉', 4],
+  ],
+  DEMO2X: [ // Boxing Club du Rhône
+    ['karim_a', 'Rappel : l’AG c’est ce soir à 19 h 30 au club-house. Venez nombreux ! 🥊', 8, [['👍', 'noah_p'], ['👍', 'tom_b']]],
+    ['marc_l', 'Pensez à donner votre procuration dans l’app si vous ne pouvez pas venir', 6],
+    ['noah_p', 'Qui vient courir dimanche matin au bord du Rhône ? 🏃', 2],
+  ],
+  DEMO3X: [ // Association Jeunesse de Montvert
+    ['lea_m', 'Merci à tous pour la soirée quiz, c’était génial ! 🧠🏆', 10, [['🎉', 'tom_b'], ['🎉', 'emma_v'], ['❤️', 'julie_r']]],
+    ['tom_b', 'Il reste une place pour Europa-Park, qui la veut ? 🎢', 3],
+    ['chloe_s', 'Moi peut-être, je confirme demain !', 2],
+  ],
+  DEMO4X: [ // Best collègues
+    ['zoe_m', 'J’ai lancé un sondage pour la sortie bowling 🎳', 20, [['👍', 'marc_l']]],
+    ['paul_r', 'Il y a des croissants à la cafétéria, servez-vous 🥐', 1, [['😍', 'sarah_k'], ['🙏', 'zoe_m']]],
+  ],
+  DEMO5X: [ // Famille Rochat
+    ['pierre_r', 'Vous avez vu la photo du petit Léo à son match ? Quel but ! ⚽', 28, [['❤️', 'julie_r'], ['❤️', 'nathalie_r']]],
+    ['nathalie_r', 'Qui peut garder le chat la semaine prochaine ? 🐱', 6],
+    ['julie_r', 'Moi ! Je passe le chercher samedi', 5],
+  ],
+  DEMO6X: [ // Les copains
+    ['tom_b', 'Quelqu’un a vu le nouveau resto thaï près de la gare ? 🍜', 26, [['👍', 'emma_v']]],
+    ['emma_v', 'Oui ! Il paraît que le pad thaï est top', 25],
+    ['julie_r', 'On y va un soir la semaine prochaine ?', 3, [['❤️', 'tom_b'], ['❤️', 'noah_p']]],
+    ['noah_p', 'Chaud pour jeudi 😄 @alex tu viens ?', 1],
+  ],
+  DEMO7X: [ // Team events
+    ['nadia_f', 'Les affiches de la fête sont imprimées, je les dépose au local 📌', 22, [['🙏', 'paul_r']]],
+    ['zoe_m', 'La boulangerie offre les croissants pour le montage 🥐', 4, [['😍', 'nadia_f'], ['👍', 'hugo_t']]],
+  ],
+};
 const demoChats = new Map<string, { mode: 'open' | 'announce'; seen: boolean; messages: any[] }>();
 function chatOf(circleId: string) {
   if (demoChats.size === 0) {
-    const circles = fixtures!['GET /circles'] as any[];
     const ago = (h: number) => new Date(Date.now() - h * 3600 * 1000).toISOString();
-    const msg = (c: any, pseudo: string, content: string, h: number, reactions: [string, string][] = []) => {
-      const u = c.members.find((x: any) => x.user.pseudo === pseudo)?.user ?? meRef();
-      const id = `demo-cm-${Math.random().toString(36).slice(2)}`;
-      return { id, circleId: c.id, author: { id: u.id, pseudo: u.pseudo, firstName: u.firstName ?? null }, content, imageKey: null, createdAt: ago(h), editedAt: null, deletedAt: null,
-        reactions: reactions.map(([emoji, who]) => ({ emoji, userId: c.members.find((x: any) => x.user.pseudo === who)?.user.id ?? me.id })) };
-    };
-    const copains = circles.find(c => c.name === 'Les copains');
-    if (copains) demoChats.set(copains.id, { mode: 'open', seen: false, messages: [
-      msg(copains, 'tom_b', 'Quelqu’un a vu le nouveau resto thaï près de la gare ? 🍜', 26, [['👍', 'emma_v']]),
-      msg(copains, 'emma_v', 'Oui ! Il paraît que le pad thaï est top', 25),
-      msg(copains, 'julie_r', 'On y va un soir la semaine prochaine ?', 3, [['❤️', 'tom_b'], ['❤️', 'noah_p']]),
-      msg(copains, 'noah_p', 'Chaud pour jeudi 😄 @alex tu viens ?', 1),
-    ] });
-    const jeunesse = circles.find(c => c.name === 'Jeunesse de Montvert');
-    if (jeunesse) {
-      const creator = jeunesse.members.find((x: any) => x.user.id === jeunesse.creatorId)?.user.pseudo ?? me.pseudo;
-      demoChats.set(jeunesse.id, { mode: 'announce', seen: true, messages: [
-        msg(jeunesse, creator, 'Rappel : les inscriptions pour le loto ferment vendredi. Merci à tous les bénévoles ! 🎉', 30, [['👏', 'lea_m'], ['👍', 'tom_b']]),
-      ] });
+    for (const c of fixtures!['GET /circles'] as any[]) {
+      const lines = CIRCLE_CHATS[c.code];
+      if (!lines) continue;
+      const userOf = (pseudo: string) => c.members.find((x: any) => x.user.pseudo === pseudo)?.user ?? meRef();
+      demoChats.set(c.id, { mode: 'open', seen: c.code === 'DEMO4X', messages: lines.map(([pseudo, content, h, reactions = []]) => {
+        const u = userOf(pseudo);
+        return { id: `demo-cm-${Math.random().toString(36).slice(2)}`, circleId: c.id, author: { id: u.id, pseudo: u.pseudo, firstName: u.firstName ?? null },
+          content: texts[content] ?? content, imageKey: null, createdAt: ago(h), editedAt: null, deletedAt: null,
+          reactions: reactions.map(([emoji, who]) => ({ emoji, userId: userOf(who).id })) };
+      }) });
     }
   }
   return demoChats.get(circleId);
+}
+
+// Liste d'attente (Plan complet) : s'inscrire ou se retirer, en mémoire
+function setWaitlist(planId: string, join: boolean) {
+  for (const target of [plan(planId), ...planCopies(planId)]) {
+    const list = (target.waitlist ??= []) as any[];
+    const i = list.findIndex(w => w.userId === me.id);
+    if (join && i < 0) list.push({ userId: me.id, createdAt: now(), user: { id: me.id, pseudo: me.pseudo, firstName: me.firstName } });
+    if (!join && i >= 0) list.splice(i, 1);
+  }
+}
+
+// Transports publics : correspondances fictives enregistrées (seed.js), arrêts proposés à la saisie
+const DEMO_STOPS = ['Genève', 'Genève, Plainpalais', 'Genève, Rive', 'Genève, Eaux-Vives-Plage', 'Lausanne', 'Sion', 'Sierre', 'Brig', 'Locarno', 'Ascona, Posta', 'Montvert, Poste'];
+function transitOf(planId: string) {
+  const st = fixtures![`GET /plans/${planId}/transit`];
+  if (!st) throw new DemoError(403, NOT_IN_DEMO);
+  return st;
 }
 
 function route(method: string, path: string, body: any): any {
@@ -577,6 +625,10 @@ function route(method: string, path: string, body: any): any {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
     if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
     if ((m = path.match(/^\/plans\/([^/]+)\/summary$/))) return demoSummary(m[1]);
+    if ((m = path.match(/^\/plans\/([^/]+)\/transit\/stops$/))) {
+      const q = String(body?.q ?? '').toLowerCase();
+      return DEMO_STOPS.filter(n => n.toLowerCase().includes(q)).slice(0, 6).map(name => ({ id: `demo-stop-${name}`, name, kind: 'stop' }));
+    }
     // Photos de profil : avatars dessinés (public/demo/avatars, client/scripts/demo-avatars.py)
     if (path === '/photos/people') return Object.fromEntries(DEMO_AVATARS.map(p => [p, `demo/avatars/${p}.svg`]));
     // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
@@ -887,6 +939,41 @@ function route(method: string, path: string, body: any): any {
   }
 
   // Réponse (RSVP), « vu », informations importantes, modification du Plan
+  // Liste d'attente
+  if ((m = path.match(/^\/plans\/([^/]+)\/waitlist$/))) { setWaitlist(m[1], method === 'POST'); changed(m[1], plan(m[1]).circleId); return { ok: true }; }
+  // Transports publics : mes arrêts, voyages proposés (en mémoire)
+  if ((m = path.match(/^\/plans\/([^/]+)\/transit\/me$/)) && method === 'PUT') {
+    const st = transitOf(m[1]);
+    if (body?.from !== undefined) st.from = body.from;
+    if (body?.to !== undefined) st.to = body.to;
+    if (body?.remember === true && st.from) st.home = st.from;
+    if (body?.remember === false) st.home = null;
+    return { ok: true };
+  }
+  if ((m = path.match(/^\/plans\/([^/]+)\/transit\/groups$/)) && method === 'POST') {
+    const st = transitOf(m[1]);
+    const c = body?.connection;
+    const rides = (c?.legs ?? []).filter((l: any) => l.kind !== 'walk');
+    if (!rides.length) throw new DemoError(400, NOT_IN_DEMO);
+    for (const g of st.groups) g.members = g.members.filter((x: any) => x.userId !== me.id);
+    st.groups = st.groups.filter((g: any) => g.members.length);
+    st.groups.push({ id: newId('transit'), creator: meRef(), fromName: rides[0].from, toName: c.legs[c.legs.length - 1].to, departureAt: rides[0].departureAt ?? c.departureAt, arrivalAt: c.arrivalAt,
+      lines: rides.map((l: any) => l.line).filter(Boolean).join(' › '), platform: rides[0].platform, note: body?.note?.trim() || null, legs: c.legs.slice(c.legs.findIndex((l: any) => l.kind !== 'walk')),
+      members: [{ userId: me.id, user: meRef() }] });
+    return { ok: true };
+  }
+  if ((m = path.match(/^\/plans\/transit-groups\/([^/]+)\/join$/))) {
+    for (const [k, st] of Object.entries(fixtures!)) {
+      if (!/^GET \/plans\/[^/]+\/transit$/.test(k)) continue;
+      const g = (st as any).groups.find((x: any) => x.id === m![1]);
+      if (!g) continue;
+      for (const other of (st as any).groups) other.members = other.members.filter((x: any) => x.userId !== me.id);
+      if (method === 'POST') g.members.push({ userId: me.id, user: meRef() });
+      (st as any).groups = (st as any).groups.filter((x: any) => x.members.length);
+      return { ok: true };
+    }
+    throw new DemoError(404, NOT_IN_DEMO);
+  }
   if ((m = path.match(/^\/plans\/([^/]+)\/rsvp$/)) && method === 'PUT') { setRsvp(m[1], body.rsvp); changed(m[1], plan(m[1]).circleId); return { ok: true }; }
   if ((m = path.match(/^\/plans\/([^/]+)\/seen$/))) {
     for (const t of [plan(m[1]), ...planCopies(m[1])]) t.unseen = (t.unseen ?? []).filter((s: string) => s !== body.section);
@@ -1112,6 +1199,7 @@ export const demoAdapter: AxiosAdapter = async (config: InternalAxiosRequestConf
   const path = url.pathname.replace(/^\/api/, '');
   let body: any = {};
   if (typeof config.data === 'string') { try { body = JSON.parse(config.data); } catch { body = {}; } }
+  if (config.params && typeof config.params === 'object') body = { ...config.params, ...body };
   const respond = (status: number, data: any): AxiosResponse => ({ data, status, statusText: String(status), headers: {}, config, request: {} });
   // Petit délai, comme un vrai réseau
   await new Promise(r => setTimeout(r, 60));

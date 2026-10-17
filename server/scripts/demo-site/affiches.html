@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<!-- Affiches et documents fictifs de la démo : chaque <section> devient une image (node affiches.js). -->
+<style>
+@font-face{font-family:Fraunces;font-style:italic;font-weight:300;src:url('../../assets/fonts/Fraunces-LightItalic.ttf')}
+@font-face{font-family:Fraunces;font-weight:800;src:url('../../assets/fonts/Fraunces-ExtraBold.ttf')}
+@font-face{font-family:Inter;font-weight:500;src:url('../../assets/fonts/Inter-Medium.ttf')}
+@font-face{font-family:Inter;font-weight:600;src:url('../../assets/fonts/Inter-SemiBold.ttf')}
+@font-face{font-family:Inter;font-weight:800;src:url('../../assets/fonts/Inter-ExtraBold.ttf')}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,sans-serif}
+section{width:800px;height:1130px;position:relative;overflow:hidden;margin-bottom:20px}
+.doc{width:1000px;height:700px}
+.c{position:absolute;left:0;right:0;text-align:center}
+.f{font-family:Fraunces,serif}
+</style></head><body>
+
+<!-- Gala de danse -->
+<section id="affiche-gala" style="background:linear-gradient(160deg,#3b0764,#9d174d 55%,#f97316);color:#fff">
+ <svg style="position:absolute;inset:0" width="800" height="1130">
+  <g fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3">
+   <path d="M-40 900 C 200 700, 400 1000, 840 760"/><path d="M-40 960 C 220 760, 420 1060, 840 820"/><path d="M-40 1020 C 240 820, 440 1120, 840 880"/>
+  </g>
+  <g fill="#fde68a" opacity=".9"><circle cx="120" cy="140" r="5"/><circle cx="680" cy="220" r="4"/><circle cx="600" cy="90" r="3"/><circle cx="90" cy="420" r="3"/><circle cx="720" cy="520" r="5"/></g>
+  <g transform="translate(400 560)" fill="#fff">
+   <circle cx="0" cy="-150" r="26"/>
+   <path d="M-8 -122 L8 -122 L28 10 L80 60 L70 74 L18 30 L10 120 L60 230 L44 238 L-6 130 L-30 238 L-46 230 L-20 120 L-26 30 L-90 -60 L-76 -72 L-22 -10 Z"/>
+   <path d="M8 -110 L120 -190 L130 -178 L24 -96 Z"/>
+  </g>
+ </svg>
+ <div class="c" style="top:70px;font-size:26px;letter-spacing:.3em;font-weight:600">STUDIO DANSE ARC-EN-CIEL</div>
+ <div class="c f" style="top:118px;font-size:120px;font-weight:800;line-height:1">Gala</div>
+ <div class="c f" style="top:240px;font-size:44px;font-style:italic;font-weight:300">de fin d’année</div>
+ <div class="c" style="bottom:150px;font-size:40px;font-weight:800">Samedi 20 h · Salle des fêtes</div>
+ <div class="c" style="bottom:100px;font-size:26px;font-weight:500">Salsa · Bachata · Hip-hop · Contemporain</div>
+ <div class="c" style="bottom:46px;font-size:22px;font-weight:600;opacity:.85">Entrée libre, chapeau à la sortie</div>
+</section>
+
+<!-- Tournoi de boxe -->
+<section id="affiche-boxe" style="background:#0b0b0f;color:#fff">
+ <div style="position:absolute;inset:0;background:radial-gradient(60% 45% at 50% 42%,rgba(220,38,38,.55),transparent 70%)"></div>
+ <svg style="position:absolute;left:150px;top:250px" width="500" height="420" viewBox="0 0 500 420">
+  <g fill="none" stroke="#fbbf24" stroke-width="6"><path d="M20 90 H480 M20 170 H480 M20 250 H480"/><path d="M40 60 V330 M460 60 V330"/></g>
+  <g fill="#dc2626"><path d="M150 200c-40 0-70-30-70-70s30-80 90-80c50 0 80 30 80 70v40c0 25-20 40-45 40z"/><rect x="120" y="200" width="90" height="70" rx="18"/></g>
+  <g fill="#2563eb"><path d="M350 200c40 0 70-30 70-70s-30-80-90-80c-50 0-80 30-80 70v40c0 25 20 40 45 40z"/><rect x="290" y="200" width="90" height="70" rx="18"/></g>
+ </svg>
+ <div class="c" style="top:70px;font-size:24px;letter-spacing:.35em;font-weight:600;color:#fbbf24">BOXING CLUB DU RHÔNE PRÉSENTE</div>
+ <div class="c" style="top:120px;font-size:96px;font-weight:800;letter-spacing:-.02em;line-height:1">TROPHÉE</div>
+ <div class="c f" style="top:690px;font-size:92px;font-weight:800;color:#fbbf24">du Rhône</div>
+ <div class="c" style="top:820px;font-size:34px;font-weight:800">Tournoi amateur · 24 combats</div>
+ <div class="c" style="bottom:120px;font-size:38px;font-weight:800">Samedi et dimanche</div>
+ <div class="c" style="bottom:70px;font-size:26px;font-weight:500;color:#d1d5db">Salle omnisport du Bord-de-l’Eau · Buvette et grillades</div>
+</section>
+
+<!-- Fête du village -->
+<section id="affiche-fete" style="background:#fef3c7;color:#7c2d12">
+ <svg style="position:absolute;top:0;left:0" width="800" height="200">
+  <path d="M0 40 Q 200 120 400 40 T 800 40" fill="none" stroke="#7c2d12" stroke-width="3"/>
+  <g>
+   <path d="M40 52 l24 50 l24 -44z" fill="#ef4444"/><path d="M120 76 l24 50 l24 -46z" fill="#3b82f6"/><path d="M200 84 l24 50 l24 -48z" fill="#22c55e"/><path d="M280 68 l24 50 l24 -48z" fill="#eab308"/>
+   <path d="M440 64 l24 50 l24 -48z" fill="#ef4444"/><path d="M520 82 l24 50 l24 -48z" fill="#3b82f6"/><path d="M600 80 l24 50 l24 -48z" fill="#22c55e"/><path d="M680 62 l24 50 l24 -46z" fill="#eab308"/>
+  </g>
+ </svg>
+ <div class="c" style="top:200px;font-size:28px;letter-spacing:.25em;font-weight:800;color:#b45309">MONTVERT EN FÊTE</div>
+ <div class="c f" style="top:250px;font-size:112px;font-weight:800;line-height:.95">Fête<br><span style="font-style:italic;font-weight:300">du village</span></div>
+ <div class="c" style="top:560px;font-size:40px;font-weight:800">Samedi dès 11 h</div>
+ <div style="position:absolute;left:110px;right:110px;top:650px;font-size:30px;font-weight:600;line-height:1.7">
+  🎪 Marché artisanal<br>🍔 Grillades et raclette<br>🎶 Concert de la fanfare à 17 h<br>🎨 Atelier peinture pour les enfants<br>💃 Démonstration de danse
+ </div>
+ <div class="c" style="bottom:60px;font-size:26px;font-weight:600">Place de la Fontaine · Organisé par la Team events et la Jeunesse de Montvert</div>
+</section>
+
+<!-- Course populaire -->
+<section id="affiche-course" style="background:linear-gradient(180deg,#0ea5e9,#14b8a6);color:#fff">
+ <svg style="position:absolute;bottom:0;left:0" width="800" height="520" viewBox="0 0 800 520">
+  <path d="M0 300 L160 140 L260 230 L420 60 L560 210 L660 130 L800 260 V520 H0Z" fill="rgba(255,255,255,.22)"/>
+  <path d="M0 400 C 200 320, 420 470, 800 360 V520 H0Z" fill="rgba(15,23,42,.25)"/>
+  <path d="M60 470 C 260 400, 420 500, 760 420" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="18 14"/>
+ </svg>
+ <div class="c" style="top:80px;font-size:26px;letter-spacing:.3em;font-weight:600">COURSE POPULAIRE</div>
+ <div class="c" style="top:120px;font-size:220px;font-weight:800;letter-spacing:-.04em;line-height:1">10 km</div>
+ <div class="c f" style="top:350px;font-size:58px;font-style:italic;font-weight:300">de Montvert</div>
+ <div class="c" style="top:470px;font-size:36px;font-weight:800">Dimanche 9 h 30 · Départ place de l’école</div>
+ <div class="c" style="top:530px;font-size:26px;font-weight:500">Course enfants à 9 h · Ravitaillement au km 5</div>
+ <div class="c" style="top:600px"><span style="background:#fff;color:#0f766e;font-weight:800;font-size:30px;padding:14px 34px;border-radius:999px">Inscription : 20 CHF</span></div>
+</section>
+
+<!-- Programme du stage hip-hop -->
+<section id="programme-stage" class="doc" style="background:#fff;color:#111827;padding:50px 60px">
+ <div style="font-size:16px;letter-spacing:.2em;font-weight:600;color:#9d174d">STUDIO DANSE ARC-EN-CIEL</div>
+ <div class="f" style="font-size:52px;font-weight:800;margin-top:6px">Stage hip-hop · programme</div>
+ <table style="width:100%;border-collapse:collapse;margin-top:30px;font-size:22px">
+  <tr style="background:#fce7f3"><th style="text-align:left;padding:12px">Horaire</th><th style="text-align:left;padding:12px">Samedi</th><th style="text-align:left;padding:12px">Dimanche</th></tr>
+  <tr><td style="padding:12px;border-bottom:1px solid #e5e7eb">10:00 – 11:30</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Échauffement et bases</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Popping</td></tr>
+  <tr><td style="padding:12px;border-bottom:1px solid #e5e7eb">11:45 – 13:00</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Grooves et footwork</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Locking</td></tr>
+  <tr><td style="padding:12px;border-bottom:1px solid #e5e7eb">13:00 – 14:00</td><td style="padding:12px;border-bottom:1px solid #e5e7eb" colspan="2">Pause de midi (pique-nique sur place)</td></tr>
+  <tr><td style="padding:12px;border-bottom:1px solid #e5e7eb">14:00 – 16:00</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Chorégraphie, partie 1</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">Chorégraphie, partie 2</td></tr>
+  <tr><td style="padding:12px">16:30</td><td style="padding:12px">—</td><td style="padding:12px"><b>Petit spectacle pour les familles</b></td></tr>
+ </table>
+ <div style="margin-top:28px;font-size:20px;color:#4b5563">Tenue souple, baskets propres pour la salle, bouteille d’eau. Professeure : Inès.</div>
+</section>
+
+<!-- Plan du site de la fête -->
+<section id="plan-du-site" class="doc" style="background:#f8fafc;color:#0f172a">
+ <div style="position:absolute;left:40px;top:28px;font-size:30px;font-weight:800">Plan du site · Fête du village</div>
+ <svg style="position:absolute;left:40px;top:90px" width="920" height="570" viewBox="0 0 920 570">
+  <rect x="0" y="0" width="920" height="570" rx="20" fill="#e2e8f0"/>
+  <circle cx="460" cy="285" r="70" fill="#bfdbfe" stroke="#3b82f6" stroke-width="4"/><text x="460" y="292" text-anchor="middle" font-size="20" font-weight="800">Fontaine</text>
+  <g font-size="18" font-weight="700" text-anchor="middle">
+   <rect x="40" y="40" width="220" height="110" rx="12" fill="#fde68a"/><text x="150" y="102">Marché artisanal</text>
+   <rect x="660" y="40" width="220" height="110" rx="12" fill="#fecaca"/><text x="770" y="102">Grillades / raclette</text>
+   <rect x="40" y="420" width="220" height="110" rx="12" fill="#bbf7d0"/><text x="150" y="482">Atelier enfants</text>
+   <rect x="660" y="420" width="220" height="110" rx="12" fill="#ddd6fe"/><text x="770" y="482">Scène (fanfare, danse)</text>
+   <rect x="360" y="440" width="200" height="90" rx="12" fill="#fed7aa"/><text x="460" y="492">Buvette</text>
+   <rect x="380" y="30" width="160" height="70" rx="12" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="460" y="72">Accueil</text>
+  </g>
+  <path d="M0 285 H380 M540 285 H920" stroke="#94a3b8" stroke-width="18" stroke-dasharray="2 0"/>
+ </svg>
+</section>
+
+</body></html>

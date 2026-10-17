@@ -11,9 +11,14 @@ base jetable »). Personnes, Cercles et Plans entièrement fictifs.
    `DATABASE_URL=postgresql://postgres:test@localhost:55432/evly_test`.
 2. Serveur de test, depuis `server/` (les photos vont dans `server/storage/`, ignoré par git) :
    `DATABASE_URL=… JWT_SECRET=test-secret PORT=3999 npx ts-node-dev --transpile-only src/index.ts`
-3. Données fictives : `NODE_PATH=$PWD/node_modules node scripts/demo-site/seed.js`
+3. Images fictives (affiches, programme, plan du site) : `PW=<playwright-core> node scripts/demo-site/affiches.js`
+   (déjà fournies ; à relancer seulement si `affiches.html` change).
+4. Données fictives : `NODE_PATH=$PWD/node_modules node scripts/demo-site/seed.js`
    (écrit `ids.json` à côté, à ne pas commiter).
-4. Enregistrement : `node scripts/demo-site/capture.js ../client/public/demo`
-5. Supprimer les anciennes photos de `client/public/demo/photos/` qui ne servent plus.
+5. Enregistrement : `node scripts/demo-site/capture.js ../client/public/demo`
+6. Supprimer les anciennes photos de `client/public/demo/photos/` qui ne servent plus.
+
+Ensuite : `python3 client/scripts/demo-i18n.py` (traductions ; compléter `ROWS` pour tout nouveau texte — la liste des
+textes manquants s'obtient en comparant les chaînes de `data.json` aux clés de `i18n.json`).
 
 Les dates sont décalées au chargement de la démo (en jours entiers) pour rester à venir.

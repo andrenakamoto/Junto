@@ -26,6 +26,9 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     if ((I.wordPlans || []).includes(id)) await take(`/plans/${id}/words`);
     if ((I.teamPlans || []).includes(id)) await take(`/plans/${id}/teams`);
     if ((I.potPlans || []).includes(id)) await take(`/plans/${id}/pot`);
+    if ((I.quizPlans || []).includes(id)) await take(`/plans/${id}/quiz`);
+    // Transports publics : état d'Alex et voyages proposés ; correspondances fictives écrites par seed.js (pas de clé OJP en test)
+    if ((I.transitPlans || {})[id]) { await take(`/plans/${id}/transit`); fx[`GET /plans/${id}/transit/connections`] = I.transitPlans[id]; }
     for (const a of plan?.attachments ?? []) {
       const r = await fetch(`${API}/attachments/${a.id}/view?t=${plan.mediaToken}`);
       fs.writeFileSync(`${OUT}/photos/${a.id}.png`, Buffer.from(await r.arrayBuffer())); photos++;

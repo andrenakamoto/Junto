@@ -19,6 +19,11 @@ PEOPLE = {
     'noah_p': (3, 4, 6, 4, 'curly', False), 'julie_r': (4, 1, 7, 7, 'bob', False), 'sarah_k': (2, 0, 2, 5, 'long', True),
     'marc_l': (0, 6, 1, 7, 'bald', True), 'ines_b': (5, 0, 4, 0, 'bun', False), 'karim_a': (3, 0, 3, 1, 'short', False),
     'nadia_f': (1, 5, 6, 3, 'bob', False), 'zoe_m': (4, 2, 0, 4, 'long', False),
+    # Démo refaite le 2026-10-17 : danse, boxe, famille Rochat, collègues
+    'sofia_g': (2, 0, 5, 5, 'bun', False), 'hugo_t': (0, 2, 1, 2, 'short', False), 'manon_c': (4, 3, 7, 0, 'long', False),
+    'yann_k': (1, 0, 3, 7, 'short', True), 'elena_r': (5, 0, 4, 6, 'curly', False), 'marco_p': (1, 1, 2, 1, 'curly', False),
+    'sophie_d': (0, 5, 6, 3, 'bob', True), 'pierre_r': (1, 6, 1, 7, 'bald', True), 'monique_r': (0, 6, 5, 5, 'bun', True),
+    'nathalie_r': (4, 2, 0, 4, 'bob', False), 'leo_r': (0, 3, 6, 1, 'short', False),
 }
 
 def hair(style, c):
