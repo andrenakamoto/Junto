@@ -151,7 +151,7 @@ Conséquences pratiques :
   (a remplacé Playfair Display, qui n'est plus utilisée nulle part).
 - **Brochure associations** (refaite le 2026-10-05, **associations uniquement** — la partie
   entreprises a été retirée à la demande de l'utilisateur) :
-  `client/public/fichiers/evly-associations-entreprises.pdf` (**7 pages** A4 depuis le 2026-10-10 : une page
+  `client/public/fichiers/evly-associations-entreprises.pdf` (**8 pages** A4 ; le 2026-10-17, page 6 « Communiquer, annoncer, inscrire » : discussion du Cercle, notifications, Plan pour plusieurs Cercles, mode annonce et affiche, transports publics, Plan terminé 24 h ; depuis le 2026-10-10 : une page
   entière pour l'**Assemblée** — captures de l'onglet et du PV —, « Décider ensemble », liste d'attente,
   jeux cités sans détail ; vouvoiement ; nom de fichier conservé pour les liens existants), liée sous « Découvrir EvLY en 1 minute » dans AuthPage via
   **`/brochure`**. Téléchargements comptés (2026-09-29) : `client/vercel.json`
