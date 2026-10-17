@@ -75,6 +75,8 @@ export default {
     noEmail: 'Email de confirmation non reçu ?',
     resend: 'Renvoyer',
     newHere: 'Nouveau sur EvLY ?',
+    appStore: 'Télécharger EvLY dans l’App Store',
+    androidSoon: 'Android : bientôt disponible',
     organize: 'Organiser une sortie',
     demo: 'Voir la démo',
     discover: 'Découvrir EvLY',

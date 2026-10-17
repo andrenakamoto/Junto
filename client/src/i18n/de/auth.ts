@@ -76,6 +76,8 @@ const auth: Dict['auth'] = {
     noEmail: 'Keine Bestätigungs-E-Mail erhalten?',
     resend: 'Erneut senden',
     newHere: 'Neu bei EvLY?',
+    appStore: 'EvLY im App Store laden',
+    androidSoon: 'Android: bald verfügbar',
     organize: 'Einen Ausflug organisieren',
     demo: 'Demo ansehen',
     discover: 'EvLY entdecken',

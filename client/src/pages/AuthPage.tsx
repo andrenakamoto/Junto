@@ -10,7 +10,10 @@ import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
 import { countStep } from '../lib/funnel';
-import { t } from '../i18n';
+import { t, currentLang } from '../i18n';
+
+// Fiche de l'app iPhone (id App Store Connect de ch.evly.app)
+const APP_STORE_URL = 'https://apps.apple.com/app/id6818454100';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 
 type Mode = 'login' | 'register';
@@ -380,6 +383,16 @@ export function AuthPage() {
             </Link>
           </div>
         </div>
+
+        {/* L'app iPhone (pas dans les apps elles-mêmes) : badge officiel d'Apple dans la langue de la page */}
+        {!Capacitor.isNativePlatform() && (
+          <div className="mt-8 flex flex-col items-center gap-2">
+            <a href={APP_STORE_URL} target="_blank" rel="noopener" className="inline-block transition-opacity hover:opacity-85">
+              <img src={`/badges/app-store-${currentLang()}.svg`} alt={t('auth.page.appStore')} className="h-11 w-auto" />
+            </a>
+            <p className="text-xs text-slate-500">{t('auth.page.androidSoon')}</p>
+          </div>
+        )}
 
         <p className="text-center text-xs text-slate-500 mt-10 leading-relaxed">
           <a href={siteUrl('/decouvrir.html')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.discover')}</a>
