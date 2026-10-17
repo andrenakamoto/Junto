@@ -14,9 +14,9 @@ const groups: Group[] = [
           <P><strong>Einen Plan machen</strong> unter einer Nachricht öffnet «Plan erstellen» mit dieser Nachricht als Titel. Reaktionen,
             Fotos und Erwähnungen @pseudo wie im Chat eines Plans.</P>
           <P>Die erstellende Person und die Organisatoren wählen in den Einstellungen des Kreises: <strong>Offen</strong> (alle schreiben),{' '}
-            <strong>Ankündigungen</strong> (nur sie schreiben, die anderen reagieren) oder <strong>Ausgeschaltet</strong>. Dezente
-            Benachrichtigungen: ein orangefarbener Punkt, und ein Push nur, wenn dich jemand erwähnt (oder bei jeder Nachricht, wenn du es unter
-            Benachrichtigungen einschaltest).</P>
+            <strong>Ankündigungen</strong> (nur sie schreiben, die anderen reagieren) oder <strong>Ausgeschaltet</strong>. Benachrichtigungen:
+            ein orangefarbener Punkt und ein Push bei jeder Nachricht (unter Benachrichtigungen kannst du sie auf Nachrichten beschränken, in
+            denen du erwähnt wirst).</P>
         </>,
       },
       {

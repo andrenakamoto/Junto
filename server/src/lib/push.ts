@@ -1,6 +1,7 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 import prisma from './prisma';
+import { refreshPhoneUsers } from './notificationPrefs';
 import { isMuted, MUTE_EXEMPT_TYPES } from './mutes';
 import { isBlockedBy } from './moderation';
 import { translateMessage, userLocale, type Locale } from './i18n';
@@ -174,7 +175,7 @@ export async function sendPush(userId: string, n: AppNotification, locale?: Loca
   const expired = result.responses
     .map((r, i) => (!r.success && r.error && EXPIRED_TOKEN_ERRORS.has(r.error.code) ? tokens[i] : null))
     .filter((t): t is string => t !== null);
-  if (expired.length > 0) await prisma.pushToken.deleteMany({ where: { token: { in: expired } } });
+  if (expired.length > 0) { await prisma.pushToken.deleteMany({ where: { token: { in: expired } } }); refreshPhoneUsers(); }
   // Diagnostic dans les journaux Railway : type et nombre d'appareils, aucun contenu
   console.log(`[push] ${n.type} → ${result.successCount}/${tokens.length} appareil(s)${expired.length ? `, ${expired.length} jeton(s) expiré(s) retiré(s)` : ''}`);
 }

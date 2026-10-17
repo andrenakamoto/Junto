@@ -55,7 +55,7 @@ export async function sendPollReminders() {
       if (await isMuted(poll.creator.id, { circleId: poll.circle.id })) continue;
       sendPush(poll.creator.id, { type: 'poll_reminder', circleId: poll.circle.id, pollId: poll.id, planTitle: poll.question })
         .catch(e => console.error('[poll_reminder push]', e));
-      if (!poll.creator.email || !poll.creator.emailVerified || !wantsEmail(poll.creator.notificationChannel)) continue;
+      if (!poll.creator.email || !poll.creator.emailVerified || !wantsEmail(poll.creator.notificationChannel, poll.creator.id)) continue;
 
       const voters = new Set(poll.options.flatMap(o => o.votes.map(v => v.userId))).size;
       const open = poll.options.filter(o => !o.eventDate || o.eventDate.getTime() > now);

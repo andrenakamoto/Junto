@@ -280,11 +280,11 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
     where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null }, id: { not: req.userId } },
-    select: { email: true, firstName: true, pseudo: true, notificationChannel: true, locale: true },
+    select: { id: true, email: true, firstName: true, pseudo: true, notificationChannel: true, locale: true },
   });
   const { resend, FROM_EMAIL, APP_URL, notificationFooter } = await import('../lib/mailer');
   const link = `${APP_URL}/dashboard?planId=${ctx.plan.id}&tab=assemblee`;
-  for (const u of users.filter(x => wantsEmail(x.notificationChannel))) {
+  for (const u of users.filter(x => wantsEmail(x.notificationChannel, x.id))) {
     const m = mail(parseLocale(u.locale) ?? 'fr');
     const date = ctx.plan.eventDate ? zurichDate(ctx.plan.eventDate, m.intl) : null;
     const place = ctx.plan.location;

@@ -41,10 +41,10 @@ export default {
   notifications: {
     title: 'Notifications',
     receive: 'Recevoir les notifications',
-    push: { label: 'Notifications push', hint: 'Sur ton téléphone, avec l’app EvLY. Aucun email de notification.' },
+    push: { label: 'Notifications push', hint: 'Sur ton téléphone, avec l’app EvLY. Tant qu’aucun téléphone n’a l’app, tu reçois les emails à la place.' },
     both: { label: 'Push + email', hint: 'Sur ton téléphone, et les emails habituels (nouveau Plan, mentions, rappels…).' },
     email: { label: 'Email uniquement', hint: 'Les emails habituels, pas de notifications sur le téléphone.' },
-    noDevicePush: 'Aucun téléphone ne reçoit encore tes notifications push : installe l’app EvLY et connecte-toi, sinon tu ne seras prévenu(e) de rien.',
+    noDevicePush: 'Aucun téléphone ne reçoit encore tes notifications push : en attendant, tu les reçois par email. Installe l’app EvLY et connecte-toi pour les recevoir sur ton téléphone.',
     noDevice: 'Aucun téléphone enregistré : les notifications push arrivent sur ceux où tu es connecté(e) à l’app EvLY.',
     devices_one: '{{count}} téléphone reçoit tes notifications push.',
     devices_other: '{{count}} téléphones reçoivent tes notifications push.',

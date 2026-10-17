@@ -5,7 +5,8 @@ import { deletePhoto } from './photos';
 // Discussion d'un Cercle (2026-10-15) : un chat par Cercle, à côté des chats des Plans. Messages chiffrés en base
 // (comme ceux des Plans), effacés après CIRCLE_CHAT_TTL_MS. Trois modes (Circle.chatMode) : open (tout le monde
 // écrit), announce (créateur et organisateurs écrivent, les autres réagissent), off. Notifications discrètes :
-// pastille « nouveau » (CircleMember.chatSeenAt), push seulement pour les mentions, sauf réglage User.circleChatPush.
+// pastille « nouveau » (CircleMember.chatSeenAt) et push à chaque message (User.circleChatPush, activé par défaut depuis le
+// 2026-10-17) ; sans ce réglage, push seulement pour les mentions.
 
 export const CIRCLE_CHAT_TTL_MS = 7 * 24 * 3600 * 1000;
 export const CIRCLE_CHAT_MAX = 2000;

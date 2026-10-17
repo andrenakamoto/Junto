@@ -37,9 +37,9 @@ model User {
   weeklyDigestEnabled  Boolean   @default(true)
   // Canal des notifications (lib/notificationPrefs.ts) : push | both | email. N'affecte ni les
   // emails indispensables (validation, mot de passe…) ni les notifications dans l'app.
-  notificationChannel  String    @default("both")
+  notificationChannel  String    @default("push")
   // Discussion des Cercles : push à chaque message (sinon pastille seulement, push pour les mentions)
-  circleChatPush       Boolean   @default(false)
+  circleChatPush       Boolean   @default(true)
   // Réponse à un Plan sans compte (lib/lightGuest.ts) : prénom seulement, pseudo « prenom.invite »,
   // ni email ni mot de passe. Devient un compte normal à l'inscription, ou est fusionné dans le
   // compte existant à la connexion ; supprimé quand il n'a plus aucun Plan.

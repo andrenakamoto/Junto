@@ -117,8 +117,8 @@ export async function sendPlanReminders() {
       const muted = await mutedAmong({ planId: plan.id, circleId: plan.circleId }, plan.members.map(m => m.userId));
       const reminded = plan.members.filter(m => m.rsvp === 'in' || !muted.has(m.userId));
       const recipients = reminded
-        .map(m => m.user)
-        .filter(u => u.email && u.emailVerified && wantsEmail(u.notificationChannel));
+        .filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId))
+        .map(m => m.user);
 
       // Rappel aussi en push, pour ceux qui l'ont choisi (filtré dans sendPush)
       for (const m of reminded) {

@@ -170,7 +170,7 @@ export function setupSocketHandlers(io: Server) {
 
       // Email aux membres mentionnés hors ligne (pas de connexion active du tout)
       const offlineMentioned = planData.members.filter(
-        m => mentioned.has(m.userId) && (onlineCounts.get(m.userId) ?? 0) === 0 && m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel),
+        m => mentioned.has(m.userId) && (onlineCounts.get(m.userId) ?? 0) === 0 && m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId),
       );
       await Promise.all(offlineMentioned.map(r => {
         const m = mail(parseLocale(r.user.locale) ?? 'fr');

@@ -45,4 +45,8 @@ describe('canal des notifications', () => {
     expect(parseNotificationChannel('both')).toBe('both');
     expect(parseNotificationChannel('sms')).toBeNull();
   });
+  it('« push » sans téléphone avec l’app : emails en secours', () => {
+    expect(wantsEmail('push', 'personne-sans-telephone')).toBe(true);
+    expect(wantsEmail('email', 'x')).toBe(true);
+  });
 });

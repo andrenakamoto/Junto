@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { refreshPhoneUsers } from '../lib/notificationPrefs';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 
 // Jetons des notifications push (apps Android / iOS) — voir lib/push.ts
@@ -30,6 +31,7 @@ router.post('/token', async (req: AuthRequest, res) => {
     update: { platform, userId: req.userId! },
   });
   res.json({ ok: true });
+  refreshPhoneUsers();
 });
 
 // Déconnexion : l'appareil ne reçoit plus les notifications de ce compte
@@ -38,6 +40,7 @@ router.delete('/token', async (req: AuthRequest, res) => {
   if (!token) return res.status(400).json({ error: 'Jeton invalide' });
   await prisma.pushToken.deleteMany({ where: { token, userId: req.userId! } });
   res.json({ ok: true });
+  refreshPhoneUsers();
 });
 
 export default router;

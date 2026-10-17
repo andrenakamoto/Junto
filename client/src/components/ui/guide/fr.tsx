@@ -14,8 +14,8 @@ const groups: Group[] = [
           <P><strong>Faire un Plan</strong> sous un message ouvre « Créer un Plan » avec ce message en titre. Réactions, photos et mentions
             @pseudo comme dans le chat d'un Plan.</P>
           <P>Le créateur et les organisateurs choisissent dans les réglages du Cercle : <strong>Ouverte</strong> (tout le monde écrit),{' '}
-            <strong>Annonces</strong> (eux seuls écrivent, les autres réagissent) ou <strong>Désactivée</strong>. Notifications discrètes :
-            un point orange, et un push seulement quand on te mentionne (ou à chaque message, si tu l'actives dans Notifications).</P>
+            <strong>Annonces</strong> (eux seuls écrivent, les autres réagissent) ou <strong>Désactivée</strong>. Notifications : un point
+            orange et un push à chaque message (tu peux les limiter aux messages qui te mentionnent dans Notifications).</P>
         </>,
       },
       {

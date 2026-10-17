@@ -37,7 +37,7 @@ export function NotificationSettingsModal({ onClose }: Props) {
     }
   }
 
-  const channel = user?.notificationChannel ?? 'both';
+  const channel = user?.notificationChannel ?? 'push';
   const emailUsable = !!user?.email && !!user?.emailVerified;
 
   return (

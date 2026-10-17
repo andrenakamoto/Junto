@@ -27,6 +27,7 @@ import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
+import { refreshPhoneUsers } from './lib/notificationPrefs';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
 import { sendSantaReminders } from './lib/secretSanta';
 import { endDueWordGames } from './lib/wordGame';
@@ -182,6 +183,9 @@ httpServer.listen(Number(PORT), '0.0.0.0', async () => {
     await prisma.$connect();
     console.log('[db] Connexion base de donnees OK');
     encryptLegacyMessages().catch(e => console.error('[messageCrypto] chiffrement des anciens messages', e));
+    // Téléphones enregistrés pour le push (emails en secours pour les comptes « push » sans l'app)
+    await refreshPhoneUsers();
+    setInterval(refreshPhoneUsers, 10 * 60 * 1000);
   } catch (e) {
     console.error('[db] Echec connexion base de donnees:', e);
   }

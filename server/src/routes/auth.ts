@@ -54,8 +54,8 @@ function safeUser(user: {
     pendingEmail: user.pendingEmail ?? null,
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
     recapEmailEnabled: user.recapEmailEnabled ?? false,
-    circleChatPush: user.circleChatPush ?? false,
-    notificationChannel: user.notificationChannel ?? 'both',
+    circleChatPush: user.circleChatPush ?? true,
+    notificationChannel: user.notificationChannel ?? 'push',
     locale: user.locale ?? null,
     // Personnes masquées (lib/moderation.ts) : leurs messages sont cachés côté client
     ...(user.blocking && { blockedUserIds: user.blocking.map(b => b.blockedId) }),

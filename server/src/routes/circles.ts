@@ -221,7 +221,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
       where: { id: request.userId },
       select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true },
     });
-    if (updatedCircle && approvedUser?.email && approvedUser.emailVerified && wantsEmail(approvedUser.notificationChannel)) {
+    if (updatedCircle && approvedUser?.email && approvedUser.emailVerified && wantsEmail(approvedUser.notificationChannel, request.userId)) {
       const m = mail(parseLocale(approvedUser.locale) ?? 'fr');
       await resend.emails.send({
         from: FROM_EMAIL,
@@ -410,7 +410,7 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
       }
     }
     // Cercle en silence (lib/mutes.ts) : pas d'email
-    const recipients = await withoutMuted({ circleId: circle.id }, members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
+    const recipients = await withoutMuted({ circleId: circle.id }, members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId)), m => m.userId);
     await Promise.all(recipients.map(r => {
       const m = mail(parseLocale(r.user.locale) ?? 'fr');
       return resend.emails.send({
@@ -486,7 +486,7 @@ router.post('/:id/invitations', inviteLimiter, async (req: AuthRequest, res) => 
   notifyUser(req.app.get('io'), invitee.id, {
     type: 'circle_invite', circleName: circle?.name, from: req.pseudo, actorId: req.userId!,
   });
-  if (invitee.email && invitee.emailVerified && wantsEmail(invitee.notificationChannel)) {
+  if (invitee.email && invitee.emailVerified && wantsEmail(invitee.notificationChannel, invitee.id)) {
     const m = mail(parseLocale(invitee.locale) ?? 'fr');
     resend.emails.send({
       from: FROM_EMAIL,
@@ -870,7 +870,7 @@ async function notifyNewPlanInCircle(app: any, circleId: string, plan: any, done
     }
   }
 
-  const recipients = await withoutMuted({ circleId }, otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), (m: any) => m.userId);
+  const recipients = await withoutMuted({ circleId }, otherMembers.filter((m: any) => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId)), (m: any) => m.userId);
   await Promise.all(recipients.map((r: any) => {
     const m = mail(parseLocale(r.user.locale) ?? 'fr');
     return resend.emails.send({
@@ -1171,7 +1171,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
         }
       }
 
-      const recipients = await withoutMuted({ circleId: req.params.id }, otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel)), m => m.userId);
+      const recipients = await withoutMuted({ circleId: req.params.id }, otherMembers.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId)), m => m.userId);
       await Promise.all(recipients.map(r => {
         const m = mail(parseLocale(r.user.locale) ?? 'fr');
         return resend.emails.send({

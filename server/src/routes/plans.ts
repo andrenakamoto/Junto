@@ -578,7 +578,7 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
       });
       const joiner = updatedPlan.members.find(m => m.userId === req.userId)?.user;
       const creatorMuted = await isMuted(updatedPlan.creatorId, { planId: updatedPlan.id, circleId: updatedPlan.circleId });
-      if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel) && joiner && !creatorMuted) {
+      if (creator?.email && creator.emailVerified && wantsEmail(creator.notificationChannel, updatedPlan.creatorId) && joiner && !creatorMuted) {
         const m = mail(parseLocale(creator.locale) ?? 'fr');
         const result = await resend.emails.send({
           from: FROM_EMAIL,

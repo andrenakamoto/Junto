@@ -42,10 +42,10 @@ const account: Dict['account'] = {
   notifications: {
     title: 'Notifiche',
     receive: 'Ricevere le notifiche',
-    push: { label: 'Notifiche push', hint: 'Sul tuo telefono, con l’app EvLY. Nessuna email di notifica.' },
+    push: { label: 'Notifiche push', hint: 'Sul tuo telefono, con l’app EvLY. Finché nessun telefono ha l’app, ricevi invece le email.' },
     both: { label: 'Push + email', hint: 'Sul tuo telefono, e le solite email (nuovo Plan, menzioni, promemoria…).' },
     email: { label: 'Solo email', hint: 'Le solite email, nessuna notifica sul telefono.' },
-    noDevicePush: 'Nessun telefono riceve ancora le tue notifiche push: installa l’app EvLY e accedi, altrimenti non sarai avvisato/a di nulla.',
+    noDevicePush: 'Nessun telefono riceve ancora le tue notifiche push: nel frattempo le ricevi per email. Installa l’app EvLY e accedi per riceverle sul telefono.',
     noDevice: 'Nessun telefono registrato: le notifiche push arrivano sui telefoni in cui hai effettuato l’accesso all’app EvLY.',
     devices_one: '{{count}} telefono riceve le tue notifiche push.',
     devices_other: '{{count}} telefoni ricevono le tue notifiche push.',

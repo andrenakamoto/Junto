@@ -13,8 +13,8 @@ const groups: Group[] = [
           <P><strong>Make a Plan</strong> under a message opens “Create a Plan” with that message as the title. Reactions, photos and
             @username mentions, like in a Plan's chat.</P>
           <P>The creator and organisers choose in the Circle settings: <strong>Open</strong> (everyone writes),{' '}
-            <strong>Announcements</strong> (only they write, the others react) or <strong>Off</strong>. Discreet notifications: an orange dot,
-            and a push only when someone mentions you (or for every message, if you turn it on in Notifications).</P>
+            <strong>Announcements</strong> (only they write, the others react) or <strong>Off</strong>. Notifications: an orange dot and a
+            push for every message (in Notifications you can limit them to messages that mention you).</P>
         </>,
       },
       {

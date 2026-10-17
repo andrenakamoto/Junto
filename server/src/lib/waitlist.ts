@@ -68,7 +68,7 @@ export async function promoteFromWaitlist(io: any, planId: string): Promise<stri
       promoted.push(first.userId);
       notifyUser(io, first.userId, { type: 'waitlist', planId, planTitle: plan.title, circleId: plan.circleId, preview: '🎉 Une place s’est libérée, tu es dedans !' });
       notifyMembershipChange(io, planId, { id: first.userId, pseudo: first.user.pseudo }, existing ? 'back' : 'join').catch(e => console.error('[waitlist notify]', e));
-      if (first.user.email && first.user.emailVerified && wantsEmail(first.user.notificationChannel)) {
+      if (first.user.email && first.user.emailVerified && wantsEmail(first.user.notificationChannel, first.userId)) {
         const m = mail(parseLocale(first.user.locale) ?? 'fr');
         resend.emails.send({
           from: FROM_EMAIL,
