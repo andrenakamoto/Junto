@@ -9,6 +9,7 @@ import api from '../../services/api';
 import { ADMISSION_OPTIONS, CHAT_MODE_OPTIONS, ChatMode, DELETION_OPTIONS, isCircleManager, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS } from '../../lib/settings';
 import { intlLocale, t } from '../../i18n';
 import { CirclePhotoField, PendingPhoto, applyCirclePhoto } from './CirclePhotoField';
+import { CIRCLE_COLORS } from './CreateCircleModal';
 import { photoUrl } from '../../lib/photos';
 import { Flag } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
   const [description, setDescription] = useState(circle.description ?? '');
   const [saving, setSaving] = useState(false);
   const [photo, setPhoto] = useState<PendingPhoto>(null);
+  const [color, setColor] = useState<string | null>(circle.color ?? null);
   const [error, setError] = useState('');
 
   const pendingCount = circle.joinRequests?.length ?? 0;
@@ -40,7 +42,8 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
     || planCreationMode !== (circle.planCreationMode ?? 'all') || pollCreationMode !== (circle.pollCreationMode ?? 'all') || chatMode !== (circle.chatMode ?? 'off')
     || description.trim() !== (circle.description ?? '') || (name.trim() !== circle.name && name.trim().length > 0);
   const settingsChanged = changed;
-  const anyChange = changed || photo !== null;
+  const colorChanged = color !== (circle.color ?? null);
+  const anyChange = changed || photo !== null || colorChanged;
 
   async function handleSave() {
     setSaving(true);
@@ -49,9 +52,13 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
       // Photo d'abord (elle a sa propre route), puis les réglages s'ils ont changé
       const key = await applyCirclePhoto(circle.id, photo);
       let updated: Circle = { ...circle, ...(key !== undefined ? { photoKey: key } : {}) };
+      if (colorChanged) {
+        const { data } = await api.put(`/circles/${circle.id}/color`, { color });
+        updated = { ...updated, color: data.color };
+      }
       if (settingsChanged) {
         const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode, chatMode, description, name: name.trim() });
-        updated = { ...data, ...(key !== undefined ? { photoKey: key } : {}) };
+        updated = { ...data, color: updated.color, ...(key !== undefined ? { photoKey: key } : {}) };
       }
       onUpdated(updated);
     } catch (err: any) {
@@ -67,6 +74,18 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
         {canEdit
           ? <CirclePhotoField currentKey={circle.photoKey ?? null} pending={photo} onPending={setPhoto} />
           : <CirclePhotoView circle={circle} />}
+        {canEdit && (
+          // Couleur du Cercle (contour de sa carte) : choisie ici depuis le 2026-10-17, plus par une pastille sur la carte
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('circle.create.color')}</label>
+            <div className="flex gap-2 flex-wrap">
+              {CIRCLE_COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setColor(color === c ? null : c)} style={{ backgroundColor: c }} aria-label={c} aria-pressed={color === c}
+                  className={`w-7 h-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-slate-400 scale-110' : ''}`} />
+              ))}
+            </div>
+          </div>
+        )}
         {canEdit && (
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('circle.settings.name')}</label>

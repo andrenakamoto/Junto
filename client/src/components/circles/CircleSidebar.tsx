@@ -16,10 +16,9 @@ import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { disconnectSocket } from '../../lib/socket';
 import api from '../../services/api';
-import { CreateCircleModal, CIRCLE_COLORS } from './CreateCircleModal';
+import { CreateCircleModal } from './CreateCircleModal';
 import { JoinCircleModal } from './JoinCircleModal';
 import { Avatar } from '../ui/Avatar';
-import { isCircleManager } from '../../lib/settings';
 import { JoinRequestList } from './JoinRequestList';
 import { siteUrl } from '../../lib/siteUrl';
 import { intlLocale, t } from '../../i18n';
@@ -70,33 +69,23 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     setSearchParams(prev => { prev.delete('reglages'); return prev; }, { replace: true });
   }, [searchParams]);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
-  const [colorPopover, setColorPopover] = useState<string | null>(null);
   const [requestsPopover, setRequestsPopover] = useState<string | null>(null);
-  const [circleColors, setCircleColors] = useState<Record<string, string | null | undefined>>({});
   const [showMenu, setShowMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  async function handleSetColor(circleId: string, color: string | null) {
-    setColorPopover(null);
-    try {
-      const { data } = await api.put(`/circles/${circleId}/color`, { color });
-      setCircleColors(prev => ({ ...prev, [circleId]: data.color }));
-    } catch { /* ignore */ }
-  }
 
   // Nommer / retirer un organisateur (créateur du Cercle uniquement)
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setMembersPopover(null);
-        setColorPopover(null);
         setRequestsPopover(null);
       }
     }
-    if (colorPopover || requestsPopover) document.addEventListener('mousedown', handleClick);
+    if (requestsPopover) document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
-  }, [membersPopover, colorPopover, requestsPopover]);
+  }, [membersPopover, requestsPopover]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -185,9 +174,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
           const selected = selectedId === circle.id;
           const nextPlan = circle.plans?.[0];
           const hasUnread = unreadCircles.has(circle.id);
-          const circleColor = circleColors[circle.id] !== undefined ? circleColors[circle.id] : circle.color;
+          const circleColor = circle.color;
           const isCreator = circle.creatorId === user?.id;
-          const isManager = isCircleManager(circle, user?.id);
           return (
             // pt-2.5 : plus d'espace entre les cartes (le conteneur n'en met que 6 px)
             <div key={circle.id} className="pt-2.5">
@@ -240,14 +228,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                             <span className="text-xs text-white/60">·</span>
                             <span className="text-xs whitespace-nowrap">{t('circle.sidebar.polls', { count: circle.pollCount })}</span>
                           </>
-                        )}
-                        {isManager && (
-                          <button
-                            onClick={e => { e.stopPropagation(); setColorPopover(colorPopover === circle.id ? null : circle.id); }}
-                            title={t('circle.sidebar.color')}
-                            className="w-3.5 h-3.5 rounded-full border-2 border-white/90 flex-shrink-0 ml-0.5"
-                            style={{ backgroundColor: circleColor || '#64748b' }}
-                          />
                         )}
                       </div>
                     </div>
@@ -310,24 +290,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                   </div>
                 )}
               </button>
-
-              {colorPopover === circle.id && (
-                <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5 flex items-center gap-1.5 flex-wrap">
-                  <button
-                    onClick={() => handleSetColor(circle.id, null)}
-                    title={t('circle.sidebar.noColor')}
-                    className="w-6 h-6 rounded-full border-2 border-dashed border-slate-500 flex-shrink-0"
-                  />
-                  {CIRCLE_COLORS.map(c => (
-                    <button
-                      key={c}
-                      onClick={() => handleSetColor(circle.id, c)}
-                      style={{ backgroundColor: c }}
-                      className={`w-6 h-6 rounded-full flex-shrink-0 transition-transform ${circleColor === c ? 'ring-2 ring-offset-2 ring-offset-white ring-slate-400 scale-110' : ''}`}
-                    />
-                  ))}
-                </div>
-              )}
 
               {requestsPopover === circle.id && (
                 <div ref={popoverRef} className="mx-1 mt-1 mb-0.5 bg-white border border-slate-200 rounded-xl p-2.5">
