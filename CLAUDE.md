@@ -196,7 +196,7 @@ Conséquences pratiques :
   sa date de version) à chaque nouveau prestataire, nouvelle donnée
   collectée ou changement de région d'hébergement. Depuis le 11 octobre 2026 : **hébergement Infomaniak, Suisse**
   (serveur, base, site, fichiers, emails, Swiss Backup) ; restent aux États-Unis Google / Apple (notifications push,
-  connexion Google, polices) et le **relais Railway** tant qu'il tourne ; journaux du serveur 7 jours (journald +
+  connexion Google, polices) — le relais Railway a été retiré le 18 octobre 2026 ; journaux du serveur 7 jours (journald +
   logrotate nginx), sauvegardes 14 jours (serveur) / 30 jours (Swiss Backup).
 - **Badge App Store** sur la page de connexion (2026-10-17, `AuthPage`, masqué dans les apps) : badge officiel d'Apple dans la
   langue de la page (`public/badges/app-store-{fr,de,it,en}.svg`, outil marketing d'Apple), lien `https://apps.apple.com/app/id6818454100`,
@@ -404,8 +404,8 @@ Conséquences pratiques :
     (allemand, italien, anglais), quiz en direct, « Agenda » natif (autorisation agenda iOS), retour à la ligne dans le
     chat, cœur rouge des matchs, noms de fichiers accentués.
     **Version 1.0.13** (2026-10-11) : Android `versionCode` 14 (`evly-1.0.13-(14).aab`), iOS build 15 envoyé — **API en
-    Suisse (`https://api.evly.ch`, Infomaniak)**, « En bref », message de fin du match. Les versions antérieures passent par
-    le relais Railway (`server/relay.js`) tant qu'il est allumé.
+    Suisse (`https://api.evly.ch`, Infomaniak)**, « En bref », message de fin du match. Les versions antérieures passaient par
+    un relais Railway, supprimé le 2026-10-18 : elles ne se connectent plus.
     **Version 1.0.14** (2026-10-11, soir) : Android `versionCode` 15 (`evly-1.0.14-(15).aab`), iOS build 16 envoyé — fonction
     « Bénévoles » renommée « Planning », lignes de programme à 0 personne (le récapitulatif PDF complet est côté serveur).
     **Version 1.0.15** (2026-10-12) : Android `versionCode` 16 (`evly-1.0.15-(16).aab`), iOS build 17 envoyé — « En transports
@@ -1665,11 +1665,11 @@ son Plan juste après avoir accepté l'invitation).
 > déploiement automatique**. Migrations Prisma de production : la base est sur le serveur, appliquées par deploy.sh.
 > Secrets : `/etc/evly/app.env` (repris de Railway) et `/etc/evly/database.env` — ne jamais afficher leurs valeurs.
 > Pare-feu : Ubuntu (ufw) **et** pare-feu du Manager Infomaniak (ports 22, 80, 443 seulement).
-> **Railway ne sert plus que de relais** (`server/relay.js`, `server/railway.toml`) vers api.evly.ch pour les apps
-> antérieures à la 1.0.13 (adresse Railway codée en dur) ; ses tâches planifiées sont coupées. À arrêter quand tout le
-> monde a mis à jour. Le 2026-10-11 : projet Vercel supprimé, dossier `estelle` effacé chez Cloudinary (compte partagé avec
+> **Plus rien chez Railway** : le relais vers api.evly.ch pour les apps antérieures à la 1.0.13 (`server/relay.js`) et le
+> projet « radiant-spontaneity » ont été supprimés le 2026-10-18 (journaux HTTP : plus aucune app ne passait par lui ;
+> politique de confidentialité mise à jour le même jour). Le 2026-10-11 : projet Vercel supprimé, dossier `estelle` effacé chez Cloudinary (compte partagé avec
 > une autre app de l'utilisateur, garder le reste), compte Resend et ses DNS supprimés, **service Postgres de Railway
-> supprimé** (seul le service `Junto` = relais subsiste, sans `DATABASE_URL`).
+> supprimé**.
 > Le texte ci-dessous décrit l'ancienne installation (Vercel / Railway), gardé pour l'historique.
 
 - **Frontend** : Vercel, domaine principal **www.evly.ch** (evly.ch redirige
