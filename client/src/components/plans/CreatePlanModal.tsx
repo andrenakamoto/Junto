@@ -5,11 +5,11 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
+import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
 import { MembersVisibility } from '../../lib/settings';
-import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, AnnonceToggle, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
-import { AlertTriangle, Layers, Lock, Puzzle, Repeat, Users } from 'lucide-react';
+import { AlertTriangle, Layers, Lock, Megaphone, Puzzle, Repeat, Users } from 'lucide-react';
 import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
 import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
@@ -29,17 +29,19 @@ interface Props {
   fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[] };
   /** Titre proposé (« Faire un Plan » depuis un message de la discussion du Cercle) */
   suggestedTitle?: string;
+  /** « Y aller avec un Cercle » : Plan pré-rempli d'après un événement en Mode annonce */
+  fromEvent?: { sourcePlanId: string; title: string; eventDate?: string | null; endDate: string; location?: string | null };
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent }: Props) {
   const { user } = useAuth();
   const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
-  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? '');
+  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : ''));
   const [description, setDescription] = useState('');
-  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO));
-  const [endDate, setEndDate] = useState(fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : '');
-  const [endTouched, setEndTouched] = useState(false);
-  const [location, setLocation] = useState('');
+  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate));
+  const [endDate, setEndDate] = useState(fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : '');
+  const [endTouched, setEndTouched] = useState(!!fromEvent);
+  const [location, setLocation] = useState(fromEvent?.location ?? '');
   const [maxParticipants, setMaxParticipants] = useState('');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
@@ -57,6 +59,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
   const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>('all');
+  // Mode annonce : les membres peuvent y aller avec un de leurs Cercles
+  const [allowCirclePlans, setAllowCirclePlans] = useState(true);
   const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
   // Mode annonce : toutes les fonctions décochées, liste des participants réservée (et retour au standard)
   function setAnnonce(on: boolean) {
@@ -89,9 +93,11 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       importantInfo,
       importantInfoMode,
       membersVisibility,
+      allowCirclePlans,
       recurrence: recurrence || null,
       recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
       extraCircleIds: chosenExtra,
+      sourcePlanId: fromEvent?.sourcePlanId,
     };
     try {
       const { data } = fromPoll
@@ -107,7 +113,11 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
 
   return (
     <Modal title={fromPoll ? t('plan.form.fromPollTitle') : t('plan.form.createTitle')} onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">{t('plan.form.intro')}</p>
+      {fromEvent ? (
+        <p className="flex items-center gap-2 text-sm text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4"><Megaphone size={15} className="flex-shrink-0 text-indigo-500" />{t('plan.goWith.note', { title: fromEvent.title })}</p>
+      ) : (
+        <p className="text-sm text-slate-500 mb-4">{t('plan.form.intro')}</p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label={t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />
         <WhenField start={eventDate} end={endDate} onStart={setEventDate} onEnd={setEndDate} endTouched={endTouched} onEndTouched={() => setEndTouched(true)}
@@ -138,10 +148,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
           </OptionRow>
           <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
             summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
-            <AnnonceToggle active={annonce} onChange={setAnnonce} />
-            <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
+            <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} annonce={{ active: annonce, onChange: setAnnonce }} />
           </OptionRow>
-          {!fromPoll && (
+          {!fromPoll && !fromEvent && (
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
               summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
               <RecurrenceField
@@ -154,7 +163,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
           )}
           <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0 || chosenExtra.length > 0}
             summary={participantsSummary(maxParticipants, excludedUserIds.length, 1 + chosenExtra.length)}>
-            {!fromPoll && otherCircles.length > 0 && (
+            {!fromPoll && !fromEvent && otherCircles.length > 0 && (
               <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" checked={multi} onChange={e => setMulti(e.target.checked)} className="accent-indigo-600" />
@@ -194,11 +203,12 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               />
             )}
           </OptionRow>
-          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility)}
-            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) || !allowCirclePlans}
+            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) && allowCirclePlans ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
             <EditModeField value={editMode} onChange={setEditMode} />
             <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
             <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
+            {membersVisibility === 'managers' && <CirclePlansField value={allowCirclePlans} onChange={setAllowCirclePlans} />}
             <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
           </OptionRow>
         </OptionsBox>

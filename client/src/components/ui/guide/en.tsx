@@ -94,10 +94,21 @@ const groups: Group[] = [
       },
       {
         id: 'annonce', emoji: '📣', title: 'Announcement mode', summary: 'Inform people and know who’s coming (show, class…)',
-        body: <P>When creating, turn on <strong>“Announcement mode”</strong>: all features are off and the participant list is
+        body: <P>When creating, under <strong>Features › Organise</strong>, tick <strong>“Announcement mode”</strong>: all features are off and the participant list is
           reserved for the creator and organisers. Participants see the info, poster and documents, and reply; they only see
           their own reply (and the places left if the Plan is limited). The creator and organisers add the poster (photos shown
           large at the top of the info) and documents.</P>,
+      },
+      {
+        id: 'allerAvec', emoji: '🎟️', title: 'Go with a Circle', summary: 'Go to an event with your friends',
+        body: <>
+          <P>In a Plan in Announcement mode (a gala, a party…), the <strong>“Go with a Circle”</strong> button creates a Plan in
+            one of your Circles, already filled in with the title, dates and place. Your friends get organised there: who’s
+            coming, chat, travel.</P>
+          <P>The friends’ Plan shows an <strong>“Event”</strong> card with the “Register for the event” button: everyone registers
+            themselves, and the organiser’s places are respected. Replying in the friends’ Plan doesn’t register you for the
+            event. The organiser can turn this off in the Plan’s Rules.</P>
+        </>,
       },
       {
         id: 'invites', emoji: '🔗', title: 'Invite someone from outside', summary: 'A link to a single Plan, with or without an account',

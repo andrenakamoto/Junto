@@ -106,6 +106,22 @@ const plan: Dict['plan'] = {
     pickDay: 'Select a day to see the Plans',
     noPlan: 'No Plans that day.',
   },
+  goWith: {
+    button: 'Go with a Circle',
+    title: 'Go with a Circle',
+    intro: 'Choose the Circle where the Plan will be created. You organise among yourselves, and everyone registers for the event through its link.',
+    none: 'You have no Circle where you can create a Plan for this event.',
+    titleSuggestion: '{{title}} – shall we go?',
+    note: 'Plan to go together to “{{title}}”',
+  },
+  source: {
+    label: 'Event',
+    register: 'Register for the event',
+    notRegistered: 'Replying here doesn’t register you for the event: everyone registers with the button above.',
+    ended: 'The event is over.',
+    closed: 'Registrations no longer go through this link: check with the organiser.',
+    gone: 'The event “{{title}}” no longer exists: it was cancelled or deleted.',
+  },
   multi: {
     label: 'Plan for several Circles',
     hint: 'The Plan also appears in the ticked Circles: one chat and one list of participants for everyone.',

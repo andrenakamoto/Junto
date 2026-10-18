@@ -96,10 +96,21 @@ const groups: Group[] = [
       },
       {
         id: 'annonce', emoji: '📣', title: 'Mode annonce', summary: 'Informer et savoir qui vient (spectacle, cours…)',
-        body: <P>À la création, active <strong>« Mode annonce »</strong> : toutes les fonctions sont décochées et la liste des
+        body: <P>À la création, dans <strong>Fonctions › Organiser</strong>, coche <strong>« Mode annonce »</strong> : toutes les fonctions sont décochées et la liste des
           participants est réservée au créateur et aux organisateurs. Les participants voient les infos, l'affiche et les
           documents, et répondent ; ils ne voient que leur propre réponse (et les places restantes si le Plan est limité). Le
           créateur et les organisateurs ajoutent l'affiche (photos en grand en haut des infos) et les documents.</P>,
+      },
+      {
+        id: 'allerAvec', emoji: '🎟️', title: 'Y aller avec un Cercle', summary: 'Aller à un événement avec ses amis',
+        body: <>
+          <P>Dans un Plan en Mode annonce (un gala, une soirée…), le bouton <strong>« Y aller avec un Cercle »</strong> crée un Plan
+            dans un de tes Cercles, déjà rempli avec le titre, les dates et le lieu. Tes amis s'y organisent : qui vient, chat,
+            trajets.</P>
+          <P>Le Plan des amis montre une carte <strong>« Événement »</strong> avec le bouton « S'inscrire à l'événement » : chacun
+            s'inscrit lui-même, les places de l'organisateur sont respectées. Répondre dans le Plan des amis n'inscrit pas à
+            l'événement. L'organisateur peut couper cette possibilité dans les Règles du Plan.</P>
+        </>,
       },
       {
         id: 'invites', emoji: '🔗', title: 'Inviter quelqu’un d’extérieur', summary: 'Un lien vers un seul Plan, avec ou sans compte',

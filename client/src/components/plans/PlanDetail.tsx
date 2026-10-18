@@ -31,6 +31,8 @@ import { TeamsTab } from './TeamsTab';
 import { GiftPotTab } from './GiftPotTab';
 import { AssemblyTab } from './AssemblyTab';
 import { ExpiryChip } from './ExpiryChip';
+import { GoWithCircleModal } from './GoWithCircleModal';
+import { SourceEventCard } from './SourceEventCard';
 import { downloadPlanPhotos, planImageCount } from '../../lib/planPhotos';
 import { downloadPlanRecap } from '../../lib/planRecap';
 import { EditPlanModal } from './EditPlanModal';
@@ -120,6 +122,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showGoWith, setShowGoWith] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -942,6 +945,9 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           </div>
         )}
 
+        {/* Plan créé avec « Y aller avec un Cercle » : l'événement d'origine et son inscription */}
+        {plan.source && <SourceEventCard source={plan.source} />}
+
         {plan.viewerIsGuest && (
           <p className="mt-2 text-sm md:text-xs text-slate-500">
             <Trans i18nKey="plan.detail.guest" components={{ b: <strong /> }} />
@@ -987,6 +993,15 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
               {joining ? t('plan.detail.joining') : t('plan.detail.joinPlan')}
             </Button>
           </div>
+        )}
+        {/* Événement en Mode annonce : créer un Plan dans un de mes Cercles pour y aller avec mes amis */}
+        {plan.canGoWithCircle && !ended && (
+          <button
+            onClick={() => setShowGoWith(true)}
+            className="mt-3 w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 rounded-xl border border-indigo-200 bg-white text-indigo-700 text-sm font-semibold hover:bg-indigo-50 transition-colors"
+          >
+            <Users size={16} />{t('plan.goWith.button')}
+          </button>
         )}
       </div>
   );
@@ -1178,6 +1193,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           }}
         />
       )}
+      {showGoWith && <GoWithCircleModal plan={plan} onClose={() => setShowGoWith(false)} />}
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />
       )}

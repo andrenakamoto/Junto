@@ -105,6 +105,22 @@ export default {
     pickDay: 'Sélectionne un jour pour voir les Plans',
     noPlan: 'Aucun Plan ce jour-là.',
   },
+  goWith: {
+    button: 'Y aller avec un Cercle',
+    title: 'Y aller avec un Cercle',
+    intro: 'Choisis le Cercle où créer le Plan. Vous vous organisez entre vous, et chacun s’inscrit à l’événement par son lien.',
+    none: 'Tu n’as pas de Cercle où créer un Plan pour cet événement.',
+    titleSuggestion: '{{title}} – on y va ?',
+    note: 'Plan pour aller ensemble à « {{title}} »',
+  },
+  source: {
+    label: 'Événement',
+    register: 'S’inscrire à l’événement',
+    notRegistered: 'Répondre ici ne t’inscrit pas à l’événement : chacun s’inscrit avec le bouton ci-dessus.',
+    ended: 'L’événement est terminé.',
+    closed: 'Les inscriptions ne passent plus par ce lien : vois avec l’organisateur.',
+    gone: 'L’événement « {{title}} » n’existe plus : il a été annulé ou supprimé.',
+  },
   multi: {
     label: 'Plan pour plusieurs Cercles',
     hint: 'Le Plan apparaît aussi dans les Cercles cochés : un seul chat et une seule liste de participants pour tout le monde.',

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { canProposeToCircles, parseAllowCirclePlans, sourceCardFor } from '../lib/planSource';
 import { visibleSince } from '../lib/planLifecycle';
 import { lockEndedPlans, planRouterLock } from '../lib/planLifecycle';
 import { planLastActivity } from '../lib/planOrder';
@@ -218,6 +219,10 @@ router.get('/:id', async (req: AuthRequest, res) => {
     // Récapitulatif PDF : créateur du Plan et gestionnaires du Cercle
     canRecap: await canDownloadRecap(req.userId!, plan),
     canDeletePolls: await canDeletePolls(req.userId!, plan),
+    // « Y aller avec un Cercle » : possible depuis un événement en Mode annonce (pas pour un invité externe)
+    canGoWithCircle: !access.isGuest && canProposeToCircles(plan),
+    // Plan créé avec « Y aller avec un Cercle » : la carte de l'événement d'origine
+    source: await sourceCardFor(plan),
   });
 });
 
@@ -424,6 +429,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
     const importantInfoMode = settings.importantInfoMode === undefined ? plan.importantInfoMode : parseImportantInfoMode(settings.importantInfoMode);
     const membersVisibility = settings.membersVisibility === undefined ? plan.membersVisibility : parseMembersVisibility(settings.membersVisibility);
+    const allowCirclePlans = parseAllowCirclePlans(settings.allowCirclePlans) ?? plan.allowCirclePlans;
     // Répétition (créateur seul) : absente = inchangée
     const repeat = settings.recurrence === undefined
       ? { recurrence: plan.recurrence, recurrenceUntil: plan.recurrenceUntil }
@@ -455,7 +461,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil,
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil,
         // Fin repoussée : la notification « supprimé dans 4 heures » pourra repartir (lib/planLifecycle.ts)
         ...(!sameMinute(plan.endDate, newEndDate) && { deletionNoticeSentAt: null }) },
     });

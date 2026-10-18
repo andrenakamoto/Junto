@@ -13,6 +13,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
 import { prepareCancelNotice } from '../lib/planCancel';
+import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
@@ -733,6 +734,10 @@ interface NewPlanInput {
   extraCircleIds?: unknown;
   /** Qui voit les participants (lib/memberPrivacy.ts) */
   membersVisibility?: unknown;
+  /** Mode annonce : les membres peuvent y aller avec un de leurs Cercles (lib/planSource.ts) */
+  allowCirclePlans?: unknown;
+  /** « Y aller avec un Cercle » : l'événement en Mode annonce d'où vient ce Plan */
+  sourcePlanId?: unknown;
 }
 
 const MAX_EXTRA_CIRCLES = 20;
@@ -791,6 +796,8 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
   const excl = await validateExclusions([circleId, ...extra.ids], creatorId, input.excludedUserIds);
   if ('error' in excl) return { error: excl.error };
   const exclusions = excl.ids;
+  const source = await checkSourcePlan(creatorId, input.sourcePlanId, circleId);
+  if (source && 'error' in source) return { error: source.error };
 
   const plan = await prisma.plan.create({
     data: {
@@ -807,6 +814,9 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       importantInfo,
       importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
       membersVisibility: parseMembersVisibility(input.membersVisibility) ?? 'all',
+      allowCirclePlans: parseAllowCirclePlans(input.allowCirclePlans) ?? true,
+      sourcePlanId: source?.sourcePlanId ?? null,
+      sourceTitle: source?.sourceTitle ?? null,
       recurrence: repeat.recurrence,
       recurrenceUntil: repeat.recurrenceUntil,
       creatorId,

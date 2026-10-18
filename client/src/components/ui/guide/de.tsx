@@ -101,10 +101,21 @@ const groups: Group[] = [
       },
       {
         id: 'annonce', emoji: '📣', title: 'Ankündigungsmodus', summary: 'Informieren und wissen, wer kommt (Aufführung, Kurs…)',
-        body: <P>Aktiviere beim Erstellen den <strong>«Ankündigungsmodus»</strong>: Alle Funktionen sind ausgeschaltet und die
+        body: <P>Kreuze beim Erstellen unter <strong>Funktionen › Organisieren</strong> den <strong>«Ankündigungsmodus»</strong> an: Alle Funktionen sind ausgeschaltet und die
           Teilnehmerliste ist der erstellenden Person und den Organisatoren vorbehalten. Teilnehmende sehen die Infos, das Plakat
           und die Dokumente und antworten; sie sehen nur ihre eigene Antwort (und die freien Plätze, wenn der Plan begrenzt ist).
           Die erstellende Person und die Organisatoren fügen das Plakat (Fotos gross oben in den Infos) und die Dokumente hinzu.</P>,
+      },
+      {
+        id: 'allerAvec', emoji: '🎟️', title: 'Mit einem Kreis hingehen', summary: 'Mit Freunden an ein Event gehen',
+        body: <>
+          <P>In einem Plan im Ankündigungsmodus (Gala, Party…) erstellt der Button <strong>«Mit einem Kreis hingehen»</strong> einen
+            Plan in einem deiner Kreise, schon mit Titel, Daten und Ort. Deine Freunde organisieren sich dort: wer kommt, Chat,
+            Fahrten.</P>
+          <P>Der Plan der Freunde zeigt eine Karte <strong>«Event»</strong> mit dem Button «Beim Event anmelden»: Alle melden sich
+            selbst an, die Plätze der Organisatoren werden respektiert. Eine Antwort im Plan der Freunde meldet nicht beim Event
+            an. Die Organisatoren können das in den Regeln des Plans ausschalten.</P>
+        </>,
       },
       {
         id: 'invites', emoji: '🔗', title: 'Jemanden von aussen einladen', summary: 'Ein Link zu einem einzigen Plan, mit oder ohne Konto',

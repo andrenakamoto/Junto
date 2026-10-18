@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Megaphone } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { DateTimeField } from '../ui/DateTimeField';
 import { DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { FEATURE_GROUPS } from '../../lib/settings';
@@ -104,17 +104,4 @@ export const ALL_BASE_FEATURES: PlanFeature[] = ['chat', 'trajets', 'votes', 'de
 export const ANNONCE_DISABLED: PlanFeature[] = ['chat', 'trajets', 'votes', 'depenses'];
 export function isAnnonce(disabled: PlanFeature[], enabled: OptionalFeature[], membersVisibility: string) {
   return ANNONCE_DISABLED.every(f => disabled.includes(f)) && enabled.length === 0 && membersVisibility === 'managers';
-}
-
-export function AnnonceToggle({ active, onChange }: { active: boolean; onChange: (on: boolean) => void }) {
-  return (
-    <label className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer select-none ${active ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 bg-white'}`}>
-      <Megaphone size={18} className={`flex-shrink-0 mt-0.5 ${active ? 'text-indigo-600' : 'text-slate-400'}`} />
-      <span className="flex-1 min-w-0">
-        <span className="block text-sm font-semibold text-slate-800">{t('settings.annonce.title')}</span>
-        <span className="block text-xs text-slate-500 mt-0.5">{t('settings.annonce.hint')}</span>
-      </span>
-      <input type="checkbox" checked={active} onChange={e => onChange(e.target.checked)} className="mt-1 accent-indigo-600 w-4 h-4 flex-shrink-0" />
-    </label>
-  );
 }

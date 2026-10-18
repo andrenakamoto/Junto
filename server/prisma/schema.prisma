@@ -323,6 +323,15 @@ model Plan {
   importantInfoMode    String    @default("creator")
   // Qui voit les participants : "all" (défaut) ou "managers" (créateur du Plan et gestionnaires du Cercle)
   membersVisibility    String    @default("all")
+  // Mode annonce : les membres peuvent créer un Plan dans un de leurs Cercles pour y aller ensemble
+  // (« Y aller avec un Cercle », lib/planSource.ts)
+  allowCirclePlans     Boolean   @default(true)
+  // Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (SetNull s'il est supprimé) et
+  // son titre, gardé pour dire « l'événement n'existe plus »
+  sourcePlanId         String?
+  sourcePlan           Plan?     @relation("PlanSource", fields: [sourcePlanId], references: [id], onDelete: SetNull)
+  sourceTitle          String?
+  derivedPlans         Plan[]    @relation("PlanSource")
   // Plans récurrents (lib/recurrence.ts) : fréquence weekly | biweekly | monthly (null = ne
   // se répète pas), jusqu'à quand (facultatif), série commune (id du premier Plan) et Plan
   // suivant déjà créé (anti-doublon du job horaire)
@@ -368,6 +377,8 @@ model Plan {
   // Plan pour plusieurs Cercles : Cercles en plus de circleId (choisis à la création seulement)
   extraCircles      PlanCircle[]
   guestLink         PlanGuestLink?
+
+  @@index([sourcePlanId])
 }
 
 // Lien d'invitation « invité externe » d'un Plan (réutilisable, régénérable par le

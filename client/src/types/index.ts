@@ -226,6 +226,24 @@ export interface Plan {
   canRecap?: boolean;
   /** Supprimer les sondages : créateur, gestionnaires du Cercle, ou tous si le Plan laisse modifier dates et lieu */
   canDeletePolls?: boolean;
+  /** Mode annonce : les membres peuvent y aller avec un de leurs Cercles */
+  allowCirclePlans?: boolean;
+  /** Détail : « Y aller avec un Cercle » est possible pour la personne */
+  canGoWithCircle?: boolean;
+  /** Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (rien de son Cercle) */
+  source?: PlanSource;
+}
+
+export interface PlanSource {
+  /** L'événement a été annulé ou supprimé */
+  gone: boolean;
+  title: string;
+  eventDate?: string | null;
+  endDate?: string;
+  location?: string | null;
+  ended?: boolean;
+  /** Jeton du lien d'invitation de l'événement (absent si l'organisateur ne le permet plus) */
+  token?: string | null;
 }
 
 export interface MessageReaction {

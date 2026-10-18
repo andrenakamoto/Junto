@@ -98,10 +98,21 @@ const groups: Group[] = [
       },
       {
         id: 'annonce', emoji: '📣', title: 'Modalità annuncio', summary: 'Informare e sapere chi viene (spettacolo, corso…)',
-        body: <P>Alla creazione, attiva la <strong>«Modalità annuncio»</strong>: tutte le funzioni sono disattivate e l’elenco
+        body: <P>Alla creazione, in <strong>Funzioni › Organizzare</strong>, spunta la <strong>«Modalità annuncio»</strong>: tutte le funzioni sono disattivate e l’elenco
           dei partecipanti è riservato al creatore e agli organizzatori. I partecipanti vedono le info, la locandina e i
           documenti e rispondono; vedono solo la propria risposta (e i posti rimasti se il Plan è limitato). Il creatore e gli
           organizzatori aggiungono la locandina (foto in grande in cima alle info) e i documenti.</P>,
+      },
+      {
+        id: 'allerAvec', emoji: '🎟️', title: 'Andarci con un Cerchio', summary: 'Andare a un evento con gli amici',
+        body: <>
+          <P>In un Plan in Modalità annuncio (un gala, una serata…), il pulsante <strong>«Andarci con un Cerchio»</strong> crea un
+            Plan in uno dei tuoi Cerchi, già compilato con titolo, date e luogo. I tuoi amici si organizzano lì: chi viene, chat,
+            tragitti.</P>
+          <P>Il Plan degli amici mostra una scheda <strong>«Evento»</strong> con il pulsante «Iscriviti all’evento»: ognuno si
+            iscrive da sé, i posti dell’organizzatore sono rispettati. Rispondere nel Plan degli amici non iscrive all’evento.
+            L’organizzatore può disattivarlo nelle Regole del Plan.</P>
+        </>,
       },
       {
         id: 'invites', emoji: '🔗', title: 'Invitare qualcuno di esterno', summary: 'Un link verso un solo Plan, con o senza account',

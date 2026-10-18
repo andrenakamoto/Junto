@@ -63,6 +63,8 @@ export const ERRORS_1: Record<string, [string, string, string]> = {
   'Tu dois être créateur ou organisateur de chaque Cercle choisi': ['Du musst jeden gewählten Kreis erstellt haben oder ihn organisieren', 'Devi essere creatore o organizzatore di ogni Cerchio scelto', 'You must be the creator or an organiser of each chosen Circle'],
   'L’Assemblée n’est pas disponible dans un Plan pour plusieurs Cercles': ['Die Versammlung ist in einem Plan für mehrere Kreise nicht verfügbar', 'L’Assemblea non è disponibile in un Plan per più Cerchi', 'The Assembly isn’t available in a Plan for several Circles'],
   'Tu ne peux pas supprimer ce sondage': ['Du kannst diese Umfrage nicht löschen', 'Non puoi eliminare questo sondaggio', 'You can’t delete this poll'],
+  'Cet événement ne peut pas être proposé à un autre Cercle': ['Dieses Event kann keinem anderen Kreis vorgeschlagen werden', 'Questo evento non può essere proposto a un altro Cerchio', 'This event can’t be suggested to another Circle'],
+  'Ce Cercle voit déjà cet événement': ['Dieser Kreis sieht dieses Event bereits', 'Questo Cerchio vede già questo evento', 'This Circle can already see this event'],
   'Ajoute au moins une nouvelle date': ['Füge mindestens einen neuen Termin hinzu', 'Aggiungi almeno una nuova data', 'Add at least one new date'],
   '{0} dates au maximum par sondage': ['Höchstens {0} Termine pro Umfrage', 'Al massimo {0} date per sondaggio', '{0} dates at most per poll'],
   'Cette date est déjà passée': ['Dieses Datum ist schon vorbei', 'Questa data è già passata', 'This date has already passed'],

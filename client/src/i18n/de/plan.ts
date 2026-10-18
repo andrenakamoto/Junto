@@ -106,6 +106,22 @@ const plan: Dict['plan'] = {
     pickDay: 'Wähle einen Tag, um die Pläne zu sehen',
     noPlan: 'An diesem Tag gibt es keinen Plan.',
   },
+  goWith: {
+    button: 'Mit einem Kreis hingehen',
+    title: 'Mit einem Kreis hingehen',
+    intro: 'Wähle den Kreis, in dem der Plan entsteht. Ihr organisiert euch untereinander, und alle melden sich über den Link beim Event an.',
+    none: 'Du hast keinen Kreis, in dem du für dieses Event einen Plan erstellen kannst.',
+    titleSuggestion: '{{title}} – gehen wir hin?',
+    note: 'Plan, um gemeinsam zu «{{title}}» zu gehen',
+  },
+  source: {
+    label: 'Event',
+    register: 'Beim Event anmelden',
+    notRegistered: 'Eine Antwort hier meldet dich nicht beim Event an: Alle melden sich mit dem Button oben an.',
+    ended: 'Das Event ist vorbei.',
+    closed: 'Die Anmeldung läuft nicht mehr über diesen Link: Wende dich an die Organisatoren.',
+    gone: 'Das Event «{{title}}» gibt es nicht mehr: Es wurde abgesagt oder gelöscht.',
+  },
   multi: {
     label: 'Plan für mehrere Kreise',
     hint: 'Der Plan erscheint auch in den angekreuzten Kreisen: ein einziger Chat und eine einzige Teilnehmerliste für alle.',

@@ -36,6 +36,10 @@ const settings: Dict['settings'] = {
     title: 'Announcement mode',
     hint: 'You inform, participants reply. Only “Photos and files” stay on, and the participant list is reserved for the creator and organisers. Add your flyer as a poster in the Info tab.',
   },
+  circlePlans: {
+    label: 'Members can go with a Circle',
+    hint: 'Each member can create a Plan in one of their Circles to come with friends; everyone registers for the event through its link.',
+  },
   importantInfo: {
     creator: { label: 'Creator only', hint: 'Only the creator edits the important information' },
     all: { label: 'All participants', hint: 'Every participant can add to or correct the important information' },

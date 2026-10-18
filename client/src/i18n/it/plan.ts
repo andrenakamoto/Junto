@@ -106,6 +106,22 @@ const plan: Dict['plan'] = {
     pickDay: 'Seleziona un giorno per vedere i Plan',
     noPlan: 'Nessun Plan quel giorno.',
   },
+  goWith: {
+    button: 'Andarci con un Cerchio',
+    title: 'Andarci con un Cerchio',
+    intro: 'Scegli il Cerchio in cui creare il Plan. Vi organizzate tra voi, e ognuno si iscrive all’evento con il suo link.',
+    none: 'Non hai un Cerchio in cui creare un Plan per questo evento.',
+    titleSuggestion: '{{title}} – ci andiamo?',
+    note: 'Plan per andare insieme a «{{title}}»',
+  },
+  source: {
+    label: 'Evento',
+    register: 'Iscriviti all’evento',
+    notRegistered: 'Rispondere qui non ti iscrive all’evento: ognuno si iscrive con il pulsante qui sopra.',
+    ended: 'L’evento è terminato.',
+    closed: 'Le iscrizioni non passano più da questo link: rivolgiti all’organizzatore.',
+    gone: 'L’evento «{{title}}» non esiste più: è stato annullato o eliminato.',
+  },
   multi: {
     label: 'Plan per più Cerchi',
     hint: 'Il Plan appare anche nei Cerchi selezionati: una sola chat e un solo elenco di partecipanti per tutti.',

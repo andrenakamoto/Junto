@@ -2,7 +2,7 @@ import { Pencil } from 'lucide-react';
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
+import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField } from '../ui/AdvancedSettings';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -24,6 +24,7 @@ export function PlanSettingsModal({ plan, isCreator, onClose, onEdit }: Props) {
         <EditModeField value={plan.editMode ?? 'creator'} onChange={noop} readOnly />
         <ImportantInfoModeField value={plan.importantInfoMode ?? 'creator'} onChange={noop} readOnly />
         <DeletionModeField subject="Plan" value={plan.deletionMode ?? 'vote'} onChange={noop} readOnly />
+        {plan.membersVisibility === 'managers' && <CirclePlansField value={plan.allowCirclePlans ?? true} onChange={noop} readOnly />}
         {isCreator && (
           <p className="text-xs text-slate-500">{t('plan.settingsModal.editHint')}</p>
         )}

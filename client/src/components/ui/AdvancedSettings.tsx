@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { SantaDatesNote } from '../plans/SantaDatesNote';
-import { ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Megaphone, SlidersHorizontal, Users } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
 import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem, CHAT_MODE_OPTIONS, ChatMode } from '../../lib/settings';
 import { t } from '../../i18n';
@@ -74,6 +74,20 @@ export function MembersVisibilityField(props: { value: MembersVisibility; onChan
   return <Choice label={t('settings.membersField')} options={MEMBERS_VISIBILITY_OPTIONS} {...props} />;
 }
 
+// Mode annonce : les membres peuvent créer un Plan dans un de leurs Cercles pour y aller ensemble
+export function CirclePlansField({ value, onChange, readOnly }: { value: boolean; onChange: (v: boolean) => void; readOnly?: boolean }) {
+  return (
+    <label className={`flex items-start gap-2.5 rounded-lg border px-2.5 py-2 ${value ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200'} ${readOnly ? '' : 'cursor-pointer'}`}>
+      <input type="checkbox" checked={value} onChange={e => onChange(e.target.checked)} disabled={readOnly} className="mt-0.5 accent-indigo-600" />
+      <Users size={15} className="text-indigo-500 mt-0.5 flex-shrink-0" />
+      <span>
+        <span className="block text-sm text-slate-800">{t('settings.circlePlans.label')}</span>
+        <span className="block text-xs text-slate-500">{t('settings.circlePlans.hint')}</span>
+      </span>
+    </label>
+  );
+}
+
 export function ImportantInfoModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
   return <Choice label={t('settings.importantInfoField')} options={IMPORTANT_INFO_OPTIONS} {...props} />;
 }
@@ -95,13 +109,15 @@ export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: 
   return <Choice label={t('settings.admissionField')} options={ADMISSION_OPTIONS} {...props} />;
 }
 
-export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChange, readOnly }: {
+export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChange, readOnly, annonce }: {
   disabled: PlanFeature[];
   onChange: (v: PlanFeature[]) => void;
   /** Fonctions à activer (bénévoles, jeux, cagnotte…), décochées par défaut */
   enabled?: OptionalFeature[];
   onEnabledChange?: (v: OptionalFeature[]) => void;
   readOnly?: boolean;
+  /** Mode annonce, proposé dans « Organiser », sous l'Assemblée (création et modification du Plan) */
+  annonce?: { active: boolean; onChange: (on: boolean) => void };
 }) {
   const isOn = (f: FeatureItem) => (f.kind === 'base' ? !disabled.includes(f.value) : enabled.includes(f.value));
   // Catégories repliables (fêtes, jeux) : ouvertes d'office si une de leurs fonctions est cochée
@@ -149,6 +165,15 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
                       </label>
                       {/* Rappels utiles, sous la fonction concernée */}
                       {!readOnly && f.value === 'pere_noel' && isOn(f) && <div className="ml-7 mt-1"><SantaDatesNote compact /></div>}
+                      {!readOnly && annonce && f.value === 'assemblee' && (
+                        <label className={`mt-1 flex items-start gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer ${annonce.active ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}>
+                          <input type="checkbox" checked={annonce.active} onChange={e => annonce.onChange(e.target.checked)} className="accent-indigo-600 mt-0.5" />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5 text-sm text-slate-800"><Megaphone size={14} className="text-indigo-500" />{t('settings.annonce.title')}</span>
+                            <span className="block text-xs text-slate-400">{t('settings.annonce.hint')}</span>
+                          </span>
+                        </label>
+                      )}
                       {!readOnly && f.value === 'cagnotte' && isOn(f) && (
                         <p className="ml-7 mt-1 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                           {t('settings.potSurprise')}

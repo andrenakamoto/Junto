@@ -35,6 +35,10 @@ export default {
     title: 'Mode annonce',
     hint: 'Vous informez, les participants répondent. Seuls « Photos et fichiers » restent actifs, et la liste des participants est réservée au créateur et aux organisateurs. Ajoutez votre flyer en affiche dans l’onglet Infos.',
   },
+  circlePlans: {
+    label: 'Les membres peuvent y aller avec un Cercle',
+    hint: 'Chaque membre peut créer un Plan dans un de ses Cercles pour venir avec ses amis ; chacun s’inscrit à l’événement par son lien.',
+  },
   importantInfo: {
     creator: { label: 'Créateur seul', hint: 'Seul le créateur modifie les informations importantes' },
     all: { label: 'Tous les participants', hint: 'Chaque participant peut compléter ou corriger les informations importantes' },

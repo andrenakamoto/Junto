@@ -4,9 +4,9 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
+import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
 import { MembersVisibility } from '../../lib/settings';
-import { OptionRow, OptionsBox, WhenField, featuresSummary, AnnonceToggle, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { OptionRow, OptionsBox, WhenField, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
@@ -41,6 +41,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(plan.enabledFeatures ?? []);
   const [endTouched, setEndTouched] = useState(true);
   const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>(plan.membersVisibility ?? 'all');
+  // Mode annonce : les membres peuvent y aller avec un de leurs Cercles
+  const [allowCirclePlans, setAllowCirclePlans] = useState(plan.allowCirclePlans ?? true);
   const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
   // Mode annonce : toutes les fonctions décochées, liste des participants réservée (et retour au standard)
   function setAnnonce(on: boolean) {
@@ -72,6 +74,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         editMode,
         importantInfoMode,
         membersVisibility,
+        allowCirclePlans,
         recurrence: recurrence || null,
         recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
         location,
@@ -139,8 +142,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
           <OptionsBox>
             <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
               summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>
-              <AnnonceToggle active={annonce} onChange={setAnnonce} />
-              <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} />
+              <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} annonce={{ active: annonce, onChange: setAnnonce }} />
             </OptionRow>
             <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
               summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
@@ -174,11 +176,12 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                 <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>
               )}
             </OptionRow>
-            <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility)}
-              summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+            <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) || !allowCirclePlans}
+              summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) && allowCirclePlans ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
               <EditModeField value={editMode} onChange={setEditMode} />
               <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
               <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
+              {membersVisibility === 'managers' && <CirclePlansField value={allowCirclePlans} onChange={setAllowCirclePlans} />}
               <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
             </OptionRow>
           </OptionsBox>

@@ -36,6 +36,10 @@ const settings: Dict['settings'] = {
     title: 'Ankündigungsmodus',
     hint: 'Ihr informiert, die Teilnehmenden antworten. Nur «Fotos und Dateien» bleiben aktiv, und die Teilnehmerliste bleibt der erstellenden Person und den Organisatoren vorbehalten. Fügt euren Flyer als Plakat im Tab Infos hinzu.',
   },
+  circlePlans: {
+    label: 'Mitglieder können mit einem Kreis hingehen',
+    hint: 'Jedes Mitglied kann in einem seiner Kreise einen Plan erstellen, um mit Freunden zu kommen; alle melden sich über den Link des Events an.',
+  },
   importantInfo: {
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller bearbeitet die wichtigen Infos' },
     all: { label: 'Alle Teilnehmenden', hint: 'Alle Teilnehmenden können die wichtigen Infos ergänzen oder korrigieren' },

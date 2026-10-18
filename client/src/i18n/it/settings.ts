@@ -36,6 +36,10 @@ const settings: Dict['settings'] = {
     title: 'Modalità annuncio',
     hint: 'Voi informate, i partecipanti rispondono. Restano attivi solo «Foto e file», e l’elenco dei partecipanti è riservato al creatore e agli organizzatori. Aggiungete il vostro volantino come locandina nella scheda Info.',
   },
+  circlePlans: {
+    label: 'I membri possono andarci con un Cerchio',
+    hint: 'Ogni membro può creare un Plan in uno dei suoi Cerchi per venire con gli amici; ognuno si iscrive all’evento con il suo link.',
+  },
   importantInfo: {
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore modifica le informazioni importanti' },
     all: { label: 'Tutti i partecipanti', hint: 'Ogni partecipante può completare o correggere le informazioni importanti' },
