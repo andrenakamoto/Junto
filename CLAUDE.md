@@ -1584,7 +1584,9 @@ Mamie avec qui apporte quoi et photo, Noël en famille avec roue et dépenses, v
 **Les copains** (raclette chez Tom, week-end au chalet Killer + mot piège, concert avec réponses sans compte et dernier retour,
 Noël entre copains, anniversaire surprise de Tom avec cagnotte) et **Team events** (fête du village pour 2 Cercles avec planning et
 affiche, réunion du comité avec plan du site, course des 10 km en Mode annonce complète avec liste d'attente). Affiches et documents
-fictifs : `affiches.html` → `node affiches.js`. Nouvelles personnes : avatars dans `client/scripts/demo-avatars.py`.
+fictifs : `affiches.html` → `node affiches.js`. Photos des 7 Cercles (2026-10-18) : illustrations liées à chacun (salle de danse, ring, village, afterwork,
+anniversaire, chalet, fête) dans `public/demo/circles/<code>.svg`, générées par `client/scripts/demo-circles.py`, ajoutées
+par `demoAdapter` (GET /circles, `DEMO_CIRCLE_PHOTOS`). Nouvelles personnes : avatars dans `client/scripts/demo-avatars.py`.
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
