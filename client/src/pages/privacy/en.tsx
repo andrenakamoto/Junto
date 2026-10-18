@@ -4,14 +4,13 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "hosting of the server, the database (accounts, messages, Plans), the evly.ch website, photos, voice messages and files; sending emails; backups (Swiss Backup)", where: "Switzerland", safeguard: "no transfer abroad" },
   { name: 'Opentransportdata.swiss (OJP)', role: "public transport timetables (Rides section): only the chosen stops or addresses (coordinates) and the requested time are sent, from our server, without your identity", where: "Switzerland (official public transport platform, SBB on behalf of the FOT)", safeguard: "no personal data transmitted" },
-  { name: 'Railway', role: "temporary relay for older app versions (before 1.0.13): data only passes through, nothing is stored there", where: "United States (California)", safeguard: "standard contractual clauses adapted to Swiss law (data processing agreement)" },
   { name: 'Google', role: 'sign-in with a Google account (if you choose it), website fonts and delivery of app notifications (Firebase Cloud Messaging)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'delivery of iPhone app notifications (Apple Push Notification service)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
 ];
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 15 October 2026',
+  version: 'Version of 18 October 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -111,7 +110,7 @@ const en: PrivacyText = {
       <p>EvLY relies on the following providers, who process data on our behalf:</p>
       <ProcessorTable rows={processors} head={['Provider', 'Role', 'Country', 'Safeguard']} />
       <p>
-        Your data (account, messages, Plans, photos, files) is hosted in Switzerland by Infomaniak and does not leave Switzerland for storage. Only the services listed in the United States are still involved: Google and Apple to deliver notifications to phones (without the content of messages), Google for sign-in with a Google account and the website fonts, and the Railway relay until everyone has updated the app. The United States does not generally offer a level of protection equivalent to Switzerland: these transfers are safeguarded either by the provider’s certification under the Swiss-U.S. Data Privacy Framework, recognised by the Federal Council since 15 September 2024, or by the standard contractual clauses, adapted to Swiss law, of its data processing agreement.
+        Your data (account, messages, Plans, photos, files) is hosted in Switzerland by Infomaniak and does not leave Switzerland for storage. Only the services listed in the United States are still involved: Google and Apple to deliver notifications to phones (without the content of messages), and Google for sign-in with a Google account and the website fonts. The United States does not generally offer a level of protection equivalent to Switzerland: these transfers are safeguarded either by the provider’s certification under the Swiss-U.S. Data Privacy Framework, recognised by the Federal Council since 15 September 2024, or by the standard contractual clauses, adapted to Swiss law, of its data processing agreement.
       </p>
     </Section>
 

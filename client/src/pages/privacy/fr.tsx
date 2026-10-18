@@ -4,14 +4,13 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "hébergement du serveur, de la base de données (comptes, messages, Plans), du site evly.ch, des photos, messages vocaux et fichiers ; envoi des emails ; sauvegardes (Swiss Backup)", where: "Suisse", safeguard: "aucun transfert à l’étranger" },
   { name: 'Opentransportdata.swiss (OJP)', role: "horaires des transports publics (rubrique Trajets) : seuls les arrêts ou les adresses choisis (coordonnées) et l'heure recherchée sont envoyés, depuis notre serveur, sans ton identité", where: "Suisse (plateforme officielle des transports publics, CFF sur mandat de l'OFT)", safeguard: "aucune donnée personnelle transmise" },
-  { name: 'Railway', role: "relais temporaire pour les anciennes versions des apps (antérieures à la 1.0.13) : les données ne font qu’y transiter, rien n’y est conservé", where: "États-Unis (Californie)", safeguard: "clauses contractuelles types adaptées au droit suisse (contrat de traitement des données)" },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 15 octobre 2026',
+  version: 'Version du 18 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -124,7 +123,7 @@ const fr: PrivacyText = {
       <p>EvLY s'appuie sur les prestataires suivants, qui traitent des données pour notre compte :</p>
       <ProcessorTable rows={processors} head={['Prestataire', 'Rôle', 'Pays', 'Garantie']} />
       <p>
-        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), Google pour la connexion avec un compte Google et les polices du site, et le relais Railway le temps que tout le monde ait mis à jour l’app. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
+        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), et Google pour la connexion avec un compte Google et les polices du site. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
       </p>
     </Section>
 

@@ -4,14 +4,13 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "hosting del server, della banca dati (account, messaggi, Plan), del sito evly.ch, di foto, messaggi vocali e file; invio delle email; copie di sicurezza (Swiss Backup)", where: "Svizzera", safeguard: "nessun trasferimento all’estero" },
   { name: 'Opentransportdata.swiss (OJP)', role: "orari dei trasporti pubblici (sezione Passaggi): dal nostro server vengono inviati solo le fermate o gli indirizzi scelti (coordinate) e l'orario cercato, senza la tua identità", where: "Svizzera (piattaforma ufficiale dei trasporti pubblici, FFS su mandato dell'UFT)", safeguard: "nessun dato personale trasmesso" },
-  { name: 'Railway', role: "inoltro temporaneo per le versioni precedenti delle app (prima della 1.0.13): i dati vi transitano soltanto, non vi viene conservato nulla", where: "Stati Uniti (California)", safeguard: "clausole contrattuali tipo adattate al diritto svizzero (contratto di trattamento dei dati)" },
   { name: 'Google', role: 'accesso con un account Google (se lo scegli), caratteri del sito e consegna delle notifiche delle app (Firebase Cloud Messaging)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'consegna delle notifiche dell’app iPhone (Apple Push Notification service)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
 ];
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 15 ottobre 2026',
+  version: 'Versione del 18 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -111,7 +110,7 @@ const it: PrivacyText = {
       <p>EvLY si appoggia ai seguenti fornitori, che trattano dati per nostro conto:</p>
       <ProcessorTable rows={processors} head={['Fornitore', 'Ruolo', 'Paese', 'Garanzia']} />
       <p>
-        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi), Google per l’accesso con un account Google e i caratteri del sito, e l’inoltro tramite Railway finché tutti avranno aggiornato l’app. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
+        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi), e Google per l’accesso con un account Google e i caratteri del sito. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
       </p>
     </Section>
 
