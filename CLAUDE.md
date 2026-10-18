@@ -430,6 +430,8 @@ Conséquences pratiques :
     **Version 1.0.20** (2026-10-17) : Android `versionCode` 22 (`evly-1.0.20-(22).aab`), iOS build 24 envoyé — enregistrer les photos des
     chats, 16 réactions dans les discussions de Cercle (qui se referment d'un toucher à côté), plus de pastille de couleur sur la carte du
     Cercle (couleur dans les paramètres), nouvelle démo (7 Cercles).
+    **Version 1.0.21** (2026-10-18) : Android `versionCode` 23 (`evly-1.0.21-(23).aab`), iOS build 25 envoyé — « Y aller avec un Cercle »
+    depuis un Plan en Mode annonce, Mode annonce rangé dans Fonctions › Organiser.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
