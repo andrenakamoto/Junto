@@ -1183,8 +1183,8 @@ Junto/
   corail) : Inviter · Photos (seulement si le Plan a des photos, ZIP via `lib/planPhotos.ts`,
   partagé avec InfosTab) · Agenda (.ics) · Story. Sur téléphone, ces trois entrées ne sont plus
   dans le menu ⋮ (toujours là sur tablette, où la barre n'existe pas).
-- **Mode annonce** (2026-10-13, pour les professionnels : soirée, spectacle, cours…) : case `AnnonceToggle` (`PlanFormParts.tsx`)
-  dans la création / modification = toutes les fonctions décochées **sauf « Photos et fichiers »** (`ANNONCE_DISABLED`, depuis le
+- **Mode annonce** (2026-10-13, pour les professionnels : soirée, spectacle, cours…) : case « Mode annonce » de `FeaturesField`
+  (prop `annonce`, **catégorie Organiser, sous l'Assemblée** depuis le 2026-10-18) dans la création / modification = toutes les fonctions décochées **sauf « Photos et fichiers »** (`ANNONCE_DISABLED`, depuis le
   2026-10-14) + **`Plan.membersVisibility` = `managers`** (migration
   `20261016100000_members_visibility`, réglage « Qui voit les participants » dans Règles, `lib/memberPrivacy.ts` testé).
   Liste réservée : les personnes qui ne sont ni créatrices du Plan ni gestionnaires de son Cercle ne reçoivent **que leur
@@ -1195,6 +1195,17 @@ Junto/
   « @x a rejoint » seulement au créateur et aux organisateurs. **Photos et fichiers décochés** : le créateur et les
   organisateurs du Cercle en ajoutent / suppriment quand même (`canManageFiles` de GET /plans/:id, attachments.ts) ; dans
   Infos, photos **en grand en haut (affiche)** + « Documents ». Récap PDF déjà réservé. Fiche du guide « Mode annonce ».
+- **« Y aller avec un Cercle »** (2026-10-18, `lib/planSource.ts` testé, migration `20261021100000_plan_source`) : depuis un Plan en
+  Mode annonce (`membersVisibility` = `managers`), un membre crée un Plan **dans un de ses Cercles** pour y aller avec ses amis
+  (bouton sous les réponses, `GoWithCircleModal` → `CreatePlanModal` pré-rempli via `fromEvent` : titre « … – on y va ? », début, fin,
+  lieu ; ni répétition ni Plan pour plusieurs Cercles). Pas d'événements publics : les deux Plans restent séparés. Serveur :
+  `sourcePlanId` (SetNull) + `sourceTitle` (copie pour « l'événement n'existe plus ») sur le Plan des amis, vérifiés par
+  `checkSourcePlan` (accès à l'événement, `canProposeToCircles`, Cercle cible ≠ Cercles de l'événement) dans `createPlanInCircle`.
+  Réglage **`Plan.allowCirclePlans`** (défaut vrai, Règles, affiché seulement si la liste est réservée, `CirclePlansField`) : coupé, plus de
+  bouton ni de lien d'inscription. GET /plans/:id renvoie `canGoWithCircle` (jamais pour un invité externe) et `source`
+  (`sourceCardFor` : titre, dates, lieu, `ended`, jeton du lien d'invitation de l'événement — créé au besoin — ou `gone`), affiché par
+  `SourceEventCard` dans l'en-tête : « S'inscrire à l'événement » ouvre `/invitation?token=…` (chacun s'inscrit, places respectées),
+  rien du Cercle d'origine. Fiche du guide « Y aller avec un Cercle ». Pas dans la démo.
 - **Affiche d'un Plan** (2026-10-14, le flyer d'une soirée…) : une seule image par Plan, en grand **tout en haut de l'onglet
   Infos** (`PosterSection` de `InfosTab`), tous les Plans. Envoyée par POST `/attachments/plans/:id?via=affiche` : créateur du
   Plan et gestionnaires du Cercle seulement, images seulement, que « Photos et fichiers » soit coché ou non ; le serveur la
