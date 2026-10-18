@@ -551,6 +551,9 @@ const CIRCLE_CHATS: Record<string, [string, string, number, [string, string][]?]
   ],
 };
 const demoChats = new Map<string, { mode: 'open' | 'announce'; seen: boolean; messages: any[] }>();
+// Photos des Cercles : illustrations liées à chaque Cercle (public/demo/circles, client/scripts/demo-circles.py)
+const DEMO_CIRCLE_PHOTOS = new Set(['DEMO1X', 'DEMO2X', 'DEMO3X', 'DEMO4X', 'DEMO5X', 'DEMO6X', 'DEMO7X']);
+
 function chatOf(circleId: string) {
   if (demoChats.size === 0) {
     const ago = (h: number) => new Date(Date.now() - h * 3600 * 1000).toISOString();
@@ -638,7 +641,8 @@ function route(method: string, path: string, body: any): any {
       const chat = chatOf(c.id);
       const last = chat?.messages.filter(x => !x.deletedAt).slice(-1)[0];
       return {
-        ...c, pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })),
+        ...c, photoKey: c.photoKey ?? (DEMO_CIRCLE_PHOTOS.has(c.code) ? `demo/circles/${c.code}.svg` : null),
+        pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })),
         chatMode: chat?.mode ?? 'off', chatUnseen: !!chat && !chat.seen,
         chatLast: last ? { author: last.author.pseudo, text: last.content.slice(0, 90), at: last.createdAt } : null,
       };
