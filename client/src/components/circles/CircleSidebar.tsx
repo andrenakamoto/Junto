@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -22,6 +22,14 @@ import { Avatar } from '../ui/Avatar';
 import { JoinRequestList } from './JoinRequestList';
 import { siteUrl } from '../../lib/siteUrl';
 import { intlLocale, t } from '../../i18n';
+import { useCircleSort } from '../../lib/planSort';
+import { sortCircles } from '../../lib/order';
+import { PlanSortToggle } from '../plans/PlanSortToggle';
+
+// Recherche d'un Cercle : sans accents ni majuscules (« montvert » trouve « Jeunesse de Montvert »)
+const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+// Barre de recherche à partir de ce nombre de Cercles
+const SEARCH_FROM = 5;
 
 interface Props {
   circles: Circle[];
@@ -68,6 +76,14 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
     setShowNotifSettings(true);
     setSearchParams(prev => { prev.delete('reglages'); return prev; }, { replace: true });
   }, [searchParams]);
+  // Tri (Activité : ordre reçu, déjà par activité ; Date : prochain événement) et recherche par nom
+  const [circleSort, setCircleSort] = useCircleSort();
+  const [query, setQuery] = useState('');
+  const shownCircles = useMemo(() => {
+    const sorted = circleSort === 'date' ? sortCircles(circles) : circles;
+    const q = fold(query.trim());
+    return q ? sorted.filter(c => fold(c.name).includes(q)) : sorted;
+  }, [circles, circleSort, query]);
   const [membersPopover, setMembersPopover] = useState<string | null>(null);
   const [requestsPopover, setRequestsPopover] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -124,53 +140,79 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-1.5 mb-2">
         <button
           onClick={onAllPlans}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 text-left transition-all border text-sm font-semibold ${
+          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all border text-[13px] md:text-sm leading-tight font-semibold ${
             allPlansActive
               ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
               : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
           }`}
         >
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${allPlansActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
-            <Calendar size={15} />
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${allPlansActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
+            <Calendar size={14} />
           </div>
           {t('circle.sidebar.allPlans')}
         </button>
         <button
           onClick={onCalendar}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 text-left transition-all border text-sm font-semibold ${
+          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all border text-[13px] md:text-sm leading-tight font-semibold ${
             calendarActive
               ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
               : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
           }`}
         >
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${calendarActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
-            <CalendarDays size={15} />
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${calendarActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
+            <CalendarDays size={14} />
           </div>
           {t('circle.sidebar.calendar')}
         </button>
-        <p className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.sidebar.myCircles')}</p>
-        <div className="space-y-1.5 pb-2">
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 pl-2 md:pl-0 pt-1">
+          <p className="flex-1 md:basis-full md:pl-2 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
+            title={t('circle.sidebar.create')}
+            className="flex-shrink-0 md:flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
           >
-            <Plus size={15} />
-            {t('circle.sidebar.create')}
+            <Plus size={13} />
+            {t('circle.sidebar.createShort')}
           </button>
           <button
             onClick={() => setShowJoin(true)}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
+            title={t('circle.sidebar.join')}
+            className="flex-shrink-0 md:flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
-            <Users size={14} />
-            {t('circle.sidebar.join')}
+            <Users size={12} />
+            {t('circle.sidebar.joinShort')}
           </button>
         </div>
+        {circles.length > 1 && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 pb-1.5">
+            {circles.length >= SEARCH_FROM && (
+              <div className="relative flex-1 md:basis-full min-w-0">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="search" value={query} onChange={e => setQuery(e.target.value)}
+                  placeholder={t('circle.sidebar.search')} aria-label={t('circle.sidebar.search')}
+                  className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 [&::-webkit-search-cancel-button]:hidden"
+                />
+                {query && (
+                  <button type="button" onClick={() => setQuery('')} title={t('circle.sidebar.clearSearch')} aria-label={t('circle.sidebar.clearSearch')}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700"><X size={14} /></button>
+                )}
+              </div>
+            )}
+            <div className="ml-auto flex-shrink-0"><PlanSortToggle value={circleSort} onChange={setCircleSort} /></div>
+          </div>
+        )}
         {circles.length === 0 && (
           <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noCircle')}</p>
         )}
-        {circles.map((circle) => {
+        {circles.length > 0 && shownCircles.length === 0 && (
+          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noMatch')}</p>
+        )}
+        {shownCircles.map((circle) => {
           const selected = selectedId === circle.id;
           const nextPlan = circle.plans?.[0];
           const hasUnread = unreadCircles.has(circle.id);

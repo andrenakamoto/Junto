@@ -224,6 +224,11 @@ const circle: Dict['circle'] = {
     invite: 'Einladen',
   },
   sidebar: {
+    createShort: 'Erstellen',
+    joinShort: 'Beitreten',
+    search: 'Suchen…',
+    noMatch: 'Kein Kreis gefunden',
+    clearSearch: 'Suche löschen',
     logout: 'Abmelden',
     allPlans: 'Alle meine Pläne',
     calendar: 'Kalender',

@@ -223,6 +223,11 @@ export default {
     invite: 'Inviter',
   },
   sidebar: {
+    createShort: 'Créer',
+    joinShort: 'Rejoindre',
+    search: 'Rechercher…',
+    noMatch: 'Aucun Cercle ne correspond',
+    clearSearch: 'Effacer la recherche',
     logout: 'Se déconnecter',
     allPlans: 'Tous mes plans',
     calendar: 'Calendrier',
