@@ -132,6 +132,11 @@ Conséquences pratiques :
   (à côté du logo, plus à côté du menu ☰), boutons « Créer un Cercle » /
   « Rejoindre un Cercle » sous « Mes Cercles » (retirés du menu), et
   « Créer un Plan » en bouton corail plein en bas de la liste des Plans.
+  Depuis le 2026-10-19 (`CircleSidebar`) : sur téléphone, « Tous mes plans » et « Calendrier » côte à côte ;
+  petits boutons « Créer » / « Rejoindre » sur la ligne « Mes Cercles » (en dessous sur grand écran, colonne de
+  256 px) ; **tri « Activité / Date »** des Cercles (`PlanSortToggle`, `useCircleSort`, `localStorage`
+  `evly_circle_sort`, séparé du tri des Plans ; Date = prochain événement, `sortCircles` de `lib/order.ts`, sans Plan
+  à venir à la fin) ; **recherche par nom** dès 5 Cercles (sans accents ni majuscules).
 - **Écrans peu hauts** : variante Tailwind `short:` (`max-height: 500px`,
   téléphone en paysage, définie dans `tailwind.config.js`). Colonnes et
   fiches (Plan, sondage) y défilent d'un bloc (`short:overflow-y-auto` sur
@@ -763,7 +768,7 @@ Junto/
   - **CirclePollDecline** : « Pas disponible » (s’appelait « Pas intéressé(e) » avant le 2026-10-12 ; aussi en bouton sur la carte du sondage), exclusif avec les votes
     (l'un efface l'autre). Votants, pas intéressés et « pas encore
     répondu » sont visibles de tous les membres qui voient le sondage.
-  - **CirclePollMessage** : chat simple (sans réactions ni fils), en REST
+  - **CirclePollMessage** : chat simple (réactions depuis le 2026-10-19, sans fils), en REST
     (POST /polls/:pollId/messages) + événement `poll-message` et
     notification `poll_message` envoyés aux rooms `user:*` de l'audience
     (pas de room de sondage à rejoindre). Recopiés dans `Message` du Plan
@@ -1043,7 +1048,12 @@ Junto/
   de valeur (« AAAA-MM-JJTHH:MM »). Le chat propose aussi « Prendre une photo » / « Choisir dans la
   galerie » sur écran tactile (le sélecteur Android n'ouvrait que la galerie).
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
-  emoji temps réel. Barre de réactions : survol sur ordinateur ; sur écran tactile (`hover: none`),
+  emoji temps réel. **Mêmes 16 réactions dans tous les chats** (2026-10-19) : liste unique `REACTION_EMOJIS`
+  (`server/src/lib/reactions.ts`, miroir `client/src/lib/reactions.ts`), vérifiée par le serveur (`isAllowedReaction` : socket
+  `toggle-reaction`, discussion du Cercle, sondages) ; panneau sur deux lignes (8 × 2) dans le chat des Plans. Chat des sondages
+  de dates : table **CirclePollMessageReaction** (migration `20261023100000_poll_message_reactions`), POST
+  `/circles/polls/messages/:id/reactions` (bascule, `poll-message-updated` vers l'audience), recopiées dans `MessageReaction`
+  quand le sondage devient un Plan. Barre de réactions : survol sur ordinateur ; sur écran tactile (`hover: none`),
   un appui sur le message l'ouvre et l'appui suivant, n'importe où, la ferme (`ChatMessage`).
   Liens web (`https://`, `www.`) cliquables dans les deux chats (`renderContent`, exporté de
   `ChatMessage` et utilisé par `PollDetail`).
