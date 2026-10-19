@@ -167,6 +167,13 @@ Conséquences pratiques :
   Annonce l'app iPhone disponible et **Android « bientôt »** (p. 1, p. 6 et FAQ) : à mettre à jour à la
   publication Android. `seed-ag-seance.js` (séance de l'AG, après `seed-club.js`) et `add-icons.js` (icônes
   Lucide) dans le même dossier. La régénérer quand une fonctionnalité mise en avant change.
+- **Brochure professionnels** (2026-10-19) : `client/public/fichiers/evly-professionnels.pdf` (**7 pages** A4, vouvoiement,
+  **aucun prix**) pour les bars, clubs, salles, organisateurs, écoles et cours, activités de groupe (escape game, karting) : Mode annonce et affiche, inscriptions et liste
+  d'attente, « Y aller avec un Cercle » (schéma constellation), cours récurrents, planning du jour J, fidéliser, FAQ. Lien
+  **`/brochure-pro`** (bloc nginx `location = /brochure-pro`, ajouté dans `deploy/infomaniak/nginx-evly.conf` **et à la main sur le
+  serveur**) → `GET /api/stats/go/brochure-pro` (compteur `brochure-pro`, `TRACKED_FILES`), lien « Professionnels (PDF) » dans le pied
+  de `AuthPage`, panneau admin. Sources (captures de la démo) : `~/Desktop/01-EvLY/03_Marketing/01_Professionnels/Brochure
+  professionnels (sources)/` avec un LISEZMOI.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
   (version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
   numérotés automatiquement, une version par langue dans `components/ui/terms/*.tsx`) : en plus de la v3, réponses sans compte, **responsabilité des
