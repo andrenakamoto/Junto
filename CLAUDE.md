@@ -444,6 +444,9 @@ Conséquences pratiques :
     Cercle (couleur dans les paramètres), nouvelle démo (7 Cercles).
     **Version 1.0.21** (2026-10-18) : Android `versionCode` 23 (`evly-1.0.21-(23).aab`), iOS build 25 envoyé — « Y aller avec un Cercle »
     depuis un Plan en Mode annonce, Mode annonce rangé dans Fonctions › Organiser.
+    **Version 1.0.22** (2026-10-19) : Android `versionCode` 24 (`evly-1.0.22-(24).aab`), iOS build 26 envoyé — commentaires et
+    « Tâche terminée » du planning, 16 réactions dans tous les chats (sondages compris), liste des Cercles avec tri Activité / Date,
+    recherche et boutons compacts, lien de la brochure professionnels.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
