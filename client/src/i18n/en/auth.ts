@@ -82,6 +82,7 @@ const auth: Dict['auth'] = {
     demo: 'See the demo',
     discover: 'Discover EvLY',
     brochure: 'Associations (PDF)',
+    brochurePro: 'Professionals (PDF)',
     privacy: 'Privacy',
   },
   guest: {

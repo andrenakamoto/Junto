@@ -180,8 +180,8 @@ const fr: PrivacyText = {
         Google peut déposer ses propres cookies.
       </p>
       <p className="mt-2">
-        La page de présentation (evly.ch/decouvrir.html) et la brochure PDF (evly.ch/brochure)
-        comptent leurs visites de façon anonyme : seul un total par jour est enregistré, sans cookie,
+        La page de présentation (evly.ch/decouvrir.html) et les brochures PDF (evly.ch/brochure et
+        evly.ch/brochure-pro) comptent leurs visites de façon anonyme : seul un total par jour est enregistré, sans cookie,
         sans adresse IP et sans aucun identifiant. Sur la page de présentation, les personnes déjà
         connectées à EvLY ne sont pas comptées. De la même façon, quelques étapes de l'inscription
         (clic sur « Créer mon compte » ou « Organiser une sortie », sortie créée ou partagée,

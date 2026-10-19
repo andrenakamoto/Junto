@@ -162,7 +162,7 @@ const en: PrivacyText = {
         preferences (for example the language). If you sign in with Google, Google may set its own cookies.
       </p>
       <p className="mt-2">
-        The presentation page (evly.ch/decouvrir.html) and the PDF brochure (evly.ch/brochure) count their visits
+        The presentation page (evly.ch/decouvrir.html) and the PDF brochures (evly.ch/brochure and evly.ch/brochure-pro) count their visits
         anonymously: only a daily total is recorded, with no cookie, no IP address and no identifier. On the presentation
         page, people already logged in to EvLY are not counted. Likewise, a few sign-up steps (clicking “Create my
         account” or “Organise an outing”, outing created or shared, registration, email confirmation, first Plan) are

@@ -399,6 +399,8 @@ export function AuthPage() {
           {' · '}
           <a href={siteUrl('/brochure')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.brochure')}</a>
           {' · '}
+          <a href={siteUrl('/brochure-pro')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.brochurePro')}</a>
+          {' · '}
           <a href={siteUrl('/confidentialite')} className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.privacy')}</a>
           <br />info@evly.ch
         </p>

@@ -228,8 +228,14 @@ export function AdminPage() {
         />
         <PageVisitsPanel
           page="brochure"
-          title="Brochure associations & entreprises (PDF)"
+          title="Brochure associations (PDF)"
           description="Ouvertures du PDF par jour, via evly.ch/brochure, l'ancienne adresse du PDF et le lien de la page de connexion. Comptage anonyme : ni cookie, ni adresse IP ; robots exclus."
+          unit="ouverture"
+        />
+        <PageVisitsPanel
+          page="brochure-pro"
+          title="Brochure professionnels (PDF)"
+          description="Ouvertures du PDF par jour, via evly.ch/brochure-pro et le lien de la page de connexion. Comptage anonyme : ni cookie, ni adresse IP ; robots exclus."
           unit="ouverture"
         />
 

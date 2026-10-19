@@ -81,6 +81,7 @@ export default {
     demo: 'Voir la démo',
     discover: 'Découvrir EvLY',
     brochure: 'Associations (PDF)',
+    brochurePro: 'Professionnels (PDF)',
     privacy: 'Confidentialité',
   },
   guest: {

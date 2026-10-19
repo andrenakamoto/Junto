@@ -125,7 +125,7 @@ router.delete('/users/:id', async (req: AuthRequest, res) => {
   }
 });
 
-// Visites d'une page publique (?page=decouvrir|brochure — compteur anonyme, 30 derniers jours)
+// Visites d'une page publique (?page=decouvrir|brochure|brochure-pro — compteur anonyme, 30 derniers jours)
 // GET /api/admin/funnel — parcours d'inscription (lib/funnel.ts) : totaux par étape
 router.get('/funnel', async (_req, res) => {
   const today = visitDay();

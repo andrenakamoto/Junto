@@ -1,11 +1,13 @@
 // Compteur anonyme des visites des pages publiques : un total par jour et par
 // page, rien d'autre (ni cookie, ni IP, ni identifiant). Les robots sont écartés.
 
-export const TRACKED_PAGES = ['decouvrir', 'brochure'] as const;
+export const TRACKED_PAGES = ['decouvrir', 'brochure', 'brochure-pro'] as const;
 
 // Fichiers téléchargés via GET /api/stats/go/:page (compte, puis redirige vers le fichier)
 export const TRACKED_FILES: Record<string, string> = {
   brochure: 'https://www.evly.ch/fichiers/evly-associations-entreprises.pdf',
+  // Brochure des professionnels de l'événement (bars, salles, organisateurs, écoles et cours)
+  'brochure-pro': 'https://www.evly.ch/fichiers/evly-professionnels.pdf',
 };
 
 const BOT_RE = /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|headless|lighthouse|curl|wget|python|axios|node-fetch/i;

@@ -165,7 +165,7 @@ const it: PrivacyText = {
         propri cookie.
       </p>
       <p className="mt-2">
-        La pagina di presentazione (evly.ch/decouvrir.html) e l’opuscolo PDF (evly.ch/brochure) contano le visite in modo
+        La pagina di presentazione (evly.ch/decouvrir.html) e gli opuscoli PDF (evly.ch/brochure ed evly.ch/brochure-pro) contano le visite in modo
         anonimo: viene registrato solo un totale giornaliero, senza cookie, senza indirizzo IP e senza alcun
         identificativo. Sulla pagina di presentazione, le persone già connesse a EvLY non sono contate. Allo stesso modo,
         alcune tappe dell’iscrizione (clic su «Crea il mio account» o «Organizza un’uscita», uscita creata o condivisa,

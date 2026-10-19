@@ -171,7 +171,7 @@ const de: PrivacyText = {
         Einstellungen (zum Beispiel die Sprache). Wenn du dich mit Google anmeldest, kann Google eigene Cookies setzen.
       </p>
       <p className="mt-2">
-        Die Vorstellungsseite (evly.ch/decouvrir.html) und die PDF-Broschüre (evly.ch/brochure) zählen ihre Besuche
+        Die Vorstellungsseite (evly.ch/decouvrir.html) und die PDF-Broschüren (evly.ch/brochure und evly.ch/brochure-pro) zählen ihre Besuche
         anonym: Gespeichert wird nur ein Tagestotal, ohne Cookie, ohne IP-Adresse und ohne jede Kennung. Auf der
         Vorstellungsseite werden bereits bei EvLY angemeldete Personen nicht gezählt. Ebenso werden einige Schritte der
         Registrierung (Klick auf «Konto erstellen» oder «Einen Ausflug organisieren», erstellter oder geteilter Ausflug,
