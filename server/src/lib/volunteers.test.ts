@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseShiftInput, shiftsOverlap, sortShifts } from './volunteers';
+import { canWorkOnShift, parseShiftComment, parseShiftInput, shiftCommentRecipients, shiftsOverlap, sortShifts } from './volunteers';
 
 const d = (h: number, m = 0) => new Date(Date.UTC(2026, 9, 10, h, m));
 
@@ -55,5 +55,23 @@ describe('rappel de poste', () => {
   });
   it('plus tard : le vrai délai', () => {
     expect(shiftReminderText({ title: 'Caisse', startsAt: start }, start.getTime() - 41 * 60000)).toBe('⏰ Ton poste « Caisse » commence à 19h00, dans 40 minutes');
+  });
+});
+
+describe('commentaires et poste terminé', () => {
+  it('commentaire : vide refusé, longueur limitée, espaces retirés', () => {
+    expect(parseShiftComment('  ')).toEqual({ error: 'Commentaire vide' });
+    expect(parseShiftComment('x'.repeat(501))).toEqual({ error: 'Commentaire : 500 caractères maximum' });
+    expect(parseShiftComment('  Il manque les rallonges  ')).toBe('Il manque les rallonges');
+  });
+  it('seuls les inscrits du poste et les gestionnaires y travaillent', () => {
+    expect(canWorkOnShift('a', ['a', 'b'], false)).toBe(true);
+    expect(canWorkOnShift('c', ['a', 'b'], false)).toBe(false);
+    expect(canWorkOnShift('c', [], true)).toBe(true);
+  });
+  it('prévient la personne qui a créé le poste et les autres inscrits, jamais l’auteur', () => {
+    expect(shiftCommentRecipients({ createdById: 'org' }, 'creator', ['a', 'b'], 'a')).toEqual(['org', 'b']);
+    expect(shiftCommentRecipients({ createdById: null }, 'creator', ['a'], 'a')).toEqual(['creator']);
+    expect(shiftCommentRecipients({ createdById: 'org' }, 'creator', ['org', 'a'], 'org')).toEqual(['a']);
   });
 });

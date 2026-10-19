@@ -72,6 +72,8 @@ model User {
   ridesDriven            Ride[]                  @relation("RideDriver")
   ridePassengers         RidePassenger[]
   volunteerSignups       VolunteerSignup[]
+  shiftComments          VolunteerShiftComment[]
+  shiftsDone             VolunteerShift[]        @relation("ShiftDoneBy")
   notificationMutes      NotificationMute[]
   santaWishes            SecretSantaWish[]
   santaGiving            SecretSantaPair[]       @relation("SantaGiver")
@@ -801,23 +803,43 @@ model Suggestion {
 // Planning des bénévoles (lib/volunteers.ts) : postes / créneaux d'un Plan, créés par le
 // créateur du Plan et les gestionnaires du Cercle (créateur, organisateurs)
 model VolunteerShift {
-  id             String            @id @default(cuid())
+  id             String                  @id @default(cuid())
   planId         String
-  plan           Plan              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  plan           Plan                    @relation(fields: [planId], references: [id], onDelete: Cascade)
   title          String
   // Créneau horaire facultatif (« Buvette 10h-12h »)
   startsAt       DateTime?
   endsAt         DateTime?
   // Nombre de personnes recherchées
-  needed         Int               @default(1)
+  needed         Int                     @default(1)
   note           String?
   createdById    String?
-  createdAt      DateTime          @default(now())
+  createdAt      DateTime                @default(now())
   // Rappel « ton poste commence dans 1 heure » envoyé aux inscrits (remis à zéro si l'horaire change)
   reminderSentAt DateTime?
+  // Poste déclaré terminé (par un inscrit ou un gestionnaire)
+  doneAt         DateTime?
+  doneById       String?
+  doneBy         User?                   @relation("ShiftDoneBy", fields: [doneById], references: [id], onDelete: SetNull)
   signups        VolunteerSignup[]
+  comments       VolunteerShiftComment[]
 
   @@index([planId])
+}
+
+// Commentaire sur un poste (« il manque du matériel »), par un inscrit ou un gestionnaire.
+// Texte chiffré comme les messages (lib/messageCrypto.ts).
+model VolunteerShiftComment {
+  id        String         @id @default(cuid())
+  shiftId   String
+  shift     VolunteerShift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  planId    String
+  authorId  String
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime       @default(now())
+
+  @@index([shiftId])
 }
 
 // Inscription d'une personne à un poste. planId dupliqué pour retrouver vite les

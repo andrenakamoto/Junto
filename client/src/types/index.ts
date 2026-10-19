@@ -384,6 +384,10 @@ export interface VolunteerShift {
   startsAt: string | null;
   endsAt: string | null;
   signups: { userId: string; user: { id: string; pseudo: string; firstName?: string | null } }[];
+  /** Commentaires (« il manque du matériel ») ; absents des anciennes données de la démo */
+  comments?: { id: string; content: string; createdAt: string; author: { id: string; pseudo: string; firstName?: string | null } }[];
+  doneAt?: string | null;
+  doneBy?: { pseudo: string } | null;
 }
 
 // Message de la discussion d'un Cercle (effacé après 7 jours)

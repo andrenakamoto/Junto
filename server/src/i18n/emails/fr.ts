@@ -187,6 +187,7 @@ const fr = {
     missing_other: '  ·  il manque {count} personnes',
     signed: 'Inscrits : {names}',
     nobodySigned: 'Personne d’inscrit',
+    shiftDone: 'Terminé',
     bring: 'Qui apporte quoi',
     nobodyYet: '  —  personne pour l’instant',
     expenses: 'Dépenses',

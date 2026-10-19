@@ -216,7 +216,9 @@ const groups: Group[] = [
         body: <P>Il creatore del Plan e gli organizzatori del Cerchio creano i turni (orario, numero di persone). Iscriversi
           vale «Ci sono». Riepilogo «Mancano X persone», filtro «I miei turni», avviso se due turni si sovrappongono.
           Promemoria con notifica <strong>un’ora prima</strong> dell’inizio del turno. Con <strong>0 persone</strong> la riga compare semplicemente nel programma (apertura
-          delle porte, pranzo…), senza iscrizione.</P>,
+          delle porte, pranzo…), senza iscrizione. Sul posto, gli iscritti al turno (e gli organizzatori) possono
+          <strong> commentarlo</strong> («manca una prolunga»): la persona che ha creato il turno viene avvisata. Lo
+          segnano anche come <strong>«Compito terminato»</strong>, e anche in questo caso viene avvisata.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblea', summary: 'Ordine del giorno, deleghe, voti, verbale',

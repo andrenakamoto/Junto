@@ -133,6 +133,11 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     return planTarget(item?.planId, false, 'depenses', 'items_updated');
   }
   if (a === 'shifts') {
+    // Commentaire d'un poste supprimé
+    if (b === 'comments') {
+      const comment = await prisma.volunteerShiftComment.findUnique({ where: { id: c }, select: { planId: true } });
+      return planTarget(comment?.planId, false, 'benevoles');
+    }
     // Postes des bénévoles ; une inscription peut changer la réponse au Plan (liste du Cercle)
     const shift = await prisma.volunteerShift.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(shift?.planId, c === 'signup', 'benevoles');

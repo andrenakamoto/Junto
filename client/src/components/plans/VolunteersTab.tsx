@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Clock, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, MessageSquare, Pencil, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Plan, VolunteerShift } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
@@ -80,8 +80,10 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
   const mine = shifts.filter(isMine);
   // Les lignes à 0 personne sont du programme : pas d'inscription, pas comptées dans le résumé
   const toFill = shifts.filter(s => s.needed > 0);
-  const missing = toFill.reduce((n, s) => n + Math.max(0, s.needed - s.signups.length), 0);
-  const openShifts = toFill.filter(s => s.signups.length < s.needed).length;
+  // Un poste terminé ne manque plus de personne
+  const stillOpen = toFill.filter(s => !s.doneAt);
+  const missing = stillOpen.reduce((n, s) => n + Math.max(0, s.needed - s.signups.length), 0);
+  const openShifts = stillOpen.filter(s => s.signups.length < s.needed).length;
   const myRsvp = plan.members.find(m => m.userId === userId)?.rsvp;
   const list = mineOnly ? mine : shifts;
 
@@ -153,6 +155,9 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
             onSignUp={() => signUp(s)}
             onWithdraw={() => run(() => api.delete(`/plans/shifts/${s.id}/signup`))}
             onRemove={uid => run(() => api.delete(`/plans/shifts/${s.id}/signups/${uid}`))}
+            onComment={content => run(() => api.post(`/plans/shifts/${s.id}/comments`, { content }))}
+            onDeleteComment={id => { if (confirm(t('games.volunteers.deleteCommentConfirm'))) run(() => api.delete(`/plans/shifts/comments/${id}`)); }}
+            onDone={done => run(() => api.post(`/plans/shifts/${s.id}/done`, { done }))}
             onEdit={() => setEditing(s.id)}
             onDelete={() => {
               if (confirm(t('games.volunteers.deleteConfirm', { title: s.title }) + (s.signups.length ? t('games.volunteers.deleteNotify') : ''))) run(() => api.delete(`/plans/shifts/${s.id}`));
@@ -168,11 +173,20 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
   );
 }
 
-function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, onRemove, onEdit, onDelete }: {
+function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, onRemove, onComment, onDeleteComment, onDone, onEdit, onDelete }: {
   shift: VolunteerShift; userId: string; canManage: boolean; clash: boolean;
-  onSignUp: () => void; onWithdraw: () => void; onRemove: (userId: string) => void; onEdit: () => void; onDelete: () => void;
+  onSignUp: () => void; onWithdraw: () => void; onRemove: (userId: string) => void;
+  onComment: (content: string) => Promise<boolean>; onDeleteComment: (id: string) => void; onDone: (done: boolean) => void;
+  onEdit: () => void; onDelete: () => void;
 }) {
+  const [writing, setWriting] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
   const mine = s.signups.some(x => x.userId === userId);
+  // Inscrits du poste et gestionnaires : commenter, déclarer terminé
+  const canWork = mine || canManage;
+  const done = !!s.doneAt;
+  const comments = s.comments ?? [];
   const full = s.signups.length >= s.needed;
   const hours = shiftHours(s);
   const actions = canManage && (
@@ -195,15 +209,21 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
     </div>
   );
   return (
-    <div className={`p-3.5 rounded-xl border shadow-sm ${mine ? 'bg-indigo-50/60 border-indigo-200' : 'bg-white border-slate-200'}`}>
+    <div className={`p-3.5 rounded-xl border shadow-sm ${done ? 'bg-emerald-50/60 border-emerald-200' : mine ? 'bg-indigo-50/60 border-indigo-200' : 'bg-white border-slate-200'}`}>
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm text-slate-800 break-words">{s.title}</p>
           {hours && <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5"><Clock size={11} />{hours}</p>}
         </div>
-        <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${full ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-          {s.signups.length}/{s.needed}
-        </span>
+        {done ? (
+          <span className="flex-shrink-0 flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+            <CheckCircle2 size={12} />{t('games.volunteers.done')}
+          </span>
+        ) : (
+          <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${full ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+            {s.signups.length}/{s.needed}
+          </span>
+        )}
         {actions}
       </div>
       {s.note && <p className="text-xs text-slate-500 mt-1.5 whitespace-pre-wrap break-words">{s.note}</p>}
@@ -221,15 +241,66 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-2">
+      {done && s.doneBy && <p className="text-xs text-emerald-700 mt-2">{t('games.volunteers.doneBy', { pseudo: s.doneBy.pseudo })}</p>}
+
+      {comments.length > 0 && (
+        <div className="mt-2.5 space-y-1.5">
+          {comments.map(c => (
+            <div key={c.id} className="flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200">
+              <MessageSquare size={12} className="flex-shrink-0 mt-0.5 text-slate-400" />
+              <p className="flex-1 min-w-0 text-xs text-slate-700 whitespace-pre-wrap break-words">
+                <span className="font-semibold">@{c.author.pseudo}</span>
+                <span className="text-slate-400"> · {dayTime.format(new Date(c.createdAt))}</span><br />{c.content}
+              </p>
+              {(c.author.id === userId || canManage) && (
+                <button onClick={() => onDeleteComment(c.id)} title={t('games.volunteers.deleteComment')} className="flex-shrink-0 p-0.5 rounded text-slate-300 hover:text-red-500"><Trash2 size={12} /></button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {writing && (
+        <form className="mt-2.5" onSubmit={async e => {
+          e.preventDefault();
+          if (!draft.trim()) return;
+          setSending(true);
+          if (await onComment(draft)) { setDraft(''); setWriting(false); }
+          setSending(false);
+        }}>
+          <div className="flex gap-1.5">
+            <textarea autoFocus rows={2} maxLength={500} value={draft} onChange={e => setDraft(e.target.value)} placeholder={t('games.volunteers.commentPlaceholder')}
+              className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white resize-none" />
+            <button type="submit" disabled={sending || !draft.trim()} title={t('games.volunteers.send')}
+              className="self-end p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"><Send size={15} /></button>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">{t('games.volunteers.commentHint')}</p>
+        </form>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {mine ? (
           <button onClick={onWithdraw} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">{t('games.volunteers.withdraw')}</button>
-        ) : full ? (
+        ) : done ? null : full ? (
           <span className="text-xs text-slate-400">{t('common.full')}</span>
         ) : (
           <button onClick={onSignUp} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700">{t('games.volunteers.signUp')}</button>
         )}
-        {clash && !full && <span className="text-xs text-amber-600">{t('games.volunteers.clash')}</span>}
+        {canWork && !writing && (
+          <button onClick={() => setWriting(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
+            <MessageSquare size={13} />{t('games.volunteers.comment')}
+          </button>
+        )}
+        {canWork && (done ? (
+          <button onClick={() => onDone(false)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">
+            <RotateCcw size={13} />{t('games.volunteers.reopen')}
+          </button>
+        ) : (
+          <button onClick={() => onDone(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700">
+            <CheckCircle2 size={13} />{t('games.volunteers.markDone')}
+          </button>
+        ))}
+        {clash && !full && !done && <span className="text-xs text-amber-600">{t('games.volunteers.clash')}</span>}
       </div>
     </div>
   );

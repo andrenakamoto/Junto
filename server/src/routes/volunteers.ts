@@ -6,8 +6,10 @@ import { markAllSeen } from '../lib/planActivity';
 import { notifyMembershipChange } from '../lib/planNotifications';
 import { notifyUser } from '../lib/push';
 import { hasFreeSpot } from '../lib/waitlist';
+import { decryptMessage, encryptMessage } from '../lib/messageCrypto';
 import {
-  canManageShifts, parseShiftInput, sortShifts, shiftHours, volunteersEnabled, VOLUNTEERS_DISABLED_ERROR,
+  canManageShifts, canWorkOnShift, parseShiftComment, parseShiftInput, shiftCommentRecipients, sortShifts, shiftHours,
+  volunteersEnabled, VOLUNTEERS_DISABLED_ERROR,
 } from '../lib/volunteers';
 
 // Planning des bénévoles (lib/volunteers.ts), monté dans le routeur des Plans (/api/plans) :
@@ -42,12 +44,18 @@ router.get('/:id/shifts', async (req: AuthRequest, res) => {
   if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const shifts = await prisma.volunteerShift.findMany({
     where: { planId: req.params.id },
-    include: { signups: { orderBy: { createdAt: 'asc' }, include: { user: { select: { id: true, pseudo: true, firstName: true } } } } },
+    include: {
+      signups: { orderBy: { createdAt: 'asc' }, include: { user: { select: { id: true, pseudo: true, firstName: true } } } },
+      comments: { orderBy: { createdAt: 'asc' }, include: { author: { select: { id: true, pseudo: true, firstName: true } } } },
+      doneBy: { select: { pseudo: true } },
+    },
   });
   res.json({
     shifts: sortShifts(shifts).map(s => ({
       id: s.id, title: s.title, needed: s.needed, note: s.note, startsAt: s.startsAt, endsAt: s.endsAt,
       signups: s.signups.map(x => ({ userId: x.userId, user: x.user })),
+      comments: s.comments.map(c => ({ id: c.id, content: decryptMessage(c.content), createdAt: c.createdAt, author: c.author })),
+      doneAt: s.doneAt, doneBy: s.doneBy,
     })),
     canManage: await canManageShifts(req.userId!, access.plan),
   });
@@ -105,6 +113,7 @@ router.post('/shifts/:shiftId/signup', async (req: AuthRequest, res) => {
   const already = await prisma.volunteerSignup.findUnique({ where: { shiftId_userId: { shiftId: shift.id, userId } } });
   if (already) { res.status(409).json({ error: 'Tu es déjà inscrit(e) à ce poste' }); return; }
   if (shift.needed === 0) { res.status(409).json({ error: 'Pas d’inscription pour cette ligne du planning' }); return; }
+  if (shift.doneAt) { res.status(409).json({ error: 'Ce poste est terminé' }); return; }
   if (shift._count.signups >= shift.needed) { res.status(409).json({ error: 'Ce poste est complet' }); return; }
 
   // S'inscrire = participer au Plan
@@ -156,6 +165,69 @@ router.delete('/shifts/:shiftId/signups/:userId', async (req: AuthRequest, res) 
   const { count } = await prisma.volunteerSignup.deleteMany({ where: { shiftId: shift.id, userId: req.params.userId } });
   res.json({ ok: true });
   if (count) notifyShift(req, req.params.userId, shift.plan, `@${req.pseudo} t’a retiré(e) du poste ${label(shift)}`);
+});
+
+// Inscrits du poste et droit de le gérer : seuls eux commentent et le déclarent terminé
+async function shiftWorkers(req: AuthRequest, shift: NonNullable<Awaited<ReturnType<typeof shiftWithPlan>>>) {
+  const signups = await prisma.volunteerSignup.findMany({ where: { shiftId: shift.id }, select: { userId: true } });
+  const ids = signups.map(x => x.userId);
+  const manager = await canManageShifts(req.userId!, shift.plan);
+  return { ids, manager, allowed: canWorkOnShift(req.userId!, ids, manager) };
+}
+
+// POST /shifts/:shiftId/comments — commenter un poste ; la personne qui l'a créé et les autres inscrits
+// sont prévenus (sans le texte, comme pour les messages)
+router.post('/shifts/:shiftId/comments', async (req: AuthRequest, res) => {
+  const shift = await shiftWithPlan(req.params.shiftId);
+  if (!shift || !(await getPlanAccess(req.userId!, shift.planId))?.canView) { res.status(404).json({ error: 'Poste introuvable' }); return; }
+  if (!volunteersEnabled(shift.plan)) { res.status(403).json({ error: VOLUNTEERS_DISABLED_ERROR }); return; }
+  const workers = await shiftWorkers(req, shift);
+  if (!workers.allowed) { res.status(403).json({ error: 'Seuls les inscrits au poste et les organisateurs peuvent le commenter' }); return; }
+  const content = parseShiftComment(req.body?.content);
+  if (typeof content !== 'string') { res.status(400).json({ error: content.error }); return; }
+  const comment = await prisma.volunteerShiftComment.create({
+    data: { shiftId: shift.id, planId: shift.planId, authorId: req.userId!, content: encryptMessage(content) },
+  });
+  res.json({ id: comment.id });
+  const io = req.app.get('io');
+  for (const id of shiftCommentRecipients(shift, shift.plan.creatorId, workers.ids, req.userId!)) {
+    notifyUser(io, id, {
+      type: 'shift', planId: shift.plan.id, planTitle: shift.plan.title, circleId: shift.plan.circleId,
+      from: req.pseudo!, actorId: req.userId!, preview: `@${req.pseudo} a commenté le poste ${label(shift)}`,
+    });
+  }
+});
+
+// DELETE /shifts/comments/:commentId — son auteur ou un gestionnaire
+router.delete('/shifts/comments/:commentId', async (req: AuthRequest, res) => {
+  const comment = await prisma.volunteerShiftComment.findUnique({ where: { id: req.params.commentId } });
+  const shift = comment && await shiftWithPlan(comment.shiftId);
+  if (!comment || !shift || !(await getPlanAccess(req.userId!, shift.planId))?.canView) { res.status(404).json({ error: 'Commentaire introuvable' }); return; }
+  if (comment.authorId !== req.userId && !(await canManageShifts(req.userId!, shift.plan))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  await prisma.volunteerShiftComment.delete({ where: { id: comment.id } });
+  res.json({ ok: true });
+});
+
+// POST /shifts/:shiftId/done {done} — déclarer le poste terminé (ou le rouvrir) ; la personne qui l'a
+// créé est prévenue quand il est terminé
+router.post('/shifts/:shiftId/done', async (req: AuthRequest, res) => {
+  const shift = await shiftWithPlan(req.params.shiftId);
+  if (!shift || !(await getPlanAccess(req.userId!, shift.planId))?.canView) { res.status(404).json({ error: 'Poste introuvable' }); return; }
+  if (!volunteersEnabled(shift.plan)) { res.status(403).json({ error: VOLUNTEERS_DISABLED_ERROR }); return; }
+  if (shift.needed === 0) { res.status(409).json({ error: 'Pas d’inscription pour cette ligne du planning' }); return; }
+  const workers = await shiftWorkers(req, shift);
+  if (!workers.allowed) { res.status(403).json({ error: 'Seuls les inscrits au poste et les organisateurs peuvent le déclarer terminé' }); return; }
+  const done = req.body?.done !== false;
+  if (done === !!shift.doneAt) { res.json({ ok: true }); return; }
+  await prisma.volunteerShift.update({ where: { id: shift.id }, data: done ? { doneAt: new Date(), doneById: req.userId! } : { doneAt: null, doneById: null } });
+  res.json({ ok: true });
+  const owner = shift.createdById ?? shift.plan.creatorId;
+  if (done && owner !== req.userId) {
+    notifyUser(req.app.get('io'), owner, {
+      type: 'shift', planId: shift.plan.id, planTitle: shift.plan.title, circleId: shift.plan.circleId,
+      from: req.pseudo!, actorId: req.userId!, preview: `✅ @${req.pseudo} a terminé le poste ${label(shift)}`,
+    });
+  }
 });
 
 export default router;

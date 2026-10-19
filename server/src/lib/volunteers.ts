@@ -20,6 +20,30 @@ export async function canManageShifts(userId: string, plan: { creatorId: string;
   return plan.creatorId === userId || isCircleManager(userId, plan.circleId);
 }
 
+// Commentaires d'un poste (« il manque du matériel ») et poste « terminé » : réservés aux inscrits
+// du poste et aux gestionnaires (créateur du Plan, organisateurs du Cercle). Lecture : tous ceux qui
+// voient le Plan.
+export const SHIFT_COMMENT_MAX = 500;
+
+export function parseShiftComment(v: unknown): string | { error: string } {
+  const content = typeof v === 'string' ? v.trim() : '';
+  if (!content) return { error: 'Commentaire vide' };
+  if (content.length > SHIFT_COMMENT_MAX) return { error: `Commentaire : ${SHIFT_COMMENT_MAX} caractères maximum` };
+  return content;
+}
+
+export function canWorkOnShift(userId: string, signupUserIds: string[], manager: boolean): boolean {
+  return manager || signupUserIds.includes(userId);
+}
+
+// Qui prévenir d'un commentaire : la personne qui a créé le poste (à défaut le créateur du Plan)
+// et les autres inscrits, jamais l'auteur
+export function shiftCommentRecipients(
+  shift: { createdById: string | null }, planCreatorId: string, signupUserIds: string[], authorId: string,
+): string[] {
+  return [...new Set([shift.createdById ?? planCreatorId, ...signupUserIds])].filter(id => id !== authorId);
+}
+
 export interface ShiftData {
   title: string;
   needed: number;

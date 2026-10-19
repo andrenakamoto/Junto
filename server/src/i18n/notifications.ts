@@ -47,6 +47,10 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '@{0} s’est désinscrit(e) du poste « {1} » ({2})': ['@{0} hat sich vom Einsatz «{1}» ({2}) ausgetragen', '@{0} si è cancellato/a dal turno «{1}» ({2})', '@{0} left the shift “{1}” ({2})'],
   '@{0} s’est désinscrit(e) du poste « {1} »': ['@{0} hat sich vom Einsatz «{1}» ausgetragen', '@{0} si è cancellato/a dal turno «{1}»', '@{0} left the shift “{1}”'],
   '@{0} t’a retiré(e) du poste « {1} » ({2})': ['@{0} hat dich vom Einsatz «{1}» ({2}) entfernt', '@{0} ti ha tolto/a dal turno «{1}» ({2})', '@{0} removed you from the shift “{1}” ({2})'],
+  '@{0} a commenté le poste « {1} » ({2})': ['@{0} hat den Einsatz «{1}» ({2}) kommentiert', '@{0} ha commentato il turno «{1}» ({2})', '@{0} commented on the shift “{1}” ({2})'],
+  '@{0} a commenté le poste « {1} »': ['@{0} hat den Einsatz «{1}» kommentiert', '@{0} ha commentato il turno «{1}»', '@{0} commented on the shift “{1}”'],
+  '✅ @{0} a terminé le poste « {1} » ({2})': ['✅ @{0} hat den Einsatz «{1}» ({2}) erledigt', '✅ @{0} ha terminato il turno «{1}» ({2})', '✅ @{0} finished the shift “{1}” ({2})'],
+  '✅ @{0} a terminé le poste « {1} »': ['✅ @{0} hat den Einsatz «{1}» erledigt', '✅ @{0} ha terminato il turno «{1}»', '✅ @{0} finished the shift “{1}”'],
   '@{0} t’a retiré(e) du poste « {1} »': ['@{0} hat dich vom Einsatz «{1}» entfernt', '@{0} ti ha tolto/a dal turno «{1}»', '@{0} removed you from the shift “{1}”'],
   // Killer
   '🔪 La partie de Killer commence : découvre ta mission (et garde-la secrète !)': ['🔪 Das Killer-Spiel beginnt: Entdecke deine Mission (und behalte sie für dich!)', '🔪 La partita di Killer inizia: scopri la tua missione (e tienila segreta!)', '🔪 The Killer game is starting: discover your mission (and keep it secret!)'],

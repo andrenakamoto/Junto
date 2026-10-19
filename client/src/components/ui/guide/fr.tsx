@@ -213,7 +213,9 @@ const groups: Group[] = [
         body: <P>Le créateur du Plan et les organisateurs du Cercle créent les postes (horaire, nombre de personnes). S'inscrire
           vaut « Je suis in ». Résumé « Il manque X personnes », filtre « Mes postes », avertissement si deux postes se
           chevauchent. Rappel par notification <strong>une heure avant</strong> la prise de poste. Avec <strong>0 personne</strong>, la ligne s’affiche simplement au programme (ouverture
-          des portes, repas…), sans inscription.</P>,
+          des portes, repas…), sans inscription. Sur place, les inscrits du poste (et les organisateurs) peuvent le
+          <strong> commenter</strong> (« il manque une rallonge ») : la personne qui a créé le poste est prévenue. Ils le
+          déclarent aussi <strong>« Tâche terminée »</strong>, ce qui la prévient également.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblée', summary: 'Ordre du jour, procurations, votes, procès-verbal',

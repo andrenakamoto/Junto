@@ -182,8 +182,9 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
         continue;
       }
       doc.font('semibold').fontSize(10.5).fillColor(INK).text(s.title, { continued: true })
-        .font('regular').fillColor(DIM).text(`${hours ? `  ·  ${hours}` : ''}  ·  ${s.signups.length}/${s.needed}`, { continued: missing > 0 })
-      if (missing > 0) doc.font('semibold').fillColor(CORAL).text(m.s('recapPdf.missing', { count: missing }));
+        .font('regular').fillColor(DIM).text(`${hours ? `  ·  ${hours}` : ''}  ·  ${s.signups.length}/${s.needed}`, { continued: missing > 0 || !!s.doneAt })
+      if (s.doneAt) doc.font('semibold').fillColor('#059669').text(`  ·  ${m.s('recapPdf.shiftDone')}`);
+      else if (missing > 0) doc.font('semibold').fillColor(CORAL).text(m.s('recapPdf.missing', { count: missing }));
       if (s.note) para(s.note, DIM);
       para(s.signups.length ? m.s('recapPdf.signed', { names: s.signups.map(x => who(x.user)).join(', ') }) : m.s('recapPdf.nobodySigned'), s.signups.length ? INK : DIM);
       doc.moveDown(0.5);

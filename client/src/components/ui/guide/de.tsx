@@ -219,7 +219,9 @@ const groups: Group[] = [
         body: <P>Der Ersteller des Plans und die Organisatoren des Kreises erstellen die Einsätze (Zeit, Anzahl Personen).
           Sich eintragen heisst «Ich bin dabei». Übersicht «Es fehlen X Personen», Filter «Meine Einsätze», Warnung bei
           Überschneidungen. Erinnerung per Benachrichtigung <strong>eine Stunde vor</strong> Einsatzbeginn. Mit <strong>0 Personen</strong> erscheint die Zeile einfach im Programm (Türöffnung,
-          Essen…), ohne Anmeldung.</P>,
+          Essen…), ohne Anmeldung. Vor Ort können die Eingetragenen (und die Organisatoren) den Einsatz
+          <strong> kommentieren</strong> («es fehlt ein Verlängerungskabel»): Die Person, die ihn erstellt hat, wird
+          benachrichtigt. Sie melden ihn auch als <strong>«Aufgabe erledigt»</strong>, was sie ebenfalls benachrichtigt.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Versammlung', summary: 'Traktanden, Vollmachten, Abstimmungen, Protokoll',

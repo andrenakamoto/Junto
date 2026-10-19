@@ -187,6 +187,7 @@ const de: EmailDict = {
     missing_other: '  ·  es fehlen {count} Personen',
     signed: 'Eingetragen: {names}',
     nobodySigned: 'Niemand eingetragen',
+    shiftDone: 'Erledigt',
     bring: 'Wer bringt was',
     nobodyYet: '  —  noch niemand',
     expenses: 'Ausgaben',

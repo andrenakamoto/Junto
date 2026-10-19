@@ -5,7 +5,7 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 export interface AppNotification {
   id: string;
   type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting'
-    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -104,6 +104,7 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
   waitlist: { icon: PartyPopper, iconClass: 'text-emerald-300', bgClass: 'bg-emerald-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? t('notif.waitlistBody') },
   transit: { icon: Bus, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   transit_reminder: { icon: Bus, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
+  shift: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   shift_reminder: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   words: { icon: Speech, iconClass: 'text-violet-300', bgClass: 'bg-violet-600/30', title: n => t('notif.wordsTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   teams: { icon: Trophy, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => t('notif.teamsTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },

@@ -212,7 +212,9 @@ const groups: Group[] = [
         body: <P>The Plan’s creator and the Circle’s organisers create the shifts (time, number of people). Signing up counts
           as “I’m in”. Summary “X people still needed”, “My shifts” filter, warning if two shifts overlap. Reminder by
           notification <strong>one hour before</strong> the shift starts. With <strong>0 people</strong>, the line simply shows in the programme (doors open,
-          lunch…), with no sign-up.</P>,
+          lunch…), with no sign-up. On site, the people signed up for the shift (and the organisers) can
+          <strong> comment</strong> on it (“an extension cable is missing”): the person who created the shift is
+          notified. They can also mark it <strong>“Task finished”</strong>, which notifies them too.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assembly', summary: 'Agenda, proxies, votes, minutes',
