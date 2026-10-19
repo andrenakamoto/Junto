@@ -10,14 +10,15 @@ import { SavePhotoButton } from '../chat/SavePhotoButton';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
+import { REACTION_EMOJIS } from '../../lib/reactions';
 import { useBackClose } from '../../lib/backClose';
 import { photoUrl } from '../../lib/photos';
 import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 
-// Réactions de la discussion du Cercle (même liste que REACTION_EMOJIS de server/src/routes/circleChat.ts)
-const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥', '👏', '😍', '🤔', '😅', '👌', '💪', '🥳', '✅'];
+// Réactions communes à tous les chats (lib/reactions.ts)
+const QUICK_EMOJIS = REACTION_EMOJIS;
 
 interface Props {
   circle: Circle;

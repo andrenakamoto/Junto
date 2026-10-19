@@ -373,6 +373,8 @@ export interface CirclePollMessage {
   editedAt?: string | null;
   deletedAt?: string | null;
   author: { id: string; pseudo: string };
+  /** Réactions (absentes des anciennes données de la démo) */
+  reactions?: { emoji: string; userId: string }[];
 }
 
 // Planning des bénévoles : poste d'un Plan et ses inscrits

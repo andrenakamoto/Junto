@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { REACTION_EMOJIS } from '../../lib/reactions';
 import { useBackClose } from '../../lib/backClose';
 import { Flag, ImageOff, MessageCircle, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
@@ -10,7 +11,8 @@ import { VoiceMessage } from './VoiceMessage';
 import { SavePhotoButton } from './SavePhotoButton';
 import { intlLocale, t } from '../../i18n';
 
-const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+// Réactions communes à tous les chats (lib/reactions.ts), sur deux lignes
+const QUICK_EMOJIS = REACTION_EMOJIS;
 
 interface Props {
   message: Message;
@@ -88,7 +90,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
     if (!el) return;
     const scroller = el.closest('.overflow-y-auto') as HTMLElement | null;
     const top = scroller ? scroller.getBoundingClientRect().top : 0;
-    setReactionsBelow(el.getBoundingClientRect().top - top < 56);
+    setReactionsBelow(el.getBoundingClientRect().top - top < 100);
   }
   useEffect(() => {
     if (!showReactions) return;
@@ -186,13 +188,13 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
 
           {/* Réactions rapides (survol sur ordinateur, appui sur mobile) : grands emojis,
               posés juste au-dessus de la bulle pour ne pas la masquer (en dessous s'il n'y a pas la place) */}
-          {!deleted && !editing && <div className={`${showReactions ? 'flex' : 'hidden'} [@media(hover:hover)]:group-hover:flex absolute ${reactionsBelow ? 'top-full mt-1' : 'bottom-full mb-1'} ${isMe ? 'right-0' : 'left-0'} bg-white border border-slate-200 rounded-full shadow-lg px-1.5 py-1 gap-0.5 z-10`}>
+          {!deleted && !editing && <div className={`${showReactions ? 'grid' : 'hidden'} [@media(hover:hover)]:group-hover:grid absolute ${reactionsBelow ? 'top-full mt-1' : 'bottom-full mb-1'} ${isMe ? 'right-0' : 'left-0'} w-max grid-cols-[repeat(8,2.25rem)] bg-white border border-slate-200 rounded-2xl shadow-lg p-1.5 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}
                 onClick={e => { e.stopPropagation(); onReact(message.id, emoji); setShowReactions(false); }}
                 aria-label={t('chat.message.reactWith', { emoji })}
-                className="text-2xl leading-none w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform"
+                className="text-2xl leading-none w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform"
               >
                 {emoji}
               </button>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, Plus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
+import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, Plus, SmilePlus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
 import { DateTimeField } from '../ui/DateTimeField';
 import { formatOptionLabel, localDateTimeToISO } from './CreateCirclePollModal';
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
@@ -16,6 +16,7 @@ import api from '../../services/api';
 import { isCircleManager } from '../../lib/settings';
 import { intlLocale, t } from '../../i18n';
 import { optionLabel } from '../../lib/dates';
+import { REACTION_EMOJIS } from '../../lib/reactions';
 
 type Tab = 'dates' | 'chat';
 
@@ -332,6 +333,8 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
                 key={m.id}
                 message={m}
                 isMe={m.author.id === user.id}
+                userId={user.id}
+                onReact={emoji => api.post(`/circles/polls/messages/${m.id}/reactions`, { emoji }).then(r => replaceMessage(r.data)).catch(() => {})}
                 onReport={() => setReporting(m)}
                 onEdit={content => api.put(`/circles/polls/messages/${m.id}`, { content }).then(r => replaceMessage(r.data)).catch(() => {})}
                 onDelete={() => api.delete(`/circles/polls/messages/${m.id}`).then(r => replaceMessage(r.data)).catch(() => {})}
@@ -385,10 +388,22 @@ function PeopleGroup({ title, tone, people, empty }: { title: string; tone: 'amb
 }
 
 // Message du chat d'un sondage, modifiable / supprimable par son auteur pendant 15 minutes
-function PollChatMessage({ message: m, isMe, onEdit, onDelete, onReport }: {
-  message: CirclePollMessage; isMe: boolean; onEdit: (content: string) => void; onDelete: () => void; onReport: () => void;
+function PollChatMessage({ message: m, isMe, userId, onReact, onEdit, onDelete, onReport }: {
+  message: CirclePollMessage; isMe: boolean; userId: string; onReact: (emoji: string) => void;
+  onEdit: (content: string) => void; onDelete: () => void; onReport: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  // Réactions (liste commune, lib/reactions.ts) : un toucher ailleurs referme la liste
+  const [picker, setPicker] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!picker) return;
+    const close = (e: PointerEvent) => { if (!pickerRef.current?.contains(e.target as Node)) setPicker(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [picker]);
+  const groups = new Map<string, string[]>();
+  for (const r of m.reactions ?? []) groups.set(r.emoji, [...(groups.get(r.emoji) ?? []), r.userId]);
   const editable = useEditWindow(m.createdAt, m.deletedAt, isMe);
   const time = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(m.createdAt))
     + (m.editedAt && !m.deletedAt ? t('chat.message.edited') : '');
@@ -411,6 +426,26 @@ function PollChatMessage({ message: m, isMe, onEdit, onDelete, onReport }: {
             {renderContent(m.content, isMe)}
           </div>
         )}
+        {!m.deletedAt && groups.size > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {[...groups].map(([emoji, ids]) => (
+              <button key={emoji} type="button" onClick={() => onReact(emoji)}
+                className={`px-1.5 py-0.5 rounded-full text-xs border ${ids.includes(userId) ? 'bg-indigo-50 border-indigo-300' : 'bg-white border-slate-200'}`}>
+                {emoji} {ids.length}
+              </button>
+            ))}
+          </div>
+        )}
+        {!m.deletedAt && !editing && (picker ? (
+          <div ref={pickerRef} className="grid grid-cols-8 gap-0.5 bg-white border border-slate-200 rounded-2xl p-1.5 shadow-lg">
+            {REACTION_EMOJIS.map(e => (
+              <button key={e} type="button" onClick={() => { setPicker(false); onReact(e); }} aria-label={t('chat.message.reactWith', { emoji: e })}
+                className="text-2xl leading-none w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 hover:scale-110 active:scale-95 transition-transform">{e}</button>
+            ))}
+          </div>
+        ) : (
+          <button type="button" onClick={() => setPicker(true)} title={t('circle.chat.react')} className="text-slate-400 hover:text-indigo-600"><SmilePlus size={13} /></button>
+        ))}
         {editable && !editing && <OwnMessageActions onEdit={() => setEditing(true)} onDelete={onDelete} />}
         {!isMe && !m.deletedAt && (
           <button onClick={onReport} title={t('chat.message.reportTitle')} className="flex items-center gap-1 text-xs text-slate-300 hover:text-red-500 transition-colors">

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isAllowedReaction } from '../lib/reactions';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
@@ -21,8 +22,7 @@ const photoLimiter = rateLimit({
   keyGenerator: (req: any) => req.userId ?? 'anonyme',
   message: { error: 'Trop de photos envoyées, réessaie plus tard.' },
 });
-// Réactions possibles (même liste que QUICK_EMOJIS de client/src/components/circles/CircleChat.tsx, 16 depuis le 2026-10-17)
-const ALLOWED_EMOJIS = new Set(['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥', '👏', '😍', '🤔', '😅', '👌', '💪', '🥳', '✅']);
+// Réactions possibles : lib/reactions.ts (communes à tous les chats)
 
 // Membre du Cercle, mode du chat et droit d'écrire
 async function context(userId: string, circleId: string) {
@@ -146,7 +146,7 @@ router.delete('/messages/:messageId', async (req: AuthRequest, res) => {
 // POST /api/circle-chat/messages/:messageId/reactions { emoji } — ajoute ou retire
 router.post('/messages/:messageId/reactions', async (req: AuthRequest, res) => {
   const emoji = req.body?.emoji;
-  if (typeof emoji !== 'string' || !ALLOWED_EMOJIS.has(emoji)) { res.status(400).json({ error: 'Réaction invalide' }); return; }
+  if (!isAllowedReaction(emoji)) { res.status(400).json({ error: 'Réaction invalide' }); return; }
   const message = await prisma.circleMessage.findUnique({ where: { id: req.params.messageId } });
   const ctx = message && await context(req.userId!, message.circleId);
   if (!message || !ctx || message.deletedAt) { res.status(404).json({ error: 'Message introuvable' }); return; }

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isAllowedReaction } from '../lib/reactions';
 import { visibleSince } from '../lib/planLifecycle';
 import { chatStateFor } from '../lib/circleChat';
 import { escapeHtml } from '../lib/escapeHtml';
@@ -1319,7 +1320,7 @@ router.post('/polls/:pollId/options', async (req: AuthRequest, res) => {
 });
 
 // ─── Chat du sondage ───────────────────────────────────────────────────────
-const pollMessageInclude = { author: { select: { id: true, pseudo: true } } };
+const pollMessageInclude = { author: { select: { id: true, pseudo: true } }, reactions: { select: { emoji: true, userId: true } } };
 
 router.get('/polls/:pollId/messages', async (req: AuthRequest, res) => {
   const access = await getVisiblePoll(req.params.pollId, req.userId!);
@@ -1397,6 +1398,28 @@ async function editPollMessage(req: AuthRequest, res: any, change: (text: string
   }
 }
 
+// POST /polls/messages/:messageId/reactions {emoji} — ajoute ou retire sa réaction (liste commune, lib/reactions.ts)
+router.post('/polls/messages/:messageId/reactions', async (req: AuthRequest, res) => {
+  const message = await prisma.circlePollMessage.findUnique({ where: { id: req.params.messageId } });
+  const access = message && await getVisiblePoll(message.pollId, req.userId!);
+  if (!message || !access || 'error' in access || message.deletedAt) { res.status(404).json({ error: 'Message introuvable' }); return; }
+  const emoji = req.body?.emoji;
+  if (!isAllowedReaction(emoji)) { res.status(400).json({ error: 'Réaction invalide' }); return; }
+  const key = { messageId_userId_emoji: { messageId: message.id, userId: req.userId!, emoji } };
+  if (await prisma.circlePollMessageReaction.findUnique({ where: key })) await prisma.circlePollMessageReaction.delete({ where: key });
+  else await prisma.circlePollMessageReaction.create({ data: { messageId: message.id, userId: req.userId!, emoji } }).catch(() => {});
+  const updated = withPlainContent(await prisma.circlePollMessage.findUniqueOrThrow({ where: { id: message.id }, include: pollMessageInclude }));
+  res.json(updated);
+  try {
+    const io = req.app.get('io');
+    for (const m of await pollAudience(message.pollId, access.poll.circleId)) {
+      io?.to(`user:${m.userId}`).emit('poll-message-updated', { pollId: message.pollId, message: updated });
+    }
+  } catch (e) {
+    console.error('[poll message reaction]', e);
+  }
+});
+
 router.put('/polls/messages/:messageId', (req: AuthRequest, res) =>
   editPollMessage(req, res, text => text ? { content: encryptMessage(text), editedAt: new Date() } : null));
 
@@ -1430,12 +1453,15 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }
 
-  const messages = await prisma.circlePollMessage.findMany({ where: { pollId: poll.id }, orderBy: { createdAt: 'asc' } });
+  const messages = await prisma.circlePollMessage.findMany({ where: { pollId: poll.id }, orderBy: { createdAt: 'asc' }, include: { reactions: true } });
   await prisma.$transaction([
-    prisma.message.createMany({
-      // Contenu recopié tel quel : déjà chiffré avec la même clé
-      data: messages.map(m => ({ content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt, editedAt: m.editedAt, deletedAt: m.deletedAt })),
-    }),
+    // Contenu recopié tel quel (déjà chiffré avec la même clé), réactions comprises
+    ...messages.map(m => prisma.message.create({
+      data: {
+        content: m.content, authorId: m.authorId, planId: result.plan.id, createdAt: m.createdAt, editedAt: m.editedAt, deletedAt: m.deletedAt,
+        reactions: { create: m.reactions.map(r => ({ emoji: r.emoji, userId: r.userId })) },
+      },
+    })),
     prisma.circlePoll.delete({ where: { id: poll.id } }),
   ]);
 

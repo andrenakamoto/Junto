@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { isAllowedReaction } from '../lib/reactions';
 import { isPlanEnded } from '../lib/planLifecycle';
 import { escapeHtml } from '../lib/escapeHtml';
 import { verifySessionToken } from '../middleware/auth';
@@ -266,7 +267,7 @@ export function setupSocketHandlers(io: Server) {
     });
 
     socket.on('toggle-reaction', async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
-      if (!emoji || emoji.length > 8) return;
+      if (!isAllowedReaction(emoji)) return;
       const message = await prisma.message.findUnique({ where: { id: messageId }, include: { plan: { select: { endDate: true } } } });
       if (!message || isPlanEnded(message.plan.endDate)) return;
       const member = await prisma.planMember.findUnique({
