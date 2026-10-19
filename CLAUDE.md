@@ -833,6 +833,16 @@ Junto/
   `VolunteerShift.reminderSentAt` anti-doublon, remis à zéro si l'horaire change ; texte avec le vrai délai
   (`shiftReminderText`). Plans récurrents : postes recopiés décalés, sans
   inscrits (`copyShifts`). Pas dans la démo.
+  **Commentaires et « Tâche terminée »** (2026-10-19, migration `20261022100000_shift_comments`) : table
+  **VolunteerShiftComment** (texte **chiffré** comme les messages, 500 caractères, `parseShiftComment`) ;
+  `VolunteerShift.doneAt` / `doneById` (relation `ShiftDoneBy`, SetNull). **Inscrits du poste et gestionnaires**
+  seulement (`canWorkOnShift`) : POST `/plans/shifts/:id/comments`, POST `/plans/shifts/:id/done {done}` (rouvrir avec
+  `false`) ; suppression d'un commentaire par son auteur ou un gestionnaire (DELETE `/plans/shifts/comments/:id`,
+  résolveur dans `realtime.ts`). Tout le monde qui voit le Plan lit les commentaires (GET /:id/shifts). Notification
+  `shift` (app + push, → `?tab=benevoles`, **sans le texte**) : commentaire → la personne qui a créé le poste
+  (`createdById`, sinon créateur du Plan) et les autres inscrits (`shiftCommentRecipients`) ; terminé → la personne qui
+  a créé le poste. Poste terminé : plus d'inscription (409), hors du résumé « Il manque… », carte verte, « Terminé »
+  dans le récapitulatif PDF (pas les commentaires). Fiche du guide mise à jour.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
