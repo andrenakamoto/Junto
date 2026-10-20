@@ -682,6 +682,8 @@ Junto/
   pastille du Cercle (bouton ambre avec le nombre de demandes) et dans un
   bloc ambre en tête de `PlanList`, au-dessus des sondages, affiché
   seulement s'il y a des demandes.
+  Depuis le 2026-10-20 : boutons écrits et écartés (« Refuser » à gauche, « Accepter » vert à droite ;
+  « Approuver » / « Approuvé » en mode vote) ; « Refuser » demande une confirmation, avec « Annuler » à sa place.
 - **Fenêtres « Créer un Plan » / « Modifier le Plan »** (refaites le 2026-10-13, `components/plans/PlanFormParts.tsx`) :
   l'essentiel en haut (titre, **date et heure de début** et **de fin** — deux champs distincts, **obligatoires**, la fin se
   remplit seule à début + 3 h tant qu'on ne l'a pas touchée, `DEFAULT_DURATION_MS` ; le début propose la date et l'heure
@@ -732,13 +734,22 @@ Junto/
     suppression du compte) trace l'auteur de chaque modification.
   - `Plan.importantInfoMode` (2026-10-04) : `creator` (défaut, créateur du Plan seul) ou
     `all` (tous les membres du Plan) — qui peut modifier **`Plan.importantInfo`**
-    (« Informations importantes », 500 caractères max, `parseImportantInfo` dans
+    (« Informations importantes », **5 000 caractères visibles** depuis le 2026-10-20, `parseImportantInfo` dans
     `lib/settings.ts`). **Indépendant d'`editMode`** (dates et lieu). Saisie possible à la
     création (`CreatePlanModal`), puis modification directe dans l'onglet Infos
     (`ImportantInfoCard`, encadré ambre juste après la description) via PUT
     `/plans/:id/important-info` : historique (`PlanChangeLog`, champ `importantInfo`),
     notification `plan_activity` `important_info_updated`, pastille Infos. Reprise dans
     l'email de rappel de la veille (texte échappé).
+  - **Mise en forme de la description et des informations importantes** (2026-10-20, `server/src/lib/richText.ts` testé, miroir
+    `client/src/lib/richText.tsx`) : le texte reste du texte, avec des repères posés par la barre de `RichTextArea` (boutons
+    Gras / Italique / Liste à puces / Liste numérotée) — `**gras**`, `_italique_` (« _ » non collé à une lettre : les pseudos
+    comme @nadia_f ne bougent pas), lignes `- …` et `1. …`. **Limites en caractères visibles** (repères non comptés,
+    `visibleLength`, texte brut plafonné à 2×) : **description 500** (`DESCRIPTION_MAX`, vérifiée à la création et seulement si
+    elle change au PUT : une ancienne description plus longue reste), **informations importantes 5 000**. Affichage `RichText`
+    (Infos, encadré ambre, fiche d'un non-membre, page d'invitation) ; e-mail de rappel `richTextToHtml` ; récapitulatif PDF gras
+    et listes (italique droit, pas de police italique d'Inter) ; **texte sans repères** (`stripFormatting`) sur les cartes, « En
+    bref », le résumé copié, l'agenda (.ics et écran natif). Les apps ≤ 1.0.22 affichent les repères tels quels.
 - **CirclePoll** / **CirclePollOption** / **CirclePollVote** : sondage pour
   caler une date *avant* de créer un Plan (contrairement à Poll qui
   appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
@@ -1795,6 +1806,9 @@ son Plan juste après avoir accepté l'invitation).
 
 - Toujours écrire les textes UI, messages de commit et communications en
   français.
+- **Formulaire incomplet** (2026-10-20) : jamais de bouton qui « ne fait rien ». Un champ manquant affiche un
+  message en rouge (`common.required.*` dans les dictionnaires, ou un texte d'explication sous un bouton grisé), et
+  l'erreur du serveur s'affiche aussi (`catch` → `err.response.data.error`).
 - Respecter le vocabulaire métier : Cercle, Plan, Membre, Créateur (jamais
   traduire ces termes).
 - Ne pas committer/pusher sans confirmation explicite. Une fois confirmé,

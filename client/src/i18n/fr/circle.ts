@@ -44,6 +44,9 @@ export default {
     refuse: 'Refuser',
     withdrawVote: 'Retirer mon vote',
     approve: 'Approuver',
+    confirmRefuse: 'Refuser @{{pseudo}} ?',
+    yesRefuse: 'Oui, refuser',
+    approved: 'Approuvé',
   },
   createPoll: {
     title: 'Proposer plusieurs dates',

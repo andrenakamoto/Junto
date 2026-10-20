@@ -45,6 +45,9 @@ const circle: Dict['circle'] = {
     refuse: 'Ablehnen',
     withdrawVote: 'Meine Stimme zurückziehen',
     approve: 'Zustimmen',
+    confirmRefuse: '@{{pseudo}} ablehnen?',
+    yesRefuse: 'Ja, ablehnen',
+    approved: 'Zugestimmt',
   },
   createPoll: {
     title: 'Mehrere Termine vorschlagen',
