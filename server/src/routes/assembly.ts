@@ -277,6 +277,8 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   const when = ctx.plan.eventDate ? zurichDate(ctx.plan.eventDate) : null;
   await notifyMembers(req, ctx, `📣 Convocation${when ? ` : ${when}` : ''} — ordre du jour et documents dans le Plan`);
   // Email : convocation officielle, même pour un Cercle en silence ; selon le canal choisi
+  // Retours à la ligne gardés comme dans l'app (les clients mail ignorent ceux du texte brut)
+  const multiline = (text: string) => escapeHtml(text.trim()).replace(/\r?\n/g, '<br>');
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
     where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null }, id: { not: req.userId } },
@@ -290,7 +292,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
     const place = ctx.plan.location;
     const vars = { name: u.firstName ?? u.pseudo, date: date ?? '', place: place ?? '' };
     const intro = m.t(date && place ? 'convocation.textWhenWhere' : date ? 'convocation.textWhen' : place ? 'convocation.textWhere' : 'convocation.text', vars);
-    const agenda = items.map(i => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? m.t('convocation.vote') : i.kind === 'election' ? m.t('convocation.election') : ''}${i.description ? `<br><span style="color:#64748b">${escapeHtml(i.description)}</span>` : ''}</li>`).join('');
+    const agenda = items.map(i => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? m.t('convocation.vote') : i.kind === 'election' ? m.t('convocation.election') : ''}${i.description ? `<br><span style="color:#64748b">${multiline(i.description)}</span>` : ''}</li>`).join('');
     resend.emails.send({
       from: FROM_EMAIL, to: u.email!,
       subject: m.s('convocation.subject', { plan: ctx.plan.title }),
