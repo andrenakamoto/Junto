@@ -65,6 +65,14 @@ const plan: Dict['plan'] = {
     },
     empty: 'Keine Änderungen gespeichert.',
   },
+  format: {
+    bold: 'Fett',
+    italic: 'Kursiv',
+    bullets: 'Aufzählung',
+    numbers: 'Nummerierte Liste',
+    sample: 'Text',
+    tooLong: '{{field}}: höchstens {{max}} Zeichen',
+  },
   importantInfo: {
     title: 'Wichtige Infos',
     saveError: 'Speichern nicht möglich',

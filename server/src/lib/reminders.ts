@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { richTextToHtml } from './richText';
 import { visibleSince } from './planLifecycle';
 import { parseLocale, type Locale } from './i18n';
 import { mail } from './emailText';
@@ -166,7 +167,7 @@ export async function sendPlanReminders() {
             <p>${when}</p>
             ${plan.importantInfo ? `<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;margin:16px 0">
               <p style="margin:0 0 6px;font-weight:600;color:#92400e">${m.t('reminder.important')}</p>
-              <p style="margin:0;white-space:pre-wrap;color:#1e293b">${escapeHtml(plan.importantInfo)}</p>
+              <div style="margin:0;color:#1e293b">${richTextToHtml(plan.importantInfo)}</div>
             </div>` : ''}
             ${shiftsBlock(u.id, m)}
             ${santaBlock(u.id, m)}

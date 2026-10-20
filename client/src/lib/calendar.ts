@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { stripFormatting } from './richText';
 import api from '../services/api';
 import { saveFile } from './saveFile';
 import { publicOrigin } from './siteUrl';
@@ -23,7 +24,7 @@ export async function addPlanToCalendar(plan: CalendarPlan): Promise<void> {
         startDate: start,
         endDate: end > start ? end : start + 2 * 60 * 60 * 1000,
         isAllDay: !plan.eventDate,
-        description: [plan.description?.trim(), link].filter(Boolean).join('\n\n'),
+        description: [plan.description?.trim() && stripFormatting(plan.description.trim()), link].filter(Boolean).join('\n\n'),
         url: link,
       });
       return;

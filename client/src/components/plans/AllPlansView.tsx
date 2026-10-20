@@ -8,6 +8,7 @@ import { sortPlans, sortPlansByActivity } from '../../lib/order';
 import { usePlanSort } from '../../lib/planSort';
 import { PlanSortToggle } from './PlanSortToggle';
 import { t } from '../../i18n';
+import { stripFormatting } from '../../lib/richText';
 import { shortDateTime } from '../../lib/dates';
 
 interface Props {
@@ -88,7 +89,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
                       </span>
                     )}
                   </div>
-                  {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{plan.description}</p>}
+                  {plan.description && <p className="text-slate-500 text-xs line-clamp-1 mb-2">{stripFormatting(plan.description)}</p>}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}</span>}
                     {!plan.membersHidden && <span className="flex items-center gap-1"><Users size={10} /><span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span></span>}

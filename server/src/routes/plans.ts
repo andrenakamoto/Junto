@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { DESCRIPTION_MAX, parseRichInput, stripFormatting } from '../lib/richText';
 import { canProposeToCircles, parseAllowCirclePlans, sourceCardFor } from '../lib/planSource';
 import { visibleSince } from '../lib/planLifecycle';
 import { lockEndedPlans, planRouterLock } from '../lib/planLifecycle';
@@ -386,7 +387,10 @@ router.put('/:id', async (req: AuthRequest, res) => {
     if (!title?.trim()) {
       res.status(400).json({ error: 'Titre requis' }); return;
     }
-    const newDescription = description?.trim() || '';
+    const newDescription = typeof description === 'string' ? description.trim() : '';
+    if (newDescription !== plan.description && parseRichInput(newDescription, DESCRIPTION_MAX) === undefined) {
+      res.status(400).json({ error: `Description : ${DESCRIPTION_MAX} caractères maximum` }); return;
+    }
     if (!endDate) {
       res.status(400).json({ error: 'Date de fin requise' }); return;
     }
@@ -836,7 +840,7 @@ router.put('/:id/important-info', async (req: AuthRequest, res) => {
     || (plan.importantInfoMode === 'all' && await assertPlanMember(req.userId!, plan.id));
   if (!allowed) { res.status(403).json({ error: 'Seul le créateur du Plan peut modifier ces informations' }); return; }
   const importantInfo = parseImportantInfo(req.body?.importantInfo);
-  if (importantInfo === undefined) { res.status(400).json({ error: `${IMPORTANT_INFO_MAX} caractères maximum` }); return; }
+  if (importantInfo === undefined) { res.status(400).json({ error: `Informations importantes : ${IMPORTANT_INFO_MAX} caractères maximum` }); return; }
   if (importantInfo !== plan.importantInfo) {
     await prisma.$transaction([
       prisma.plan.update({ where: { id: plan.id }, data: { importantInfo } }),
@@ -1072,7 +1076,7 @@ router.get('/:id/ical', async (req: AuthRequest, res) => {
     `DTSTART:${icsDate(start)}`,
     `DTEND:${icsDate(end)}`,
     `SUMMARY:${icsEscape(plan.title)}`,
-    `DESCRIPTION:${icsEscape(plan.description)}`,
+    `DESCRIPTION:${icsEscape(stripFormatting(plan.description))}`,
     ...(plan.location ? [`LOCATION:${icsEscape(plan.location)}`] : []),
     'END:VEVENT',
     'END:VCALENDAR',

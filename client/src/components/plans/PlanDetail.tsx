@@ -44,6 +44,7 @@ import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
+import { RichText } from '../../lib/richText';
 
 // Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
 function useIsPhone() {
@@ -885,7 +886,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         <div>
         {/* Membre : la description est dans l'onglet Infos. Sinon, elle reste ici pour décider de rejoindre. */}
         {!isMember && plan.description && (
-          <p className="text-sm text-slate-500 mt-0.5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
+          <RichText text={plan.description} className="text-sm text-slate-500 mt-0.5 leading-relaxed" />
         )}
 
         {/* Date de l'événement, répétition et date de suppression du Plan */}

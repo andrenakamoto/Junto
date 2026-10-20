@@ -163,7 +163,8 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Info, photos and files', summary: 'Important information, gallery, documents',
         body: <P>The <strong>Info</strong> section brings together the description, <strong>important information</strong>,
           files and the photo gallery. <strong>“Download all photos”</strong> gets everything at once (ZIP): do it before
-          the end date. 10 MB per file, 100 MB per Plan.</P>,
+          the end date. 10 MB per file, 100 MB per Plan. The description (500 characters) and important information (5,000
+          characters) can be formatted with the buttons above the field: <strong>bold</strong>, <em>italic</em>, bulleted or numbered lists.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Votes: poll, Match, Whose turn?', summary: 'Three ways to decide together',

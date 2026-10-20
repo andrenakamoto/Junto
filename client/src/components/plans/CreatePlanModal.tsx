@@ -10,7 +10,7 @@ import { MembersVisibility } from '../../lib/settings';
 import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { AlertTriangle, Layers, Lock, Megaphone, Puzzle, Repeat, Users } from 'lucide-react';
-import { IMPORTANT_INFO_MAX } from './ImportantInfoCard';
+import { DESCRIPTION_MAX, IMPORTANT_INFO_MAX, RichTextArea, stripFormatting, visibleLength } from '../../lib/richText';
 import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
@@ -76,6 +76,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     e.preventDefault();
     if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
     if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
+    if (visibleLength(description) > DESCRIPTION_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.description'), max: DESCRIPTION_MAX })); return; }
+    if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
     setLoading(true);
     setError('');
     const payload = {
@@ -126,25 +128,13 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
         <Input label={t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-slate-700">{t('plan.form.description')}</label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder={t('plan.form.descriptionPlaceholder')}
-            rows={2}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
-          />
+          <RichTextArea value={description} onChange={setDescription} max={DESCRIPTION_MAX} rows={2} placeholder={t('plan.form.descriptionPlaceholder')} />
         </div>
 
         <OptionsBox>
           <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
-            summary={importantInfo.trim() ? importantInfo.trim().split('\n')[0] : t('plan.form.sum.none')}>
-            <textarea
-              value={importantInfo}
-              onChange={e => setImportantInfo(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
-              placeholder={t('plan.form.importantInfoPlaceholder')}
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 bg-white resize-none text-sm"
-            />
+            summary={importantInfo.trim() ? stripFormatting(importantInfo.trim()).split('\n')[0] : t('plan.form.sum.none')}>
+            <RichTextArea value={importantInfo} onChange={setImportantInfo} max={IMPORTANT_INFO_MAX} rows={4} placeholder={t('plan.form.importantInfoPlaceholder')} />
           </OptionRow>
           <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
             summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>

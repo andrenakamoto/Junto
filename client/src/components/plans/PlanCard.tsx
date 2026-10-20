@@ -5,6 +5,7 @@ import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { isPlanFull, occupiedPlaces, placesLeft as placesLeftOf, waitlistPosition } from '../../lib/places';
 import { t } from '../../i18n';
+import { stripFormatting } from '../../lib/richText';
 import { shortDateTime } from '../../lib/dates';
 
 interface Props {
@@ -84,7 +85,7 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
         </span>
       </div>
 
-      {plan.description && <p className="text-slate-500 text-xs line-clamp-3 whitespace-pre-line break-words mb-2.5">{plan.description}</p>}
+      {plan.description && <p className="text-slate-500 text-xs line-clamp-3 whitespace-pre-line break-words mb-2.5">{stripFormatting(plan.description)}</p>}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
         {date && <span className="flex items-center gap-1"><Calendar size={10} />{date}{plan.recurrence && <Repeat size={10} className="ml-0.5 text-slate-400" aria-label={t('plan.card.repeats')} />}</span>}

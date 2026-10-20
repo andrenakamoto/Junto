@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { IMPORTANT_INFO_MAX, parseRichInput } from './richText';
 
 
 // Paramètres avancés des Cercles et des Plans (associations, entreprises…).
@@ -55,19 +56,17 @@ export function parseEditMode(v: unknown): string | undefined {
 
 // Informations importantes d'un Plan (affichées après la description) : qui peut les modifier,
 // réglage distinct d'editMode — 'creator' (créateur du Plan) ou 'all' (tous les participants)
-export const IMPORTANT_INFO_MAX = 500;
+export { IMPORTANT_INFO_MAX } from './richText';
 
 export function parseImportantInfoMode(v: unknown): string | undefined {
   return parseEditMode(v);
 }
 
-// Texte des informations importantes : vide → null ; undefined si trop long
+// Texte des informations importantes (mis en forme, lib/richText.ts) : vide → null ; undefined si trop long
+// (IMPORTANT_INFO_MAX caractères visibles, repères de mise en forme non comptés)
 export function parseImportantInfo(v: unknown): string | null | undefined {
-  if (v === null || v === undefined) return null;
-  if (typeof v !== 'string') return undefined;
-  const text = v.trim();
-  if (text.length > IMPORTANT_INFO_MAX) return undefined;
-  return text || null;
+  const text = parseRichInput(v, IMPORTANT_INFO_MAX);
+  return text === undefined ? undefined : (text || null);
 }
 
 // Qui peut créer des Plans, et séparément des sondages de dates, dans un Cercle :

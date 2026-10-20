@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Pencil, Pin, Plus } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
-import { renderContent } from '../chat/ChatMessage';
+import { IMPORTANT_INFO_MAX, RichText, RichTextArea, visibleLength } from '../../lib/richText';
 import { t } from '../../i18n';
 
-export const IMPORTANT_INFO_MAX = 500;
+export { IMPORTANT_INFO_MAX } from '../../lib/richText';
 
 // Informations importantes du Plan (après la description) : code d'entrée, documents à
 // prendre, heure de départ… Modifiables par le créateur, ou par tous les participants selon
@@ -45,18 +45,10 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
           <Pin size={15} className="text-amber-600" />
           {t('plan.importantInfo.title')}
         </div>
-        <textarea
-          autoFocus
-          value={text}
-          onChange={e => setText(e.target.value.slice(0, IMPORTANT_INFO_MAX))}
-          rows={4}
-          placeholder={t('plan.importantInfo.placeholder')}
-          className="w-full px-3 py-2 rounded-lg border border-amber-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
-        />
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-amber-700/70 mr-auto">{text.length}/{IMPORTANT_INFO_MAX}</span>
+        <RichTextArea autoFocus value={text} onChange={setText} max={IMPORTANT_INFO_MAX} rows={7} placeholder={t('plan.importantInfo.placeholder')} />
+        <div className="flex items-center gap-2 justify-end">
           <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50">{t('common.cancel')}</button>
-          <button onClick={save} disabled={saving} className="px-3 py-1.5 text-sm rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50">
+          <button onClick={save} disabled={saving || visibleLength(text) > IMPORTANT_INFO_MAX} className="px-3 py-1.5 text-sm rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50">
             {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
@@ -88,7 +80,7 @@ export function ImportantInfoCard({ plan, userId, onChanged }: { plan: Plan; use
           </button>
         )}
       </div>
-      <p className="text-slate-800 text-sm pl-5 leading-relaxed whitespace-pre-line break-words">{renderContent(plan.importantInfo, false)}</p>
+      <RichText text={plan.importantInfo} className="text-slate-800 text-sm pl-5 leading-relaxed" />
     </div>
   );
 }

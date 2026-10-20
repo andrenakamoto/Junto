@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { stripFormatting } from '../lib/richText';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { canSeeMembers } from '../lib/memberPrivacy';
@@ -53,7 +54,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
   res.json({
     plan: {
       id: plan.id, title: plan.title, eventDate: plan.eventDate, endDate: plan.endDate, location: plan.location,
-      importantInfo: plan.importantInfo?.split('\n').map(l => l.trim()).find(Boolean) ?? null,
+      importantInfo: plan.importantInfo ? stripFormatting(plan.importantInfo).split('\n').map(l => l.trim()).find(Boolean) ?? null : null,
     },
     myRsvp: me.rsvp,
     // Liste des participants réservée (Mode annonce) : pas de nombre, sauf les places d'un Plan limité

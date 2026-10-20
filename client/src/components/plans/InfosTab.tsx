@@ -9,6 +9,7 @@ import { ImportantInfoCard } from './ImportantInfoCard';
 import { downloadPlanPhotos } from '../../lib/planPhotos';
 import { isVoiceNote } from '../../lib/media';
 import { intlLocale, t } from '../../i18n';
+import { RichText } from '../../lib/richText';
 
 interface Props {
   plan: Plan;
@@ -137,7 +138,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
             <AlignLeft size={15} className="text-indigo-500" />
             {t('plan.infos.description')}
           </div>
-          <p className="text-slate-600 text-sm pl-5 leading-relaxed whitespace-pre-line break-words">{plan.description}</p>
+          <RichText text={plan.description} className="text-slate-600 text-sm pl-5 leading-relaxed" />
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DESCRIPTION_MAX, RichTextArea, visibleLength } from '../../lib/richText';
 import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -58,6 +59,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
     e.preventDefault();
     if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
     if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
+    // Une description déjà plus longue (créée avant la limite) reste acceptée tant qu'on n'y touche pas
+    if (description !== plan.description && visibleLength(description) > DESCRIPTION_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.description'), max: DESCRIPTION_MAX })); return; }
     setLoading(true);
     setError('');
     try {
@@ -114,12 +117,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.description')}</label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={2}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 resize-none text-sm"
-          />
+          <RichTextArea value={description} onChange={setDescription} max={DESCRIPTION_MAX} rows={3} />
           <p className="text-xs text-slate-400 mt-1">{t('plan.form.descriptionUpdated')}</p>
         </div>
         </>}

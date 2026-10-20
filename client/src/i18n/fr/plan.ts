@@ -64,6 +64,14 @@ export default {
     },
     empty: 'Aucune modification enregistrée.',
   },
+  format: {
+    bold: 'Gras',
+    italic: 'Italique',
+    bullets: 'Liste à puces',
+    numbers: 'Liste numérotée',
+    sample: 'texte',
+    tooLong: '{{field}} : {{max}} caractères maximum',
+  },
   importantInfo: {
     title: 'Informations importantes',
     saveError: 'Impossible d’enregistrer',

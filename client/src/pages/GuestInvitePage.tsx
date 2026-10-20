@@ -8,6 +8,7 @@ import { TermsModal } from '../components/ui/TermsModal';
 import { savePendingInvite, clearPendingInvite } from '../lib/pendingInvite';
 import { getLightToken, setLightToken, clearLightToken } from '../lib/lightGuest';
 import { intlLocale, t } from '../i18n';
+import { RichText } from '../lib/richText';
 import { Trans } from 'react-i18next';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 
@@ -300,7 +301,7 @@ function PlanSummary({ preview }: { preview: PublicPreview }) {
         )}
       </div>
       {preview.description && (
-        <p className="text-sm text-slate-300 whitespace-pre-line line-clamp-6 bg-slate-900/50 rounded-xl p-3 border border-slate-700/40">{preview.description}</p>
+        <RichText text={preview.description} className="text-sm text-slate-300 bg-slate-900/50 rounded-xl p-3 border border-slate-700/40" />
       )}
     </div>
   );

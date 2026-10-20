@@ -1,4 +1,5 @@
 import path from 'path';
+import { parseRichText, stripFormatting } from './richText';
 import { escapeHtml } from './escapeHtml';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
@@ -129,18 +130,32 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   const para = (text: string, color = INK) => doc.font('regular').fontSize(10).fillColor(color).text(text, { width, lineGap: 1.5 });
   const sub = (text: string) => { if (doc.y > doc.page.height - 110) doc.addPage(); doc.moveDown(0.3).font('semibold').fontSize(10).fillColor(INK).text(text, { width }); };
 
-  if (plan.description?.trim()) { section(m.s('recapPdf.description')); para(plan.description.trim()); }
+  // Texte mis en forme (lib/richText.ts) : gras et listes ; l'italique reste droit (pas de police italique d'Inter)
+  const richPara = (text: string, color: string, x: number, w: number) => {
+    for (const line of parseRichText(text)) {
+      const prefix = line.kind === 'bullet' ? '•  ' : line.kind === 'number' ? `${line.number}.  ` : '';
+      const parts = [{ text: prefix, bold: false }, ...line.parts].filter(p => p.text);
+      doc.x = x;
+      if (parts.length === 0) { doc.font('regular').fontSize(10).moveDown(0.6); continue; }
+      parts.forEach((p, i) => doc.font(p.bold ? 'semibold' : 'regular').fontSize(10).fillColor(color)
+        .text(p.text, { width: w, lineGap: 1.5, continued: i < parts.length - 1 }));
+    }
+    doc.x = left;
+  };
+
+  if (plan.description?.trim()) { section(m.s('recapPdf.description')); richPara(plan.description.trim(), INK, left, width); }
 
   if (plan.importantInfo?.trim()) {
     section(m.s('recapPdf.important'));
     const text = plan.importantInfo.trim();
     doc.font('regular').fontSize(10);
-    const h = doc.heightOfString(text, { width: width - 20, lineGap: 1.5 }) + 16;
+    const h = doc.heightOfString(stripFormatting(text), { width: width - 20, lineGap: 1.5 }) + 20;
     if (doc.y + h > doc.page.height - doc.page.margins.bottom) doc.addPage();
     const y = doc.y;
     doc.roundedRect(left, y, width, h, 6).fillColor(AMBER_BG).fill();
-    doc.fillColor(AMBER).text(text, left + 10, y + 8, { width: width - 20, lineGap: 1.5 });
-    doc.x = left; doc.y = y + h;
+    doc.y = y + 8;
+    richPara(text, AMBER, left + 10, width - 20);
+    doc.x = left; doc.y = Math.max(doc.y, y + h);
   }
 
   // Participants, par réponse

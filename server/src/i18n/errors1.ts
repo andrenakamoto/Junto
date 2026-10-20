@@ -157,6 +157,7 @@ export const ERRORS_1: Record<string, [string, string, string]> = {
   'Indique le titre du point': ['Gib den Titel des Traktandums an', 'Indica il titolo del punto', 'Enter the item’s title'],
   'Indique ton prénom (30 caractères maximum)': ['Gib deinen Vornamen an (höchstens 30 Zeichen)', 'Indica il tuo nome (al massimo 30 caratteri)', 'Enter your first name (30 characters at most)'],
   'Indique un pseudo ou un email': ['Gib ein Pseudonym oder eine E-Mail an', 'Indica uno pseudonimo o un’email', 'Enter a username or an email'],
+  'Description : {0} caractères maximum': ['Beschreibung: höchstens {0} Zeichen', 'Descrizione: al massimo {0} caratteri', 'Description: {0} characters at most'],
   'Informations importantes : {0} caractères maximum': ['Wichtige Infos: höchstens {0} Zeichen', 'Informazioni importanti: al massimo {0} caratteri', 'Important information: {0} characters at most'],
   'Invitation introuvable': ['Einladung nicht gefunden', 'Invito non trovato', 'Invitation not found'],
   'Item introuvable': ['Eintrag nicht gefunden', 'Elemento non trovato', 'Item not found'],

@@ -171,7 +171,8 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Infos, Fotos und Dateien', summary: 'Wichtige Infos, Galerie, Dokumente',
         body: <P>Der Bereich <strong>Infos</strong> vereint Beschreibung, <strong>wichtige Infos</strong>, Dateien und
           Fotogalerie. <strong>«Alle Fotos herunterladen»</strong> holt alles auf einmal (ZIP): Mach das vor dem Enddatum.
-          10 MB pro Datei, 100 MB pro Plan.</P>,
+          10 MB pro Datei, 100 MB pro Plan. Beschreibung (500 Zeichen) und wichtige Infos (5000 Zeichen) lassen sich mit den
+          Schaltflächen über dem Feld formatieren: <strong>fett</strong>, <em>kursiv</em>, Aufzählungen oder nummerierte Listen.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Abstimmen: Umfrage, Match, Wer ist dran?', summary: 'Drei Arten, gemeinsam zu entscheiden',

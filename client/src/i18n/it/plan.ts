@@ -65,6 +65,14 @@ const plan: Dict['plan'] = {
     },
     empty: 'Nessuna modifica registrata.',
   },
+  format: {
+    bold: 'Grassetto',
+    italic: 'Corsivo',
+    bullets: 'Elenco puntato',
+    numbers: 'Elenco numerato',
+    sample: 'testo',
+    tooLong: '{{field}}: al massimo {{max}} caratteri',
+  },
   importantInfo: {
     title: 'Informazioni importanti',
     saveError: 'Impossibile salvare',

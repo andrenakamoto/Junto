@@ -165,7 +165,9 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Infos, photos et fichiers', summary: 'Informations importantes, galerie, documents',
         body: <P>L'onglet <strong>Infos</strong> regroupe la description, les <strong>informations importantes</strong>, les
           fichiers et la galerie photo. <strong>« Télécharger toutes les photos »</strong> récupère tout d'un coup (ZIP) : pense
-          à le faire avant la date de fin. 10 Mo par fichier, 100 Mo par Plan.</P>,
+          à le faire avant la date de fin. 10 Mo par fichier, 100 Mo par Plan. La description (500 caractères) et les informations
+          importantes (5 000 caractères) se mettent en forme avec les boutons au-dessus du champ : <strong>gras</strong>,
+          <em>italique</em>, listes à puces ou numérotées.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Votes : sondage, Match, Qui s’y colle ?', summary: 'Trois façons de décider ensemble',

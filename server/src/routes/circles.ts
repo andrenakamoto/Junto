@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { DESCRIPTION_MAX, parseRichInput } from '../lib/richText';
 import { isAllowedReaction } from '../lib/reactions';
 import { visibleSince } from '../lib/planLifecycle';
 import { chatStateFor } from '../lib/circleChat';
@@ -799,11 +800,13 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
   const exclusions = excl.ids;
   const source = await checkSourcePlan(creatorId, input.sourcePlanId, circleId);
   if (source && 'error' in source) return { error: source.error };
+  const cleanDescription = parseRichInput(description, DESCRIPTION_MAX);
+  if (cleanDescription === undefined) return { error: `Description : ${DESCRIPTION_MAX} caractères maximum` };
 
   const plan = await prisma.plan.create({
     data: {
       title: title.trim(),
-      description: description?.trim() || '',
+      description: cleanDescription,
       eventDate: parsedEventDate,
       endDate: parsedEndDate,
       location: location?.trim() || null,
