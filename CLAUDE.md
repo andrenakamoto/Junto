@@ -447,6 +447,9 @@ Conséquences pratiques :
     **Version 1.0.22** (2026-10-19) : Android `versionCode` 24 (`evly-1.0.22-(24).aab`), iOS build 26 envoyé — commentaires et
     « Tâche terminée » du planning, 16 réactions dans tous les chats (sondages compris), liste des Cercles avec tri Activité / Date,
     recherche et boutons compacts, lien de la brochure professionnels.
+    **Version 1.0.23** (2026-10-20) : Android `versionCode` 25 (`evly-1.0.23-(25).aab`), iOS build 27 envoyé — mise en forme de la
+    description et des informations importantes (5 000 caractères), messages quand un champ manque, boutons Accepter / Refuser
+    des demandes d'adhésion écartés (refus confirmé), convocation à l'assemblée avec retours à la ligne.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
