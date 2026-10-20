@@ -122,6 +122,7 @@ const games: Dict['games'] = {
     resetConfirm: 'Ricominciare tutto? Missioni e punti vengono cancellati (le impostazioni restano).',
   },
   teams: {
+    needTwo: 'Servono almeno 2 partecipanti.',
     title: 'Squadre',
     intro: 'Sorteggio delle squadre tra i «Ci sono», poi un torneo se volete: campionato o eliminazione diretta.',
     youPlayIn: 'Giochi nella squadra {{name}}',

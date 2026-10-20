@@ -158,6 +158,7 @@ function DrawSettings({ s, planId, run }: { s: TeamsState; planId: string; run: 
       >
         <Shuffle size={18} /> {s.drawn ? t('games.teams.redraw') : t('games.teams.draw')}
       </button>
+      {s.participants.length < 2 && <p className="text-xs text-slate-500 text-center">{t('games.teams.needTwo')}</p>}
       {s.drawn && <button onClick={() => setOpen(false)} className="w-full text-sm text-slate-500">{t('games.teams.closeSettings')}</button>}
     </div>
   );

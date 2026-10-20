@@ -242,7 +242,7 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
   const chosen = match.results?.find(r => r.id === match.chosenOptionId);
 
   async function addOption() {
-    if (!draft.label.trim()) return;
+    if (!draft.label.trim()) { setError(t('common.required.proposal')); return; }
     setError('');
     try { await api.post(`/plans/matches/${match.id}/options`, toPayload(draft)); setDraft(emptyOption()); setAdding(false); onChanged(); }
     catch (err: any) { setError(err?.response?.data?.error || t('common.retryError')); }

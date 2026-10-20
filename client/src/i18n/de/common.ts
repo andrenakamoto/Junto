@@ -1,6 +1,19 @@
 import type { Dict } from '../fr';
 
 const common: Dict['common'] = {
+  required: {
+    question: 'Schreib die Frage.',
+    twoOptions: 'Füge mindestens zwei Antworten hinzu.',
+    twoDates: 'Schlag mindestens zwei Termine vor.',
+    oneDate: 'Wähle mindestens einen Termin.',
+    expenseDescription: 'Gib an, was bezahlt wurde.',
+    amount: 'Gib den Betrag an.',
+    splitWith: 'Wähle mindestens eine Person, mit der die Ausgabe geteilt wird.',
+    proposal: 'Schreib den Vorschlag.',
+    title: 'Gib deinem Ausflug einen Titel.',
+    when: 'Wähle Datum und Uhrzeit.',
+    quizOptions: 'Fülle jede Antwort aus oder entferne die leeren.',
+  },
   retryError: 'Fehler, versuch es gleich nochmal',
   networkError: 'Netzwerkfehler, versuch es gleich nochmal',
   save: 'Speichern',

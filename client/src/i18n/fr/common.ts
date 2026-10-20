@@ -1,5 +1,19 @@
 // Mots et messages partagés par tout l'app
 export default {
+  // Champs manquants : message affiché au lieu d'un bouton qui ne fait rien
+  required: {
+    question: 'Écris la question.',
+    twoOptions: 'Ajoute au moins deux réponses.',
+    twoDates: 'Propose au moins deux dates.',
+    oneDate: 'Choisis au moins une date.',
+    expenseDescription: 'Indique ce qui a été payé.',
+    amount: 'Indique le montant.',
+    splitWith: 'Choisis au moins une personne pour partager la dépense.',
+    proposal: 'Écris la proposition.',
+    title: 'Donne un titre à ta sortie.',
+    when: 'Choisis la date et l’heure.',
+    quizOptions: 'Remplis chaque réponse, ou retire celles qui sont vides.',
+  },
   retryError: 'Erreur, réessaie dans un instant',
   networkError: 'Erreur réseau, réessaie dans un instant',
   save: 'Enregistrer',

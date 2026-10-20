@@ -121,6 +121,7 @@ export default {
     resetConfirm: 'Tout recommencer ? Missions et points sont effacés (les réglages restent).',
   },
   teams: {
+    needTwo: 'Il faut au moins 2 participants.',
     title: 'Équipes',
     intro: 'Tirage au sort des équipes parmi les « Je suis in », puis tournoi si vous voulez : championnat ou élimination directe.',
     youPlayIn: 'Tu joues chez les {{name}}',

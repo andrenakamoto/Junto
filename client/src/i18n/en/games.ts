@@ -122,6 +122,7 @@ const games: Dict['games'] = {
     resetConfirm: 'Start over? Missions and points are erased (settings stay).',
   },
   teams: {
+    needTwo: 'You need at least 2 participants.',
     title: 'Teams',
     intro: 'Random team draw among those who are “in”, then a tournament if you like: league or knockout.',
     youPlayIn: 'You play for the {{name}}',

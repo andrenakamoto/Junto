@@ -415,6 +415,8 @@ function QuestionModal({ plan, question, onClose, onSaved }: { plan: Plan; quest
     setUploading(false);
   }
   async function save() {
+    if (!text.trim()) { setError(t('common.required.question')); return; }
+    if (options.some(o => !o.trim())) { setError(t('common.required.quizOptions')); return; }
     setBusy(true); setError('');
     const body = { text, options, correctIndex: correct, attachmentId: photo };
     try {
@@ -458,7 +460,7 @@ function QuestionModal({ plan, question, onClose, onSaved }: { plan: Plan; quest
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
-        <button onClick={save} disabled={busy || uploading || !text.trim() || options.some(o => !o.trim())} className="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{busy ? t('common.wait') : t('common.save')}</button>
+        <button onClick={save} disabled={busy || uploading} className="w-full py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{busy ? t('common.wait') : t('common.save')}</button>
       </div>
     </Modal>
   );

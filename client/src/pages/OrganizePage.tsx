@@ -77,7 +77,8 @@ export function OrganizePage() {
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !when) return;
+    if (!title.trim()) { setError(t('common.required.title')); return; }
+    if (!when) { setError(t('common.required.when')); return; }
     setSending(true);
     setError('');
     try {

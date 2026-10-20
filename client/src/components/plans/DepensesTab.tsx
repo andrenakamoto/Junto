@@ -32,6 +32,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
   const [currency, setCurrency] = useState<Currency>('CHF');
   const [splitWith, setSplitWith] = useState<string[]>(members.map(m => m.userId));
   const [creating, setCreating] = useState(false);
+  const [addError, setAddError] = useState('');
   const [settling, setSettling] = useState<string | null>(null);
 
   async function refresh() {
@@ -46,11 +47,15 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
   function openForm() {
     setSplitWith(members.map(m => m.userId));
     setCurrency(data?.defaultCurrency ?? 'CHF');
+    setAddError('');
     setShowAdd(true);
   }
 
   async function handleAddExpense() {
-    if (!description.trim() || !amount || splitWith.length === 0) return;
+    if (!description.trim()) { setAddError(t('common.required.expenseDescription')); return; }
+    if (!amount || !(Number(amount) > 0)) { setAddError(t('common.required.amount')); return; }
+    if (splitWith.length === 0) { setAddError(t('common.required.splitWith')); return; }
+    setAddError('');
     setCreating(true);
     try {
       await api.post(`/plans/${planId}/expenses`, { description: description.trim(), amount, currency, splitWith });
@@ -58,6 +63,8 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
       setAmount('');
       setShowAdd(false);
       await refresh();
+    } catch (err: any) {
+      setAddError(err?.response?.data?.error || t('common.retryError'));
     } finally {
       setCreating(false);
     }
@@ -163,8 +170,9 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
               </p>
             )}
           </div>
+          {addError && <p className="text-sm text-red-600">{addError}</p>}
           <div className="flex gap-2">
-            <Button onClick={handleAddExpense} disabled={creating || splitWith.length === 0} size="sm">{creating ? t('plan.expenses.adding') : t('common.add')}</Button>
+            <Button onClick={handleAddExpense} disabled={creating} size="sm">{creating ? t('plan.expenses.adding') : t('common.add')}</Button>
             <Button variant="ghost" onClick={() => setShowAdd(false)} size="sm">{t('common.cancel')}</Button>
           </div>
         </div>

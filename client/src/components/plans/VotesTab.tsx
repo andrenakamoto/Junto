@@ -20,6 +20,7 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
   const [options, setOptions] = useState(['', '']);
   const [anonymous, setAnonymous] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
   // Matchs de groupe (à côté des sondages) ; rechargés à chaque mise à jour du Plan (temps réel)
   const [matches, setMatches] = useState<Match[]>([]);
   const [createMatch, setCreateMatch] = useState(false);
@@ -45,7 +46,9 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
 
   async function handleCreate() {
     const valid = options.filter(o => o.trim());
-    if (!question.trim() || valid.length < 2) return;
+    if (!question.trim()) { setCreateError(t('common.required.question')); return; }
+    if (valid.length < 2) { setCreateError(t('common.required.twoOptions')); return; }
+    setCreateError('');
     setCreating(true);
     try {
       await api.post(`/plans/${plan.id}/polls`, { question: question.trim(), options: valid, anonymous });
@@ -54,6 +57,8 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
       setQuestion('');
       setOptions(['', '']);
       setAnonymous(false);
+    } catch (err: any) {
+      setCreateError(err?.response?.data?.error || t('common.retryError'));
     } finally {
       setCreating(false);
     }
@@ -116,9 +121,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
             <input type="checkbox" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} className="rounded" />
             {t('votes.anonymous')}
           </label>
+          {createError && <p className="text-sm text-red-600">{createError}</p>}
           <div className="flex gap-2 pt-1">
             <Button onClick={handleCreate} disabled={creating} size="sm">{creating ? t('common.creating') : t('votes.create')}</Button>
-            <Button variant="ghost" onClick={() => setShowCreate(false)} size="sm">{t('common.cancel')}</Button>
+            <Button variant="ghost" onClick={() => { setShowCreate(false); setCreateError(''); }} size="sm">{t('common.cancel')}</Button>
           </div>
         </div>
       ) : createMatch ? (

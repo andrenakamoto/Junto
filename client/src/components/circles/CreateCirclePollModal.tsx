@@ -42,7 +42,8 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const validDates = dates.filter(d => d.trim());
-    if (!question.trim() || validDates.length < 2) return;
+    if (!question.trim()) { setError(t('common.required.question')); return; }
+    if (validDates.length < 2) { setError(t('common.required.twoDates')); return; }
     setCreating(true);
     setError('');
     try {

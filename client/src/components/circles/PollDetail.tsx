@@ -128,7 +128,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
 
   async function addDates() {
     const valid = (newDates ?? []).filter(Boolean);
-    if (!valid.length) return;
+    if (!valid.length) { setAddError(t('common.required.oneDate')); return; }
     setBusy(true); setAddError('');
     try {
       const { data } = await api.post(`/circles/polls/${pollId}/options`, { options: valid.map(d => ({ label: formatOptionLabel(d), eventDate: localDateTimeToISO(d) })) });
