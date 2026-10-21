@@ -450,6 +450,9 @@ Conséquences pratiques :
     **Version 1.0.23** (2026-10-20) : Android `versionCode` 25 (`evly-1.0.23-(25).aab`), iOS build 27 envoyé — mise en forme de la
     description et des informations importantes (5 000 caractères), messages quand un champ manque, boutons Accepter / Refuser
     des demandes d'adhésion écartés (refus confirmé), convocation à l'assemblée avec retours à la ligne.
+    **Version 1.0.24** (2026-10-21) : Android `versionCode` 26 (`evly-1.0.24-(26).aab`), iOS build 28 envoyé — « Mes contacts » (fiche
+    d'une personne, inviter depuis ses contacts), bandeau « Pas de connexion » (plus de déconnexion sans réseau), total et date des
+    dépenses, souligné dans la mise en forme.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
