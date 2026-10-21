@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { parseThreshold } from '../lib/availability';
 import { DESCRIPTION_MAX, parseRichInput } from '../lib/richText';
 import { isAllowedReaction } from '../lib/reactions';
 import { visibleSince } from '../lib/planLifecycle';
@@ -122,6 +123,25 @@ router.get('/', async (req: AuthRequest, res) => {
     const pending = mine.filter(p => p.declines.length === 0 && !p.options.some(o => o.votes.length > 0));
     return { pollCount: mine.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })) };
   };
+  // « Dispo » : nombre de personnes libres et premiers pseudos (carte du Cercle)
+  const dispo = new Map<string, { count: number; pseudos: string[] }>();
+  const dispoCircles = circles.filter(c => !c.isPersonal && c.availabilityEnabled);
+  if (dispoCircles.length) {
+    const [rows, blocks] = await Promise.all([
+      prisma.availability.findMany({
+        where: { circleId: { in: dispoCircles.map(c => c.id) }, expiresAt: { gt: now } },
+        orderBy: { createdAt: 'asc' },
+        select: { circleId: true, userId: true, user: { select: { pseudo: true } } },
+      }),
+      prisma.userBlock.findMany({ where: { blockerId: req.userId! }, select: { blockedId: true } }),
+    ]);
+    const hidden = new Set(blocks.map(b => b.blockedId));
+    for (const c of dispoCircles) {
+      const memberIds = new Set(c.members.map(m => m.userId));
+      const mine = rows.filter(r => r.circleId === c.id && memberIds.has(r.userId) && !hidden.has(r.userId));
+      if (mine.length) dispo.set(c.id, { count: mine.length, pseudos: mine.slice(0, 5).map(r => r.user.pseudo) });
+    }
+  }
   // Le Cercle le plus récemment actif en premier
   res.json(sortCirclesByActivity(circles.map(c => ({ ...c, lastActivityAt: new Date(last.get(c.id) ?? 0).toISOString() })))
     .map(c => {
@@ -131,6 +151,7 @@ router.get('/', async (req: AuthRequest, res) => {
       return {
         ...c, hasUnseen: circlesWithNews.has(c.id), ...pollInfo(c.id),
         chatUnseen: chat.get(c.id)?.unseen ?? false, chatLast: chat.get(c.id)?.last ?? null,
+        dispo: dispo.get(c.id) ?? null,
         _count: { ...c._count, plans: mine.length },
         plans: next ? [{ id: next.id, title: next.title, eventDate: next.eventDate, endDate: next.endDate }] : [],
       };
@@ -173,6 +194,8 @@ router.post('/', async (req: AuthRequest, res) => {
       admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
       // Ancienne app (sans discussion) : rien n'est envoyé → désactivée
       chatMode: parseChatMode(req.body.chatMode) ?? 'off',
+      // « Dispo » : activée par défaut (aussi pour les anciennes apps qui n'envoient rien)
+      availabilityEnabled: typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : true,
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -261,6 +284,9 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   const pollCreationMode = req.body.pollCreationMode === undefined ? undefined : parsePollCreationMode(req.body.pollCreationMode);
   const chatMode = req.body.chatMode === undefined ? undefined : parseChatMode(req.body.chatMode);
   if (chatMode === undefined && req.body.chatMode !== undefined) { res.status(400).json({ error: 'Mode de discussion invalide' }); return; }
+  const availabilityEnabled = typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : undefined;
+  const availabilityThreshold = req.body.availabilityThreshold === undefined ? undefined : parseThreshold(req.body.availabilityThreshold);
+  if (availabilityThreshold === undefined && req.body.availabilityThreshold !== undefined) { res.status(400).json({ error: 'Seuil invalide (entre 2 et 10 personnes)' }); return; }
   const description = typeof req.body.description === 'string' ? req.body.description.trim().slice(0, 500) : undefined;
   const name = typeof req.body.name === 'string' ? req.body.name.trim() : undefined;
   if (name !== undefined && (name.length < 1 || name.length > CIRCLE_NAME_MAX)) {
@@ -275,8 +301,11 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
 
   await prisma.circle.update({
     where: { id: circle.id },
-    data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(chatMode && { chatMode }), ...(description !== undefined && { description: description || null }) },
+    data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(chatMode && { chatMode }), ...(description !== undefined && { description: description || null }),
+      ...(availabilityEnabled !== undefined && { availabilityEnabled }), ...(availabilityThreshold !== undefined && { availabilityThreshold }) },
   });
+  // « Dispo » coupée : les déclarations en cours disparaissent
+  if (availabilityEnabled === false) await prisma.availability.deleteMany({ where: { circleId: circle.id } });
 
   // Historique des modifications (CircleChangeLog), visible des membres dans les paramètres
   const changes: { field: string; oldValue: string | null; newValue: string | null }[] = [];
@@ -290,6 +319,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   track('pollCreationMode', circle.pollCreationMode, pollCreationMode);
   track('deletionMode', circle.deletionMode, deletionMode);
   track('chatMode', circle.chatMode, chatMode);
+  track('availabilityEnabled', String(circle.availabilityEnabled), availabilityEnabled === undefined ? undefined : String(availabilityEnabled));
+  track('availabilityThreshold', String(circle.availabilityThreshold), availabilityThreshold === undefined ? undefined : String(availabilityThreshold));
   if (changes.length) {
     await prisma.circleChangeLog.createMany({ data: changes.map(c => ({ ...c, circleId: circle.id, changedById: req.userId! })) });
   }
@@ -920,6 +951,8 @@ router.post('/:id/plans', async (req: AuthRequest, res) => {
   if (missing) { res.status(400).json({ error: missing }); return; }
   const result = await createPlanInCircle(req.app, req.params.id, req.userId!, req.body);
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }
+  // Plan lancé depuis « Dispo » : les dispos du Cercle ont trouvé leur Plan, elles s'effacent
+  if (req.body?.fromAvailability === true) await prisma.availability.deleteMany({ where: { circleId: req.params.id } });
   res.json(result.plan);
 });
 

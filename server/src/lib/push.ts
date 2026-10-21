@@ -123,6 +123,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.planTitle ?? T.poll, body: fill(T.newMessage), url: pollUrl, group: `poll:${n.pollId}` };
     case 'join_request':
       return { title: n.circleName ?? 'EvLY', body: fill(T.joinRequest), url: circleUrl, group: `join:${n.circleId}` };
+    case 'availability':
+      return { title: n.circleName ?? 'EvLY', body: fill(n.status === 'now' ? T.availableNow : T.availableTonight), url: circleUrl, group: `dispo:${n.circleId}` };
     case 'circle_renamed':
       return { title: n.circleName ?? 'EvLY', body: fill(T.renamed), url: circleUrl, group: `circle:${n.circleId}` };
     case 'circle_invite':

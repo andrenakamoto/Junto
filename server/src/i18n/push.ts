@@ -7,6 +7,7 @@ type PushTexts = {
   teams: string; teamsNews: string; pot: string; potNews: string; membersNews: string; planReminder: string;
   poll: string; pollReminder: string; rides: string; ridesNews: string; newPollTitle: string; newPoll: string; pollDates: string;
   quiz: string; quizNews: string; joinRequest: string; renamed: string; invite: string; joinAccepted: string; suggestionDone: string; suggestionPlanned: string;
+  availableNow: string; availableTonight: string;
 };
 
 export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
@@ -24,7 +25,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     ridesNews: 'Du nouveau dans le covoiturage', newPollTitle: 'Nouveau sondage', newPoll: '{from} lance un sondage : {plan}',
     joinRequest: '{from} demande à rejoindre le Cercle', renamed: '{from} a renommé le Cercle « {old} » en « {circle} »',
     invite: '{from} t’invite à rejoindre le Cercle', joinAccepted: 'Ta demande est acceptée : bienvenue dans le Cercle !',
-    suggestionDone: 'Ta suggestion a été réalisée 🎉 Merci !', suggestionPlanned: 'Ta suggestion est prévue 🙌 Merci !',
+    suggestionDone: 'Ta suggestion a été réalisée 🎉 Merci !', suggestionPlanned: 'Ta suggestion est prévue 🙌 Merci !', availableNow: '{from} est dispo maintenant 🟢', availableTonight: '{from} est dispo ce soir 🟢',
   },
   de: {
     pollDates: '{from} hat der Umfrage Termine hinzugefügt: {plan}', quiz: 'Quiz', quizNews: 'Neues im Quiz',
@@ -40,7 +41,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     ridesNews: 'Neues bei der Fahrgemeinschaft', newPollTitle: 'Neue Umfrage', newPoll: '{from} startet eine Umfrage: {plan}',
     joinRequest: '{from} möchte dem Kreis beitreten', renamed: '{from} hat den Kreis «{old}» in «{circle}» umbenannt',
     invite: '{from} lädt dich in den Kreis ein', joinAccepted: 'Deine Anfrage ist angenommen: Willkommen im Kreis!',
-    suggestionDone: 'Dein Vorschlag wurde umgesetzt 🎉 Danke!', suggestionPlanned: 'Dein Vorschlag ist geplant 🙌 Danke!',
+    suggestionDone: 'Dein Vorschlag wurde umgesetzt 🎉 Danke!', suggestionPlanned: 'Dein Vorschlag ist geplant 🙌 Danke!', availableNow: '{from} hat jetzt Zeit 🟢', availableTonight: '{from} hat heute Abend Zeit 🟢',
   },
   it: {
     pollDates: '{from} ha aggiunto delle date al sondaggio: {plan}', quiz: 'Quiz', quizNews: 'Novità nel quiz',
@@ -56,7 +57,7 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     ridesNews: 'Novità nel car pooling', newPollTitle: 'Nuovo sondaggio', newPoll: '{from} lancia un sondaggio: {plan}',
     joinRequest: '{from} chiede di unirsi al Cerchio', renamed: '{from} ha rinominato il Cerchio «{old}» in «{circle}»',
     invite: '{from} ti invita a unirti al Cerchio', joinAccepted: 'La tua richiesta è stata accettata: benvenuto/a nel Cerchio!',
-    suggestionDone: 'Il tuo suggerimento è stato realizzato 🎉 Grazie!', suggestionPlanned: 'Il tuo suggerimento è previsto 🙌 Grazie!',
+    suggestionDone: 'Il tuo suggerimento è stato realizzato 🎉 Grazie!', suggestionPlanned: 'Il tuo suggerimento è previsto 🙌 Grazie!', availableNow: '{from} è libero/a adesso 🟢', availableTonight: '{from} è libero/a stasera 🟢',
   },
   en: {
     pollDates: '{from} added dates to the poll: {plan}', quiz: 'Quiz', quizNews: 'Something new in the quiz',
@@ -72,6 +73,6 @@ export const PUSH_TEXTS: Record<'fr' | 'de' | 'it' | 'en', PushTexts> = {
     ridesNews: 'Something new in car sharing', newPollTitle: 'New poll', newPoll: '{from} started a poll: {plan}',
     joinRequest: '{from} wants to join the Circle', renamed: '{from} renamed the Circle “{old}” to “{circle}”',
     invite: '{from} invites you to join the Circle', joinAccepted: 'Your request was accepted: welcome to the Circle!',
-    suggestionDone: 'Your suggestion has been done 🎉 Thank you!', suggestionPlanned: 'Your suggestion is planned 🙌 Thank you!',
+    suggestionDone: 'Your suggestion has been done 🎉 Thank you!', suggestionPlanned: 'Your suggestion is planned 🙌 Thank you!', availableNow: '{from} is free now 🟢', availableTonight: '{from} is free tonight 🟢',
   },
 };

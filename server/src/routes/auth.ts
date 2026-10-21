@@ -34,7 +34,7 @@ function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
 function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
-  weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; firstName?: string | null; lastName?: string | null;
+  weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; availabilityPush?: boolean; firstName?: string | null; lastName?: string | null;
   password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null;
   blocking?: { blockedId: string }[];
 }) {
@@ -55,6 +55,7 @@ function safeUser(user: {
     weeklyDigestEnabled: user.weeklyDigestEnabled ?? true,
     recapEmailEnabled: user.recapEmailEnabled ?? false,
     circleChatPush: user.circleChatPush ?? true,
+    availabilityPush: user.availabilityPush ?? true,
     notificationChannel: user.notificationChannel ?? 'push',
     locale: user.locale ?? null,
     // Personnes masquées (lib/moderation.ts) : leurs messages sont cachés côté client
@@ -377,7 +378,7 @@ router.post('/reset-password', async (req, res) => {
 
 const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
-  email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, circleChatPush: true, notificationChannel: true,
+  email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, circleChatPush: true, availabilityPush: true, notificationChannel: true,
   blocking: { select: { blockedId: true } },
   firstName: true, lastName: true, password: true, pendingEmail: true, locale: true,
 };
@@ -462,17 +463,18 @@ router.post('/delete-account', loginLimiter, requireAuth, async (req: AuthReques
 
 router.put('/notification-settings', requireAuth, async (req: AuthRequest, res) => {
   // Chaque champ est facultatif : on ne modifie que ceux envoyés
-  const { weeklyDigestEnabled, recapEmailEnabled, circleChatPush } = req.body;
+  const { weeklyDigestEnabled, recapEmailEnabled, circleChatPush, availabilityPush } = req.body;
   const notificationChannel = req.body.notificationChannel === undefined ? undefined : parseNotificationChannel(req.body.notificationChannel);
   if ((weeklyDigestEnabled !== undefined && typeof weeklyDigestEnabled !== 'boolean') || notificationChannel === null
     || (recapEmailEnabled !== undefined && typeof recapEmailEnabled !== 'boolean')
     || (circleChatPush !== undefined && typeof circleChatPush !== 'boolean')
-    || (weeklyDigestEnabled === undefined && notificationChannel === undefined && recapEmailEnabled === undefined && circleChatPush === undefined)) {
+    || (availabilityPush !== undefined && typeof availabilityPush !== 'boolean')
+    || (weeklyDigestEnabled === undefined && notificationChannel === undefined && recapEmailEnabled === undefined && circleChatPush === undefined && availabilityPush === undefined)) {
     res.status(400).json({ error: 'Champ invalide' }); return;
   }
   const user = await prisma.user.update({
     where: { id: req.userId },
-    data: { weeklyDigestEnabled, notificationChannel, recapEmailEnabled, circleChatPush },
+    data: { weeklyDigestEnabled, notificationChannel, recapEmailEnabled, circleChatPush, availabilityPush },
     select: meSelect,
   });
   res.json(safeUser(user));
