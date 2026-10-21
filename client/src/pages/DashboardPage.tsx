@@ -738,6 +738,7 @@ export function DashboardPage() {
             onSelectPoll={openPoll}
             onlineUserIds={onlineUserIds}
             otherManagedCircles={circles.filter(c => c.id !== selectedCircle.id && !c.isPersonal && isCircleManager(c, user?.id))}
+            circles={circles}
           />
         </div>
       ) : (

@@ -1,6 +1,19 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  dispo: {
+    label: "«Sono libero/a»",
+    on: {
+      label: "Attivo",
+      hint: "I membri dicono che sono liberi adesso o stasera",
+    },
+    off: {
+      label: "Disattivato",
+      hint: "Niente «Sono libero/a» in questo Cerchio",
+    },
+    threshold: "Proporre un Plan da",
+    thresholdValue: "{{count}} persone libere",
+  },
   chatMode: {
     label: "Discussione del Cerchio",
     open: { label: "Aperta", hint: "Tutti scrivono" },

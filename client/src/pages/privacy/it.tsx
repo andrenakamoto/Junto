@@ -10,7 +10,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 18 ottobre 2026',
+  version: 'Versione del 21 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -51,6 +51,10 @@ const it: PrivacyText = {
         <li><strong>Discussione dei Cerchi</strong> (se il Cerchio l'ha attivata): i tuoi messaggi, foto e reazioni, visibili ai membri
           del Cerchio. Sono cifrati nella banca dati come quelli dei Plan e <strong>cancellati automaticamente dopo 7 giorni</strong>,
           foto comprese.</li>
+        <li><strong>«Sono libero/a»</strong> (se il Cerchio l'ha attivato): il momento scelto (adesso o stasera), le etichette di attività
+          e la parola facoltativa, visibili ai membri dei Cerchi in cui ti dichiari libero/a. Nessuna posizione viene registrata. Queste
+          informazioni sono <strong>cancellate automaticamente</strong> alla fine del momento scelto (3 ore, oppure le 4 del mattino per
+          «stasera»).</li>
         <li><strong>Ciò che pubblichi</strong>: messaggi e reazioni, risposte ai Plan (sì / forse / no), voti, informazioni
           dei Plan, foto, messaggi vocali e file, passaggi in car pooling, partecipazioni ai giochi (Babbo Natale segreto,
           Killer, parola trappola, squadre e punteggi, risposte e punti del quiz) e a una colletta (importo, pagamento segnalato), spese e

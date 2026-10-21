@@ -56,6 +56,8 @@ const account: Dict['account'] = {
     recapHint: 'For the Plans you manage (Plan creator, Circle organiser): a PDF by email just before they’re automatically deleted. Info, participants, schedule, expenses, votes, assembly, games, gift pot (not the chat).',
     circleChatPush: "Circle discussions: every message",
     circleChatPushHint: "A phone notification for each new message. Otherwise: only when someone mentions you, and an orange dot shows new messages.",
+    availabilityPush: "Who’s free in my Circles",
+    availabilityPushHint: "A notification when a member of my Circles says they’re free.",
     muted: 'Muted',
     mutedHint: 'No notifications or emails (unless someone mentions you). The orange dots stay in the app. The bell 🔔 on a Plan or Circle mutes it.',
     nothingMuted: 'Nothing is muted.',

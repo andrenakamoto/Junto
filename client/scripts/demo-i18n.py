@@ -4,6 +4,7 @@
 import json, os
 ROWS = [
  # français | allemand | italien | anglais
+ ("Partant pour un verre en ville", "Lust auf einen Drink in der Stadt", "Pronto per un drink in città", "Up for a drink in town"),
  ("Coucou mon Père Noël secret 🎅 J’ai mis ma liste d’envies à jour !", "Hallo mein Wichtel 🎅 Ich habe meine Wunschliste aktualisiert!", "Ciao mio Babbo Natale segreto 🎅 Ho aggiornato la mia lista dei desideri!", "Hi my Secret Santa 🎅 I’ve updated my wish list!"),
  ("Hello ! Tu préfères le sucré ou le salé ? 🎅", "Hallo! Magst du lieber Süsses oder Salziges? 🎅", "Ciao! Preferisci il dolce o il salato? 🎅", "Hello! Do you prefer sweet or savoury? 🎅"),
  ("Soirées, lotos, sorties et girons 🎉", "Abende, Lottos, Ausflüge und Feste 🎉", "Serate, tombole, uscite e feste 🎉", "Parties, bingo nights, outings and festivals 🎉"),

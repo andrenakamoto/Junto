@@ -31,15 +31,17 @@ interface Props {
   suggestedTitle?: string;
   /** « Y aller avec un Cercle » : Plan pré-rempli d'après un événement en Mode annonce */
   fromEvent?: { sourcePlanId: string; title: string; eventDate?: string | null; endDate: string; location?: string | null };
+  /** « Lancer un Plan » depuis « Je suis dispo » : début proposé (heure locale « AAAA-MM-JJTHH:MM ») ; les dispos s'effacent */
+  fromAvailability?: { start: string };
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability }: Props) {
   const { user } = useAuth();
   const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : ''));
   const [description, setDescription] = useState('');
-  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate));
-  const [endDate, setEndDate] = useState(fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : '');
+  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || '');
+  const [endDate, setEndDate] = useState(fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
   const [endTouched, setEndTouched] = useState(!!fromEvent);
   const [location, setLocation] = useState(fromEvent?.location ?? '');
   const [maxParticipants, setMaxParticipants] = useState('');
@@ -100,6 +102,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
       extraCircleIds: chosenExtra,
       sourcePlanId: fromEvent?.sourcePlanId,
+      fromAvailability: fromAvailability ? true : undefined,
     };
     try {
       const { data } = fromPoll

@@ -54,6 +54,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'dispo', emoji: '🟢', title: '« Je suis dispo »', summary: 'Dire qu’on est libre, et en faire un Plan',
+        body: <>
+          <P>En haut des Plans d'un Cercle, <strong>« Je suis dispo »</strong> : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
+            <strong>ce soir</strong>, avec si tu veux une activité (🍻 Apéro, 🍕 Manger, 🎬 Ciné…) et un petit mot. Tu peux le dire dans
+            plusieurs Cercles à la fois. Les membres sont prévenus, et la carte du Cercle affiche « 🟢 3 dispo ».</P>
+          <P>Dès que <strong>assez de personnes sont dispo</strong> (3 par défaut), <strong>« Lancer un Plan »</strong> propose un Plan
+            tout prêt (« Apéro ce soir 🍻 », heure proposée) ; les dispos s'effacent ensuite. Tout disparaît aussi tout seul à la fin du
+            moment choisi.</P>
+          <P>Le créateur et les organisateurs activent ou coupent la fonction et choisissent le nombre de personnes dans les paramètres
+            du Cercle. Pour ne plus être prévenu : Notifications → « Dispo de mes Cercles ».</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Créer et modifier un Plan', summary: 'Titre, date, lieu, limite, fonctions',
         body: <>
           <P><strong>« Créer un Plan »</strong> en bas de la liste des Plans : titre, description, date, lieu, limite de participants,{' '}

@@ -269,6 +269,11 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
                             <span className="text-xs whitespace-nowrap">{t('circle.sidebar.polls', { count: circle.pollCount })}</span>
                           </>
                         )}
+                        {(circle.dispo?.count ?? 0) > 0 && (
+                          <span className="ml-0.5 px-1.5 py-px rounded-full bg-emerald-500 text-white text-[11px] font-semibold whitespace-nowrap">
+                            🟢 {t('circle.dispo.chip', { count: circle.dispo!.count })}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {(circle.joinRequests?.length ?? 0) > 0 && (

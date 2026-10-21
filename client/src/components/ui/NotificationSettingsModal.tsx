@@ -26,7 +26,7 @@ export function NotificationSettingsModal({ onClose }: Props) {
     api.get('/push/devices').then(res => setDevices(res.data.count)).catch(() => {});
   }, []);
 
-  async function save(changes: { weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; notificationChannel?: NotificationChannel }) {
+  async function save(changes: { weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; availabilityPush?: boolean; notificationChannel?: NotificationChannel }) {
     if (!user || loading) return;
     setLoading(true);
     try {
@@ -128,6 +128,24 @@ export function NotificationSettingsModal({ onClose }: Props) {
             className={`relative flex-shrink-0 w-10 h-6 rounded-full transition-colors ${user?.circleChatPush ? 'bg-indigo-600' : 'bg-slate-300'} disabled:opacity-40`}
           >
             <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full transition-transform ${user?.circleChatPush ? 'translate-x-5' : 'translate-x-1'}`} />
+          </button>
+        </div>
+
+        {/* « Je suis dispo » : prévenu quand un membre de mes Cercles se déclare libre */}
+        <div className="flex items-center justify-between gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-800">{t('account.notifications.availabilityPush')}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('account.notifications.availabilityPushHint')}</p>
+          </div>
+          <button
+            onClick={() => save({ availabilityPush: user?.availabilityPush === false })}
+            disabled={loading}
+            role="switch"
+            aria-checked={user?.availabilityPush !== false}
+            aria-label={t('account.notifications.availabilityPush')}
+            className={`relative flex-shrink-0 w-10 h-6 rounded-full transition-colors ${user?.availabilityPush !== false ? 'bg-indigo-600' : 'bg-slate-300'} disabled:opacity-40`}
+          >
+            <span className={`absolute top-1 left-0 w-4 h-4 bg-white rounded-full transition-transform ${user?.availabilityPush !== false ? 'translate-x-5' : 'translate-x-1'}`} />
           </button>
         </div>
 

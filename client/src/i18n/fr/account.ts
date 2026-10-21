@@ -55,6 +55,8 @@ export default {
     recapHint: 'Pour les Plans que tu gères (créateur du Plan, organisateur du Cercle) : un PDF par email juste avant leur suppression automatique. Infos, participants, planning, dépenses, votes, assemblée, jeux, cagnotte (pas le chat).',
     circleChatPush: "Discussions des Cercles : chaque message",
     circleChatPushHint: "Une notification sur le téléphone pour chaque nouveau message. Sinon : seulement quand on te mentionne, et un point orange signale les nouveaux messages.",
+    availabilityPush: "Dispo de mes Cercles",
+    availabilityPushHint: "Une notification quand un membre de mes Cercles se déclare dispo.",
     muted: 'En silence',
     mutedHint: 'Ni notification ni email (sauf si on te mentionne). Les points orange restent dans l’app. La cloche 🔔 sur un Plan ou un Cercle les met en silence.',
     nothingMuted: 'Rien n’est en silence.',

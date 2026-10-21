@@ -10,7 +10,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 18. Oktober 2026',
+  version: 'Fassung vom 21. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -53,6 +53,10 @@ const de: PrivacyText = {
         <li><strong>Diskussion der Kreise</strong> (falls der Kreis sie eingeschaltet hat): deine Nachrichten, Fotos und Reaktionen,
           sichtbar für die Mitglieder des Kreises. Sie werden in der Datenbank verschlüsselt wie die der Pläne und <strong>nach 7 Tagen
           automatisch gelöscht</strong>, Fotos inbegriffen.</li>
+        <li><strong>„Ich hab Zeit“</strong> (wenn der Kreis es eingeschaltet hat): der gewählte Zeitpunkt (jetzt oder heute Abend), die
+          Aktivitäts-Etiketten und das freiwillige kurze Wort, sichtbar für die Mitglieder der Kreise, in denen du sagst, dass du Zeit
+          hast. Kein Standort wird gespeichert. Diese Angaben werden am Ende des gewählten Zeitraums <strong>automatisch gelöscht</strong>
+          (3 Stunden, oder 4 Uhr morgens für „heute Abend“).</li>
         <li><strong>Was du veröffentlichst</strong>: Nachrichten und Reaktionen, Antworten auf Pläne (ja / vielleicht /
           nein), Stimmen, Infos zu Plänen, Fotos, Sprachnachrichten und Dateien, Fahrten der Fahrgemeinschaft,
           Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate, Antworten und Punkte im Quiz) und an einer Geschenkkasse (Betrag,

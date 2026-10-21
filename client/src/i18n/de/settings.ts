@@ -1,6 +1,19 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  dispo: {
+    label: "„Ich hab Zeit“",
+    on: {
+      label: "Ein",
+      hint: "Mitglieder sagen, dass sie jetzt oder heute Abend Zeit haben",
+    },
+    off: {
+      label: "Aus",
+      hint: "Kein „Ich hab Zeit“ in diesem Kreis",
+    },
+    threshold: "Einen Plan vorschlagen ab",
+    thresholdValue: "{{count}} Personen mit Zeit",
+  },
   chatMode: {
     label: "Diskussion des Kreises",
     open: { label: "Offen", hint: "Alle schreiben" },

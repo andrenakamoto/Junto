@@ -201,6 +201,27 @@ class DemoError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
+// « Je suis dispo » de la démo : deux copains libres ce soir dans « Les copains » (Alex fait le 3e et peut lancer un Plan)
+let demoDispo: Map<string, any[]> | null = null;
+function dispoOf(circleId: string): any[] {
+  if (!demoDispo) {
+    demoDispo = new Map();
+    const copains = (fixtures!['GET /circles'] as any[]).find(c => c.code === 'DEMO6X');
+    if (copains) {
+      const end = new Date(); end.setDate(end.getDate() + (end.getHours() < 4 ? 0 : 1)); end.setHours(4, 0, 0, 0);
+      const others = (copains.members ?? []).filter((x: any) => x.userId !== me.id).slice(0, 2);
+      const tags = [['apero'], ['apero', 'manger']];
+      const notes = [texts['Partant pour un verre en ville'] ?? 'Partant pour un verre en ville', null];
+      demoDispo.set(copains.id, others.map((x: any, i: number) => ({
+        slot: 'tonight', tags: tags[i], note: notes[i], createdAt: new Date(Date.now() - (i + 1) * 40 * 60000).toISOString(), expiresAt: end.toISOString(),
+        user: { id: x.userId, pseudo: x.user.pseudo, firstName: x.user.firstName ?? null },
+      })));
+    }
+  }
+  if (!demoDispo.has(circleId)) demoDispo.set(circleId, []);
+  return demoDispo.get(circleId)!;
+}
+
 // « Mes contacts » de la démo, calculés d'après les Cercles et les Plans en mémoire
 function demoContacts(circleId?: string) {
   const circles = (fixtures!['GET /circles'] as any[]).filter(c => !c.isPersonal);
@@ -634,6 +655,20 @@ function route(method: string, path: string, body: any): any {
   const key = `${method} ${path}`;
   let m: RegExpMatchArray | null;
 
+  // « Je suis dispo »
+  if ((m = path.match(/^\/availability\/circles\/([^/]+)$/))) {
+    const list = dispoOf(m[1]);
+    if (method === 'GET') return { enabled: true, threshold: 3, entries: list };
+    const others = list.filter(e => e.user.id !== me.id);
+    if (method === 'PUT') {
+      const end = new Date();
+      if (body?.slot === 'now') end.setHours(end.getHours() + 3); else { end.setDate(end.getDate() + (end.getHours() < 4 ? 0 : 1)); end.setHours(4, 0, 0, 0); }
+      others.push({ slot: body?.slot === 'now' ? 'now' : 'tonight', tags: body?.tags ?? [], note: body?.note ?? null, createdAt: new Date().toISOString(), expiresAt: end.toISOString(),
+        user: { id: me.id, pseudo: me.pseudo, firstName: me.firstName ?? null } });
+    }
+    demoDispo!.set(m[1], others);
+    return { ok: true };
+  }
   // Discussion du Cercle
   if ((m = path.match(/^\/circle-chat\/([^/]+)$/)) && method === 'GET') {
     const chat = chatOf(m[1]);
@@ -687,6 +722,8 @@ function route(method: string, path: string, body: any): any {
         ...c, photoKey: c.photoKey ?? (DEMO_CIRCLE_PHOTOS.has(c.code) ? `demo/circles/${c.code}.svg` : null),
         pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })),
         chatMode: chat?.mode ?? 'off', chatUnseen: !!chat && !chat.seen,
+        availabilityEnabled: true, availabilityThreshold: 3,
+        dispo: (() => { const d = dispoOf(c.id); return d.length ? { count: d.length, pseudos: d.slice(0, 5).map((e: any) => e.user.pseudo) } : null; })(),
         chatLast: last ? { author: last.author.pseudo, text: last.content.slice(0, 90), at: last.createdAt } : null,
       };
     });
@@ -1231,6 +1268,7 @@ function route(method: string, path: string, body: any): any {
   // Créer un Plan dans un Cercle
   if ((m = path.match(/^\/circles\/([^/]+)\/plans$/)) && method === 'POST') {
     const detail = createPlan(m[1], body);
+    if (body?.fromAvailability) demoDispo?.set(m[1], []);
     changed(undefined, m[1]);
     return detail;
   }

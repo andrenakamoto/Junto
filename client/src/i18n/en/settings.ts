@@ -1,6 +1,19 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  dispo: {
+    label: "“I’m free”",
+    on: {
+      label: "On",
+      hint: "Members say they’re free now or tonight",
+    },
+    off: {
+      label: "Off",
+      hint: "No “I’m free” in this Circle",
+    },
+    threshold: "Suggest a Plan from",
+    thresholdValue: "{{count}} free people",
+  },
   chatMode: {
     label: "Circle discussion",
     open: { label: "Open", hint: "Everyone writes" },

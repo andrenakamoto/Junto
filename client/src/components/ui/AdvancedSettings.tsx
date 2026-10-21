@@ -105,6 +105,32 @@ export function ChatModeField(props: { value: ChatMode; onChange: (v: ChatMode) 
   return <Choice label={t('settings.chatMode.label')} options={CHAT_MODE_OPTIONS} {...props} />;
 }
 
+// « Je suis dispo » : activé ou non, et (paramètres du Cercle) nombre de personnes dispo pour proposer un Plan
+export function AvailabilityField({ enabled, onEnabledChange, threshold, onThresholdChange, readOnly }: {
+  enabled: boolean; onEnabledChange: (v: boolean) => void; threshold?: number; onThresholdChange?: (v: number) => void; readOnly?: boolean;
+}) {
+  const options = [
+    { value: 'on' as const, label: t('settings.dispo.on.label'), hint: t('settings.dispo.on.hint') },
+    { value: 'off' as const, label: t('settings.dispo.off.label'), hint: t('settings.dispo.off.hint') },
+  ];
+  return (
+    <div className="space-y-2">
+      <Choice label={t('settings.dispo.label')} options={options} value={enabled ? 'on' : 'off'} onChange={v => onEnabledChange(v === 'on')} readOnly={readOnly} />
+      {enabled && threshold !== undefined && onThresholdChange && (
+        <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-2.5 py-2">
+          <span className="text-sm text-slate-800">{t('settings.dispo.threshold')}</span>
+          <select value={threshold} onChange={e => onThresholdChange(Number(e.target.value))} disabled={readOnly}
+            className="px-2 py-1 rounded-lg border border-slate-300 text-sm bg-white disabled:opacity-60">
+            {Array.from({ length: 9 }, (_, i) => i + 2).map(n => (
+              <option key={n} value={n}>{t('settings.dispo.thresholdValue', { count: n })}</option>
+            ))}
+          </select>
+        </label>
+      )}
+    </div>
+  );
+}
+
 export function AdmissionModeField(props: { value: AdmissionMode; onChange: (v: AdmissionMode) => void; readOnly?: boolean }) {
   return <Choice label={t('settings.admissionField')} options={ADMISSION_OPTIONS} {...props} />;
 }

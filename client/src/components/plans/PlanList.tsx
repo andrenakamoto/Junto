@@ -12,6 +12,7 @@ import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
 import { PlanSummarySheet } from './PlanSummarySheet';
 import { CreatePlanModal } from './CreatePlanModal';
+import { AvailabilityPanel } from '../circles/AvailabilityPanel';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
 import { LeaveCircleModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
@@ -41,13 +42,15 @@ interface Props {
   /** Discussion du Cercle : ouverte (carte en surbrillance) et ouverture */
   chatActive?: boolean;
   onOpenChat?: () => void;
+  /** Tous mes Cercles : « Je suis dispo » peut se dire dans plusieurs Cercles à la fois */
+  circles?: Circle[];
   /** Présence en ligne (fenêtre des membres) */
   onlineUserIds?: Set<string>;
   /** Plan pour plusieurs Cercles : mes autres Cercles dont je suis créateur ou organisateur */
   otherManagedCircles?: Circle[];
 }
 
-export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [], chatActive = false, onOpenChat }: Props) {
+export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan, onPlanCreated, onCircleDeleted, onCircleUpdated, onBack, unreadPlans, selectedPollId, onSelectPoll, onlineUserIds, otherManagedCircles = [], chatActive = false, onOpenChat, circles = [] }: Props) {
   const { user } = useAuth();
   // Tri choisi sur l'appareil : « Activité » (ordre reçu) ou « Date » de début
   const [planSort, setPlanSort] = usePlanSort('activity');
@@ -253,6 +256,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               <p className="text-xs text-slate-400 mt-1">{t('circle.chat.noMessage')}</p>
             )}
           </button>
+        )}
+        {/* « Je suis dispo » (si la fonction est active dans le Cercle) */}
+        {!circle.isPersonal && circle.availabilityEnabled !== false && (
+          <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} />
         )}
         {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
         {(circle.joinRequests?.length ?? 0) > 0 && (

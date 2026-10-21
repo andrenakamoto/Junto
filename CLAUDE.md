@@ -1555,6 +1555,22 @@ Démo : discussion de « Les copains » (ouverte) et de « Jeunesse de Montvert 
 photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
 
+**« Je suis dispo »** (2026-10-21, `lib/availability.ts` testé, `routes/availability.ts` sur `/api/availability`, migration
+`20261024100000_availability`) : table **Availability** (une ligne par personne et par Cercle, remplacée à chaque déclaration :
+`slot` `now` = 3 h / `tonight` = jusqu'au prochain 4 h heure suisse, `tags` parmi apero, manger, cine, sport, jeux, balade — 3 au plus —,
+`note` 60 caractères, `expiresAt`), effacée par le job horaire (gated) et filtrée à la lecture (membres actuels, sans personnes
+masquées). `Circle.availabilityEnabled` (défaut **vrai**, aussi pour les anciennes apps ; à la création dans les paramètres avancés
+et dans `CircleSettingsModal`, `AvailabilityField` ; le couper efface les dispos) et `Circle.availabilityThreshold` (2–10, défaut 3,
+`parseThreshold`), tracés dans `CircleChangeLog`. **Notification `availability`** (app + push, jamais d'email) aux autres membres **à
+chaque déclaration** (pas pour une retouche des étiquettes, `shouldNotify`), coupable par `User.availabilityPush` (défaut vrai,
+`NotificationSettingsModal`), respecte le mode silencieux et les personnes masquées. GET /circles renvoie `dispo` (`count`, premiers
+pseudos) → pastille verte « 🟢 N dispo » sur la carte du Cercle. Client : `AvailabilityPanel` en tête de `PlanList` (sous la
+Discussion) avec la fenêtre « Je suis dispo » (moment, étiquettes, petit mot, plusieurs Cercles d'un coup) ; dès le seuil, **« Lancer
+un Plan »** → `CreatePlanModal` (`suggestedTitle` + `fromAvailability.start`, `suggestedPlan` de `lib/availability.ts`) ; POST
+/circles/:id/plans avec `fromAvailability: true` efface les dispos du Cercle. Démo : deux copains dispo ce soir dans « Les copains »
+(`dispoOf`). Guide (fiche « Je suis dispo ») et politique de confidentialité (version du 21 octobre 2026). Noms : fr « Je suis
+dispo », de « Ich hab Zeit », it « Sono libero/a », en « I’m free ».
+
 **Mes contacts** (2026-10-21, `lib/contacts.ts` testé, `routes/contacts.ts` sur `/api/contacts`) : bouton « Contacts » à côté de
 « Tous mes plans » / « Calendrier » (`CircleSidebar`, trois boutons côte à côte sur téléphone) → `ContactsView` (colonne 2,
 `contactsActive` dans DashboardPage) : **personnes avec qui on partage un Cercle non personnel**, comptes normaux seulement, **sans

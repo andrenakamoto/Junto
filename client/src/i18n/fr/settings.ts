@@ -1,5 +1,18 @@
 // Paramètres avancés, fonctions du Plan, répétition, suggestions
 export default {
+  dispo: {
+    label: "« Je suis dispo »",
+    on: {
+      label: "Activé",
+      hint: "Les membres disent qu’ils sont libres maintenant ou ce soir",
+    },
+    off: {
+      label: "Désactivé",
+      hint: "Pas de « Je suis dispo » dans ce Cercle",
+    },
+    threshold: "Proposer un Plan dès",
+    thresholdValue: "{{count}} personnes dispo",
+  },
   chatMode: {
     label: "Discussion du Cercle",
     open: { label: "Ouverte", hint: "Tout le monde écrit" },

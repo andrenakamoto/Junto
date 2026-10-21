@@ -10,7 +10,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 18 octobre 2026',
+  version: 'Version du 21 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -57,6 +57,10 @@ const fr: PrivacyText = {
         <li><strong>Discussion des Cercles</strong> (si le Cercle l'a activée) : tes messages, photos et réactions, visibles par les
           membres du Cercle. Ils sont chiffrés en base comme ceux des Plans et <strong>effacés automatiquement au bout de 7 jours</strong>,
           photos comprises.</li>
+        <li><strong>« Je suis dispo »</strong> (si le Cercle l'a activé) : le moment choisi (maintenant ou ce soir), les étiquettes
+          d'activité et le petit mot facultatif, visibles par les membres des Cercles où tu te déclares dispo. Aucune position n'est
+          enregistrée. Ces informations sont <strong>effacées automatiquement</strong> à la fin du moment choisi (3 heures, ou 4 h du
+          matin pour « ce soir »).</li>
         <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
           peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
           aux jeux (Père Noël secret, Killer, mot piège, équipes et scores, réponses et points du quiz) et à une cagnotte (montant, paiement signalé),

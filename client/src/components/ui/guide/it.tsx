@@ -54,6 +54,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'dispo', emoji: '🟢', title: '«Sono libero/a»', summary: 'Dire che si è liberi, e farne un Plan',
+        body: <>
+          <P>In cima ai Plan di un Cerchio, <strong>«Sono libero/a»</strong>: <strong>adesso</strong> (per 3 ore) o{' '}
+            <strong>stasera</strong>, se vuoi con un'attività (🍻 Aperitivo, 🍕 Mangiare, 🎬 Cinema…) e una parola. Puoi dirlo in più
+            Cerchi alla volta. I membri ricevono una notifica e la scheda del Cerchio mostra «🟢 3 liberi».</P>
+          <P>Appena <strong>abbastanza persone sono libere</strong> (3 di default), <strong>«Lancia un Plan»</strong> propone un Plan
+            pronto («Aperitivo stasera 🍻», ora proposta); poi le disponibilità si cancellano. Tutto sparisce anche da solo alla fine
+            del momento scelto.</P>
+          <P>Chi ha creato il Cerchio e gli organizzatori attivano o disattivano la funzione e scelgono il numero di persone nelle
+            impostazioni del Cerchio. Per non ricevere più notifiche: Notifiche → «Chi è libero nei miei Cerchi».</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Creare e modificare un Plan', summary: 'Titolo, data, luogo, limite, funzioni',
         body: <>
           <P><strong>«Crea un Plan»</strong> in fondo alla lista dei Plan: titolo, descrizione, data, luogo, limite di

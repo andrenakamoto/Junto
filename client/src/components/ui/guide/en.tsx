@@ -53,6 +53,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'dispo', emoji: '🟢', title: '“I’m free”', summary: 'Say you’re free, and turn it into a Plan',
+        body: <>
+          <P>At the top of a Circle's Plans, <strong>“I’m free”</strong>: <strong>now</strong> (for 3 hours) or{' '}
+            <strong>tonight</strong>, with an activity if you like (🍻 Drinks, 🍕 Food, 🎬 Cinema…) and a short note. You can say it in
+            several Circles at once. Members get a notification, and the Circle's card shows “🟢 3 free”.</P>
+          <P>As soon as <strong>enough people are free</strong> (3 by default), <strong>“Start a Plan”</strong> suggests a ready-made
+            Plan (“Drinks tonight 🍻”, with a suggested time); the availabilities are then cleared. Everything also disappears on its
+            own at the end of the chosen time.</P>
+          <P>The Circle's creator and organisers turn the feature on or off and choose the number of people in the Circle settings.
+            To stop the notifications: Notifications → “Who’s free in my Circles”.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Create and edit a Plan', summary: 'Title, date, place, limit, features',
         body: <>
           <P><strong>“Create a Plan”</strong> at the bottom of the Plan list: title, description, date, place, participant

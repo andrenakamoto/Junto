@@ -4,7 +4,7 @@ import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car,
 
 export interface AppNotification {
   id: string;
-  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting'
+  type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting' | 'availability'
     | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
   pollId?: string;
   planId?: string;
@@ -69,6 +69,11 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
     icon: AtSign, iconClass: 'text-amber-400', bgClass: 'bg-amber-600/30',
     title: n => t('notif.circleMentionTitle', { circle: n.circleName }),
     body: n => t('notif.circleMentionBody', { from: n.from, preview: n.preview }),
+  },
+  availability: {
+    icon: PartyPopper, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',
+    title: n => t('notif.availabilityTitle', { circle: n.circleName }),
+    body: n => t(n.status === 'now' ? 'notif.availabilityNow' : 'notif.availabilityTonight', { from: n.from }),
   },
   circle_message: {
     icon: MessageSquare, iconClass: 'text-emerald-400', bgClass: 'bg-emerald-600/30',

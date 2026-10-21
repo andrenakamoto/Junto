@@ -4,7 +4,7 @@ import { AdmissionMode, Circle, DeletionMode, PlanCreationMode } from '../../typ
 import { useAuth } from '../../contexts/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { AdmissionModeField, ChatModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
+import { AdmissionModeField, AvailabilityField, ChatModeField, DeletionModeField, PlanCreationModeField, PollCreationModeField } from '../ui/AdvancedSettings';
 import api from '../../services/api';
 import { ADMISSION_OPTIONS, CHAT_MODE_OPTIONS, ChatMode, DELETION_OPTIONS, isCircleManager, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS } from '../../lib/settings';
 import { intlLocale, t } from '../../i18n';
@@ -29,6 +29,8 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>(circle.planCreationMode ?? 'all');
   const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>(circle.pollCreationMode ?? 'all');
   const [chatMode, setChatMode] = useState<ChatMode>(circle.chatMode ?? 'off');
+  const [availabilityEnabled, setAvailabilityEnabled] = useState(circle.availabilityEnabled !== false);
+  const [availabilityThreshold, setAvailabilityThreshold] = useState(circle.availabilityThreshold ?? 3);
   const [name, setName] = useState(circle.name);
   const [description, setDescription] = useState(circle.description ?? '');
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
   const willOpen = admissionMode === 'open' && circle.admissionMode !== 'open' && pendingCount > 0;
   const changed = deletionMode !== (circle.deletionMode ?? 'vote') || admissionMode !== (circle.admissionMode ?? 'vote')
     || planCreationMode !== (circle.planCreationMode ?? 'all') || pollCreationMode !== (circle.pollCreationMode ?? 'all') || chatMode !== (circle.chatMode ?? 'off')
+    || availabilityEnabled !== (circle.availabilityEnabled !== false) || availabilityThreshold !== (circle.availabilityThreshold ?? 3)
     || description.trim() !== (circle.description ?? '') || (name.trim() !== circle.name && name.trim().length > 0);
   const settingsChanged = changed;
   const colorChanged = color !== (circle.color ?? null);
@@ -57,7 +60,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
         updated = { ...updated, color: data.color };
       }
       if (settingsChanged) {
-        const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode, chatMode, description, name: name.trim() });
+        const { data } = await api.put(`/circles/${circle.id}/settings`, { deletionMode, admissionMode, planCreationMode, pollCreationMode, chatMode, availabilityEnabled, availabilityThreshold, description, name: name.trim() });
         updated = { ...data, color: updated.color, ...(key !== undefined ? { photoKey: key } : {}) };
       }
       onUpdated(updated);
@@ -124,6 +127,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
         <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} readOnly={!canEdit} />
         <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} readOnly={!canEdit} />
         <ChatModeField value={chatMode} onChange={setChatMode} readOnly={!canEdit} />
+        <AvailabilityField enabled={availabilityEnabled} onEnabledChange={setAvailabilityEnabled} threshold={availabilityThreshold} onThresholdChange={setAvailabilityThreshold} readOnly={!canEdit} />
         <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} readOnly={!isCreator} />
         <CircleHistory circleId={circle.id} />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
@@ -147,7 +151,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
 
 interface ChangeLog { id: string; field: string; oldValue: string | null; newValue: string | null; changedAt: string; changedBy: { pseudo: string } | null }
 
-const FIELDS = ['name', 'description', 'photo', 'admissionMode', 'planCreationMode', 'pollCreationMode', 'chatMode', 'deletionMode'];
+const FIELDS = ['name', 'description', 'photo', 'admissionMode', 'planCreationMode', 'pollCreationMode', 'chatMode', 'availabilityEnabled', 'availabilityThreshold', 'deletionMode'];
 const fieldLabel = (field: string) => FIELDS.includes(field) ? t(`circle.settings.fields.${field}` as any) : field;
 const VALUE_LABELS: Record<string, Record<string, string>> = {
   admissionMode: Object.fromEntries(ADMISSION_OPTIONS.map(o => [o.value, o.label])),
@@ -156,6 +160,7 @@ const VALUE_LABELS: Record<string, Record<string, string>> = {
   deletionMode: Object.fromEntries(DELETION_OPTIONS.map(o => [o.value, o.label])),
   photo: { photo: t('photos.historyPhoto') },
   chatMode: Object.fromEntries(CHAT_MODE_OPTIONS.map(o => [o.value, o.label])),
+  availabilityEnabled: { true: t('settings.dispo.on.label'), false: t('settings.dispo.off.label') },
 };
 const label = (field: string, v: string | null) => (v ? VALUE_LABELS[field]?.[v] ?? v : '—');
 const dateFmt = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });

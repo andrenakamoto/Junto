@@ -55,6 +55,20 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'dispo', emoji: '🟢', title: '„Ich hab Zeit“', summary: 'Sagen, dass man frei ist, und daraus einen Plan machen',
+        body: <>
+          <P>Oben in den Plänen eines Kreises: <strong>„Ich hab Zeit“</strong>, <strong>jetzt</strong> (für 3 Stunden) oder{' '}
+            <strong>heute Abend</strong>, wenn du willst mit einer Aktivität (🍻 Apéro, 🍕 Essen, 🎬 Kino…) und einem kurzen Wort. Du
+            kannst es in mehreren Kreisen gleichzeitig sagen. Die Mitglieder werden benachrichtigt, und die Karte des Kreises zeigt
+            „🟢 3 haben Zeit“.</P>
+          <P>Sobald <strong>genug Personen Zeit haben</strong> (standardmässig 3), schlägt <strong>„Plan starten“</strong> einen fertigen
+            Plan vor („Apéro heute Abend 🍻“, Uhrzeit vorgeschlagen); danach verschwinden die Angaben. Alles verschwindet auch von selbst
+            am Ende des gewählten Zeitraums.</P>
+          <P>Wer den Kreis erstellt hat und die Organisatoren schalten die Funktion ein oder aus und wählen die Anzahl Personen in den
+            Einstellungen des Kreises. Keine Mitteilungen mehr: Mitteilungen → „Wer in meinen Kreisen Zeit hat“.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Einen Plan erstellen und bearbeiten', summary: 'Titel, Datum, Ort, Grenze, Funktionen',
         body: <>
           <P><strong>«Plan erstellen»</strong> unten in der Liste der Pläne: Titel, Beschreibung, Datum, Ort, maximale

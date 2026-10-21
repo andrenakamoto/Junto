@@ -17,6 +17,7 @@ export interface User {
   recapEmailEnabled?: boolean;
   /** Discussions des Cercles : un push pour chaque message */
   circleChatPush?: boolean;
+  availabilityPush?: boolean;
   /** Canal des notifications : push, push + email (défaut) ou email */
   notificationChannel?: NotificationChannel;
   /** Personnes masquées : leurs messages ne sont pas affichés (serveur : lib/moderation.ts) */
@@ -70,6 +71,10 @@ export interface Circle {
   chatUnseen?: boolean;
   /** Dernier message (7 derniers jours) : auteur, aperçu, date */
   chatLast?: { author: string; text: string; at: string } | null;
+  /** « Je suis dispo » : fonction active, seuil pour proposer un Plan, et qui est libre (GET /circles) */
+  availabilityEnabled?: boolean;
+  availabilityThreshold?: number;
+  dispo?: { count: number; pseudos: string[] } | null;
   photoKey?: string | null;
   /** Paramètres avancés : suppression à la majorité ou par le créateur seul */
   deletionMode?: DeletionMode;
@@ -421,4 +426,15 @@ export interface PersonDetails {
   circles: ContactCircle[];
   plans: { id: string; title: string; eventDate: string | null; endDate: string; circleId: string }[];
   invitable: (ContactCircle & { invited: boolean })[];
+}
+
+// « Je suis dispo » (GET /api/availability/circles/:id, server/src/lib/availability.ts)
+export type AvailabilitySlot = 'now' | 'tonight';
+export interface AvailabilityEntry {
+  slot: AvailabilitySlot;
+  tags: string[];
+  note: string | null;
+  createdAt: string;
+  expiresAt: string;
+  user: { id: string; pseudo: string; firstName: string | null };
 }
