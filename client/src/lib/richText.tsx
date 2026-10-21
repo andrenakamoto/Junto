@@ -1,21 +1,21 @@
 import { Fragment, ReactNode, useRef } from 'react';
-import { Bold, Italic, List, ListOrdered } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Underline } from 'lucide-react';
 import { renderContent } from '../components/chat/ChatMessage';
 import { t } from '../i18n';
 
 // Mise en forme simple de la description et des informations importantes d'un Plan (miroir de
-// server/src/lib/richText.ts) : **gras**, _italique_, lignes « - élément » et « 1. élément ».
+// server/src/lib/richText.ts) : **gras**, _italique_, ++souligné++, lignes « - élément » et « 1. élément ».
 // Le texte reste du texte : les boutons posent ces repères, l'affichage les interprète.
 
 export const DESCRIPTION_MAX = 500;
 export const IMPORTANT_INFO_MAX = 5000;
 
-type Inline = { text: string; bold?: boolean; italic?: boolean };
+type Inline = { text: string; bold?: boolean; italic?: boolean; underline?: boolean };
 type Line = { kind: 'text' | 'bullet' | 'number'; number?: number; parts: Inline[] };
 
 const BULLET = /^\s*[-•]\s+(.*)$/;
 const NUMBER = /^\s*(\d{1,3})[.)]\s+(.*)$/;
-const INLINE = /\*\*(?=\S)([^\n]*?\S)\*\*|(?<![\p{L}\p{N}_])_(?=\S)([^\n_]*?\S)_(?![\p{L}\p{N}_])/gu;
+const INLINE = /\*\*(?=\S)([^\n]*?\S)\*\*|\+\+(?=\S)([^\n]*?\S)\+\+|(?<![\p{L}\p{N}_])_(?=\S)([^\n_]*?\S)_(?![\p{L}\p{N}_])/gu;
 
 function parseInline(text: string): Inline[] {
   const out: Inline[] = [];
@@ -23,7 +23,8 @@ function parseInline(text: string): Inline[] {
   for (const m of text.matchAll(INLINE)) {
     if (m.index! > last) out.push({ text: text.slice(last, m.index) });
     if (m[1] !== undefined) for (const p of parseInline(m[1])) out.push({ ...p, bold: true });
-    else out.push({ text: m[2], italic: true });
+    else if (m[2] !== undefined) for (const p of parseInline(m[2])) out.push({ ...p, underline: true });
+    else out.push({ text: m[3], italic: true });
     last = m.index! + m[0].length;
   }
   if (last < text.length) out.push({ text: text.slice(last) });
@@ -57,6 +58,7 @@ function inline(parts: Inline[], key: string) {
   return parts.map((p, i) => {
     let node: ReactNode = renderContent(p.text, false);
     if (p.italic) node = <em>{node}</em>;
+    if (p.underline) node = <u className="underline-offset-2">{node}</u>;
     if (p.bold) node = <strong className="font-semibold">{node}</strong>;
     return <Fragment key={`${key}-${i}`}>{node}</Fragment>;
   });
@@ -137,6 +139,7 @@ export function RichTextArea({ value, onChange, max, rows = 3, placeholder, auto
         {/* onMouseDown : garder la sélection du champ au clic */}
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => wrap('**')} title={t('plan.format.bold')} aria-label={t('plan.format.bold')} className={btn}><Bold size={15} /></button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => wrap('_')} title={t('plan.format.italic')} aria-label={t('plan.format.italic')} className={btn}><Italic size={15} /></button>
+        <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => wrap('++')} title={t('plan.format.underline')} aria-label={t('plan.format.underline')} className={btn}><Underline size={15} /></button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => list(false)} title={t('plan.format.bullets')} aria-label={t('plan.format.bullets')} className={btn}><List size={15} /></button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => list(true)} title={t('plan.format.numbers')} aria-label={t('plan.format.numbers')} className={btn}><ListOrdered size={15} /></button>
         <span className={`ml-auto text-xs tabular-nums ${count > max ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>{count}/{max}</span>

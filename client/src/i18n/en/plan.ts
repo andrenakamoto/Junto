@@ -68,6 +68,7 @@ const plan: Dict['plan'] = {
   format: {
     bold: 'Bold',
     italic: 'Italic',
+    underline: 'Underline',
     bullets: 'Bulleted list',
     numbers: 'Numbered list',
     sample: 'text',
@@ -199,6 +200,9 @@ const plan: Dict['plan'] = {
     separate: 'Francs and euros are counted separately, with no conversion.',
     whoOwes: 'Who owes what to whom',
     repaid: 'Paid back',
+    total: 'Total spent',
+    totalCount_one: '{{count}} expense',
+    totalCount_other: '{{count}} expenses',
     list: 'Expenses ({{count}})',
     none: 'No expenses recorded.',
     paidBy: 'paid by @{{pseudo}}',

@@ -138,7 +138,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
       doc.x = x;
       if (parts.length === 0) { doc.font('regular').fontSize(10).moveDown(0.6); continue; }
       parts.forEach((p, i) => doc.font(p.bold ? 'semibold' : 'regular').fontSize(10).fillColor(color)
-        .text(p.text, { width: w, lineGap: 1.5, continued: i < parts.length - 1 }));
+        .text(p.text, { width: w, lineGap: 1.5, underline: !!(p as { underline?: boolean }).underline, continued: i < parts.length - 1 }));
     }
     doc.x = left;
   };

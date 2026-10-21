@@ -24,6 +24,13 @@ function money(n: number, currency: Currency) {
   return n.toLocaleString(intlLocale(), { style: 'currency', currency });
 }
 
+// Date d'ajout de la dépense (« 12 oct. », l'année seulement si ce n'est pas l'année en cours)
+function expenseDate(iso: string) {
+  const d = new Date(iso);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(intlLocale(), { day: 'numeric', month: 'short', ...(sameYear ? {} : { year: 'numeric' }) });
+}
+
 export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdated }: Props) {
   const [data, setData] = useState<ExpensesData | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -96,12 +103,29 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
   const nonZero = (amounts: { currency: Currency; balance: number }[]) => amounts.filter(a => Math.abs(a.balance) > 0.01);
   const mine = nonZero(data.balances.find(b => b.userId === userId)?.amounts ?? []);
   const multiCurrency = data.balances[0]?.amounts.length > 1;
+  // Total des dépenses du Plan, un montant par devise (pas de conversion, comme les soldes)
+  const totals = (['CHF', 'EUR'] as Currency[])
+    .map(currency => ({ currency, amount: data.expenses.filter(e => e.currency === currency).reduce((s, e) => s + Number(e.amount), 0) }))
+    .filter(x => x.amount > 0);
 
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5 short:flex-none short:overflow-visible">
       <BringItemsSection plan={plan} pseudo={pseudo} userId={userId} onChanged={async () => onPlanUpdated((await api.get(`/plans/${planId}`)).data)} />
 
       <h3 className="font-semibold text-slate-800 text-sm -mb-2">{t('plan.expenses.title')}</h3>
+      {totals.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-slate-700">{t('plan.expenses.total')}</p>
+            <p className="text-xs text-slate-400">{t('plan.expenses.totalCount', { count: data.expenses.length })}</p>
+          </div>
+          <div className="text-right">
+            {totals.map(x => (
+              <p key={x.currency} className="text-lg font-bold text-slate-900 tabular-nums leading-tight">{money(x.amount, x.currency)}</p>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Ajout, toujours en haut des dépenses */}
       {!showAdd ? (
         <button
@@ -263,7 +287,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">{exp.description}</p>
                   <p className="text-xs text-slate-400">
-                    {t('plan.expenses.paidBy', { pseudo: exp.paidBy.pseudo })}
+                    {expenseDate(exp.createdAt)} · {t('plan.expenses.paidBy', { pseudo: exp.paidBy.pseudo })}
                     {exp.splitWith.length > 0 && exp.splitWith.length !== members.length &&
                       t('plan.expenses.sharedWith', { names: exp.splitWith.map(s => `@${s.user.pseudo}`).join(', ') })}
                   </p>

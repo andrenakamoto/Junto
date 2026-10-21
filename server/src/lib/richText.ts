@@ -2,7 +2,7 @@ import { escapeHtml } from './escapeHtml';
 
 // Mise en forme simple de la description et des informations importantes d'un Plan (miroir de
 // client/src/lib/richText.tsx) : le texte reste du texte, avec des repères discrets posés par les
-// boutons de l'app — **gras**, _italique_, lignes « - élément » (puces) et « 1. élément » (numérotées).
+// boutons de l'app — **gras**, _italique_, ++souligné++, lignes « - élément » (puces) et « 1. élément » (numérotées).
 // Aucun HTML n'est stocké ; chaque sortie (app, e-mail, PDF, texte brut) les interprète elle-même.
 
 export const DESCRIPTION_MAX = 500;
@@ -10,14 +10,14 @@ export const IMPORTANT_INFO_MAX = 5000;
 // Plafond du texte enregistré, repères compris (sécurité : les limites ci-dessus comptent le texte visible)
 export const RAW_FACTOR = 2;
 
-export type Inline = { text: string; bold?: boolean; italic?: boolean };
+export type Inline = { text: string; bold?: boolean; italic?: boolean; underline?: boolean };
 export type Line = { kind: 'text' | 'bullet' | 'number'; number?: number; parts: Inline[] };
 
 const BULLET = /^\s*[-•]\s+(.*)$/;
 const NUMBER = /^\s*(\d{1,3})[.)]\s+(.*)$/;
 // _italique_ : le « _ » ouvrant n'est pas collé à une lettre avant (sinon @nadia_f serait touché),
 // le fermant pas collé à une lettre après
-const INLINE = /\*\*(?=\S)([^\n]*?\S)\*\*|(?<![\p{L}\p{N}_])_(?=\S)([^\n_]*?\S)_(?![\p{L}\p{N}_])/gu;
+const INLINE = /\*\*(?=\S)([^\n]*?\S)\*\*|\+\+(?=\S)([^\n]*?\S)\+\+|(?<![\p{L}\p{N}_])_(?=\S)([^\n_]*?\S)_(?![\p{L}\p{N}_])/gu;
 
 export function parseInline(text: string): Inline[] {
   const out: Inline[] = [];
@@ -25,10 +25,12 @@ export function parseInline(text: string): Inline[] {
   for (const m of text.matchAll(INLINE)) {
     if (m.index! > last) out.push({ text: text.slice(last, m.index) });
     if (m[1] !== undefined) {
-      // Italique à l'intérieur du gras
+      // Italique ou souligné à l'intérieur du gras
       for (const p of parseInline(m[1])) out.push({ ...p, bold: true });
+    } else if (m[2] !== undefined) {
+      for (const p of parseInline(m[2])) out.push({ ...p, underline: true });
     } else {
-      out.push({ text: m[2], italic: true });
+      out.push({ text: m[3], italic: true });
     }
     last = m.index! + m[0].length;
   }
@@ -75,6 +77,7 @@ export function richTextToHtml(text: string): string {
   const inline = (parts: Inline[]) => parts.map(p => {
     let h = escapeHtml(p.text);
     if (p.italic) h = `<em>${h}</em>`;
+    if (p.underline) h = `<u>${h}</u>`;
     if (p.bold) h = `<strong>${h}</strong>`;
     return h;
   }).join('');

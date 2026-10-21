@@ -67,6 +67,7 @@ export default {
   format: {
     bold: 'Gras',
     italic: 'Italique',
+    underline: 'Souligné',
     bullets: 'Liste à puces',
     numbers: 'Liste numérotée',
     sample: 'texte',
@@ -198,6 +199,9 @@ export default {
     separate: 'Les CHF et les euros sont comptés séparément, sans conversion.',
     whoOwes: 'Qui doit quoi à qui',
     repaid: 'Remboursé',
+    total: 'Total des dépenses',
+    totalCount_one: '{{count}} dépense',
+    totalCount_other: '{{count}} dépenses',
     list: 'Dépenses ({{count}})',
     none: 'Aucune dépense enregistrée.',
     paidBy: 'payé par @{{pseudo}}',

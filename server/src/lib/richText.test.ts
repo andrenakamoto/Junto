@@ -34,4 +34,12 @@ describe('mise en forme des textes de Plan', () => {
   it('HTML des e-mails, échappé', () => {
     expect(richTextToHtml('**A** <b>\n- x\n- y\nfin')).toBe('<strong>A</strong> &lt;b&gt;<br><ul style="margin:4px 0;padding-left:22px"><li>x</li><li>y</li></ul>fin');
   });
+  it('souligné ++texte++, aussi dans le gras, et pas pour « C++ »', () => {
+    expect(parseInline('a ++b++ c')).toEqual([{ text: 'a ' }, { text: 'b', underline: true }, { text: ' c' }]);
+    expect(parseInline('**++x++**')).toEqual([{ text: 'x', underline: true, bold: true }]);
+    expect(parseInline('du C++ et du C++')).toEqual([{ text: 'du C++ et du C++' }]);
+    expect(richTextToHtml('++x++')).toBe('<u>x</u>');
+    expect(stripFormatting('Le ++bus++ part')).toBe('Le bus part');
+    expect(visibleLength('++abc++')).toBe(3);
+  });
 });
