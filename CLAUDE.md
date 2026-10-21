@@ -453,6 +453,8 @@ Conséquences pratiques :
     **Version 1.0.24** (2026-10-21) : Android `versionCode` 26 (`evly-1.0.24-(26).aab`), iOS build 28 envoyé — « Mes contacts » (fiche
     d'une personne, inviter depuis ses contacts), bandeau « Pas de connexion » (plus de déconnexion sans réseau), total et date des
     dépenses, souligné dans la mise en forme.
+    **Version 1.0.25** (2026-10-21, soir) : Android `versionCode` 27 (`evly-1.0.25-(27).aab`), iOS build 29 envoyé — « Je suis dispo »
+    (bloc « Qui est dispo ? », pastille verte, « Lancer un Plan », réglages du Cercle et des notifications).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
