@@ -42,6 +42,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'contacts', emoji: '📇', title: 'Meine Kontakte', summary: 'Alle Personen deiner Kreise an einem Ort',
+        body: <>
+          <P>Der Knopf <strong>„Kontakte“</strong> (neben „Alle meine Pläne“ und „Kalender“) zeigt alle Personen, mit denen du einen
+            Kreis teilst, mit euren gemeinsamen Kreisen. Suche nach Vorname oder Pseudo; ein Kreis öffnet sich beim Antippen.</P>
+          <P>Eine Person antippen öffnet ihre <strong>Karte</strong>: gemeinsame Kreise und kommende Pläne, <strong>„Plan machen“</strong>{' '}
+            in einem gemeinsamen Kreis und <strong>„Einladen“</strong> in einen deiner anderen Kreise. Dieselbe Karte öffnet sich beim
+            Antippen eines Avatars (Mitglieder, Chat).</P>
+          <P>Unter „Einladen“ eines Kreises schlägt <strong>„Aus meinen Kontakten“</strong> die Mitglieder deiner anderen Kreise vor:
+            ankreuzen und alle auf einmal einladen. Du siehst nur Personen, die du schon in deinen Kreisen siehst (Vorname und
+            Pseudo); ausgeblendete Personen erscheinen nicht.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Einen Plan erstellen und bearbeiten', summary: 'Titel, Datum, Ort, Grenze, Funktionen',
         body: <>
           <P><strong>«Plan erstellen»</strong> unten in der Liste der Pläne: Titel, Beschreibung, Datum, Ort, maximale
@@ -172,7 +185,7 @@ const groups: Group[] = [
         body: <P>Der Bereich <strong>Infos</strong> vereint Beschreibung, <strong>wichtige Infos</strong>, Dateien und
           Fotogalerie. <strong>«Alle Fotos herunterladen»</strong> holt alles auf einmal (ZIP): Mach das vor dem Enddatum.
           10 MB pro Datei, 100 MB pro Plan. Beschreibung (500 Zeichen) und wichtige Infos (5000 Zeichen) lassen sich mit den
-          Schaltflächen über dem Feld formatieren: <strong>fett</strong>, <em>kursiv</em>, Aufzählungen oder nummerierte Listen.</P>,
+          Schaltflächen über dem Feld formatieren: <strong>fett</strong>, <em>kursiv</em>, <u>unterstrichen</u>, Aufzählungen oder nummerierte Listen.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Abstimmen: Umfrage, Match, Wer ist dran?', summary: 'Drei Arten, gemeinsam zu entscheiden',

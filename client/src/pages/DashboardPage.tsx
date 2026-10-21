@@ -13,6 +13,8 @@ import { PollDetail } from '../components/circles/PollDetail';
 import { CircleChat } from '../components/circles/CircleChat';
 import { AllPlansView } from '../components/plans/AllPlansView';
 import { CalendarView } from '../components/plans/CalendarView';
+import { ContactsView } from '../components/circles/ContactsView';
+import { CreatePlanModal } from '../components/plans/CreatePlanModal';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
 import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
@@ -52,6 +54,9 @@ export function DashboardPage() {
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [calendarActive, setCalendarActive] = useState(false);
+  const [contactsActive, setContactsActive] = useState(false);
+  // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
+  const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   // Historique des notifications reçues (panneau de la cloche), gardé sur l'appareil pour ce
   // compte : 30 dernières, 7 jours au plus
@@ -136,7 +141,7 @@ export function DashboardPage() {
   }
 
   function refreshCircles() {
-    soon('circles', () => api.get('/circles').then(res => setCircles(res.data)).catch(() => {}));
+    soon('circles', () => api.get('/circles').then(res => { setCircles(res.data); setCirclesLoaded(true); }).catch(() => {}));
     soon('bell', refreshBell);
   }
 
@@ -210,6 +215,15 @@ export function DashboardPage() {
     connectedOnce.current = true;
   });
 
+  // Retour du réseau (lib/connection.ts) : tout ce qui n'a pas pu se charger est rechargé
+  const refreshAllRef = useRef(refreshAll);
+  refreshAllRef.current = refreshAll;
+  useEffect(() => {
+    const onOnline = () => refreshAllRef.current();
+    window.addEventListener('evly-online', onOnline);
+    return () => window.removeEventListener('evly-online', onOnline);
+  }, []);
+
   // Retour sur l'onglet / téléphone déverrouillé (au plus une fois toutes les 15 s)
   const lastVisibleRefresh = useRef(Date.now());
   useEffect(() => {
@@ -239,7 +253,7 @@ export function DashboardPage() {
     api.get('/circles').then(res => {
       setCircles(res.data);
       setCirclesLoaded(true);
-    });
+    }).catch(() => { /* sans réseau : rechargé au retour de la connexion (evly-online) */ });
   }, []);
 
   // Invitation à un Plan ouverte avant la connexion / l'inscription : on y retourne
@@ -426,6 +440,7 @@ export function DashboardPage() {
     setSelectedCircleId(id);
     setAllPlansActive(false);
     setCalendarActive(false);
+    setContactsActive(false);
     setMobileView('plans');
     clearCircle(id);
     dismissHistory(n => n.circleId === id && !n.planId && !n.pollId);
@@ -436,15 +451,34 @@ export function DashboardPage() {
     setChatCircleId(null);
     setAllPlansActive(true);
     setCalendarActive(false);
+    setContactsActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
     setMobileView('plans');
   }
 
+  function handleContacts() {
+    setSelectedPollId(null);
+    setChatCircleId(null);
+    setContactsActive(true);
+    setAllPlansActive(false);
+    setCalendarActive(false);
+    setSelectedCircleId(null);
+    setMobileView('plans');
+  }
+
+  // Fiche d'une personne (PersonSheet) : ouvrir un Cercle, un Plan, ou créer un Plan dans un Cercle en commun
+  const personActions = {
+    openCircle: (circleId: string) => handleSelectCircle(circleId),
+    openPlan: (planId: string, circleId: string) => handleSelectPlan({ id: planId, circleId } as Plan),
+    createPlan: (circleId: string) => { handleSelectCircle(circleId); setCreatePlanIn(circleId); },
+  };
+
   function handleCalendar() {
     setSelectedPollId(null);
     setChatCircleId(null);
     setCalendarActive(true);
+    setContactsActive(false);
     setAllPlansActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
@@ -468,11 +502,13 @@ export function DashboardPage() {
       setSelectedCircleId(target);
       setAllPlansActive(false);
       setCalendarActive(false);
+    setContactsActive(false);
     } else if (plan.circleId) {
       // Invité externe : pas d'accès au Cercle, on affiche le Plan depuis « Tous mes plans »
       setSelectedCircleId(null);
       setAllPlansActive(true);
       setCalendarActive(false);
+    setContactsActive(false);
     }
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
@@ -591,7 +627,7 @@ export function DashboardPage() {
 
   return (
     <MuteProvider>
-    <PhotosProvider>
+    <PhotosProvider actions={personActions}>
     <PhotosRefresher signal={plansRefreshSignal} />
     {user && !user.termsAccepted && (
       <TermsModal onAccept={handleAcceptTerms} />
@@ -631,19 +667,22 @@ export function DashboardPage() {
       <div className={`${showCircles ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
           circles={sortedCircles}
-          selectedId={allPlansActive ? null : selectedCircleId}
+          selectedId={allPlansActive || contactsActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={c => {
             setCircles(prev => [...prev, c]);
             setSelectedCircleId(c.id);
             setAllPlansActive(false);
             setCalendarActive(false);
+    setContactsActive(false);
             setMobileView('plans');
           }}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
           onCalendar={handleCalendar}
           calendarActive={calendarActive}
+          onContacts={handleContacts}
+          contactsActive={contactsActive}
           onCircleUpdated={handleCircleUpdated}
           unreadCount={bellCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
@@ -654,7 +693,15 @@ export function DashboardPage() {
       </div>
 
       {/* Colonne 2 — Plans */}
-      {calendarActive ? (
+      {contactsActive ? (
+        <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
+          <ContactsView
+            onBack={() => setMobileView('circles')}
+            onOpenCircle={handleSelectCircle}
+            refreshSignal={plansRefreshSignal}
+          />
+        </div>
+      ) : calendarActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <CalendarView
             onSelectPlan={handleSelectPlan}
@@ -739,6 +786,14 @@ export function DashboardPage() {
       </div>
     </div>
     </div>
+    {createPlanIn && circles.some(c => c.id === createPlanIn) && (
+      <CreatePlanModal
+        circleId={createPlanIn}
+        circleMembers={circles.find(c => c.id === createPlanIn)!.members}
+        onClose={() => setCreatePlanIn(null)}
+        onCreated={plan => { setCreatePlanIn(null); handlePlanCreated(plan); }}
+      />
+    )}
     </PhotosProvider>
     </MuteProvider>
   );

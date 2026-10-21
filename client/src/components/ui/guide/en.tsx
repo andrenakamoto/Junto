@@ -40,6 +40,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'contacts', emoji: '📇', title: 'My contacts', summary: 'Everyone from your Circles, in one place',
+        body: <>
+          <P>The <strong>“Contacts”</strong> button (next to “All my plans” and “Calendar”) lists everyone you share a Circle with,
+            with your Circles in common. Search by first name or username; tap a Circle to open it.</P>
+          <P>Tap a person to open their <strong>card</strong>: Circles and upcoming Plans in common, <strong>“Make a Plan”</strong>{' '}
+            in a shared Circle, and <strong>“Invite”</strong> to one of your other Circles. The same card opens when you tap an
+            avatar (members, chat).</P>
+          <P>In a Circle's “Invite” window, <strong>“From my contacts”</strong> suggests members of your other Circles: tick them and
+            invite them all at once. You only see people you already see in your Circles (first name and username); people
+            you've hidden don't appear.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Create and edit a Plan', summary: 'Title, date, place, limit, features',
         body: <>
           <P><strong>“Create a Plan”</strong> at the bottom of the Plan list: title, description, date, place, participant
@@ -164,7 +177,7 @@ const groups: Group[] = [
         body: <P>The <strong>Info</strong> section brings together the description, <strong>important information</strong>,
           files and the photo gallery. <strong>“Download all photos”</strong> gets everything at once (ZIP): do it before
           the end date. 10 MB per file, 100 MB per Plan. The description (500 characters) and important information (5,000
-          characters) can be formatted with the buttons above the field: <strong>bold</strong>, <em>italic</em>, bulleted or numbered lists.</P>,
+          characters) can be formatted with the buttons above the field: <strong>bold</strong>, <em>italic</em>, <u>underline</u>, bulleted or numbered lists.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Votes: poll, Match, Whose turn?', summary: 'Three ways to decide together',

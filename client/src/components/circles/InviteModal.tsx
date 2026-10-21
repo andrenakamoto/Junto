@@ -6,6 +6,8 @@ import api from '../../services/api';
 import { publicOrigin } from '../../lib/siteUrl';
 import { t, currentLang } from '../../i18n';
 import { Trans } from 'react-i18next';
+import { Contact } from '../../types';
+import { Avatar } from '../ui/Avatar';
 
 interface Props {
   /** Nom du Cercle */
@@ -409,6 +411,92 @@ function MemberInvite({ circleId }: { circleId: string }) {
         </button>
       </div>
       {done && <p className="text-xs text-emerald-600 mt-1.5">{done}</p>}
+      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+      <ContactPicker circleId={circleId} />
+    </div>
+  );
+}
+
+const foldText = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+// « Parmi mes contacts » : les membres de mes autres Cercles qui ne sont pas encore dans celui-ci, à cocher,
+// puis une invitation par personne (même route que la saisie d'un pseudo)
+function ContactPicker({ circleId }: { circleId: string }) {
+  const [contacts, setContacts] = useState<Contact[] | null>(null);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(0);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api.get('/contacts', { params: { circleId } }).then(res => setContacts(res.data)).catch(() => setContacts([]));
+  }, [circleId]);
+
+  if (!contacts || contacts.length === 0) return null;
+  const q = foldText(query.trim());
+  const shown = q ? contacts.filter(c => foldText(`${c.firstName ?? ''} ${c.pseudo}`).includes(q)) : contacts;
+
+  function toggle(id: string) {
+    setSent(0);
+    setPicked(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
+
+  async function inviteAll() {
+    setSending(true);
+    setError('');
+    let ok = 0;
+    for (const c of contacts!.filter(x => picked.has(x.id))) {
+      try {
+        await api.post(`/circles/${circleId}/invitations`, { identifier: c.pseudo });
+        ok++;
+        setContacts(prev => prev!.map(x => (x.id === c.id ? { ...x, invited: true } : x)));
+      } catch (err: any) {
+        setError(err.response?.data?.error || t('circle.invite.retry'));
+        break;
+      }
+    }
+    setPicked(new Set());
+    setSent(ok);
+    setSending(false);
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-slate-200 p-3">
+      <p className="text-sm font-semibold text-slate-800">{t('circle.contacts.pick')}</p>
+      <p className="text-xs text-slate-400 mb-2">{t('circle.contacts.pickHint')}</p>
+      {contacts.length >= 6 && (
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder={t('circle.contacts.search')}
+          className="w-full mb-2 px-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      )}
+      <div className="max-h-56 overflow-y-auto space-y-1 -mx-1 px-1">
+        {shown.map(c => (
+          <label key={c.id} className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg ${c.invited ? 'opacity-60' : 'hover:bg-slate-50 cursor-pointer'}`}>
+            <input type="checkbox" disabled={c.invited} checked={picked.has(c.id)} onChange={() => toggle(c.id)} className="rounded" />
+            <Avatar pseudo={c.pseudo} size="sm" />
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm text-slate-800 truncate">{c.firstName || `@${c.pseudo}`}</span>
+              <span className="block text-[11px] text-slate-400 truncate">{c.invited ? t('circle.contacts.alreadyInvited') : c.circles.map(x => x.name).join(' · ')}</span>
+            </span>
+          </label>
+        ))}
+        {shown.length === 0 && <p className="text-xs text-slate-400 py-2 text-center">{t('circle.contacts.noMatch')}</p>}
+      </div>
+      {picked.size > 0 && (
+        <button
+          onClick={inviteAll}
+          disabled={sending}
+          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+        >
+          <UserPlus size={14} />
+          {sending ? '…' : t('circle.contacts.inviteSelected', { count: picked.size })}
+        </button>
+      )}
+      {sent > 0 && <p className="text-xs text-emerald-600 mt-1.5">{t('circle.contacts.sentCount', { count: sent })}</p>}
       {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   );

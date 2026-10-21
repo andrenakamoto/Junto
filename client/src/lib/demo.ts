@@ -201,6 +201,46 @@ class DemoError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
+// « Mes contacts » de la démo, calculés d'après les Cercles et les Plans en mémoire
+function demoContacts(circleId?: string) {
+  const circles = (fixtures!['GET /circles'] as any[]).filter(c => !c.isPersonal);
+  const byId = new Map<string, any>();
+  for (const c of circles) for (const mbr of c.members ?? []) {
+    if (mbr.userId === me.id) continue;
+    const p = byId.get(mbr.userId) ?? { id: mbr.userId, pseudo: mbr.user.pseudo, firstName: mbr.user.firstName ?? null, circles: [] };
+    p.circles.push({ id: c.id, name: c.name, color: c.color ?? null });
+    byId.set(mbr.userId, p);
+  }
+  const col = new Intl.Collator('fr', { sensitivity: 'base' });
+  let list = [...byId.values()].sort((a, b) => col.compare(a.firstName || a.pseudo, b.firstName || b.pseudo));
+  list.forEach(p => p.circles.sort((a: any, b: any) => col.compare(a.name, b.name)));
+  if (circleId) {
+    const inCircle = new Set((circles.find(c => c.id === circleId)?.members ?? []).map((x: any) => x.userId));
+    list = list.filter(p => !inCircle.has(p.id)).map(p => ({ ...p, invited: false }));
+  }
+  return list;
+}
+
+function demoPerson(userId: string) {
+  const circles = (fixtures!['GET /circles'] as any[]).filter(c => !c.isPersonal);
+  const has = (c: any, id: string) => (c.members ?? []).some((x: any) => x.userId === id);
+  const shared = circles.filter(c => has(c, userId)).map(c => ({ id: c.id, name: c.name, color: c.color ?? null }));
+  const seen = new Set<string>();
+  const plans: any[] = [];
+  for (const c of circles) for (const p of (fixtures![`GET /circles/${c.id}/plans`] ?? []) as any[]) {
+    if (seen.has(p.id) || new Date(p.endDate).getTime() < Date.now() || p.membersVisibility === 'managers') continue;
+    const both = [me.id, userId].every(id => (p.members ?? []).some((x: any) => x.userId === id && x.rsvp !== 'out'));
+    if (both) { seen.add(p.id); plans.push({ id: p.id, title: p.title, eventDate: p.eventDate, endDate: p.endDate, circleId: p.circleId }); }
+  }
+  plans.sort((a, b) => new Date(a.eventDate ?? a.endDate).getTime() - new Date(b.eventDate ?? b.endDate).getTime());
+  return {
+    contact: shared.length > 0,
+    circles: shared,
+    plans: plans.slice(0, 10),
+    invitable: shared.length ? circles.filter(c => !has(c, userId)).map(c => ({ id: c.id, name: c.name, color: c.color ?? null, invited: false })) : [],
+  };
+}
+
 function plan(id: string) {
   const p = fixtures![`GET /plans/${id}`];
   if (!p) throw new DemoError(404, 'Plan introuvable');
@@ -634,6 +674,9 @@ function route(method: string, path: string, body: any): any {
     }
     // Photos de profil : avatars dessinés (public/demo/avatars, client/scripts/demo-avatars.py)
     if (path === '/photos/people') return Object.fromEntries(DEMO_AVATARS.map(p => [p, `demo/avatars/${p}.svg`]));
+    // « Mes contacts » : les membres des Cercles d'Alex (comme server/src/routes/contacts.ts)
+    if (path === '/contacts') return demoContacts(body?.circleId);
+    if ((m = path.match(/^\/contacts\/([^/]+)$/))) return demoPerson(m[1]);
     // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
     if (path === '/circles') return (fixtures![key] as any[]).map(c => {
       const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());

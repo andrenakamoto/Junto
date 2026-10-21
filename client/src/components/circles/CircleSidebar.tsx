@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -40,6 +40,9 @@ interface Props {
   allPlansActive: boolean;
   onCalendar: () => void;
   calendarActive: boolean;
+  /** « Mes contacts » : les personnes de mes Cercles */
+  onContacts: () => void;
+  contactsActive: boolean;
   onCircleUpdated: (circle: Circle) => void;
   unreadCount: number;
   onOpenNotifications: () => void;
@@ -50,7 +53,7 @@ interface Props {
   onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -140,33 +143,28 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
-        <div className="grid grid-cols-2 md:grid-cols-1 gap-1.5 mb-2">
-        <button
-          onClick={onAllPlans}
-          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all border text-[13px] md:text-sm leading-tight font-semibold ${
-            allPlansActive
-              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-              : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
-          }`}
-        >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${allPlansActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
-            <Calendar size={14} />
-          </div>
-          {t('circle.sidebar.allPlans')}
-        </button>
-        <button
-          onClick={onCalendar}
-          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all border text-[13px] md:text-sm leading-tight font-semibold ${
-            calendarActive
-              ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-              : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
-          }`}
-        >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${calendarActive ? 'bg-indigo-500' : 'bg-slate-100'}`}>
-            <CalendarDays size={14} />
-          </div>
-          {t('circle.sidebar.calendar')}
-        </button>
+        {/* Téléphone : trois boutons côte à côte (icône au-dessus) ; grand écran : l'un sous l'autre */}
+        <div className="grid grid-cols-3 md:grid-cols-1 gap-1.5 mb-2">
+        {([
+          [onAllPlans, allPlansActive, Calendar, t('circle.sidebar.allPlans')],
+          [onCalendar, calendarActive, CalendarDays, t('circle.sidebar.calendar')],
+          [onContacts, contactsActive, ContactIcon, t('circle.contacts.button')],
+        ] as const).map(([onClick, active, Icon, label]) => (
+          <button
+            key={label}
+            onClick={onClick}
+            className={`w-full flex flex-col md:flex-row items-center gap-1 md:gap-2 px-1.5 md:px-2.5 py-2 rounded-xl text-center md:text-left transition-all border text-[12px] md:text-sm leading-tight font-semibold ${
+              active
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
+            }`}
+          >
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-indigo-500' : 'bg-slate-100'}`}>
+              <Icon size={14} />
+            </div>
+            {label}
+          </button>
+        ))}
         </div>
         <div className="flex flex-wrap items-center gap-1.5 pl-2 md:pl-0 pt-1">
           <p className="flex-1 md:basis-full md:pl-2 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>

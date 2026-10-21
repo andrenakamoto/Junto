@@ -41,6 +41,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'contacts', emoji: '📇', title: 'Mes contacts', summary: 'Toutes les personnes de tes Cercles, au même endroit',
+        body: <>
+          <P>Le bouton <strong>« Contacts »</strong> (à côté de « Tous mes plans » et « Calendrier ») réunit toutes les personnes
+            avec qui tu partages un Cercle, avec leurs Cercles en commun. Recherche par prénom ou pseudo ; toucher un Cercle l'ouvre.</P>
+          <P>Toucher une personne ouvre sa <strong>fiche</strong> : Cercles et Plans à venir en commun, <strong>« Faire un Plan »</strong>{' '}
+            dans un Cercle en commun, et <strong>« Inviter »</strong> dans un de tes autres Cercles. La même fiche s'ouvre en touchant
+            un avatar (membres, chat).</P>
+          <P>Dans « Inviter » d'un Cercle, <strong>« Parmi mes contacts »</strong> propose les membres de tes autres Cercles : coche-les
+            et invite-les d'un coup. Tu ne vois que des personnes que tu vois déjà dans tes Cercles (prénom et pseudo) ; celles
+            que tu as masquées n'apparaissent pas.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Créer et modifier un Plan', summary: 'Titre, date, lieu, limite, fonctions',
         body: <>
           <P><strong>« Créer un Plan »</strong> en bas de la liste des Plans : titre, description, date, lieu, limite de participants,{' '}
@@ -167,7 +180,7 @@ const groups: Group[] = [
           fichiers et la galerie photo. <strong>« Télécharger toutes les photos »</strong> récupère tout d'un coup (ZIP) : pense
           à le faire avant la date de fin. 10 Mo par fichier, 100 Mo par Plan. La description (500 caractères) et les informations
           importantes (5 000 caractères) se mettent en forme avec les boutons au-dessus du champ : <strong>gras</strong>,
-          <em>italique</em>, listes à puces ou numérotées.</P>,
+          <em>italique</em>, <u>souligné</u>, listes à puces ou numérotées.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Votes : sondage, Match, Qui s’y colle ?', summary: 'Trois façons de décider ensemble',

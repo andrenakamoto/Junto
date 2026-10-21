@@ -25,6 +25,7 @@ import quizScreenRoutes from './routes/quizScreen';
 import muteRoutes from './routes/mutes';
 import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
+import contactRoutes from './routes/contacts';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { refreshPhoneUsers } from './lib/notificationPrefs';
@@ -113,6 +114,7 @@ app.use('/api/express', expressPlanRoutes);
 app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
+app.use('/api/contacts', contactRoutes);
 app.use('/api/quiz-screen', quizScreenRoutes);
 
 app.set('io', io);

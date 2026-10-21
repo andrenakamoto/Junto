@@ -404,3 +404,21 @@ export interface CircleMessage {
   deletedAt?: string | null;
   reactions: { emoji: string; userId: string }[];
 }
+
+// « Mes contacts » (GET /api/contacts, server/src/lib/contacts.ts)
+export interface ContactCircle { id: string; name: string; color: string | null }
+export interface Contact {
+  id: string;
+  pseudo: string;
+  firstName: string | null;
+  circles: ContactCircle[];
+  /** Fenêtre « Inviter » : une invitation à ce Cercle attend déjà la personne */
+  invited?: boolean;
+}
+// Fiche d'une personne (GET /api/contacts/:userId)
+export interface PersonDetails {
+  contact: boolean;
+  circles: ContactCircle[];
+  plans: { id: string; title: string; eventDate: string | null; endDate: string; circleId: string }[];
+  invitable: (ContactCircle & { invited: boolean })[];
+}

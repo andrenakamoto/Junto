@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import api from '../services/api';
-import { PersonSheet, Person } from '../components/ui/PersonSheet';
+import { PersonSheet, Person, PersonActions } from '../components/ui/PersonSheet';
 
 // Photos de profil des personnes qu'on côtoie ({ pseudo: clé }, GET /photos/people), chargées par le tableau
 // de bord. Avatar s'en sert partout où il affiche quelqu'un ; openPerson ouvre la fiche d'une personne.
@@ -13,7 +13,8 @@ interface PhotosValue {
 
 const Ctx = createContext<PhotosValue>({ avatarOf: () => null, refresh: () => {}, setMine: () => {}, openPerson: () => {} });
 
-export function PhotosProvider({ children }: { children: React.ReactNode }) {
+// `actions` (tableau de bord) : ce que la fiche d'une personne peut ouvrir (Cercle, Plan, création d'un Plan)
+export function PhotosProvider({ children, actions }: { children: React.ReactNode; actions?: PersonActions }) {
   const [map, setMap] = useState<Record<string, string>>({});
   const [person, setPerson] = useState<Person | null>(null);
   const last = useRef(0);
@@ -33,7 +34,7 @@ export function PhotosProvider({ children }: { children: React.ReactNode }) {
   return (
     <Ctx.Provider value={value}>
       {children}
-      {person && <PersonSheet person={person} photoKey={map[person.pseudo] ?? null} onClose={() => setPerson(null)} />}
+      {person && <PersonSheet person={person} photoKey={map[person.pseudo] ?? null} actions={actions} onClose={() => setPerson(null)} />}
     </Ctx.Provider>
   );
 }

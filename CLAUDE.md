@@ -746,8 +746,8 @@ Junto/
     l'email de rappel de la veille (texte échappé).
   - **Mise en forme de la description et des informations importantes** (2026-10-20, `server/src/lib/richText.ts` testé, miroir
     `client/src/lib/richText.tsx`) : le texte reste du texte, avec des repères posés par la barre de `RichTextArea` (boutons
-    Gras / Italique / Liste à puces / Liste numérotée) — `**gras**`, `_italique_` (« _ » non collé à une lettre : les pseudos
-    comme @nadia_f ne bougent pas), lignes `- …` et `1. …`. **Limites en caractères visibles** (repères non comptés,
+    Gras / Italique / Souligné / Liste à puces / Liste numérotée) — `**gras**`, `_italique_` (« _ » non collé à une lettre : les pseudos
+    comme @nadia_f ne bougent pas), `++souligné++` (depuis le 2026-10-21 ; « C++ » suivi d'une espace reste du texte), lignes `- …` et `1. …`. **Limites en caractères visibles** (repères non comptés,
     `visibleLength`, texte brut plafonné à 2×) : **description 500** (`DESCRIPTION_MAX`, vérifiée à la création et seulement si
     elle change au PUT : une ancienne description plus longue reste), **informations importantes 5 000**. Affichage `RichText`
     (Infos, encadré ambre, fiche d'un non-membre, page d'invitation) ; e-mail de rappel `richTextToHtml` ; récapitulatif PDF gras
@@ -1161,6 +1161,10 @@ Junto/
   existants (tout s'affichait en € avant cette date). Le bouton
   « Ajouter une dépense » est un bouton corail pleine largeur en haut de
   l'onglet.
+  **Total des dépenses** (2026-10-21) : carte juste sous le titre « Dépenses », un montant par devise
+  (calculé côté client d'après `expenses`, sans conversion), avec le nombre de dépenses ; se met à jour
+  à chaque ajout ou suppression. Chaque dépense affiche sa **date d'ajout** (`Expense.createdAt`, « 21 oct. », l'année si
+  ce n'est pas l'année en cours) devant « payé par @… » : rien à saisir.
 - **Expense** : description, amount, paidById, planId — réparti à parts
   égales entre les membres listés dans `splitWith` (**ExpenseShare**,
   sélectionnés à la création, pas forcément tous les membres du Plan).
@@ -1547,6 +1551,26 @@ Démo : discussion de « Les copains » (ouverte) et de « Jeunesse de Montvert 
 **« Enregistrer la photo »** (2026-10-17, `components/chat/SavePhotoButton.tsx`) dans la visionneuse des deux chats (Cercle et Plan) :
 photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
+
+**Mes contacts** (2026-10-21, `lib/contacts.ts` testé, `routes/contacts.ts` sur `/api/contacts`) : bouton « Contacts » à côté de
+« Tous mes plans » / « Calendrier » (`CircleSidebar`, trois boutons côte à côte sur téléphone) → `ContactsView` (colonne 2,
+`contactsActive` dans DashboardPage) : **personnes avec qui on partage un Cercle non personnel**, comptes normaux seulement, **sans
+les personnes masquées** (`UserBlock`), prénom + @pseudo (jamais le nom de famille), Cercles en commun (touchés → ouverts), recherche
+dès 5. Rien de nouveau n'est révélé : pas de modification de la politique de confidentialité. **Fiche d'une personne** (`PersonSheet`,
+actions fournies par DashboardPage via `PhotosProvider actions`) : GET `/contacts/:userId` → Cercles en commun, **Plans à venir en
+commun** (les deux sans « Je passe », **sauf Plans à liste réservée** — Mode annonce — si l'on n'est ni créateur du Plan ni
+gestionnaire de son Cercle), « Faire un Plan » (Cercle en commun → `CreatePlanModal` ouvert par DashboardPage, `createPlanIn`),
+« Inviter » dans mes autres Cercles (POST `/circles/:id/invitations` habituel, `invited` si une invitation attend). Fenêtre
+« Inviter » d'un Cercle : **« Parmi mes contacts »** (`ContactPicker` de `InviteModal`, GET `/contacts?circleId=…` = contacts pas
+encore membres), cases à cocher, une invitation par personne. Démo : `demoContacts` / `demoPerson` de `lib/demo.ts`. Fiche « Mes
+contacts » du guide.
+
+**Sans réseau** (2026-10-21, `lib/connection.ts`, `components/ui/OfflineBanner.tsx` monté dans `main.tsx`) : l'intercepteur axios
+(`services/api.ts`) marque « hors ligne » toute requête **sans réponse** (une réponse, même une erreur, remet en ligne), comme
+l'événement `offline` du navigateur ; bandeau « Pas de connexion » en haut (bouton « Réessayer »), vérification de `/health` toutes
+les 5 s, puis « Connexion rétablie » et événement `evly-online` → `DashboardPage` recharge tout (`refreshAll`, le premier chargement
+des Cercles compris). **`AuthContext` n'efface plus le jeton sans réseau** (avant, ouvrir l'app hors ligne déconnectait) : seulement
+sur 401 / 403 / 404 de `/auth/me`, sinon il réessaie au retour du réseau.
 
 **Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
 fenêtre dans une pile ; `NativeChrome` ferme d'abord celle du dessus (`closeTopOverlay`) avant `evly-back`. Branché dans

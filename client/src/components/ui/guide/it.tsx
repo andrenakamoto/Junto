@@ -41,6 +41,19 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'contacts', emoji: '📇', title: 'I miei contatti', summary: 'Tutte le persone dei tuoi Cerchi, in un solo posto',
+        body: <>
+          <P>Il pulsante <strong>«Contatti»</strong> (accanto a «Tutti i miei plan» e «Calendario») riunisce tutte le persone con cui
+            condividi un Cerchio, con i Cerchi in comune. Cerca per nome o pseudo; toccando un Cerchio lo apri.</P>
+          <P>Toccando una persona si apre la sua <strong>scheda</strong>: Cerchi e Plan in arrivo in comune, <strong>«Fare un Plan»</strong>{' '}
+            in un Cerchio in comune e <strong>«Invita»</strong> in uno dei tuoi altri Cerchi. La stessa scheda si apre toccando un avatar
+            (membri, chat).</P>
+          <P>In «Invita» di un Cerchio, <strong>«Tra i miei contatti»</strong> propone i membri dei tuoi altri Cerchi: selezionali e
+            invitali tutti insieme. Vedi solo persone che vedi già nei tuoi Cerchi (nome e pseudo); le persone nascoste non
+            compaiono.</P>
+        </>,
+      },
+      {
         id: 'plan', emoji: '📅', title: 'Creare e modificare un Plan', summary: 'Titolo, data, luogo, limite, funzioni',
         body: <>
           <P><strong>«Crea un Plan»</strong> in fondo alla lista dei Plan: titolo, descrizione, data, luogo, limite di
@@ -169,7 +182,7 @@ const groups: Group[] = [
         body: <P>La sezione <strong>Info</strong> raccoglie descrizione, <strong>informazioni importanti</strong>, file e
           galleria fotografica. <strong>«Scarica tutte le foto»</strong> recupera tutto in una volta (ZIP): fallo prima
           della data di fine. 10 MB per file, 100 MB per Plan. Descrizione (500 caratteri) e informazioni importanti (5000
-          caratteri) si formattano con i pulsanti sopra il campo: <strong>grassetto</strong>, <em>corsivo</em>, elenchi puntati o numerati.</P>,
+          caratteri) si formattano con i pulsanti sopra il campo: <strong>grassetto</strong>, <em>corsivo</em>, <u>sottolineato</u>, elenchi puntati o numerati.</P>,
       },
       {
         id: 'votes', emoji: '🗳️', title: 'Voti: sondaggio, Match, A chi tocca?', summary: 'Tre modi per decidere insieme',
