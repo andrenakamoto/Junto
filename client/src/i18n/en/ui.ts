@@ -10,6 +10,13 @@ const ui: Dict['ui'] = {
     available: 'A new version of EvLY is available.',
     reload: 'Reload',
   },
+  offline: {
+    title: 'No connection',
+    text: 'Check your network. EvLY updates itself as soon as it’s back.',
+    retry: 'Try again',
+    checking: 'Checking…',
+    back: 'Back online',
+  },
   profileBanner: {
     text: 'Add your first name so the members of your Circles recognise you.',
     add: 'Add',

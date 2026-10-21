@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { t } from './i18n';
 import { NativeChrome } from './components/NativeChrome';
 import { useAuth } from './contexts/AuthContext';
 import { AuthPage } from './pages/AuthPage';
@@ -25,7 +26,7 @@ function Protected({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-slate-400 text-sm">Chargement...</div>
+        <div className="text-slate-400 text-sm">{t('common.loading')}</div>
       </div>
     );
   }

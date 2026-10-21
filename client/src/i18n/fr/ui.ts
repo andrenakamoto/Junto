@@ -9,6 +9,14 @@ export default {
     available: 'Une nouvelle version d’EvLY est disponible.',
     reload: 'Recharger',
   },
+  // Bandeau sans réseau (OfflineBanner)
+  offline: {
+    title: 'Pas de connexion',
+    text: 'Vérifie ton réseau. EvLY se met à jour tout seul dès qu’il revient.',
+    retry: 'Réessayer',
+    checking: 'Vérification…',
+    back: 'Connexion rétablie',
+  },
   profileBanner: {
     text: 'Ajoute ton prénom pour que les membres de tes Cercles te reconnaissent.',
     add: 'Ajouter',

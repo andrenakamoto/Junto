@@ -10,6 +10,13 @@ const ui: Dict['ui'] = {
     available: 'Eine neue Version von EvLY ist verfügbar.',
     reload: 'Neu laden',
   },
+  offline: {
+    title: 'Keine Verbindung',
+    text: 'Prüfe dein Netz. EvLY aktualisiert sich von selbst, sobald es zurück ist.',
+    retry: 'Erneut versuchen',
+    checking: 'Wird geprüft…',
+    back: 'Verbindung wiederhergestellt',
+  },
   profileBanner: {
     text: 'Gib deinen Vornamen an, damit dich die Mitglieder deiner Kreise erkennen.',
     add: 'Hinzufügen',

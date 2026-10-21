@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { demoAdapter, isDemo } from '../lib/demo';
 import { currentLang } from '../i18n';
+import { markOffline, markOnline } from '../lib/connection';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api' });
 
@@ -14,5 +15,17 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// Connexion : une réponse, même une erreur, prouve que le serveur répond ; aucune réponse = hors ligne
+// (lib/connection.ts, bandeau OfflineBanner)
+api.interceptors.response.use(
+  (res) => { if (!isDemo()) markOnline(); return res; },
+  (err) => {
+    if (!isDemo() && !axios.isCancel(err)) {
+      if (err?.response) markOnline(); else markOffline();
+    }
+    return Promise.reject(err);
+  },
+);
 
 export default api;

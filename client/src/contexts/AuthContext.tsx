@@ -33,15 +33,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     const stored = localStorage.getItem('estelle_token');
-    if (stored) {
-      setToken(stored);
+    if (!stored) { setLoading(false); return; }
+    setToken(stored);
+    let stopped = false;
+    let retry: number | undefined;
+    // Sans réseau, on garde la session et on réessaie (au retour du réseau, sinon toutes les 5 s) ;
+    // le jeton n'est effacé que si le serveur le refuse vraiment
+    function loadMe() {
       api.get('/auth/me')
-        .then(res => setUser(res.data))
-        .catch(() => localStorage.removeItem('estelle_token'))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
+        .then(res => { if (!stopped) { setUser(res.data); setLoading(false); } })
+        .catch(err => {
+          if (stopped) return;
+          const status = err?.response?.status;
+          if (status === 401 || status === 403 || status === 404) {
+            localStorage.removeItem('estelle_token');
+            setToken(null);
+            setLoading(false);
+          } else {
+            window.clearTimeout(retry);
+            retry = window.setTimeout(loadMe, 5000);
+          }
+        });
     }
+    function onOnline() { window.clearTimeout(retry); loadMe(); }
+    window.addEventListener('evly-online', onOnline);
+    loadMe();
+    return () => { stopped = true; window.clearTimeout(retry); window.removeEventListener('evly-online', onOnline); };
   }, []);
 
   // Langue : celle du compte s'applique ; un compte sans langue reçoit celle de l'appareil
