@@ -33,8 +33,8 @@ const groups: Group[] = [
           <P><strong>“Create a Circle”</strong> under “My Circles” (name, description, colour). <strong>“Join a
             Circle”</strong> with its <strong>access code</strong>, a link or a QR code. If you already have an account, a
             member can also invite you by username or email: the invitation arrives in the bell 🔔.</P>
-          <P>Depending on the Circle, a request is accepted by a <strong>majority vote</strong> of members (the default),
-            by the organisers, or straight away. In vote mode, nobody can decline on their own.</P>
+          <P>Depending on the Circle, a request is accepted by the <strong>organisers</strong> (the default), by a majority
+            vote of members, or straight away. In vote mode, nobody can decline on their own.</P>
           <P>Open the member list by tapping “N members” on the Circle or the 👥 icon at the top of its Plans: who’s online,
             roles, “Invite” button.</P>
         </>,
@@ -61,7 +61,8 @@ const groups: Group[] = [
           <P>As soon as <strong>enough people are free</strong> (3 by default), <strong>“Start a Plan”</strong> suggests a ready-made
             Plan (“Drinks tonight 🍻”, with a suggested time); the availabilities are then cleared. Everything also disappears on its
             own at the end of the chosen time.</P>
-          <P>The Circle's creator and organisers turn the feature on or off and choose the number of people in the Circle settings.
+          <P>In the window, <strong>“Suggest a Plan from”</strong> starts at the Circle’s number; you can change it for your own availability (for example “from 2” if a one-to-one is enough).</P>
+          <P>The feature is <strong>off by default</strong>: the Circle's creator and organisers turn it on or off and choose the number of people in the Circle settings.
             To stop the notifications: Notifications → “Who’s free in my Circles”.</P>
         </>,
       },
@@ -327,7 +328,7 @@ const groups: Group[] = [
           <><strong>Organisers</strong>: manage the Circle with them (settings, requests, reserved Plans) but don’t edit
             other people’s Plans or delete the Circle.</>,
           <><strong>Plan creator</strong>: edits their Plan and its settings.</>,
-          <>By default, admitting a member and deleting a Circle or Plan are decided <strong>by majority</strong>.</>,
+          <>By default, the <strong>organisers</strong> admit new members and only the <strong>creator</strong> deletes a Circle or Plan; a majority vote can be chosen instead.</>,
         ]} />,
       },
       {

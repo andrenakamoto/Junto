@@ -706,7 +706,7 @@ Junto/
   `components/ui/AdvancedSettings.tsx`. Modifiables par le **créateur
   seul**, visibles par tous (icône réglages : `CircleSettingsModal`,
   `PlanSettingsModal`).
-  - `Circle.admissionMode` : `vote` (défaut, majorité) / `creator` (le
+  - `Circle.admissionMode` : `vote` (majorité ; défaut en base) / `creator` (**défaut à la création depuis le 2026-10-22**) (le
     créateur accepte via la route de vote, et peut **refuser** via DELETE
     /:id/join-requests/:requestId — refus interdit en mode vote) / `open`
     (/join ajoute directement le membre, réponse `{pending:false, circle}`).
@@ -720,8 +720,8 @@ Junto/
     Plans, ou **n'importe quel gestionnaire du Cercle** (créateur ou
     organisateur), pour débloquer un sondage lancé par un membre quand les
     Plans sont réservés. Voter reste ouvert à tous.
-  - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut) ou
-    `creator` (vote-delete supprime immédiatement si c'est le créateur, 403
+  - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut en base) ou
+    `creator` (**défaut à la création d'un Cercle comme d'un Plan depuis le 2026-10-22**, `createPlanInCircle` compris) (vote-delete supprime immédiatement si c'est le créateur, 403
     sinon ; passer en `creator` efface les votes en cours).
   - **Liste des fonctions** (`FeaturesField`, refaite le 2026-10-09) : rangée par catégorie selon
     `FEATURE_GROUPS` (`client/src/lib/settings.ts`) — Échanger (chat, sondages, photos), Organiser (trajets,
@@ -1358,7 +1358,7 @@ rubrique de jeu seulement si sa fonction est active. **Jamais le chat ni rien de
 « Récap » de la barre d'actions (téléphone), icône de l'en-tête (grand écran), menu ⋮ (tablette),
 lien dans la bulle ⏳. Option de compte **`User.recapEmailEnabled`** (désactivée par défaut,
 « Récapitulatif avant suppression » dans `NotificationSettingsModal`) : `deleteExpiredPlans` appelle
-`sendRecapBeforeDeletion` avant de supprimer (PDF en pièce jointe Resend), sans tenir compte du
+`sendRecapBeforeDeletion` avant de supprimer (PDF en pièce jointe Resend ; destinataires : créateur du Plan + gestionnaires du Cercle **qui participent au Plan** — « Je suis in » / « Peut-être », depuis le 2026-10-22 : ni liste d'attente, ni « Je passe », ni exclus d'un Plan surprise), sans tenir compte du
 canal de notification ni du mode silencieux (choix explicite). Mentionné dans la politique de
 confidentialité. **pdfkit : écrire sous la marge du bas ajoute une page** (pied de page : marge
 remise à 0 le temps de l'écrire).
@@ -1560,8 +1560,8 @@ Fiche du guide « Discussion du Cercle », politique de confidentialité (versio
 **« Je suis dispo »** (2026-10-21, `lib/availability.ts` testé, `routes/availability.ts` sur `/api/availability`, migration
 `20261024100000_availability`) : table **Availability** (une ligne par personne et par Cercle, remplacée à chaque déclaration :
 `slot` `now` = 3 h / `tonight` = jusqu'au prochain 4 h heure suisse, `tags` parmi apero, manger, cine, sport, jeux, balade — 3 au plus —,
-`note` 60 caractères, `expiresAt`), effacée par le job horaire (gated) et filtrée à la lecture (membres actuels, sans personnes
-masquées). `Circle.availabilityEnabled` (défaut **vrai**, aussi pour les anciennes apps ; à la création dans les paramètres avancés
+`note` 60 caractères, `minPeople` = « Plan proposé dès » choisi dans la fenêtre, 2–10, vide = seuil du Cercle — migration `20261025100000_availability_min_people` ; « Lancer un Plan » dès que le nombre de dispos atteint le plus petit seuil des personnes dispo, `readyThreshold` —, `expiresAt` ; étiquettes affichées en pastilles emoji + texte), effacée par le job horaire (gated) et filtrée à la lecture (membres actuels, sans personnes
+masquées). `Circle.availabilityEnabled` (vrai en base pour les Cercles existants, mais **désactivé à la création depuis le 2026-10-22**, aussi pour les anciennes apps qui n'envoient rien ; à la création dans les paramètres avancés
 et dans `CircleSettingsModal`, `AvailabilityField` ; le couper efface les dispos) et `Circle.availabilityThreshold` (2–10, défaut 3,
 `parseThreshold`), tracés dans `CircleChangeLog`. **Notification `availability`** (app + push, jamais d'email) aux autres membres **à
 chaque déclaration** (pas pour une retouche des étiquettes, `shouldNotify`), coupable par `User.availabilityPush` (défaut vrai,

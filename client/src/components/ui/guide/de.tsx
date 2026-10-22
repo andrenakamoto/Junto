@@ -35,8 +35,8 @@ const groups: Group[] = [
           <P><strong>«Kreis erstellen»</strong> unter «Meine Kreise» (Name, Beschreibung, Farbe). <strong>«Einem Kreis
             beitreten»</strong> mit seinem <strong>Zugangscode</strong>, einem Link oder einem QR-Code. Hast du schon ein
             Konto, kann dich ein Mitglied auch per Pseudonym oder E-Mail einladen: Die Einladung erscheint bei der Glocke 🔔.</P>
-          <P>Je nach Kreis wird eine Anfrage durch eine <strong>Mehrheitsabstimmung</strong> der Mitglieder angenommen
-            (Standard), durch die Organisatoren oder sofort. Im Abstimmungsmodus kann niemand allein ablehnen.</P>
+          <P>Je nach Kreis wird eine Anfrage durch die <strong>Organisatoren</strong> angenommen (Standard), durch eine
+            Mehrheitsabstimmung der Mitglieder oder sofort. Im Abstimmungsmodus kann niemand allein ablehnen.</P>
           <P>Die Mitgliederliste öffnest du mit «N Mitglieder» beim Kreis oder dem Symbol 👥 oben bei seinen Plänen: wer
             online ist, Rollen, Schaltfläche «Einladen».</P>
         </>,
@@ -64,7 +64,8 @@ const groups: Group[] = [
           <P>Sobald <strong>genug Personen Zeit haben</strong> (standardmässig 3), schlägt <strong>„Plan starten“</strong> einen fertigen
             Plan vor („Apéro heute Abend 🍻“, Uhrzeit vorgeschlagen); danach verschwinden die Angaben. Alles verschwindet auch von selbst
             am Ende des gewählten Zeitraums.</P>
-          <P>Wer den Kreis erstellt hat und die Organisatoren schalten die Funktion ein oder aus und wählen die Anzahl Personen in den
+          <P>Im Fenster übernimmt <strong>„Plan vorschlagen ab“</strong> die Zahl des Kreises; du kannst sie für deine Angabe ändern (zum Beispiel „ab 2“, wenn dir ein Treffen zu zweit reicht).</P>
+          <P>Die Funktion ist <strong>standardmässig ausgeschaltet</strong>: Wer den Kreis erstellt hat und die Organisatoren schalten sie ein oder aus und wählen die Anzahl Personen in den
             Einstellungen des Kreises. Keine Mitteilungen mehr: Mitteilungen → „Wer in meinen Kreisen Zeit hat“.</P>
         </>,
       },
@@ -338,7 +339,7 @@ const groups: Group[] = [
           <><strong>Organisatoren</strong>: verwalten den Kreis mit ihm (Einstellungen, Anfragen, reservierte Pläne), ändern
             aber keine Pläne anderer und löschen den Kreis nicht.</>,
           <><strong>Ersteller eines Plans</strong>: bearbeitet seinen Plan und dessen Einstellungen.</>,
-          <>Standardmässig werden die Aufnahme eines Mitglieds und das Löschen eines Kreises oder Plans <strong>mit Mehrheit</strong> entschieden.</>,
+          <>Standardmässig nehmen die <strong>Organisatoren</strong> neue Mitglieder auf, und nur wer den Kreis oder Plan <strong>erstellt</strong> hat, kann ihn löschen; stattdessen kann eine Mehrheitsabstimmung gewählt werden.</>,
         ]} />,
       },
       {

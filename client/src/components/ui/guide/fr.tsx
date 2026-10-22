@@ -34,8 +34,8 @@ const groups: Group[] = [
           <P><strong>« Créer un Cercle »</strong> sous « Mes Cercles » (nom, description, couleur). <strong>« Rejoindre un Cercle »</strong>{' '}
             avec son <strong>code d'accès</strong>, un lien ou un QR code. Si tu as déjà un compte, un membre peut aussi t'inviter
             par pseudo ou email : l'invitation arrive dans la cloche 🔔.</P>
-          <P>Selon le Cercle, une demande est acceptée par un <strong>vote à la majorité</strong> des membres (par défaut), par les
-            organisateurs, ou tout de suite. En mode vote, personne ne peut refuser seul.</P>
+          <P>Selon le Cercle, une demande est acceptée par les <strong>organisateurs</strong> (par défaut), par un vote à la
+            majorité des membres, ou tout de suite. En mode vote, personne ne peut refuser seul.</P>
           <P>La liste des membres s'ouvre en touchant « N membres » sur le Cercle ou l'icône 👥 en haut de ses Plans : qui est en
             ligne, rôles, bouton « Inviter ».</P>
         </>,
@@ -62,7 +62,8 @@ const groups: Group[] = [
           <P>Dès que <strong>assez de personnes sont dispo</strong> (3 par défaut), <strong>« Lancer un Plan »</strong> propose un Plan
             tout prêt (« Apéro ce soir 🍻 », heure proposée) ; les dispos s'effacent ensuite. Tout disparaît aussi tout seul à la fin du
             moment choisi.</P>
-          <P>Le créateur et les organisateurs activent ou coupent la fonction et choisissent le nombre de personnes dans les paramètres
+          <P>Dans la fenêtre, <strong>« Plan proposé dès »</strong> reprend le nombre du Cercle ; tu peux le changer pour ta dispo (par exemple « dès 2 » si un tête-à-tête te suffit).</P>
+          <P>La fonction est <strong>désactivée par défaut</strong> : le créateur et les organisateurs l’activent ou la coupent et choisissent le nombre de personnes dans les paramètres
             du Cercle. Pour ne plus être prévenu : Notifications → « Dispo de mes Cercles ».</P>
         </>,
       },
@@ -329,7 +330,7 @@ const groups: Group[] = [
           <><strong>Organisateurs</strong> : gèrent le Cercle avec lui (réglages, demandes, Plans réservés) mais ne modifient pas
             les Plans des autres et ne suppriment pas le Cercle.</>,
           <><strong>Créateur d'un Plan</strong> : modifie son Plan et ses réglages.</>,
-          <>Par défaut, accepter un membre et supprimer un Cercle ou un Plan se décident <strong>à la majorité</strong>.</>,
+          <>Par défaut, les <strong>organisateurs</strong> acceptent les nouveaux membres et seul le <strong>créateur</strong> supprime un Cercle ou un Plan ; un vote à la majorité peut être choisi à la place.</>,
         ]} />,
       },
       {

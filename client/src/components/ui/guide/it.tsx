@@ -34,8 +34,8 @@ const groups: Group[] = [
           <P><strong>«Crea un Cerchio»</strong> sotto «I miei Cerchi» (nome, descrizione, colore). <strong>«Unisciti a un
             Cerchio»</strong> con il suo <strong>codice d’accesso</strong>, un link o un codice QR. Se hai già un account,
             un membro può anche invitarti con pseudonimo o email: l’invito arriva nella campanella 🔔.</P>
-          <P>A seconda del Cerchio, una richiesta è accettata con un <strong>voto a maggioranza</strong> dei membri (per
-            impostazione predefinita), dagli organizzatori o subito. In modalità voto nessuno può rifiutare da solo.</P>
+          <P>A seconda del Cerchio, una richiesta è accettata dagli <strong>organizzatori</strong> (per impostazione
+            predefinita), con un voto a maggioranza dei membri o subito. In modalità voto nessuno può rifiutare da solo.</P>
           <P>La lista dei membri si apre toccando «N membri» sul Cerchio o l’icona 👥 in cima ai suoi Plan: chi è online,
             ruoli, pulsante «Invita».</P>
         </>,
@@ -62,7 +62,8 @@ const groups: Group[] = [
           <P>Appena <strong>abbastanza persone sono libere</strong> (3 di default), <strong>«Lancia un Plan»</strong> propone un Plan
             pronto («Aperitivo stasera 🍻», ora proposta); poi le disponibilità si cancellano. Tutto sparisce anche da solo alla fine
             del momento scelto.</P>
-          <P>Chi ha creato il Cerchio e gli organizzatori attivano o disattivano la funzione e scelgono il numero di persone nelle
+          <P>Nella finestra, <strong>«Plan proposto da»</strong> riprende il numero del Cerchio; puoi cambiarlo per la tua disponibilità (per esempio «da 2» se ti basta un incontro a due).</P>
+          <P>La funzione è <strong>disattivata per impostazione predefinita</strong>: chi ha creato il Cerchio e gli organizzatori la attivano o la disattivano e scelgono il numero di persone nelle
             impostazioni del Cerchio. Per non ricevere più notifiche: Notifiche → «Chi è libero nei miei Cerchi».</P>
         </>,
       },
@@ -334,7 +335,7 @@ const groups: Group[] = [
           <><strong>Organizzatori</strong>: gestiscono il Cerchio con lui (impostazioni, richieste, Plan riservati) ma non
             modificano i Plan degli altri e non eliminano il Cerchio.</>,
           <><strong>Creatore di un Plan</strong>: modifica il suo Plan e le sue impostazioni.</>,
-          <>Per impostazione predefinita, ammettere un membro ed eliminare un Cerchio o un Plan si decide <strong>a maggioranza</strong>.</>,
+          <>Per impostazione predefinita, gli <strong>organizzatori</strong> ammettono i nuovi membri e solo chi ha <strong>creato</strong> un Cerchio o un Plan può eliminarlo; si può scegliere invece un voto a maggioranza.</>,
         ]} />,
       },
       {
