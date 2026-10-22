@@ -366,7 +366,14 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
 export async function sendRecapBeforeDeletion(plan: { id: string; title: string; creatorId: string; circleId: string }) {
   const circle = await prisma.circle.findUnique({ where: { id: plan.circleId }, select: { creatorId: true } });
   const managers = await prisma.circleMember.findMany({ where: { circleId: plan.circleId, role: 'organizer' }, select: { userId: true } });
-  const ids = [...new Set([plan.creatorId, circle?.creatorId, ...managers.map(m => m.userId)].filter((x): x is string => !!x))];
+  // Les gestionnaires du Cercle ne le reçoivent que s'ils participent au Plan (« Je suis in » ou « Peut-être ») :
+  // ni la liste d'attente, ni « Je passe », ni une personne exclue d'un Plan surprise
+  const participants = await prisma.planMember.findMany({
+    where: { planId: plan.id, rsvp: { in: ['in', 'maybe'] } }, select: { userId: true },
+  });
+  const inPlan = new Set(participants.map(p => p.userId));
+  const circleManagers = [circle?.creatorId, ...managers.map(m => m.userId)].filter((x): x is string => !!x && inPlan.has(x));
+  const ids = [...new Set([plan.creatorId, ...circleManagers])];
   const recipients = await prisma.user.findMany({
     where: { id: { in: ids }, recapEmailEnabled: true, emailVerified: true, email: { not: null } },
     select: { email: true, pseudo: true, locale: true },
