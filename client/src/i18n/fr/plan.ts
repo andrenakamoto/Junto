@@ -145,7 +145,6 @@ export default {
     createTitle: 'Créer un Plan',
     fromPollTitle: 'Créer le Plan à partir du sondage',
     editTitle: 'Modifier le Plan',
-    intro: 'Rejoindre un Plan = être d’accord avec sa description.',
     title: 'Titre',
     titlePlaceholder: 'Qui veut manger ce midi ?',
     description: 'Description (optionnel)',

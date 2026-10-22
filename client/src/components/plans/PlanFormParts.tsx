@@ -95,7 +95,7 @@ export function featuresSummary(disabled: PlanFeature[], enabled: OptionalFeatur
 }
 
 export function rulesAreDefault(editMode: EditMode, importantInfoMode: EditMode, deletionMode: DeletionMode, membersVisibility = 'all') {
-  return editMode === 'creator' && importantInfoMode === 'creator' && deletionMode === 'vote' && membersVisibility === 'all';
+  return editMode === 'creator' && importantInfoMode === 'creator' && deletionMode === 'creator' && membersVisibility === 'all';
 }
 
 // Mode annonce (soirée, spectacle, cours, sortie de club) : fonctions décochées sauf « Photos et fichiers » (l'affiche,

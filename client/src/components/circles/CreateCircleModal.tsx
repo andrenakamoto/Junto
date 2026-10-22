@@ -20,12 +20,12 @@ export function CreateCircleModal({ onClose, onCreated }: Props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState<string | null>(null);
-  const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
-  const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('vote');
+  const [deletionMode, setDeletionMode] = useState<DeletionMode>('creator');
+  const [admissionMode, setAdmissionMode] = useState<AdmissionMode>('creator');
   const [planCreationMode, setPlanCreationMode] = useState<PlanCreationMode>('all');
   const [pollCreationMode, setPollCreationMode] = useState<PlanCreationMode>('all');
   const [chatMode, setChatMode] = useState<ChatMode>('open');
-  const [availabilityEnabled, setAvailabilityEnabled] = useState(true);
+  const [availabilityEnabled, setAvailabilityEnabled] = useState(false);
   const [photo, setPhoto] = useState<PendingPhoto>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

@@ -45,7 +45,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const [endTouched, setEndTouched] = useState(!!fromEvent);
   const [location, setLocation] = useState(fromEvent?.location ?? '');
   const [maxParticipants, setMaxParticipants] = useState('');
-  const [deletionMode, setDeletionMode] = useState<DeletionMode>('vote');
+  const [deletionMode, setDeletionMode] = useState<DeletionMode>('creator');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>([]);
   const [editMode, setEditMode] = useState<EditMode>('creator');
@@ -118,10 +118,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
 
   return (
     <Modal title={fromPoll ? t('plan.form.fromPollTitle') : t('plan.form.createTitle')} onClose={onClose}>
-      {fromEvent ? (
+      {fromEvent && (
         <p className="flex items-center gap-2 text-sm text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4"><Megaphone size={15} className="flex-shrink-0 text-indigo-500" />{t('plan.goWith.note', { title: fromEvent.title })}</p>
-      ) : (
-        <p className="text-sm text-slate-500 mb-4">{t('plan.form.intro')}</p>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label={t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />

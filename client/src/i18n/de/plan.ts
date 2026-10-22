@@ -146,7 +146,6 @@ const plan: Dict['plan'] = {
     createTitle: 'Plan erstellen',
     fromPollTitle: 'Plan aus der Umfrage erstellen',
     editTitle: 'Plan bearbeiten',
-    intro: 'Einem Plan beitreten = mit seiner Beschreibung einverstanden sein.',
     title: 'Titel',
     titlePlaceholder: 'Wer kommt mit zum Mittagessen?',
     description: 'Beschreibung (optional)',

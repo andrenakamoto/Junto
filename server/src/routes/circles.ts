@@ -188,14 +188,14 @@ router.post('/', async (req: AuthRequest, res) => {
       name: name.trim(),
       description: description?.trim() || null,
       color: CIRCLE_COLORS.includes(color) ? color : null,
-      deletionMode: parseDeletionMode(req.body.deletionMode) ?? 'vote',
+      deletionMode: parseDeletionMode(req.body.deletionMode) ?? 'creator',
       planCreationMode: parsePlanCreationMode(req.body.planCreationMode) ?? 'all',
       pollCreationMode: parsePollCreationMode(req.body.pollCreationMode) ?? 'all',
-      admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'vote',
+      admissionMode: parseAdmissionMode(req.body.admissionMode) ?? 'creator',
       // Ancienne app (sans discussion) : rien n'est envoyé → désactivée
       chatMode: parseChatMode(req.body.chatMode) ?? 'off',
-      // « Dispo » : activée par défaut (aussi pour les anciennes apps qui n'envoient rien)
-      availabilityEnabled: typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : true,
+      // « Dispo » : désactivée par défaut à la création (aussi pour les anciennes apps qui n'envoient rien)
+      availabilityEnabled: typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : false,
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -842,7 +842,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       endDate: parsedEndDate,
       location: location?.trim() || null,
       maxParticipants: parsedMaxParticipants,
-      deletionMode: parseDeletionMode(input.deletionMode) ?? 'vote',
+      deletionMode: parseDeletionMode(input.deletionMode) ?? 'creator',
       disabledFeatures: parseDisabledFeatures(input.disabledFeatures) ?? [],
       enabledFeatures: parseEnabledFeatures(input.enabledFeatures) ?? [],
       editMode: parseEditMode(input.editMode) ?? 'creator',
