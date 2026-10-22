@@ -455,6 +455,9 @@ Conséquences pratiques :
     dépenses, souligné dans la mise en forme.
     **Version 1.0.25** (2026-10-21, soir) : Android `versionCode` 27 (`evly-1.0.25-(27).aab`), iOS build 29 envoyé — « Je suis dispo »
     (bloc « Qui est dispo ? », pastille verte, « Lancer un Plan », réglages du Cercle et des notifications).
+    **Version 1.0.26** (2026-10-22) : Android `versionCode` 28 (`evly-1.0.26-(28).aab`), iOS build 30 envoyé — nouvelles valeurs
+    par défaut (Cercle : admission par les organisateurs, « Je suis dispo » coupé, suppression par le créateur ; Plan : suppression
+    par le créateur), « Plan proposé dès » dans « Je suis dispo », activités affichées avec leur nom.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
