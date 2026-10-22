@@ -28,7 +28,7 @@ export async function activeAvailabilities(circleId: string, viewerId: string) {
     prisma.availability.findMany({
       where: { circleId, expiresAt: { gt: now }, user: { memberships: { some: { circleId } } } },
       orderBy: { createdAt: 'asc' },
-      select: { slot: true, tags: true, note: true, createdAt: true, expiresAt: true, user: { select: userSelect } },
+      select: { slot: true, tags: true, note: true, minPeople: true, createdAt: true, expiresAt: true, user: { select: userSelect } },
     }),
     prisma.userBlock.findMany({ where: { blockerId: viewerId }, select: { blockedId: true } }),
   ]);
@@ -50,7 +50,7 @@ router.get('/circles/:id', async (req: AuthRequest, res) => {
   res.json({ enabled, threshold: circle.availabilityThreshold, entries });
 });
 
-// PUT /api/availability/circles/:id { slot, tags, note } — je suis dispo (remplace ma dispo précédente)
+// PUT /api/availability/circles/:id { slot, tags, note, minPeople? } — je suis dispo (remplace ma dispo précédente)
 router.put('/circles/:id', async (req: AuthRequest, res) => {
   const found = await usableCircle(req.userId!, req.params.id);
   if (found.error === 404) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
@@ -64,7 +64,7 @@ router.put('/circles/:id', async (req: AuthRequest, res) => {
     where: { userId_circleId: { userId: req.userId!, circleId: circle.id } },
     select: { slot: true, expiresAt: true },
   });
-  const data = { slot: input.slot, tags: input.tags, note: input.note, expiresAt: availabilityExpiry(input.slot, now), createdAt: now };
+  const data = { slot: input.slot, tags: input.tags, note: input.note, minPeople: input.minPeople, expiresAt: availabilityExpiry(input.slot, now), createdAt: now };
   await prisma.availability.upsert({
     where: { userId_circleId: { userId: req.userId!, circleId: circle.id } },
     create: { ...data, userId: req.userId!, circleId: circle.id },

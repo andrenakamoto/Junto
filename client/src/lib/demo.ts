@@ -663,7 +663,7 @@ function route(method: string, path: string, body: any): any {
     if (method === 'PUT') {
       const end = new Date();
       if (body?.slot === 'now') end.setHours(end.getHours() + 3); else { end.setDate(end.getDate() + (end.getHours() < 4 ? 0 : 1)); end.setHours(4, 0, 0, 0); }
-      others.push({ slot: body?.slot === 'now' ? 'now' : 'tonight', tags: body?.tags ?? [], note: body?.note ?? null, createdAt: new Date().toISOString(), expiresAt: end.toISOString(),
+      others.push({ slot: body?.slot === 'now' ? 'now' : 'tonight', tags: body?.tags ?? [], note: body?.note ?? null, minPeople: body?.minPeople ?? null, createdAt: new Date().toISOString(), expiresAt: end.toISOString(),
         user: { id: me.id, pseudo: me.pseudo, firstName: me.firstName ?? null } });
     }
     demoDispo!.set(m[1], others);

@@ -49,7 +49,7 @@ export function availabilityExpiry(slot: AvailabilitySlot, now: Date = new Date(
 }
 
 // Lecture d'une déclaration : créneau connu, étiquettes connues (3 au plus, sans doublon), petit mot facultatif
-export function parseAvailability(body: unknown): { slot: AvailabilitySlot; tags: string[]; note: string | null } | null {
+export function parseAvailability(body: unknown): { slot: AvailabilitySlot; tags: string[]; note: string | null; minPeople: number | null } | null {
   const b = (body ?? {}) as Record<string, unknown>;
   if (!(AVAILABILITY_SLOTS as readonly unknown[]).includes(b.slot)) return null;
   const rawTags = Array.isArray(b.tags) ? b.tags : [];
@@ -58,7 +58,14 @@ export function parseAvailability(body: unknown): { slot: AvailabilitySlot; tags
   if (b.note !== undefined && b.note !== null && typeof b.note !== 'string') return null;
   const note = typeof b.note === 'string' ? b.note.trim() : '';
   if (note.length > AVAILABILITY_NOTE_MAX) return null;
-  return { slot: b.slot as AvailabilitySlot, tags, note: note || null };
+  // « Plan proposé dès » : facultatif (absent ou null = seuil du Cercle)
+  let minPeople: number | null = null;
+  if (b.minPeople !== undefined && b.minPeople !== null) {
+    const n = parseThreshold(b.minPeople);
+    if (n === undefined) return null;
+    minPeople = n;
+  }
+  return { slot: b.slot as AvailabilitySlot, tags, note: note || null, minPeople };
 }
 
 export function parseThreshold(v: unknown): number | undefined {

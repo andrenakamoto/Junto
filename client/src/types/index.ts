@@ -434,6 +434,7 @@ export interface AvailabilityEntry {
   slot: AvailabilitySlot;
   tags: string[];
   note: string | null;
+  minPeople?: number | null;
   createdAt: string;
   expiresAt: string;
   user: { id: string; pseudo: string; firstName: string | null };

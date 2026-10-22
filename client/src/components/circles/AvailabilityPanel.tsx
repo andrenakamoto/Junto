@@ -5,7 +5,7 @@ import api from '../../services/api';
 import { t } from '../../i18n';
 import { useAuth } from '../../contexts/AuthContext';
 import { isCircleManager } from '../../lib/settings';
-import { AVAILABILITY_NOTE_MAX, AVAILABILITY_TAGS, AVAILABILITY_TAGS_MAX, slotLabel, suggestedPlan, tagEmoji } from '../../lib/availability';
+import { AVAILABILITY_NOTE_MAX, AVAILABILITY_TAGS, AVAILABILITY_TAGS_MAX, readyThreshold, slotLabel, suggestedPlan, tagEmoji, tagLabel } from '../../lib/availability';
 import { Avatar } from '../ui/Avatar';
 import { Modal } from '../ui/Modal';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
@@ -32,7 +32,8 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
 
   const mine = entries.find(e => e.user.id === user?.id);
   const count = entries.length;
-  const ready = count >= threshold;
+  const needed = readyThreshold(entries, threshold);
+  const ready = count >= needed;
   const canCreate = circle.planCreationMode !== 'creator' || isCircleManager(circle, user?.id);
 
   async function stop() {
@@ -67,8 +68,17 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
                 <p className="text-xs text-slate-800 truncate">
                   <span className="font-semibold">{e.user.id === user?.id ? t('circle.dispo.youAre', { slot: slotLabel(e.slot) }) : (e.user.firstName || `@${e.user.pseudo}`)}</span>
                   {e.user.id !== user?.id && <span className="text-slate-500"> · {slotLabel(e.slot)}</span>}
-                  {e.tags.length > 0 && <span className="ml-1">{e.tags.map(tagEmoji).join(' ')}</span>}
+                  {e.minPeople != null && e.minPeople !== threshold && <span className="text-slate-400"> · {t('circle.dispo.minShort', { count: e.minPeople })}</span>}
                 </p>
+                {e.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {e.tags.map(tag => (
+                      <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
+                        <span className="text-base leading-none">{tagEmoji(tag)}</span>{tagLabel(tag)}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {e.note && <p className="text-[11px] text-slate-500 italic truncate">« {e.note} »</p>}
               </div>
             </div>
@@ -86,13 +96,14 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
           )}
         </div>
       ) : (
-        <p className="mt-2 text-[11px] text-slate-400">{t('circle.dispo.needMore', { count: threshold - count })}</p>
+        <p className="mt-2 text-[11px] text-slate-400">{t('circle.dispo.needMore', { count: needed - count })}</p>
       ))}
 
       {editing && (
         <AvailabilityModal
           current={mine ?? null}
           circle={circle}
+          threshold={threshold}
           circles={circles}
           onClose={() => setEditing(false)}
           onSaved={() => { setEditing(false); load(); }}
@@ -116,12 +127,14 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
 }
 
 // Fenêtre « Je suis dispo » : quand, pour quoi (étiquettes), un petit mot, et dans quels Cercles
-function AvailabilityModal({ current, circle, circles, onClose, onSaved }: {
-  current: AvailabilityEntry | null; circle: Circle; circles: Circle[]; onClose: () => void; onSaved: () => void;
+function AvailabilityModal({ current, circle, threshold, circles, onClose, onSaved }: {
+  current: AvailabilityEntry | null; circle: Circle; threshold: number; circles: Circle[]; onClose: () => void; onSaved: () => void;
 }) {
   const [slot, setSlot] = useState<AvailabilitySlot>(current?.slot ?? 'tonight');
   const [tags, setTags] = useState<string[]>(current?.tags ?? []);
   const [note, setNote] = useState(current?.note ?? '');
+  // Vide = seuil du Cercle (chaque Cercle coché garde le sien)
+  const [minPeople, setMinPeople] = useState<number | null>(current?.minPeople ?? null);
   const usable = circles.filter(c => !c.isPersonal && c.availabilityEnabled !== false);
   const [picked, setPicked] = useState<Set<string>>(new Set([circle.id]));
   const [sending, setSending] = useState(false);
@@ -139,7 +152,7 @@ function AvailabilityModal({ current, circle, circles, onClose, onSaved }: {
     setSending(true);
     setError('');
     try {
-      for (const id of picked) await api.put(`/availability/circles/${id}`, { slot, tags, note: note.trim() || null });
+      for (const id of picked) await api.put(`/availability/circles/${id}`, { slot, tags, note: note.trim() || null, minPeople });
       onSaved();
     } catch (err: any) {
       setError(err?.response?.data?.error || t('common.retryError'));
@@ -170,7 +183,7 @@ function AvailabilityModal({ current, circle, circles, onClose, onSaved }: {
           <div className="flex flex-wrap gap-1.5">
             {AVAILABILITY_TAGS.map(x => (
               <button key={x.key} type="button" onClick={() => toggleTag(x.key)} className={chip(tags.includes(x.key))}>
-                {x.emoji} {t(`circle.dispo.tags.${x.key}` as any)}
+                <span className="text-base leading-none">{x.emoji}</span> {tagLabel(x.key)}
               </button>
             ))}
           </div>
@@ -180,6 +193,15 @@ function AvailabilityModal({ current, circle, circles, onClose, onSaved }: {
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('circle.dispo.note')}</p>
           <input value={note} onChange={e => setNote(e.target.value)} maxLength={AVAILABILITY_NOTE_MAX} placeholder={t('circle.dispo.notePlaceholder')}
             className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('circle.dispo.minPeople')}</p>
+          <select value={minPeople ?? threshold} onChange={e => { const n = Number(e.target.value); setMinPeople(n === threshold ? null : n); }}
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            {Array.from({ length: 9 }, (_, i) => i + 2).map(n => <option key={n} value={n}>{t('circle.dispo.people', { count: n })}</option>)}
+          </select>
+          <p className="text-xs text-slate-500 mt-1">{t('circle.dispo.minPeopleHint', { count: threshold })}</p>
         </div>
 
         {usable.length > 1 && (

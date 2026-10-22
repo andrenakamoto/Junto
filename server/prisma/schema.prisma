@@ -1535,6 +1535,7 @@ model Availability {
   slot      String
   tags      String[] @default([])
   note      String?
+  minPeople Int? // « Plan proposé dès » choisi par la personne (vide = seuil du Cercle)
   createdAt DateTime @default(now())
   expiresAt DateTime
 

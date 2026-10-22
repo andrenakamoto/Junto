@@ -15,6 +15,11 @@ export const AVAILABILITY_TAGS_MAX = 3;
 export const AVAILABILITY_NOTE_MAX = 60;
 
 export const tagEmoji = (key: string) => AVAILABILITY_TAGS.find(x => x.key === key)?.emoji ?? '';
+export const tagLabel = (key: string) => t(`circle.dispo.tags.${key}` as any);
+// Seuil appliqué : le plus petit « Plan proposé dès » des personnes dispo (chacune prend sinon celui du Cercle)
+export function readyThreshold(entries: AvailabilityEntry[], circleThreshold: number): number {
+  return entries.length ? Math.min(...entries.map(e => e.minPeople ?? circleThreshold)) : circleThreshold;
+}
 export const slotLabel = (slot: AvailabilitySlot) => t(slot === 'now' ? 'circle.dispo.slotNow' : 'circle.dispo.slotTonight');
 
 const pad = (n: number) => n.toString().padStart(2, '0');

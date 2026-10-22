@@ -29,12 +29,19 @@ describe('parseAvailability', () => {
   it('créneau obligatoire, étiquettes connues seulement, 3 au plus', () => {
     expect(parseAvailability({ slot: 'demain' })).toBeNull();
     expect(parseAvailability({ slot: 'tonight', tags: ['apero', 'x', 'apero', 'cine', 'sport', 'jeux'] }))
-      .toEqual({ slot: 'tonight', tags: ['apero', 'cine', 'sport'], note: null });
+      .toEqual({ slot: 'tonight', tags: ['apero', 'cine', 'sport'], note: null, minPeople: null });
   });
 
   it('petit mot de 60 caractères au plus', () => {
     expect(parseAvailability({ slot: 'now', note: '  raclette ?  ' })?.note).toBe('raclette ?');
     expect(parseAvailability({ slot: 'now', note: 'x'.repeat(61) })).toBeNull();
+  });
+
+  it('« Plan proposé dès » facultatif, entre 2 et 10', () => {
+    expect(parseAvailability({ slot: 'now', minPeople: 2 })?.minPeople).toBe(2);
+    expect(parseAvailability({ slot: 'now', minPeople: null })?.minPeople).toBeNull();
+    expect(parseAvailability({ slot: 'now', minPeople: 1 })).toBeNull();
+    expect(parseAvailability({ slot: 'now', minPeople: 11 })).toBeNull();
   });
 });
 
