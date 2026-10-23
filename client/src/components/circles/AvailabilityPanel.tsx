@@ -12,8 +12,10 @@ import { CreatePlanModal } from '../plans/CreatePlanModal';
 
 // « Je suis dispo » en tête de la liste des Plans d'un Cercle : qui est libre maintenant ou ce soir, et dès que le
 // seuil du Cercle est atteint, « Lancer un Plan » (titre et heure proposés, les dispos s'effacent ensuite)
-export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
-  circle: Circle; circles: Circle[]; onPlanCreated: (plan: Plan) => void;
+// compact : quand personne n'est dispo, une simple pastille « Je suis dispo » (la carte complète revient dès qu'il y a
+// quelqu'un) ; openSignal : ouvre la fenêtre « Je suis dispo » (bouton « Créer » de la liste des Plans)
+export function AvailabilityPanel({ circle, circles, onPlanCreated, compact = false, openSignal = 0 }: {
+  circle: Circle; circles: Circle[]; onPlanCreated: (plan: Plan) => void; compact?: boolean; openSignal?: number;
 }) {
   const { user } = useAuth();
   const [entries, setEntries] = useState<AvailabilityEntry[]>([]);
@@ -29,6 +31,7 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
       .catch(() => {});
   }
   useEffect(load, [dispoKey]);
+  useEffect(() => { if (openSignal) setEditing(true); }, [openSignal]);
 
   const mine = entries.find(e => e.user.id === user?.id);
   const count = entries.length;
@@ -40,6 +43,44 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
     await api.delete(`/availability/circles/${circle.id}`).catch(() => {});
     load();
   }
+
+  const modals = (
+    <>
+      {editing && (
+        <AvailabilityModal
+          current={mine ?? null}
+          circle={circle}
+          threshold={threshold}
+          circles={circles}
+          onClose={() => setEditing(false)}
+          onSaved={() => { setEditing(false); load(); }}
+        />
+      )}
+      {launching && (() => {
+        const s = suggestedPlan(entries);
+        return (
+          <CreatePlanModal
+            circleId={circle.id}
+            circleMembers={circle.members}
+            suggestedTitle={s.title}
+            fromAvailability={{ start: s.start }}
+            onClose={() => setLaunching(false)}
+            onCreated={plan => { setLaunching(false); setEntries([]); onPlanCreated(plan); }}
+          />
+        );
+      })()}
+    </>
+  );
+
+  if (compact && count === 0) return (
+    <>
+      <button onClick={() => setEditing(true)}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white shadow-sm text-sm font-medium text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-colors">
+        <span className="w-2 h-2 rounded-full bg-emerald-500" />{t('circle.dispo.button')}
+      </button>
+      {modals}
+    </>
+  );
 
   return (
     <div className={`rounded-2xl border p-3 shadow-sm ${ready ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200'}`}>
@@ -99,29 +140,7 @@ export function AvailabilityPanel({ circle, circles, onPlanCreated }: {
         <p className="mt-2 text-[11px] text-slate-400">{t('circle.dispo.needMore', { count: needed - count })}</p>
       ))}
 
-      {editing && (
-        <AvailabilityModal
-          current={mine ?? null}
-          circle={circle}
-          threshold={threshold}
-          circles={circles}
-          onClose={() => setEditing(false)}
-          onSaved={() => { setEditing(false); load(); }}
-        />
-      )}
-      {launching && (() => {
-        const s = suggestedPlan(entries);
-        return (
-          <CreatePlanModal
-            circleId={circle.id}
-            circleMembers={circle.members}
-            suggestedTitle={s.title}
-            fromAvailability={{ start: s.start }}
-            onClose={() => setLaunching(false)}
-            onCreated={plan => { setLaunching(false); setEntries([]); onPlanCreated(plan); }}
-          />
-        );
-      })()}
+      {modals}
     </div>
   );
 }

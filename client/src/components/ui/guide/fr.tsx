@@ -36,7 +36,7 @@ const groups: Group[] = [
             par pseudo ou email : l'invitation arrive dans la cloche 🔔.</P>
           <P>Selon le Cercle, une demande est acceptée par les <strong>organisateurs</strong> (par défaut), par un vote à la
             majorité des membres, ou tout de suite. En mode vote, personne ne peut refuser seul.</P>
-          <P>La liste des membres s'ouvre en touchant « N membres » sur le Cercle ou l'icône 👥 en haut de ses Plans : qui est en
+          <P>La liste des membres s'ouvre en touchant « N membres » sur le Cercle ou le bouton <strong>« Membres »</strong> en haut de ses Plans (les autres actions du Cercle sont dans le menu ⋯) : qui est en
             ligne, rôles, bouton « Inviter ».</P>
         </>,
       },
@@ -70,7 +70,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '« Je suis dispo »', summary: 'Dire qu’on est libre, et en faire un Plan',
         body: <>
-          <P>En haut des Plans d'un Cercle, <strong>« Je suis dispo »</strong> : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
+          <P>Dans un Cercle, <strong>« Je suis dispo »</strong> (le bouton vert, ou « Créer » en bas) : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
             <strong>ce soir</strong>, avec si tu veux une activité (🍻 Apéro, 🍕 Manger, 🎬 Ciné…) et un petit mot. Tu peux le dire dans
             plusieurs Cercles à la fois. Les membres sont prévenus, et la carte du Cercle affiche « 🟢 3 dispo ».</P>
           <P>Dès que <strong>assez de personnes sont dispo</strong> (3 par défaut), <strong>« Lancer un Plan »</strong> propose un Plan
@@ -108,7 +108,7 @@ const groups: Group[] = [
       {
         id: 'sondage-dates', emoji: '🗓️', title: 'Sondage de dates', summary: 'Trouver la date avant de créer le Plan',
         body: <>
-          <P>Dans un Cercle, <strong>« Proposer des dates »</strong> : chacun coche toutes les dates qui lui vont, ou « Pas
+          <P>Dans un Cercle, <strong>« Créer » › « Proposer des dates »</strong> : chacun coche toutes les dates qui lui vont, ou « Pas
             disponible ». Le sondage a son chat. Quand une date se dégage, <strong>« Créer le Plan »</strong> le transforme en
             Plan (la conversation suit). Son créateur peut <strong>ajouter des dates</strong> en cours de route : ceux qui ont
             déjà répondu sont prévenus.</P>

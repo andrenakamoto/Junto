@@ -35,7 +35,7 @@ const groups: Group[] = [
             member can also invite you by username or email: the invitation arrives in the bell 🔔.</P>
           <P>Depending on the Circle, a request is accepted by the <strong>organisers</strong> (the default), by a majority
             vote of members, or straight away. In vote mode, nobody can decline on their own.</P>
-          <P>Open the member list by tapping “N members” on the Circle or the 👥 icon at the top of its Plans: who’s online,
+          <P>Open the member list by tapping “N members” on the Circle or the <strong>“Members”</strong> button at the top of its Plans (the Circle’s other actions are in the ⋯ menu): who’s online,
             roles, “Invite” button.</P>
         </>,
       },
@@ -69,7 +69,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '“I’m free”', summary: 'Say you’re free, and turn it into a Plan',
         body: <>
-          <P>At the top of a Circle's Plans, <strong>“I’m free”</strong>: <strong>now</strong> (for 3 hours) or{' '}
+          <P>In a Circle, <strong>“I’m free”</strong> (the green button, or “Create” at the bottom): <strong>now</strong> (for 3 hours) or{' '}
             <strong>tonight</strong>, with an activity if you like (🍻 Drinks, 🍕 Food, 🎬 Cinema…) and a short note. You can say it in
             several Circles at once. Members get a notification, and the Circle's card shows “🟢 3 free”.</P>
           <P>As soon as <strong>enough people are free</strong> (3 by default), <strong>“Start a Plan”</strong> suggests a ready-made
@@ -108,7 +108,7 @@ const groups: Group[] = [
       {
         id: 'sondage-dates', emoji: '🗓️', title: 'Date poll', summary: 'Find the date before creating the Plan',
         body: <>
-          <P>In a Circle, <strong>“Suggest dates”</strong>: everyone ticks all the dates that suit them, or “Not
+          <P>In a Circle, <strong>“Create” › “Suggest dates”</strong>: everyone ticks all the dates that suit them, or “Not
             available”. The poll has its own chat. When a date stands out, <strong>“Create the Plan”</strong> turns it into
             a Plan (the conversation carries over). Its creator can <strong>add dates</strong> along the way: people who have
             already answered are notified.</P>

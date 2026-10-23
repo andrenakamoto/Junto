@@ -37,7 +37,7 @@ const groups: Group[] = [
             Konto, kann dich ein Mitglied auch per Pseudonym oder E-Mail einladen: Die Einladung erscheint bei der Glocke 🔔.</P>
           <P>Je nach Kreis wird eine Anfrage durch die <strong>Organisatoren</strong> angenommen (Standard), durch eine
             Mehrheitsabstimmung der Mitglieder oder sofort. Im Abstimmungsmodus kann niemand allein ablehnen.</P>
-          <P>Die Mitgliederliste öffnest du mit «N Mitglieder» beim Kreis oder dem Symbol 👥 oben bei seinen Plänen: wer
+          <P>Die Mitgliederliste öffnest du mit «N Mitglieder» beim Kreis oder dem Button <strong>«Mitglieder»</strong> oben bei seinen Plänen (die anderen Aktionen des Kreises sind im Menü ⋯): wer
             online ist, Rollen, Schaltfläche «Einladen».</P>
         </>,
       },
@@ -71,7 +71,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '„Ich hab Zeit“', summary: 'Sagen, dass man frei ist, und daraus einen Plan machen',
         body: <>
-          <P>Oben in den Plänen eines Kreises: <strong>„Ich hab Zeit“</strong>, <strong>jetzt</strong> (für 3 Stunden) oder{' '}
+          <P>In einem Kreis: <strong>„Ich hab Zeit“</strong> (der grüne Button oder unten „Erstellen“), <strong>jetzt</strong> (für 3 Stunden) oder{' '}
             <strong>heute Abend</strong>, wenn du willst mit einer Aktivität (🍻 Apéro, 🍕 Essen, 🎬 Kino…) und einem kurzen Wort. Du
             kannst es in mehreren Kreisen gleichzeitig sagen. Die Mitglieder werden benachrichtigt, und die Karte des Kreises zeigt
             „🟢 3 haben Zeit“.</P>
@@ -112,7 +112,7 @@ const groups: Group[] = [
       {
         id: 'sondage-dates', emoji: '🗓️', title: 'Terminumfrage', summary: 'Den Termin finden, bevor der Plan entsteht',
         body: <>
-          <P>In einem Kreis <strong>«Termine vorschlagen»</strong>: Alle kreuzen die Termine an, die ihnen passen, oder
+          <P>In einem Kreis <strong>«Erstellen» › «Termine vorschlagen»</strong>: Alle kreuzen die Termine an, die ihnen passen, oder
             «Kann nicht». Die Umfrage hat einen eigenen Chat. Zeichnet sich ein Termin ab, macht{' '}
             <strong>«Plan erstellen»</strong> daraus einen Plan (der Chat wird übernommen). Wer sie erstellt hat, kann
             unterwegs <strong>Termine hinzufügen</strong>: Wer schon geantwortet hat, wird benachrichtigt.</P>

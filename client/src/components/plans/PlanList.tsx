@@ -6,7 +6,7 @@ import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sun } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -65,6 +65,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showMembers, setShowMembers] = useState(false);
   const [summaryPlan, setSummaryPlan] = useState<Plan | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [descOpen, setDescOpen] = useState(false);
+  const [dispoSignal, setDispoSignal] = useState(0);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
   // Cercle dont les sondages sont chargés (évite de mettre à jour la carte avec ceux d'un autre Cercle)
@@ -122,6 +126,19 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const canCreate = circle.planCreationMode !== 'creator' || isCircleManager(circle, user?.id);
   const canCreatePoll = circle.pollCreationMode !== 'creator' || isCircleManager(circle, user?.id);
 
+  // Affichage simplifié (2026-10-23) : en-tête léger (Membres, Inviter, menu ⋯), ce qui est vide est masqué, un seul
+  // bouton « Créer » (Plan, sondage de dates, « Je suis dispo »)
+  const chatOn = !!(circle.chatMode && circle.chatMode !== 'off' && onOpenChat);
+  const dispoOn = !circle.isPersonal && circle.availabilityEnabled !== false;
+  const dispoFull = dispoOn && (circle.dispo?.count ?? 0) > 0;
+  const chatFull = chatOn && !!circle.chatLast;
+  const createOptions = [
+    ...(canCreate ? [{ key: 'plan', Icon: Plus, label: t('circle.planList.planItem'), hint: t('circle.planList.planHint'), run: () => setShowCreate(true) }] : []),
+    ...(canCreatePoll ? [{ key: 'poll', Icon: CalendarRange, label: t('circle.planList.proposeDates'), hint: t('circle.planList.pollHint'), run: () => setShowCreatePoll(true) }] : []),
+    ...(dispoOn ? [{ key: 'dispo', Icon: Sun, label: t('circle.dispo.button'), hint: t('circle.planList.dispoHint'), run: () => setDispoSignal(n => n + 1) }] : []),
+  ];
+  const menuItem = 'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left';
+
   return (
     <div className="w-full bg-slate-50 flex flex-col h-full flex-shrink-0 border-r border-slate-200 short:overflow-y-auto">
       {/* Photo du Cercle : bandeau en tête, le nom écrit dessus */}
@@ -129,101 +146,76 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         <div className="relative h-[140px] md:h-[112px] short:h-[72px] flex-shrink-0 bg-slate-200">
           <img src={photoUrl(circle.photoKey)} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+          <button onClick={onBack} aria-label="←" className="md:hidden absolute top-2 left-2 p-1.5 rounded-full bg-black/30 text-white hover:bg-black/45">
+            <ChevronLeft size={18} />
+          </button>
           <h2 className="absolute left-4 right-4 bottom-2.5 text-white font-bold text-lg leading-tight truncate drop-shadow">{circle.name}</h2>
         </div>
       )}
-      <div className={`px-4 border-b border-slate-200 ${circle.photoKey ? 'py-2.5' : 'py-4'}`}>
-        {/* Grand écran (colonne étroite) : actions sur une 2e ligne, sous le nom du Cercle */}
-        <div className="flex items-start justify-between gap-2 md:flex-wrap md:gap-y-1.5">
-          <div className="flex items-center gap-2 flex-1 min-w-0 md:basis-full">
-            <button
-              onClick={onBack}
-              className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0"
-            >
+      <div className="px-4 py-2.5 border-b border-slate-200">
+        {!circle.photoKey && (
+          <div className="flex items-center gap-2 mb-1.5">
+            <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors flex-shrink-0">
               <ChevronLeft size={18} />
             </button>
-            <div className="flex-1 min-w-0">
-              {!circle.photoKey && <h2 className="font-bold text-slate-900 text-sm leading-tight truncate">{circle.name}</h2>}
-              <button
-                onClick={copyCode}
-                className={`flex items-center gap-1.5 ${circle.photoKey ? '' : 'mt-1'} text-xs text-indigo-600 hover:text-indigo-700 transition-colors group`}
-              >
-                {codeCopied
-                  ? <Check size={10} className="text-emerald-600" />
-                  : <Copy size={10} className="group-hover:text-indigo-700" />}
-                <span><Trans i18nKey="circle.planList.code" values={{ code: circle.code }} components={{ b: <span className="font-mono tracking-widest" /> }} /></span>
-                {codeCopied && <span className="text-emerald-600 ml-1">{t('circle.planList.copied')}</span>}
-              </button>
-            </div>
+            <h2 className="flex-1 min-w-0 font-bold text-slate-900 text-base leading-tight truncate">{circle.name}</h2>
           </div>
-
-          <div className="flex items-center flex-shrink-0 md:-ml-1.5">
-          {/* Membres du Cercle */}
-          <button
-            onClick={() => setShowMembers(true)}
-            title={t('circle.planList.members', { count: circle.members.length })}
-            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
-          >
-            <Users size={14} />
+        )}
+        {circle.description && (
+          <button onClick={() => setDescOpen(v => !v)} className="block w-full text-left mb-2 text-xs text-slate-500 leading-relaxed break-words">
+            <span className={descOpen ? 'whitespace-pre-line' : 'line-clamp-1'}>{circle.description}</span>
           </button>
+        )}
 
-          {/* Invite button */}
-          <button
-            onClick={() => setShowInvite(true)}
-            title={t('circle.planList.invite')}
-            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
-          >
-            <UserPlus size={14} />
+        {/* Membres, Inviter ; le reste dans le menu ⋯ */}
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => setShowMembers(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+            <Users size={14} className="text-indigo-600" />{t('circle.planList.members', { count: circle.members.length })}
           </button>
-
-          {/* Mode silencieux du Cercle : plus de notifications ni d'emails pour tous ses Plans */}
-          <button
-            onClick={() => setCircleMuted(circle, !circleMuted)}
-            title={circleMuted ? t('circle.planList.mutedTap') : t('circle.planList.mute')}
-            aria-pressed={circleMuted}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${circleMuted ? 'text-slate-600 bg-slate-200 hover:bg-slate-300' : 'text-indigo-600 hover:text-indigo-700 hover:bg-slate-100'}`}
-          >
-            {circleMuted ? <BellOff size={14} /> : <Bell size={14} />}
+          <button onClick={() => setShowInvite(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+            <UserPlus size={14} className="text-indigo-600" />{t('circle.planList.invite')}
           </button>
-
-          {/* Paramètres avancés (lecture seule sauf pour le créateur) */}
-          <button
-            onClick={() => setShowSettings(true)}
-            title={t('circle.planList.settings')}
-            className="p-1.5 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors flex-shrink-0"
-          >
-            <SlidersHorizontal size={14} />
-          </button>
-
-          {/* Delete vote button */}
-          {canDelete && <button
-            onClick={() => setShowDelete(true)}
-            title={creatorDeletes ? t('circle.planList.delete') : t('circle.planList.voteDelete')}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${
-              hasMyVote
-                ? 'text-red-600 bg-red-500/10 hover:bg-red-100'
-                : 'text-indigo-600 hover:text-red-600 hover:bg-slate-100'
-            }`}
-          >
-            <Trash2 size={14} />
-          </button>}
-
-          {/* Leave circle button */}
-          <button
-            onClick={() => setShowLeave(true)}
-            title={t('circle.planList.leave')}
-            className="p-1.5 rounded-lg text-indigo-600 hover:text-amber-700 hover:bg-slate-100 transition-colors flex-shrink-0"
-          >
-            <LogOut size={14} />
-          </button>
+          {circleMuted && (
+            <button onClick={() => setCircleMuted(circle, false)} title={t('circle.planList.mutedTap')} aria-label={t('circle.planList.mutedTap')}
+              className="p-1.5 rounded-lg text-slate-600 bg-slate-200 hover:bg-slate-300 transition-colors">
+              <BellOff size={14} />
+            </button>
+          )}
+          <div className="relative ml-auto">
+            <button onClick={() => setShowMore(v => !v)} title={t('circle.planList.more')} aria-label={t('circle.planList.more')} aria-expanded={showMore}
+              className={`p-1.5 rounded-lg transition-colors ${showMore ? 'bg-slate-200 text-slate-800' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'}`}>
+              <MoreHorizontal size={18} />
+            </button>
+            {showMore && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setShowMore(false)} />
+                <div className="absolute right-0 top-full mt-1 z-30 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5">
+                  <button className={menuItem} onClick={() => { setShowMore(false); setCircleMuted(circle, !circleMuted); }}>
+                    {circleMuted ? <Bell size={15} className="text-slate-400" /> : <BellOff size={15} className="text-slate-400" />}
+                    {circleMuted ? t('circle.planList.unmuteShort') : t('circle.planList.muteShort')}
+                  </button>
+                  <button className={menuItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
+                    <SlidersHorizontal size={15} className="text-slate-400" />{t('circle.planList.settings')}
+                  </button>
+                  <button className={menuItem} onClick={() => { setShowMore(false); copyCode(); }}>
+                    <Copy size={15} className="text-slate-400" />{t('circle.planList.copyCode', { code: circle.code })}
+                  </button>
+                  {canDelete && (
+                    <button className={`${menuItem} text-red-600`} onClick={() => { setShowMore(false); setShowDelete(true); }}>
+                      <Trash2 size={15} />{creatorDeletes ? t('circle.planList.delete') : t('circle.planList.voteDelete')}
+                    </button>
+                  )}
+                  <button className={menuItem} onClick={() => { setShowMore(false); setShowLeave(true); }}>
+                    <LogOut size={15} className="text-slate-400" />{t('circle.planList.leave')}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {circle.description && (
-          <p className="mt-2 text-xs text-slate-500 leading-relaxed whitespace-pre-line break-words line-clamp-3" title={circle.description}>
-            {circle.description}
-          </p>
-        )}
+        {codeCopied && <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-600"><Check size={12} />{t('circle.planList.copied')}</p>}
 
         {/* Vote progress hint */}
         {votes.length > 0 && (
@@ -238,8 +230,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 short:flex-none short:overflow-visible">
-        {/* Discussion du Cercle (si elle est activée) : dernier message, point orange s'il y a du nouveau */}
-        {circle.chatMode && circle.chatMode !== 'off' && onOpenChat && (
+        {/* Discussion avec des messages récents : la carte complète */}
+        {chatFull && (
           <button onClick={onOpenChat}
             className={`w-full text-left p-3.5 rounded-2xl border transition-all relative ${chatActive ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-500 shadow-md' : circle.chatUnseen ? 'bg-white border-orange-300 shadow-md hover:shadow-lg' : 'bg-white border-slate-300 shadow-md hover:border-slate-400 hover:shadow-lg'}`}>
             {circle.chatUnseen && !chatActive && <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-orange-500 rounded-full" />}
@@ -247,19 +239,28 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               <MessageCircle size={15} className="text-indigo-500" />{t('circle.chat.title')}
               {circle.chatMode === 'announce' && <Megaphone size={13} className="text-amber-600" aria-label={t('circle.chat.announce')} />}
             </p>
-            {circle.chatLast ? (
-              <>
-                <p className="text-xs text-slate-600 mt-1 truncate"><span className="font-semibold">{circle.chatLast.author}</span> : {circle.chatLast.text}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">{new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(circle.chatLast.at))}</p>
-              </>
-            ) : (
-              <p className="text-xs text-slate-400 mt-1">{t('circle.chat.noMessage')}</p>
-            )}
+            <p className="text-xs text-slate-600 mt-1 truncate"><span className="font-semibold">{circle.chatLast!.author}</span> : {circle.chatLast!.text}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">{new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(circle.chatLast!.at))}</p>
           </button>
         )}
-        {/* « Je suis dispo » (si la fonction est active dans le Cercle) */}
-        {!circle.isPersonal && circle.availabilityEnabled !== false && (
-          <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} />
+        {/* Sans message récent ni personne de dispo : deux simples boutons sur une ligne */}
+        {((chatOn && !chatFull) || (dispoOn && !dispoFull)) && (
+          <div className="flex flex-wrap gap-2">
+            {chatOn && !chatFull && (
+              <button onClick={onOpenChat}
+                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium shadow-sm transition-colors ${chatActive ? 'bg-indigo-50 border-indigo-400 text-indigo-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+                <MessageCircle size={15} className="text-indigo-500" />{t('circle.chat.title')}
+                {circle.chatUnseen && !chatActive && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+              </button>
+            )}
+            {dispoOn && !dispoFull && (
+              <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} compact openSignal={dispoSignal} />
+            )}
+          </div>
+        )}
+        {/* « Je suis dispo » : la carte complète dès que quelqu'un est dispo */}
+        {dispoFull && (
+          <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} openSignal={dispoSignal} />
         )}
         {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
         {(circle.joinRequests?.length ?? 0) > 0 && (
@@ -272,21 +273,10 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           </div>
         )}
 
-        <div className="mb-1">
-          <div className="flex items-center justify-between px-1 mb-1.5">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.polls')}</p>
-            {canCreatePoll && (
-              <button
-                onClick={() => setShowCreatePoll(true)}
-                className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
-              >
-                <CalendarRange size={12} />{t('circle.planList.proposeDates')}
-              </button>
-            )}
-          </div>
-          {polls.length === 0 ? (
-            <p className="px-1 mb-3 text-xs text-slate-400 italic">{t('circle.planList.noPoll')}</p>
-          ) : (
+        {/* Sondages de dates : seulement s'il y en a ; « Proposer des dates » est dans « Créer » */}
+        {polls.length > 0 && (
+          <div className="mb-1">
+            <p className="px-1 mb-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.polls')}</p>
             <div className="space-y-2 mb-3">
               {polls.map(poll => (
                 <CirclePollCard
@@ -300,8 +290,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                 />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-2 px-1 pt-1">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('circle.planList.plans')}</p>
@@ -328,17 +318,36 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      <div className="px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
-        {canCreate ? (
+      {/* Un seul bouton « Créer » : Plan, sondage de dates, « Je suis dispo » (un seul choix : directement) */}
+      <div className="relative px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
+        {createOptions.length === 0 ? (
+          <p className="px-3 py-2 text-xs text-slate-400">{t('circle.planList.reserved')}</p>
+        ) : (
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={() => createOptions.length === 1 ? createOptions[0].run() : setShowCreateMenu(v => !v)}
+            aria-expanded={showCreateMenu}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition-colors text-sm font-semibold"
           >
             <Plus size={16} />
-            {t('circle.planList.createPlan')}
+            {createOptions.length === 1 ? (createOptions[0].key === 'plan' ? t('circle.planList.createPlan') : createOptions[0].label) : t('circle.planList.create')}
           </button>
-        ) : (
-          <p className="px-3 py-2 text-xs text-slate-400">{t('circle.planList.reserved')}</p>
+        )}
+        {showCreateMenu && createOptions.length > 1 && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setShowCreateMenu(false)} />
+            <div className="absolute left-2 right-2 bottom-full mb-1 z-30 bg-white border border-slate-200 rounded-xl shadow-2xl p-1.5 space-y-0.5">
+              {createOptions.map(({ key, Icon, label, hint, run }) => (
+                <button key={key} onClick={() => { setShowCreateMenu(false); run(); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors">
+                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${key === 'dispo' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}><Icon size={17} /></span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-slate-900">{label}</span>
+                    <span className="block text-xs text-slate-500">{hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

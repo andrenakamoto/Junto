@@ -36,7 +36,7 @@ const groups: Group[] = [
             un membro può anche invitarti con pseudonimo o email: l’invito arriva nella campanella 🔔.</P>
           <P>A seconda del Cerchio, una richiesta è accettata dagli <strong>organizzatori</strong> (per impostazione
             predefinita), con un voto a maggioranza dei membri o subito. In modalità voto nessuno può rifiutare da solo.</P>
-          <P>La lista dei membri si apre toccando «N membri» sul Cerchio o l’icona 👥 in cima ai suoi Plan: chi è online,
+          <P>La lista dei membri si apre toccando «N membri» sul Cerchio o il pulsante <strong>«Membri»</strong> in cima ai suoi Plan (le altre azioni del Cerchio sono nel menu ⋯): chi è online,
             ruoli, pulsante «Invita».</P>
         </>,
       },
@@ -70,7 +70,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '«Sono libero/a»', summary: 'Dire che si è liberi, e farne un Plan',
         body: <>
-          <P>In cima ai Plan di un Cerchio, <strong>«Sono libero/a»</strong>: <strong>adesso</strong> (per 3 ore) o{' '}
+          <P>In un Cerchio, <strong>«Sono libero/a»</strong> (il pulsante verde, o «Crea» in basso): <strong>adesso</strong> (per 3 ore) o{' '}
             <strong>stasera</strong>, se vuoi con un'attività (🍻 Aperitivo, 🍕 Mangiare, 🎬 Cinema…) e una parola. Puoi dirlo in più
             Cerchi alla volta. I membri ricevono una notifica e la scheda del Cerchio mostra «🟢 3 liberi».</P>
           <P>Appena <strong>abbastanza persone sono libere</strong> (3 di default), <strong>«Lancia un Plan»</strong> propone un Plan
@@ -110,7 +110,7 @@ const groups: Group[] = [
       {
         id: 'sondage-dates', emoji: '🗓️', title: 'Sondaggio date', summary: 'Trovare la data prima di creare il Plan',
         body: <>
-          <P>In un Cerchio, <strong>«Proponi delle date»</strong>: ognuno spunta tutte le date che gli vanno bene, oppure
+          <P>In un Cerchio, <strong>«Crea» › «Proponi delle date»</strong>: ognuno spunta tutte le date che gli vanno bene, oppure
             «Non disponibile». Il sondaggio ha la sua chat. Quando emerge una data, <strong>«Crea il Plan»</strong> lo
             trasforma in Plan (la conversazione segue). Chi l’ha creato può <strong>aggiungere delle date</strong> strada
             facendo: chi ha già risposto viene avvisato.</P>
