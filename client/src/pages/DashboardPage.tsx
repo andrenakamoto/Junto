@@ -384,6 +384,9 @@ export function DashboardPage() {
   }
 
   function handlePlanCreated(plan: Plan) {
+    // Le sondage ou la discussion restés ouverts (après « retour » sur téléphone) passeraient avant le nouveau Plan
+    setSelectedPollId(null);
+    setChatCircleId(null);
     setPlans(prev => [plan, ...prev]);
     setSelectedPlan(plan);
     setMobileView('detail');
