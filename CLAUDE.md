@@ -180,7 +180,7 @@ Conséquences pratiques :
   de `AuthPage`, panneau admin. Sources (captures de la démo) : `~/Desktop/01-EvLY/03_Marketing/01_Professionnels/Brochure
   professionnels (sources)/` avec un LISEZMOI.
 - **Conditions d'utilisation** : `client/src/components/ui/TermsModal.tsx`
-  (version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
+  (version 5 du 2026-10-23 : article « Découvrir » ; version 4 du 2026-10-09, réécrite à la demande de l'utilisateur pour « bien le protéger », 26 articles
   numérotés automatiquement, une version par langue dans `components/ui/terms/*.tsx`) : en plus de la v3, réponses sans compte, **responsabilité des
   organisations** (usage du Service, données de leurs membres au sens de la nLPD), « Signaler » / masquer,
   **rôle d'hébergeur** (aucun contrôle préalable), participation aux événements **à ses propres risques**,
@@ -189,7 +189,7 @@ Conséquences pratiques :
   garantie de réception, **aucune garantie de sauvegarde**, services de tiers, pas d'usage critique, propriété
   intellectuelle et suggestions, limitation de responsabilité **avec la réserve de l'art. 100 CO** (faute
   intentionnelle / grave négligence — sans elle, la clause risquerait d'être annulée), force majeure,
-  dispositions finales. `CURRENT_TERMS_VERSION` = 4 : tout le monde les accepte à nouveau. Non relues par un
+  dispositions finales. `CURRENT_TERMS_VERSION` = 5 : tout le monde les accepte à nouveau. Non relues par un
   juriste.
 - **Guide d'utilisation** : `client/src/components/ui/GuideModal.tsx` (menu ☰), refait le 2026-10-09 :
   synthèse « EvLY en bref », sommaire cliquable, puis une fiche dépliable par fonction, rangées par thème
@@ -880,6 +880,10 @@ Junto/
   (`createdById`, sinon créateur du Plan) et les autres inscrits (`shiftCommentRecipients`) ; terminé → la personne qui
   a créé le poste. Poste terminé : plus d'inscription (409), hors du résumé « Il manque… », carte verte, « Terminé »
   dans le récapitulatif PDF (pas les commentaires). Fiche du guide mise à jour.
+  **« Ajouter à mon agenda »** d'un poste (2026-10-23, icône 📅 sur chaque poste, pour tout le monde) : `addShiftToCalendar`
+  (`client/src/lib/calendar.ts`) — dans les apps, écran natif « Nouvel événement » pré-rempli comme pour un Plan ; sur le site, .ics
+  par GET `/plans/shifts/:id/ical` (`routes/volunteers.ts`). Horaire du poste, sinon celui du Plan (`shiftEventTimes` de `lib/ical.ts`,
+  fin absente = 2 h), titre « poste – Plan », lieu du Plan, lien `?planId=…&tab=benevoles`.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
@@ -1575,6 +1579,37 @@ un Plan »** → `CreatePlanModal` (`suggestedTitle` + `fromAvailability.start`,
 /circles/:id/plans avec `fromAvailability: true` efface les dispos du Cercle. Démo : deux copains dispo ce soir dans « Les copains »
 (`dispoOf`). Guide (fiche « Je suis dispo ») et politique de confidentialité (version du 21 octobre 2026). Noms : fr « Je suis
 dispo », de « Ich hab Zeit », it « Sono libero/a », en « I’m free ».
+
+**Découvrir** (2026-10-23, `server/src/lib/discover/` testé, `routes/discover.ts` public + `routes/adminDiscover.ts`, migration
+`20261026100000_discover`, client `components/discover/`, `lib/discover.ts`, page publique **`/sorties`** = `DiscoverPage`) : événements
+publics et **idées de sorties** de **Genève, Lausanne et du Valais** (régions `ge|la|vs`), visibles **sans compte**. Données par **sources**
+(**DiscoverSource** : `openagenda` | `osm` | `ical` | `manual` | `partner`, état `active|pending|disabled`, licence et mention affichées,
+`autoPublish` sinon file « À valider ») : **agenda officiel de la Ville de Genève sur OpenAgenda** (Licence Ouverte 2.0, `GENEVA_TYPE_MAP`,
+publication automatique), **OpenStreetMap** par canton (ODbL, seulement les lieux avec nom et site web, en Suisse), **saisie manuelle** dans le
+panneau admin (Lausanne, Valais, associations : des faits et le lien de l'organisateur, jamais de texte ni d'image recopiés), flux **iCal**
+d'une salle qui a donné son accord, et partenaires **en attente** (Eventfrog, GeNEVERsleep, La Décadanse : jamais synchronisés tant
+qu'inactifs). Sources par défaut créées au démarrage (`ensureDiscoverSources`, + 5 lieux genevois vérifiés à la main). Tables
+**DiscoverEvent** (une ligne par jour, ou une seule ligne `multiDay` pour ≥ 3 jours / exposition ; `state` published|pending|hidden gardé
+d'une synchronisation à l'autre), **DiscoverPlace**, **ProInterest**. Synchronisation (`syncDueSources`, gated comme les crons, toutes les
+heures : agendas toutes les 12 h sur 30 jours, OSM chaque semaine, événements passés effacés) et bouton « Synchroniser maintenant ». GET
+`/api/discover?region=&days=` (cache 5 min, vidé à chaque changement), POST `/discover/report` (« Signaler une erreur », email) et
+`/discover/pro-interest` (5 / h). Client : bouton **« Découvrir »** de `CircleSidebar` (deux lignes de deux sur téléphone), vue sur toute la
+largeur (`discoverActive` dans DashboardPage, pas de colonne de détail), région mémorisée (`evly_discover_region`), recherche (sans accents),
+jours (14 jours), catégories en 4 groupes (Sortir, Spectacles, Culture, Activités), filtres repliés sur téléphone, avertissement « peut
+contenir des erreurs », bouton **« Plus d'infos sur <site> »**, **« Y aller avec un Cercle »** (`DiscoverGoModal` → `CreatePlanModal` avec
+`fromEvent` sans `sourcePlanId` + `url` dans la description ; sans compte → connexion), sources et licences en bas. **« Poster un événement
+public »** (en-tête de Découvrir + menu ☰) : **« Prochainement disponible »** (`ProSoonModal`, aucun prix cité) + formulaire « Me prévenir ».
+Étape suivante prévue (pas faite) : comptes pros vérifiés (IDE, documents effacés après décision), abonnement vendu sur le site, publication
+dans Découvrir. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
+`demoDiscover` (fictif). Guide (fiche « Découvrir »), **conditions d'utilisation v5** (article « Découvrir », acceptation redemandée),
+politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
+2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD
+(art. 5 let. c).
+
+**Calendrier** (`CalendarView`, refait le 2026-10-23) : un **point par Plan** d'un seul jour (3 au plus, puis « +N ») et un **trait**
+continu pour un Plan sur plusieurs jours (du jour du début au jour de fin ; une fin avant 6 h du matin ne compte pas comme un jour de
+plus ; 2 traits au plus l'un sous l'autre), dans la **couleur du Cercle** (GET /plans renvoie `circle.color`), légende sous le mois ;
+toucher un jour liste aussi les Plans qui le traversent (avec leurs dates).
 
 **Mes contacts** (2026-10-21, `lib/contacts.ts` testé, `routes/contacts.ts` sur `/api/contacts`) : bouton « Contacts » à côté de
 « Tous mes plans » / « Calendrier » (`CircleSidebar`, trois boutons côte à côte sur téléphone) → `ContactsView` (colonne 2,
