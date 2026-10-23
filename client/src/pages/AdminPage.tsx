@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -12,6 +12,7 @@ import { PhotoReportsPanel } from '../components/admin/PhotoReportsPanel';
 import { StoragePanel } from '../components/admin/StoragePanel';
 import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
 import { FunnelPanel } from '../components/admin/FunnelPanel';
+import { DiscoverPanel } from '../components/admin/DiscoverPanel';
 
 interface AdminUser {
   id: string;
@@ -29,7 +30,7 @@ interface AdminUser {
 
 interface Stats {
   pending: number; approved: number; rejected: number;
-  totalCircles: number; activePlans: number; messagesLast7Days: number; activeUsersLast7Days: number; lightGuests?: number;
+  totalCircles: number; activePlans: number; messagesLast7Days: number; activeUsersLast7Days: number; lightGuests?: number; newUsersLast7Days?: number;
 }
 
 type Filter = 'pending' | 'approved' | 'rejected' | 'all';
@@ -150,7 +151,7 @@ export function AdminPage() {
       );
     }
     return (
-      <p className="font-semibold text-slate-800 flex items-center gap-1.5 group">
+      <p className="flex items-center gap-1.5 group">
         @{u.pseudo}
         <button
           onClick={() => startEditPseudo(u)}
@@ -163,11 +164,14 @@ export function AdminPage() {
     );
   }
 
+  const [sort, setSort] = useState<'recent' | 'name'>('recent');
   const visibleUsers = users.filter(u => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    return u.pseudo.toLowerCase().includes(q) || (u.email?.toLowerCase().includes(q) ?? false);
-  });
+    return [u.pseudo, u.email, u.firstName, u.lastName].some(v => v?.toLowerCase().includes(q));
+  }).sort((a, b) => sort === 'name'
+    ? (fullName(a) ?? a.pseudo).localeCompare(fullName(b) ?? b.pseudo, 'fr')
+    : b.createdAt.localeCompare(a.createdAt));
 
   const filters: { key: Filter; label: string; icon: typeof Users; count?: number; color: string }[] = [
     { key: 'pending',  label: 'En attente', icon: Clock,       count: stats.pending,  color: 'text-amber-500' },
@@ -198,13 +202,16 @@ export function AdminPage() {
         <h1 className="text-xl font-bold text-slate-800 mb-4">Vue d'ensemble</h1>
 
         {/* Activity stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+          <StatCard icon={UserCheck} label="Utilisateurs approuvés" value={stats.approved} highlight />
+          <StatCard icon={UserPlus} label="Inscriptions (7j)" value={stats.newUsersLast7Days ?? 0} />
           <StatCard icon={CircleDot} label="Cercles créés" value={stats.totalCircles} />
           <StatCard icon={Calendar} label="Plans actifs" value={stats.activePlans} />
           <StatCard icon={MessageSquare} label="Messages (7j)" value={stats.messagesLast7Days} />
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
         </div>
         <p className="-mt-6 mb-8 text-xs text-slate-500">
+          Utilisateurs approuvés : comptes qui peuvent utiliser EvLY (sans les administrateurs ni les réponses sans compte).
           Membres actifs : personnes qui ont utilisé EvLY ces 7 derniers jours. Messages : envoyés ces 7 derniers
           jours dans les chats des Plans et des sondages, même si le Plan a été supprimé depuis. Comptés depuis
           le 29 septembre 2026. Personnes sans compte en cours (réponses à un Plan ou sorties organisées
@@ -220,6 +227,8 @@ export function AdminPage() {
         <PhotoReportsPanel />
 
         <SuggestionsPanel />
+
+        <DiscoverPanel />
 
         <PageVisitsPanel
           page="decouvrir"
@@ -249,7 +258,7 @@ export function AdminPage() {
                     <ShieldCheck size={16} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <PseudoField u={u} />
+                    <div className="font-semibold text-slate-800"><PseudoField u={u} /></div>
                   {fullName(u) && <p className="text-xs text-slate-500">{fullName(u)}</p>}
                     {u.id === user?.id && <span className="text-xs text-indigo-500">C'est toi</span>}
                   </div>
@@ -260,7 +269,14 @@ export function AdminPage() {
           </>
         )}
 
-        <h2 className="text-lg font-bold text-slate-800 mb-4">Gestion des membres</h2>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mb-4">
+          <h2 className="text-lg font-bold text-slate-800 whitespace-nowrap">Gestion des membres</h2>
+          {!loading && <span className="text-sm text-slate-400">{visibleUsers.length} compte{visibleUsers.length > 1 ? 's' : ''}</span>}
+          <select value={sort} onChange={e => setSort(e.target.value as 'recent' | 'name')} className="ml-auto text-sm border border-slate-200 rounded-lg px-2 py-1 bg-white">
+            <option value="recent">Plus récents</option>
+            <option value="name">Par nom</option>
+          </select>
+        </div>
         {adminUsers.length === 0 && pseudoError && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-4">{pseudoError}</p>}
 
         {/* Search */}
@@ -269,7 +285,7 @@ export function AdminPage() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par pseudo ou email..."
+            placeholder="Rechercher par nom, pseudo ou email…"
             className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
@@ -308,146 +324,105 @@ export function AdminPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {visibleUsers.map(u => (
-              <div key={u.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-indigo-600 font-bold text-sm">{u.pseudo[0].toUpperCase()}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <PseudoField u={u} />
-                  {fullName(u) && <p className="text-xs text-slate-500">{fullName(u)}</p>}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                    <p className="text-xs text-slate-400">
-                      Inscrit le {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(u.createdAt))}
-                    </p>
-                    {u.email ? (
-                      <span className={`flex items-center gap-1 text-xs ${u.emailVerified ? 'text-emerald-600' : 'text-amber-500'}`}>
-                        {u.emailVerified ? <Mail size={11} /> : <MailX size={11} />}
-                        {u.email}
-                        {!u.emailVerified && <span className="text-amber-400">(non vérifié)</span>}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-xs text-slate-400 italic">
-                        <MailX size={11} /> Pas d'email
-                      </span>
-                    )}
-                    {u.pendingEmail && (
-                      <span className="text-xs text-amber-600">→ {u.pendingEmail} (en attente de confirmation)</span>
-                    )}
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
-                      <CircleDot size={11} />
-                      {u._count.createdCircles} cercle{u._count.createdCircles !== 1 ? 's' : ''}
-                    </span>
+            {visibleUsers.map(u => {
+              const name = fullName(u);
+              const btn = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors';
+              return (
+                <div key={u.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  {/* Identité */}
+                  <div className="p-4 flex gap-3">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 font-bold ${
+                      u.status === 'approved' ? 'bg-indigo-100 text-indigo-700' : u.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {(u.firstName?.[0] ?? u.pseudo[0]).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="font-semibold text-slate-900 truncate">{name ?? <span className="text-slate-400 font-normal italic">Sans prénom</span>}</p>
+                        <StatusBadge status={u.status} />
+                      </div>
+                      <div className="text-sm text-slate-500"><PseudoField u={u} /></div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {u.email ? (
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${u.emailVerified ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                            {u.emailVerified ? <Mail size={11} /> : <MailX size={11} />}
+                            <span className="break-all">{u.email}</span>
+                            {!u.emailVerified && <span>· non vérifié</span>}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-500"><MailX size={11} /> Pas d'email</span>
+                        )}
+                        {u.pendingEmail && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">→ {u.pendingEmail} · à confirmer</span>
+                        )}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+                          <CalendarDays size={11} />
+                          Inscrit le {new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(u.createdAt))}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-600">
+                          <CircleDot size={11} />
+                          {u._count.createdCircles} Cercle{u._count.createdCircles !== 1 ? 's' : ''} créé{u._count.createdCircles !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <StatusBadge status={u.status} />
-                {u.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleApprove(u.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <Check size={14} />
-                      Approuver
-                    </button>
-                    <button
-                      onClick={() => handleReject(u.id)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <X size={14} />
-                      Refuser
-                    </button>
-                  </div>
-                )}
-                {u.status === 'approved' && (
-                  <button
-                    onClick={() => handleReject(u.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-700 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    <X size={14} />
-                    Révoquer
-                  </button>
-                )}
-                {u.status === 'rejected' && (
-                  <button
-                    onClick={() => handleApprove(u.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-700 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    <Check size={14} />
-                    Approuver
-                  </button>
-                )}
-                {emailMsg?.id === u.id ? (
-                  <span className={`text-xs font-medium px-2 ${emailMsg.ok ? 'text-emerald-600' : 'text-red-500'}`}>{emailMsg.text}</span>
-                ) : emailEditId === u.id ? (
-                  <div className="flex gap-1.5 items-center">
-                    <input
-                      autoFocus
-                      type="email"
-                      value={emailInput}
-                      onChange={e => setEmailInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && emailInput.trim()) handleChangeEmail(u.id); if (e.key === 'Escape') setEmailEditId(null); }}
-                      placeholder="Nouvelle adresse"
-                      className="w-48 px-2 py-1 border border-indigo-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <button onClick={() => handleChangeEmail(u.id)} disabled={!emailInput.trim()} className="px-2.5 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-xs font-medium transition-colors disabled:opacity-50">Envoyer le lien</button>
-                    <button onClick={() => setEmailEditId(null)} className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Annuler</button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => { setEmailEditId(u.id); setEmailInput(''); }}
-                    title="Changer l'adresse email (un lien de confirmation est envoyé à la nouvelle adresse)"
-                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                  >
-                    <AtSign size={15} />
-                  </button>
-                )}
 
-                {resetDone?.id === u.id ? (
-                  <span className={`text-xs font-medium px-2 ${resetDone.ok ? 'text-emerald-600' : 'text-red-500'}`}>{resetDone.message}</span>
-                ) : confirmReset === u.id ? (
-                  <div className="flex gap-1.5 items-center">
-                    <span className="text-xs text-amber-600 font-medium">Envoyer un lien de réinitialisation ?</span>
-                    <button onClick={() => handleResetPassword(u.id)} className="px-2.5 py-1.5 bg-amber-500 text-white hover:bg-amber-600 rounded-lg text-xs font-medium transition-colors">Oui</button>
-                    <button onClick={() => setConfirmReset(null)} className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors">Non</button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmReset(u.id)}
-                    title="Envoyer un lien de réinitialisation du mot de passe"
-                    className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                  >
-                    <KeyRound size={15} />
-                  </button>
-                )}
+                  {/* Actions */}
+                  <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                    {u.status === 'pending' && (<>
+                      <button onClick={() => handleApprove(u.id)} className={`${btn} bg-emerald-600 text-white hover:bg-emerald-700`}><Check size={13} />Approuver</button>
+                      <button onClick={() => handleReject(u.id)} className={`${btn} bg-white border border-slate-200 text-red-600 hover:bg-red-50`}><X size={13} />Refuser</button>
+                    </>)}
+                    {u.status === 'approved' && (
+                      <button onClick={() => handleReject(u.id)} className={`${btn} bg-white border border-slate-200 text-slate-600 hover:text-red-700 hover:bg-red-50`}><X size={13} />Révoquer</button>
+                    )}
+                    {u.status === 'rejected' && (
+                      <button onClick={() => handleApprove(u.id)} className={`${btn} bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50`}><Check size={13} />Approuver</button>
+                    )}
 
-                {confirmDelete === u.id ? (
-                  <div className="flex gap-1.5 items-center">
-                    <span className="text-xs text-red-600 font-medium">Confirmer ?</span>
-                    <button
-                      onClick={() => handleDelete(u.id)}
-                      className="px-2.5 py-1.5 bg-red-600 text-white hover:bg-red-700 rounded-lg text-xs font-medium transition-colors"
-                    >
-                      Oui
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(null)}
-                      className="px-2.5 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-medium transition-colors"
-                    >
-                      Non
-                    </button>
+                    <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                      {emailMsg?.id === u.id ? (
+                        <span className={`text-xs font-medium ${emailMsg.ok ? 'text-emerald-600' : 'text-red-500'}`}>{emailMsg.text}</span>
+                      ) : resetDone?.id === u.id ? (
+                        <span className={`text-xs font-medium ${resetDone.ok ? 'text-emerald-600' : 'text-red-500'}`}>{resetDone.message}</span>
+                      ) : emailEditId === u.id ? (
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          <input
+                            autoFocus
+                            type="email"
+                            value={emailInput}
+                            onChange={e => setEmailInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter' && emailInput.trim()) handleChangeEmail(u.id); if (e.key === 'Escape') setEmailEditId(null); }}
+                            placeholder="Nouvelle adresse"
+                            className="w-52 px-2 py-1.5 border border-indigo-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button onClick={() => handleChangeEmail(u.id)} disabled={!emailInput.trim()} className={`${btn} bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50`}>Envoyer le lien</button>
+                          <button onClick={() => setEmailEditId(null)} className={`${btn} bg-white border border-slate-200 text-slate-600`}>Annuler</button>
+                        </div>
+                      ) : confirmReset === u.id ? (
+                        <div className="flex gap-1.5 items-center">
+                          <span className="text-xs text-amber-700 font-medium">Envoyer un lien pour changer le mot de passe ?</span>
+                          <button onClick={() => handleResetPassword(u.id)} className={`${btn} bg-amber-500 text-white hover:bg-amber-600`}>Envoyer</button>
+                          <button onClick={() => setConfirmReset(null)} className={`${btn} bg-white border border-slate-200 text-slate-600`}>Annuler</button>
+                        </div>
+                      ) : confirmDelete === u.id ? (
+                        <div className="flex gap-1.5 items-center">
+                          <span className="text-xs text-red-700 font-medium">Supprimer définitivement ce compte ?</span>
+                          <button onClick={() => handleDelete(u.id)} className={`${btn} bg-red-600 text-white hover:bg-red-700`}>Supprimer</button>
+                          <button onClick={() => setConfirmDelete(null)} className={`${btn} bg-white border border-slate-200 text-slate-600`}>Annuler</button>
+                        </div>
+                      ) : (<>
+                        <button onClick={() => { setEmailEditId(u.id); setEmailInput(''); }} title="Un lien de confirmation est envoyé à la nouvelle adresse"
+                          className={`${btn} text-slate-600 hover:text-indigo-700 hover:bg-indigo-50`}><AtSign size={13} />Email</button>
+                        <button onClick={() => setConfirmReset(u.id)} title="Envoyer un lien de réinitialisation du mot de passe"
+                          className={`${btn} text-slate-600 hover:text-amber-700 hover:bg-amber-50`}><KeyRound size={13} />Mot de passe</button>
+                        <button onClick={() => setConfirmDelete(u.id)} title="Supprimer définitivement"
+                          className={`${btn} text-slate-500 hover:text-red-700 hover:bg-red-50`}><Trash2 size={13} />Supprimer</button>
+                      </>)}
+                    </div>
                   </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmDelete(u.id)}
-                    title="Supprimer définitivement"
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -455,10 +430,10 @@ export function AdminPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
+function StatCard({ icon: Icon, label, value, highlight }: { icon: typeof Users; label: string; value: number; highlight?: boolean }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-      <div className="flex items-center gap-1.5 text-slate-400 mb-1.5">
+    <div className={`rounded-xl border shadow-sm p-4 ${highlight ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+      <div className={`flex items-center gap-1.5 mb-1.5 ${highlight ? 'text-indigo-600' : 'text-slate-400'}`}>
         <Icon size={13} />
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
