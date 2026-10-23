@@ -4,13 +4,15 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "hosting del server, della banca dati (account, messaggi, Plan), del sito evly.ch, di foto, messaggi vocali e file; invio delle email; copie di sicurezza (Swiss Backup)", where: "Svizzera", safeguard: "nessun trasferimento all’estero" },
   { name: 'Opentransportdata.swiss (OJP)', role: "orari dei trasporti pubblici (sezione Passaggi): dal nostro server vengono inviati solo le fermate o gli indirizzi scelti (coordinate) e l'orario cercato, senza la tua identità", where: "Svizzera (piattaforma ufficiale dei trasporti pubblici, FFS su mandato dell'UFT)", safeguard: "nessun dato personale trasmesso" },
+  { name: 'OpenAgenda', role: "agende pubbliche con licenza aperta (sezione Scopri, per esempio l'agenda della Città di Ginevra): il nostro server legge gli eventi senza trasmettere nulla che ti riguardi", where: "Francia", safeguard: "nessun dato personale trasmesso" },
+  { name: 'OpenStreetMap (Overpass)', role: "idee per uscire (sezione Scopri): il nostro server legge i luoghi pubblici senza trasmettere nulla che ti riguardi", where: "Germania", safeguard: "nessun dato personale trasmesso" },
   { name: 'Google', role: 'accesso con un account Google (se lo scegli), caratteri del sito e consegna delle notifiche delle app (Firebase Cloud Messaging)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'consegna delle notifiche dell’app iPhone (Apple Push Notification service)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
 ];
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 21 ottobre 2026',
+  version: 'Versione del 23 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -55,6 +57,12 @@ const it: PrivacyText = {
           e la parola facoltativa, visibili ai membri dei Cerchi in cui ti dichiari libero/a. Nessuna posizione viene registrata. Queste
           informazioni sono <strong>cancellate automaticamente</strong> alla fine del momento scelto (3 ore, oppure le 4 del mattino per
           «stasera»).</li>
+        <li><strong>Scopri</strong>: consultare eventi e idee per uscire non crea alcun dato su di te (nessun account richiesto, nessun
+          tracciamento); la regione scelta resta sul tuo dispositivo. Gli annunci provengono da agende pubbliche, da OpenStreetMap o dal
+          team di EvLY; il nostro server li recupera senza trasmettere nulla che ti riguardi. Se <strong>segnali un errore</strong>, il tuo
+          messaggio viene inviato per email all'amministratore di EvLY. Se chiedi di essere avvisato per <strong>«Pubblica un evento
+          pubblico»</strong>, il tuo nome, la tua email e le informazioni facoltative (locale, città, messaggio) sono conservati per
+          ricontattarti all'apertura, poi cancellati al più tardi due anni dopo o insieme al tuo account.</li>
         <li><strong>Ciò che pubblichi</strong>: messaggi e reazioni, risposte ai Plan (sì / forse / no), voti, informazioni
           dei Plan, foto, messaggi vocali e file, passaggi in car pooling, partecipazioni ai giochi (Babbo Natale segreto,
           Killer, parola trappola, squadre e punteggi, risposte e punti del quiz) e a una colletta (importo, pagamento segnalato), spese e

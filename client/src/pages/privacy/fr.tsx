@@ -4,13 +4,15 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "hébergement du serveur, de la base de données (comptes, messages, Plans), du site evly.ch, des photos, messages vocaux et fichiers ; envoi des emails ; sauvegardes (Swiss Backup)", where: "Suisse", safeguard: "aucun transfert à l’étranger" },
   { name: 'Opentransportdata.swiss (OJP)', role: "horaires des transports publics (rubrique Trajets) : seuls les arrêts ou les adresses choisis (coordonnées) et l'heure recherchée sont envoyés, depuis notre serveur, sans ton identité", where: "Suisse (plateforme officielle des transports publics, CFF sur mandat de l'OFT)", safeguard: "aucune donnée personnelle transmise" },
+  { name: 'OpenAgenda', role: "agendas publics sous licence ouverte (rubrique Découvrir, par exemple l'agenda de la Ville de Genève) : notre serveur lit les événements, sans rien transmettre te concernant", where: "France", safeguard: "aucune donnée personnelle transmise" },
+  { name: 'OpenStreetMap (Overpass)', role: "idées de sorties (rubrique Découvrir) : notre serveur lit les lieux publics, sans rien transmettre te concernant", where: "Allemagne", safeguard: "aucune donnée personnelle transmise" },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 21 octobre 2026',
+  version: 'Version du 23 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -61,6 +63,12 @@ const fr: PrivacyText = {
           d'activité et le petit mot facultatif, visibles par les membres des Cercles où tu te déclares dispo. Aucune position n'est
           enregistrée. Ces informations sont <strong>effacées automatiquement</strong> à la fin du moment choisi (3 heures, ou 4 h du
           matin pour « ce soir »).</li>
+        <li><strong>Découvrir</strong> : consulter les événements et les idées de sorties ne crée aucune donnée sur toi (ni compte requis,
+          ni suivi) ; la région choisie est gardée sur ton appareil. Les annonces viennent d'agendas publics, d'OpenStreetMap ou de
+          l'équipe EvLY ; notre serveur les récupère sans rien transmettre te concernant. Si tu <strong>signales une erreur</strong>, ton
+          message est envoyé par email à l'administrateur d'EvLY. Si tu demandes à être prévenu pour <strong>« Poster un événement
+          public »</strong>, ton nom, ton email et les informations facultatives (établissement, ville, message) sont gardés pour te
+          recontacter à l'ouverture, puis effacés au plus tard deux ans après, ou avec ton compte.</li>
         <li><strong>Ce que tu publies</strong> : messages et réactions, réponses aux Plans (oui /
           peut-être / non), votes, informations des Plans, photos, messages vocaux et fichiers, trajets de covoiturage, participations
           aux jeux (Père Noël secret, Killer, mot piège, équipes et scores, réponses et points du quiz) et à une cagnotte (montant, paiement signalé),

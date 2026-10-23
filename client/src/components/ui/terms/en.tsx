@@ -106,6 +106,21 @@ const sections: TermsSection[] = [
     </>,
   },
   {
+    title: 'Discover: public events and outing ideas',
+    body: <>
+      <P>The “Discover” section presents public events and outing ideas, visible with or without an account. This information comes
+        from external sources — agendas published under an open licence (for example the City of Geneva’s), OpenStreetMap data,
+        organisers — or is entered by the Publisher from the organisers’ public information. Each listing states its source and links
+        to an external website.</P>
+      <P><strong>The Publisher does not guarantee that this information is accurate, complete or up to date</strong> (date, time, place,
+        price, availability, cancellation). Only the organiser’s website is authoritative: it is up to you to check it before you go or
+        buy a ticket. The Publisher does not organise these events, does not sell tickets and is not responsible for external websites or
+        their content. The article “Events organised through the Service” applies: everyone takes part at their own risk.</P>
+      <P>An organiser can ask for a listing to be corrected or removed at <Mail />; anyone can use “Report a mistake”. The Publisher may
+        remove a listing at any time. Publishing events by organisers (“Post a public event”) will be subject to specific terms.</P>
+    </>,
+  },
+  {
     title: 'Car sharing',
     body: <P>The car-sharing feature only lets a Plan’s participants get in touch. <strong>The Publisher is not a
       carrier</strong> and plays no part in the journeys: each driver remains solely responsible for their vehicle,
@@ -268,8 +283,8 @@ const sections: TermsSection[] = [
 
 const en: TermsText = {
   title: 'Terms of use',
-  version: 'Version 4 — 9 October 2026',
-  news: 'New: assemblies, games, gift pot, notifications and liability.',
+  version: 'Version 5 — 23 October 2026',
+  news: 'New: the Discover section (public events and outing ideas).',
   translationNote: 'Translation provided for information: the French version prevails.',
   sections,
   confirm: 'By clicking “I accept the terms”, you confirm that you have read and accepted these terms of use in full.',

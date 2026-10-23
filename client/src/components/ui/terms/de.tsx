@@ -114,6 +114,22 @@ const sections: TermsSection[] = [
     </>,
   },
   {
+    title: 'Entdecken: öffentliche Events und Ausflugsideen',
+    body: <>
+      <P>Der Bereich „Entdecken“ zeigt öffentliche Events und Ausflugsideen, sichtbar mit oder ohne Konto. Diese Angaben stammen aus
+        externen Quellen — Agenden unter offener Lizenz (zum Beispiel jene der Stadt Genf), Daten von OpenStreetMap, Veranstalter —
+        oder werden vom Herausgeber anhand der öffentlichen Angaben der Veranstalter erfasst. Jede Anzeige nennt ihre Quelle und
+        verweist auf eine externe Website.</P>
+      <P><strong>Der Herausgeber garantiert weder die Richtigkeit noch die Vollständigkeit noch die Aktualität dieser Angaben</strong>
+        (Datum, Uhrzeit, Ort, Preis, Plätze, Absage). Massgebend ist allein die Website der Veranstalter: Prüfe sie, bevor du hingehst
+        oder ein Ticket kaufst. Der Herausgeber organisiert diese Events nicht, verkauft keine Tickets und haftet weder für externe
+        Websites noch für deren Inhalt. Es gilt der Artikel „Über den Dienst organisierte Anlässe“: Die Teilnahme erfolgt auf eigenes Risiko.</P>
+      <P>Veranstalter können die Korrektur oder Entfernung einer Anzeige bei <Mail /> verlangen; alle können „Fehler melden“ nutzen.
+        Der Herausgeber kann eine Anzeige jederzeit entfernen. Für das Veröffentlichen von Events durch Veranstalter („Öffentliches
+        Event veröffentlichen“) gelten besondere Bedingungen.</P>
+    </>,
+  },
+  {
     title: 'Fahrgemeinschaften',
     body: <P>Die Funktion Fahrgemeinschaft ermöglicht es den Teilnehmenden eines Plans lediglich, miteinander in
       Kontakt zu treten. <strong>Die Herausgeberin ist keine Transportunternehmerin</strong> und greift nicht in die
@@ -292,8 +308,8 @@ const sections: TermsSection[] = [
 
 const de: TermsText = {
   title: 'Nutzungsbedingungen',
-  version: 'Version 4 — 9. Oktober 2026',
-  news: 'Neu: Versammlungen, Spiele, Geschenkkasse, Benachrichtigungen und Haftung.',
+  version: 'Version 5 — 23. Oktober 2026',
+  news: 'Neu: der Bereich Entdecken (öffentliche Events und Ausflugsideen).',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   sections,
   confirm: 'Mit einem Klick auf «Ich akzeptiere die Bedingungen» bestätigst du, diese Nutzungsbedingungen vollständig gelesen und akzeptiert zu haben.',

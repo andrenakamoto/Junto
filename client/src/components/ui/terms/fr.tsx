@@ -109,6 +109,22 @@ const sections: TermsSection[] = [
     </>,
   },
   {
+    title: 'Découvrir : événements publics et idées de sorties',
+    body: <>
+      <P>La rubrique « Découvrir » présente des événements publics et des idées de sorties, visibles avec ou sans compte. Ces
+        informations proviennent de sources externes — agendas publiés sous licence ouverte (par exemple celui de la Ville de
+        Genève), données OpenStreetMap, organisateurs — ou sont saisies par l'Éditeur à partir des informations publiques des
+        organisateurs. Chaque annonce indique sa source et renvoie vers un site externe.</P>
+      <P><strong>L'Éditeur ne garantit ni l'exactitude, ni l'exhaustivité, ni l'actualité de ces informations</strong> (date, heure,
+        lieu, prix, places, annulation). Seul le site de l'organisateur fait foi : il t'appartient de vérifier avant de te déplacer
+        ou d'acheter un billet. L'Éditeur n'organise pas ces événements, ne vend pas de billets et ne répond ni des sites externes,
+        ni de leur contenu. L'article « Événements organisés via le Service » s'applique : chacun y participe à ses propres risques.</P>
+      <P>Un organisateur peut demander la correction ou le retrait d'une annonce à <Mail /> ; chacun peut utiliser « Signaler une
+        erreur ». L'Éditeur peut retirer une annonce à tout moment. La publication d'événements par des organisateurs (« Poster un
+        événement public ») fera l'objet de conditions particulières.</P>
+    </>,
+  },
+  {
     title: 'Covoiturage',
     body: <P>La fonction de covoiturage permet seulement aux participants d'un Plan de se mettre en relation.{' '}
       <strong>L'Éditeur n'est pas transporteur</strong> et n'intervient pas dans les trajets : chaque conducteur reste
@@ -280,8 +296,8 @@ const sections: TermsSection[] = [
 
 const fr: TermsText = {
   title: 'Conditions d’utilisation',
-  version: 'Version 4 — 9 octobre 2026',
-  news: 'Nouveau : assemblées, jeux, cagnotte, notifications et responsabilité.',
+  version: 'Version 5 — 23 octobre 2026',
+  news: 'Nouveau : la rubrique Découvrir (événements publics et idées de sorties).',
   sections,
   confirm: 'En cliquant sur « J’accepte les conditions », tu confirmes avoir lu et accepté l’intégralité des présentes conditions d’utilisation.',
   scroll: 'Fais défiler pour lire les conditions avant d’accepter.',

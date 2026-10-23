@@ -4,13 +4,15 @@ import { ProcessorTable, Section, type Processor, type PrivacyText } from './par
 const processors: Processor[] = [
   { name: 'Infomaniak', role: "Hosting des Servers, der Datenbank (Konten, Nachrichten, Pläne), der Website evly.ch, der Fotos, Sprachnachrichten und Dateien; Versand der E-Mails; Sicherungskopien (Swiss Backup)", where: "Schweiz", safeguard: "keine Übermittlung ins Ausland" },
   { name: 'Opentransportdata.swiss (OJP)', role: "Fahrpläne des öffentlichen Verkehrs (Bereich Fahrten): Es werden nur die gewählten Haltestellen oder Adressen (Koordinaten) und die gesuchte Zeit von unserem Server gesendet, ohne deine Identität", where: "Schweiz (offizielle Plattform des öffentlichen Verkehrs, SBB im Auftrag des BAV)", safeguard: "keine Personendaten übermittelt" },
+  { name: 'OpenAgenda', role: "öffentliche Agenden unter offener Lizenz (Bereich Entdecken, zum Beispiel die Agenda der Stadt Genf): Unser Server liest die Events, ohne etwas über dich zu übermitteln", where: "Frankreich", safeguard: "keine Personendaten übermittelt" },
+  { name: 'OpenStreetMap (Overpass)', role: "Ausflugsideen (Bereich Entdecken): Unser Server liest öffentliche Orte, ohne etwas über dich zu übermitteln", where: "Deutschland", safeguard: "keine Personendaten übermittelt" },
   { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst), Schriften der Website und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
 ];
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 21. Oktober 2026',
+  version: 'Fassung vom 23. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -57,6 +59,13 @@ const de: PrivacyText = {
           Aktivitäts-Etiketten und das freiwillige kurze Wort, sichtbar für die Mitglieder der Kreise, in denen du sagst, dass du Zeit
           hast. Kein Standort wird gespeichert. Diese Angaben werden am Ende des gewählten Zeitraums <strong>automatisch gelöscht</strong>
           (3 Stunden, oder 4 Uhr morgens für „heute Abend“).</li>
+        <li><strong>Entdecken</strong>: Das Ansehen von Events und Ausflugsideen erzeugt keine Daten über dich (kein Konto nötig,
+          keine Nachverfolgung); die gewählte Region bleibt auf deinem Gerät. Die Anzeigen stammen aus öffentlichen Agenden, aus
+          OpenStreetMap oder vom EvLY-Team; unser Server ruft sie ab, ohne etwas über dich zu übermitteln. Wenn du einen
+          <strong> Fehler meldest</strong>, wird deine Nachricht per E-Mail an die Administration von EvLY gesendet. Wenn du für
+          <strong> „Öffentliches Event veröffentlichen“</strong> informiert werden möchtest, werden dein Name, deine E-Mail-Adresse und die
+          freiwilligen Angaben (Betrieb, Ort, Nachricht) gespeichert, um dich beim Start zu kontaktieren, und spätestens zwei Jahre
+          danach oder mit deinem Konto gelöscht.</li>
         <li><strong>Was du veröffentlichst</strong>: Nachrichten und Reaktionen, Antworten auf Pläne (ja / vielleicht /
           nein), Stimmen, Infos zu Plänen, Fotos, Sprachnachrichten und Dateien, Fahrten der Fahrgemeinschaft,
           Teilnahme an Spielen (Wichteln, Killer, Fallenwort, Teams und Resultate, Antworten und Punkte im Quiz) und an einer Geschenkkasse (Betrag,

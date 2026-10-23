@@ -108,6 +108,22 @@ const sections: TermsSection[] = [
     </>,
   },
   {
+    title: 'Scopri: eventi pubblici e idee per uscire',
+    body: <>
+      <P>La sezione «Scopri» presenta eventi pubblici e idee per uscire, visibili con o senza account. Queste informazioni provengono
+        da fonti esterne — agende pubblicate con licenza aperta (per esempio quella della Città di Ginevra), dati di OpenStreetMap,
+        organizzatori — oppure sono inserite dall'Editore sulla base delle informazioni pubbliche degli organizzatori. Ogni annuncio
+        indica la sua fonte e rimanda a un sito esterno.</P>
+      <P><strong>L'Editore non garantisce né l'esattezza, né la completezza, né l'attualità di queste informazioni</strong> (data, ora,
+        luogo, prezzo, posti, annullamento). Fa fede solo il sito dell'organizzatore: spetta a te verificarlo prima di spostarti o di
+        acquistare un biglietto. L'Editore non organizza questi eventi, non vende biglietti e non risponde dei siti esterni né del loro
+        contenuto. Si applica l'articolo «Eventi organizzati tramite il Servizio»: ognuno partecipa a proprio rischio.</P>
+      <P>Un organizzatore può chiedere la correzione o la rimozione di un annuncio a <Mail />; chiunque può usare «Segnala un errore».
+        L'Editore può rimuovere un annuncio in qualsiasi momento. La pubblicazione di eventi da parte degli organizzatori («Pubblica un
+        evento pubblico») sarà soggetta a condizioni particolari.</P>
+    </>,
+  },
+  {
     title: 'Car pooling',
     body: <P>La funzione di car pooling permette soltanto ai partecipanti di un Plan di mettersi in contatto.{' '}
       <strong>L’Editore non è un vettore</strong> e non interviene nei viaggi: ogni conducente resta l’unico
@@ -279,8 +295,8 @@ const sections: TermsSection[] = [
 
 const it: TermsText = {
   title: 'Condizioni d’uso',
-  version: 'Versione 4 — 9 ottobre 2026',
-  news: 'Novità: assemblee, giochi, colletta, notifiche e responsabilità.',
+  version: 'Versione 5 — 23 ottobre 2026',
+  news: 'Novità: la sezione Scopri (eventi pubblici e idee per uscire).',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   sections,
   confirm: 'Cliccando su «Accetto le condizioni», confermi di aver letto e accettato integralmente le presenti condizioni d’uso.',
