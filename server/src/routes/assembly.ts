@@ -5,7 +5,6 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
-import { wantsEmail } from '../lib/notificationPrefs';
 import { escapeHtml } from '../lib/escapeHtml';
 import {
   ASSEMBLY_DISABLED_ERROR, MAX_CANDIDATES, MAX_ITEMS, MAJORITY_LABEL, NOTES_MAX, QUORUM_MODES, VOTE_CHOICES,
@@ -276,17 +275,20 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
 
   const when = ctx.plan.eventDate ? zurichDate(ctx.plan.eventDate) : null;
   await notifyMembers(req, ctx, `📣 Convocation${when ? ` : ${when}` : ''} — ordre du jour et documents dans le Plan`);
-  // Email : convocation officielle, même pour un Cercle en silence ; selon le canal choisi
+  // Email : convocation officielle, à tous les membres du Cercle quel que soit leur réglage de notifications (et même pour
+  // un Cercle en silence), avec une copie pour la personne qui convoque
   // Retours à la ligne gardés comme dans l'app (les clients mail ignorent ceux du texte brut)
   const multiline = (text: string) => escapeHtml(text.trim()).replace(/\r?\n/g, '<br>');
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
-    where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null }, id: { not: req.userId } },
-    select: { id: true, email: true, firstName: true, pseudo: true, notificationChannel: true, locale: true },
+    where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null } },
+    select: { id: true, email: true, firstName: true, pseudo: true, locale: true },
   });
-  const { resend, FROM_EMAIL, APP_URL, notificationFooter } = await import('../lib/mailer');
+  const { resend, FROM_EMAIL, APP_URL } = await import('../lib/mailer');
   const link = `${APP_URL}/dashboard?planId=${ctx.plan.id}&tab=assemblee`;
-  for (const u of users.filter(x => wantsEmail(x.notificationChannel, x.id))) {
+  const sentTo = users.filter(u => u.id !== req.userId).length;
+  for (const u of users) {
+    const isCopy = u.id === req.userId;
     const m = mail(parseLocale(u.locale) ?? 'fr');
     const date = ctx.plan.eventDate ? zurichDate(ctx.plan.eventDate, m.intl) : null;
     const place = ctx.plan.location;
@@ -298,6 +300,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
       subject: m.s('convocation.subject', { plan: ctx.plan.title }),
       html: `
         <div style="font-family:sans-serif;max-width:520px;margin:auto">
+          ${isCopy ? `<p style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#475569;font-size:13px">${m.t('convocation.copyNote', { count: String(sentTo) })}</p>` : ''}
           <p style="color:#ea5a2b;font-weight:700;letter-spacing:1px;font-size:12px">${escapeHtml(circle?.name ?? '').toUpperCase()}</p>
           <h2 style="margin-top:4px">${escapeHtml(ctx.plan.title)}</h2>
           <p>${intro}</p>
@@ -305,7 +308,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
           <ol style="padding-left:20px;margin-top:0">${agenda}</ol>
           ${ctx.assembly.proxiesAllowed ? `<p>${m.t('convocation.proxy')}</p>` : ''}
           <p><a href="${link}" style="display:inline-block;background:#ea5a2b;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">${m.t('convocation.button')}</a></p>
-          ${notificationFooter('simple', m.locale)}
+          <p style="color:#94a3b8;font-size:12px;margin-top:24px">${m.t('convocation.allMembers')}</p>
         </div>`,
     }).then(r => { if (r.error) console.error('[assembly convocation]', r.error); }).catch(e => console.error('[assembly convocation]', e));
   }

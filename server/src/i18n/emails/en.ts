@@ -139,6 +139,8 @@ const en: EmailDict = {
     smsCircle: '{who} invites you to the Circle “{circle}” on EvLY: {link}',
   },
   convocation: {
+    allMembers: "Notice of meeting emailed to all members of the Circle.",
+    copyNote: "Copy of the notice of meeting sent to {count} members of the Circle.",
     subject: 'Notice of meeting — {plan}',
     text: 'Hello {name},<br>you are invited to the assembly.',
     textWhen: 'Hello {name},<br>you are invited to the assembly on <b>{date}</b>.',

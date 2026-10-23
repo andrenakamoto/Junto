@@ -139,6 +139,8 @@ const it: EmailDict = {
     smsCircle: '{who} ti invita nel Cerchio «{circle}» su EvLY: {link}',
   },
   convocation: {
+    allMembers: "Convocazione inviata per email a tutti i membri del Cerchio.",
+    copyNote: "Copia della convocazione inviata a {count} membri del Cerchio.",
     subject: 'Convocazione — {plan}',
     text: 'Buongiorno {name},<br>sei convocato/a all’assemblea.',
     textWhen: 'Buongiorno {name},<br>sei convocato/a all’assemblea del <b>{date}</b>.',

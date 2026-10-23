@@ -139,6 +139,8 @@ const fr = {
     smsCircle: '{who} t’invite dans le Cercle « {circle} » sur EvLY : {link}',
   },
   convocation: {
+    allMembers: "Convocation envoyée par email à tous les membres du Cercle.",
+    copyNote: "Copie de la convocation envoyée à {count} membres du Cercle.",
     subject: 'Convocation — {plan}',
     text: 'Bonjour {name},<br>tu es convoqué·e à l’assemblée.',
     textWhen: 'Bonjour {name},<br>tu es convoqué·e à l’assemblée du <b>{date}</b>.',
