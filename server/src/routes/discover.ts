@@ -24,7 +24,8 @@ router.get('/', async (req, res) => {
   const days = Math.min(31, Math.max(1, Number(req.query.days) || 7));
   const key = `${region}|${days}`;
   const hit = discoverCache.get(key);
-  res.set('Cache-Control', 'public, max-age=300');
+  // Pas de copie dans le navigateur : la mémoire du serveur (vidée à chaque synchronisation) suffit
+  res.set('Cache-Control', 'no-cache');
   if (hit && Date.now() - hit.at < CACHE_MS) { res.json(hit.body); return; }
   const now = new Date();
   const until = new Date(now.getTime() + days * 24 * 3600e3);
