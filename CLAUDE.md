@@ -1602,8 +1602,16 @@ jours (14 jours), catégories en 4 groupes (Sortir, Spectacles, Culture, Activit
 contenir des erreurs », bouton **« Plus d'infos sur <site> »**, **« Y aller avec un Cercle »** (`DiscoverGoModal` → `CreatePlanModal` avec
 `fromEvent` sans `sourcePlanId` + `url` dans la description ; sans compte → connexion), sources et licences en bas. **« Poster un événement
 public »** (en-tête de Découvrir + menu ☰) : **« Prochainement disponible »** (`ProSoonModal`, aucun prix cité) + formulaire « Me prévenir ».
-Étape suivante prévue (pas faite) : comptes pros vérifiés (IDE, documents effacés après décision), abonnement vendu sur le site, publication
-dans Découvrir. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
+**Publier un Plan dans Découvrir** (2026-10-23, `lib/discover/planPublish.ts`, migration `20261027100000_discover_plans`) : réservé aux
+comptes autorisés **à la main** (`User.canPublishDiscover`, bouton « Autoriser Découvrir » sur la carte d'un compte approuvé dans le panneau
+admin, PUT `/admin/users/:id/discover` ; retirer l'autorisation supprime ses annonces ; les administrateurs le peuvent toujours), créateur du
+Plan ou gestionnaire de son Cercle, Plan en **Mode annonce** avec une date de début (`publishBlocker` : `annonce|date|ended`). PUT / DELETE
+`/plans/:id/discover {region, category}` ; GET `/plans/:id` renvoie `canPublishDiscover`, `discover`, `discoverBlocker` ; `/auth/me`
+renvoie `canPublishDiscover`. Annonce = `DiscoverEvent.planId` (source `evly-plans`, « Organisateurs sur EvLY ») : titre, dates et lieu suivent
+le Plan (`refreshPlanDiscover` après PUT /plans/:id), supprimée avec lui ; GET `/api/discover` ajoute `signupPath` (lien d'invitation du Plan,
+créé au besoin) et calcule « complet » (cache serveur 5 min). Client : `PublishDiscoverModal` (menu ⋮ et icône 🧭 de l'en-tête du Plan),
+bouton **« S'inscrire »** sur la carte Découvrir, « Poster un événement public » explique la marche à suivre aux comptes autorisés.
+Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
 `demoDiscover` (fictif). Guide (fiche « Découvrir »), **conditions d'utilisation v5** (article « Découvrir », acceptation redemandée),
 politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD
