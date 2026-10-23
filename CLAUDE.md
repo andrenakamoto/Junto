@@ -461,6 +461,9 @@ Conséquences pratiques :
     **Version 1.0.27** (2026-10-23) : Android `versionCode` 29 (`evly-1.0.27-(29).aab`), iOS build 31 envoyé — Découvrir (sorties et
     événements publics, « Poster un événement public » prochainement), conditions d'utilisation v5, agenda des postes du planning,
     calendrier avec un point par Plan et des traits pour les Plans sur plusieurs jours.
+    **Version 1.0.28** (2026-10-23) : Android `versionCode` 30 (`evly-1.0.28-(30).aab`), iOS build 32 envoyé — publier un Plan dans
+    Découvrir (comptes autorisés), « S'inscrire » sur les annonces, colonne du Cercle simplifiée (bouton « Créer » unique), retour dans le
+    Plan créé (et non le sondage resté ouvert).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
