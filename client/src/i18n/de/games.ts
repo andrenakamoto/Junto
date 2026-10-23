@@ -314,6 +314,7 @@ const games: Dict['games'] = {
     deleteConfirm: 'Einsatz «{{title}}» löschen?',
     deleteNotify: ' Die Eingetragenen werden benachrichtigt.',
     footer: 'Wer sich für einen Einsatz einträgt, sagt «Ich bin dabei». Mit «Abwesend» gibst du deine Einsätze frei.',
+    addToCalendar: "Zu meinem Kalender hinzufügen",
     editShift: 'Diesen Einsatz bearbeiten',
     deleteShift: 'Diesen Einsatz löschen',
     removeConfirm: '@{{pseudo}} aus diesem Einsatz entfernen?',

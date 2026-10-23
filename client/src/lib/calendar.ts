@@ -35,3 +35,35 @@ export async function addPlanToCalendar(plan: CalendarPlan): Promise<void> {
   const res = await api.get(`/plans/${plan.id}/ical`, { responseType: 'blob' });
   await saveFile(res.data, `${plan.title.replace(/[^a-z0-9]/gi, '_')}.ics`, plan.title);
 }
+
+// « Ajouter à mon agenda » d'un poste du planning : horaire du poste (sinon celui du Plan), lieu du Plan, lien vers le
+// planning. Même fonctionnement que pour un Plan ; .ics du serveur : GET /plans/shifts/:id/ical (lib/ical.ts shiftEventTimes).
+type CalendarShift = { id: string; title: string; note?: string | null; startsAt?: string | null; endsAt?: string | null };
+
+export async function addShiftToCalendar(shift: CalendarShift, plan: CalendarPlan): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { CapacitorCalendar } = await import('@ebarooni/capacitor-calendar');
+      const planEnd = new Date(plan.endDate).getTime();
+      const start = shift.startsAt ? new Date(shift.startsAt).getTime() : plan.eventDate ? new Date(plan.eventDate).getTime() : planEnd;
+      const end = shift.startsAt
+        ? (shift.endsAt && new Date(shift.endsAt).getTime() > start ? new Date(shift.endsAt).getTime() : start + 2 * 60 * 60 * 1000)
+        : (planEnd > start ? planEnd : start + 2 * 60 * 60 * 1000);
+      const link = `${publicOrigin()}/dashboard?planId=${plan.id}&tab=benevoles`;
+      await CapacitorCalendar.createEventWithPrompt({
+        title: `${shift.title} – ${plan.title}`,
+        location: plan.location ?? undefined,
+        startDate: start,
+        endDate: end,
+        isAllDay: !shift.startsAt && !plan.eventDate,
+        description: [shift.note?.trim(), link].filter(Boolean).join('\n\n'),
+        url: link,
+      });
+      return;
+    } catch (e) {
+      console.warn('[agenda] écran natif indisponible, fichier .ics', e);
+    }
+  }
+  const res = await api.get(`/plans/shifts/${shift.id}/ical`, { responseType: 'blob' });
+  await saveFile(res.data, `${shift.title.replace(/[^a-z0-9]/gi, '_')}.ics`, shift.title);
+}

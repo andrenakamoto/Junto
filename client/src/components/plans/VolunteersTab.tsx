@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Clock, MessageSquare, Pencil, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, CheckCircle2, Clock, MessageSquare, Pencil, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { addShiftToCalendar } from '../../lib/calendar';
 import { Plan, VolunteerShift } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
@@ -159,6 +160,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
             onDeleteComment={id => { if (confirm(t('games.volunteers.deleteCommentConfirm'))) run(() => api.delete(`/plans/shifts/comments/${id}`)); }}
             onDone={done => run(() => api.post(`/plans/shifts/${s.id}/done`, { done }))}
             onEdit={() => setEditing(s.id)}
+            onCalendar={() => addShiftToCalendar(s, plan).catch(() => alert(t('common.retryError')))}
             onDelete={() => {
               if (confirm(t('games.volunteers.deleteConfirm', { title: s.title }) + (s.signups.length ? t('games.volunteers.deleteNotify') : ''))) run(() => api.delete(`/plans/shifts/${s.id}`));
             }}
@@ -173,11 +175,11 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
   );
 }
 
-function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, onRemove, onComment, onDeleteComment, onDone, onEdit, onDelete }: {
+function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, onRemove, onComment, onDeleteComment, onDone, onEdit, onDelete, onCalendar }: {
   shift: VolunteerShift; userId: string; canManage: boolean; clash: boolean;
   onSignUp: () => void; onWithdraw: () => void; onRemove: (userId: string) => void;
   onComment: (content: string) => Promise<boolean>; onDeleteComment: (id: string) => void; onDone: (done: boolean) => void;
-  onEdit: () => void; onDelete: () => void;
+  onEdit: () => void; onDelete: () => void; onCalendar: () => void;
 }) {
   const [writing, setWriting] = useState(false);
   const [draft, setDraft] = useState('');
@@ -189,10 +191,14 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
   const comments = s.comments ?? [];
   const full = s.signups.length >= s.needed;
   const hours = shiftHours(s);
-  const actions = canManage && (
+  // Agenda : pour tout le monde ; modifier / supprimer : créateur du Plan et organisateurs
+  const actions = (
     <span className="flex-shrink-0 flex -mr-1">
+      <button onClick={onCalendar} title={t('games.volunteers.addToCalendar')} aria-label={t('games.volunteers.addToCalendar')} className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"><CalendarPlus size={14} /></button>
+      {canManage && <>
       <button onClick={onEdit} title={t('games.volunteers.editShift')} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
       <button onClick={onDelete} title={t('games.volunteers.deleteShift')} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
+      </>}
     </span>
   );
   // Ligne de programme (0 personne) : horaire et remarque, sans inscription

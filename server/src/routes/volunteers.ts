@@ -2,6 +2,8 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
+import { icsDate, icsEscape, shiftEventTimes } from '../lib/ical';
+import { APP_URL } from '../lib/mailer';
 import { markAllSeen } from '../lib/planActivity';
 import { notifyMembershipChange } from '../lib/planNotifications';
 import { notifyUser } from '../lib/push';
@@ -72,6 +74,33 @@ router.post('/:id/shifts', async (req: AuthRequest, res) => {
   if ('error' in data) { res.status(400).json({ error: data.error }); return; }
   const shift = await prisma.volunteerShift.create({ data: { ...data, planId: plan.id, createdById: req.userId! } });
   res.json(shift);
+});
+
+// GET /shifts/:shiftId/ical — un poste dans son agenda (.ics) : horaire du poste, sinon celui du Plan
+router.get('/shifts/:shiftId/ical', async (req: AuthRequest, res) => {
+  const shift = await prisma.volunteerShift.findUnique({
+    where: { id: req.params.shiftId },
+    include: { plan: { select: { id: true, title: true, location: true, eventDate: true, endDate: true } } },
+  });
+  if (!shift || !(await getPlanAccess(req.userId!, shift.planId))?.canView) { res.status(404).json({ error: 'Poste introuvable' }); return; }
+  const { start, end } = shiftEventTimes(shift, shift.plan);
+  const link = `${APP_URL}/dashboard?planId=${shift.planId}&tab=benevoles`;
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//EvLY//Planning//FR', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:shift-${shift.id}@evly.ch`,
+    `DTSTAMP:${icsDate(new Date())}`,
+    `DTSTART:${icsDate(start)}`,
+    `DTEND:${icsDate(end)}`,
+    `SUMMARY:${icsEscape(`${shift.title} – ${shift.plan.title}`)}`,
+    `DESCRIPTION:${icsEscape([shift.note?.trim(), link].filter(Boolean).join('\n\n'))}`,
+    ...(shift.plan.location ? [`LOCATION:${icsEscape(shift.plan.location)}`] : []),
+    `URL:${link}`,
+    'END:VEVENT', 'END:VCALENDAR',
+  ].join('\r\n');
+  res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${shift.title.replace(/[^a-z0-9]/gi, '_')}.ics"`);
+  res.send(ics);
 });
 
 // PUT /shifts/:shiftId — modifier un poste

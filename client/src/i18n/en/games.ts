@@ -314,6 +314,7 @@ const games: Dict['games'] = {
     deleteConfirm: 'Delete the shift “{{title}}”?',
     deleteNotify: ' The people signed up will be told.',
     footer: 'Signing up for a shift counts as “I’m in”. Replying “Can’t make it” frees up your shifts.',
+    addToCalendar: "Add to my calendar",
     editShift: 'Edit this shift',
     deleteShift: 'Delete this shift',
     removeConfirm: 'Remove @{{pseudo}} from this shift?',

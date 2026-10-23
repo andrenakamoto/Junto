@@ -314,6 +314,7 @@ const games: Dict['games'] = {
     deleteConfirm: 'Eliminare il turno «{{title}}»?',
     deleteNotify: ' Gli iscritti saranno avvisati.',
     footer: 'Iscriversi a un turno vale come «Ci sono». Rispondere «Assente» libera i tuoi turni.',
+    addToCalendar: "Aggiungi al mio calendario",
     editShift: 'Modifica questo turno',
     deleteShift: 'Elimina questo turno',
     removeConfirm: 'Togliere @{{pseudo}} da questo turno?',

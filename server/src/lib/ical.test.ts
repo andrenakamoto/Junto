@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { icsEscape, icsDate, icsEventTimes } from './ical';
+import { icsEscape, icsDate, icsEventTimes, shiftEventTimes } from './ical';
 
 describe('icsEscape', () => {
   it('échappe les virgules, points-virgules et antislashs', () => {
@@ -33,5 +33,16 @@ describe('icsEventTimes', () => {
   });
   it('sans date de début : placé sur la date de fin', () => {
     expect(icsEventTimes(null, at(23))).toEqual({ start: at(23), end: at(23) });
+  });
+});
+
+describe('shiftEventTimes', () => {
+  const plan = { eventDate: new Date('2026-11-07T09:00:00Z'), endDate: new Date('2026-11-07T18:00:00Z') };
+  it('horaire du poste, fin par défaut 2 heures', () => {
+    const r = shiftEventTimes({ startsAt: new Date('2026-11-07T10:00:00Z'), endsAt: null }, plan);
+    expect(r.end.toISOString()).toBe('2026-11-07T12:00:00.000Z');
+  });
+  it('sans horaire : les heures du Plan', () => {
+    expect(shiftEventTimes({ startsAt: null, endsAt: null }, plan)).toEqual({ start: plan.eventDate, end: plan.endDate });
   });
 });

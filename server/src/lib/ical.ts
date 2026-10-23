@@ -14,3 +14,10 @@ export function icsEventTimes(eventDate: Date | null, endDate: Date): { start: D
   const end = endDate.getTime() > eventDate.getTime() ? endDate : new Date(eventDate.getTime() + 2 * 60 * 60 * 1000);
   return { start: eventDate, end };
 }
+
+// Poste du planning : son horaire s'il en a un (fin absente ou incohérente : 2 heures), sinon les heures du Plan
+export function shiftEventTimes(shift: { startsAt: Date | null; endsAt: Date | null }, plan: { eventDate: Date | null; endDate: Date }): { start: Date; end: Date } {
+  if (!shift.startsAt) return icsEventTimes(plan.eventDate, plan.endDate);
+  const end = shift.endsAt && shift.endsAt > shift.startsAt ? shift.endsAt : new Date(shift.startsAt.getTime() + 2 * 60 * 60 * 1000);
+  return { start: shift.startsAt, end };
+}

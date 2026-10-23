@@ -313,6 +313,7 @@ export default {
     deleteConfirm: 'Supprimer le poste « {{title}} » ?',
     deleteNotify: ' Les inscrits seront prévenus.',
     footer: 'S’inscrire à un poste vaut « Je suis in ». Répondre « Absent(e) » libère tes postes.',
+    addToCalendar: "Ajouter à mon agenda",
     editShift: 'Modifier ce poste',
     deleteShift: 'Supprimer ce poste',
     removeConfirm: 'Retirer @{{pseudo}} de ce poste ?',
