@@ -53,6 +53,20 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'decouvrir', emoji: '🧭', title: 'Discover', summary: 'Outings near you, and going together',
+        body: <>
+          <P>The <strong>“Discover”</strong> button (next to “Contacts”) shows events for the next 14 days and
+            <strong> outing ideas</strong> (escape rooms, bowling, museums…) in <strong>Geneva, Lausanne and Valais</strong>.
+            Choose your region, filter by day or category, or search for a word (“salsa”, “concert”…).</P>
+          <P>On an event, <strong>“Go with a Circle”</strong> opens a ready-filled Plan (title, date, place, link) in the
+            Circle of your choice; <strong>“More info”</strong> opens the website of the organiser or of the agenda the listing comes from.</P>
+          <P>Listings come from public agendas (for example the City of Geneva’s) and from the EvLY team.
+            <strong> They may contain mistakes</strong>: always check the organiser’s website, and use “Report a mistake” if
+            something is wrong. Discover is also visible without an account, at evly.ch/sorties.</P>
+          <P><strong>“Post a public event”</strong> is coming soon for organisers: leave your details to be notified.</P>
+        </>,
+      },
+      {
         id: 'dispo', emoji: '🟢', title: '“I’m free”', summary: 'Say you’re free, and turn it into a Plan',
         body: <>
           <P>At the top of a Circle's Plans, <strong>“I’m free”</strong>: <strong>now</strong> (for 3 hours) or{' '}
@@ -242,7 +256,7 @@ const groups: Group[] = [
           notification <strong>one hour before</strong> the shift starts. With <strong>0 people</strong>, the line simply shows in the programme (doors open,
           lunch…), with no sign-up. On site, the people signed up for the shift (and the organisers) can
           <strong> comment</strong> on it (“an extension cable is missing”): the person who created the shift is
-          notified. They can also mark it <strong>“Task finished”</strong>, which notifies them too.</P>,
+          notified. They can also mark it <strong>“Task finished”</strong>, which notifies them too. A shift’s 📅 icon <strong>adds it to your calendar</strong> (phone or calendar account), with its time, the Plan’s location and a link to the schedule.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assembly', summary: 'Agenda, proxies, votes, minutes',

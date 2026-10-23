@@ -113,6 +113,8 @@ const plan: Dict['plan'] = {
   calendar: {
     title: 'Calendario',
     pickDay: 'Seleziona un giorno per vedere i Plan',
+    legendDay: "Un punto per Plan",
+    legendSpan: "Linea: Plan su più giorni",
     noPlan: 'Nessun Plan quel giorno.',
   },
   goWith: {
@@ -120,6 +122,7 @@ const plan: Dict['plan'] = {
     title: 'Andarci con un Cerchio',
     intro: 'Scegli il Cerchio in cui creare il Plan. Vi organizzate tra voi, e ognuno si iscrive all’evento con il suo link.',
     none: 'Non hai un Cerchio in cui creare un Plan per questo evento.',
+    moreInfo: "Più info: {{url}}",
     titleSuggestion: '{{title}} – ci andiamo?',
     note: 'Plan per andare insieme a «{{title}}»',
   },

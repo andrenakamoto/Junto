@@ -27,6 +27,10 @@ import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import contactRoutes from './routes/contacts';
 import availabilityRoutes from './routes/availability';
+import discoverRoutes from './routes/discover';
+import adminDiscoverRoutes from './routes/adminDiscover';
+import { ensureDiscoverSources } from './lib/discover/defaults';
+import { syncDueSources } from './lib/discover/sync';
 import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { refreshPhoneUsers } from './lib/notificationPrefs';
@@ -117,6 +121,8 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/availability', availabilityRoutes);
+app.use('/api/discover', discoverRoutes);
+app.use('/api/admin/discover', adminDiscoverRoutes);
 app.use('/api/quiz-screen', quizScreenRoutes);
 
 app.set('io', io);
@@ -180,6 +186,10 @@ if (cronEnabled) {
   const deletionNotices = () => sendDeletionNotices(io, notifyUser).catch(e => console.error('[deletion notice]', e));
   deletionNotices();
   setInterval(deletionNotices, 15 * 60 * 1000);
+  // Découvrir : agendas deux fois par jour, OpenStreetMap une fois par semaine, événements passés effacés (lib/discover/sync.ts)
+  const discoverSync = () => syncDueSources().catch(e => console.error('[discover sync]', e));
+  setTimeout(discoverSync, 60 * 1000);
+  setInterval(discoverSync, 60 * 60 * 1000);
 } else {
   console.log('[cron] Désactivé en local. Active avec ENABLE_CRON=true si besoin.');
 }
@@ -191,6 +201,7 @@ httpServer.listen(Number(PORT), '0.0.0.0', async () => {
     await prisma.$connect();
     console.log('[db] Connexion base de donnees OK');
     encryptLegacyMessages().catch(e => console.error('[messageCrypto] chiffrement des anciens messages', e));
+    ensureDiscoverSources().catch(e => console.error('[discover] sources par défaut', e));
     // Téléphones enregistrés pour le push (emails en secours pour les comptes « push » sans l'app)
     await refreshPhoneUsers();
     setInterval(refreshPhoneUsers, 10 * 60 * 1000);

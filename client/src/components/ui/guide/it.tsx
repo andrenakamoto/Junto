@@ -54,6 +54,20 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'decouvrir', emoji: '🧭', title: 'Scopri', summary: 'Le uscite vicino a te, e andarci insieme',
+        body: <>
+          <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Contatti») mostra gli eventi dei prossimi 14 giorni e delle
+            <strong> idee per uscire</strong> (escape game, bowling, musei…) a <strong>Ginevra, Losanna e in Vallese</strong>.
+            Scegli la tua regione, filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…).</P>
+          <P>Su un evento, <strong>«Andarci con un Cerchio»</strong> apre un Plan già compilato (titolo, data, luogo, link) nel
+            Cerchio che preferisci; <strong>«Più info»</strong> apre il sito dell’organizzatore o dell’agenda da cui proviene l’annuncio.</P>
+          <P>Gli annunci provengono da agende pubbliche (per esempio quella della Città di Ginevra) e dal team di EvLY.
+            <strong> Possono contenere errori</strong>: verifica sempre sul sito dell’organizzatore e usa «Segnala un errore» se
+            qualcosa non va. Scopri è visibile anche senza account, su evly.ch/sorties.</P>
+          <P><strong>«Pubblica un evento pubblico»</strong> arriva presto per gli organizzatori: lascia i tuoi dati per essere avvisato.</P>
+        </>,
+      },
+      {
         id: 'dispo', emoji: '🟢', title: '«Sono libero/a»', summary: 'Dire che si è liberi, e farne un Plan',
         body: <>
           <P>In cima ai Plan di un Cerchio, <strong>«Sono libero/a»</strong>: <strong>adesso</strong> (per 3 ore) o{' '}
@@ -246,7 +260,7 @@ const groups: Group[] = [
           Promemoria con notifica <strong>un’ora prima</strong> dell’inizio del turno. Con <strong>0 persone</strong> la riga compare semplicemente nel programma (apertura
           delle porte, pranzo…), senza iscrizione. Sul posto, gli iscritti al turno (e gli organizzatori) possono
           <strong> commentarlo</strong> («manca una prolunga»): la persona che ha creato il turno viene avvisata. Lo
-          segnano anche come <strong>«Compito terminato»</strong>, e anche in questo caso viene avvisata.</P>,
+          segnano anche come <strong>«Compito terminato»</strong>, e anche in questo caso viene avvisata. L'icona 📅 di un turno lo <strong>aggiunge al tuo calendario</strong> (telefono o account calendario), con orario, luogo del Plan e link ai turni.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblea', summary: 'Ordine del giorno, deleghe, voti, verbale',

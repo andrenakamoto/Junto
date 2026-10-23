@@ -651,10 +651,35 @@ function transitOf(planId: string) {
   return st;
 }
 
+// Découvrir (démo) : événements et lieux fictifs, dates calculées à partir d'aujourd'hui (rien n'est envoyé au serveur)
+function demoDiscover(region: string) {
+  const at = (days: number, h: number, m = 0) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.toISOString(); };
+  const ev = (id: string, title: string, place: string, city: string, category: string, days: number, h: number, extra: Record<string, unknown> = {}) => ({
+    id: `demo-ev-${region}-${id}`, title, place, city, category, family: false, priceText: null, status: 'scheduled',
+    startAt: at(days, h), endAt: null, multiDay: false, dateLabel: null, url: 'https://www.evly.ch/demo', sourceId: 'demo', ...extra,
+  });
+  const city = region === 'la' ? 'Lausanne' : region === 'vs' ? 'Sion' : 'Genève';
+  const events = [
+    ev('1', 'Soirée salsa cubaine', 'Le Patio', city, 'danse', 0, 21, { priceText: 'CHF 15' }),
+    ev('2', 'Quiz musical au bar', 'Café du Lac', city, 'jeux', 1, 20),
+    ev('3', 'Concert jazz en trio', 'La Cave bleue', city, 'concert', 2, 20, { priceText: 'CHF 25' }),
+    ev('4', 'Atelier poterie parents-enfants', 'Atelier Terre & Feu', city, 'atelier', 3, 14, { family: true, priceText: 'CHF 30 par duo' }),
+    ev('5', 'Stand-up : plateau découverte', 'Le Rire Club', city, 'theatre', 4, 20, { status: 'full' }),
+    ev('6', 'Course populaire des feuilles mortes', 'Parc du Belvédère', city, 'sport', 5, 10, { family: true, priceText: 'Gratuit' }),
+    ev('7', 'Soirée années 2000', 'Club Neon', city, 'soiree', 5, 23),
+    ev('8', 'Exposition « Lumières d’automne »', 'Galerie du Vieux-Port', city, 'expo', 0, 10, { multiDay: true, endAt: at(20, 18) }),
+  ];
+  const place = (id: string, name: string, kind: string, family = true) => ({ id: `demo-pl-${region}-${id}`, name, kind, city, website: 'https://www.evly.ch/demo', family, sourceId: 'demo' });
+  const places = [place('1', 'Escape Room du Moulin', 'escape', false), place('2', 'Bowling des Étoiles', 'bowling'), place('3', 'Jump Park', 'trampoline'), place('4', 'Musée des Jouets', 'musee')];
+  return { region, from: at(0, 0), until: at(14, 0), events, places, sources: [{ id: 'demo', name: 'Démo', type: 'manual', attribution: 'Exemples fictifs (démo)', license: null, licenseUrl: null }] };
+}
+
 function route(method: string, path: string, body: any): any {
   const key = `${method} ${path}`;
   let m: RegExpMatchArray | null;
 
+  // Découvrir
+  if (path === '/discover' && method === 'GET') return demoDiscover(body?.region ?? 'ge');
   // « Je suis dispo »
   if ((m = path.match(/^\/availability\/circles\/([^/]+)$/))) {
     const list = dispoOf(m[1]);

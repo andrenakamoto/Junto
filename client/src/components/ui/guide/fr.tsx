@@ -54,6 +54,20 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'decouvrir', emoji: '🧭', title: 'Découvrir', summary: 'Les sorties près de chez toi, et y aller à plusieurs',
+        body: <>
+          <P>Le bouton <strong>« Découvrir »</strong> (à côté de « Contacts ») montre les événements des 14 prochains jours et des
+            <strong> idées de sorties</strong> (escape games, bowling, musées…) à <strong>Genève, Lausanne et en Valais</strong>.
+            Choisis ta région, filtre par jour ou par catégorie, ou cherche un mot (« salsa », « concert »…).</P>
+          <P>Sur un événement, <strong>« Y aller avec un Cercle »</strong> ouvre un Plan déjà rempli (titre, date, lieu, lien) dans le
+            Cercle de ton choix ; <strong>« Plus d'infos »</strong> ouvre le site de l'organisateur ou de l'agenda d'où vient l'annonce.</P>
+          <P>Les annonces viennent d'agendas publics (par exemple celui de la Ville de Genève) et de l'équipe EvLY.
+            <strong> Elles peuvent contenir des erreurs</strong> : vérifie toujours sur le site de l'organisateur, et utilise
+            « Signaler une erreur » si quelque chose ne va pas. Découvrir est aussi visible sans compte, sur evly.ch/sorties.</P>
+          <P><strong>« Poster un événement public »</strong> arrive prochainement pour les organisateurs : laisse tes coordonnées pour être prévenu.</P>
+        </>,
+      },
+      {
         id: 'dispo', emoji: '🟢', title: '« Je suis dispo »', summary: 'Dire qu’on est libre, et en faire un Plan',
         body: <>
           <P>En haut des Plans d'un Cercle, <strong>« Je suis dispo »</strong> : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
@@ -244,7 +258,7 @@ const groups: Group[] = [
           chevauchent. Rappel par notification <strong>une heure avant</strong> la prise de poste. Avec <strong>0 personne</strong>, la ligne s’affiche simplement au programme (ouverture
           des portes, repas…), sans inscription. Sur place, les inscrits du poste (et les organisateurs) peuvent le
           <strong> commenter</strong> (« il manque une rallonge ») : la personne qui a créé le poste est prévenue. Ils le
-          déclarent aussi <strong>« Tâche terminée »</strong>, ce qui la prévient également.</P>,
+          déclarent aussi <strong>« Tâche terminée »</strong>, ce qui la prévient également. L'icône 📅 d'un poste l'<strong>ajoute à ton agenda</strong> (téléphone ou compte calendrier), avec son horaire, le lieu du Plan et un lien vers le planning.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Assemblée', summary: 'Ordre du jour, procurations, votes, procès-verbal',

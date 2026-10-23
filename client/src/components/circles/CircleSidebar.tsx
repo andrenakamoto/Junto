@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
@@ -11,6 +11,7 @@ import { DeleteAccountModal } from '../ui/DeleteAccountModal';
 import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { SuggestionModal } from '../ui/SuggestionModal';
+import { ProSoonModal } from '../discover/ProSoonModal';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,6 +44,8 @@ interface Props {
   /** « Mes contacts » : les personnes de mes Cercles */
   onContacts: () => void;
   contactsActive: boolean;
+  onDiscover: () => void;
+  discoverActive: boolean;
   onCircleUpdated: (circle: Circle) => void;
   unreadCount: number;
   onOpenNotifications: () => void;
@@ -53,7 +56,7 @@ interface Props {
   onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +69,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showPostEvent, setShowPostEvent] = useState(false);
   // Lien « Gérer mes notifications » des emails : /dashboard?reglages=notifications
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
@@ -143,12 +147,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
-        {/* Téléphone : trois boutons côte à côte (icône au-dessus) ; grand écran : l'un sous l'autre */}
-        <div className="grid grid-cols-3 md:grid-cols-1 gap-1.5 mb-2">
+        {/* Téléphone : deux lignes de deux boutons (icône au-dessus) ; grand écran : l'un sous l'autre */}
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-1.5 mb-2">
         {([
           [onAllPlans, allPlansActive, Calendar, t('circle.sidebar.allPlans')],
           [onCalendar, calendarActive, CalendarDays, t('circle.sidebar.calendar')],
           [onContacts, contactsActive, ContactIcon, t('circle.contacts.button')],
+          [onDiscover, discoverActive, Compass, t('discover.button')],
         ] as const).map(([onClick, active, Icon, label]) => (
           <button
             key={label}
@@ -417,6 +422,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
               {t('circle.sidebar.suggest')}
             </button>
             <button
+              onClick={() => { setShowMenu(false); setShowPostEvent(true); }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
+            >
+              <Megaphone size={15} />
+              {t('discover.post.button')}
+            </button>
+            <button
               onClick={() => { setShowMenu(false); setShowGuide(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
             >
@@ -461,6 +473,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
       {showSuggestions && (
         <SuggestionModal onClose={() => setShowSuggestions(false)} />
       )}
+      {showPostEvent && <ProSoonModal onClose={() => setShowPostEvent(false)} />}
       {showTerms && (
         <TermsModal readOnly onClose={() => setShowTerms(false)} />
       )}

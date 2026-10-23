@@ -115,6 +115,7 @@ model User {
   transitHome            TransitHome?
   transitGroups          TransitGroup[]
   transitGroupMembers    TransitGroupMember[]
+  proInterests           ProInterest[]
 
   @@index([lastActiveAt])
 }
@@ -1541,4 +1542,93 @@ model Availability {
 
   @@unique([userId, circleId])
   @@index([circleId, expiresAt])
+}
+
+// ——— Découvrir (2026-10-23) : événements publics et idées de sorties, voir lib/discover/ ———
+// Une source = un fournisseur d'événements ou de lieux (agenda OpenAgenda, OpenStreetMap, saisie manuelle, partenaire
+// en attente d'accord…). Les sources « pending » sont listées mais jamais synchronisées.
+model DiscoverSource {
+  id          String          @id @default(cuid())
+  key         String          @unique // identifiant stable, ex. « openagenda-ville-geneve »
+  name        String
+  type        String // openagenda | osm | ical | manual | partner
+  region      String? // ge | la | vs (null = plusieurs)
+  config      Json            @default("{}") // agendaUid, zone OpenStreetMap, adresse du flux…
+  license     String? // ex. « Licence Ouverte 2.0 »
+  licenseUrl  String?
+  attribution String? // texte affiché « Source : … »
+  status      String          @default("pending") // active | pending | disabled
+  autoPublish Boolean         @default(false) // sinon : file « À valider » du panneau admin
+  lastSyncAt  DateTime?
+  lastError   String?
+  lastCount   Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  events      DiscoverEvent[]
+  places      DiscoverPlace[]
+}
+
+// Une occurrence d'événement (un événement sur plusieurs jours = une ligne avec multiDay, ou une ligne par jour)
+model DiscoverEvent {
+  id          String         @id @default(cuid())
+  sourceId    String
+  source      DiscoverSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  externalId  String // identifiant chez la source (ou cuid pour une saisie manuelle)
+  region      String // ge | la | vs
+  title       String
+  place       String?
+  city        String?
+  latitude    Float?
+  longitude   Float?
+  category    String // soiree | concert | danse | bar | theatre | scene | festival | expo | atelier | animation | jeux | sport | famille
+  family      Boolean        @default(false)
+  priceText   String?
+  status      String         @default("scheduled") // scheduled | full | cancelled | postponed
+  startAt     DateTime
+  endAt       DateTime?
+  multiDay    Boolean        @default(false)
+  dateLabel   String? // « 26 - 29 octobre » pour un événement sur plusieurs jours
+  url         String? // « Plus d'infos » : site de l'organisateur ou de la source
+  state       String         @default("published") // published | pending | hidden
+  createdById String? // saisie manuelle : la personne admin
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([sourceId, externalId])
+  @@index([region, state, startAt])
+}
+
+// Idée de sortie ouverte toute l'année (escape game, bowling, musée…)
+model DiscoverPlace {
+  id         String         @id @default(cuid())
+  sourceId   String
+  source     DiscoverSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  externalId String
+  region     String
+  name       String
+  kind       String // escape | laser | bowling | trampoline | escalade | karting | minigolf | patinoire | piscine | arcade | parc | sport | animaux | musee
+  city       String?
+  website    String
+  family     Boolean        @default(false)
+  state      String         @default("published") // published | hidden (gardé masqué même après une nouvelle synchronisation)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([sourceId, externalId])
+  @@index([region, state])
+}
+
+// « Poster un événement public » (prochainement) : personnes qui veulent être prévenues
+model ProInterest {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  company   String?
+  email     String
+  city      String?
+  message   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }

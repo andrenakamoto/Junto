@@ -1,0 +1,66 @@
+import { describe, it, expect } from 'vitest';
+import { normalizeOpenAgendaEvent } from './openagenda';
+import { normalizeOsmElement } from './osm';
+import { parseIcal, parseIcalDate } from './ical';
+import { cleanUrl, parseManualEvent, parseProInterest } from './model';
+
+const from = new Date('2026-10-26T00:00:00+01:00');
+const to = new Date('2026-11-25T00:00:00+01:00');
+const cfg = { agendaUid: 1 };
+
+describe('OpenAgenda', () => {
+  const base = { uid: 42, title: { fr: 'Concert au parc' }, location: { name: 'Parc des Bastions', city: 'Genève' }, 'type-devenement': [38], 'publics-cibles': [27], conditions: { fr: 'entrée libre' } };
+  it('un événement sur un ou deux jours : une ligne par jour, catégorie et public famille', () => {
+    const rows = normalizeOpenAgendaEvent({ ...base, timings: [{ begin: '2026-10-30T20:00:00+01:00', end: '2026-10-30T22:00:00+01:00' }, { begin: '2026-10-31T20:00:00+01:00' }] }, cfg, from, to);
+    expect(rows.map(r => r.externalId)).toEqual(['42-2026-10-30', '42-2026-10-31']);
+    expect(rows[0]).toMatchObject({ category: 'concert', family: true, priceText: 'entrée libre', place: 'Parc des Bastions', multiDay: false });
+  });
+  it('trois jours ou plus, ou une exposition : une seule ligne « plusieurs jours »', () => {
+    const t = ['26', '27', '28'].map(d => ({ begin: `2026-10-${d}T09:00:00+01:00` }));
+    const rows = normalizeOpenAgendaEvent({ ...base, timings: t, dateRange: { fr: '26 - 28 octobre' } }, cfg, from, to);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ externalId: '42', multiDay: true, dateLabel: '26 - 28 octobre' });
+  });
+  it('statut annulé, lien d’inscription en priorité, rien hors de la période', () => {
+    const rows = normalizeOpenAgendaEvent({ ...base, status: 6, registration: [{ type: 'link', value: 'https://billets.example.ch' }], organisator_url: 'https://org.example.ch', timings: [{ begin: '2026-10-30T20:00:00+01:00' }, { begin: '2027-02-01T20:00:00+01:00' }] }, cfg, from, to);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ status: 'cancelled', url: 'https://billets.example.ch/' });
+  });
+});
+
+describe('OpenStreetMap', () => {
+  it('garde les lieux avec nom et site web', () => {
+    expect(normalizeOsmElement({ type: 'node', id: 1, tags: { name: 'Escape X', leisure: 'escape_game', website: 'escapex.ch' } })).toMatchObject({ kind: 'escape', website: 'https://escapex.ch/', family: false });
+    expect(normalizeOsmElement({ type: 'node', id: 2, tags: { name: 'Sans site', leisure: 'bowling_alley' } })).toBeNull();
+  });
+});
+
+describe('iCal', () => {
+  it('heure locale suisse, UTC et journée', () => {
+    expect(parseIcalDate('20261030T200000Z')!.toISOString()).toBe('2026-10-30T20:00:00.000Z');
+    expect(parseIcalDate('20261030T200000')!.toISOString()).toBe('2026-10-30T19:00:00.000Z');
+    expect(parseIcalDate('20260715T200000')!.toISOString()).toBe('2026-07-15T18:00:00.000Z');
+  });
+  it('lit les VEVENT de la période', () => {
+    const ics = 'BEGIN:VCALENDAR\r\nBEGIN:VEVENT\r\nUID:a1\r\nSUMMARY:Soirée salsa\\, live\r\nDTSTART;TZID=Europe/Zurich:20261030T210000\r\nLOCATION:Le Bar\r\nURL:https://bar.example.ch\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:a2\r\nSUMMARY:Trop tard\r\nDTSTART:20270301T210000\r\nEND:VEVENT\r\nEND:VCALENDAR';
+    const rows = parseIcal(ics, { url: 'x', category: 'danse' }, from, to);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ externalId: 'a1', title: 'Soirée salsa, live', category: 'danse', place: 'Le Bar' });
+  });
+});
+
+describe('saisies', () => {
+  it('liens http(s) seulement', () => {
+    expect(cleanUrl('javascript:alert(1)')).toBeNull();
+    expect(cleanUrl('www.evly.ch')).toBe('https://www.evly.ch/');
+  });
+  it('événement manuel', () => {
+    expect(parseManualEvent({ title: 'X', region: 'zz', category: 'concert', startAt: '2026-10-30T20:00' })).toEqual({ error: 'Région invalide' });
+    const ok = parseManualEvent({ title: 'Loto', region: 'vs', category: 'animation', startAt: '2026-10-30T20:00:00+01:00', endAt: '2026-11-02T20:00:00+01:00' });
+    expect('data' in ok && ok.data.multiDay).toBe(true);
+  });
+  it('demande d’organisateur', () => {
+    expect(parseProInterest({ name: 'Ana', email: 'pas-un-email' })).toEqual({ error: 'Adresse email invalide' });
+    expect(parseProInterest({ name: 'Ana', email: 'Ana@Bar.CH ' })).toMatchObject({ data: { email: 'ana@bar.ch' } });
+  });
+});

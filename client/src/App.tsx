@@ -11,6 +11,7 @@ import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { OrganizePage } from './pages/OrganizePage';
 import { DemoPage } from './pages/DemoPage';
+import { DiscoverPage } from './pages/DiscoverPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
 import { ChildSafetyPage } from './pages/ChildSafetyPage';
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/invitation"            element={<GuestInvitePage />} />
         <Route path="/organiser"             element={<OrganizePage />} />
         <Route path="/demo"                  element={<DemoPage />} />
+        <Route path="/sorties"               element={<DiscoverPage />} />
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}
         <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />

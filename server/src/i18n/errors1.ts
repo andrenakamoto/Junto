@@ -1,6 +1,8 @@
 // Messages d'erreur de l'API (1/2) : français → [allemand, italien, anglais].
 // {0}, {1}… = parties variables du message français.
 export const ERRORS_1: Record<string, [string, string, string]> = {
+  'Annonce introuvable': ['Anzeige nicht gefunden', 'Annuncio non trovato', 'Listing not found'],
+  'Trop de demandes, réessaie plus tard.': ['Zu viele Anfragen, versuche es später erneut.', 'Troppe richieste, riprova più tardi.', 'Too many requests, try again later.'],
   '{0} candidats maximum': ['Höchstens {0} Kandidierende', 'Al massimo {0} candidati', '{0} candidates at most'],
   '{0} caractères maximum': ['Höchstens {0} Zeichen', 'Al massimo {0} caratteri', '{0} characters at most'],
   '{0} nom{1} maximum': ['Höchstens {0} Name(n)', 'Al massimo {0} nome/i', '{0} name(s) at most'],

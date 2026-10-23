@@ -55,6 +55,20 @@ const groups: Group[] = [
         </>,
       },
       {
+        id: 'decouvrir', emoji: '🧭', title: 'Entdecken', summary: 'Ausgehen in deiner Nähe – und gemeinsam hingehen',
+        body: <>
+          <P>Der Button <strong>„Entdecken“</strong> (neben „Kontakte“) zeigt die Events der nächsten 14 Tage und
+            <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in <strong>Genf, Lausanne und im Wallis</strong>.
+            Wähle deine Region, filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …).</P>
+          <P>Bei einem Event öffnet <strong>„Mit einem Kreis hingehen“</strong> einen fertig ausgefüllten Plan (Titel, Datum, Ort, Link)
+            im Kreis deiner Wahl; <strong>„Mehr Infos“</strong> öffnet die Website der Veranstalter oder der Agenda, aus der die Anzeige stammt.</P>
+          <P>Die Anzeigen stammen aus öffentlichen Agenden (zum Beispiel der Stadt Genf) und vom EvLY-Team.
+            <strong> Sie können Fehler enthalten</strong>: Prüfe immer auf der Website der Veranstalter und nutze „Fehler melden“,
+            wenn etwas nicht stimmt. Entdecken ist auch ohne Konto sichtbar, auf evly.ch/sorties.</P>
+          <P><strong>„Öffentliches Event veröffentlichen“</strong> kommt bald für Veranstalter: Hinterlass deine Angaben, um informiert zu werden.</P>
+        </>,
+      },
+      {
         id: 'dispo', emoji: '🟢', title: '„Ich hab Zeit“', summary: 'Sagen, dass man frei ist, und daraus einen Plan machen',
         body: <>
           <P>Oben in den Plänen eines Kreises: <strong>„Ich hab Zeit“</strong>, <strong>jetzt</strong> (für 3 Stunden) oder{' '}
@@ -250,7 +264,7 @@ const groups: Group[] = [
           Überschneidungen. Erinnerung per Benachrichtigung <strong>eine Stunde vor</strong> Einsatzbeginn. Mit <strong>0 Personen</strong> erscheint die Zeile einfach im Programm (Türöffnung,
           Essen…), ohne Anmeldung. Vor Ort können die Eingetragenen (und die Organisatoren) den Einsatz
           <strong> kommentieren</strong> («es fehlt ein Verlängerungskabel»): Die Person, die ihn erstellt hat, wird
-          benachrichtigt. Sie melden ihn auch als <strong>«Aufgabe erledigt»</strong>, was sie ebenfalls benachrichtigt.</P>,
+          benachrichtigt. Sie melden ihn auch als <strong>«Aufgabe erledigt»</strong>, was sie ebenfalls benachrichtigt. Das Symbol 📅 eines Einsatzes <strong>fügt ihn deinem Kalender hinzu</strong> (Handy oder Kalenderkonto), mit Zeit, Ort des Plans und Link zum Einsatzplan.</P>,
       },
       {
         id: 'assemblee', emoji: '🏛️', title: 'Versammlung', summary: 'Traktanden, Vollmachten, Abstimmungen, Protokoll',

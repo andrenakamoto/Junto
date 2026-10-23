@@ -112,6 +112,8 @@ export default {
   calendar: {
     title: 'Calendrier',
     pickDay: 'Sélectionne un jour pour voir les Plans',
+    legendDay: "Un point par Plan",
+    legendSpan: "Trait : Plan sur plusieurs jours",
     noPlan: 'Aucun Plan ce jour-là.',
   },
   goWith: {
@@ -119,6 +121,7 @@ export default {
     title: 'Y aller avec un Cercle',
     intro: 'Choisis le Cercle où créer le Plan. Vous vous organisez entre vous, et chacun s’inscrit à l’événement par son lien.',
     none: 'Tu n’as pas de Cercle où créer un Plan pour cet événement.',
+    moreInfo: "Plus d’infos : {{url}}",
     titleSuggestion: '{{title}} – on y va ?',
     note: 'Plan pour aller ensemble à « {{title}} »',
   },

@@ -14,6 +14,7 @@ import { CircleChat } from '../components/circles/CircleChat';
 import { AllPlansView } from '../components/plans/AllPlansView';
 import { CalendarView } from '../components/plans/CalendarView';
 import { ContactsView } from '../components/circles/ContactsView';
+import { DiscoverView } from '../components/discover/DiscoverView';
 import { CreatePlanModal } from '../components/plans/CreatePlanModal';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
 import { getSocket } from '../lib/socket';
@@ -55,6 +56,7 @@ export function DashboardPage() {
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [calendarActive, setCalendarActive] = useState(false);
   const [contactsActive, setContactsActive] = useState(false);
+  const [discoverActive, setDiscoverActive] = useState(false);
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -441,6 +443,7 @@ export function DashboardPage() {
     setAllPlansActive(false);
     setCalendarActive(false);
     setContactsActive(false);
+    setDiscoverActive(false);
     setMobileView('plans');
     clearCircle(id);
     dismissHistory(n => n.circleId === id && !n.planId && !n.pollId);
@@ -452,6 +455,7 @@ export function DashboardPage() {
     setAllPlansActive(true);
     setCalendarActive(false);
     setContactsActive(false);
+    setDiscoverActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
     setMobileView('plans');
@@ -461,9 +465,23 @@ export function DashboardPage() {
     setSelectedPollId(null);
     setChatCircleId(null);
     setContactsActive(true);
+    setDiscoverActive(false);
     setAllPlansActive(false);
     setCalendarActive(false);
     setSelectedCircleId(null);
+    setMobileView('plans');
+  }
+
+  // Découvrir : sorties et événements publics, sur toute la largeur (pas de colonne de détail)
+  function handleDiscover() {
+    setSelectedPollId(null);
+    setChatCircleId(null);
+    setDiscoverActive(true);
+    setContactsActive(false);
+    setAllPlansActive(false);
+    setCalendarActive(false);
+    setSelectedCircleId(null);
+    setSelectedPlan(null);
     setMobileView('plans');
   }
 
@@ -479,6 +497,7 @@ export function DashboardPage() {
     setChatCircleId(null);
     setCalendarActive(true);
     setContactsActive(false);
+    setDiscoverActive(false);
     setAllPlansActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
@@ -503,12 +522,14 @@ export function DashboardPage() {
       setAllPlansActive(false);
       setCalendarActive(false);
     setContactsActive(false);
+    setDiscoverActive(false);
     } else if (plan.circleId) {
       // Invité externe : pas d'accès au Cercle, on affiche le Plan depuis « Tous mes plans »
       setSelectedCircleId(null);
       setAllPlansActive(true);
       setCalendarActive(false);
     setContactsActive(false);
+    setDiscoverActive(false);
     }
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
@@ -667,7 +688,7 @@ export function DashboardPage() {
       <div className={`${showCircles ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
           circles={sortedCircles}
-          selectedId={allPlansActive || contactsActive ? null : selectedCircleId}
+          selectedId={allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={c => {
             setCircles(prev => [...prev, c]);
@@ -675,6 +696,7 @@ export function DashboardPage() {
             setAllPlansActive(false);
             setCalendarActive(false);
     setContactsActive(false);
+    setDiscoverActive(false);
             setMobileView('plans');
           }}
           onAllPlans={handleAllPlans}
@@ -683,6 +705,8 @@ export function DashboardPage() {
           calendarActive={calendarActive}
           onContacts={handleContacts}
           contactsActive={contactsActive}
+          onDiscover={handleDiscover}
+          discoverActive={discoverActive}
           onCircleUpdated={handleCircleUpdated}
           unreadCount={bellCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
@@ -693,7 +717,11 @@ export function DashboardPage() {
       </div>
 
       {/* Colonne 2 — Plans */}
-      {contactsActive ? (
+      {discoverActive ? (
+        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
+          <DiscoverView mode="app" onBack={() => setMobileView('circles')} />
+        </div>
+      ) : contactsActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <ContactsView
             onBack={() => setMobileView('circles')}
@@ -747,8 +775,8 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Colonne 3 — Détail */}
-      <div className={`${showDetail ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
+      {/* Colonne 3 — Détail (absente dans Découvrir) */}
+      <div className={`${showDetail ? 'flex' : 'hidden'} ${discoverActive ? 'md:hidden' : 'md:flex'} flex-1 min-w-0 flex-col h-full`}>
         {chatCircleId && selectedCircle?.id === chatCircleId ? (
           <CircleChat
             circle={selectedCircle}
