@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
+import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { escapeHtml } from '../lib/escapeHtml';
 
@@ -34,7 +35,7 @@ router.get('/', async (req, res) => {
       where: { region, state: 'published', startAt: { lte: until }, OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] },
       orderBy: { startAt: 'asc' },
       take: 1500,
-      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true },
+      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true },
     }),
     prisma.discoverPlace.findMany({
       where: { region, state: 'published' },
@@ -43,10 +44,16 @@ router.get('/', async (req, res) => {
     }),
     prisma.discoverSource.findMany({ where: { status: 'active' }, select: { id: true, name: true, type: true, attribution: true, license: true, licenseUrl: true, lastSyncAt: true } }),
   ]);
+  // Annonces publiées depuis un Plan : inscription par son lien d'invitation, « complet » calculé en direct
+  const withSignup = await Promise.all(events.map(async ({ planId, ...e }) => {
+    if (!planId) return e;
+    const s = await planSignup(planId);
+    return s ? { ...e, signupPath: s.signupPath, status: s.full ? 'full' : e.status } : e;
+  }));
   const used = new Set([...events.map(e => e.sourceId), ...places.map(p => p.sourceId)]);
   const body = {
     region, from: now, until,
-    events, places,
+    events: withSignup, places,
     sources: sources.filter(s => used.has(s.id)),
   };
   discoverCache.set(key, { at: Date.now(), body });

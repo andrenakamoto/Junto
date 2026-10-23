@@ -8,6 +8,8 @@ export interface DiscoverEvent {
   id: string; title: string; place: string | null; city: string | null; category: string; family: boolean;
   priceText: string | null; status: string; startAt: string; endAt: string | null; multiDay: boolean; dateLabel: string | null;
   url: string | null; sourceId: string;
+  // Annonce publiée depuis un Plan : inscription par son lien d'invitation (/invitation?token=…)
+  signupPath?: string;
 }
 export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; website: string; family: boolean; sourceId: string }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }

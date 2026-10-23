@@ -64,7 +64,7 @@ const groups: Group[] = [
           <P>Les annonces viennent d'agendas publics (par exemple celui de la Ville de Genève) et de l'équipe EvLY.
             <strong> Elles peuvent contenir des erreurs</strong> : vérifie toujours sur le site de l'organisateur, et utilise
             « Signaler une erreur » si quelque chose ne va pas. Découvrir est aussi visible sans compte, sur evly.ch/sorties.</P>
-          <P><strong>« Poster un événement public »</strong> arrive prochainement pour les organisateurs : laisse tes coordonnées pour être prévenu.</P>
+          <P><strong>« Poster un événement public »</strong> arrive prochainement pour les organisateurs : laisse tes coordonnées pour être prévenu. Les comptes déjà autorisés par EvLY publient un Plan en <strong>Mode annonce</strong> avec <strong>« Publier dans Découvrir »</strong> (menu ⋮ ou icône 🧭 du Plan) : l'annonce suit le Plan, et chacun peut <strong>« S'inscrire »</strong> par son lien d'invitation.</P>
         </>,
       },
       {

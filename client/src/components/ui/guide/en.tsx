@@ -63,7 +63,7 @@ const groups: Group[] = [
           <P>Listings come from public agendas (for example the City of Geneva’s) and from the EvLY team.
             <strong> They may contain mistakes</strong>: always check the organiser’s website, and use “Report a mistake” if
             something is wrong. Discover is also visible without an account, at evly.ch/sorties.</P>
-          <P><strong>“Post a public event”</strong> is coming soon for organisers: leave your details to be notified.</P>
+          <P><strong>“Post a public event”</strong> is coming soon for organisers: leave your details to be notified. Accounts already authorised by EvLY publish a Plan in <strong>announcement mode</strong> with <strong>“Publish in Discover”</strong> (the Plan’s ⋮ menu or 🧭 icon): the listing follows the Plan, and anyone can <strong>“Sign up”</strong> through its invitation link.</P>
         </>,
       },
       {

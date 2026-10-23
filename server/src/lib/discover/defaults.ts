@@ -12,6 +12,7 @@ const DEFAULT_SOURCES = [
   { key: 'osm-ge', name: 'OpenStreetMap – canton de Genève', type: 'osm', region: 'ge', status: 'active', autoPublish: true, config: { area: 'CH-GE' }, ...ODBL },
   { key: 'osm-la', name: 'OpenStreetMap – région de Lausanne', type: 'osm', region: 'la', status: 'active', autoPublish: true, config: { area: 'CH-VD', around: [46.5197, 6.6323, 12000] }, ...ODBL },
   { key: 'osm-vs', name: 'OpenStreetMap – Valais', type: 'osm', region: 'vs', status: 'active', autoPublish: true, config: { area: 'CH-VS' }, ...ODBL },
+  { key: 'evly-plans', name: 'Organisateurs EvLY', type: 'plan', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: 'Organisateurs sur EvLY' },
   { key: 'manual', name: 'Saisie EvLY', type: 'manual', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: null },
   { key: 'partner-eventfrog', name: 'Eventfrog', type: 'partner', region: null, status: 'pending', autoPublish: false, config: {}, license: null, licenseUrl: null, attribution: 'Eventfrog' },
   { key: 'partner-geneversleep', name: 'GeNEVERsleep', type: 'partner', region: null, status: 'pending', autoPublish: false, config: {}, license: null, licenseUrl: null, attribution: 'GeNEVERsleep' },

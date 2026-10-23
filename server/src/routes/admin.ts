@@ -24,7 +24,7 @@ router.use(requireAdmin as any);
 
 const userSelect = {
   id: true, pseudo: true, firstName: true, lastName: true, status: true, isAdmin: true, createdAt: true,
-  email: true, emailVerified: true, pendingEmail: true,
+  email: true, emailVerified: true, pendingEmail: true, canPublishDiscover: true,
   _count: { select: { createdCircles: true } },
 };
 
@@ -38,6 +38,16 @@ router.get('/users', async (req: AuthRequest, res) => {
     orderBy: { createdAt: 'desc' },
   });
   res.json(users);
+});
+
+// PUT /users/:id/discover { allowed } — autoriser un compte à publier ses Plans dans Découvrir
+router.put('/users/:id/discover', async (req: AuthRequest, res) => {
+  if (typeof req.body?.allowed !== 'boolean') { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  const user = await prisma.user.update({ where: { id: req.params.id }, data: { canPublishDiscover: req.body.allowed }, select: userSelect }).catch(() => null);
+  if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+  // Autorisation retirée : ses annonces publiées depuis ses Plans disparaissent
+  if (!req.body.allowed) await prisma.discoverEvent.deleteMany({ where: { createdById: user.id, planId: { not: null } } });
+  res.json(user);
 });
 
 // Change a user's pseudo (peut cibler n'importe quel compte, y compris celui de l'admin connecté)

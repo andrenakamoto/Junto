@@ -38,6 +38,7 @@ const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim
 import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
+import { canPublishPlan, publishBlocker, publishPlan, refreshPlanDiscover, unpublishPlan } from '../lib/discover/planPublish';
 import transitRoutes from './transit';
 import secretSantaRoutes from './secretSanta';
 import { santaDateError } from '../lib/secretSanta';
@@ -225,7 +226,32 @@ router.get('/:id', async (req: AuthRequest, res) => {
     canGoWithCircle: !access.isGuest && canProposeToCircles(plan),
     // Plan créé avec « Y aller avec un Cercle » : la carte de l'événement d'origine
     source: await sourceCardFor(plan),
+    // Découvrir : comptes autorisés (panneau admin), créateur du Plan ou gestionnaires du Cercle
+    ...(await canPublishPlan(req.userId!, plan) ? {
+      canPublishDiscover: true,
+      discover: await prisma.discoverEvent.findUnique({ where: { planId: plan.id }, select: { region: true, category: true } }),
+      discoverBlocker: publishBlocker(plan),
+    } : {}),
   });
+});
+
+// PUT /:id/discover { region, category } — publier le Plan dans Découvrir (ou changer région / catégorie)
+router.put('/:id/discover', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, circleId: true } });
+  if (!plan || !(await getPlanAccess(req.userId!, plan.id))?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!(await canPublishPlan(req.userId!, plan))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const r = await publishPlan(plan.id, req.body?.region, req.body?.category, req.userId!);
+  if ('error' in r) { res.status(400).json({ error: r.error }); return; }
+  res.json(r);
+});
+
+// DELETE /:id/discover — retirer le Plan de Découvrir
+router.delete('/:id/discover', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, circleId: true } });
+  if (!plan || !(await getPlanAccess(req.userId!, plan.id))?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!(await canPublishPlan(req.userId!, plan))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  await unpublishPlan(plan.id);
+  res.json({ ok: true });
 });
 
 // GET /:id/recap — récapitulatif PDF du Plan (lib/planRecap.ts)
@@ -500,6 +526,8 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     // Limite augmentée, exclusions… : des places ont pu se libérer pour la liste d'attente
     await promoteFromWaitlist(req.app.get('io'), planId);
+    // Annonce publiée dans Découvrir : titre, dates et lieu suivent le Plan
+    await refreshPlanDiscover(planId).catch(e => console.error('[discover plan]', e));
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
     const polled = anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!);
     res.json({

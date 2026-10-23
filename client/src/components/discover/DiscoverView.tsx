@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, ChevronDown, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Users } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ChevronDown, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n';
@@ -216,13 +217,16 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
       {going && <DiscoverGoModal event={going} onClose={() => setGoing(null)} />}
       {reporting && <ReportModal target={reporting.target} title={reporting.title} onClose={() => setReporting(null)} />}
-      {showPro && <ProSoonModal onClose={() => setShowPro(false)} />}
+      {showPro && (user?.canPublishDiscover
+        ? <Modal title={t('discover.publish.howTitle')} onClose={() => setShowPro(false)}><p className="text-sm text-slate-700">{t('discover.publish.howText')}</p></Modal>
+        : <ProSoonModal onClose={() => setShowPro(false)} />)}
     </div>
   );
 }
 
 function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const where = [e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', ');
   const status = e.status !== 'scheduled' ? t(`discover.status.${e.status}` as any) : null;
   return (
@@ -246,6 +250,12 @@ function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: Discover
             <button onClick={() => onGo(e)} title={user ? undefined : t('discover.loginToGo')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">
               <Users size={13} />{t('discover.goWith')}
+            </button>
+          )}
+          {e.signupPath && e.status !== 'cancelled' && (
+            <button onClick={() => navigate(e.signupPath!)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">
+              <Ticket size={13} />{t('discover.publish.signup')}
             </button>
           )}
           {e.url && (

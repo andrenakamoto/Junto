@@ -64,7 +64,7 @@ const groups: Group[] = [
           <P>Gli annunci provengono da agende pubbliche (per esempio quella della Città di Ginevra) e dal team di EvLY.
             <strong> Possono contenere errori</strong>: verifica sempre sul sito dell’organizzatore e usa «Segnala un errore» se
             qualcosa non va. Scopri è visibile anche senza account, su evly.ch/sorties.</P>
-          <P><strong>«Pubblica un evento pubblico»</strong> arriva presto per gli organizzatori: lascia i tuoi dati per essere avvisato.</P>
+          <P><strong>«Pubblica un evento pubblico»</strong> arriva presto per gli organizzatori: lascia i tuoi dati per essere avvisato. Gli account già autorizzati da EvLY pubblicano un Plan in <strong>modalità annuncio</strong> con <strong>«Pubblica in Scopri»</strong> (menu ⋮ o icona 🧭 del Plan): l'annuncio segue il Plan e ognuno può <strong>«Iscriversi»</strong> tramite il link d'invito.</P>
         </>,
       },
       {

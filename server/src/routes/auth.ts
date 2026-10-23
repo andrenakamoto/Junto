@@ -35,12 +35,14 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; availabilityPush?: boolean; firstName?: string | null; lastName?: string | null;
-  password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null;
+  password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null; canPublishDiscover?: boolean;
   blocking?: { blockedId: string }[];
 }) {
   return {
     id: user.id,
     pseudo: user.pseudo,
+    // Découvrir : peut publier ses Plans (accordé dans le panneau admin)
+    canPublishDiscover: user.canPublishDiscover === true || user.isAdmin,
     firstName: user.firstName ?? null,
     lastName: user.lastName ?? null,
     // Indique seulement si un mot de passe existe (comptes Google : non) ; le hash ne sort jamais
@@ -380,7 +382,7 @@ const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, circleChatPush: true, availabilityPush: true, notificationChannel: true,
   blocking: { select: { blockedId: true } },
-  firstName: true, lastName: true, password: true, pendingEmail: true, locale: true,
+  firstName: true, lastName: true, password: true, pendingEmail: true, locale: true, canPublishDiscover: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {

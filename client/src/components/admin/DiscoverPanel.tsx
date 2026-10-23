@@ -10,7 +10,7 @@ import { CATEGORY_GROUPS, IDEAS, KIND_ORDER, catLabel, kindLabel, regionLabel, R
 
 const dateFmt = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
 const STATUS_LABELS: Record<string, string> = { active: 'Active', pending: 'En attente', disabled: 'Coupée' };
-const TYPE_LABELS: Record<string, string> = { openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire' };
+const TYPE_LABELS: Record<string, string> = { plan: 'Plans EvLY', openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire' };
 const CATEGORIES = CATEGORY_GROUPS.flatMap(([, l]) => l).filter(c => c !== IDEAS);
 const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500';
 

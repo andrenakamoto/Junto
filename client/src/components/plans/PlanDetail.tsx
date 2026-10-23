@@ -2,7 +2,8 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass } from 'lucide-react';
+import { PublishDiscoverModal } from './PublishDiscoverModal';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -123,6 +124,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
   const [showGoWith, setShowGoWith] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -726,6 +728,15 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                     <FileDown size={16} />
                   </button>
                 )}
+                {plan.canPublishDiscover && (
+                  <button
+                    onClick={() => setShowPublish(true)}
+                    title={plan.discover ? t('discover.publish.menuOn') : t('discover.publish.menu')}
+                    className={`p-2 rounded-lg transition-colors hover:bg-indigo-50 ${plan.discover ? 'text-emerald-600' : 'text-slate-400 hover:text-indigo-600'}`}
+                  >
+                    <Compass size={16} />
+                  </button>
+                )}
                 <button
                   onClick={() => setShowHistory(true)}
                   title={t('plan.detail.history')}
@@ -790,6 +801,15 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
             </button>
             {showActionsMenu && (
               <div className="absolute top-full right-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
+                {plan.canPublishDiscover && (
+                  <button
+                    onClick={() => { setShowActionsMenu(false); setShowPublish(true); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                  >
+                    <Compass size={15} className={plan.discover ? 'text-emerald-600' : 'text-slate-400'} />
+                    {plan.discover ? t('discover.publish.menuOn') : t('discover.publish.menu')}
+                  </button>
+                )}
                 {isMember && (
                   <>
                     {/* Téléphone : Inviter, Agenda et Story sont dans la barre d'actions en bas */}
@@ -1197,6 +1217,10 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       {showGoWith && <GoWithCircleModal plan={plan} onClose={() => setShowGoWith(false)} />}
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />
+      )}
+      {showPublish && (
+        <PublishDiscoverModal plan={plan} onClose={() => setShowPublish(false)}
+          onChanged={() => api.get(`/plans/${plan.id}`).then(res => onPlanUpdated(res.data)).catch(() => {})} />
       )}
 
       {isMember && <WheelSpinHost plan={plan} />}

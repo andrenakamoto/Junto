@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -25,6 +25,7 @@ interface AdminUser {
   email: string | null;
   emailVerified: boolean;
   pendingEmail?: string | null;
+  canPublishDiscover?: boolean;
   _count: { createdCircles: number };
 }
 
@@ -98,6 +99,12 @@ export function AdminPage() {
 
   async function handleReject(id: string) {
     await api.put(`/admin/users/${id}/reject`);
+    fetchData();
+  }
+
+  // Découvrir : autoriser un compte à publier ses Plans (en Mode annonce)
+  async function toggleDiscover(u: AdminUser) {
+    await api.put(`/admin/users/${u.id}/discover`, { allowed: !u.canPublishDiscover });
     fetchData();
   }
 
@@ -374,6 +381,13 @@ export function AdminPage() {
                     </>)}
                     {u.status === 'approved' && (
                       <button onClick={() => handleReject(u.id)} className={`${btn} bg-white border border-slate-200 text-slate-600 hover:text-red-700 hover:bg-red-50`}><X size={13} />Révoquer</button>
+                    )}
+                    {u.status === 'approved' && (
+                      <button onClick={() => toggleDiscover(u)}
+                        title={u.canPublishDiscover ? 'Retirer l’autorisation : ses annonces publiées depuis ses Plans disparaissent de Découvrir' : 'Autoriser ce compte à publier ses Plans (en Mode annonce) dans Découvrir'}
+                        className={`${btn} border ${u.canPublishDiscover ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}>
+                        <Compass size={13} />{u.canPublishDiscover ? 'Publie dans Découvrir ✓' : 'Autoriser Découvrir'}
+                      </button>
                     )}
                     {u.status === 'rejected' && (
                       <button onClick={() => handleApprove(u.id)} className={`${btn} bg-white border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50`}><Check size={13} />Approuver</button>

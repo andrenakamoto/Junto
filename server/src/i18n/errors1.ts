@@ -1,6 +1,9 @@
 // Messages d'erreur de l'API (1/2) : français → [allemand, italien, anglais].
 // {0}, {1}… = parties variables du message français.
 export const ERRORS_1: Record<string, [string, string, string]> = {
+  'Active d’abord le Mode annonce du Plan (Modifier › Fonctions)': ['Schalte zuerst den Ankündigungsmodus des Plans ein (Bearbeiten › Funktionen)', 'Attiva prima la modalità annuncio del Plan (Modifica › Funzioni)', 'First turn on the Plan’s announcement mode (Edit › Features)'],
+  'Le Plan doit avoir une date de début': ['Der Plan braucht ein Startdatum', 'Il Plan deve avere una data di inizio', 'The Plan needs a start date'],
+  'Ce Plan est terminé': ['Dieser Plan ist beendet', 'Questo Plan è terminato', 'This Plan has ended'],
   'Annonce introuvable': ['Anzeige nicht gefunden', 'Annuncio non trovato', 'Listing not found'],
   'Trop de demandes, réessaie plus tard.': ['Zu viele Anfragen, versuche es später erneut.', 'Troppe richieste, riprova più tardi.', 'Too many requests, try again later.'],
   '{0} candidats maximum': ['Höchstens {0} Kandidierende', 'Al massimo {0} candidati', '{0} candidates at most'],

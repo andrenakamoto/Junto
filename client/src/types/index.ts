@@ -1,6 +1,8 @@
 export interface User {
   id: string;
   pseudo: string;
+  // Découvrir : peut publier ses Plans en Mode annonce (accordé dans le panneau admin)
+  canPublishDiscover?: boolean;
   firstName?: string | null;
   lastName?: string | null;
   /** Faux pour un compte créé avec Google (pas de mot de passe) */
@@ -235,6 +237,10 @@ export interface Plan {
   allowCirclePlans?: boolean;
   /** Détail : « Y aller avec un Cercle » est possible pour la personne */
   canGoWithCircle?: boolean;
+  // Découvrir (comptes autorisés) : publication du Plan et ce qui l'empêche
+  canPublishDiscover?: boolean;
+  discover?: { region: string; category: string } | null;
+  discoverBlocker?: 'annonce' | 'date' | 'ended' | null;
   /** Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (rien de son Cercle) */
   source?: PlanSource;
 }

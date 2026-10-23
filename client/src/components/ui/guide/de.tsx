@@ -65,7 +65,7 @@ const groups: Group[] = [
           <P>Die Anzeigen stammen aus öffentlichen Agenden (zum Beispiel der Stadt Genf) und vom EvLY-Team.
             <strong> Sie können Fehler enthalten</strong>: Prüfe immer auf der Website der Veranstalter und nutze „Fehler melden“,
             wenn etwas nicht stimmt. Entdecken ist auch ohne Konto sichtbar, auf evly.ch/sorties.</P>
-          <P><strong>„Öffentliches Event veröffentlichen“</strong> kommt bald für Veranstalter: Hinterlass deine Angaben, um informiert zu werden.</P>
+          <P><strong>„Öffentliches Event veröffentlichen“</strong> kommt bald für Veranstalter: Hinterlass deine Angaben, um informiert zu werden. Von EvLY bereits freigeschaltete Konten veröffentlichen einen Plan im <strong>Ankündigungsmodus</strong> mit <strong>„In Entdecken veröffentlichen“</strong> (Menü ⋮ oder Symbol 🧭 des Plans): Die Anzeige folgt dem Plan, und alle können sich über den Einladungslink <strong>„Anmelden“</strong>.</P>
         </>,
       },
       {

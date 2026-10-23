@@ -116,6 +116,8 @@ model User {
   transitGroups          TransitGroup[]
   transitGroupMembers    TransitGroupMember[]
   proInterests           ProInterest[]
+  // Découvrir : peut publier ses Plans en Mode annonce (accordé à la main dans le panneau admin)
+  canPublishDiscover     Boolean                     @default(false)
 
   @@index([lastActiveAt])
 }
@@ -402,6 +404,7 @@ model Plan {
   // Plan pour plusieurs Cercles : Cercles en plus de circleId (choisis à la création seulement)
   extraCircles      PlanCircle[]
   guestLink         PlanGuestLink?
+  discoverEvent     DiscoverEvent?
 
   @@index([sourcePlanId])
 }
@@ -1591,6 +1594,9 @@ model DiscoverEvent {
   url         String? // « Plus d'infos » : site de l'organisateur ou de la source
   state       String         @default("published") // published | pending | hidden
   createdById String? // saisie manuelle : la personne admin
+  // Annonce publiée depuis un Plan (titre, dates, lieu suivent le Plan ; supprimée avec lui)
+  planId      String?        @unique
+  plan        Plan?          @relation(fields: [planId], references: [id], onDelete: Cascade)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
