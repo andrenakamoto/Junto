@@ -458,6 +458,9 @@ Conséquences pratiques :
     **Version 1.0.26** (2026-10-22) : Android `versionCode` 28 (`evly-1.0.26-(28).aab`), iOS build 30 envoyé — nouvelles valeurs
     par défaut (Cercle : admission par les organisateurs, « Je suis dispo » coupé, suppression par le créateur ; Plan : suppression
     par le créateur), « Plan proposé dès » dans « Je suis dispo », activités affichées avec leur nom.
+    **Version 1.0.27** (2026-10-23) : Android `versionCode` 29 (`evly-1.0.27-(29).aab`), iOS build 31 envoyé — Découvrir (sorties et
+    événements publics, « Poster un événement public » prochainement), conditions d'utilisation v5, agenda des postes du planning,
+    calendrier avec un point par Plan et des traits pour les Plans sur plusieurs jours.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
