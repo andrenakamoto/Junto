@@ -211,7 +211,7 @@ export interface Plan {
   creatorId: string;
   creator: User;
   circleId: string;
-  circle?: { id: string; name: string } | null;
+  circle?: { id: string; name: string; color?: string | null } | null;
   members: PlanMember[];
   deleteVotes?: PlanDeleteVote[];
   polls?: Poll[];

@@ -155,7 +155,8 @@ router.get('/', async (req: AuthRequest, res) => {
         creator: { select: { id: true, pseudo: true } },
         members: { include: { user: { select: { id: true, pseudo: true } } }, orderBy: { joinedAt: 'asc' as const } },
         deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
-        circle: { select: { id: true, name: true } },
+        // Couleur du Cercle : points et traits du calendrier
+        circle: { select: { id: true, name: true, color: true } },
         extraCircles: { select: { circle: { select: { id: true, name: true } } } },
         _count: { select: { messages: true } },
         waitlist: { select: { userId: true, createdAt: true }, orderBy: { createdAt: 'asc' } },

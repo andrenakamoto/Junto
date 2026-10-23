@@ -23,6 +23,12 @@ function dateKey(d: Date): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
+const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+const nextDay = (t: number) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime(); };
+const DEFAULT_COLOR = '#ea5a2b';
+const MAX_LANES = 2;
+const MAX_DOTS = 3;
+
 export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,15 +39,32 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
     api.get('/plans').then(res => setPlans(res.data)).finally(() => setLoading(false));
   }, [refreshSignal]);
 
-  const plansByDay = useMemo(() => {
-    const map = new Map<string, Plan[]>();
+  // Jours couverts par chaque Plan (du jour du début au jour de fin ; une soirée qui finit avant 6 h compte pour un
+  // seul jour), et « piste » des Plans sur plusieurs jours (2 traits au plus l'un sous l'autre)
+  const { plansByDay, spanOf, laneOf } = useMemo(() => {
+    const byDay = new Map<string, Plan[]>();
+    const spans = new Map<string, { first: number; last: number }>();
     for (const plan of plans) {
       if (!plan.eventDate) continue;
-      const key = dateKey(new Date(plan.eventDate));
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(plan);
+      const first = dayStart(new Date(plan.eventDate));
+      const last = Math.max(first, dayStart(new Date(new Date(plan.endDate).getTime() - 6 * 3600e3)));
+      spans.set(plan.id, { first, last });
+      for (let d = first; d <= last; d = nextDay(d)) {
+        const key = dateKey(new Date(d));
+        if (!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key)!.push(plan);
+      }
     }
-    return map;
+    const lanes = new Map<string, number>();
+    const laneEnds: number[] = [];
+    for (const plan of [...plans].filter(p => spans.has(p.id) && spans.get(p.id)!.last > spans.get(p.id)!.first)
+      .sort((a, b) => spans.get(a.id)!.first - spans.get(b.id)!.first)) {
+      const { first, last } = spans.get(plan.id)!;
+      let lane = laneEnds.findIndex(end => end < first);
+      if (lane < 0) { lane = laneEnds.length; laneEnds.push(last); } else laneEnds[lane] = last;
+      lanes.set(plan.id, lane);
+    }
+    return { plansByDay: byDay, spanOf: spans, laneOf: lanes };
   }, [plans]);
 
   const year = cursor.getFullYear();
@@ -93,30 +116,58 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
           {cells.map((d, i) => {
             if (!d) return <div key={i} />;
             const key = dateKey(d);
+            const t0 = d.getTime();
             const dayPlans = plansByDay.get(key) ?? [];
+            const spanning = dayPlans.filter(p => laneOf.has(p.id) && laneOf.get(p.id)! < MAX_LANES);
+            const single = dayPlans.filter(p => !spanning.includes(p));
             const isToday = dateKey(today) === key;
             const isSelected = selectedDay && dateKey(selectedDay) === key;
             return (
               <button
                 key={i}
                 onClick={() => setSelectedDay(isSelected ? null : d)}
-                className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs relative transition-colors ${
+                aria-label={`${d.getDate()} · ${dayPlans.length}`}
+                className={`h-12 rounded-lg flex flex-col items-stretch pt-1 text-xs relative transition-colors ${
                   isSelected
                     ? 'bg-indigo-600 text-white font-semibold'
                     : isToday
-                    ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-300'
+                    ? 'bg-indigo-50 text-indigo-700 font-semibold ring-1 ring-inset ring-indigo-300'
                     : dayPlans.length > 0
-                    ? 'bg-slate-50 text-slate-800 hover:bg-slate-100'
+                    ? 'bg-white text-slate-800 hover:bg-slate-100'
                     : 'text-slate-500 hover:bg-slate-100'
                 }`}
               >
-                {d.getDate()}
-                {dayPlans.length > 0 && (
-                  <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-white' : 'bg-indigo-400'}`} />
+                <span className="text-center leading-4">{d.getDate()}</span>
+                {/* Traits : un Plan sur plusieurs jours, d'un bout à l'autre */}
+                <span className="mt-1 flex flex-col gap-[3px]">
+                  {Array.from({ length: MAX_LANES }, (_, lane) => {
+                    const p = spanning.find(x => laneOf.get(x.id) === lane);
+                    if (!p) return <span key={lane} className="h-1" />;
+                    const { first, last } = spanOf.get(p.id)!;
+                    const starts = first === t0, ends = last === t0;
+                    return (
+                      <span key={lane} title={p.title}
+                        className={`h-1 ${starts ? 'ml-1.5 rounded-l-full' : '-ml-[3px]'} ${ends ? 'mr-1.5 rounded-r-full' : '-mr-[3px]'}`}
+                        style={{ background: isSelected ? '#fff' : p.circle?.color || DEFAULT_COLOR }} />
+                    );
+                  })}
+                </span>
+                {/* Points : un par Plan d'un seul jour */}
+                {single.length > 0 && (
+                  <span className="mt-[3px] flex items-center justify-center gap-[3px]">
+                    {single.slice(0, MAX_DOTS).map(p => (
+                      <span key={p.id} className="w-[5px] h-[5px] rounded-full" style={{ background: isSelected ? '#fff' : p.circle?.color || DEFAULT_COLOR }} />
+                    ))}
+                    {single.length > MAX_DOTS && <span className={`text-[9px] leading-none font-semibold ${isSelected ? 'text-white' : 'text-slate-500'}`}>+{single.length - MAX_DOTS}</span>}
+                  </span>
                 )}
               </button>
             );
           })}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-500">
+          <span className="flex items-center gap-1.5"><span className="w-[5px] h-[5px] rounded-full bg-indigo-500" />{t('plan.calendar.legendDay')}</span>
+          <span className="flex items-center gap-1.5"><span className="w-4 h-1 rounded-full bg-indigo-500" />{t('plan.calendar.legendSpan')}</span>
         </div>
       </div>
 
@@ -144,7 +195,9 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
               <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1">{plan.title}</h3>
               <p className="text-slate-500 text-xs">{plan.isGuest ? t('plan.allPlans.invitation') : plan.circle?.name}</p>
               <p className="text-slate-500 text-xs mt-1">
-                {new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
+                {(spanOf.get(plan.id)?.last ?? 0) > (spanOf.get(plan.id)?.first ?? 0)
+                  ? [plan.eventDate!, plan.endDate].map(v => new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(v))).join(' – ')
+                  : new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(plan.eventDate!))}
               </p>
             </button>
           ))
