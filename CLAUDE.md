@@ -1144,8 +1144,10 @@ Junto/
   présente et que celle qui la porte l'est (`votingRights`), et se donne / retire seulement avant l'ouverture.
   Quorum = présents votants + procurations valables. Un seul vote ouvert à la fois ; résultat visible à la
   clôture ; « Annuler » efface les voix ; « sans scrutin » (acclamation / élection tacite) ; égalité à une élection
-  → l'organisateur départage (`/elect`). Convocation : app + push + email (canal respecté, **même Cercle en
-  silence** : pas de bulle), 1 / 10 min. Notifications `assembly` et **`assembly_vote` (ouverture d'un vote,
+  → l'organisateur départage (`/elect`). Convocation : app + push à tous les membres du Cercle (**même Cercle en
+  silence** : pas de bulle) et, depuis le 2026-10-23, **email à tous les membres du Cercle quel que soit leur réglage de notifications**
+  (convocation officielle, comptes avec email vérifié, votants ou non) **plus une copie à la personne qui convoque** (« Copie de la convocation
+  envoyée à N membres »), 1 / 10 min. Notifications `assembly` et **`assembly_vote` (ouverture d'un vote,
   exemptée du mode silencieux)** → `?tab=assemblee`. **PV** (GET /:id/assembly/pv, organisateur et secrétaire,
   « projet » tant que l'assemblée n'est pas close) : **prénom et nom** des présents, procurations, excusés,
   quorum, chaque point avec notes, résultats (noms à main levée), élus, signatures ; **envoyé par email au créateur
@@ -1616,6 +1618,15 @@ bouton **« S'inscrire »** sur la carte Découvrir, « Poster un événement pu
 politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD
 (art. 5 let. c).
+
+**Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :
+en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N) »** et **« Inviter »**, cloche barrée seulement si le Cercle
+est en silence, et un menu **⋯** (silence, paramètres, copier le code, supprimer / voter, quitter) ; le code est aussi dans « Inviter ».
+**Ce qui est vide est masqué** : section Sondages seulement s'il y en a ; Discussion en carte seulement avec des messages récents, sinon un
+petit bouton « 💬 Discussion » ; « Qui est dispo ? » en carte seulement si quelqu'un est dispo, sinon une pastille « Je suis dispo »
+(`AvailabilityPanel` `compact`), les deux boutons sur une même ligne. **Un seul bouton « Créer »** en bas : menu Un Plan / Proposer des dates
+/ Je suis dispo (`openSignal` de `AvailabilityPanel`), ou directement l'action s'il n'y a qu'un choix. La discussion reste activée par
+défaut à la création (choix de l'utilisateur).
 
 **Calendrier** (`CalendarView`, refait le 2026-10-23) : un **point par Plan** d'un seul jour (3 au plus, puis « +N ») et un **trait**
 continu pour un Plan sur plusieurs jours (du jour du début au jour de fin ; une fin avant 6 h du matin ne compte pas comme un jour de
