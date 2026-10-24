@@ -334,8 +334,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
         {showCreateMenu && createOptions.length > 1 && (
           <>
-            <div className="fixed inset-0 z-20" onClick={() => setShowCreateMenu(false)} />
-            <div className="absolute left-2 right-2 bottom-full mb-1 z-30 bg-white border border-slate-200 rounded-xl shadow-2xl p-1.5 space-y-0.5">
+            {/* Fond assombri : le menu blanc ressort sur la colonne blanche */}
+            <div className="fixed inset-0 z-20 bg-slate-900/50" onClick={() => setShowCreateMenu(false)} />
+            <div className="absolute left-2 right-2 bottom-full mb-2 z-30 bg-white border-2 border-indigo-400 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
               {createOptions.map(({ key, Icon, label, hint, run }) => (
                 <button key={key} onClick={() => { setShowCreateMenu(false); run(); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors">
