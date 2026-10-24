@@ -475,6 +475,8 @@ Conséquences pratiques :
     **Version 1.0.31** (2026-10-24) : Android `versionCode` 33 (`evly-1.0.31-(33).aab`), iOS build 35 envoyé — règles « Qui ajoute des
     photos et fichiers » et « Qui invite des personnes extérieures », retirer quelqu'un d'un Plan ou d'un Cercle, fenêtre « Inviter » au Plan
     ou au Cercle.
+    **Version 1.0.32** (2026-10-24) : Android `versionCode` 34 (`evly-1.0.32-(34).aab`), iOS build 36 envoyé — menu « Créer » avec
+    Plan standard / Plan spécifique (8 types préréglés), révélation du Père Noël secret qui termine le Plan.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
