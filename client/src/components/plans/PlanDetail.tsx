@@ -63,9 +63,10 @@ function useIsPhone() {
 type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
 
 const rsvpConfig = {
-  in:    { label: t('common.rsvp.in'),  active: 'bg-emerald-500 text-white', inactive: 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' },
-  maybe: { label: t('common.rsvp.maybe'),   active: 'bg-amber-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' },
-  out:   { label: t('common.rsvp.out'),    active: 'bg-slate-500 text-white',   inactive: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  // Réponses non choisies : blanches, bordées de la couleur de la réponse (elles avaient l'air désactivées en gris)
+  in:    { label: t('common.rsvp.in'),    active: 'bg-emerald-500 border-emerald-500 text-white', inactive: 'bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-50' },
+  maybe: { label: t('common.rsvp.maybe'), active: 'bg-amber-500 border-amber-500 text-white',     inactive: 'bg-white border-amber-300 text-amber-700 hover:bg-amber-50' },
+  out:   { label: t('common.rsvp.out'),   active: 'bg-slate-500 border-slate-500 text-white',     inactive: 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100' },
 };
 
 const tabs = [
@@ -578,7 +579,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         <button
           key={key}
           onClick={() => { setTab(key); setHub(false); }}
-          className={`relative flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-left active:bg-slate-100 transition-colors ${key === 'chat' ? 'col-span-2 py-5' : ''}`}
+          className={`relative flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-300 shadow-md text-left active:bg-slate-100 transition-colors ${key === 'chat' ? 'col-span-2 py-5' : ''}`}
         >
           <span className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
             <Icon size={20} />
@@ -648,7 +649,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
 
   // En-tête du Plan (titre, actions, dates, réponses, RSVP)
   const header = (
-      <div className="px-4 md:px-6 py-4 border-b border-slate-200 flex-shrink-0 bg-white">
+      <div className={`px-4 md:px-6 py-4 flex-shrink-0 bg-white ${showHub ? 'relative rounded-b-3xl shadow-md' : 'border-b border-slate-200'}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-2 flex-1 min-w-0">
             <button
@@ -994,7 +995,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                 key={rsvp}
                 onClick={() => handleRsvp(rsvp)}
                 disabled={updatingRsvp}
-                className={`px-3.5 py-2 md:px-3 md:py-1.5 rounded-lg text-sm md:text-xs font-semibold transition-colors ${
+                className={`px-3.5 py-2 md:px-3 md:py-1.5 rounded-lg border-2 md:border text-sm md:text-xs font-semibold shadow-sm transition-colors ${
                   myMember?.rsvp === rsvp ? rsvpConfig[rsvp].active : rsvpConfig[rsvp].inactive
                 }`}
               >
@@ -1032,7 +1033,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       {/* En-tête : page principale (téléphone) ou au-dessus des onglets (grand écran) */}
       {phoneSection ? sectionHeader : showHub ? (
         <>
-          <div className="flex-1 overflow-y-auto bg-slate-50 short:flex-none short:overflow-visible">
+          <div className="flex-1 overflow-y-auto bg-slate-100 short:flex-none short:overflow-visible">
             {header}
             {canSummary && (
               <div className="px-4 pt-4 -mb-1">
