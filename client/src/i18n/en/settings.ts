@@ -41,13 +41,22 @@ const settings: Dict['settings'] = {
     creator: { label: 'Creator only', hint: 'Only the creator edits the Plan' },
     all: { label: 'All participants', hint: 'Participants can change the dates and place (title and description stay with the creator)' },
   },
+  guestInvite: {
+    all: { label: 'All participants', hint: 'Any participant can share the Plan’s link with people outside the Circle' },
+    managers: { label: 'The creator and organisers', hint: 'Only the organisers share the Plan’s link; participants only invite Circle members' },
+    none: { label: 'Nobody', hint: 'The Plan stays among Circle members (sign-ups from Discover still work)' },
+  },
+  filesMode: {
+    all: { label: 'All participants', hint: 'Everyone can add photos and documents, and send them in the chat' },
+    managers: { label: 'The creator and organisers', hint: 'Participants see the photos and documents but can’t add any' },
+  },
   membersVisibility: {
     all: { label: 'All participants', hint: 'Everyone sees who’s coming and how many people are taking part' },
     managers: { label: 'The creator and organisers', hint: 'Participants only see their own reply (and the places left if the Plan is limited)' },
   },
   annonce: {
     title: 'Announcement mode',
-    hint: 'You inform, participants reply. Only “Photos and files” stay on, and the participant list is reserved for the creator and organisers. Add your flyer as a poster in the Info tab.',
+    hint: 'You inform, participants reply. Only “Photos and files” stay on, and only the creator and organisers add them; the participant list is reserved for them too. Add your flyer as a poster in the Info tab.',
   },
   circlePlans: {
     label: 'Members can go with a Circle',
@@ -121,6 +130,8 @@ const settings: Dict['settings'] = {
   deletionOfCircle: 'Deleting the Circle',
   editField: 'Changing the dates and place',
   membersField: 'Who sees the participants',
+  filesField: 'Who adds photos and files',
+  guestInviteField: 'Who invites outside people',
   importantInfoField: 'Changing the important information',
   planCreationField: 'Creating Plans',
   pollCreationField: 'Creating date polls',

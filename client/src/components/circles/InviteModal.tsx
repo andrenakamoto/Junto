@@ -25,13 +25,19 @@ interface Props {
   canInviteToCircle?: boolean;
   /** Le créateur du Plan peut régénérer le lien externe */
   isPlanCreator?: boolean;
+  /** Règle du Plan « Qui invite des personnes extérieures » : faux = pas de lien du Plan pour cette personne */
+  canInviteGuests?: boolean;
+  /** Admission du Cercle (open, creator, vote) : rappelée à la personne qui invite */
+  admissionMode?: string;
   onClose: () => void;
 }
 
 type Mode = 'circle' | 'guest';
 
-export function InviteModal({ circleName, circleCode, circleId, planTitle, planId, allowGuest = false, canInviteToCircle = true, isPlanCreator = false, onClose }: Props) {
-  const [mode, setMode] = useState<Mode>(canInviteToCircle ? 'circle' : 'guest');
+export function InviteModal({ circleName, circleCode, circleId, planTitle, planId, allowGuest = false, canInviteToCircle = true, isPlanCreator = false, canInviteGuests = true, admissionMode, onClose }: Props) {
+  // Depuis un Plan : d'abord le lien du Plan (s'il est permis), sinon l'invitation par le Cercle
+  const guestAllowed = allowGuest && canInviteGuests;
+  const [mode, setMode] = useState<Mode>(guestAllowed ? 'guest' : canInviteToCircle ? 'circle' : 'guest');
   const [guestToken, setGuestToken] = useState<string | null>(null);
   const [guestError, setGuestError] = useState('');
   const [resetting, setResetting] = useState(false);
@@ -59,11 +65,11 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
   const joinLink = isGuestMode ? guestLink : circleLink;
 
   useEffect(() => {
-    if (!isGuestMode || guestToken || !planId) return;
+    if (!isGuestMode || guestToken || !planId || !guestAllowed) return;
     api.post(`/plans/${planId}/guest-link`)
       .then(res => setGuestToken(res.data.token))
       .catch(err => setGuestError(err.response?.data?.error || t('circle.invite.linkError')));
-  }, [isGuestMode, guestToken, planId]);
+  }, [isGuestMode, guestToken, planId, guestAllowed]);
 
   async function resetGuestLink() {
     if (!planId) return;
@@ -155,27 +161,40 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
 
   const title = planTitle ? t('circle.invite.titlePlan', { plan: planTitle }) : t('circle.invite.titleCircle', { circle: circleName });
 
+  // Personne extérieure au Cercle qui n'a pas le droit d'inviter : rien à partager, seulement l'explication
+  if (!guestAllowed && !canInviteToCircle) {
+    return (
+      <Modal title={title} onClose={onClose}>
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 leading-relaxed">{t('circle.invite.guestsReserved')}</p>
+      </Modal>
+    );
+  }
+
   return (
     <Modal title={title} onClose={onClose}>
       <div className="space-y-5">
 
-        {allowGuest && canInviteToCircle && (
+        {/* Depuis un Plan : le lien du Plan (n'importe qui, sans entrer dans le Cercle) ou l'invitation par le Cercle */}
+        {guestAllowed && canInviteToCircle && (
           <div className="flex gap-1.5 bg-slate-100 rounded-lg p-1">
-            <button
-              onClick={() => { setMode('circle'); setShowQr(false); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'circle' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <Users size={13} />
-              {t('circle.invite.toCircle')}
-            </button>
             <button
               onClick={() => { setMode('guest'); setShowQr(false); }}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'guest' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <UserPlus size={13} />
-              {t('circle.invite.guest')}
+              {t('circle.invite.tabPlan')}
+            </button>
+            <button
+              onClick={() => { setMode('circle'); setShowQr(false); }}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${mode === 'circle' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <Users size={13} />
+              {t('circle.invite.tabCircle')}
             </button>
           </div>
+        )}
+        {allowGuest && !canInviteGuests && (
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">{t('circle.invite.guestsReserved')}</p>
         )}
 
         {/* Context */}
@@ -187,10 +206,15 @@ export function InviteModal({ circleName, circleCode, circleId, planTitle, planI
           ) : (
             <Trans i18nKey="circle.invite.codeHint" values={{ circle: circleName, code: circleCode }} components={{ b: <strong className="text-slate-700" />, c: <span className="font-mono font-bold text-slate-700" /> }} />
           )}
+          {/* Rappel de la règle d'admission du Cercle */}
+          {!isGuestMode && (admissionMode === 'creator' || admissionMode === 'vote' || admissionMode === 'open') && (
+            <span className="block mt-1 text-slate-600">{t(`circle.invite.admission.${admissionMode}`)}</span>
+          )}
         </div>
 
         {/* Compte EvLY existant : invitation directe, la personne accepte ou refuse dans l'app */}
-        {!isGuestMode && circleId && <MemberInvite circleId={circleId} />}
+        {/* (invitation au Cercle : seulement depuis le Cercle, pas depuis un Plan) */}
+        {!isGuestMode && circleId && !planId && <MemberInvite circleId={circleId} />}
 
         {/* Copy link */}
         <div>

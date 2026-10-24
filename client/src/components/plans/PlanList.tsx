@@ -357,6 +357,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circleName={circle.name}
           circleCode={circle.code}
           circleId={circle.id}
+          admissionMode={circle.admissionMode}
           onClose={() => setShowInvite(false)}
         />
       )}

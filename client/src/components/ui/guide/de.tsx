@@ -148,7 +148,8 @@ const groups: Group[] = [
         body: <P>Kreuze beim Erstellen unter <strong>Funktionen › Organisieren</strong> den <strong>«Ankündigungsmodus»</strong> an: Alle Funktionen sind ausgeschaltet und die
           Teilnehmerliste ist der erstellenden Person und den Organisatoren vorbehalten. Teilnehmende sehen die Infos, das Plakat
           und die Dokumente und antworten; sie sehen nur ihre eigene Antwort (und die freien Plätze, wenn der Plan begrenzt ist).
-          Die erstellende Person und die Organisatoren fügen das Plakat (Fotos gross oben in den Infos) und die Dokumente hinzu.</P>,
+          Die erstellende Person und die Organisatoren fügen das Plakat (Fotos gross oben in den Infos) und die Dokumente hinzu;
+          die Teilnehmenden fügen keine hinzu (Regel «Wer Fotos und Dateien hinzufügt» unter Regeln, für jeden Plan möglich).</P>,
       },
       {
         id: 'allerAvec', emoji: '🎟️', title: 'Mit einem Kreis hingehen', summary: 'Mit Freunden an ein Event gehen',
@@ -164,8 +165,10 @@ const groups: Group[] = [
       {
         id: 'invites', emoji: '🔗', title: 'Jemanden von aussen einladen', summary: 'Ein Link zu einem einzigen Plan, mit oder ohne Konto',
         body: <>
-          <P><strong>Einladen</strong> → «Externe Person»: ein Link zum Teilen (WhatsApp, SMS, QR-Code). Die Person sieht{' '}
-            <strong>nur diesen Plan</strong>, sonst nichts vom Kreis.</P>
+          <P>In einem Plan: <strong>Einladen</strong> → «Link des Plans»: ein Link zum Teilen (WhatsApp, SMS, QR-Code). Die Person sieht{' '}
+            <strong>nur diesen Plan</strong>, sonst nichts vom Kreis. Die Regel <strong>«Wer externe Personen einlädt»</strong>
+            (Regeln des Plans) legt fest, wer ihn teilen darf: alle Teilnehmenden, die erstellende Person und die Organisatoren
+            oder niemand. In einem Kreis bietet <strong>Einladen</strong> den Code und den Link des Kreises an, je nach Aufnahmeregel.</P>
           <P>Ohne Konto kann sie mit ihrem <strong>Vornamen</strong> antworten (dabei, vielleicht, ich passe). Erstellt sie
             danach ein Konto, folgen ihr ihre Antworten.</P>
           <P>Ausserhalb eines Kreises erstellt <strong>«Einen Ausflug organisieren»</strong> (Anmeldeseite) einen Plan in 30
@@ -355,6 +358,8 @@ const groups: Group[] = [
           <><strong>Organisatoren</strong>: verwalten den Kreis mit ihm (Einstellungen, Anfragen, reservierte Pläne), ändern
             aber keine Pläne anderer und löschen den Kreis nicht.</>,
           <><strong>Ersteller eines Plans</strong>: bearbeitet seinen Plan und dessen Einstellungen.</>,
+          <>Wer einen Plan erstellt hat, und die Organisatoren können <strong>jemanden aus einem Plan entfernen</strong> (Bereich
+            Mitglieder); die erstellende Person und die Organisatoren können <strong>jemanden aus dem Kreis entfernen</strong> (Fenster Mitglieder).</>,
           <>Standardmässig nehmen die <strong>Organisatoren</strong> neue Mitglieder auf, und nur wer den Kreis oder Plan <strong>erstellt</strong> hat, kann ihn löschen; stattdessen kann eine Mehrheitsabstimmung gewählt werden.</>,
         ]} />,
       },

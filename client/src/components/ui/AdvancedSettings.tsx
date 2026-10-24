@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SantaDatesNote } from '../plans/SantaDatesNote';
 import { ChevronDown, Megaphone, SlidersHorizontal, Users } from 'lucide-react';
 import { AdmissionMode, DeletionMode, EditMode, OptionalFeature, PlanCreationMode, PlanFeature } from '../../types';
-import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem, CHAT_MODE_OPTIONS, ChatMode } from '../../lib/settings';
+import { ADMISSION_OPTIONS, DELETION_OPTIONS, EDIT_OPTIONS, IMPORTANT_INFO_OPTIONS, MEMBERS_VISIBILITY_OPTIONS, MembersVisibility, FILES_MODE_OPTIONS, FilesMode, GUEST_INVITE_OPTIONS, GuestInviteMode, PLAN_CREATION_OPTIONS, POLL_CREATION_OPTIONS, FEATURE_GROUPS, FeatureItem, CHAT_MODE_OPTIONS, ChatMode } from '../../lib/settings';
 import { t } from '../../i18n';
 
 // Section repliable « Paramètres avancés » (associations, entreprises…).
@@ -68,6 +68,14 @@ export function DeletionModeField(props: { value: DeletionMode; onChange: (v: De
 
 export function EditModeField(props: { value: EditMode; onChange: (v: EditMode) => void; readOnly?: boolean }) {
   return <Choice label={t('settings.editField')} options={EDIT_OPTIONS} {...props} />;
+}
+
+export function GuestInviteField(props: { value: GuestInviteMode; onChange: (v: GuestInviteMode) => void; readOnly?: boolean }) {
+  return <Choice label={t('settings.guestInviteField')} options={GUEST_INVITE_OPTIONS} {...props} />;
+}
+
+export function FilesModeField(props: { value: FilesMode; onChange: (v: FilesMode) => void; readOnly?: boolean }) {
+  return <Choice label={t('settings.filesField')} options={FILES_MODE_OPTIONS} {...props} />;
 }
 
 export function MembersVisibilityField(props: { value: MembersVisibility; onChange: (v: MembersVisibility) => void; readOnly?: boolean }) {

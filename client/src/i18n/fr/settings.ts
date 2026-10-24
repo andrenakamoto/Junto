@@ -40,13 +40,22 @@ export default {
     creator: { label: 'Créateur seul', hint: 'Seul le créateur modifie le Plan' },
     all: { label: 'Tous les participants', hint: 'Les participants peuvent changer les dates et le lieu (titre et description restent au créateur)' },
   },
+  guestInvite: {
+    all: { label: 'Tous les participants', hint: 'Chaque participant peut partager le lien du Plan à des personnes hors du Cercle' },
+    managers: { label: 'Le créateur et les organisateurs', hint: 'Seule l’organisation partage le lien du Plan ; les participants invitent seulement des membres du Cercle' },
+    none: { label: 'Personne', hint: 'Le Plan reste entre membres du Cercle (les inscriptions de Découvrir restent possibles)' },
+  },
+  filesMode: {
+    all: { label: 'Tous les participants', hint: 'Chacun peut ajouter des photos et des documents, et en envoyer dans le chat' },
+    managers: { label: 'Le créateur et les organisateurs', hint: 'Les participants voient les photos et documents, sans pouvoir en ajouter' },
+  },
   membersVisibility: {
     all: { label: 'Tous les participants', hint: 'Chacun voit qui vient et combien de personnes participent' },
     managers: { label: 'Le créateur et les organisateurs', hint: 'Les participants ne voient que leur propre réponse (et les places restantes si le Plan est limité)' },
   },
   annonce: {
     title: 'Mode annonce',
-    hint: 'Vous informez, les participants répondent. Seuls « Photos et fichiers » restent actifs, et la liste des participants est réservée au créateur et aux organisateurs. Ajoutez votre flyer en affiche dans l’onglet Infos.',
+    hint: 'Vous informez, les participants répondent. Seuls « Photos et fichiers » restent actifs, et seuls le créateur et les organisateurs en ajoutent ; la liste des participants leur est aussi réservée. Ajoutez votre flyer en affiche dans l’onglet Infos.',
   },
   circlePlans: {
     label: 'Les membres peuvent y aller avec un Cercle',
@@ -120,6 +129,8 @@ export default {
   deletionOfCircle: 'Suppression du Cercle',
   editField: 'Modification des dates et du lieu',
   membersField: 'Qui voit les participants',
+  filesField: 'Qui ajoute des photos et fichiers',
+  guestInviteField: 'Qui invite des personnes extérieures',
   importantInfoField: 'Modification des informations importantes',
   planCreationField: 'Création des Plans',
   pollCreationField: 'Création des sondages de dates',

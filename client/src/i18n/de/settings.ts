@@ -41,13 +41,22 @@ const settings: Dict['settings'] = {
     creator: { label: 'Nur der Ersteller', hint: 'Nur der Ersteller bearbeitet den Plan' },
     all: { label: 'Alle Teilnehmenden', hint: 'Die Teilnehmenden können Daten und Ort ändern (Titel und Beschreibung bleiben beim Ersteller)' },
   },
+  guestInvite: {
+    all: { label: 'Alle Teilnehmenden', hint: 'Alle Teilnehmenden können den Link des Plans an Personen ausserhalb des Kreises weitergeben' },
+    managers: { label: 'Die erstellende Person und die Organisatoren', hint: 'Nur die Organisation teilt den Link des Plans; Teilnehmende laden nur Mitglieder des Kreises ein' },
+    none: { label: 'Niemand', hint: 'Der Plan bleibt unter Mitgliedern des Kreises (Anmeldungen über Entdecken bleiben möglich)' },
+  },
+  filesMode: {
+    all: { label: 'Alle Teilnehmenden', hint: 'Alle können Fotos und Dokumente hinzufügen und im Chat senden' },
+    managers: { label: 'Die erstellende Person und die Organisatoren', hint: 'Die Teilnehmenden sehen Fotos und Dokumente, können aber keine hinzufügen' },
+  },
   membersVisibility: {
     all: { label: 'Alle Teilnehmenden', hint: 'Alle sehen, wer kommt und wie viele dabei sind' },
     managers: { label: 'Die erstellende Person und die Organisatoren', hint: 'Teilnehmende sehen nur ihre eigene Antwort (und die freien Plätze, wenn der Plan begrenzt ist)' },
   },
   annonce: {
     title: 'Ankündigungsmodus',
-    hint: 'Ihr informiert, die Teilnehmenden antworten. Nur «Fotos und Dateien» bleiben aktiv, und die Teilnehmerliste bleibt der erstellenden Person und den Organisatoren vorbehalten. Fügt euren Flyer als Plakat im Tab Infos hinzu.',
+    hint: 'Ihr informiert, die Teilnehmenden antworten. Nur «Fotos und Dateien» bleiben aktiv, und nur die erstellende Person und die Organisatoren fügen welche hinzu; auch die Teilnehmerliste bleibt ihnen vorbehalten. Fügt euren Flyer als Plakat im Tab Infos hinzu.',
   },
   circlePlans: {
     label: 'Mitglieder können mit einem Kreis hingehen',
@@ -121,6 +130,8 @@ const settings: Dict['settings'] = {
   deletionOfCircle: 'Löschen des Kreises',
   editField: 'Ändern von Daten und Ort',
   membersField: 'Wer die Teilnehmenden sieht',
+  filesField: 'Wer Fotos und Dateien hinzufügt',
+  guestInviteField: 'Wer externe Personen einlädt',
   importantInfoField: 'Ändern der wichtigen Infos',
   planCreationField: 'Erstellen von Plänen',
   pollCreationField: 'Erstellen von Terminumfragen',

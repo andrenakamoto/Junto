@@ -228,6 +228,12 @@ export interface Plan {
   visibility?: 'hidden' | 'reserved';
   /** Caché pour une surprise : bandeau « Chut » */
   surprise?: boolean;
+  /** Qui ajoute des photos et fichiers : tous les participants, ou le créateur et les organisateurs (Mode annonce) */
+  filesMode?: 'all' | 'managers';
+  /** Qui invite des personnes extérieures (lien /invitation) */
+  guestInviteMode?: 'all' | 'managers' | 'none';
+  /** La personne qui regarde peut créer ou partager le lien des personnes extérieures */
+  canInviteGuests?: boolean;
   /** Liste « Tous mes plans » : Plan où je suis invité externe (nom du Cercle masqué) */
   isGuest?: boolean;
   /** Détail d'un Plan : l'utilisateur courant y est invité externe */

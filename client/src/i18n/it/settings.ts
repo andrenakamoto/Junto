@@ -41,13 +41,22 @@ const settings: Dict['settings'] = {
     creator: { label: 'Solo il creatore', hint: 'Solo il creatore modifica il Plan' },
     all: { label: 'Tutti i partecipanti', hint: 'I partecipanti possono cambiare date e luogo (titolo e descrizione restano al creatore)' },
   },
+  guestInvite: {
+    all: { label: 'Tutti i partecipanti', hint: 'Ogni partecipante può condividere il link del Plan con persone fuori dal Cerchio' },
+    managers: { label: 'Il creatore e gli organizzatori', hint: 'Solo l’organizzazione condivide il link del Plan; i partecipanti invitano solo membri del Cerchio' },
+    none: { label: 'Nessuno', hint: 'Il Plan resta tra membri del Cerchio (le iscrizioni da Scopri restano possibili)' },
+  },
+  filesMode: {
+    all: { label: 'Tutti i partecipanti', hint: 'Ognuno può aggiungere foto e documenti e inviarli nella chat' },
+    managers: { label: 'Il creatore e gli organizzatori', hint: 'I partecipanti vedono foto e documenti, senza poterne aggiungere' },
+  },
   membersVisibility: {
     all: { label: 'Tutti i partecipanti', hint: 'Ognuno vede chi viene e quante persone partecipano' },
     managers: { label: 'Il creatore e gli organizzatori', hint: 'I partecipanti vedono solo la propria risposta (e i posti rimasti se il Plan è limitato)' },
   },
   annonce: {
     title: 'Modalità annuncio',
-    hint: 'Voi informate, i partecipanti rispondono. Restano attivi solo «Foto e file», e l’elenco dei partecipanti è riservato al creatore e agli organizzatori. Aggiungete il vostro volantino come locandina nella scheda Info.',
+    hint: 'Voi informate, i partecipanti rispondono. Restano attivi solo «Foto e file», e solo il creatore e gli organizzatori ne aggiungono; anche l’elenco dei partecipanti è riservato a loro. Aggiungete il vostro volantino come locandina nella scheda Info.',
   },
   circlePlans: {
     label: 'I membri possono andarci con un Cerchio',
@@ -121,6 +130,8 @@ const settings: Dict['settings'] = {
   deletionOfCircle: 'Eliminazione del Cerchio',
   editField: 'Modifica di date e luogo',
   membersField: 'Chi vede i partecipanti',
+  filesField: 'Chi aggiunge foto e file',
+  guestInviteField: 'Chi invita persone esterne',
   importantInfoField: 'Modifica delle informazioni importanti',
   planCreationField: 'Creazione dei Plan',
   pollCreationField: 'Creazione dei sondaggi sulle date',

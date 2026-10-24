@@ -141,7 +141,8 @@ const groups: Group[] = [
         body: <P>When creating, under <strong>Features › Organise</strong>, tick <strong>“Announcement mode”</strong>: all features are off and the participant list is
           reserved for the creator and organisers. Participants see the info, poster and documents, and reply; they only see
           their own reply (and the places left if the Plan is limited). The creator and organisers add the poster (photos shown
-          large at the top of the info) and documents.</P>,
+          large at the top of the info) and documents; participants can’t add any (“Who adds photos and files” rule under
+          Rules, available for any Plan).</P>,
       },
       {
         id: 'allerAvec', emoji: '🎟️', title: 'Go with a Circle', summary: 'Go to an event with your friends',
@@ -157,8 +158,10 @@ const groups: Group[] = [
       {
         id: 'invites', emoji: '🔗', title: 'Invite someone from outside', summary: 'A link to a single Plan, with or without an account',
         body: <>
-          <P><strong>Invite</strong> → “Outside guest”: a link to share (WhatsApp, text, QR code). The person sees{' '}
-            <strong>this Plan only</strong>, nothing else of the Circle.</P>
+          <P>In a Plan, <strong>Invite</strong> → “Plan link”: a link to share (WhatsApp, text, QR code). The person sees{' '}
+            <strong>this Plan only</strong>, nothing else of the Circle. The <strong>“Who invites outside people”</strong> rule
+            (the Plan’s Rules) says who can share it: all participants, the creator and organisers, or nobody. In a Circle,
+            <strong>Invite</strong> offers the Circle’s code and link, following its admission rule.</P>
           <P>Without an account, they can reply with their <strong>first name</strong> (in, maybe, I’ll pass). If they later
             create an account, their replies follow them.</P>
           <P>Outside a Circle, <strong>“Organise an outing”</strong> (login page) creates a Plan in 30 seconds, even without
@@ -345,6 +348,8 @@ const groups: Group[] = [
           <><strong>Organisers</strong>: manage the Circle with them (settings, requests, reserved Plans) but don’t edit
             other people’s Plans or delete the Circle.</>,
           <><strong>Plan creator</strong>: edits their Plan and its settings.</>,
+          <>A Plan’s creator and the organisers can <strong>remove someone from a Plan</strong> (Members section); the creator
+            and organisers can <strong>remove someone from the Circle</strong> (Members window).</>,
           <>By default, the <strong>organisers</strong> admit new members and only the <strong>creator</strong> deletes a Circle or Plan; a majority vote can be chosen instead.</>,
         ]} />,
       },

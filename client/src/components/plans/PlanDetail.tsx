@@ -1127,8 +1127,8 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                 <p className="px-4 py-3 text-sm text-slate-500 bg-white border-t border-slate-200 text-center short:sticky short:bottom-0">{t('plan.expiry.chatClosed')}</p>
               ) : <ChatInput
                 onSend={handleSend}
-                onSendPhoto={isEnabled(plan, 'fichiers') ? handleSendPhoto : undefined}
-                onSendVoice={isEnabled(plan, 'fichiers') ? handleSendVoice : undefined}
+                onSendPhoto={isEnabled(plan, 'fichiers') && (plan.filesMode !== 'managers' || plan.canManageFiles) ? handleSendPhoto : undefined}
+                onSendVoice={isEnabled(plan, 'fichiers') && (plan.filesMode !== 'managers' || plan.canManageFiles) ? handleSendVoice : undefined}
                 members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
                 replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment ? '📷 Photo' : '')).slice(0, 40) } : null}
                 onCancelReply={() => setReplyTo(null)}
@@ -1139,7 +1139,8 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'infos' && (
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
-          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} />}
+          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} creatorId={plan.creatorId} canRemove={!!plan.canManageFiles && !plan.viewerIsGuest}
+            onRemove={async userId => { await api.delete(`/plans/${plan.id}/members/${userId}`); const { data } = await api.get(`/plans/${plan.id}`); onPlanUpdated(data); }} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'quiz' && <QuizTab plan={plan} userId={user.id} />}
@@ -1169,6 +1170,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           allowGuest
           canInviteToCircle={!plan.viewerIsGuest}
           isPlanCreator={isCreator}
+          canInviteGuests={plan.canInviteGuests !== false}
           onClose={() => setShowInvite(false)}
         />
       )}

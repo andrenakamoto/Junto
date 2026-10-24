@@ -95,8 +95,8 @@ export function featuresSummary(disabled: PlanFeature[], enabled: OptionalFeatur
   return parts.length ? `${t('plan.form.sum.standard')} ${parts.join(' · ')}` : t('plan.form.sum.standard');
 }
 
-export function rulesAreDefault(editMode: EditMode, importantInfoMode: EditMode, deletionMode: DeletionMode, membersVisibility = 'all') {
-  return editMode === 'creator' && importantInfoMode === 'creator' && deletionMode === 'creator' && membersVisibility === 'all';
+export function rulesAreDefault(editMode: EditMode, importantInfoMode: EditMode, deletionMode: DeletionMode, membersVisibility = 'all', filesMode = 'all') {
+  return editMode === 'creator' && importantInfoMode === 'creator' && deletionMode === 'creator' && membersVisibility === 'all' && filesMode === 'all';
 }
 
 // Mode annonce (soirée, spectacle, cours, sortie de club) : fonctions décochées sauf « Photos et fichiers » (l'affiche,

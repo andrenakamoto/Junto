@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, ShieldCheck, UserPlus, X } from 'lucide-react';
+import { Search, ShieldCheck, UserMinus, UserPlus, X } from 'lucide-react';
 import { Circle } from '../../types';
 import api from '../../services/api';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
 import { useAuth } from '../../contexts/AuthContext';
+import { isCircleManager } from '../../lib/settings';
 import { InviteModal } from './InviteModal';
 import { currentLang, t } from '../../i18n';
 
@@ -23,6 +24,22 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
   const [roleBusy, setRoleBusy] = useState<string | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const isCreator = circle.creatorId === user?.id;
+  // Retirer du Cercle : le créateur retire tout le monde, un organisateur les simples membres
+  const canManage = isCircleManager(circle, user?.id);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  async function removeMember(userId: string) {
+    setRoleBusy(userId);
+    try {
+      await api.delete(`/circles/${circle.id}/members/${userId}`);
+      const { data } = await api.get(`/circles/${circle.id}`);
+      onCircleUpdated(data);
+      setConfirmId(null);
+    } catch (err: any) {
+      alert(err.response?.data?.error || t('common.retryError'));
+    } finally {
+      setRoleBusy(null);
+    }
+  }
 
   // Bouton retour Android (NativeChrome → DashboardPage) : ferme la feuille d'abord
   const onCloseRef = useRef(onClose);
@@ -124,7 +141,16 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
                   const memberIsOrganizer = m.role === 'organizer';
                   const first = displayName(m.user);
                   return (
-                    <li key={m.userId} className="flex items-center gap-3 py-1.5">
+                    <li key={m.userId} className="py-1.5">
+                    {confirmId === m.userId ? (
+                      <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+                        <p className="text-sm text-red-800">{t('circle.members.removeHint', { name: first ?? `@${m.user.pseudo}` })}</p>
+                        <div className="flex justify-end gap-2 mt-2">
+                          <button onClick={() => setConfirmId(null)} className="text-xs px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium">{t('common.cancel')}</button>
+                          <button onClick={() => removeMember(m.userId)} disabled={roleBusy === m.userId} className="text-xs px-3 py-1.5 rounded-lg bg-red-600 text-white font-semibold disabled:opacity-50">{t('circle.members.removeConfirm')}</button>
+                        </div>
+                      </div>
+                    ) : <div className="flex items-center gap-3">
                       <Avatar pseudo={m.user.pseudo} size="xl" online={onlineUserIds?.has(m.userId)} person={{ userId: m.userId, pseudo: m.user.pseudo, firstName: m.user.firstName }} />
                       <span className="flex-1 min-w-0">
                         <span className="block text-sm font-medium text-slate-800 truncate">
@@ -147,6 +173,11 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
                       ) : (memberIsCreator || memberIsOrganizer) && (
                         <ShieldCheck size={15} className="text-indigo-600 flex-shrink-0" aria-label={memberIsCreator ? t('circle.members.creator') : t('circle.members.organizer')} />
                       )}
+                      {canManage && !memberIsCreator && m.userId !== user?.id && (isCreator || !memberIsOrganizer) && (
+                        <button onClick={() => setConfirmId(m.userId)} title={t('circle.members.remove')} aria-label={t('circle.members.remove')}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"><UserMinus size={16} /></button>
+                      )}
+                    </div>}
                     </li>
                   );
                 })}
@@ -163,7 +194,7 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
 
       {showInvite && (
         <div onClick={e => e.stopPropagation()}>
-          <InviteModal circleName={circle.name} circleCode={circle.code} circleId={circle.id} onClose={() => setShowInvite(false)} />
+          <InviteModal circleName={circle.name} circleCode={circle.code} circleId={circle.id} admissionMode={circle.admissionMode} onClose={() => setShowInvite(false)} />
         </div>
       )}
     </div>

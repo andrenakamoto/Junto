@@ -14,6 +14,10 @@ export const EDIT_OPTIONS: { value: EditMode; label: string; hint: string }[] = 
 export const IMPORTANT_INFO_OPTIONS: { value: EditMode; label: string; hint: string }[] = opt('importantInfo', ['creator', 'all']);
 export type ChatMode = 'open' | 'announce' | 'off';
 export const CHAT_MODE_OPTIONS: { value: ChatMode; label: string; hint: string }[] = opt('chatMode', ['open', 'announce', 'off']);
+export type GuestInviteMode = 'all' | 'managers' | 'none';
+export const GUEST_INVITE_OPTIONS: { value: GuestInviteMode; label: string; hint: string }[] = opt('guestInvite', ['all', 'managers', 'none']);
+export type FilesMode = 'all' | 'managers';
+export const FILES_MODE_OPTIONS: { value: FilesMode; label: string; hint: string }[] = opt('filesMode', ['all', 'managers']);
 export type MembersVisibility = 'all' | 'managers';
 export const MEMBERS_VISIBILITY_OPTIONS: { value: MembersVisibility; label: string; hint: string }[] = opt('membersVisibility', ['all', 'managers']);
 

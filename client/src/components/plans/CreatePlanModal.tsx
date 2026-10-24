@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import api from '../../services/api';
 import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
-import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField } from '../ui/AdvancedSettings';
-import { MembersVisibility } from '../../lib/settings';
+import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField, FilesModeField, GuestInviteField } from '../ui/AdvancedSettings';
+import { FilesMode, GuestInviteMode, MembersVisibility } from '../../lib/settings';
 import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { AlertTriangle, Layers, Lock, Megaphone, Puzzle, Repeat, Users } from 'lucide-react';
@@ -63,6 +63,14 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
   const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>('all');
+  // Qui ajoute des photos et fichiers (Mode annonce : le créateur et les organisateurs)
+  const [filesMode, setFilesMode] = useState<FilesMode>('all');
+  // Qui invite des personnes extérieures : par défaut selon l'admission du Cercle (entrée libre → tous), comme le serveur
+  const [guestInviteMode, setGuestInviteMode] = useState<GuestInviteMode>('all');
+  const guestTouched = useRef(false);
+  useEffect(() => {
+    api.get(`/circles/${circleId}`).then(({ data }) => { if (!guestTouched.current) setGuestInviteMode(data?.admissionMode === 'open' ? 'all' : 'managers'); }).catch(() => {});
+  }, [circleId]);
   // Mode annonce : les membres peuvent y aller avec un de leurs Cercles
   const [allowCirclePlans, setAllowCirclePlans] = useState(true);
   const annonce = isAnnonce(disabledFeatures, enabledFeatures, membersVisibility);
@@ -71,6 +79,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     setDisabledFeatures(on ? ANNONCE_DISABLED : []);
     setEnabledFeatures([]);
     setMembersVisibility(on ? 'managers' : 'all');
+    setFilesMode(on ? 'managers' : 'all');
+    // Mode annonce : chacun peut partager l'invitation (inscriptions)
+    if (on) { setGuestInviteMode('all'); guestTouched.current = true; }
     if (on) setImportantInfoMode('creator');
   }
   const [loading, setLoading] = useState(false);
@@ -99,6 +110,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       importantInfo,
       importantInfoMode,
       membersVisibility,
+      filesMode,
+      guestInviteMode,
       allowCirclePlans,
       recurrence: recurrence || null,
       recurrenceUntil: recurrence ? untilToISO(recurrenceUntil) : null,
@@ -191,11 +204,13 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
             )}
           </OptionRow>
-          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) || !allowCirclePlans}
-            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) && allowCirclePlans ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
+          <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility, filesMode) || !allowCirclePlans}
+            summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility, filesMode) && allowCirclePlans ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
             <EditModeField value={editMode} onChange={setEditMode} />
             <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
             <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
+              <FilesModeField value={filesMode} onChange={setFilesMode} />
+              <GuestInviteField value={guestInviteMode} onChange={v => { guestTouched.current = true; setGuestInviteMode(v); }} />
             {membersVisibility === 'managers' && <CirclePlansField value={allowCirclePlans} onChange={setAllowCirclePlans} />}
             <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
           </OptionRow>

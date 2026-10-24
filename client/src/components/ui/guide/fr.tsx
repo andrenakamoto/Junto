@@ -143,7 +143,8 @@ const groups: Group[] = [
         body: <P>À la création, dans <strong>Fonctions › Organiser</strong>, coche <strong>« Mode annonce »</strong> : toutes les fonctions sont décochées et la liste des
           participants est réservée au créateur et aux organisateurs. Les participants voient les infos, l'affiche et les
           documents, et répondent ; ils ne voient que leur propre réponse (et les places restantes si le Plan est limité). Le
-          créateur et les organisateurs ajoutent l'affiche (photos en grand en haut des infos) et les documents.</P>,
+          créateur et les organisateurs ajoutent l'affiche (photos en grand en haut des infos) et les documents ; les participants
+          n'en ajoutent pas (règle « Qui ajoute des photos et fichiers », dans Règles, valable pour tout Plan).</P>,
       },
       {
         id: 'allerAvec', emoji: '🎟️', title: 'Y aller avec un Cercle', summary: 'Aller à un événement avec ses amis',
@@ -159,8 +160,10 @@ const groups: Group[] = [
       {
         id: 'invites', emoji: '🔗', title: 'Inviter quelqu’un d’extérieur', summary: 'Un lien vers un seul Plan, avec ou sans compte',
         body: <>
-          <P><strong>Inviter</strong> → « Personne extérieure » : un lien à partager (WhatsApp, SMS, QR code). La personne voit{' '}
-            <strong>ce Plan seulement</strong>, rien d'autre du Cercle.</P>
+          <P>Dans un Plan, <strong>Inviter</strong> → « Lien du Plan » : un lien à partager (WhatsApp, SMS, QR code). La personne voit{' '}
+            <strong>ce Plan seulement</strong>, rien d'autre du Cercle. La règle <strong>« Qui invite des personnes extérieures »</strong>
+            (Règles du Plan) dit qui peut le partager : tous les participants, le créateur et les organisateurs, ou personne. Dans un
+            Cercle, <strong>Inviter</strong> propose le code et le lien du Cercle, selon sa règle d'admission.</P>
           <P>Sans compte, elle peut répondre avec son <strong>prénom</strong> (in, peut-être, je passe). Si elle crée un compte
             ensuite, ses réponses la suivent.</P>
           <P>Hors d'un Cercle, <strong>« Organiser une sortie »</strong> (page de connexion) crée un Plan en 30 secondes, même sans
@@ -347,6 +350,8 @@ const groups: Group[] = [
           <><strong>Organisateurs</strong> : gèrent le Cercle avec lui (réglages, demandes, Plans réservés) mais ne modifient pas
             les Plans des autres et ne suppriment pas le Cercle.</>,
           <><strong>Créateur d'un Plan</strong> : modifie son Plan et ses réglages.</>,
+          <>Le créateur d'un Plan et les organisateurs peuvent <strong>retirer quelqu'un d'un Plan</strong> (rubrique Membres) ;
+            le créateur et les organisateurs peuvent <strong>retirer quelqu'un du Cercle</strong> (fenêtre Membres).</>,
           <>Par défaut, les <strong>organisateurs</strong> acceptent les nouveaux membres et seul le <strong>créateur</strong> supprime un Cercle ou un Plan ; un vote à la majorité peut être choisi à la place.</>,
         ]} />,
       },

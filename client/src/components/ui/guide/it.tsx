@@ -145,7 +145,8 @@ const groups: Group[] = [
         body: <P>Alla creazione, in <strong>Funzioni › Organizzare</strong>, spunta la <strong>«Modalità annuncio»</strong>: tutte le funzioni sono disattivate e l’elenco
           dei partecipanti è riservato al creatore e agli organizzatori. I partecipanti vedono le info, la locandina e i
           documenti e rispondono; vedono solo la propria risposta (e i posti rimasti se il Plan è limitato). Il creatore e gli
-          organizzatori aggiungono la locandina (foto in grande in cima alle info) e i documenti.</P>,
+          organizzatori aggiungono la locandina (foto in grande in cima alle info) e i documenti; i partecipanti non ne
+          aggiungono (regola «Chi aggiunge foto e file» in Regole, valida per ogni Plan).</P>,
       },
       {
         id: 'allerAvec', emoji: '🎟️', title: 'Andarci con un Cerchio', summary: 'Andare a un evento con gli amici',
@@ -161,8 +162,10 @@ const groups: Group[] = [
       {
         id: 'invites', emoji: '🔗', title: 'Invitare qualcuno di esterno', summary: 'Un link verso un solo Plan, con o senza account',
         body: <>
-          <P><strong>Invita</strong> → «Persona esterna»: un link da condividere (WhatsApp, SMS, codice QR). La persona vede{' '}
-            <strong>solo questo Plan</strong>, nient’altro del Cerchio.</P>
+          <P>In un Plan, <strong>Invita</strong> → «Link del Plan»: un link da condividere (WhatsApp, SMS, codice QR). La persona vede{' '}
+            <strong>solo questo Plan</strong>, nient’altro del Cerchio. La regola <strong>«Chi invita persone esterne»</strong>
+            (Regole del Plan) indica chi può condividerlo: tutti i partecipanti, il creatore e gli organizzatori, o nessuno. In un
+            Cerchio, <strong>Invita</strong> propone il codice e il link del Cerchio, secondo la sua regola di ammissione.</P>
           <P>Senza account può rispondere con il suo <strong>nome</strong> (ci sono, forse, passo). Se poi crea un account,
             le sue risposte la seguono.</P>
           <P>Fuori da un Cerchio, <strong>«Organizza un’uscita»</strong> (pagina di accesso) crea un Plan in 30 secondi,
@@ -352,6 +355,8 @@ const groups: Group[] = [
           <><strong>Organizzatori</strong>: gestiscono il Cerchio con lui (impostazioni, richieste, Plan riservati) ma non
             modificano i Plan degli altri e non eliminano il Cerchio.</>,
           <><strong>Creatore di un Plan</strong>: modifica il suo Plan e le sue impostazioni.</>,
+          <>Chi ha creato un Plan e gli organizzatori possono <strong>rimuovere qualcuno da un Plan</strong> (sezione Membri);
+            il creatore e gli organizzatori possono <strong>rimuovere qualcuno dal Cerchio</strong> (finestra Membri).</>,
           <>Per impostazione predefinita, gli <strong>organizzatori</strong> ammettono i nuovi membri e solo chi ha <strong>creato</strong> un Cerchio o un Plan può eliminarlo; si può scegliere invece un voto a maggioranza.</>,
         ]} />,
       },

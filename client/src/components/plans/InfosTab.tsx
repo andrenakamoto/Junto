@@ -98,6 +98,8 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
   const isCreator = plan.creatorId === userId;
   // « Photos et fichiers » décoché : l'organisation (créateur et organisateurs) publie une affiche et des documents
   const organizerFiles = !showFiles && (attachments.length > 0 || !!plan.canManageFiles);
+  // « Qui ajoute des photos et fichiers » = créateur et organisateurs (Mode annonce) : les participants voient seulement
+  const canUpload = plan.filesMode !== 'managers' || !!plan.canManageFiles;
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-6 short:flex-none short:overflow-visible">
@@ -215,6 +217,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           <p className="text-xs text-red-500 mb-2">{uploadError}</p>
         )}
 
+        {canUpload ? <>
         <input
           ref={fileInputRef}
           type="file"
@@ -231,6 +234,7 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           {uploading ? t('plan.infos.uploading') : t('plan.infos.addAttachment')}
         </button>
         <p className="text-xs text-slate-400 mt-1">{t('plan.infos.formats')}</p>
+        </> : <p className="text-xs text-slate-400">{t('plan.infos.filesReserved')}</p>}
       </div>}
     </div>
   );
