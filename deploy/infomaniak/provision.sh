@@ -64,6 +64,11 @@ install -m 644 "$SRC/evly-api.service" /etc/systemd/system/evly-api.service
 install -m 644 "$SRC/nginx-evly.conf" /etc/nginx/sites-available/evly.conf
 ln -sf /etc/nginx/sites-available/evly.conf /etc/nginx/sites-enabled/evly.conf
 rm -f /etc/nginx/sites-enabled/default
+# Compression des scripts, styles, SVG et réponses de l'API (sans elle, le script du site faisait 1,9 Mo au lieu de 540 Ko)
+sed -i -e 's/^\s*# gzip_vary on;/\tgzip_vary on;/' -e 's/^\s*# gzip_proxied any;/\tgzip_proxied any;/' \
+  -e 's/^\s*# gzip_comp_level 6;/\tgzip_comp_level 6;/' \
+  -e 's|^\s*# gzip_types .*|\tgzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml application/manifest+json;|' \
+  /etc/nginx/nginx.conf
 install -m 755 "$SRC/backup.sh" /usr/local/bin/evly-backup
 install -m 755 "$SRC/offsite.sh" /usr/local/bin/evly-offsite
 # Sauvegarde locale à 3 h 15, copie vers Swiss Backup à 3 h 45 (si /etc/evly/backup.env existe)

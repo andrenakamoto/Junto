@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { currentLang, t } from '../../i18n';
 
 // Connexion Google sur le web via Google Identity Services (GIS).
@@ -37,6 +37,8 @@ export function GoogleWebButton({ clientId, text, onCredential, onError }: Props
   const containerRef = useRef<HTMLDivElement>(null);
   const onCredentialRef = useRef(onCredential);
   onCredentialRef.current = onCredential;
+  // Le bouton de Google arrive après le reste de la page : emplacement réservé, puis apparition en fondu
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +65,7 @@ export function GoogleWebButton({ clientId, text, onCredential, onError }: Props
           locale: currentLang(),
           width: Math.min(el.offsetWidth || 320, 400),
         });
+        setReady(true);
       })
       .catch(() => {
         if (!cancelled) onError(t('auth.googleLoadError'));
@@ -72,5 +75,10 @@ export function GoogleWebButton({ clientId, text, onCredential, onError }: Props
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, text]);
 
-  return <div ref={containerRef} className="w-full flex justify-center min-h-[44px] mb-4" />;
+  return (
+    <div className="relative w-full min-h-[44px] mb-4">
+      {!ready && <div className="absolute inset-x-0 top-0 mx-auto h-10 max-w-[400px] rounded-full bg-white/10 animate-pulse" aria-hidden />}
+      <div ref={containerRef} className={`w-full flex justify-center transition-opacity duration-300 ${ready ? 'opacity-100' : 'opacity-0'}`} />
+    </div>
+  );
 }
