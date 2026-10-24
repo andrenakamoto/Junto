@@ -3,6 +3,7 @@ import { requestLocale } from '../lib/i18n';
 import { mail } from '../lib/emailText';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
+import { canInviteGuests } from '../lib/planInvites';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { getPlanAccess, planCircleIds } from '../lib/planAccess';
@@ -62,8 +63,11 @@ async function resolveInvite(req: AuthRequest): Promise<Invite | { error: string
     const access = await getPlanAccess(req.userId!, planId);
     if (!access?.canView) return { error: 'Plan introuvable', status: 404 };
     if (guest && !access.isPlanMember) return { error: 'Rejoins le Plan pour inviter quelqu’un', status: 403 };
-    plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, circleId: true } });
-    if (!plan) return { error: 'Plan introuvable', status: 404 };
+    const full = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, circleId: true, creatorId: true, guestInviteMode: true, visibility: true } });
+    if (!full) return { error: 'Plan introuvable', status: 404 };
+    // « Qui invite des personnes extérieures » (lib/planInvites.ts)
+    if (guest && !(await canInviteGuests(req.userId!, full))) return { error: 'Les invitations de personnes extérieures sont réservées au créateur du Plan et aux organisateurs du Cercle', status: 403 };
+    plan = { id: full.id, title: full.title, circleId: full.circleId };
     circleId = plan.circleId;
     // Plan pour plusieurs Cercles : le lien « rejoindre » mène au Cercle de la personne qui invite
     if (!guest) {

@@ -358,6 +358,11 @@ model Plan {
   // Qui voit le Plan dans le(s) Cercle(s) : « hidden » = tout le monde sauf les exclusions (PlanExclusion) ; « reserved » = seulement
   // les personnes choisies, les autres membres (et ceux qui arrivent ensuite, hideReservedPlans) sont exclus
   visibility           String    @default("hidden")
+  // Qui ajoute des photos et fichiers : « all » (tous les participants) ou « managers » (créateur du Plan et organisateurs
+  // du Cercle ; Mode annonce). Les participants voient toujours ce qui est publié.
+  filesMode            String    @default("all")
+  // Qui invite des personnes extérieures (lien /invitation) : « all », « managers » (créateur et organisateurs) ou « none »
+  guestInviteMode      String    @default("all")
   // Plan caché à certaines personnes pour leur faire une surprise : bandeau « Chut » (vrai pour les Plans d'avant le 2026-10-24)
   surprise             Boolean   @default(true)
   // Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (SetNull s'il est supprimé) et
@@ -431,6 +436,8 @@ model PlanExclusion {
   plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Personne retirée du Plan par le créateur ou un organisateur : même blocage, jamais affichée comme « Caché à… »
+  removed Boolean @default(false)
 
   @@id([planId, userId])
 }

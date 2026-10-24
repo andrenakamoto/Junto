@@ -113,11 +113,11 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   const result = await createPlanInCircle(app, plan.circleId, plan.creatorId, {
     title: plan.title, description: plan.description, location: plan.location,
     eventDate: eventDate.toISOString(), endDate: endDate.toISOString(),
-    maxParticipants: plan.maxParticipants, excludedUserIds: await stillInCircle([plan.circleId, ...extraCircleIds], plan.exclusions.map(e => e.userId)),
+    maxParticipants: plan.maxParticipants, excludedUserIds: await stillInCircle([plan.circleId, ...extraCircleIds], plan.exclusions.filter(e => !e.removed).map(e => e.userId)),
     extraCircleIds,
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode, membersVisibility: plan.membersVisibility, allowCirclePlans: plan.allowCirclePlans,
-    visibility: plan.visibility, surprise: plan.surprise,
+    visibility: plan.visibility, surprise: plan.surprise, filesMode: plan.filesMode, guestInviteMode: plan.guestInviteMode,
   });
   if ('error' in result) { console.error('[recurrence]', plan.id, result.error); return end(); }
   const next = result.plan;

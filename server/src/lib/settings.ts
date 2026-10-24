@@ -58,6 +58,19 @@ export function parseEditMode(v: unknown): string | undefined {
 // réglage distinct d'editMode — 'creator' (créateur du Plan) ou 'all' (tous les participants)
 export { IMPORTANT_INFO_MAX } from './richText';
 
+// Qui ajoute des photos et fichiers dans un Plan (routes/attachments.ts) : tous les participants, ou le créateur et les organisateurs
+export const FILES_MODES = ['all', 'managers'] as const;
+export function parseFilesMode(v: unknown): 'all' | 'managers' | undefined {
+  return v === 'all' || v === 'managers' ? v : undefined;
+}
+
+// Qui invite des personnes extérieures dans un Plan (lien /invitation) : du plus ouvert au plus fermé
+export const GUEST_INVITE_MODES = ['all', 'managers', 'none'] as const;
+export type GuestInviteMode = typeof GUEST_INVITE_MODES[number];
+export function parseGuestInviteMode(v: unknown): GuestInviteMode | undefined {
+  return (GUEST_INVITE_MODES as readonly unknown[]).includes(v) ? v as GuestInviteMode : undefined;
+}
+
 export function parseImportantInfoMode(v: unknown): string | undefined {
   return parseEditMode(v);
 }

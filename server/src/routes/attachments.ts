@@ -16,6 +16,7 @@ import { messageInclude } from '../lib/messageInclude';
 import { withPlainContent } from '../lib/messageCrypto';
 
 const router = Router();
+const FILES_RESERVED_ERROR = 'Seuls le créateur du Plan et les organisateurs du Cercle ajoutent des photos et fichiers';
 
 // Types affichables directement par /view (images classiques, PDF) ; SVG exclu (peut contenir du script)
 const SAFE_INLINE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'image/avif', 'application/pdf']);
@@ -57,6 +58,9 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // Affiche du Plan (?via=affiche, flyer d'une soirée…) : une seule, en grand en haut de l'onglet Infos, nommée « affiche-… » ;
     // créateur du Plan et gestionnaires du Cercle, que « Photos et fichiers » soit coché ou non
     const viaPoster = req.query.via === 'affiche';
+    // « Qui ajoute des photos et fichiers » = créateur et organisateurs (Mode annonce) : les participants voient, n'ajoutent pas
+    // (photos et messages vocaux du chat compris ; les photos du match, du quiz et de l'assemblée ont leurs propres règles)
+    if (plan.filesMode === 'managers' && !organizer && !viaMatch && !viaQuiz && !viaAssembly) { res.status(403).json({ error: FILES_RESERVED_ERROR }); return; }
     if (viaPoster && !organizer) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
     if (viaPoster && !req.file.mimetype.startsWith('image/')) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
     if (!viaMatch && !viaQuiz && !viaAssembly && !viaPoster && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }

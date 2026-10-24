@@ -18,10 +18,11 @@ import { computeByCurrency, parseCurrency } from '../lib/expenses';
 import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
+import { notifyUser } from '../lib/push';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { canSeeMembers, forViewer, managedCircleIds, maskMembers, parseMembersVisibility } from '../lib/memberPrivacy';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, planCircleIds, exclusionsFor, hideReservedList } from '../lib/planAccess';
-import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
+import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR, parseFilesMode, parseGuestInviteMode } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
@@ -38,6 +39,7 @@ const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim
 import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
+import { canInviteGuests, GUEST_ORDER } from '../lib/planInvites';
 import { canPublishPlan, publishBlocker, publishPlan, refreshPlanDiscover, unpublishPlan } from '../lib/discover/planPublish';
 import transitRoutes from './transit';
 import secretSantaRoutes from './secretSanta';
@@ -55,6 +57,7 @@ import assemblyRoutes from './assembly';
 import planSummaryRoutes from './planSummary';
 import { removeUserFromShifts } from '../lib/volunteers';
 const router = Router();
+const GUESTS_RESERVED_ERROR = 'Les invitations de personnes extérieures sont réservées au créateur du Plan et aux organisateurs du Cercle';
 router.use(requireAuth as any);
 // Plan terminé (lib/planLifecycle.ts) : lecture seule pendant les 24 h qui précèdent sa suppression
 router.use(lockEndedPlans(resolvePlanWrite, planRouterLock));
@@ -104,7 +107,8 @@ const planInclude = {
     select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
     orderBy: { createdAt: 'asc' as const },
   },
-  exclusions: { include: { user: { select: { id: true, pseudo: true } } } },
+  // Personnes retirées du Plan : bloquées comme une exclusion, jamais montrées comme « Caché à… »
+  exclusions: { where: { removed: false }, include: { user: { select: { id: true, pseudo: true } } } },
   // Plan pour plusieurs Cercles : les Cercles réunis (en plus de celui du Plan)
   circle: { select: { id: true, name: true, color: true } },
   extraCircles: { select: { circle: { select: { id: true, name: true, color: true } } } },
@@ -212,6 +216,8 @@ router.get('/:id', async (req: AuthRequest, res) => {
     ...hideReservedList(showMembers ? polled : maskMembers(polled, req.userId!), req.userId!),
     // Photos et fichiers : le créateur et les organisateurs en ajoutent même si la fonction est décochée (affiche)
     canManageFiles: plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId),
+    // « Qui invite des personnes extérieures » (lib/planInvites.ts) : la fenêtre « Inviter » propose ou non le lien du Plan
+    canInviteGuests: !access.isGuest && await canInviteGuests(req.userId!, plan),
     // Plan pour plusieurs Cercles : noms des Cercles réunis (jamais montrés à un invité externe)
     circles: extraCircles.length && !access.isGuest ? [circle, ...extraCircles.map(e => e.circle)] : undefined,
     // Onglets avec du nouveau depuis la dernière visite (pastilles)
@@ -298,7 +304,9 @@ router.post('/:id/guest-link', async (req: AuthRequest, res) => {
   try {
     const access = await getPlanAccess(req.userId!, req.params.id);
     if (!access || access.isExcluded) { res.status(404).json({ error: 'Plan introuvable' }); return; }
-    if (!access.isPlanMember) { res.status(403).json({ error: 'Rejoins ce Plan pour pouvoir inviter' }); return; }
+    if (!access.isPlanMember && !(await isCircleManager(req.userId!, access.plan.circleId))) { res.status(403).json({ error: 'Rejoins ce Plan pour pouvoir inviter' }); return; }
+    const rules = await prisma.plan.findUnique({ where: { id: access.plan.id }, select: { creatorId: true, circleId: true, guestInviteMode: true, visibility: true } });
+    if (!rules || !(await canInviteGuests(req.userId!, rules))) { res.status(403).json({ error: GUESTS_RESERVED_ERROR }); return; }
     const link = await prisma.planGuestLink.upsert({
       where: { planId: req.params.id },
       create: { planId: req.params.id, token: newGuestToken() },
@@ -312,6 +320,35 @@ router.post('/:id/guest-link', async (req: AuthRequest, res) => {
 });
 
 // POST /api/plans/:id/guest-link/reset — nouveau lien, l'ancien cesse de fonctionner (créateur uniquement)
+// DELETE /:id/members/:userId — retirer quelqu'un du Plan (créateur du Plan ou organisateurs du Cercle). La personne
+// ne le voit plus et ne peut plus y revenir (exclusion « removed », jamais affichée) ; un membre du Cercle aussi.
+router.delete('/:id/members/:userId', async (req: AuthRequest, res) => {
+  const planId = req.params.id, target = req.params.userId, io = req.app.get('io');
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, select: { id: true, title: true, creatorId: true, circleId: true } });
+  if (!plan || !(await getPlanAccess(req.userId!, plan.id))?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (plan.creatorId !== req.userId && !(await isCircleManager(req.userId!, plan.circleId))) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
+  if (target === req.userId) { res.status(400).json({ error: 'Pour partir toi-même, réponds « Absent(e) »' }); return; }
+  if (target === plan.creatorId) { res.status(403).json({ error: 'Le créateur du Plan ne peut pas être retiré' }); return; }
+  const member = await prisma.planMember.findUnique({ where: { userId_planId: { userId: target, planId } }, include: { user: { select: { pseudo: true } } } });
+  const waiting = await prisma.planWaitlist.findUnique({ where: { planId_userId: { planId, userId: target } } }).catch(() => null);
+  if (!member && !waiting) { res.status(404).json({ error: 'Cette personne ne participe pas au Plan' }); return; }
+  if (member) {
+    await removeUserFromRides(io, planId, target, member.user.pseudo).catch(e => console.error('[remove rides]', e));
+    await removeFromPlanGames(planId, target);
+  }
+  await prisma.$transaction([
+    prisma.planMember.deleteMany({ where: { planId, userId: target } }),
+    prisma.planWaitlist.deleteMany({ where: { planId, userId: target } }),
+    prisma.volunteerSignup.deleteMany({ where: { planId, userId: target } }),
+    prisma.planDeleteVote.deleteMany({ where: { planId, userId: target } }),
+    prisma.planExclusion.upsert({ where: { planId_userId: { planId, userId: target } }, create: { planId, userId: target, removed: true }, update: { removed: true } }),
+  ]);
+  notifyUser(io, target, { type: 'plan_gone', planTitle: plan.title, preview: 'Tu ne fais plus partie de ce Plan' });
+  io?.to(`user:${target}`).emit('plan-updated', { planId });
+  res.json({ ok: true });
+  promoteFromWaitlist(io, planId).catch(e => console.error('[waitlist remove]', e));
+});
+
 router.post('/:id/guest-link/reset', async (req: AuthRequest, res) => {
   try {
     const access = await getPlanAccess(req.userId!, req.params.id);
@@ -464,13 +501,15 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const editMode = settings.editMode === undefined ? plan.editMode : parseEditMode(settings.editMode);
     const importantInfoMode = settings.importantInfoMode === undefined ? plan.importantInfoMode : parseImportantInfoMode(settings.importantInfoMode);
     const membersVisibility = settings.membersVisibility === undefined ? plan.membersVisibility : parseMembersVisibility(settings.membersVisibility);
+    const filesMode = settings.filesMode === undefined ? plan.filesMode : parseFilesMode(settings.filesMode);
+    const guestInviteMode = settings.guestInviteMode === undefined ? plan.guestInviteMode : parseGuestInviteMode(settings.guestInviteMode);
     const allowCirclePlans = parseAllowCirclePlans(settings.allowCirclePlans) ?? plan.allowCirclePlans;
     // Répétition (créateur seul) : absente = inchangée
     const repeat = settings.recurrence === undefined
       ? { recurrence: plan.recurrence, recurrenceUntil: plan.recurrenceUntil }
       : parseRecurrenceInput(settings.recurrence, settings.recurrenceUntil, eventDate ? new Date(eventDate) : null);
     if ('error' in repeat) { res.status(400).json({ error: repeat.error }); return; }
-    if (!deletionMode || !disabledFeatures || !enabledFeatures || !editMode || !importantInfoMode || !membersVisibility) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
+    if (!deletionMode || !disabledFeatures || !enabledFeatures || !editMode || !importantInfoMode || !membersVisibility || !filesMode || !guestInviteMode) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
     // L'Assemblée réunit les membres d'un seul Cercle : pas dans un Plan pour plusieurs Cercles
     if (enabledFeatures.includes('assemblee') && !plan.enabledFeatures.includes('assemblee') && (await planCircleIds(plan)).length > 1) {
       res.status(400).json({ error: 'L’Assemblée n’est pas disponible dans un Plan pour plusieurs Cercles' }); return;
@@ -496,7 +535,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil, visibility, surprise,
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, filesMode, guestInviteMode, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil, visibility, surprise,
         // Fin repoussée : la notification « supprimé dans 4 heures » pourra repartir (lib/planLifecycle.ts)
         ...(!sameMinute(plan.endDate, newEndDate) && { deletionNoticeSentAt: null }) },
     });
@@ -520,14 +559,19 @@ router.put('/:id', async (req: AuthRequest, res) => {
         await removeFromPlanGames(planId, m.userId);
       }
       await prisma.$transaction([
-        prisma.planExclusion.deleteMany({ where: { planId } }),
-        prisma.planExclusion.createMany({ data: exclusions.map(userId => ({ planId, userId })) }),
+        // Les personnes retirées du Plan (removed) restent bloquées, quelle que soit la liste « Cacher à… »
+        prisma.planExclusion.deleteMany({ where: { planId, removed: false } }),
+        prisma.planExclusion.createMany({ data: exclusions.map(userId => ({ planId, userId })), skipDuplicates: true }),
         prisma.planMember.deleteMany({ where: { planId, userId: { in: exclusions } } }),
         prisma.volunteerSignup.deleteMany({ where: { planId, userId: { in: exclusions } } }),
         prisma.planDeleteVote.deleteMany({ where: { planId, userId: { in: exclusions } } }),
       ]);
     }
 
+    // Règle d'invitation plus stricte : le lien déjà partagé est remplacé (un nouveau sera créé par qui en a le droit)
+    if (GUEST_ORDER[guestInviteMode as keyof typeof GUEST_ORDER] > GUEST_ORDER[(plan.guestInviteMode ?? 'all') as keyof typeof GUEST_ORDER]) {
+      await prisma.planGuestLink.deleteMany({ where: { planId } });
+    }
     // Limite augmentée, exclusions… : des places ont pu se libérer pour la liste d'attente
     await promoteFromWaitlist(req.app.get('io'), planId);
     // Annonce publiée dans Découvrir : titre, dates et lieu suivent le Plan
