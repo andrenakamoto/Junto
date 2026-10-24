@@ -78,6 +78,7 @@ const discover = {
     jardin: "Jardins botaniques",
     galerie: "Galeries d’art",
     poterie: "Ateliers de poterie",
+    bibliotheque: "Bibliothèques",
   },
   events_one: "{{count}} événement",
   events_other: "{{count}} événements",

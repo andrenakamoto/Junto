@@ -252,14 +252,14 @@ function Places() {
   const [region, setRegion] = useState('ge');
   const [list, setList] = useState<any[] | null>(null);
   const [q, setQ] = useState('');
-  const [form, setForm] = useState({ name: '', kind: 'escape', city: '', website: '' });
+  const [form, setForm] = useState({ name: '', kind: 'escape', city: '', address: '', website: '' });
   const [msg, setMsg] = useState('');
   const load = () => api.get('/admin/discover/places', { params: { region } }).then(r => setList(r.data)).catch(() => setList([]));
   useEffect(() => { setList(null); load(); }, [region]);
   async function toggle(p: any) { await api.put(`/admin/discover/places/${p.id}/state`, { state: p.state === 'hidden' ? 'published' : 'hidden' }); load(); }
   async function add() {
     setMsg('');
-    try { await api.post('/admin/discover/places', { ...form, region }); setForm({ name: '', kind: form.kind, city: '', website: '' }); load(); }
+    try { await api.post('/admin/discover/places', { ...form, region }); setForm({ name: '', kind: form.kind, city: '', address: '', website: '' }); load(); }
     catch (e: any) { setMsg(e?.response?.data?.error ?? 'Erreur'); }
   }
   async function remove(id: string) { await api.delete(`/admin/discover/places/${id}`); load(); }
@@ -277,6 +277,7 @@ function Places() {
           <select className={input} value={form.kind} onChange={e => setForm({ ...form, kind: e.target.value })}>{KIND_ORDER.map(k => <option key={k} value={k}>{kindLabel(k)}</option>)}</select>
           <input className={input} value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="Ville" />
           <input className={input} value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} placeholder="Site web (https://…)" />
+          <input className={`${input} col-span-2`} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Adresse (Rue du Rhône 12, 1204 Genève)" />
         </div>
         {msg && <p className="text-sm text-red-600">{msg}</p>}
         <button onClick={add} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold">Ajouter</button>
@@ -286,7 +287,7 @@ function Places() {
         <div key={p.id} className={`bg-white rounded-xl border border-slate-200 px-3 py-2 flex items-center gap-2 ${p.state === 'hidden' ? 'opacity-50' : ''}`}>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-800 truncate">{p.name}</p>
-            <p className="text-xs text-slate-500 truncate">{kindLabel(p.kind)} · {p.city ?? '—'} · <a href={p.website} target="_blank" rel="noopener noreferrer" className="underline">{p.website}</a> · {p.source?.name}</p>
+            <p className="text-xs text-slate-500 truncate">{kindLabel(p.kind)} · {p.address ?? p.city ?? '—'} · <a href={p.website} target="_blank" rel="noopener noreferrer" className="underline">{p.website}</a> · {p.source?.name}</p>
           </div>
           <button onClick={() => toggle(p)} className="text-xs text-indigo-700">{p.state === 'hidden' ? 'Réafficher' : 'Masquer'}</button>
           {p.source?.type === 'manual' && <button onClick={() => remove(p.id)} className="text-xs text-red-600">Supprimer</button>}

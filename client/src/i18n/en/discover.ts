@@ -79,6 +79,7 @@ const discover: Dict['discover'] = {
     jardin: "Botanical gardens",
     galerie: "Art galleries",
     poterie: "Pottery workshops",
+    bibliotheque: "Libraries",
   },
   events_one: "{{count}} event",
   events_other: "{{count}} events",

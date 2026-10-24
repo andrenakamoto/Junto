@@ -1661,7 +1661,8 @@ page et phrase courte dans la fenêtre « Y aller avec un Cercle » (2026-10-24)
 publiques, parcs de loisirs, bateaux, équitation, golf, châteaux, jardins botaniques, galeries, poterie, paintball / lancer de hache) ;
 affichage en deux temps (`IdeasBrowser` de `DiscoverView`) : tuiles par type rangées en groupes (`KIND_GROUPS`, `KIND_EMOJI` de
 `client/src/lib/discover.ts`), puis la liste d'un seul type avec filtre par ville au-delà de 8 lieux ; dans « Tout », un simple bandeau
-vers les idées ; la recherche reste une liste directe. Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
+vers les idées ; la recherche reste une liste directe. Bibliothèques (`amenity=library`) dans Culture ; **adresse** sous chaque lieu (`DiscoverPlace.address`, migration
+`20261031100000_discover_place_address`, `osmAddress` d'après `addr:*`, champ dans la saisie admin), touchée → recherche Google Maps. Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
 `demoDiscover` (fictif). Guide (fiche « Découvrir »), **conditions d'utilisation v5** (article « Découvrir », acceptation redemandée),
 politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD

@@ -11,7 +11,7 @@ export interface DiscoverEvent {
   // Annonce publiée depuis un Plan : inscription par son lien d'invitation (/invitation?token=…)
   signupPath?: string;
 }
-export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; website: string; family: boolean; sourceId: string }
+export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
 export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[]; places: DiscoverPlace[]; sources: DiscoverSourceInfo[] }
 
@@ -29,14 +29,14 @@ export const KIND_GROUPS: [string, string[]][] = [
   ['sport', ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport']],
   ['detente', ['bains', 'cave']],
   ['famille', ['loisirs', 'parc', 'trampoline', 'animaux']],
-  ['culture', ['musee', 'chateau', 'jardin', 'galerie', 'poterie']],
+  ['culture', ['musee', 'bibliotheque', 'chateau', 'jardin', 'galerie', 'poterie']],
 ];
 export const KIND_ORDER = KIND_GROUPS.flatMap(([, kinds]) => kinds);
 export const KIND_EMOJI: Record<string, string> = {
   escape: '🔐', laser: '🔫', bowling: '🎳', karting: '🏎️', defi: '🎯', arcade: '🕹️', minigolf: '⛳',
   piscine: '🏊', escalade: '🧗', patinoire: '⛸️', golf: '🏌️', equitation: '🐴', bateau: '🛶', sport: '🏅',
   bains: '♨️', cave: '🍷', loisirs: '🎢', parc: '🧸', trampoline: '🤸', animaux: '🦁',
-  musee: '🏛️', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
+  musee: '🏛️', bibliotheque: '📚', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
 };
 
 export const catLabel = (c: string) => t(`discover.cats.${c}` as any);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -73,7 +73,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   // Recherche : les lieux qui correspondent ; « Idées de sorties » et « En famille » : tuiles par type (IdeasBrowser) ;
   // « Tout » : un simple bandeau vers les idées
   const ideas = places.filter(p => searching
-    ? hit([p.name, p.city, kindLabel(p.kind)].join(' '))
+    ? hit([p.name, p.city, p.address, kindLabel(p.kind)].join(' '))
     : cat === IDEAS || (cat === 'famille' && p.family));
 
   const multi = shown.filter(e => e.multiDay);
@@ -292,10 +292,19 @@ function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: Discover
 function IdeaCard({ p, onReport }: { p: DiscoverPlace; onReport: (p: DiscoverPlace) => void }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
-      <a href={p.website} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 group">
-        <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-        <span className="block text-xs text-slate-500 truncate">{[p.city, t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
-      </a>
+      <div className="flex-1 min-w-0">
+        <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
+          <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
+          <span className="block text-xs text-slate-500 truncate">{p.address ? t('discover.website') : [p.city, t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+        </a>
+        {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas) */}
+        {p.address && (
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${p.address}`)}`} target="_blank" rel="noopener noreferrer"
+            className="mt-0.5 flex items-start gap-1 text-xs text-slate-600 hover:text-indigo-700">
+            <MapPin size={12} className="mt-px flex-shrink-0 text-slate-400" /><span className="min-w-0">{p.address}</span>
+          </a>
+        )}
+      </div>
       <button onClick={() => onReport(p)} className="p-1 text-slate-300 hover:text-slate-500" aria-label={t('discover.report')}><Flag size={12} /></button>
     </div>
   );
