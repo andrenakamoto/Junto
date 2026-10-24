@@ -464,6 +464,11 @@ Conséquences pratiques :
     **Version 1.0.28** (2026-10-23) : Android `versionCode` 30 (`evly-1.0.28-(30).aab`), iOS build 32 envoyé — publier un Plan dans
     Découvrir (comptes autorisés), « S'inscrire » sur les annonces, colonne du Cercle simplifiée (bouton « Créer » unique), retour dans le
     Plan créé (et non le sondage resté ouvert).
+    **Version 1.0.29** (2026-10-24) : Android `versionCode` 31 (`evly-1.0.29-(31).aab`), iOS build 33 envoyé — fiche du Plan sur
+    téléphone plus contrastée (en-tête en carte arrondie et ombrée sur fond `slate-100`, rubriques `shadow-md`, réponses non choisies
+    blanches bordées de leur couleur), menu « Créer » du Cercle sur fond assombri, avertissement de Découvrir déplacé (bas de page +
+    rappel dans « Y aller avec un Cercle »), événement de Découvrir sur plusieurs jours → Plan proposé aujourd'hui (`outingStart`),
+    écran d'attente (logo dans `#root` de `index.html`), bouton Google en fondu.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
@@ -1378,6 +1383,10 @@ canal de notification ni du mode silencieux (choix explicite). Mentionné dans l
 confidentialité. **pdfkit : écrire sous la marge du bas ajoute une page** (pied de page : marge
 remise à 0 le temps de l'écrire).
 
+**Panneau admin** (`AdminPage`, refait le 2026-10-24) : page principale = vue d'ensemble (chiffres) + un bouton par partie
+(`SECTIONS` : Membres, Signalements, Suggestions, Découvrir, Statistiques, Stockage) avec le nombre d'éléments à traiter ; chaque partie
+s'ouvre sur sa page (`?s=<partie>`, retour du navigateur). Tout nouveau panneau admin s'ajoute dans une partie.
+
 **Suivi du stockage** (2026-10-15, `lib/storageStats.ts`, GET `/admin/storage`, `components/admin/StoragePanel.tsx`) : panneau admin
 « Stockage » — taille de la base (`pg_database_size`), des fichiers (`du` sur `STORAGE_DIR`, dont `photos/`), des sauvegardes locales
 (`BACKUP_DIR`, défaut `/srv/evly/backups`) et disque du serveur (`statfs`, barre orange dès 70 %, rouge dès 85 %). Calculé seulement
@@ -1616,7 +1625,9 @@ renvoie `canPublishDiscover`. Annonce = `DiscoverEvent.planId` (source `evly-pla
 le Plan (`refreshPlanDiscover` après PUT /plans/:id), supprimée avec lui ; GET `/api/discover` ajoute `signupPath` (lien d'invitation du Plan,
 créé au besoin) et calcule « complet » (cache serveur 5 min). Client : `PublishDiscoverModal` (menu ⋮ et icône 🧭 de l'en-tête du Plan),
 bouton **« S'inscrire »** sur la carte Découvrir, « Poster un événement public » explique la marche à suivre aux comptes autorisés.
-Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
+Événement sur plusieurs jours : « Y aller avec un Cercle » propose un Plan de 3 h **aujourd'hui** (à l'heure de début, jamais avant
+le premier jour ; `outingStart` de `DiscoverGoModal`), sinon à sa date de début. Avertissement « peut contenir des erreurs » en bas de la
+page et phrase courte dans la fenêtre « Y aller avec un Cercle » (2026-10-24). Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
 `demoDiscover` (fictif). Guide (fiche « Découvrir »), **conditions d'utilisation v5** (article « Découvrir », acceptation redemandée),
 politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD
@@ -1832,6 +1843,8 @@ son Plan juste après avoir accepté l'invitation).
 > déploiement automatique**. Migrations Prisma de production : la base est sur le serveur, appliquées par deploy.sh.
 > Secrets : `/etc/evly/app.env` (repris de Railway) et `/etc/evly/database.env` — ne jamais afficher leurs valeurs.
 > Pare-feu : Ubuntu (ufw) **et** pare-feu du Manager Infomaniak (ports 22, 80, 443 seulement).
+> **Compression gzip** (2026-10-24) : activée dans `/etc/nginx/nginx.conf` (`gzip_types` JS, CSS, JSON, SVG ; ancienne config
+> `nginx.conf.avant-gzip`), aussi appliquée par `provision.sh`. Sans elle, le script du site faisait 1,9 Mo au lieu de 540 Ko.
 > **Plus rien chez Railway** : le relais vers api.evly.ch pour les apps antérieures à la 1.0.13 (`server/relay.js`) et le
 > projet « radiant-spontaneity » ont été supprimés le 2026-10-18 (journaux HTTP : plus aucune app ne passait par lui ;
 > politique de confidentialité mise à jour le même jour). Le 2026-10-11 : projet Vercel supprimé, dossier `estelle` effacé chez Cloudinary (compte partagé avec
