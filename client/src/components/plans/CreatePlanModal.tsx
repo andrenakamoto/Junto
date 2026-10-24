@@ -16,13 +16,16 @@ import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
 import { VisibilityField, emptyVisibility, visibilityPayload, visibilityCount } from './VisibilityField';
 import { t } from '../../i18n';
+import { KIND_GAMES, PLAN_KINDS, PlanKind, kindPreset } from '../../lib/planKinds';
+import { OPTIONAL_FEATURES } from '../../lib/settings';
 
 interface Props {
   circleId: string;
   /** Membres du Cercle, pour choisir à qui cacher un Plan surprise */
   circleMembers?: CircleMember[];
   onClose: () => void;
-  onCreated: (plan: Plan) => void;
+  /** tab : onglet à ouvrir après la création (Plan spécifique) */
+  onCreated: (plan: Plan, tab?: string) => void;
   /** Plan pour plusieurs Cercles : les autres Cercles dont la personne est créatrice ou organisatrice */
   otherCircles?: Circle[];
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
@@ -34,26 +37,30 @@ interface Props {
   fromEvent?: { sourcePlanId?: string; title: string; eventDate?: string | null; endDate: string; location?: string | null; url?: string | null };
   /** « Lancer un Plan » depuis « Je suis dispo » : début proposé (heure locale « AAAA-MM-JJTHH:MM ») ; les dispos s'effacent */
   fromAvailability?: { start: string };
+  /** Plan spécifique choisi dans « Créer » (lib/planKinds.ts) */
+  kind?: PlanKind | null;
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability }: Props) {
+export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability, kind }: Props) {
   const { user } = useAuth();
-  // Qui voit ce Plan : un sondage caché garde les mêmes personnes (et sa surprise)
-  const [vis, setVis] = useState(emptyVisibility(fromPoll?.excludedUserIds ?? [], fromPoll?.surprise !== false));
-  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : ''));
+  // Plan spécifique (Créer › Plan spécifique) : réglages de départ selon le type, tous modifiables
+  const [preset] = useState(() => kind ? kindPreset(kind) : null);
+  // Qui voit ce Plan : un sondage caché garde les mêmes personnes (et sa surprise) ; une Surprise commence en « Cacher à… »
+  const [vis, setVis] = useState(() => preset?.surprise ? { mode: 'hidden' as const, excluded: [], allowed: [], surprise: true } : emptyVisibility(fromPoll?.excludedUserIds ?? [], fromPoll?.surprise !== false));
+  const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : preset?.title ?? ''));
   const [description, setDescription] = useState(fromEvent?.url ? t('plan.goWith.moreInfo', { url: fromEvent.url }) : '');
-  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || '');
-  const [endDate, setEndDate] = useState(fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
-  const [endTouched, setEndTouched] = useState(!!fromEvent);
+  const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || preset?.start || '');
+  const [endDate, setEndDate] = useState(preset?.end ? preset.end : fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
+  const [endTouched, setEndTouched] = useState(!!fromEvent || !!preset?.end);
   const [location, setLocation] = useState(fromEvent?.location ?? '');
   const [maxParticipants, setMaxParticipants] = useState('');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('creator');
-  const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>([]);
-  const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>([]);
+  const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(preset?.disabled ?? []);
+  const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(preset?.enabled ?? []);
   const [editMode, setEditMode] = useState<EditMode>('creator');
-  const [importantInfo, setImportantInfo] = useState('');
+  const [importantInfo, setImportantInfo] = useState(preset?.importantInfo ?? '');
   const [importantInfoMode, setImportantInfoMode] = useState<EditMode>('creator');
-  const [recurrence, setRecurrence] = useState<Recurrence | ''>('');
+  const [recurrence, setRecurrence] = useState<Recurrence | ''>(preset?.recurrence ?? '');
   const [recurrenceUntil, setRecurrenceUntil] = useState('');
   // Plan pour plusieurs Cercles (à la création seulement)
   const [multi, setMulti] = useState(false);
@@ -62,12 +69,12 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   // Cacher à… / Réservé à… : parmi les membres de tous les Cercles choisis
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
-  const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>('all');
+  const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>(preset?.membersVisibility ?? 'all');
   // Qui ajoute des photos et fichiers (Mode annonce : le créateur et les organisateurs)
-  const [filesMode, setFilesMode] = useState<FilesMode>('all');
+  const [filesMode, setFilesMode] = useState<FilesMode>(preset?.filesMode ?? 'all');
   // Qui invite des personnes extérieures : par défaut selon l'admission du Cercle (entrée libre → tous), comme le serveur
-  const [guestInviteMode, setGuestInviteMode] = useState<GuestInviteMode>('all');
-  const guestTouched = useRef(false);
+  const [guestInviteMode, setGuestInviteMode] = useState<GuestInviteMode>(preset?.guestInviteMode ?? 'all');
+  const guestTouched = useRef(!!preset?.guestInviteMode);
   useEffect(() => {
     api.get(`/circles/${circleId}`).then(({ data }) => { if (!guestTouched.current) setGuestInviteMode(data?.admissionMode === 'open' ? 'all' : 'managers'); }).catch(() => {});
   }, [circleId]);
@@ -92,6 +99,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
     if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
     if (visibleLength(description) > DESCRIPTION_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.description'), max: DESCRIPTION_MAX })); return; }
+    // Plan spécifique : ce qui fait le type doit être rempli
+    if (kind === 'surprise' && (vis.mode !== 'hidden' || vis.excluded.length === 0)) { setError(t('plan.kinds.surprise.required')); return; }
+    if (kind === 'jeux' && !KIND_GAMES.some(g => enabledFeatures.includes(g))) { setError(t('plan.kinds.jeux.required')); return; }
     if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
     setLoading(true);
     setError('');
@@ -118,12 +128,13 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       extraCircleIds: chosenExtra,
       sourcePlanId: fromEvent?.sourcePlanId,
       fromAvailability: fromAvailability ? true : undefined,
+      kind: kind ?? undefined,
     };
     try {
       const { data } = fromPoll
         ? await api.post(`/circles/polls/${fromPoll.pollId}/convert`, { ...payload, optionId: fromPoll.optionId })
         : await api.post(`/circles/${circleId}/plans`, payload);
-      onCreated(data);
+      onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : undefined));
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
     } finally {
@@ -138,9 +149,35 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label={t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />
+        {kind && (
+          <div className="text-sm text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
+            <p className="font-semibold">{PLAN_KINDS.find(k => k.kind === kind)?.emoji} {t(`plan.kinds.${kind}.name`)}</p>
+            {t(`plan.kinds.${kind}.note`) && <p className="text-xs text-indigo-800 mt-0.5">{t(`plan.kinds.${kind}.note`)}</p>}
+          </div>
+        )}
         <WhenField start={eventDate} end={endDate} onStart={setEventDate} onEnd={setEndDate} endTouched={endTouched} onEndTouched={() => setEndTouched(true)}
-          startLabel={enabledFeatures.includes('pere_noel') ? t('plan.form.santaDate') : undefined} />
-        {enabledFeatures.includes('pere_noel') && <SantaDatesNote />}
+          durationMs={preset?.durationMs}
+          startLabel={enabledFeatures.includes('pere_noel') && kind !== 'pere_noel' ? t('plan.form.santaDate') : undefined} />
+        {enabledFeatures.includes('pere_noel') && kind !== 'pere_noel' && <SantaDatesNote />}
+        {/* Surprise : pour qui (le Plan lui est caché) ; Soirée jeux : quels jeux */}
+        {kind === 'surprise' && user && (
+          <div>
+            <p className="text-sm font-medium text-slate-700 mb-1">{t('plan.kinds.surprise.forWho')}</p>
+            <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
+          </div>
+        )}
+        {kind === 'jeux' && (
+          <div>
+            <p className="text-sm font-medium text-slate-700 mb-1.5">{t('plan.kinds.jeux.games')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {KIND_GAMES.map(g => { const on = enabledFeatures.includes(g); return (
+                <button key={g} type="button" onClick={() => setEnabledFeatures(on ? enabledFeatures.filter(x => x !== g) : [...enabledFeatures, g])}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${on ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'}`}>
+                  {(OPTIONAL_FEATURES.find(f => f.value === g)?.label ?? g).replace(/\s*\(.*\)$/, '')}
+                </button>); })}
+            </div>
+          </div>
+        )}
         <Input label={t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-slate-700">{t('plan.form.description')}</label>
@@ -157,7 +194,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
             <FeaturesField disabled={disabledFeatures} onChange={setDisabledFeatures} enabled={enabledFeatures} onEnabledChange={setEnabledFeatures} annonce={{ active: annonce, onChange: setAnnonce }} />
           </OptionRow>
           {!fromPoll && !fromEvent && (
-            <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence}
+            <OptionRow icon={<Repeat size={16} />} label={t('plan.form.rows.recurrence')} modified={!!recurrence} defaultOpen={kind === 'cours'}
               summary={(recurrence && recurrenceLabel(recurrence, eventDate ? localToISO(eventDate) : null)) || t('plan.form.sum.noRepeat')}>
               <RecurrenceField
                 value={recurrence}
@@ -167,9 +204,9 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               />
             </OptionRow>
           )}
-          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0}
+          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0} defaultOpen={kind === 'cours' || kind === 'annonce'}
             summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1 + chosenExtra.length, visibilityCount(vis).reserved)}>
-            {!fromPoll && !fromEvent && otherCircles.length > 0 && (
+            {!fromPoll && !fromEvent && kind !== 'assemblee' && otherCircles.length > 0 && (
               <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" checked={multi} onChange={e => setMulti(e.target.checked)} className="accent-indigo-600" />
@@ -201,7 +238,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               placeholder={t('plan.form.maxPlaceholder')}
             />
             {user && (
-              <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
+              kind !== 'surprise' && <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
             )}
           </OptionRow>
           <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility, filesMode) || !allowCirclePlans}

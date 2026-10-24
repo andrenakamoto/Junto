@@ -238,6 +238,7 @@ const games: Dict['games'] = {
     addToDraw: 'Aggiungili al sorteggio',
     revealConfirm: 'Rivelare a tutti chi ha regalato a chi?',
     reveal: 'Rivela chi ha regalato a chi',
+    revealEndsHint: 'Da fare dopo lo scambio dei regali: il Plan si chiude la sera stessa. Facoltativo: senza rivelazione, il segreto resta tale.',
     revealHint: 'Possibile dallo scambio ({{date}}) fino alla fine del Plan ({{end}}). Facoltativo: senza rivelazione, il segreto resta tale.',
     redrawConfirm: 'Rifare il sorteggio? Le coppie e tutti i messaggi anonimi saranno cancellati.',
     redraw: 'Rifai il sorteggio',

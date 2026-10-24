@@ -383,12 +383,14 @@ export function DashboardPage() {
     setMobileView('plans');
   }
 
-  function handlePlanCreated(plan: Plan) {
+  // tab : rubrique à ouvrir d'emblée (Plan spécifique : le tirage du Père Noël, l'Assemblée…)
+  function handlePlanCreated(plan: Plan, tab?: string) {
     // Le sondage ou la discussion restés ouverts (après « retour » sur téléphone) passeraient avant le nouveau Plan
     setSelectedPollId(null);
     setChatCircleId(null);
     setPlans(prev => [plan, ...prev]);
     setSelectedPlan(plan);
+    setOpenTab(tab ? { tab, n: Date.now() } : null);
     setMobileView('detail');
   }
 

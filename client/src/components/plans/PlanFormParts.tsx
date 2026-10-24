@@ -23,21 +23,23 @@ export function isoToLocal(iso: string | null | undefined): string {
   const d = new Date(iso);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-export function addDefaultDuration(local: string): string {
-  return isoToLocal(new Date(new Date(localToISO(local)).getTime() + DEFAULT_DURATION_MS).toISOString());
+export function addDefaultDuration(local: string, durationMs = DEFAULT_DURATION_MS): string {
+  return isoToLocal(new Date(new Date(localToISO(local)).getTime() + durationMs).toISOString());
 }
 
 // Début et fin du Plan : deux champs distincts, obligatoires. Quand on choisit le début, la fin se remplit
 // toute seule (début + 3 h) tant qu'on ne l'a pas modifiée soi-même.
-export function WhenField({ start, end, onStart, onEnd, startLabel, endTouched, onEndTouched }: {
+export function WhenField({ start, end, onStart, onEnd, startLabel, endTouched, onEndTouched, durationMs }: {
   start: string; end: string;
   onStart: (v: string) => void; onEnd: (v: string) => void;
   startLabel?: string;
+  /** Durée proposée (Plan spécifique : 1 h 30 pour un cours, 2 jours pour un voyage) */
+  durationMs?: number;
   endTouched: boolean; onEndTouched: () => void;
 }) {
   function changeStart(v: string) {
     onStart(v);
-    if (v && !endTouched) onEnd(addDefaultDuration(v));
+    if (v && !endTouched) onEnd(addDefaultDuration(v, durationMs));
   }
   return (
     <div className="space-y-3">
@@ -51,10 +53,12 @@ export function WhenField({ start, end, onStart, onEnd, startLabel, endTouched, 
 }
 
 // Une ligne de « Plus d'options » : icône, nom, réglage actuel en gris (corail s'il sort de l'ordinaire)
-export function OptionRow({ icon, label, summary, modified, children }: {
+export function OptionRow({ icon, label, summary, modified, children, defaultOpen = false }: {
   icon: React.ReactNode; label: string; summary: string; modified?: boolean; children: React.ReactNode;
+  /** Ouverte d'emblée (Plan spécifique : répétition et places d'un cours, places d'une annonce) */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-b border-slate-100 last:border-0">
       <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center gap-3 px-3 py-3 text-left">

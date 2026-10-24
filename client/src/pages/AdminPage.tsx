@@ -12,6 +12,7 @@ import { PhotoReportsPanel } from '../components/admin/PhotoReportsPanel';
 import { StoragePanel } from '../components/admin/StoragePanel';
 import { SuggestionsPanel } from '../components/admin/SuggestionsPanel';
 import { FunnelPanel } from '../components/admin/FunnelPanel';
+import { PlanKindsPanel } from '../components/admin/PlanKindsPanel';
 import { DiscoverPanel } from '../components/admin/DiscoverPanel';
 
 interface AdminUser {
@@ -290,6 +291,7 @@ export function AdminPage() {
         {section.key === 'decouvrir' && <DiscoverPanel />}
         {section.key === 'statistiques' && <>
         <FunnelPanel />
+        <PlanKindsPanel />
         <PageVisitsPanel
           page="decouvrir"
           title="Page « Découvrir »"

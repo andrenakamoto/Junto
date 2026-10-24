@@ -71,7 +71,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '„Ich hab Zeit“', summary: 'Sagen, dass man frei ist, und daraus einen Plan machen',
         body: <>
-          <P>In einem Kreis: <strong>„Ich hab Zeit“</strong> (der grüne Button oder unten „Erstellen“), <strong>jetzt</strong> (für 3 Stunden) oder{' '}
+          <P>In einem Kreis: <strong>„Ich hab Zeit“</strong> (der grüne Button neben „Diskussion“), <strong>jetzt</strong> (für 3 Stunden) oder{' '}
             <strong>heute Abend</strong>, wenn du willst mit einer Aktivität (🍻 Apéro, 🍕 Essen, 🎬 Kino…) und einem kurzen Wort. Du
             kannst es in mehreren Kreisen gleichzeitig sagen. Die Mitglieder werden benachrichtigt, und die Karte des Kreises zeigt
             „🟢 3 haben Zeit“.</P>
@@ -96,6 +96,19 @@ const groups: Group[] = [
             Kategorien geordnet (Austauschen, Organisieren, Feiern und schenken, Spielen): Wähle ab, was du nicht brauchst,
             und wähle die zu aktivierenden Funktionen (Einsatzplan, Versammlung, Geschenkkasse, Spiele…). Später über das
             Einstellungssymbol des Plans änderbar.</P>
+        </>,
+      },
+      {
+        id: 'types', emoji: '✨', title: 'Standard-Plan oder spezieller Plan', summary: 'Fertig eingestellte Pläne: Überraschung, Wichteln, Versammlung…',
+        body: <>
+          <P>In einem Kreis bietet <strong>„Erstellen“</strong> <strong>Standard-Plan</strong> (ein Ausflug, ein Anlass),
+            <strong> Spezieller Plan</strong> und <strong>Termine vorschlagen</strong>. Ein spezieller Plan ist schon für seinen Zweck eingestellt:</P>
+          <P>🎂 <strong>Überraschung</strong> (du wählst, für wen: Der Plan wird vor der Person versteckt, Geldsammlung aktiviert) · 🎅 <strong>Wichteln</strong>
+            (24. bis 31. Dezember; nach dem Geschenkaustausch beendet die Auflösung den Plan am selben Abend) · 🗳️ <strong>Versammlung</strong>
+            (Kreis-Ersteller und Organisatoren) · 📋 <strong>Gemeinsam organisieren</strong> (Aufgabenplan) · 📣 <strong>Ankündigung</strong>
+            (Ankündigungsmodus) · 🔁 <strong>Kurs</strong> (jede Woche, 1 Std. 30) · 🎲 <strong>Spieleabend</strong> (du wählst die Spiele) ·
+            🧳 <strong>Wochenende oder Reise</strong> (über mehrere Tage).</P>
+          <P>Alles bleibt änderbar: unter „Weitere Optionen“ vor dem Erstellen, danach unter „Bearbeiten“.</P>
         </>,
       },
       {

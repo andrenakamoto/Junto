@@ -69,7 +69,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '“I’m free”', summary: 'Say you’re free, and turn it into a Plan',
         body: <>
-          <P>In a Circle, <strong>“I’m free”</strong> (the green button, or “Create” at the bottom): <strong>now</strong> (for 3 hours) or{' '}
+          <P>In a Circle, <strong>“I’m free”</strong> (the green button, next to “Discussion”): <strong>now</strong> (for 3 hours) or{' '}
             <strong>tonight</strong>, with an activity if you like (🍻 Drinks, 🍕 Food, 🎬 Cinema…) and a short note. You can say it in
             several Circles at once. Members get a notification, and the Circle's card shows “🟢 3 free”.</P>
           <P>As soon as <strong>enough people are free</strong> (3 by default), <strong>“Start a Plan”</strong> suggests a ready-made
@@ -92,6 +92,19 @@ const groups: Group[] = [
           <P>In <strong>“Advanced settings”</strong>, the <strong>“Plan features”</strong> list is sorted by category (Talk,
             Organise, Celebrate and give, Play): untick what you don’t need and tick the features to turn on (schedule,
             assembly, gift pot, games…). You can change this later with the Plan’s settings icon.</P>
+        </>,
+      },
+      {
+        id: 'types', emoji: '✨', title: 'Standard or special Plan', summary: 'Ready-made Plans: surprise, Secret Santa, general meeting…',
+        body: <>
+          <P>In a Circle, <strong>“Create”</strong> offers <strong>Standard Plan</strong> (an outing, an event),
+            <strong> Special Plan</strong> and <strong>Suggest dates</strong>. A special Plan comes already set up for its purpose:</P>
+          <P>🎂 <strong>Surprise</strong> (you choose who it’s for: the Plan is hidden from them, gift pot on) · 🎅 <strong>Secret Santa</strong>
+            (24 to 31 December; once the gifts are exchanged, the reveal ends the Plan that evening) · 🗳️ <strong>General meeting</strong>
+            (Circle creator and organisers) · 📋 <strong>Organising together</strong> (task schedule) · 📣 <strong>Announcement</strong>
+            (announcement mode) · 🔁 <strong>Class</strong> (every week, 1 h 30) · 🎲 <strong>Game night</strong> (you choose the games) ·
+            🧳 <strong>Weekend or trip</strong> (over several days).</P>
+          <P>Everything can still be changed: in “More options” before creating, then in “Edit”.</P>
         </>,
       },
       {

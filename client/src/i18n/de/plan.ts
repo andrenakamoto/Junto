@@ -41,6 +41,66 @@ const plan: Dict['plan'] = {
     hint: 'Diesen Plan verstecken vor (sie sehen weder den Plan noch seine Benachrichtigungen noch seine E-Mails):',
     pickOne: 'Wähle mindestens eine Person, vor der er versteckt wird.',
   },
+  // « Créer › Plan spécifique » (lib/planKinds.ts)
+  kinds: {
+    menu: {
+      standard: 'Standard-Plan',
+      standardHint: 'Ein Ausflug, ein Anlass',
+      specific: 'Spezieller Plan',
+      specificHint: 'Überraschung, Wichteln, Versammlung… schon eingestellt',
+    },
+    surprise: {
+      name: 'Überraschung',
+      hint: 'Geburtstag, Abschied… vor der gefeierten Person versteckt',
+      note: 'Der Plan ist vor den unten gewählten Personen versteckt. Die Geldsammlung ist aktiviert.',
+      info: '🤫 Es ist eine Überraschung: Sag der gefeierten Person nichts!',
+      forWho: 'Für wen? (der Plan wird vor ihr versteckt)',
+      required: 'Wähle die Person(en), vor denen der Plan versteckt wird.',
+    },
+    pere_noel: {
+      name: 'Wichteln',
+      hint: 'Auslosung und anonyme Geschenke',
+      title: 'Wichteln 🎅',
+      note: 'Vorgeschlagene Daten: 24. bis 31. Dezember. Nach dem Austausch beendet die Auflösung den Plan am selben Abend.',
+      info: 'Das Budget mit den Mitgliedern im Chat des Plans festlegen.',
+    },
+    assemblee: {
+      name: 'Versammlung',
+      hint: 'Traktanden, Abstimmungen und Protokoll',
+      title: 'Generalversammlung {{year}}',
+      note: 'Nur für die Person, die den Kreis erstellt hat, und die Organisatoren. Keine externen Gäste; nur die Organisatoren fügen Dokumente hinzu.',
+      info: 'Sie sind zur Generalversammlung eingeladen. Traktanden und Dokumente finden Sie in der Rubrik Versammlung. Bitte teilen Sie uns mit, ob Sie teilnehmen, indem Sie auf diesen Plan antworten.',
+    },
+    organisation: {
+      name: 'Gemeinsam organisieren',
+      hint: 'Fest, Turnier, Lotto… mit einem Aufgabenplan',
+      note: 'Der Einsatzplan ist aktiviert: Füge die Posten hinzu, alle tragen sich ein.',
+      info: 'Trag dich im Einsatzplan für die Posten ein. Danke allen für eure Hilfe!',
+    },
+    annonce: {
+      name: 'Ankündigung',
+      hint: 'Party, Vorstellung… Teilnehmerliste nicht öffentlich',
+      note: 'Ankündigungsmodus: Füge dein Plakat unter Infos hinzu. Nur die Person, die den Plan erstellt hat, und die Organisatoren sehen die Teilnehmenden und fügen Fotos hinzu.',
+    },
+    cours: {
+      name: 'Kurs',
+      hint: 'Jede Woche, begrenzte Plätze',
+      note: 'Vorgeschlagen: jede Woche, 1 Std. 30. Passe den Tag und die Anzahl Plätze an.',
+    },
+    jeux: {
+      name: 'Spieleabend',
+      hint: 'Quiz, Killer, Wortfalle, Turnier',
+      note: '',
+      games: 'Welche Spiele?',
+      required: 'Wähle mindestens ein Spiel.',
+    },
+    voyage: {
+      name: 'Wochenende oder Reise',
+      hint: 'Mehrere Tage, Fahrten und Ausgaben',
+      note: 'Ende zwei Tage nach dem Beginn vorgeschlagen.',
+      info: 'Mitnehmen: …\nTreffpunkt für die Abfahrt: …',
+    },
+  },
   visibility: {
     label: 'Wer sieht diesen Plan?',
     all: 'Der ganze Kreis', hidden: 'Verstecken vor…', reserved: 'Nur für…',

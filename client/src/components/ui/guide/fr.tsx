@@ -70,7 +70,7 @@ const groups: Group[] = [
       {
         id: 'dispo', emoji: '🟢', title: '« Je suis dispo »', summary: 'Dire qu’on est libre, et en faire un Plan',
         body: <>
-          <P>Dans un Cercle, <strong>« Je suis dispo »</strong> (le bouton vert, ou « Créer » en bas) : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
+          <P>Dans un Cercle, <strong>« Je suis dispo »</strong> (le bouton vert, à côté de « Discussion ») : <strong>maintenant</strong> (pendant 3 heures) ou{' '}
             <strong>ce soir</strong>, avec si tu veux une activité (🍻 Apéro, 🍕 Manger, 🎬 Ciné…) et un petit mot. Tu peux le dire dans
             plusieurs Cercles à la fois. Les membres sont prévenus, et la carte du Cercle affiche « 🟢 3 dispo ».</P>
           <P>Dès que <strong>assez de personnes sont dispo</strong> (3 par défaut), <strong>« Lancer un Plan »</strong> propose un Plan
@@ -92,6 +92,19 @@ const groups: Group[] = [
           <P>Dans <strong>« Paramètres avancés »</strong>, la liste <strong>« Fonctions du Plan »</strong> est rangée par catégorie
             (Échanger, Organiser, Fêter et offrir, Jouer) : décoche ce dont tu n'as pas besoin, coche les fonctions à activer
             (planning, assemblée, cagnotte, jeux…). Modifiable ensuite avec l'icône réglages du Plan.</P>
+        </>,
+      },
+      {
+        id: 'types', emoji: '✨', title: 'Plan standard ou Plan spécifique', summary: 'Des Plans déjà réglés : surprise, Père Noël secret, assemblée…',
+        body: <>
+          <P>Dans un Cercle, <strong>« Créer »</strong> propose <strong>Plan standard</strong> (une sortie, un événement),
+            <strong> Plan spécifique</strong> et <strong>Proposer des dates</strong>. Un Plan spécifique arrive déjà réglé pour son usage :</P>
+          <P>🎂 <strong>Surprise</strong> (tu choisis pour qui : le Plan lui est caché, cagnotte activée) · 🎅 <strong>Père Noël secret</strong>
+            (du 24 au 31 décembre ; une fois les cadeaux échangés, la révélation termine le Plan le soir même) · 🗳️ <strong>Assemblée</strong>
+            (créateur et organisateurs du Cercle) · 📋 <strong>Organisation à plusieurs</strong> (planning des tâches) · 📣 <strong>Annonce</strong>
+            (Mode annonce) · 🔁 <strong>Cours</strong> (chaque semaine, 1 h 30) · 🎲 <strong>Soirée jeux</strong> (tu choisis les jeux) ·
+            🧳 <strong>Week-end ou voyage</strong> (sur plusieurs jours).</P>
+          <P>Tout reste modifiable : dans « Plus d'options » avant de créer, puis dans « Modifier ».</P>
         </>,
       },
       {

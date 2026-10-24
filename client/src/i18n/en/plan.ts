@@ -41,6 +41,66 @@ const plan: Dict['plan'] = {
     hint: 'Hide this Plan from (they won’t see the Plan, its notifications or its emails):',
     pickOne: 'Choose at least one person to hide it from.',
   },
+  // « Créer › Plan spécifique » (lib/planKinds.ts)
+  kinds: {
+    menu: {
+      standard: 'Standard Plan',
+      standardHint: 'An outing, an event',
+      specific: 'Special Plan',
+      specificHint: 'Surprise, Secret Santa, general meeting… already set up',
+    },
+    surprise: {
+      name: 'Surprise',
+      hint: 'Birthday, farewell… hidden from the guest of honour',
+      note: 'The Plan is hidden from the people chosen below. The gift pot is turned on.',
+      info: '🤫 It’s a surprise: don’t tell the guest of honour!',
+      forWho: 'Who is it for? (the Plan will be hidden from them)',
+      required: 'Choose the person or people the Plan is hidden from.',
+    },
+    pere_noel: {
+      name: 'Secret Santa',
+      hint: 'Draw and anonymous gifts',
+      title: 'Secret Santa 🎅',
+      note: 'Suggested dates: 24 to 31 December. After the exchange, the reveal ends the Plan that same evening.',
+      info: 'Agree on the budget with the members in the Plan chat.',
+    },
+    assemblee: {
+      name: 'General meeting',
+      hint: 'Agenda, votes and minutes',
+      title: 'General meeting {{year}}',
+      note: 'Only for the Circle creator and organisers. No outside guests; only organisers add documents.',
+      info: 'You are invited to the general meeting. The agenda and documents are in the General meeting section. Please let us know whether you will attend by replying to this Plan.',
+    },
+    organisation: {
+      name: 'Organising together',
+      hint: 'Party, tournament, raffle… with a task schedule',
+      note: 'The Schedule is turned on: add the shifts, everyone signs up.',
+      info: 'Sign up for shifts in the Schedule. Thanks, everyone, for your help!',
+    },
+    annonce: {
+      name: 'Announcement',
+      hint: 'Party, show… private participant list',
+      note: 'Announcement mode: add your poster in Info. Only the Plan creator and organisers see the participants and add photos.',
+    },
+    cours: {
+      name: 'Class',
+      hint: 'Every week, limited places',
+      note: 'Suggested: every week, 1 h 30. Adjust the day and the number of places.',
+    },
+    jeux: {
+      name: 'Game night',
+      hint: 'Quiz, Killer, word trap, tournament',
+      note: '',
+      games: 'Which games?',
+      required: 'Choose at least one game.',
+    },
+    voyage: {
+      name: 'Weekend or trip',
+      hint: 'Several days, travel and expenses',
+      note: 'End suggested two days after the start.',
+      info: 'To bring: …\nMeeting point for departure: …',
+    },
+  },
   visibility: {
     label: 'Who sees this Plan?',
     all: 'The whole Circle', hidden: 'Hide from…', reserved: 'Only for…',

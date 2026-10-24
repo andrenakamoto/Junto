@@ -238,6 +238,7 @@ const games: Dict['games'] = {
     addToDraw: 'Zur Auslosung hinzufügen',
     revealConfirm: 'Allen verraten, wer wen beschenkt hat?',
     reveal: 'Verraten, wer wen beschenkt hat',
+    revealEndsHint: 'Erst nach dem Geschenkaustausch: Der Plan endet dann am selben Abend. Freiwillig: Ohne Auflösung bleibt das Geheimnis gewahrt.',
     revealHint: 'Möglich ab dem Austausch ({{date}}) bis zum Ende des Plans ({{end}}). Freiwillig: Ohne Auflösung bleibt das Geheimnis gewahrt.',
     redrawConfirm: 'Neu auslosen? Die Paare und alle anonymen Nachrichten werden gelöscht.',
     redraw: 'Neu auslosen',

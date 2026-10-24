@@ -237,6 +237,7 @@ export default {
     addToDraw: 'Les ajouter au tirage',
     revealConfirm: 'Révéler à tout le monde qui a offert à qui ?',
     reveal: 'Révéler qui a offert à qui',
+    revealEndsHint: 'À faire une fois les cadeaux échangés : le Plan se termine alors le soir même. Facultatif : sans révélation, le secret reste gardé.',
     revealHint: 'Possible à partir de l’échange ({{date}}) jusqu’à la fin du Plan ({{end}}). Facultatif : sans révélation, le secret reste gardé.',
     redrawConfirm: 'Refaire le tirage ? Les paires et tous les messages anonymes seront effacés.',
     redraw: 'Refaire le tirage',

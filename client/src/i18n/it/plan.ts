@@ -41,6 +41,66 @@ const plan: Dict['plan'] = {
     hint: 'Nascondi questo Plan a (non vedranno né il Plan, né le sue notifiche, né le sue email):',
     pickOne: 'Scegli almeno una persona a cui nasconderlo.',
   },
+  // « Créer › Plan spécifique » (lib/planKinds.ts)
+  kinds: {
+    menu: {
+      standard: 'Plan standard',
+      standardHint: 'Un’uscita, un evento',
+      specific: 'Plan specifico',
+      specificHint: 'Sorpresa, Babbo Natale segreto, assemblea… già impostato',
+    },
+    surprise: {
+      name: 'Sorpresa',
+      hint: 'Compleanno, partenza… nascosto alla persona festeggiata',
+      note: 'Il Plan è nascosto alle persone scelte qui sotto. La colletta è attivata.',
+      info: '🤫 È una sorpresa: non dirlo alla persona festeggiata!',
+      forWho: 'Per chi? (il Plan le sarà nascosto)',
+      required: 'Scegli la persona o le persone a cui nascondere il Plan.',
+    },
+    pere_noel: {
+      name: 'Babbo Natale segreto',
+      hint: 'Sorteggio e regali anonimi',
+      title: 'Babbo Natale segreto 🎅',
+      note: 'Date proposte: dal 24 al 31 dicembre. Dopo lo scambio, la rivelazione chiude il Plan la sera stessa.',
+      info: 'Definire il budget con i membri nella chat del Plan.',
+    },
+    assemblee: {
+      name: 'Assemblea',
+      hint: 'Ordine del giorno, votazioni e verbale',
+      title: 'Assemblea generale {{year}}',
+      note: 'Riservata a chi ha creato il Cerchio e agli organizzatori. Niente ospiti esterni; solo gli organizzatori aggiungono documenti.',
+      info: 'È invitato/a all’assemblea generale. L’ordine del giorno e i documenti si trovano nella rubrica Assemblea. La preghiamo di indicare la Sua presenza rispondendo a questo Plan.',
+    },
+    organisation: {
+      name: 'Organizzazione in gruppo',
+      hint: 'Festa, torneo, tombola… con un programma dei compiti',
+      note: 'Il programma dei turni è attivato: aggiungi i posti, ognuno si iscrive.',
+      info: 'Iscriviti ai posti nei Turni. Grazie a tutti per l’aiuto!',
+    },
+    annonce: {
+      name: 'Annuncio',
+      hint: 'Serata, spettacolo… elenco dei partecipanti riservato',
+      note: 'Modalità annuncio: aggiungi la locandina in Info. Solo chi ha creato il Plan e gli organizzatori vedono i partecipanti e aggiungono foto.',
+    },
+    cours: {
+      name: 'Corso',
+      hint: 'Ogni settimana, posti limitati',
+      note: 'Proposto: ogni settimana, 1 h 30. Regola il giorno e il numero di posti.',
+    },
+    jeux: {
+      name: 'Serata giochi',
+      hint: 'Quiz, Killer, parola trappola, torneo',
+      note: '',
+      games: 'Quali giochi?',
+      required: 'Scegli almeno un gioco.',
+    },
+    voyage: {
+      name: 'Weekend o viaggio',
+      hint: 'Più giorni, trasporti e spese',
+      note: 'Fine proposta due giorni dopo l’inizio.',
+      info: 'Da portare: …\nRitrovo per la partenza: …',
+    },
+  },
   visibility: {
     label: 'Chi vede questo Plan?',
     all: 'Tutto il Cerchio', hidden: 'Nascondi a…', reserved: 'Riservato a…',

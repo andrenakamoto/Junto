@@ -6,12 +6,13 @@ import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sun } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
 import { PlanSummarySheet } from './PlanSummarySheet';
 import { CreatePlanModal } from './CreatePlanModal';
+import { PLAN_KINDS, PlanKind } from '../../lib/planKinds';
 import { AvailabilityPanel } from '../circles/AvailabilityPanel';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
 import { LeaveCircleModal } from '../circles/LeaveCircleModal';
@@ -32,7 +33,7 @@ interface Props {
   loading: boolean;
   selectedPlanId: string | null;
   onSelectPlan: (plan: Plan, tab?: string) => void;
-  onPlanCreated: (plan: Plan) => void;
+  onPlanCreated: (plan: Plan, tab?: string) => void;
   onCircleDeleted: () => void;
   onCircleUpdated: (circle: Circle) => void;
   onBack: () => void;
@@ -68,7 +69,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [showMore, setShowMore] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
-  const [dispoSignal, setDispoSignal] = useState(0);
+  // Menu « Créer » : premier niveau, ou liste des Plans spécifiques
+  const [menuLevel, setMenuLevel] = useState<'main' | 'kinds'>('main');
+  const [createKind, setCreateKind] = useState<PlanKind | null>(null);
   const [codeCopied, setCodeCopied] = useState(false);
   const [polls, setPolls] = useState<CirclePoll[]>([]);
   // Cercle dont les sondages sont chargés (évite de mettre à jour la carte avec ceux d'un autre Cercle)
@@ -127,16 +130,21 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const canCreatePoll = circle.pollCreationMode !== 'creator' || isCircleManager(circle, user?.id);
 
   // Affichage simplifié (2026-10-23) : en-tête léger (Membres, Inviter, menu ⋯), ce qui est vide est masqué, un seul
-  // bouton « Créer » (Plan, sondage de dates, « Je suis dispo »)
+  // bouton « Créer » (Plan standard, Plan spécifique, sondage de dates ; « Je suis dispo » est à côté de la Discussion)
   const chatOn = !!(circle.chatMode && circle.chatMode !== 'off' && onOpenChat);
   const dispoOn = !circle.isPersonal && circle.availabilityEnabled !== false;
   const dispoFull = dispoOn && (circle.dispo?.count ?? 0) > 0;
   const chatFull = chatOn && !!circle.chatLast;
   const createOptions = [
-    ...(canCreate ? [{ key: 'plan', Icon: Plus, label: t('circle.planList.planItem'), hint: t('circle.planList.planHint'), run: () => setShowCreate(true) }] : []),
+    ...(canCreate ? [
+      { key: 'plan', Icon: Plus, label: t('plan.kinds.menu.standard'), hint: t('plan.kinds.menu.standardHint'), run: () => { setCreateKind(null); setShowCreate(true); } },
+      { key: 'kinds', Icon: Sparkles, label: t('plan.kinds.menu.specific'), hint: t('plan.kinds.menu.specificHint'), run: () => setMenuLevel('kinds') },
+    ] : []),
     ...(canCreatePoll ? [{ key: 'poll', Icon: CalendarRange, label: t('circle.planList.proposeDates'), hint: t('circle.planList.pollHint'), run: () => setShowCreatePoll(true) }] : []),
-    ...(dispoOn ? [{ key: 'dispo', Icon: Sun, label: t('circle.dispo.button'), hint: t('circle.planList.dispoHint'), run: () => setDispoSignal(n => n + 1) }] : []),
   ];
+  // L'Assemblée : créateur et organisateurs du Cercle seulement (pas de Cercle personnel)
+  const kinds = PLAN_KINDS.filter(k => !k.managersOnly || (!circle.isPersonal && isCircleManager(circle, user?.id)));
+  const closeMenu = () => { setShowCreateMenu(false); setMenuLevel('main'); };
   const menuItem = 'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left';
 
   return (
@@ -254,13 +262,13 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
               </button>
             )}
             {dispoOn && !dispoFull && (
-              <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} compact openSignal={dispoSignal} />
+              <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} compact />
             )}
           </div>
         )}
         {/* « Je suis dispo » : la carte complète dès que quelqu'un est dispo */}
         {dispoFull && (
-          <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} openSignal={dispoSignal} />
+          <AvailabilityPanel circle={circle} circles={circles.length ? circles : [circle]} onPlanCreated={onPlanCreated} />
         )}
         {/* Demandes pour rejoindre le Cercle : affiché seulement s'il y en a */}
         {(circle.joinRequests?.length ?? 0) > 0 && (
@@ -318,13 +326,13 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      {/* Un seul bouton « Créer » : Plan, sondage de dates, « Je suis dispo » (un seul choix : directement) */}
+      {/* Un seul bouton « Créer » : Plan standard, Plan spécifique (liste des types), sondage de dates */}
       <div className="relative px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
         {createOptions.length === 0 ? (
           <p className="px-3 py-2 text-xs text-slate-400">{t('circle.planList.reserved')}</p>
         ) : (
           <button
-            onClick={() => createOptions.length === 1 ? createOptions[0].run() : setShowCreateMenu(v => !v)}
+            onClick={() => createOptions.length === 1 ? createOptions[0].run() : showCreateMenu ? closeMenu() : setShowCreateMenu(true)}
             aria-expanded={showCreateMenu}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition-colors text-sm font-semibold"
           >
@@ -335,18 +343,35 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         {showCreateMenu && createOptions.length > 1 && (
           <>
             {/* Fond assombri : le menu blanc ressort sur la colonne blanche */}
-            <div className="fixed inset-0 z-20 bg-slate-900/50" onClick={() => setShowCreateMenu(false)} />
-            <div className="absolute left-2 right-2 bottom-full mb-2 z-30 bg-white border-2 border-indigo-400 rounded-2xl shadow-2xl p-1.5 space-y-0.5">
-              {createOptions.map(({ key, Icon, label, hint, run }) => (
-                <button key={key} onClick={() => { setShowCreateMenu(false); run(); }}
+            <div className="fixed inset-0 z-20 bg-slate-900/50" onClick={closeMenu} />
+            <div className="absolute left-2 right-2 bottom-full mb-2 z-30 bg-white border-2 border-indigo-400 rounded-2xl shadow-2xl p-1.5 space-y-0.5 max-h-[70vh] overflow-y-auto">
+              {menuLevel === 'main' ? createOptions.map(({ key, Icon, label, hint, run }) => (
+                <button key={key} onClick={() => { if (key !== 'kinds') closeMenu(); run(); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-slate-50 transition-colors">
-                  <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${key === 'dispo' ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'}`}><Icon size={17} /></span>
-                  <span className="min-w-0">
+                  <span className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-indigo-600"><Icon size={17} /></span>
+                  <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-slate-900">{label}</span>
                     <span className="block text-xs text-slate-500">{hint}</span>
                   </span>
+                  {key === 'kinds' && <ChevronRight size={16} className="text-slate-400 flex-shrink-0" />}
                 </button>
-              ))}
+              )) : (
+                <>
+                  <button onClick={() => setMenuLevel('main')} className="w-full flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-700">
+                    <ChevronLeft size={14} />{t('plan.kinds.menu.specific')}
+                  </button>
+                  {kinds.map(({ kind, emoji }) => (
+                    <button key={kind} onClick={() => { closeMenu(); setCreateKind(kind); setShowCreate(true); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left hover:bg-slate-50 transition-colors">
+                      <span className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 text-lg">{emoji}</span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-slate-900">{t(`plan.kinds.${kind}.name`)}</span>
+                        <span className="block text-xs text-slate-500">{t(`plan.kinds.${kind}.hint`)}</span>
+                      </span>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           </>
         )}
@@ -371,8 +396,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circleId={circle.id}
           circleMembers={circle.members}
           otherCircles={user && isCircleManager(circle, user.id) ? otherManagedCircles : []}
+          kind={createKind}
           onClose={() => setShowCreate(false)}
-          onCreated={(plan) => { onPlanCreated(plan); setShowCreate(false); }}
+          onCreated={(plan, tab) => { onPlanCreated(plan, tab); setShowCreate(false); }}
         />
       )}
 

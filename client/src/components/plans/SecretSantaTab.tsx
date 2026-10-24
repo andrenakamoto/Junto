@@ -13,7 +13,7 @@ type Person = { id: string; pseudo: string; firstName?: string | null };
 type Msg = { id: string; mine: boolean; content: string; createdAt: string };
 type WishStatus = 'wish' | 'none' | 'pending';
 interface SantaState {
-  budget: string | null; drawn: boolean; revealed: boolean; canManage: boolean; canReveal: boolean;
+  budget: string | null; drawn: boolean; revealed: boolean; canManage: boolean; canReveal: boolean; revealEndsPlan?: boolean;
   eventDate: string | null; endDate: string;
   participants: (Person & { wishStatus: WishStatus })[];
   myWish: string;
@@ -335,7 +335,7 @@ function ManagerPanel({ s, planId, run }: { s: SantaState; planId: string; run: 
               <Eye size={16} /> {t('games.santa.reveal')}
             </button>
             <p className="text-xs text-slate-400 mt-1.5">
-              {s.eventDate ? t('games.santa.revealHint', { date: fmtDay(s.eventDate), end: fmtEnd }) : ''}
+              {s.revealEndsPlan ? t('games.santa.revealEndsHint') : s.eventDate ? t('games.santa.revealHint', { date: fmtDay(s.eventDate), end: fmtEnd }) : ''}
             </p>
           </div>
           <button

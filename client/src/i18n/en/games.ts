@@ -238,6 +238,7 @@ const games: Dict['games'] = {
     addToDraw: 'Add them to the draw',
     revealConfirm: 'Reveal to everyone who gave to whom?',
     reveal: 'Reveal who gave to whom',
+    revealEndsHint: 'Do this once the gifts have been exchanged: the Plan then ends that same evening. Optional: without a reveal, the secret is kept.',
     revealHint: 'Possible from the exchange ({{date}}) until the end of the Plan ({{end}}). Optional: without a reveal, the secret stays safe.',
     redrawConfirm: 'Redo the draw? The pairs and all anonymous messages will be erased.',
     redraw: 'Redo the draw',

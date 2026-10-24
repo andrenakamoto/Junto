@@ -40,6 +40,66 @@ export default {
     hint: 'Cacher ce Plan à (ils ne verront ni le Plan, ni ses notifications, ni ses emails) :',
     pickOne: 'Choisis au moins une personne à qui le cacher.',
   },
+  // « Créer › Plan spécifique » (lib/planKinds.ts)
+  kinds: {
+    menu: {
+      standard: 'Plan standard',
+      standardHint: 'Une sortie, un événement',
+      specific: 'Plan spécifique',
+      specificHint: 'Surprise, Père Noël secret, assemblée… déjà réglé',
+    },
+    surprise: {
+      name: 'Surprise',
+      hint: 'Anniversaire, départ… caché à la personne fêtée',
+      note: 'Le Plan est caché aux personnes choisies ci-dessous. La cagnotte est activée.',
+      info: '🤫 C’est une surprise : n’en parle pas à la personne fêtée !',
+      forWho: 'Pour qui ? (le Plan lui sera caché)',
+      required: 'Choisis la ou les personnes à qui le Plan est caché.',
+    },
+    pere_noel: {
+      name: 'Père Noël secret',
+      hint: 'Tirage au sort et cadeaux anonymes',
+      title: 'Père Noël secret 🎅',
+      note: 'Dates proposées : du 24 au 31 décembre. Après l’échange, la révélation termine le Plan le soir même.',
+      info: 'Définir le budget avec les membres dans le chat du Plan.',
+    },
+    assemblee: {
+      name: 'Assemblée',
+      hint: 'Ordre du jour, votes et procès-verbal',
+      title: 'Assemblée générale {{year}}',
+      note: 'Réservée au créateur et aux organisateurs du Cercle. Pas d’invités extérieurs ; seuls les organisateurs ajoutent des documents.',
+      info: 'Vous êtes convié·e à l’assemblée générale. L’ordre du jour et les documents se trouvent dans la rubrique Assemblée. Merci d’indiquer votre présence en répondant à ce Plan.',
+    },
+    organisation: {
+      name: 'Organisation à plusieurs',
+      hint: 'Fête, tournoi, loto… avec un planning des tâches',
+      note: 'Le Planning est activé : ajoute les postes, chacun s’inscrit.',
+      info: 'Inscris-toi aux postes dans le Planning. Merci à tous pour votre aide !',
+    },
+    annonce: {
+      name: 'Annonce',
+      hint: 'Soirée, spectacle… liste des participants réservée',
+      note: 'Mode annonce : ajoute ton affiche dans Infos. Seuls le créateur et les organisateurs voient les participants et ajoutent des photos.',
+    },
+    cours: {
+      name: 'Cours',
+      hint: 'Chaque semaine, places limitées',
+      note: 'Proposé : chaque semaine, 1 h 30. Ajuste le jour et le nombre de places.',
+    },
+    jeux: {
+      name: 'Soirée jeux',
+      hint: 'Quiz, Killer, mot piège, tournoi',
+      note: '',
+      games: 'Quels jeux ?',
+      required: 'Choisis au moins un jeu.',
+    },
+    voyage: {
+      name: 'Week-end ou voyage',
+      hint: 'Plusieurs jours, trajets et dépenses',
+      note: 'Fin proposée deux jours après le début.',
+      info: 'À emporter : …\nRendez-vous de départ : …',
+    },
+  },
   visibility: {
     label: 'Qui voit ce Plan ?',
     all: 'Tout le Cercle', hidden: 'Cacher à…', reserved: 'Réservé à…',
