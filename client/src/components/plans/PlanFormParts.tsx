@@ -78,10 +78,11 @@ export function OptionsBox({ children }: { children: React.ReactNode }) {
 }
 
 // Résumés affichés sur les lignes
-export function participantsSummary(max: string, hidden: number, circles = 1): string {
+export function participantsSummary(max: string, hidden: number, circles = 1, reserved: number | null = null): string {
   const parts: string[] = [];
   if (circles > 1) parts.push(t('plan.form.sum.circles', { count: circles }));
   if (max) parts.push(t('plan.form.sum.places', { count: Number(max) }));
+  if (reserved !== null) parts.push(t('plan.form.sum.reserved', { count: reserved }));
   if (hidden > 0) parts.push(t('plan.form.sum.hidden', { count: hidden }));
   return parts.length ? parts.join(' · ') : t('plan.form.sum.everyone');
 }

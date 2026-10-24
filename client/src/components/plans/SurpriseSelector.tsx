@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Gift, Check } from 'lucide-react';
+import { EyeOff, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -9,9 +9,12 @@ interface Props {
   onChange: (excludedUserIds: string[]) => void;
   label?: string;
   hint?: string;
+  /** Case « C'est une surprise » (bandeau « Chut » pour les autres) */
+  surprise?: boolean;
+  onSurprise?: (surprise: boolean) => void;
 }
 
-export function SurpriseSelector({ members, currentUserId, value, onChange, label, hint }: Props) {
+export function SurpriseSelector({ members, currentUserId, value, onChange, label, hint, surprise, onSurprise }: Props) {
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState(value.length > 0);
   const candidates = members.filter(m => m.userId !== currentUserId);
@@ -31,7 +34,7 @@ export function SurpriseSelector({ members, currentUserId, value, onChange, labe
     <div className={`rounded-xl border p-3 ${enabled ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input type="checkbox" checked={enabled} onChange={toggleEnabled} className="accent-indigo-600" />
-        <Gift size={15} className="text-indigo-500" />
+        <EyeOff size={15} className="text-indigo-500" />
         <span className="text-sm font-medium text-slate-700">{label ?? t('plan.surprise.label')}</span>
       </label>
 
@@ -58,6 +61,12 @@ export function SurpriseSelector({ members, currentUserId, value, onChange, labe
           </div>
           {value.length === 0 && (
             <p className="text-xs text-amber-600 mt-2">{t('plan.surprise.pickOne')}</p>
+          )}
+          {onSurprise && (
+            <label className="flex items-start gap-2 mt-3 cursor-pointer select-none">
+              <input type="checkbox" checked={!!surprise} onChange={e => onSurprise(e.target.checked)} className="accent-indigo-600 mt-0.5" />
+              <span className="text-sm text-slate-700">{t('plan.visibility.surprise')}<span className="block text-xs text-slate-500">{t('plan.visibility.surpriseHint')}</span></span>
+            </label>
           )}
         </div>
       )}

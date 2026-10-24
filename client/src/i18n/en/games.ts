@@ -283,7 +283,7 @@ const games: Dict['games'] = {
     currency: 'Currency',
     payInfo: 'How do people pay you?',
     payInfoPlaceholder: 'Twint to 079 …, or cash at the next rehearsal',
-    settingsHint: 'Visible to all Plan members. For a surprise, hide the Plan from the person being celebrated (“Surprise Plan”).',
+    settingsHint: 'Visible to all Plan members. For a surprise, hide the Plan from the person being celebrated (“Who sees this Plan?” › “Hide from…”, “It’s a surprise”).',
     pledges: 'Contributions · received {{received}} of {{total}}',
     saysPaid: 'says they’ve paid',
     received: 'Received',

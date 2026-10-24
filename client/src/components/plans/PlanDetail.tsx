@@ -3,7 +3,7 @@ import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
 import { PublishDiscoverModal } from './PublishDiscoverModal';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -958,11 +958,16 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           </div>
         )}
 
-        {(plan.exclusions ?? []).length > 0 && (
+        {/* Qui voit ce Plan : réservé à certaines personnes, caché pour une surprise, ou simplement caché à quelques-unes */}
+        {(plan.visibility === 'reserved' || (plan.exclusions ?? []).length > 0) && (
           <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg text-sm md:text-xs text-indigo-800">
-            <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
+            {plan.visibility !== 'reserved' && plan.surprise !== false
+              ? <Gift size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
+              : <Lock size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />}
             <span>
-              <Trans i18nKey="plan.detail.surprise" count={(plan.exclusions ?? []).length} values={{ names: (plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ') }} components={{ b: <strong /> }} />
+              {plan.visibility === 'reserved'
+                ? <Trans i18nKey="plan.detail.reserved" components={{ b: <strong /> }} />
+                : <Trans i18nKey={plan.surprise !== false ? 'plan.detail.surprise' : 'plan.detail.hiddenFrom'} count={(plan.exclusions ?? []).length} values={{ names: (plan.exclusions ?? []).map(e => `@${e.user.pseudo}`).join(', ') }} components={{ b: <strong /> }} />}
             </span>
           </div>
         )}

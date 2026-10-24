@@ -1,4 +1,4 @@
-import { Calendar, Check, MessageSquare, Gift, ChevronRight } from 'lucide-react';
+import { Calendar, Check, MessageSquare, Gift, EyeOff, ChevronRight } from 'lucide-react';
 import { CirclePoll } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { optionLabel } from '../../lib/dates';
@@ -26,7 +26,7 @@ export function CirclePollCard({ poll, userId, selected, onVote, onDecline, onOp
     <div className={`bg-white border rounded-xl p-3 transition-colors ${selected ? 'border-indigo-400/70' : 'border-slate-200'}`}>
       <button onClick={onOpen} className="w-full flex items-start justify-between gap-2 mb-2.5 text-left group">
         <p className="text-sm font-semibold text-slate-900 leading-tight group-hover:text-indigo-700">
-          {(poll.exclusions?.length ?? 0) > 0 && <Gift size={12} className="inline mr-1 -mt-0.5 text-indigo-600" />}
+          {(poll.exclusions?.length ?? 0) > 0 && (poll.surprise !== false ? <Gift size={12} className="inline mr-1 -mt-0.5 text-indigo-600" /> : <EyeOff size={12} className="inline mr-1 -mt-0.5 text-indigo-600" />)}
           {poll.question}
         </p>
         <ChevronRight size={14} className="text-slate-500 group-hover:text-indigo-600 flex-shrink-0 mt-0.5" />

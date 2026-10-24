@@ -128,5 +128,5 @@ export default {
   featuresHint: 'Infos et Membres sont toujours actifs. Décocher masque une fonction sans effacer ses données.',
   enabled_one: '· {{count}} activée',
   enabled_other: '· {{count}} activées',
-  potSurprise: '🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Plan surprise »).',
+  potSurprise: '🎁 Pour une surprise, pense à cacher ce Plan à la personne fêtée (« Qui voit ce Plan ? » › « Cacher à… », « C’est une surprise »).',
 };

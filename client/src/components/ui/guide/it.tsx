@@ -126,9 +126,12 @@ const groups: Group[] = [
           ripetizione»</strong>.</P>,
       },
       {
-        id: 'surprise', emoji: '🤫', title: 'Plan e sondaggio a sorpresa', summary: 'Nascondere un Plan ad alcuni membri',
-        body: <P>Spunta <strong>«Plan a sorpresa»</strong> e scegli a chi nasconderlo: per loro non esiste (né lista, né
-          notifica, né email). Gli altri vedono una fascia che ricorda per chi è la sorpresa.</P>,
+        id: 'surprise', emoji: '🤫', title: 'Chi vede questo Plan (sorpresa, riservato)', summary: 'Nascondere un Plan ad alcune persone o riservarlo ad alcune',
+        body: <P>In <strong>Altre opzioni › Partecipanti › Chi vede questo Plan?</strong>: <strong>«Nascondi a…»</strong> (per
+          queste persone il Plan non esiste: né lista, né notifica, né email) oppure <strong>«Riservato a…»</strong> (solo le
+          persone scelte lo vedono, per esempio il comitato di un’associazione; chi entra nel Cerchio più tardi non lo vede
+          nemmeno). Per un compleanno, spunta <strong>«È una sorpresa»</strong>: gli altri vedono un avviso «Shh, non dire
+          niente!». Lo stesso vale per i sondaggi di date.</P>,
       },
       {
         id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan per più Cerchi', summary: 'Un solo Plan per più gruppi',
@@ -287,7 +290,7 @@ const groups: Group[] = [
         id: 'cagnotte', emoji: '🐷', title: 'Colletta regalo', summary: 'Un regalo comune, idee e voti',
         body: <P>Per chi, obiettivo, importo proposto, come pagare. Ognuno indica la sua quota e poi «Ho pagato»;
           l’organizzatore spunta «Ricevuto». L’importo di ciascuno è visibile solo all’organizzatore. Idee regalo con voti.
-          Nessun denaro passa da EvLY. Ricordati di nascondere il Plan alla persona festeggiata (Plan a sorpresa).</P>,
+          Nessun denaro passa da EvLY. Ricordati di nascondere il Plan alla persona festeggiata («Nascondi a…», «È una sorpresa»).</P>,
       },
       {
         id: 'pere-noel', emoji: '🎅', title: 'Babbo Natale segreto', summary: 'Sorteggio e regali anonimi',

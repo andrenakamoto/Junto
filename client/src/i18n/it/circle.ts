@@ -56,7 +56,7 @@ const circle: Dict['circle'] = {
     questionPlaceholder: 'Quando ci vediamo per la cena?',
     dates: 'Date proposte',
     addDate: 'Aggiungi una data',
-    surpriseLabel: 'Sondaggio a sorpresa',
+    surpriseLabel: 'Nascondi ad alcune persone',
     surpriseHint: 'Nascondi questo sondaggio a (non vedranno né il sondaggio, né le sue notifiche, né la sua chat):',
     submit: 'Crea il sondaggio',
   },
@@ -198,6 +198,7 @@ const circle: Dict['circle'] = {
     kept: 'La conversazione sarà ripresa nella chat del Plan creato.',
   },
   pollSurprise: 'Sondaggio a sorpresa, nascosto a {{names}}.',
+  pollHidden: 'Sondaggio nascosto a {{names}}.',
   invite: {
     linkError: 'Impossibile creare il link',
     planGuestText: 'Ciao! Ti invito al mio Plan «{{plan}}» su EvLY 🎉\nClicca qui per unirti:\n{{link}}',

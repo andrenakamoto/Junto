@@ -184,6 +184,8 @@ model Circle {
 model CirclePoll {
   id             String    @id @default(cuid())
   question       String
+  // Sondage caché à certaines personnes pour une surprise (bandeau « Chut ») ou simplement réservé
+  surprise       Boolean   @default(true)
   createdAt      DateTime  @default(now())
   resolvedAt     DateTime?
   // Rappel « ton sondage se termine demain » envoyé au créateur (anti-doublon)
@@ -353,6 +355,11 @@ model Plan {
   // Mode annonce : les membres peuvent créer un Plan dans un de leurs Cercles pour y aller ensemble
   // (« Y aller avec un Cercle », lib/planSource.ts)
   allowCirclePlans     Boolean   @default(true)
+  // Qui voit le Plan dans le(s) Cercle(s) : « hidden » = tout le monde sauf les exclusions (PlanExclusion) ; « reserved » = seulement
+  // les personnes choisies, les autres membres (et ceux qui arrivent ensuite, hideReservedPlans) sont exclus
+  visibility           String    @default("hidden")
+  // Plan caché à certaines personnes pour leur faire une surprise : bandeau « Chut » (vrai pour les Plans d'avant le 2026-10-24)
+  surprise             Boolean   @default(true)
   // Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (SetNull s'il est supprimé) et
   // son titre, gardé pour dire « l'événement n'existe plus »
   sourcePlanId         String?

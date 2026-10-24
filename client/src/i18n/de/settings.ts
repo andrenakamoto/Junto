@@ -129,6 +129,6 @@ const settings: Dict['settings'] = {
   featuresHint: 'Infos und Mitglieder sind immer aktiv. Abwählen blendet eine Funktion aus, ohne ihre Daten zu löschen.',
   enabled_one: '· {{count}} aktiviert',
   enabled_other: '· {{count}} aktiviert',
-  potSurprise: '🎁 Für eine Überraschung: Verstecke diesen Plan vor der gefeierten Person («Überraschungsplan»).',
+  potSurprise: '🎁 Für eine Überraschung: Verstecke diesen Plan vor der gefeierten Person («Wer sieht diesen Plan?» › «Verstecken vor…», «Es ist eine Überraschung»).',
 };
 export default settings;

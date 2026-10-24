@@ -135,6 +135,7 @@ export const ERRORS_1: Record<string, [string, string, string]> = {
   'Erreur lors de la suppression du compte': ['Fehler beim Löschen des Kontos', 'Errore durante l’eliminazione dell’account', 'Error while deleting the account'],
   'Erreur lors du téléchargement': ['Fehler beim Herunterladen', 'Errore durante il download', 'Error while downloading'],
   'Erreur serveur': ['Serverfehler', 'Errore del server', 'Server error'],
+  'Liste des personnes invalide': ['Ungültige Personenliste', 'Elenco delle persone non valido', 'Invalid list of people'],
   'Exclusions invalides': ['Ungültige Ausschlüsse', 'Esclusioni non valide', 'Invalid exclusions'],
   'Fais d’abord le tirage des équipes': ['Lose zuerst die Teams aus', 'Fai prima il sorteggio delle squadre', 'Draw the teams first'],
   'Fichier indisponible': ['Datei nicht verfügbar', 'File non disponibile', 'File unavailable'],

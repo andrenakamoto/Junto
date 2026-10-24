@@ -55,7 +55,7 @@ export default {
     questionPlaceholder: 'On se voit quand pour le resto ?',
     dates: 'Dates proposées',
     addDate: 'Ajouter une date',
-    surpriseLabel: 'Sondage surprise',
+    surpriseLabel: 'Cacher à certaines personnes',
     surpriseHint: 'Cacher ce sondage à (ils ne verront ni le sondage, ni ses notifications, ni son chat) :',
     submit: 'Créer le sondage',
   },
@@ -197,6 +197,7 @@ export default {
     kept: 'La conversation sera reprise dans le chat du Plan créé.',
   },
   pollSurprise: 'Sondage surprise, caché à {{names}}.',
+  pollHidden: 'Sondage caché à {{names}}.',
   invite: {
     linkError: 'Impossible de créer le lien',
     planGuestText: 'Salut ! Je t’invite à mon Plan « {{plan}} » sur EvLY 🎉\nClique ici pour le rejoindre :\n{{link}}',

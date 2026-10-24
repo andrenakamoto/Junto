@@ -20,7 +20,7 @@ import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { canSeeMembers, forViewer, managedCircleIds, maskMembers, parseMembersVisibility } from '../lib/memberPrivacy';
-import { getPlanAccess, visiblePlansWhere, guestIdsAmong, validateExclusions, planCircleIds } from '../lib/planAccess';
+import { getPlanAccess, visiblePlansWhere, guestIdsAmong, planCircleIds, exclusionsFor, hideReservedList } from '../lib/planAccess';
 import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
@@ -171,7 +171,7 @@ router.get('/', async (req: AuthRequest, res) => {
     const circleIds = new Set(myCircles.map(c => c.circleId));
     const unseen = await unseenDetails(userId, plans.map(p => p.id));
     const managed = await managedCircleIds(userId);
-    res.json(plans.map(p => forViewer(p, userId, managed)).map(({ extraCircles, activities, ...p }) => {
+    res.json(plans.map(p => hideReservedList(forViewer(p, userId, managed), userId)).map(({ extraCircles, activities, ...p }) => {
       const u = unseen.get(p.id);
       // Plan pour plusieurs Cercles : affiché sous le Cercle de la personne, avec la liste des Cercles réunis
       const all = [p.circle, ...extraCircles.map(e => e.circle)];
@@ -209,7 +209,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
   const showMembers = await canSeeMembers(plan, req.userId!);
   const polled = anonymizePlanPolls(withGuests, req.userId!);
   res.json({
-    ...(showMembers ? polled : maskMembers(polled, req.userId!)),
+    ...hideReservedList(showMembers ? polled : maskMembers(polled, req.userId!), req.userId!),
     // Photos et fichiers : le créateur et les organisateurs en ajoutent même si la fonction est décochée (affiche)
     canManageFiles: plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId),
     // Plan pour plusieurs Cercles : noms des Cercles réunis (jamais montrés à un invité externe)
@@ -444,13 +444,17 @@ router.put('/:id', async (req: AuthRequest, res) => {
       }
     }
 
-    // Plan surprise : `excludedUserIds` absent = liste inchangée
+    // Cacher à… / Réservé à… (lib/planAccess.ts) : rien d'envoyé = inchangé. Une ancienne app n'envoie que
+    // `excludedUserIds` : le mode du Plan est alors gardé.
     let exclusions: string[] | null = null;
-    if (isCreator && req.body.excludedUserIds !== undefined) {
-      const v = await validateExclusions(await planCircleIds(plan), plan.creatorId, req.body.excludedUserIds);
+    let visibility: 'hidden' | 'reserved' = plan.visibility === 'reserved' ? 'reserved' : 'hidden';
+    if (isCreator && (req.body.excludedUserIds !== undefined || req.body.allowedUserIds !== undefined || req.body.visibility !== undefined)) {
+      const v = await exclusionsFor(await planCircleIds(plan), plan.creatorId, { visibility: req.body.visibility ?? plan.visibility, allowedUserIds: req.body.allowedUserIds, excludedUserIds: req.body.excludedUserIds });
       if ('error' in v) { res.status(400).json({ error: v.error }); return; }
       exclusions = v.ids;
+      visibility = v.visibility;
     }
+    const surprise = visibility === 'hidden' && (isCreator && typeof req.body.surprise === 'boolean' ? req.body.surprise : plan.surprise);
 
     // Paramètres avancés (créateur seul) : absents = inchangés
     const settings = isCreator ? req.body : {};
@@ -492,7 +496,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil,
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil, visibility, surprise,
         // Fin repoussée : la notification « supprimé dans 4 heures » pourra repartir (lib/planLifecycle.ts)
         ...(!sameMinute(plan.endDate, newEndDate) && { deletionNoticeSentAt: null }) },
     });
@@ -531,7 +535,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const updated = await prisma.plan.findUnique({ where: { id: planId }, include: planInclude });
     const polled = anonymizePlanPolls(updated && await withGuestFlags(updated), req.userId!);
     res.json({
-      ...(updated && !(await canSeeMembers(updated, req.userId!)) ? maskMembers(polled, req.userId!) : polled),
+      ...hideReservedList(updated && !(await canSeeMembers(updated, req.userId!)) ? maskMembers(polled, req.userId!) : polled, req.userId!),
       mediaToken: mintMediaToken(planId, req.userId!),
     });
   } catch {
@@ -601,7 +605,7 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     },
   });
   const joined = anonymizePlanPolls(updatedPlan, req.userId!);
-  res.json(updatedPlan && !(await canSeeMembers(updatedPlan, req.userId!)) ? maskMembers(joined, req.userId!) : joined);
+  res.json(hideReservedList(updatedPlan && !(await canSeeMembers(updatedPlan, req.userId!)) ? maskMembers(joined, req.userId!) : joined, req.userId!));
 
   // Les participants sont prévenus de chaque arrivée (dans l'app + push)
   notifyMembershipChange(req.app.get('io'), req.params.id, { id: req.userId!, pseudo: req.pseudo! }, 'join')
@@ -965,7 +969,7 @@ router.post('/:id/vote-delete', async (req: AuthRequest, res) => {
     },
   });
   const polledFull = anonymizePlanPolls(full, userId);
-  res.json({ deleted: false, plan: full && !(await canSeeMembers(full, userId)) ? maskMembers(polledFull, userId) : polledFull });
+  res.json({ deleted: false, plan: hideReservedList(full && !(await canSeeMembers(full, userId)) ? maskMembers(polledFull, userId) : polledFull, userId) });
 });
 
 // ─── Dépenses ──────────────────────────────────────────────────────────────

@@ -129,6 +129,6 @@ const settings: Dict['settings'] = {
   featuresHint: 'Info and Members are always on. Unticking hides a feature without deleting its data.',
   enabled_one: '· {{count}} on',
   enabled_other: '· {{count}} on',
-  potSurprise: '🎁 For a surprise, remember to hide this Plan from the person being celebrated (“Surprise Plan”).',
+  potSurprise: '🎁 For a surprise, remember to hide this Plan from the person being celebrated (“Who sees this Plan?” › “Hide from…”, “It’s a surprise”).',
 };
 export default settings;

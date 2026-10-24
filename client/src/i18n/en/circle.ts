@@ -56,7 +56,7 @@ const circle: Dict['circle'] = {
     questionPlaceholder: 'When shall we go out for dinner?',
     dates: 'Suggested dates',
     addDate: 'Add a date',
-    surpriseLabel: 'Surprise poll',
+    surpriseLabel: 'Hide from some people',
     surpriseHint: 'Hide this poll from (they won’t see the poll, its notifications or its chat):',
     submit: 'Create the poll',
   },
@@ -198,6 +198,7 @@ const circle: Dict['circle'] = {
     kept: 'The conversation will carry over to the chat of the created Plan.',
   },
   pollSurprise: 'Surprise poll, hidden from {{names}}.',
+  pollHidden: 'Poll hidden from {{names}}.',
   invite: {
     linkError: 'Couldn’t create the link',
     planGuestText: 'Hi! I’m inviting you to my Plan “{{plan}}” on EvLY 🎉\nClick here to join:\n{{link}}',

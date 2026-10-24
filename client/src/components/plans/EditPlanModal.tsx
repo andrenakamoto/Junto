@@ -12,12 +12,12 @@ import { recurrenceLabel } from '../../lib/recurrence';
 import { Lock, Puzzle, Repeat, Users } from 'lucide-react';
 import { RecurrenceField, untilToISO, isoToDateInput } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
-import { SurpriseSelector } from './SurpriseSelector';
+import { VisibilityField, visibilityOf, visibilityPayload, visibilityCount } from './VisibilityField';
 import { t } from '../../i18n';
 
 interface Props {
   plan: Plan;
-  /** Membres du Cercle, pour choisir à qui cacher un Plan surprise */
+  /** Membres du Cercle, pour choisir à qui cacher le Plan (ou à qui le réserver) */
   circleMembers?: CircleMember[];
   onClose: () => void;
   onUpdated: (plan: Plan) => void;
@@ -26,7 +26,8 @@ interface Props {
 }
 
 export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, isCreator = true }: Props) {
-  const [excludedUserIds, setExcludedUserIds] = useState<string[]>((plan.exclusions ?? []).map(e => e.userId));
+  const [vis, setVis] = useState(() => visibilityOf(plan, circleMembers));
+  const excludedUserIds = vis.mode === 'hidden' ? vis.excluded : vis.mode === 'reserved' ? circleMembers.map(m => m.userId).filter(id => id !== plan.creatorId && !vis.allowed.includes(id)) : [];
   const [title, setTitle] = useState(plan.title);
   const [description, setDescription] = useState(plan.description);
   const [eventDate, setEventDate] = useState(isoToLocal(plan.eventDate));
@@ -70,7 +71,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         eventDate: eventDate ? localToISO(eventDate) : null,
         endDate: localToISO(endDate),
         maxParticipants: maxParticipants || null,
-        excludedUserIds,
+        ...visibilityPayload(vis),
         deletionMode,
         disabledFeatures,
         enabledFeatures,
@@ -151,8 +152,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                 onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
               />
             </OptionRow>
-            <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0}
-              summary={participantsSummary(maxParticipants, excludedUserIds.length)}>
+            <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all'}
+              summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1, visibilityCount(vis).reserved)}>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.maxParticipants')}</label>
                 <input
@@ -164,12 +165,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
                 />
               </div>
-              <SurpriseSelector
-                members={circleMembers}
-                currentUserId={plan.creatorId}
-                value={excludedUserIds}
-                onChange={setExcludedUserIds}
-              />
+              <VisibilityField members={circleMembers} currentUserId={plan.creatorId} value={vis} onChange={setVis} />
               {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
                 <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>
               )}

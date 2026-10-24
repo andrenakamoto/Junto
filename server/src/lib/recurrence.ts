@@ -117,6 +117,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
     extraCircleIds,
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode, membersVisibility: plan.membersVisibility, allowCirclePlans: plan.allowCirclePlans,
+    visibility: plan.visibility, surprise: plan.surprise,
   });
   if ('error' in result) { console.error('[recurrence]', plan.id, result.error); return end(); }
   const next = result.plan;

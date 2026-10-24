@@ -282,7 +282,7 @@ export default {
     currency: 'Devise',
     payInfo: 'Comment te payer ?',
     payInfoPlaceholder: 'Twint au 079 …, ou en espèces à la prochaine répétition',
-    settingsHint: 'Visible par tous les membres du Plan. Pour une surprise, cache le Plan à la personne fêtée (« Plan surprise »).',
+    settingsHint: 'Visible par tous les membres du Plan. Pour une surprise, cache le Plan à la personne fêtée (« Qui voit ce Plan ? » › « Cacher à… », « C’est une surprise »).',
     pledges: 'Participations · reçu {{received}} sur {{total}}',
     saysPaid: 'dit avoir payé',
     received: 'Reçu',

@@ -14,7 +14,7 @@ import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
-import { plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
+import { exclusionsFor, hideReservedList, hideReservedPlans, plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
@@ -230,6 +230,7 @@ async function acceptJoinRequest(app: any, request: { id: string; userId: string
     prisma.circleJoinRequest.delete({ where: { id: request.id } }),
     prisma.circleMember.create({ data: { userId: request.userId, circleId } }),
   ]);
+  await hideReservedPlans(request.userId, circleId);
   joinCircleRoom(app.get('io'), request.userId, circleId);
 
   const updatedCircle = await prisma.circle.findUnique({ where: { id: circleId }, include: circleInclude });
@@ -403,6 +404,7 @@ router.post('/join', joinLimiter, async (req: AuthRequest, res) => {
     // Entrée libre : le nom + le code suffisent
     await prisma.circleJoinRequest.deleteMany({ where: { circleId: circle.id, userId: req.userId! } });
     await prisma.circleMember.create({ data: { userId: req.userId!, circleId: circle.id } });
+    await hideReservedPlans(req.userId!, circle.id);
     joinCircleRoom(req.app.get('io'), req.userId!, circle.id);
     const joined = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
     res.json({ pending: false, circle: joined, circleName: circle.name });
@@ -573,6 +575,7 @@ router.post('/invitations/:inviteId/accept', async (req: AuthRequest, res) => {
   if (!already && direct) {
     await prisma.circleJoinRequest.deleteMany({ where: { circleId: circle.id, userId: req.userId! } });
     await prisma.circleMember.create({ data: { userId: req.userId!, circleId: circle.id } });
+    await hideReservedPlans(req.userId!, circle.id);
     joinCircleRoom(io, req.userId!, circle.id);
   }
   if (already || direct) {
@@ -723,7 +726,7 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
   const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
   const managed = await managedCircleIds(req.userId!);
   // Le Plan le plus récemment modifié en premier (création, chat, infos, réponses…)
-  res.json(plans.map(p => forViewer(p, req.userId!, managed))
+  res.json(plans.map(p => hideReservedList(forViewer(p, req.userId!, managed), req.userId!))
     .map(({ activities, extraCircles, circle, ...p }) => ({ ...p, circles: extraCircles.length ? [circle, ...extraCircles.map(e => e.circle)] : undefined, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
     .sort(compareByActivity));
 });
@@ -755,6 +758,11 @@ interface NewPlanInput {
   location?: string | null;
   maxParticipants?: string | number | null;
   excludedUserIds?: unknown;
+  /** « hidden » (cacher à excludedUserIds) ou « reserved » (seulement allowedUserIds), lib/planAccess.ts */
+  visibility?: unknown;
+  allowedUserIds?: unknown;
+  /** Caché pour une surprise : bandeau « Chut » (vrai par défaut pour les anciennes apps, qui ne l'envoient pas) */
+  surprise?: unknown;
   deletionMode?: unknown;
   disabledFeatures?: unknown;
   enabledFeatures?: unknown;
@@ -826,7 +834,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
     // L'Assemblée réunit les membres d'un seul Cercle (ses votants)
     if ((parseEnabledFeatures(input.enabledFeatures) ?? []).includes('assemblee')) return { error: 'L’Assemblée n’est pas disponible dans un Plan pour plusieurs Cercles' };
   }
-  const excl = await validateExclusions([circleId, ...extra.ids], creatorId, input.excludedUserIds);
+  const excl = await exclusionsFor([circleId, ...extra.ids], creatorId, input);
   if ('error' in excl) return { error: excl.error };
   const exclusions = excl.ids;
   const source = await checkSourcePlan(creatorId, input.sourcePlanId, circleId);
@@ -850,6 +858,8 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       importantInfoMode: parseImportantInfoMode(input.importantInfoMode) ?? 'creator',
       membersVisibility: parseMembersVisibility(input.membersVisibility) ?? 'all',
       allowCirclePlans: parseAllowCirclePlans(input.allowCirclePlans) ?? true,
+      visibility: excl.visibility,
+      surprise: excl.visibility === 'hidden' && (typeof input.surprise === 'boolean' ? input.surprise : true),
       sourcePlanId: source?.sourcePlanId ?? null,
       sourceTitle: source?.sourceTitle ?? null,
       recurrence: repeat.recurrence,
@@ -1192,6 +1202,7 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
         })),
       },
       exclusions: { create: excl.ids.map(userId => ({ userId })) },
+      surprise: excl.ids.length > 0 && req.body.surprise !== false,
     },
     include: circlePollInclude,
   });
@@ -1477,14 +1488,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility,
+    title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility,
     eventDate: option.eventDate?.toISOString() ?? null,
   });
   if ('error' in result) { res.status(400).json({ error: result.error }); return; }

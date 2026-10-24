@@ -124,9 +124,12 @@ const groups: Group[] = [
         </>,
       },
       {
-        id: 'surprise', emoji: '🤫', title: 'Plan et sondage surprise', summary: 'Cacher un Plan à certains membres',
-        body: <P>Coche <strong>« Plan surprise »</strong> et choisis à qui le cacher : pour eux il n'existe pas (ni liste, ni
-          notification, ni email). Les autres voient un bandeau qui rappelle pour qui c'est une surprise.</P>,
+        id: 'surprise', emoji: '🤫', title: 'Qui voit ce Plan (surprise, réservé)', summary: 'Cacher un Plan à certaines personnes, ou le réserver à quelques-unes',
+        body: <P>Dans <strong>Plus d'options › Participants › Qui voit ce Plan ?</strong> : <strong>« Cacher à… »</strong> (pour
+          ces personnes, le Plan n'existe pas : ni liste, ni notification, ni email) ou <strong>« Réservé à… »</strong> (seules
+          les personnes choisies le voient, par exemple le comité d'une association ; celles qui rejoignent le Cercle plus tard
+          ne le voient pas non plus). Pour un anniversaire, coche <strong>« C'est une surprise »</strong> : les autres voient un
+          bandeau « Chut, ne dis rien ! ». Même chose pour les sondages de dates.</P>,
       },
       {
         id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan pour plusieurs Cercles', summary: 'Un même Plan pour plusieurs groupes',
@@ -283,7 +286,7 @@ const groups: Group[] = [
         id: 'cagnotte', emoji: '🐷', title: 'Cagnotte cadeau', summary: 'Un cadeau commun, idées et votes',
         body: <P>Pour qui, objectif, montant proposé, comment payer. Chacun indique sa participation puis « J'ai payé » ;
           l'organisateur coche « Reçu ». Le montant de chacun n'est visible que par l'organisateur. Idées de cadeau avec votes.
-          Aucun argent ne passe par EvLY. Pense à cacher le Plan à la personne fêtée (Plan surprise).</P>,
+          Aucun argent ne passe par EvLY. Pense à cacher le Plan à la personne fêtée (« Cacher à… », « C'est une surprise »).</P>,
       },
       {
         id: 'pere-noel', emoji: '🎅', title: 'Père Noël secret', summary: 'Tirage au sort et cadeaux anonymes',

@@ -56,7 +56,7 @@ const circle: Dict['circle'] = {
     questionPlaceholder: 'Wann gehen wir zusammen essen?',
     dates: 'Vorgeschlagene Termine',
     addDate: 'Termin hinzufügen',
-    surpriseLabel: 'Überraschungsumfrage',
+    surpriseLabel: 'Vor bestimmten Personen verstecken',
     surpriseHint: 'Diese Umfrage verstecken vor (sie sehen weder die Umfrage noch ihre Benachrichtigungen noch ihren Chat):',
     submit: 'Umfrage erstellen',
   },
@@ -198,6 +198,7 @@ const circle: Dict['circle'] = {
     kept: 'Das Gespräch wird in den Chat des erstellten Plans übernommen.',
   },
   pollSurprise: 'Überraschungsumfrage, versteckt vor {{names}}.',
+  pollHidden: 'Umfrage versteckt vor {{names}}.',
   invite: {
     linkError: 'Der Link konnte nicht erstellt werden',
     planGuestText: 'Hallo! Ich lade dich zu meinem Plan «{{plan}}» auf EvLY ein 🎉\nKlick hier, um beizutreten:\n{{link}}',

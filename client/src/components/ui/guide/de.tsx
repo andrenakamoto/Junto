@@ -128,10 +128,12 @@ const groups: Group[] = [
           <strong>«Wiederholung beenden»</strong>.</P>,
       },
       {
-        id: 'surprise', emoji: '🤫', title: 'Überraschungsplan und -umfrage', summary: 'Einen Plan vor bestimmten Mitgliedern verstecken',
-        body: <P>Kreuze <strong>«Überraschungsplan»</strong> an und wähle, vor wem er versteckt wird: Für diese Personen
-          existiert er nicht (weder Liste noch Benachrichtigung noch E-Mail). Die anderen sehen ein Band, das daran
-          erinnert, für wen es eine Überraschung ist.</P>,
+        id: 'surprise', emoji: '🤫', title: 'Wer sieht diesen Plan (Überraschung, reserviert)', summary: 'Einen Plan vor bestimmten Personen verstecken oder nur für einige reservieren',
+        body: <P>Unter <strong>Weitere Optionen › Teilnehmende › Wer sieht diesen Plan?</strong>: <strong>«Verstecken vor…»</strong>
+          (für diese Personen existiert der Plan nicht: weder Liste noch Benachrichtigung noch E-Mail) oder <strong>«Nur für…»</strong>
+          (nur die gewählten Personen sehen ihn, zum Beispiel der Vorstand eines Vereins; wer später dem Kreis beitritt, sieht ihn
+          auch nicht). Für einen Geburtstag kreuze <strong>«Es ist eine Überraschung»</strong> an: Die anderen sehen ein Banner
+          «Pssst, nichts verraten!». Dasselbe gilt für Terminumfragen.</P>,
       },
       {
         id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan für mehrere Kreise', summary: 'Ein Plan für mehrere Gruppen',
@@ -291,7 +293,7 @@ const groups: Group[] = [
         body: <P>Für wen, Ziel, vorgeschlagener Betrag, Zahlungsweise. Alle geben ihren Beitrag an und dann «Ich habe
           bezahlt»; der Organisator hakt «Erhalten» ab. Den Betrag jeder Person sieht nur der Organisator. Geschenkideen mit
           Abstimmung. Kein Geld läuft über EvLY. Denk daran, den Plan vor der gefeierten Person zu verstecken
-          (Überraschungsplan).</P>,
+          («Verstecken vor…», «Es ist eine Überraschung»).</P>,
       },
       {
         id: 'pere-noel', emoji: '🎅', title: 'Wichteln', summary: 'Auslosung und anonyme Geschenke',

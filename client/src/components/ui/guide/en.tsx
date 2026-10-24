@@ -122,9 +122,12 @@ const groups: Group[] = [
           reset. Polls, matches and wheels carry over without the votes: everyone votes again. Plan menu: <strong>“Cancel this time”</strong> or <strong>“Stop repeating”</strong>.</P>,
       },
       {
-        id: 'surprise', emoji: '🤫', title: 'Surprise Plan and poll', summary: 'Hide a Plan from certain members',
-        body: <P>Tick <strong>“Surprise Plan”</strong> and choose who to hide it from: for them it doesn’t exist (no list,
-          notification or email). Others see a banner reminding them who the surprise is for.</P>,
+        id: 'surprise', emoji: '🤫', title: 'Who sees this Plan (surprise, reserved)', summary: 'Hide a Plan from some people, or reserve it for a few',
+        body: <P>In <strong>More options › Participants › Who sees this Plan?</strong>: <strong>“Hide from…”</strong> (for these
+          people the Plan doesn’t exist: no list, notification or email) or <strong>“Only for…”</strong> (only the people you
+          choose see it, for example an association’s committee; people who join the Circle later don’t see it either). For a
+          birthday, tick <strong>“It’s a surprise”</strong>: others see a “Shh, don’t tell!” banner. The same goes for date
+          polls.</P>,
       },
       {
         id: 'plusieurs-cercles', emoji: '🔗', title: 'Plan for several Circles', summary: 'One Plan for several groups',
@@ -281,7 +284,7 @@ const groups: Group[] = [
         id: 'cagnotte', emoji: '🐷', title: 'Gift pot', summary: 'A shared gift, ideas and votes',
         body: <P>For whom, goal, suggested amount, how to pay. Everyone states their contribution then “I’ve paid”; the
           organiser ticks “Received”. Each person’s amount is only visible to the organiser. Gift ideas with votes. No money
-          goes through EvLY. Remember to hide the Plan from the person being celebrated (Surprise Plan).</P>,
+          goes through EvLY. Remember to hide the Plan from the person being celebrated (“Hide from…”, “It’s a surprise”).</P>,
       },
       {
         id: 'pere-noel', emoji: '🎅', title: 'Secret Santa', summary: 'Random draw and anonymous gifts',

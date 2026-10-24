@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, CalendarPlus, Check, ChevronLeft, Flag, Gift, Hourglass, MessageSquare, Plus, SmilePlus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
+import { Calendar, CalendarPlus, Check, ChevronLeft, EyeOff, Flag, Gift, Hourglass, MessageSquare, Plus, SmilePlus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
 import { DateTimeField } from '../ui/DateTimeField';
 import { formatOptionLabel, localDateTimeToISO } from './CreateCirclePollModal';
 import { Circle, CirclePoll, CirclePollMessage, CirclePollOption, Plan } from '../../types';
@@ -192,8 +192,8 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
         </div>
         {exclusions.length > 0 && (
           <div className="mt-3 flex items-start gap-2 text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
-            <Gift size={14} className="flex-shrink-0 mt-px" />
-            <span>{t('circle.pollSurprise', { names: exclusions.map(e => `@${e.user.pseudo}`).join(', ') })}</span>
+            {poll.surprise !== false ? <Gift size={14} className="flex-shrink-0 mt-px" /> : <EyeOff size={14} className="flex-shrink-0 mt-px" />}
+            <span>{t(poll.surprise !== false ? 'circle.pollSurprise' : 'circle.pollHidden', { names: exclusions.map(e => `@${e.user.pseudo}`).join(', ') })}</span>
           </div>
         )}
       </div>
@@ -360,6 +360,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
             suggestedTitle: poll.question,
             suggestedEventDateISO: convertOption.eventDate,
             excludedUserIds: exclusions.map(e => e.userId),
+            surprise: poll.surprise !== false,
           }}
           onClose={() => setConvertOption(null)}
           onCreated={plan => { setConvertOption(null); onPlanCreated(plan); }}

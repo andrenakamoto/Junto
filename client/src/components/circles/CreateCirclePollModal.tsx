@@ -34,6 +34,7 @@ interface Props {
 export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, onCreated }: Props) {
   const { user } = useAuth();
   const [excludedUserIds, setExcludedUserIds] = useState<string[]>([]);
+  const [surprise, setSurprise] = useState(false);
   const [question, setQuestion] = useState('');
   const [dates, setDates] = useState(['', '']);
   const [creating, setCreating] = useState(false);
@@ -48,7 +49,7 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
     setError('');
     try {
       const options = validDates.map(d => ({ label: formatOptionLabel(d), eventDate: localDateTimeToISO(d) }));
-      const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds });
+      const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds, surprise });
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
@@ -102,6 +103,8 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
             onChange={setExcludedUserIds}
             label={t('circle.createPoll.surpriseLabel')}
             hint={t('circle.createPoll.surpriseHint')}
+            surprise={surprise}
+            onSurprise={setSurprise}
           />
         )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

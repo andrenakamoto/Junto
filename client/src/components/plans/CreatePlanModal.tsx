@@ -14,7 +14,7 @@ import { DESCRIPTION_MAX, IMPORTANT_INFO_MAX, RichTextArea, stripFormatting, vis
 import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
-import { SurpriseSelector } from './SurpriseSelector';
+import { VisibilityField, emptyVisibility, visibilityPayload, visibilityCount } from './VisibilityField';
 import { t } from '../../i18n';
 
 interface Props {
@@ -26,7 +26,7 @@ interface Props {
   /** Plan pour plusieurs Cercles : les autres Cercles dont la personne est créatrice ou organisatrice */
   otherCircles?: Circle[];
   /** Si le Plan est créé à partir d'une option gagnante d'un sondage de Cercle */
-  fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[] };
+  fromPoll?: { pollId: string; optionId: string; suggestedTitle?: string; suggestedEventDateISO?: string | null; excludedUserIds?: string[]; surprise?: boolean };
   /** Titre proposé (« Faire un Plan » depuis un message de la discussion du Cercle) */
   suggestedTitle?: string;
   /** « Y aller avec un Cercle » : Plan pré-rempli d'après un événement en Mode annonce */
@@ -38,7 +38,8 @@ interface Props {
 
 export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability }: Props) {
   const { user } = useAuth();
-  const [excludedUserIds, setExcludedUserIds] = useState<string[]>(fromPoll?.excludedUserIds ?? []);
+  // Qui voit ce Plan : un sondage caché garde les mêmes personnes (et sa surprise)
+  const [vis, setVis] = useState(emptyVisibility(fromPoll?.excludedUserIds ?? [], fromPoll?.surprise !== false));
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : ''));
   const [description, setDescription] = useState(fromEvent?.url ? t('plan.goWith.moreInfo', { url: fromEvent.url }) : '');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || '');
@@ -58,7 +59,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const [multi, setMulti] = useState(false);
   const [extraCircleIds, setExtraCircleIds] = useState<string[]>([]);
   const chosenExtra = multi ? extraCircleIds : [];
-  // Plan surprise : on peut cacher le Plan à des membres de tous les Cercles choisis
+  // Cacher à… / Réservé à… : parmi les membres de tous les Cercles choisis
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
   const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>('all');
@@ -90,7 +91,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       endDate: endDate ? localToISO(endDate) : null,
       location: location || null,
       maxParticipants: maxParticipants || null,
-      excludedUserIds,
+      ...visibilityPayload(vis),
       deletionMode,
       disabledFeatures,
       enabledFeatures,
@@ -153,8 +154,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               />
             </OptionRow>
           )}
-          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || excludedUserIds.length > 0 || chosenExtra.length > 0}
-            summary={participantsSummary(maxParticipants, excludedUserIds.length, 1 + chosenExtra.length)}>
+          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0}
+            summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1 + chosenExtra.length, visibilityCount(vis).reserved)}>
             {!fromPoll && !fromEvent && otherCircles.length > 0 && (
               <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -187,12 +188,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
               placeholder={t('plan.form.maxPlaceholder')}
             />
             {user && (
-              <SurpriseSelector
-                members={surpriseMembers}
-                currentUserId={user.id}
-                value={excludedUserIds}
-                onChange={setExcludedUserIds}
-              />
+              <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
             )}
           </OptionRow>
           <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility) || !allowCirclePlans}

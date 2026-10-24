@@ -283,7 +283,7 @@ const games: Dict['games'] = {
     currency: 'Valuta',
     payInfo: 'Come pagarti?',
     payInfoPlaceholder: 'Twint al 079 …, o in contanti alla prossima prova',
-    settingsHint: 'Visibile a tutti i membri del Plan. Per una sorpresa, nascondi il Plan alla persona festeggiata («Plan a sorpresa»).',
+    settingsHint: 'Visibile a tutti i membri del Plan. Per una sorpresa, nascondi il Plan alla persona festeggiata («Chi vede questo Plan?» › «Nascondi a…», «È una sorpresa»).',
     pledges: 'Quote · ricevuto {{received}} su {{total}}',
     saysPaid: 'dice di aver pagato',
     received: 'Ricevuto',

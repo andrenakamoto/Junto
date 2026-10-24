@@ -129,6 +129,6 @@ const settings: Dict['settings'] = {
   featuresHint: 'Info e Membri sono sempre attivi. Togliere la spunta nasconde una funzione senza cancellarne i dati.',
   enabled_one: '· {{count}} attiva',
   enabled_other: '· {{count}} attive',
-  potSurprise: '🎁 Per una sorpresa, ricordati di nascondere questo Plan alla persona festeggiata («Plan a sorpresa»).',
+  potSurprise: '🎁 Per una sorpresa, ricordati di nascondere questo Plan alla persona festeggiata («Chi vede questo Plan?» › «Nascondi a…», «È una sorpresa»).',
 };
 export default settings;

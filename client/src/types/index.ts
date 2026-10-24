@@ -221,8 +221,13 @@ export interface Plan {
   changeLogs?: PlanChangeLog[];
   attachments?: Attachment[];
   _count?: { messages: number };
-  /** Plan surprise : membres du Cercle pour qui le Plan est invisible */
+  /** Membres du Cercle pour qui le Plan est invisible (« Cacher à… », ou tous les non-choisis en « Réservé à… » : liste
+   *  vide pour les autres que le créateur) */
   exclusions?: { userId: string; user: { id: string; pseudo: string } }[];
+  /** « hidden » = caché aux exclusions ; « reserved » = seulement les personnes choisies (lib/planAccess.ts du serveur) */
+  visibility?: 'hidden' | 'reserved';
+  /** Caché pour une surprise : bandeau « Chut » */
+  surprise?: boolean;
   /** Liste « Tous mes plans » : Plan où je suis invité externe (nom du Cercle masqué) */
   isGuest?: boolean;
   /** Détail d'un Plan : l'utilisateur courant y est invité externe */
@@ -372,6 +377,8 @@ export interface CirclePoll {
   options: CirclePollOption[];
   /** Sondage surprise : membres du Cercle à qui il est caché */
   exclusions?: { userId: string; user: { id: string; pseudo: string } }[];
+  /** Caché pour une surprise (bandeau « Chut ») plutôt que simplement réservé */
+  surprise?: boolean;
   /** « Pas disponible » */
   declines?: { userId: string; user: { id: string; pseudo: string } }[];
   _count?: { messages: number };

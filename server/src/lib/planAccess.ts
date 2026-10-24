@@ -95,3 +95,55 @@ export async function validateExclusions(
   if (members.length !== ids.length) return { error: 'On ne peut exclure que des membres du Cercle' };
   return { ids };
 }
+
+// ─── « Cacher à… » / « Réservé à… » (2026-10-24) ──────────────────────────────────────────────────────────────
+// Les deux modes reposent sur les mêmes exclusions (PlanExclusion), donc sur toutes les règles d'accès ci-dessus.
+// « Réservé à… » : l'app envoie les personnes autorisées, le serveur exclut tous les autres membres du ou des
+// Cercles, et chaque personne qui rejoint un de ces Cercles ensuite (hideReservedPlans).
+export type PlanVisibility = 'hidden' | 'reserved';
+export const parseVisibility = (v: unknown): PlanVisibility | undefined => (v === 'hidden' || v === 'reserved' ? v : undefined);
+
+export async function reservedExclusions(
+  circleIds: string[],
+  creatorId: string,
+  raw: unknown,
+): Promise<{ ids: string[] } | { error: string }> {
+  if (!Array.isArray(raw) || raw.some(x => typeof x !== 'string')) return { error: 'Liste des personnes invalide' };
+  const allowed = new Set(raw as string[]);
+  const members = await prisma.circleMember.findMany({
+    where: { circleId: { in: circleIds } },
+    select: { userId: true }, distinct: ['userId'],
+  });
+  return { ids: members.map(m => m.userId).filter(id => id !== creatorId && !allowed.has(id)) };
+}
+
+// Exclusions selon le mode choisi (création et modification d'un Plan)
+export async function exclusionsFor(
+  circleIds: string[],
+  creatorId: string,
+  input: { visibility?: unknown; allowedUserIds?: unknown; excludedUserIds?: unknown },
+): Promise<{ ids: string[]; visibility: PlanVisibility } | { error: string }> {
+  const visibility = parseVisibility(input.visibility) ?? 'hidden';
+  const r = visibility === 'reserved'
+    ? (input.allowedUserIds !== undefined ? await reservedExclusions(circleIds, creatorId, input.allowedUserIds) : await validateExclusions(circleIds, creatorId, input.excludedUserIds))
+    : await validateExclusions(circleIds, creatorId, input.excludedUserIds);
+  return 'error' in r ? r : { ids: r.ids, visibility };
+}
+
+// Une personne qui rejoint un Cercle ne voit pas ses Plans « Réservé à… » (sauf si elle y participe déjà, comme invitée)
+export async function hideReservedPlans(userId: string, circleId: string) {
+  const plans = await prisma.plan.findMany({
+    where: {
+      visibility: 'reserved', creatorId: { not: userId }, endDate: { gt: new Date(Date.now() - 2 * 24 * 3600e3) },
+      OR: [{ circleId }, { extraCircles: { some: { circleId } } }],
+      members: { none: { userId } },
+    },
+    select: { id: true },
+  });
+  if (plans.length) await prisma.planExclusion.createMany({ data: plans.map(p => ({ planId: p.id, userId })), skipDuplicates: true });
+}
+
+// « Réservé à… » : la liste des personnes exclues (souvent tout le Cercle) n'est envoyée qu'au créateur du Plan
+export function hideReservedList<T extends { visibility?: string | null; creatorId: string; exclusions?: unknown }>(plan: T, viewerId: string): T {
+  return plan && plan.visibility === 'reserved' && plan.creatorId !== viewerId && Array.isArray(plan.exclusions) ? { ...plan, exclusions: [] } : plan;
+}
