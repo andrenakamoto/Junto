@@ -14,6 +14,7 @@ import { withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
+import { countPlanKind, parsePlanKind } from '../lib/planKinds';
 import { exclusionsFor, hideReservedList, hideReservedPlans, plansOfCircleWhere, validateExclusions } from '../lib/planAccess';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
@@ -779,6 +780,8 @@ interface NewPlanInput {
   filesMode?: unknown;
   /** Qui invite des personnes extérieures : « all », « managers » ou « none » (lib/planInvites.ts) */
   guestInviteMode?: unknown;
+  /** Type choisi à la création (« Plan spécifique », lib/planKinds.ts) */
+  kind?: unknown;
   /** Mode annonce : les membres peuvent y aller avec un de leurs Cercles (lib/planSource.ts) */
   allowCirclePlans?: unknown;
   /** « Y aller avec un Cercle » : l'événement en Mode annonce d'où vient ce Plan */
@@ -868,6 +871,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       filesMode: parseFilesMode(input.filesMode) ?? 'all',
       // Par défaut : ouvert à tous dans un Cercle en entrée libre, réservé à l'organisation sinon (anciennes apps comprises)
       guestInviteMode,
+      kind: parsePlanKind(input.kind),
       allowCirclePlans: parseAllowCirclePlans(input.allowCirclePlans) ?? true,
       visibility: excl.visibility,
       surprise: excl.visibility === 'hidden' && (typeof input.surprise === 'boolean' ? input.surprise : true),
@@ -888,6 +892,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       _count: { select: { messages: true } },
     },
   });
+  countPlanKind(parsePlanKind(input.kind));
 
   // Les sockets des membres des autres Cercles rechargent aussi leur liste
   const io = app.get('io');

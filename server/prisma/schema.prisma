@@ -363,6 +363,9 @@ model Plan {
   filesMode            String    @default("all")
   // Qui invite des personnes extérieures (lien /invitation) : « all », « managers » (créateur et organisateurs) ou « none »
   guestInviteMode      String    @default("all")
+  // Type choisi à la création (« Plan spécifique » : surprise, pere_noel, assemblee, organisation, annonce, cours, jeux, voyage) ;
+  // null = Plan standard. Pré-règle seulement la création (tout reste modifiable), sert aux statistiques (lib/planKinds.ts)
+  kind                 String?
   // Plan caché à certaines personnes pour leur faire une surprise : bandeau « Chut » (vrai pour les Plans d'avant le 2026-10-24)
   surprise             Boolean   @default(true)
   // Plan créé avec « Y aller avec un Cercle » : l'événement d'origine (SetNull s'il est supprimé) et

@@ -3,6 +3,7 @@ import { storageStats } from '../lib/storageStats';
 import { circleMessageInclude } from '../lib/circleChat';
 import { deletePhoto } from '../lib/photos';
 import prisma from '../lib/prisma';
+import { PLAN_KINDS, PLAN_KIND_LABELS } from '../lib/planKinds';
 import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
 import { requireAuth, AuthRequest } from '../middleware/auth';
@@ -147,6 +148,25 @@ router.get('/funnel', async (_req, res) => {
     const mine = rows.filter(r => r.page === s.page);
     const sum = (from?: Date) => mine.filter(r => !from || r.day >= from).reduce((n, r) => n + r.count, 0);
     return { page: s.page, label: s.label, last7: sum(since7), last30: sum(since30), total: sum() };
+  }));
+});
+
+// GET /admin/plan-kinds — Plans créés par type (« Plan standard » ou « Plan spécifique ») : 30 jours, total, en cours
+router.get('/plan-kinds', async (_req, res) => {
+  const since30 = new Date(visitDay().getTime() - 29 * 864e5);
+  const keys = ['standard', ...PLAN_KINDS] as const;
+  const [rows, active] = await Promise.all([
+    prisma.pageVisit.findMany({ where: { page: { in: keys.map(k => `plankind_${k}`) } } }),
+    prisma.plan.groupBy({ by: ['kind'], where: { endDate: { gt: new Date() } }, _count: { _all: true } }),
+  ]);
+  res.json(keys.map(k => {
+    const mine = rows.filter(r => r.page === `plankind_${k}`);
+    return {
+      kind: k, label: PLAN_KIND_LABELS[k],
+      last30: mine.filter(r => r.day >= since30).reduce((n, r) => n + r.count, 0),
+      total: mine.reduce((n, r) => n + r.count, 0),
+      active: active.find(a => (a.kind ?? 'standard') === k)?._count._all ?? 0,
+    };
   }));
 });
 

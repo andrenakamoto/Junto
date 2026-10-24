@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { zurichEndOfDay } from '../lib/planKinds';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
@@ -21,7 +22,7 @@ const person = { select: { id: true, pseudo: true, firstName: true } } as const;
 async function load(req: AuthRequest, res: any) {
   const access = await getPlanAccess(req.userId!, req.params.id);
   if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return null; }
-  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, circleId: true, creatorId: true, eventDate: true, endDate: true, enabledFeatures: true } });
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, circleId: true, creatorId: true, eventDate: true, endDate: true, enabledFeatures: true, kind: true } });
   if (!plan || !santaEnabled(plan)) { res.status(403).json({ error: SANTA_DISABLED_ERROR }); return null; }
   const santa = await prisma.secretSanta.upsert({ where: { planId: plan.id }, create: { planId: plan.id }, update: {} });
   return { plan, santa, access };
@@ -34,7 +35,9 @@ async function requireManager(req: AuthRequest, res: any, plan: { creatorId: str
 }
 
 // La révélation n'est possible qu'à partir du jour de l'échange (date du Plan)
-const canRevealNow = (eventDate: Date | null) => !!eventDate && Date.now() >= eventDate.getTime();
+// Plan « Père Noël secret » (type) : dates par défaut du 24 au 31 décembre, l'échange peut avoir lieu avant ; la révélation
+// est donc possible dès le tirage, et elle termine le Plan le soir même (voir /reveal)
+const canRevealNow = (plan: { eventDate: Date | null; kind?: string | null }) => plan.kind === 'pere_noel' || (!!plan.eventDate && Date.now() >= plan.eventDate.getTime());
 
 // 'wish' : envies notées ; 'none' : « pas d'envie particulière » ; 'pending' : pas encore répondu
 const wishStatus = (w?: { text: string; noWish: boolean }) => (w?.text.trim() ? 'wish' : w?.noWish ? 'none' : 'pending');
@@ -63,7 +66,9 @@ router.get('/:id/santa', async (req: AuthRequest, res) => {
     drawn: !!santa.drawnAt,
     revealed: !!santa.revealedAt,
     canManage: manager,
-    canReveal: !!santa.drawnAt && !santa.revealedAt && canRevealNow(plan.eventDate),
+    canReveal: !!santa.drawnAt && !santa.revealedAt && canRevealNow(plan),
+    // Plan spécifique « Père Noël secret » : révélation dès que l'échange a eu lieu, elle termine le Plan le soir même
+    revealEndsPlan: plan.kind === 'pere_noel',
     eventDate: plan.eventDate,
     endDate: plan.endDate,
     // Liste d'envies : facultative, mais chacun répond (envies notées, ou « pas d'envie particulière »)
@@ -208,8 +213,19 @@ router.post('/:id/santa/reveal', async (req: AuthRequest, res) => {
   const ctx = await load(req, res); if (!ctx) return;
   if (!(await requireManager(req, res, ctx.plan))) return;
   if (!ctx.santa.drawnAt || ctx.santa.revealedAt) { res.status(400).json({ error: 'Rien à révéler' }); return; }
-  if (!canRevealNow(ctx.plan.eventDate)) { res.status(400).json({ error: 'La révélation est possible à partir du jour de l’échange' }); return; }
+  if (!canRevealNow(ctx.plan)) { res.status(400).json({ error: 'La révélation est possible à partir du jour de l’échange' }); return; }
   await prisma.secretSanta.update({ where: { planId: ctx.plan.id }, data: { revealedAt: new Date() } });
+  // Type « Père Noël secret » : l'échange a eu lieu, le Plan se termine le soir même (puis 24 h de lecture seule)
+  if (ctx.plan.kind === 'pere_noel') {
+    const now = new Date(), end = zurichEndOfDay(now);
+    if (end < ctx.plan.endDate) {
+      const start = ctx.plan.eventDate && ctx.plan.eventDate > now ? now : ctx.plan.eventDate;
+      await prisma.$transaction([
+        prisma.plan.update({ where: { id: ctx.plan.id }, data: { endDate: end, eventDate: start, deletionNoticeSentAt: null } }),
+        prisma.planChangeLog.create({ data: { planId: ctx.plan.id, field: 'endDate', oldValue: ctx.plan.endDate.toISOString(), newValue: end.toISOString(), changedById: req.userId! } }),
+      ]);
+    }
+  }
   res.json({ ok: true });
   const io = req.app.get('io');
   for (const p of await santaParticipants(ctx.plan.id)) {
