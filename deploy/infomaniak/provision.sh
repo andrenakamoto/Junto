@@ -69,6 +69,8 @@ sed -i -e 's/^\s*# gzip_vary on;/\tgzip_vary on;/' -e 's/^\s*# gzip_proxied any;
   -e 's/^\s*# gzip_comp_level 6;/\tgzip_comp_level 6;/' \
   -e 's|^\s*# gzip_types .*|\tgzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml application/manifest+json;|' \
   /etc/nginx/nginx.conf
+# Version de nginx masquée, plus de TLS 1.0 / 1.1 (2026-10-24)
+sed -i -e 's/^\s*# server_tokens off;/\tserver_tokens off;/' -e 's/^\s*ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;/\tssl_protocols TLSv1.2 TLSv1.3;/' /etc/nginx/nginx.conf
 install -m 755 "$SRC/backup.sh" /usr/local/bin/evly-backup
 install -m 755 "$SRC/offsite.sh" /usr/local/bin/evly-offsite
 # Sauvegarde locale à 3 h 15, copie vers Swiss Backup à 3 h 45 (si /etc/evly/backup.env existe)
