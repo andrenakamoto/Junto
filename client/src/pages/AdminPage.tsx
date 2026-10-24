@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -36,6 +36,17 @@ interface Stats {
 
 type Filter = 'pending' | 'approved' | 'rejected' | 'all';
 
+type Section = 'membres' | 'signalements' | 'suggestions' | 'decouvrir' | 'statistiques' | 'stockage';
+
+const SECTIONS: { key: Section; label: string; hint: string; icon: typeof Users }[] = [
+  { key: 'membres',      label: 'Membres',      hint: 'Comptes, admissions, emails, mots de passe',      icon: Users },
+  { key: 'signalements', label: 'Signalements', hint: 'Messages et photos signalés',                      icon: Flag },
+  { key: 'suggestions',  label: 'Suggestions',  hint: 'Idées et problèmes envoyés par les utilisateurs', icon: Lightbulb },
+  { key: 'decouvrir',    label: 'Découvrir',    hint: 'Sources, annonces à valider, saisie',             icon: Compass },
+  { key: 'statistiques', label: 'Statistiques', hint: "Parcours d'inscription, visites, brochures",      icon: BarChart3 },
+  { key: 'stockage',     label: 'Stockage',     hint: 'Base, fichiers, sauvegardes, disque',             icon: HardDrive },
+];
+
 export function AdminPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -51,6 +62,28 @@ export function AdminPage() {
   const [editingPseudoId, setEditingPseudoId] = useState<string | null>(null);
   const [pseudoInput, setPseudoInput] = useState('');
   const [pseudoError, setPseudoError] = useState('');
+  const [params, setParams] = useSearchParams();
+  const section = SECTIONS.find(x => x.key === params.get('s')) ?? null;
+  // Éléments à traiter, affichés sur les boutons de la vue d'ensemble
+  const [todo, setTodo] = useState<Partial<Record<Section, number>>>({});
+
+  function openSection(key: Section | null) {
+    setParams(key ? { s: key } : {});
+    window.scrollTo(0, 0);
+  }
+
+  useEffect(() => {
+    if (section) return;
+    const count = (url: string, params?: object, keep?: (x: any) => boolean) =>
+      api.get(url, { params }).then(r => (keep ? r.data.filter(keep) : r.data).length as number).catch(() => 0);
+    Promise.all([
+      count('/admin/reports'),
+      count('/admin/photo-reports'),
+      count('/admin/suggestions', undefined, s => s.status === 'new'),
+      count('/admin/discover/events', { state: 'pending' }),
+    ]).then(([reports, photos, suggestions, discover]) =>
+      setTodo({ signalements: reports + photos, suggestions, decouvrir: discover }));
+  }, [section]);
 
   async function fetchData() {
     setLoading(true);
@@ -206,6 +239,7 @@ export function AdminPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
+        {!section ? (<>
         <h1 className="text-xl font-bold text-slate-800 mb-4">Vue d'ensemble</h1>
 
         {/* Activity stats */}
@@ -225,18 +259,37 @@ export function AdminPage() {
           sans s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
         </p>
 
-        <StoragePanel />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {SECTIONS.map(({ key, label, hint, icon: Icon }) => {
+            const n = key === 'membres' ? stats.pending : todo[key] ?? 0;
+            return (
+              <button key={key} onClick={() => openSection(key)}
+                className="flex items-center gap-3 text-left bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:border-indigo-300 hover:shadow-md transition-all">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0"><Icon size={18} /></div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-slate-800 flex items-center gap-2">
+                    {label}
+                    {n > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">{n}</span>}
+                  </p>
+                  <p className="text-xs text-slate-500">{hint}</p>
+                </div>
+                <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+        </>) : (<>
+        <button onClick={() => openSection(null)} className="mb-3 flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-700">
+          <ArrowLeft size={14} />Vue d'ensemble
+        </button>
+        <h1 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><section.icon size={20} className="text-indigo-600" />{section.label}</h1>
 
+        {section.key === 'stockage' && <StoragePanel />}
+        {section.key === 'signalements' && <><ReportsPanel /><PhotoReportsPanel /></>}
+        {section.key === 'suggestions' && <SuggestionsPanel />}
+        {section.key === 'decouvrir' && <DiscoverPanel />}
+        {section.key === 'statistiques' && <>
         <FunnelPanel />
-
-        <ReportsPanel />
-
-        <PhotoReportsPanel />
-
-        <SuggestionsPanel />
-
-        <DiscoverPanel />
-
         <PageVisitsPanel
           page="decouvrir"
           title="Page « Découvrir »"
@@ -254,7 +307,9 @@ export function AdminPage() {
           description="Ouvertures du PDF par jour, via evly.ch/brochure-pro et le lien de la page de connexion. Comptage anonyme : ni cookie, ni adresse IP ; robots exclus."
           unit="ouverture"
         />
+        </>}
 
+        {section.key === 'membres' && <>
         {adminUsers.length > 0 && (
           <>
             <h2 className="text-lg font-bold text-slate-800 mb-4">Comptes admin</h2>
@@ -439,6 +494,8 @@ export function AdminPage() {
             })}
           </div>
         )}
+        </>}
+        </>)}
       </div>
     </div>
   );
