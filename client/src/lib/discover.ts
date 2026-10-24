@@ -23,7 +23,21 @@ export const CATEGORY_GROUPS: [string, string[]][] = [
   ['culture', ['expo', 'atelier', 'animation']],
   ['activites', [IDEAS, 'jeux', 'sport', 'famille']],
 ];
-export const KIND_ORDER = ['escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee'];
+// Idées de sorties : types de lieux rangés en groupes de tuiles (le premier qui contient le type l'emporte)
+export const KIND_GROUPS: [string, string[]][] = [
+  ['jeux', ['escape', 'laser', 'bowling', 'karting', 'defi', 'arcade', 'minigolf']],
+  ['sport', ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport']],
+  ['detente', ['bains', 'cave']],
+  ['famille', ['loisirs', 'parc', 'trampoline', 'animaux']],
+  ['culture', ['musee', 'chateau', 'jardin', 'galerie', 'poterie']],
+];
+export const KIND_ORDER = KIND_GROUPS.flatMap(([, kinds]) => kinds);
+export const KIND_EMOJI: Record<string, string> = {
+  escape: '🔐', laser: '🔫', bowling: '🎳', karting: '🏎️', defi: '🎯', arcade: '🕹️', minigolf: '⛳',
+  piscine: '🏊', escalade: '🧗', patinoire: '⛸️', golf: '🏌️', equitation: '🐴', bateau: '🛶', sport: '🏅',
+  bains: '♨️', cave: '🍷', loisirs: '🎢', parc: '🧸', trampoline: '🤸', animaux: '🦁',
+  musee: '🏛️', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
+};
 
 export const catLabel = (c: string) => t(`discover.cats.${c}` as any);
 export const kindLabel = (k: string) => t(`discover.kinds.${k}` as any);

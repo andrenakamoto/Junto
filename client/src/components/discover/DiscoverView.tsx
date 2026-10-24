@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n';
 import {
-  CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, DiscoverRegion, IDEAS, KIND_ORDER, REGIONS,
+  CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, DiscoverRegion, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, REGIONS,
   catLabel, dayChips, dayKey, dayTitle, host, kindLabel, norm, regionLabel, savedRegion, saveRegion, shortDate, timeLabel,
 } from '../../lib/discover';
 import { DiscoverGoModal } from './DiscoverGoModal';
@@ -28,6 +28,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [day, setDay] = useState(ALL);
   const [cat, setCat] = useState(ALL);
   const [q, setQ] = useState('');
+  // Idées de sorties : type de lieu ouvert (null = tuiles) et ville choisie dans ce type
+  const [ideaKind, setIdeaKind] = useState<string | null>(null);
+  const [ideaCity, setIdeaCity] = useState<string | null>(null);
   const [going, setGoing] = useState<DiscoverEvent | null>(null);
   const [reporting, setReporting] = useState<{ target: { eventId: string } | { placeId: string }; title: string } | null>(null);
   const [showPro, setShowPro] = useState(false);
@@ -42,7 +45,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
       .catch(() => setError(true));
   }, [region]);
 
-  function chooseRegion(r: DiscoverRegion) { setRegion(r); saveRegion(r); setCat(ALL); }
+  function chooseRegion(r: DiscoverRegion) { setRegion(r); saveRegion(r); setCat(ALL); setIdeaKind(null); }
+  useEffect(() => { setIdeaKind(null); }, [cat]);
+  useEffect(() => { setIdeaCity(null); }, [ideaKind, region]);
 
   const chips = useMemo(() => dayChips(), [data]);
   const chipKeys = new Set(chips.map(c => c.key));
@@ -65,9 +70,11 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     if (e.multiDay) return day !== LATER && k <= day && dayKey(e.endAt ?? e.startAt) >= day;
     return day === LATER ? !chipKeys.has(k) : k === day;
   });
+  // Recherche : les lieux qui correspondent ; « Idées de sorties » et « En famille » : tuiles par type (IdeasBrowser) ;
+  // « Tout » : un simple bandeau vers les idées
   const ideas = places.filter(p => searching
     ? hit([p.name, p.city, kindLabel(p.kind)].join(' '))
-    : cat === IDEAS || (cat === 'famille' && p.family) || (cat === ALL && day === ALL));
+    : cat === IDEAS || (cat === 'famille' && p.family));
 
   const multi = shown.filter(e => e.multiDay);
   const single = shown.filter(e => !e.multiDay);
@@ -174,7 +181,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                   : [cat !== IDEAS ? t('discover.events', { count: shown.length }) : null, ideas.length ? t('discover.ideas', { count: ideas.length }) : null].filter(Boolean).join(' · ')}
               </p>
               {!searching && !events.length && places.length > 0 && cat === ALL && <p className="text-sm text-slate-600">{t('discover.noEvents')}</p>}
-              {!shown.length && !ideas.length && <p className="text-sm text-slate-500 text-center py-6">{searching ? t('discover.noResult') : t('discover.empty')}</p>}
+              {!shown.length && !ideas.length && !(cat === ALL && !searching && places.length > 0) && <p className="text-sm text-slate-500 text-center py-6">{searching ? t('discover.noResult') : t('discover.empty')}</p>}
 
               {multi.length > 0 && (
                 <section className="space-y-2.5">
@@ -189,7 +196,21 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                 </section>
               ))}
 
-              {ideas.length > 0 && <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />}
+              {!searching && cat === ALL && places.length > 0 && (
+                <button onClick={() => { setCat(IDEAS); setFiltersOpen(false); }}
+                  className="w-full flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-3 text-left shadow-sm hover:border-indigo-300">
+                  <span className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0"><Lightbulb size={18} /></span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold text-slate-900">{t('discover.ideas', { count: places.length })}</span>
+                    <span className="block text-xs text-slate-500">{t('discover.ideasHint')}</span>
+                  </span>
+                  <ChevronRight size={18} className="text-slate-400 flex-shrink-0" />
+                </button>
+              )}
+              {ideas.length > 0 && (searching
+                ? <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />
+                : <IdeasBrowser places={ideas} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
+                    onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />)}
 
               <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
                 <p className="pb-2"><b className="font-semibold text-slate-600">{t('discover.warnTitle')}</b> {t('discover.warnText')}</p>
@@ -268,6 +289,73 @@ function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: Discover
   );
 }
 
+function IdeaCard({ p, onReport }: { p: DiscoverPlace; onReport: (p: DiscoverPlace) => void }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
+      <a href={p.website} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 group">
+        <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
+        <span className="block text-xs text-slate-500 truncate">{[p.city, t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+      </a>
+      <button onClick={() => onReport(p)} className="p-1 text-slate-300 hover:text-slate-500" aria-label={t('discover.report')}><Flag size={12} /></button>
+    </div>
+  );
+}
+
+// Idées de sorties en deux temps : des tuiles par type (avec le nombre de lieux), puis la liste d'un seul type,
+// filtrable par ville dès qu'elle est longue
+function IdeasBrowser({ places, kind, onKind, city, onCity, onReport }: {
+  places: DiscoverPlace[]; kind: string | null; onKind: (k: string | null) => void;
+  city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void;
+}) {
+  const count = (k: string) => places.filter(p => p.kind === k).length;
+  if (!kind || !count(kind)) {
+    return (
+      <section className="space-y-4">
+        {KIND_GROUPS.map(([g, kinds]) => {
+          const avail = kinds.filter(k => count(k) > 0);
+          if (!avail.length) return null;
+          return (
+            <div key={g} className="space-y-2">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t(`discover.kindGroups.${g}` as any)}</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {avail.map(k => (
+                  <button key={k} onClick={() => onKind(k)}
+                    className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-xl px-3 py-3 text-left shadow-sm hover:border-indigo-300 min-w-0">
+                    <span className="text-xl leading-none flex-shrink-0">{KIND_EMOJI[k] ?? '📍'}</span>
+                    <span className="flex-1 min-w-0 text-sm font-semibold text-slate-800 leading-tight">{kindLabel(k)}</span>
+                    <span className="text-xs font-semibold text-slate-400 flex-shrink-0">{count(k)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </section>
+    );
+  }
+  const list = places.filter(p => p.kind === kind).sort((a, b) => a.name.localeCompare(b.name));
+  const cities = [...new Set(list.map(p => p.city).filter((c): c is string => !!c))].sort((a, b) => a.localeCompare(b));
+  const shown = city ? list.filter(p => p.city === city) : list;
+  const pill = (active: boolean) => `px-3 py-1 rounded-full border text-xs font-medium ${active ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700'}`;
+  return (
+    <section className="space-y-3">
+      <button onClick={() => onKind(null)} className="flex items-center gap-1 text-sm font-medium text-indigo-700">
+        <ChevronLeft size={16} />{t('discover.allIdeas')}
+      </button>
+      <h3 className="text-base font-bold text-slate-900">{KIND_EMOJI[kind] ?? '📍'} {kindLabel(kind)} <span className="text-sm font-medium text-slate-400">{list.length}</span></h3>
+      {list.length > 8 && cities.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => onCity(null)} className={pill(!city)}>{t('discover.allCities')}</button>
+          {cities.map(c => <button key={c} onClick={() => onCity(c)} className={pill(city === c)}>{c}</button>)}
+        </div>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {shown.map(p => <IdeaCard key={p.id} p={p} onReport={onReport} />)}
+      </div>
+    </section>
+  );
+}
+
 function IdeasSection({ places, onReport }: { places: DiscoverPlace[]; onReport: (p: DiscoverPlace) => void }) {
   const kinds = [...new Set(places.map(p => p.kind))].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
   return (
@@ -277,15 +365,7 @@ function IdeasSection({ places, onReport }: { places: DiscoverPlace[]; onReport:
         <div key={k} className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">{kindLabel(k)}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {places.filter(p => p.kind === k).map(p => (
-              <div key={p.id} className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
-                <a href={p.website} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 group">
-                  <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-                  <span className="block text-xs text-slate-500 truncate">{[p.city, t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
-                </a>
-                <button onClick={() => onReport(p)} className="p-1 text-slate-300 hover:text-slate-500" aria-label={t('discover.report')}><Flag size={12} /></button>
-              </div>
-            ))}
+            {places.filter(p => p.kind === k).map(p => <IdeaCard key={p.id} p={p} onReport={onReport} />)}
           </div>
         </div>
       ))}
