@@ -198,7 +198,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                   {data.sources.map(s => (
                     <p key={s.id}>
                       {s.attribution ?? s.name}
-                      {s.license && <> · {t('discover.licence')} {s.licenseUrl
+                      {s.license && <> · {t('discover.licence')} {s.licenseUrl && /^https?:\/\//i.test(s.licenseUrl)
                         ? <a href={s.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-700">{s.license}</a>
                         : s.license}</>}
                     </p>

@@ -96,5 +96,5 @@ export async function openAgendaLicense(uid: number): Promise<{ license: string 
   if (!res.ok) throw new Error(`OpenAgenda ${res.status}`);
   const data: any = await res.json();
   const a = data.agenda ?? data;
-  return { license: a.rights?.license?.name ?? null, licenseUrl: a.rights?.license?.url ?? null, publisher: a.rights?.publisher?.name ?? a.title ?? null };
+  return { license: a.rights?.license?.name ?? null, licenseUrl: cleanUrl(a.rights?.license?.url), publisher: a.rights?.publisher?.name ?? a.title ?? null };
 }

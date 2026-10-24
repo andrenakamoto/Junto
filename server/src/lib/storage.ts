@@ -84,14 +84,17 @@ async function cached(file: string, make: () => Promise<Buffer>): Promise<Buffer
 
 // Miniature d'une image (largeur 64–1600 px), même format que l'original (JPEG pour le reste).
 // null si l'image ne peut pas être réduite (format non pris en charge) : on sert alors l'original.
+const THUMB_WIDTHS = [120, 200, 400, 600, 800, 1200, 1600];
+
 export async function thumbnail(att: Stored, width: number): Promise<{ buffer: Buffer; type: string } | null> {
   if (!isLocal(att.url) || att.resourceType !== 'image') return null;
-  const w = Math.min(Math.max(Math.round(width), 64), 1600);
+  // Largeurs fixes (celles que demande l'app) : une largeur au hasard ne crée pas un fichier de plus en cache
+  const w = THUMB_WIDTHS.find(x => x >= width) ?? THUMB_WIDTHS[THUMB_WIDTHS.length - 1];
   const src = absolute(att.url.slice(LOCAL.length));
   const png = att.mimeType === 'image/png';
   try {
     const buffer = await cached(`${src}.w${w}${png ? '.png' : '.jpg'}`, () => {
-      const img = sharp(src, { failOn: 'none' }).rotate().resize({ width: w, withoutEnlargement: true });
+      const img = sharp(src, { failOn: 'none', limitInputPixels: 50_000_000 }).rotate().resize({ width: w, withoutEnlargement: true });
       return (png ? img.png() : img.jpeg({ quality: 80, mozjpeg: true })).toBuffer();
     });
     return { buffer, type: png ? 'image/png' : 'image/jpeg' };

@@ -17,9 +17,10 @@ describe('stockage local des fichiers', async () => {
     expect(s.url).toMatch(/^local:plan_1\/[0-9a-f-]+\.png$/);
     const att = { id: 'a1', ...s, mimeType: 'image/png' };
     expect((await readStored(att)).equals(png)).toBe(true);
-    const thumb = await thumbnail(att, 300);
+    const thumb = await thumbnail(att, 300); // arrondi à la largeur fixe suivante
     expect(thumb?.type).toBe('image/png');
-    expect((await sharp(thumb!.buffer).metadata()).width).toBe(300);
+    expect((await sharp(thumb!.buffer).metadata()).width).toBe(400);
+    await thumbnail(att, 350); // même largeur fixe : pas de nouveau fichier
     expect(fs.readdirSync(path.join(dir, 'plan_1'))).toHaveLength(2); // original + miniature en cache
     await destroyFiles([att]);
     expect(fs.existsSync(path.join(dir, 'plan_1'))).toBe(false);
