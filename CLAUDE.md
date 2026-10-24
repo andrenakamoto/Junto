@@ -1666,9 +1666,21 @@ en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N)
 est en silence, et un menu **⋯** (silence, paramètres, copier le code, supprimer / voter, quitter) ; le code est aussi dans « Inviter ».
 **Ce qui est vide est masqué** : section Sondages seulement s'il y en a ; Discussion en carte seulement avec des messages récents, sinon un
 petit bouton « 💬 Discussion » ; « Qui est dispo ? » en carte seulement si quelqu'un est dispo, sinon une pastille « Je suis dispo »
-(`AvailabilityPanel` `compact`), les deux boutons sur une même ligne. **Un seul bouton « Créer »** en bas : menu Un Plan / Proposer des dates
-/ Je suis dispo (`openSignal` de `AvailabilityPanel`), ou directement l'action s'il n'y a qu'un choix. La discussion reste activée par
+(`AvailabilityPanel` `compact`), les deux boutons sur une même ligne. **Un seul bouton « Créer »** en bas : menu **Plan standard / Plan spécifique / Proposer des dates** (depuis le
+2026-10-24 ; « Je suis dispo » n'y est plus, il reste à côté de la Discussion), ou directement l'action s'il n'y a qu'un choix. La discussion reste activée par
 défaut à la création (choix de l'utilisateur).
+
+**Plans spécifiques** (2026-10-24, `client/src/lib/planKinds.ts`, serveur `lib/planKinds.ts` testé, migration
+`20261030100000_plan_kind`) : « Créer › Plan spécifique » ouvre la liste des types — `surprise`, `pere_noel`, `assemblee` (créateur et
+organisateurs du Cercle seulement), `organisation`, `annonce`, `cours`, `jeux`, `voyage`. `kindPreset` pré-règle `CreatePlanModal`
+(titre, dates, durée proposée, fonctions, règles, répétition, infos importantes, encadré du type) ; **tout reste modifiable**. Surprise :
+« Pour qui ? » (`VisibilityField` en haut, Cacher à… obligatoire) ; Soirée jeux : au moins un jeu (quiz, killer, mot piège, équipes) ;
+Assemblée : textes au vouvoiement, sans Plan pour plusieurs Cercles. Après la création, le Plan s'ouvre sur la rubrique du type
+(`onCreated(plan, tab)` → `handlePlanCreated` → `openTab`). `Plan.kind` (null = standard, recopié par les répétitions) sert aux
+statistiques : compteur anonyme `plankind_<type>` (PageVisit, `countPlanKind`) et Plans en cours, panneau admin « Types de Plans »
+(`PlanKindsPanel`, GET `/admin/plan-kinds`, partie Statistiques). **Père Noël secret de ce type** : dates 24 déc. 12 h → 31 déc. 22 h,
+révélation possible dès le tirage (`canRevealNow`), et elle **termine le Plan le soir même** (`zurichEndOfDay`, historique `endDate`,
+`revealEndsPlan` dans GET /santa). Fiche du guide « Plan standard ou Plan spécifique ».
 
 **Calendrier** (`CalendarView`, refait le 2026-10-23) : un **point par Plan** d'un seul jour (3 au plus, puis « +N ») et un **trait**
 continu pour un Plan sur plusieurs jours (du jour du début au jour de fin ; une fin avant 6 h du matin ne compte pas comme un jour de
