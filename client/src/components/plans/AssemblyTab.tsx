@@ -122,6 +122,9 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
         </div>
       )}
 
+      {/* Présences et procurations (organisateur) : l'organisation de l'assemblée, avant l'ordre du jour */}
+      {s.canManage && <AttendancePanel plan={plan} s={s} onRun={run} />}
+
       {/* Ordre du jour */}
       <div className="flex items-center gap-2 pt-1">
         <h3 className="text-sm font-semibold text-slate-700 flex-1">{t('games.assembly.agenda')}</h3>
@@ -131,9 +134,6 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
       {s.items.map((item, n) => (
         <ItemCard key={item.id} plan={plan} item={item} index={n} s={s} onRun={run} onEdit={() => setEditing(item)} />
       ))}
-
-      {/* Présences et procurations (organisateur) */}
-      {s.canManage && <AttendancePanel plan={plan} s={s} onRun={run} />}
 
       {editing && <ItemModal plan={plan} item={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
       {showSettings && <SettingsModal plan={plan} s={s} onClose={() => setShowSettings(false)} onSaved={() => { setShowSettings(false); load(); }} />}
