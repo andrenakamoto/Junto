@@ -67,6 +67,7 @@ const discover: Dict['discover'] = {
   results_other: "{{count}} results for “{{q}}”",
   warnTitle: "Some information may be wrong or out of date",
   warnText: "(date, time, price, cancellation). Always check the organiser’s website before you go.",
+  checkBefore: "Check the date, time and price on the organiser’s website before you go.",
   status: {
     full: "Sold out",
     cancelled: "Cancelled",

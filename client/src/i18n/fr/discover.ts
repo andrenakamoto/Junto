@@ -66,6 +66,7 @@ const discover = {
   results_other: "{{count}} résultats pour « {{q}} »",
   warnTitle: "Certaines informations peuvent être erronées ou avoir changé",
   warnText: "(date, heure, prix, annulation). Vérifie toujours sur le site de l’organisateur avant de te déplacer.",
+  checkBefore: "Vérifie la date, l’heure et le prix sur le site de l’organisateur avant de te déplacer.",
   status: {
     full: "Complet",
     cancelled: "Annulé",

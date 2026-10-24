@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle, ChevronDown, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -117,12 +117,6 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
               className="flex-1 min-w-0 bg-transparent text-sm outline-none" />
           </label>
 
-          {/* Avertissement */}
-          <p className="flex gap-2 text-[13px] text-slate-600 bg-white border border-slate-200 border-l-4 border-l-indigo-500 rounded-xl px-3 py-2.5">
-            <AlertTriangle size={15} className="text-indigo-500 flex-shrink-0 mt-0.5" />
-            <span><b className="font-semibold text-slate-800">{t('discover.warnTitle')}</b> {t('discover.warnText')}</span>
-          </p>
-
           {/* Filtres */}
           {!searching && !filtersOpen && (
             <button onClick={() => setFiltersOpen(true)}
@@ -197,8 +191,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
               {ideas.length > 0 && <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />}
 
-              {data.sources.length > 0 && (
-                <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
+              <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
+                <p className="pb-2"><b className="font-semibold text-slate-600">{t('discover.warnTitle')}</b> {t('discover.warnText')}</p>
+                {data.sources.length > 0 && <>
                   <p className="font-semibold text-slate-600">{t('discover.sourcesTitle')}</p>
                   {data.sources.map(s => (
                     <p key={s.id}>
@@ -208,8 +203,8 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                         : s.license}</>}
                     </p>
                   ))}
-                </footer>
-              )}
+                </>}
+              </footer>
             </div>
           )}
         </div>

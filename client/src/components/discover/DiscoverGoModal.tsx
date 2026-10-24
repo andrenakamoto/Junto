@@ -41,7 +41,8 @@ export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onCl
 
   return (
     <Modal title={t('plan.goWith.title')} onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-4">{event.title}</p>
+      <p className="text-sm text-slate-500 mb-2">{event.title}</p>
+      <p className="text-xs text-slate-500 mb-4">{t('discover.checkBefore')}</p>
       {circles === null ? (
         <p className="text-sm text-slate-400">…</p>
       ) : circles.length === 0 ? (
