@@ -12,11 +12,16 @@ export type Category = typeof CATEGORIES[number];
 export const isCategory = (v: unknown): v is Category => typeof v === 'string' && (CATEGORIES as readonly string[]).includes(v);
 
 // Types de lieux (idées de sorties)
-export const PLACE_KINDS = ['escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee'] as const;
+export const PLACE_KINDS = [
+  'escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee',
+  // depuis le 2026-10-24
+  'defi', 'loisirs', 'bains', 'cave', 'bateau', 'equitation', 'golf', 'chateau', 'jardin', 'galerie', 'poterie',
+] as const;
 export type PlaceKind = typeof PLACE_KINDS[number];
 export const isPlaceKind = (v: unknown): v is PlaceKind => typeof v === 'string' && (PLACE_KINDS as readonly string[]).includes(v);
 // Lieux adaptés aux familles par défaut
-export const FAMILY_KINDS: PlaceKind[] = ['bowling', 'trampoline', 'escalade', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'animaux', 'musee', 'laser'];
+export const FAMILY_KINDS: PlaceKind[] = ['bowling', 'trampoline', 'escalade', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'animaux', 'musee', 'laser',
+  'loisirs', 'bateau', 'equitation', 'chateau', 'jardin'];
 
 export const EVENT_STATUSES = ['scheduled', 'full', 'cancelled', 'postponed'] as const;
 export const STATES = ['published', 'pending', 'hidden'] as const;

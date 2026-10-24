@@ -33,6 +33,16 @@ describe('OpenStreetMap', () => {
     expect(normalizeOsmElement({ type: 'node', id: 1, tags: { name: 'Escape X', leisure: 'escape_game', website: 'escapex.ch' } })).toMatchObject({ kind: 'escape', website: 'https://escapex.ch/', family: false });
     expect(normalizeOsmElement({ type: 'node', id: 2, tags: { name: 'Sans site', leisure: 'bowling_alley' } })).toBeNull();
   });
+  it('reconnaît les types ajoutés le 2026-10-24', () => {
+    const k = (tags: Record<string, string>) => normalizeOsmElement({ type: 'node', id: 3, tags: { name: 'Lieu', website: 'lieu.ch', ...tags } })?.kind;
+    expect(k({ craft: 'winery' })).toBe('cave');
+    expect(k({ amenity: 'public_bath' })).toBe('bains');
+    expect(k({ leisure: 'sports_centre', sport: 'swimming' })).toBe('piscine');
+    expect(k({ historic: 'castle', tourism: 'museum' })).toBe('chateau');
+    expect(k({ tourism: 'museum' })).toBe('musee');
+    expect(k({ sport: 'axe_throwing' })).toBe('defi');
+    expect(k({ leisure: 'garden', 'garden:type': 'botanical' })).toBe('jardin');
+  });
 });
 
 describe('iCal', () => {
