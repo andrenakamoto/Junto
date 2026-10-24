@@ -25,14 +25,16 @@ export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onCl
   }, []);
 
   if (chosen) {
-    // Événement sur plusieurs jours (exposition, festival…) : une sortie de 3 heures à ajuster, pas toute la durée
-    const threeHours = new Date(new Date(event.startAt).getTime() + 3 * 3600e3).toISOString();
-    const end = event.multiDay || !event.endAt ? threeHours : event.endAt;
+    // Événement sur plusieurs jours (exposition, festival…) : une sortie de 3 heures à ajuster, pas toute la durée,
+    // et aujourd'hui plutôt que le premier jour s'il a déjà commencé
+    const multi = event.multiDay || (!!event.endAt && new Date(event.endAt).toDateString() !== new Date(event.startAt).toDateString());
+    const start = multi ? outingStart(event.startAt) : new Date(event.startAt);
+    const end = multi || !event.endAt ? new Date(start.getTime() + 3 * 3600e3).toISOString() : event.endAt;
     return (
       <CreatePlanModal
         circleId={chosen.id}
         circleMembers={chosen.members}
-        fromEvent={{ title: event.title, eventDate: event.startAt, endDate: end, location: [event.place, event.city].filter(Boolean).join(', ') || null, url: event.url }}
+        fromEvent={{ title: event.title, eventDate: start.toISOString(), endDate: end, location: [event.place, event.city].filter(Boolean).join(', ') || null, url: event.url }}
         onClose={() => setChosen(null)}
         onCreated={created => { onClose(); navigate(`/dashboard?planId=${created.id}`); }}
       />
@@ -64,4 +66,14 @@ export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onCl
       )}
     </Modal>
   );
+}
+
+// Aujourd'hui à l'heure de début de l'événement (heure suivante si elle est passée), jamais avant son premier jour
+function outingStart(startAt: string): Date {
+  const first = new Date(startAt);
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(first.getHours(), first.getMinutes(), 0, 0);
+  if (today < now) today.setTime(Math.ceil(now.getTime() / 3600e3) * 3600e3);
+  return today > first ? today : first;
 }
