@@ -469,6 +469,9 @@ Conséquences pratiques :
     blanches bordées de leur couleur), menu « Créer » du Cercle sur fond assombri, avertissement de Découvrir déplacé (bas de page +
     rappel dans « Y aller avec un Cercle »), événement de Découvrir sur plusieurs jours → Plan proposé aujourd'hui (`outingStart`),
     écran d'attente (logo dans `#root` de `index.html`), bouton Google en fondu.
+    **Version 1.0.30** (2026-10-24) : Android `versionCode` 32 (`evly-1.0.30-(32).aab`), iOS build 34 envoyé — « Qui voit ce Plan ? »
+    (Cacher à… avec « C'est une surprise » en option, Réservé à…), sondages de dates cachés sans surprise, présences et procurations de
+    l'Assemblée au-dessus de l'ordre du jour.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
@@ -1316,6 +1319,15 @@ Junto/
     présence sont par Cercle). Il n'a aucun Cercle : le client ne doit pas
     supposer qu'un utilisateur a au moins un Cercle (cf. `circlesLoaded`
     dans DashboardPage).
+  - **« Qui voit ce Plan ? »** (2026-10-24, `VisibilityField`, `lib/planAccess.ts` : `exclusionsFor`, `hideReservedPlans`,
+    `hideReservedList`, migration `20261028100000_plan_visibility`) : `Plan.visibility` = `hidden` (« Cacher à… », les exclusions
+    ci-dessous) ou `reserved` (« Réservé à… » : l'app envoie `allowedUserIds`, le serveur **exclut tous les autres membres** du ou des
+    Cercles, et **toute personne qui rejoint un de ces Cercles ensuite** — `hideReservedPlans` dans les trois entrées : demande
+    acceptée, entrée libre, invitation acceptée ; **à appeler pour toute nouvelle façon d'entrer dans un Cercle**). En `reserved`, la
+    liste des exclus n'est envoyée qu'au créateur du Plan (bandeau « Plan réservé »). `Plan.surprise` / `CirclePoll.surprise` (vrai
+    par défaut : anciens Plans et anciennes apps) : bandeau « Chut » sinon « Caché à… ». Une ancienne app qui n'envoie que
+    `excludedUserIds` garde le mode du Plan. Limite : en « Modifier », un Plan réservé pour plusieurs Cercles ne propose que les membres
+    du Cercle principal.
   - **Plan surprise** = lignes **PlanExclusion** (membres du Cercle exclus,
     jamais le créateur). Pour un exclu, le Plan n'existe pas : 404 sur le
     détail et le lien d'invitation, et absent des listes, du compteur et de
