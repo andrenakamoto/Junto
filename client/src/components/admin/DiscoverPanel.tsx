@@ -3,7 +3,9 @@ import { Compass, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import { DateTimeField } from '../ui/DateTimeField';
 import { isoToLocal, localToISO } from '../plans/PlanFormParts';
-import { CATEGORY_GROUPS, IDEAS, KIND_ORDER, catLabel, kindLabel, regionLabel, REGIONS } from '../../lib/discover';
+import { CATEGORY_GROUPS, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, catLabel, kindLabel, regionLabel, REGIONS } from '../../lib/discover';
+
+const kindGroupLabel = (g: string) => ({ jeux: 'Jeux et défis', sport: 'Sport et nature', detente: 'Détente', famille: 'En famille', culture: 'Culture' } as Record<string, string>)[g] ?? g;
 
 // Panneau admin « Découvrir » (routes/adminDiscover.ts) : sources, file « À valider », saisie manuelle (Lausanne,
 // Valais, associations), idées de sorties masquées, organisateurs qui veulent publier. Français seulement.
@@ -15,8 +17,8 @@ const CATEGORIES = CATEGORY_GROUPS.flatMap(([, l]) => l).filter(c => c !== IDEAS
 const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
 export function DiscoverPanel() {
-  const [tab, setTab] = useState<'sources' | 'pending' | 'manual' | 'places' | 'pros'>('sources');
-  const tabs: [typeof tab, string][] = [['sources', 'Sources'], ['pending', 'À valider'], ['manual', 'Saisie'], ['places', 'Idées de sorties'], ['pros', 'Organisateurs intéressés']];
+  const [tab, setTab] = useState<'sources' | 'pending' | 'events' | 'manual' | 'places' | 'pros'>('sources');
+  const tabs: [typeof tab, string][] = [['sources', 'Sources'], ['pending', 'À valider'], ['events', 'Événements'], ['manual', 'Saisie'], ['places', 'Idées de sorties'], ['pros', 'Organisateurs intéressés']];
   return (
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-1">
@@ -32,6 +34,7 @@ export function DiscoverPanel() {
       </div>
       {tab === 'sources' && <Sources />}
       {tab === 'pending' && <Pending />}
+      {tab === 'events' && <Events />}
       {tab === 'manual' && <Manual />}
       {tab === 'places' && <Places />}
       {tab === 'pros' && <Pros />}
@@ -176,6 +179,47 @@ function Pending() {
   );
 }
 
+// Événements à venir de toutes les sources : masquer (il ne revient pas à la synchronisation suivante) ou réafficher
+function Events() {
+  const [region, setRegion] = useState('ge');
+  const [q, setQ] = useState('');
+  const [hiddenOnly, setHiddenOnly] = useState(false);
+  const [list, setList] = useState<any[] | null>(null);
+  const load = () => api.get('/admin/discover/events', { params: { region, upcoming: '1', q: q.trim() || undefined, state: hiddenOnly ? 'hidden' : undefined } })
+    .then(r => setList(r.data.filter((e: any) => hiddenOnly || e.state !== 'pending'))).catch(() => setList([]));
+  useEffect(() => { setList(null); const id = setTimeout(load, q ? 300 : 0); return () => clearTimeout(id); }, [region, q, hiddenOnly]);
+  async function toggle(e: any) {
+    const state = e.state === 'hidden' ? 'published' : 'hidden';
+    await api.put(`/admin/discover/events/${e.id}/state`, { state });
+    setList(l => (l ?? []).map(x => x.id === e.id ? { ...x, state } : x));
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <select value={region} onChange={e => setRegion(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-2 bg-white">{REGIONS.map(r => <option key={r} value={r}>{regionLabel(r)}</option>)}</select>
+        <input className={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher (titre, lieu, ville)" />
+      </div>
+      <label className="flex items-center gap-1.5 text-xs text-slate-600"><input type="checkbox" checked={hiddenOnly} onChange={e => setHiddenOnly(e.target.checked)} />Masqués seulement</label>
+      <p className="text-xs text-slate-500">Un événement masqué disparaît de Découvrir et ne revient pas à la synchronisation suivante. Les 300 premiers par date.</p>
+      {list === null && <p className="text-sm text-slate-400">Chargement…</p>}
+      {list?.length === 0 && <p className="text-sm text-slate-500">Aucun événement.</p>}
+      {list?.map(e => (
+        <div key={e.id} className={`bg-white rounded-xl border border-slate-200 px-3 py-2 flex items-center gap-2 ${e.state === 'hidden' ? 'opacity-50' : ''}`}>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5 min-w-0">
+              <span className="truncate">{e.title}</span>
+              <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${e.source?.type === 'manual' ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-600'}`}>{e.source?.type === 'manual' ? 'Saisi par toi' : e.source?.name}</span>
+              {e.state === 'hidden' && <span className="flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-50 text-red-700">Masqué</span>}
+            </p>
+            <p className="text-xs text-slate-500 truncate">{dateFmt.format(new Date(e.startAt))} · {[e.place, e.city].filter(Boolean).join(', ')} · {catLabel(e.category)}</p>
+          </div>
+          <button onClick={() => toggle(e)} className="text-xs text-indigo-700 flex-shrink-0">{e.state === 'hidden' ? 'Réafficher' : 'Masquer'}</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const EMPTY = { title: '', region: 'la', category: 'concert', startAt: '', endAt: '', place: '', city: '', priceText: '', url: '', family: false, status: 'scheduled' };
 
 function Manual() {
@@ -253,6 +297,9 @@ function Places() {
   const [list, setList] = useState<any[] | null>(null);
   const [q, setQ] = useState('');
   const [form, setForm] = useState({ name: '', kind: 'escape', city: '', address: '', website: '' });
+  const [kind, setKind] = useState<string | null>(null);
+  const [src, setSrc] = useState<'all' | 'osm' | 'manual' | 'other'>('all');
+  const [hiddenOnly, setHiddenOnly] = useState(false);
   const [msg, setMsg] = useState('');
   const load = () => api.get('/admin/discover/places', { params: { region } }).then(r => setList(r.data)).catch(() => setList([]));
   useEffect(() => { setList(null); load(); }, [region]);
@@ -263,12 +310,27 @@ function Places() {
     catch (e: any) { setMsg(e?.response?.data?.error ?? 'Erreur'); }
   }
   async function remove(id: string) { await api.delete(`/admin/discover/places/${id}`); load(); }
-  const shown = (list ?? []).filter(p => !q || `${p.name} ${p.city ?? ''}`.toLowerCase().includes(q.toLowerCase()));
+  // Filtres : source (OpenStreetMap, saisie EvLY…), état, puis une catégorie à la fois (tuiles) ; la recherche donne une liste directe
+  const all = list ?? [];
+  const bySource = all.filter(p => src === 'all' || (src === 'manual' ? p.source?.type === 'manual' : src === 'osm' ? p.source?.type === 'osm' : !['manual', 'osm'].includes(p.source?.type)))
+    .filter(p => !hiddenOnly || p.state === 'hidden');
+  const searching = q.trim().length > 0;
+  const shown = searching
+    ? bySource.filter(p => `${p.name} ${p.city ?? ''} ${p.address ?? ''}`.toLowerCase().includes(q.trim().toLowerCase()))
+    : kind ? bySource.filter(p => p.kind === kind) : [];
+  const srcCount = (k: string) => all.filter(p => k === 'all' || (k === 'manual' ? p.source?.type === 'manual' : k === 'osm' ? p.source?.type === 'osm' : !['manual', 'osm'].includes(p.source?.type))).length;
+  const chip = (on: boolean) => `px-2.5 py-1 rounded-full border text-xs font-medium ${on ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700'}`;
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
-        <select value={region} onChange={e => setRegion(e.target.value)} className="text-sm border border-slate-200 rounded-lg px-2 bg-white">{REGIONS.map(r => <option key={r} value={r}>{regionLabel(r)}</option>)}</select>
-        <input className={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Filtrer" />
+        <select value={region} onChange={e => { setRegion(e.target.value); setKind(null); }} className="text-sm border border-slate-200 rounded-lg px-2 bg-white">{REGIONS.map(r => <option key={r} value={r}>{regionLabel(r)}</option>)}</select>
+        <input className={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher un lieu (nom, ville, adresse)" />
+      </div>
+      <div className="flex flex-wrap gap-1.5 items-center">
+        <span className="text-xs text-slate-500 mr-1">Source :</span>
+        {([['all', 'Toutes'], ['osm', 'OpenStreetMap'], ['manual', 'Saisis par toi'], ['other', 'Autres']] as const).map(([k, l]) =>
+          (k === 'other' && !srcCount('other')) ? null : <button key={k} onClick={() => setSrc(k)} className={chip(src === k)}>{l} ({srcCount(k)})</button>)}
+        <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-600"><input type="checkbox" checked={hiddenOnly} onChange={e => setHiddenOnly(e.target.checked)} />Masqués seulement</label>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 p-3 space-y-2">
         <p className="text-sm font-medium text-slate-800">Ajouter un lieu</p>
@@ -283,16 +345,56 @@ function Places() {
         <button onClick={add} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold">Ajouter</button>
       </div>
       {list === null && <p className="text-sm text-slate-400">Chargement…</p>}
+
+      {/* Tuiles par catégorie (comme dans l'app) */}
+      {list !== null && !searching && !kind && KIND_GROUPS.map(([g, kinds]) => {
+        const avail = kinds.filter(k => bySource.some(p => p.kind === k));
+        if (!avail.length) return null;
+        return (
+          <div key={g} className="space-y-1.5">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{kindGroupLabel(g)}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {avail.map(k => {
+                const items = bySource.filter(p => p.kind === k);
+                const mine = items.filter(p => p.source?.type === 'manual').length;
+                const hidden = items.filter(p => p.state === 'hidden').length;
+                return (
+                  <button key={k} onClick={() => setKind(k)} className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-left hover:border-indigo-300 min-w-0">
+                    <span className="text-lg leading-none">{KIND_EMOJI[k] ?? '📍'}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-sm font-semibold text-slate-800 truncate">{kindLabel(k)}</span>
+                      <span className="block text-[11px] text-slate-500">{items.length} lieu{items.length > 1 ? 'x' : ''}{mine ? ` · ${mine} saisis` : ''}{hidden ? ` · ${hidden} masqués` : ''}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {!searching && kind && (
+        <div className="flex items-center gap-2">
+          <button onClick={() => setKind(null)} className="text-sm font-medium text-indigo-700">← Toutes les catégories</button>
+          <p className="ml-auto text-sm font-semibold text-slate-800">{KIND_EMOJI[kind] ?? '📍'} {kindLabel(kind)} · {shown.length}</p>
+        </div>
+      )}
       {shown.map(p => (
         <div key={p.id} className={`bg-white rounded-xl border border-slate-200 px-3 py-2 flex items-center gap-2 ${p.state === 'hidden' ? 'opacity-50' : ''}`}>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 truncate">{p.name}</p>
-            <p className="text-xs text-slate-500 truncate">{kindLabel(p.kind)} · {p.address ?? p.city ?? '—'} · <a href={p.website} target="_blank" rel="noopener noreferrer" className="underline">{p.website}</a> · {p.source?.name}</p>
+            <p className="text-sm font-medium text-slate-800 truncate flex items-center gap-1.5">
+              <span className="truncate">{p.name}</span>
+              <span className={`flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${p.source?.type === 'manual' ? 'bg-indigo-100 text-indigo-800' : p.source?.type === 'osm' ? 'bg-slate-100 text-slate-600' : 'bg-amber-100 text-amber-800'}`}>
+                {p.source?.type === 'manual' ? 'Saisi par toi' : p.source?.type === 'osm' ? 'OpenStreetMap' : p.source?.name}
+              </span>
+              {p.state === 'hidden' && <span className="flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-50 text-red-700">Masqué</span>}
+            </p>
+            <p className="text-xs text-slate-500 truncate">{searching ? `${kindLabel(p.kind)} · ` : ''}{p.address ?? p.city ?? '—'} · <a href={p.website} target="_blank" rel="noopener noreferrer" className="underline">{p.website}</a></p>
           </div>
           <button onClick={() => toggle(p)} className="text-xs text-indigo-700">{p.state === 'hidden' ? 'Réafficher' : 'Masquer'}</button>
           {p.source?.type === 'manual' && <button onClick={() => remove(p.id)} className="text-xs text-red-600">Supprimer</button>}
         </div>
       ))}
+      {searching && !shown.length && <p className="text-sm text-slate-400">Aucun lieu.</p>}
     </div>
   );
 }

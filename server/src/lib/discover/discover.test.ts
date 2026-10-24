@@ -49,6 +49,7 @@ describe('OpenStreetMap', () => {
       'addr:street': 'Quai du Mont-Blanc', 'addr:housenumber': '30', 'addr:postcode': '1201', 'addr:city': 'Genève' } });
     expect(p?.address).toBe('Quai du Mont-Blanc 30, 1201 Genève');
     expect(normalizeOsmElement({ type: 'node', id: 5, tags: { name: 'X', amenity: 'library', website: 'x.ch', 'addr:city': 'Sion' } })?.address).toBeNull();
+    expect(normalizeOsmElement({ type: 'node', id: 6, tags: { name: 'Y', amenity: 'library', website: 'y.ch', 'addr:housenumber': '30' } })?.address).toBeNull();
   });
 });
 

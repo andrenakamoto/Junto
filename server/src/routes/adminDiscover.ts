@@ -91,12 +91,16 @@ router.get('/openagenda-search', async (req, res) => {
   res.json(await searchOpenAgendas(q).catch(() => []));
 });
 
-// GET /events?state=pending&region=ge&manual=1
+// GET /events?state=pending&region=ge&manual=1&upcoming=1&q=…
 router.get('/events', async (req, res) => {
   const where: any = {};
   if (isState(req.query.state)) where.state = req.query.state;
   if (isRegion(req.query.region)) where.region = req.query.region;
   if (req.query.manual === '1') where.source = { type: 'manual' };
+  // À venir ou en cours (onglet « Événements » : masquer / réafficher)
+  if (req.query.upcoming === '1') where.OR = [{ endAt: { gte: new Date() } }, { endAt: null, startAt: { gte: new Date(Date.now() - 6 * 3600e3) } }];
+  const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 80) : '';
+  if (q) where.AND = [{ OR: ['title', 'place', 'city'].map(f => ({ [f]: { contains: q, mode: 'insensitive' } })) }];
   const events = await prisma.discoverEvent.findMany({ where, orderBy: { startAt: 'asc' }, take: 300, include: { source: { select: { name: true, type: true } } } });
   res.json(events);
 });

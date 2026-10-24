@@ -78,8 +78,9 @@ export function normalizeOsmElement(e: any): NormalizedPlace | null {
 
 // « Rue du Rhône 12, 1204 Genève » à partir des champs addr:* (null sans rue ni place)
 export function osmAddress(t: Record<string, string>): string | null {
-  const street = [t['addr:street'] ?? t['addr:place'], t['addr:housenumber']].filter(Boolean).join(' ');
-  if (!street) return null;
+  const road = t['addr:street'] ?? t['addr:place'];
+  if (!road) return null; // un numéro seul (« 30 ») ne dit rien
+  const street = [road, t['addr:housenumber']].filter(Boolean).join(' ');
   const town = [t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ');
   return cleanText([street, town].filter(Boolean).join(', '), 120);
 }

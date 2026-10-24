@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -82,6 +82,19 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   for (const e of single) { const k = dayKey(e.startAt); byDay.set(k, [...(byDay.get(k) ?? []), e]); }
 
   const pill = (active: boolean) => `px-3 py-1.5 rounded-full border text-[13px] font-medium transition-colors ${active ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`;
+
+  // Administrateur : masquer un événement ou un lieu sans passer par le panneau admin
+  const isAdmin = !!user?.isAdmin;
+  async function hideEvent(e: DiscoverEvent) {
+    if (!confirm(`Masquer « ${e.title} » de Découvrir pour tout le monde ?`)) return;
+    try { await api.put(`/admin/discover/events/${e.id}/state`, { state: 'hidden' }); setData(d => d && { ...d, events: d.events.filter(x => x.id !== e.id) }); }
+    catch { alert('Impossible de masquer cet événement.'); }
+  }
+  async function hidePlace(p: DiscoverPlace) {
+    if (!confirm(`Masquer « ${p.name} » de Découvrir pour tout le monde ?`)) return;
+    try { await api.put(`/admin/discover/places/${p.id}/state`, { state: 'hidden' }); setData(d => d && { ...d, places: d.places.filter(x => x.id !== p.id) }); }
+    catch { alert('Impossible de masquer ce lieu.'); }
+  }
 
   function goWith(e: DiscoverEvent) {
     if (user) setGoing(e);
@@ -186,13 +199,13 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
               {multi.length > 0 && (
                 <section className="space-y-2.5">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t('discover.multi')}</h3>
-                  {multi.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} />)}
+                  {multi.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} />)}
                 </section>
               )}
               {[...byDay.keys()].sort().map(k => (
                 <section key={k} className="space-y-2.5">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide first-letter:uppercase">{dayTitle(k)}</h3>
-                  {byDay.get(k)!.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} />)}
+                  {byDay.get(k)!.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} />)}
                 </section>
               ))}
 
@@ -208,9 +221,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                 </button>
               )}
               {ideas.length > 0 && (searching
-                ? <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />
+                ? <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
                 : <IdeasBrowser places={ideas} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
-                    onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} />)}
+                    onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />)}
 
               <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
                 <p className="pb-2"><b className="font-semibold text-slate-600">{t('discover.warnTitle')}</b> {t('discover.warnText')}</p>
@@ -240,7 +253,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   );
 }
 
-function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void }) {
+function EventCard({ e, onGo, onReport, onHide }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const where = [e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', ');
@@ -280,7 +293,9 @@ function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: Discover
               <ExternalLink size={13} className="flex-shrink-0" /><span className="truncate">{t('discover.moreInfo', { site: host(e.url) })}</span>
             </a>
           )}
-          <button onClick={onReport} className="ml-auto flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600">
+          {/* Administrateurs : masquer sur place (panneau admin › Découvrir › Événements pour réafficher) */}
+          {onHide && <button onClick={onHide} className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700"><EyeOff size={11} />Masquer</button>}
+          <button onClick={onReport} className={`${onHide ? '' : 'ml-auto '}flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600`}>
             <Flag size={11} />{t('discover.report')}
           </button>
         </div>
@@ -289,7 +304,7 @@ function EventCard({ e, onGo, onReport }: { e: DiscoverEvent; onGo: (e: Discover
   );
 }
 
-function IdeaCard({ p, onReport }: { p: DiscoverPlace; onReport: (p: DiscoverPlace) => void }) {
+function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
       <div className="flex-1 min-w-0">
@@ -305,6 +320,7 @@ function IdeaCard({ p, onReport }: { p: DiscoverPlace; onReport: (p: DiscoverPla
           </a>
         )}
       </div>
+      {onHide && <button onClick={() => onHide(p)} className="p-1 text-red-400 hover:text-red-600" aria-label="Masquer"><EyeOff size={13} /></button>}
       <button onClick={() => onReport(p)} className="p-1 text-slate-300 hover:text-slate-500" aria-label={t('discover.report')}><Flag size={12} /></button>
     </div>
   );
@@ -312,9 +328,9 @@ function IdeaCard({ p, onReport }: { p: DiscoverPlace; onReport: (p: DiscoverPla
 
 // Idées de sorties en deux temps : des tuiles par type (avec le nombre de lieux), puis la liste d'un seul type,
 // filtrable par ville dès qu'elle est longue
-function IdeasBrowser({ places, kind, onKind, city, onCity, onReport }: {
+function IdeasBrowser({ places, kind, onKind, city, onCity, onReport, onHide }: {
   places: DiscoverPlace[]; kind: string | null; onKind: (k: string | null) => void;
-  city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void;
+  city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
 }) {
   const count = (k: string) => places.filter(p => p.kind === k).length;
   if (!kind || !count(kind)) {
@@ -359,13 +375,13 @@ function IdeasBrowser({ places, kind, onKind, city, onCity, onReport }: {
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {shown.map(p => <IdeaCard key={p.id} p={p} onReport={onReport} />)}
+        {shown.map(p => <IdeaCard key={p.id} p={p} onReport={onReport} onHide={onHide} />)}
       </div>
     </section>
   );
 }
 
-function IdeasSection({ places, onReport }: { places: DiscoverPlace[]; onReport: (p: DiscoverPlace) => void }) {
+function IdeasSection({ places, onReport, onHide }: { places: DiscoverPlace[]; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
   const kinds = [...new Set(places.map(p => p.kind))].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
   return (
     <section className="space-y-3">
@@ -374,7 +390,7 @@ function IdeasSection({ places, onReport }: { places: DiscoverPlace[]; onReport:
         <div key={k} className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">{kindLabel(k)}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {places.filter(p => p.kind === k).map(p => <IdeaCard key={p.id} p={p} onReport={onReport} />)}
+            {places.filter(p => p.kind === k).map(p => <IdeaCard key={p.id} p={p} onReport={onReport} onHide={onHide} />)}
           </div>
         </div>
       ))}
