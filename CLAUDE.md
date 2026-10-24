@@ -1824,6 +1824,15 @@ son Plan juste après avoir accepté l'invitation).
   `client/vercel.json` : nosniff, Referrer-Policy, `frame-ancestors 'none'`, X-Frame-Options,
   Permissions-Policy. Une CSP complète du site reste à faire (connexion Google, polices).
 - Redirection après connexion (`AuthPage`, `?redirect=`) : chemin interne uniquement, ni `//`, ni `\`.
+- **Audit du 2026-10-24** : (1) **valeurs reçues toujours vérifiées en texte avant une recherche Prisma** — un objet
+  (`{"token": {"not": ""}}`) devient un filtre : `/auth/reset-password` et `/auth/verify-email` (`findFirst` sur le jeton)
+  permettaient de prendre un compte ayant une réinitialisation ou une validation en cours. Toute nouvelle route qui cherche
+  avec une valeur du corps : `typeof … === 'string'`. Paramètres d'adresse sans objets (`app.set('query parser', 'simple')`),
+  identifiants des événements socket contrôlés. (2) Dépendances mises à jour (proxy-addr, nodemailer 10, multer, body-parser,
+  sharp 0.35, follow-redirects). (3) Miniatures à largeurs fixes (`THUMB_WIDTHS`), `limitInputPixels`. (4) Serveur sur
+  127.0.0.1 (`HOST` dans app.env), SSH root fermé (`/etc/ssh/sshd_config.d/10-evly-no-root.conf`), nginx : **CSP complète** sur
+  `index.html` (Google Identity Services, polices Google, api.evly.ch ; **à compléter pour tout nouveau domaine externe** chargé par
+  le site), HSTS, `server_tokens off`, TLS 1.2+.
 - Restent (moyen, non exploitables ici) : `uuid` via firebase-admin / @capacitor/cli, et
   `react-router` (redirection par `\`, neutralisée ci-dessus) — mise à jour majeure nécessaire.
 
