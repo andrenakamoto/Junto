@@ -35,6 +35,7 @@ const SELECTORS: [string, PlaceKind][] = [
   ['nwr["leisure"="garden"]["garden:type"="botanical"]', 'jardin'],
   ['nwr["tourism"="gallery"]', 'galerie'],
   ['nwr["craft"="pottery"]', 'poterie'],
+  ['nwr["amenity"="library"]', 'bibliotheque'],
 ];
 
 export function placeKind(t: Record<string, string>): PlaceKind | null {
@@ -62,6 +63,7 @@ export function placeKind(t: Record<string, string>): PlaceKind | null {
   if (t.leisure === 'garden' && t['garden:type'] === 'botanical') return 'jardin';
   if (t.tourism === 'gallery') return 'galerie';
   if (t.craft === 'pottery') return 'poterie';
+  if (t.amenity === 'library') return 'bibliotheque';
   return null;
 }
 
@@ -71,7 +73,15 @@ export function normalizeOsmElement(e: any): NormalizedPlace | null {
   const website = cleanUrl(t.website ?? t['contact:website']);
   const kind = placeKind(t);
   if (!name || !website || !kind) return null;
-  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), website, family: FAMILY_KINDS.includes(kind) };
+  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), address: osmAddress(t), website, family: FAMILY_KINDS.includes(kind) };
+}
+
+// « Rue du Rhône 12, 1204 Genève » à partir des champs addr:* (null sans rue ni place)
+export function osmAddress(t: Record<string, string>): string | null {
+  const street = [t['addr:street'] ?? t['addr:place'], t['addr:housenumber']].filter(Boolean).join(' ');
+  if (!street) return null;
+  const town = [t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ');
+  return cleanText([street, town].filter(Boolean).join(', '), 120);
 }
 
 export async function fetchOsmPlaces(cfg: OsmConfig): Promise<NormalizedPlace[]> {

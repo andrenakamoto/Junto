@@ -42,6 +42,13 @@ describe('OpenStreetMap', () => {
     expect(k({ tourism: 'museum' })).toBe('musee');
     expect(k({ sport: 'axe_throwing' })).toBe('defi');
     expect(k({ leisure: 'garden', 'garden:type': 'botanical' })).toBe('jardin');
+    expect(k({ amenity: 'library' })).toBe('bibliotheque');
+  });
+  it('adresse du lieu', () => {
+    const p = normalizeOsmElement({ type: 'node', id: 4, tags: { name: 'Bains', amenity: 'public_bath', website: 'bains.ch',
+      'addr:street': 'Quai du Mont-Blanc', 'addr:housenumber': '30', 'addr:postcode': '1201', 'addr:city': 'Genève' } });
+    expect(p?.address).toBe('Quai du Mont-Blanc 30, 1201 Genève');
+    expect(normalizeOsmElement({ type: 'node', id: 5, tags: { name: 'X', amenity: 'library', website: 'x.ch', 'addr:city': 'Sion' } })?.address).toBeNull();
   });
 });
 

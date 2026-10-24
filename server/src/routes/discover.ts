@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
     prisma.discoverPlace.findMany({
       where: { region, state: 'published' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, kind: true, city: true, website: true, family: true, sourceId: true },
+      select: { id: true, name: true, kind: true, city: true, address: true, website: true, family: true, sourceId: true },
     }),
     prisma.discoverSource.findMany({ where: { status: 'active' }, select: { id: true, name: true, type: true, attribution: true, license: true, licenseUrl: true, lastSyncAt: true } }),
   ]);

@@ -15,13 +15,13 @@ export const isCategory = (v: unknown): v is Category => typeof v === 'string' &
 export const PLACE_KINDS = [
   'escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee',
   // depuis le 2026-10-24
-  'defi', 'loisirs', 'bains', 'cave', 'bateau', 'equitation', 'golf', 'chateau', 'jardin', 'galerie', 'poterie',
+  'defi', 'loisirs', 'bains', 'cave', 'bateau', 'equitation', 'golf', 'chateau', 'jardin', 'galerie', 'poterie', 'bibliotheque',
 ] as const;
 export type PlaceKind = typeof PLACE_KINDS[number];
 export const isPlaceKind = (v: unknown): v is PlaceKind => typeof v === 'string' && (PLACE_KINDS as readonly string[]).includes(v);
 // Lieux adaptés aux familles par défaut
 export const FAMILY_KINDS: PlaceKind[] = ['bowling', 'trampoline', 'escalade', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'animaux', 'musee', 'laser',
-  'loisirs', 'bateau', 'equitation', 'chateau', 'jardin'];
+  'loisirs', 'bateau', 'equitation', 'chateau', 'jardin', 'bibliotheque'];
 
 export const EVENT_STATUSES = ['scheduled', 'full', 'cancelled', 'postponed'] as const;
 export const STATES = ['published', 'pending', 'hidden'] as const;
@@ -52,6 +52,7 @@ export interface NormalizedPlace {
   name: string;
   kind: PlaceKind;
   city: string | null;
+  address: string | null;
   website: string;
   family: boolean;
 }
@@ -110,7 +111,7 @@ export function parseManualPlace(b: any): { error: string } | { data: Omit<Norma
   if (!isPlaceKind(b?.kind)) return { error: 'Type de lieu invalide' };
   const website = cleanUrl(b?.website);
   if (!website) return { error: 'Lien invalide (il doit commencer par https://)' };
-  return { data: { region: b.region, name, kind: b.kind, city: cleanText(b?.city, 60), website, family: b?.family === true || FAMILY_KINDS.includes(b.kind) } };
+  return { data: { region: b.region, name, kind: b.kind, city: cleanText(b?.city, 60), address: cleanText(b?.address, 120), website, family: b?.family === true || FAMILY_KINDS.includes(b.kind) } };
 }
 
 // « Poster un événement public » : demande pour être prévenu
