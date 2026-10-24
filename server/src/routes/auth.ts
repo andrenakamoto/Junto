@@ -204,7 +204,8 @@ router.post('/register', registerLimiter, async (req, res) => {
 
 router.post('/verify-email', async (req, res) => {
   const { token } = req.body;
-  if (!token) { res.status(400).json({ error: 'Token manquant' }); return; }
+  // Toujours une chaîne : un objet ({ "not": "" }) deviendrait un filtre Prisma et trouverait le compte de quelqu'un d'autre
+  if (typeof token !== 'string' || !token) { res.status(400).json({ error: 'Token manquant' }); return; }
   try {
     const user = await prisma.user.findFirst({
       where: { emailVerifyToken: token, emailVerifyExpires: { gt: new Date() } },
@@ -358,7 +359,8 @@ router.post('/forgot-password', emailActionLimiter, async (req, res) => {
 
 router.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
-  if (!token || !password) { res.status(400).json({ error: 'Champs requis' }); return; }
+  // Toujours des chaînes : un objet ({ "not": "" }) deviendrait un filtre Prisma et trouverait le compte de quelqu'un d'autre
+  if (typeof token !== 'string' || typeof password !== 'string' || !token || !password) { res.status(400).json({ error: 'Champs requis' }); return; }
   if (password.length < 8) { res.status(400).json({ error: 'Le mot de passe doit faire au moins 8 caractères' }); return; }
   try {
     const user = await prisma.user.findFirst({
@@ -568,7 +570,9 @@ router.delete('/change-email', requireAuth, async (req: AuthRequest, res) => {
 // Clic sur le lien reçu à la nouvelle adresse (pas besoin d'être connecté)
 router.post('/confirm-email-change', emailActionLimiter, async (req, res) => {
   try {
-    const result = await confirmEmailChange(req.body?.token);
+    const token = req.body?.token;
+    if (typeof token !== 'string' || !token) { res.status(400).json({ error: 'Lien invalide ou expiré' }); return; }
+    const result = await confirmEmailChange(token);
     if (!result.ok) { res.status(result.status).json({ error: result.error }); return; }
     res.json({ ok: true, email: result.email });
   } catch (e) {

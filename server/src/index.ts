@@ -83,6 +83,8 @@ const app = express();
 // identifier les IP correctement (et applique la limite à tout le monde
 // comme si c'était une seule et même IP).
 app.set('trust proxy', 1);
+// Paramètres d'adresse : texte ou liste de textes, jamais d'objet (?token[not]=x deviendrait un filtre Prisma)
+app.set('query parser', 'simple');
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: corsOptions });
 
@@ -195,8 +197,10 @@ if (cronEnabled) {
 }
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(Number(PORT), '0.0.0.0', async () => {
-  console.log(`Server running on 0.0.0.0:${PORT}`);
+// En production, HOST=127.0.0.1 (/etc/evly/app.env) : seul nginx atteint le serveur
+const HOST = process.env.HOST || '0.0.0.0';
+httpServer.listen(Number(PORT), HOST, async () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
   try {
     await prisma.$connect();
     console.log('[db] Connexion base de donnees OK');

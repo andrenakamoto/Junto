@@ -85,6 +85,7 @@ export function setupSocketHandlers(io: Server) {
     });
 
     socket.on('join-plan', async (planId: string) => {
+      if (typeof planId !== 'string') return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
       });
@@ -97,6 +98,8 @@ export function setupSocketHandlers(io: Server) {
 
     socket.on('send-message', async ({ planId, content, parentId, attachmentId }: { planId: string; content: string; parentId?: string; attachmentId?: string }) => {
       const text = typeof content === 'string' ? content.trim().slice(0, 2000) : '';
+      // Identifiants toujours en texte (un objet deviendrait un filtre Prisma)
+      if (typeof planId !== 'string' || (parentId != null && typeof parentId !== 'string') || (attachmentId != null && typeof attachmentId !== 'string')) return;
       if (!text && !attachmentId) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
