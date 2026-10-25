@@ -88,16 +88,41 @@ export function osmAddress(t: Record<string, string>): string | null {
   return cleanText([street, town].filter(Boolean).join(', '), 120);
 }
 
+// Serveurs Overpass publics : le principal répond souvent 502 / 504 quand il est chargé ; on réessaie, puis on passe au suivant
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+const pause = (ms: number) => new Promise(r => setTimeout(r, ms));
+async function overpass(query: string): Promise<any> {
+  let last = '';
+  for (let attempt = 0; attempt < OVERPASS.length * 2; attempt++) {
+    const url = OVERPASS[attempt % OVERPASS.length];
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'EvLY/1.0 (info@evly.ch)' },
+        body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.timeout(200_000),
+      });
+      if (res.ok) {
+        const data: any = await res.json();
+        // Requête interrompue côté Overpass (temps ou mémoire) : réponse 200 avec une remarque et sans résultat fiable
+        if (typeof data?.remark === 'string' && /runtime error|timed out|out of memory/i.test(data.remark)) last = `Overpass : ${data.remark.slice(0, 80)}`;
+        else return data;
+      } else {
+        last = `Overpass ${res.status}`;
+        if (![429, 502, 503, 504].includes(res.status)) break;
+      }
+    } catch (e) {
+      last = `Overpass : ${(e as Error).message.slice(0, 80)}`;
+    }
+    await pause(15_000 * (attempt + 1));
+  }
+  throw new Error(last || 'Overpass indisponible');
+}
+
 export async function fetchOsmPlaces(cfg: OsmConfig): Promise<NormalizedPlace[]> {
   const filter = cfg.around ? `(area.a)(around:${cfg.around[2]},${cfg.around[0]},${cfg.around[1]})` : '(area.a)';
-  const query = `[out:json][timeout:120];area["ISO3166-2"="${cfg.area}"]->.a;(${SELECTORS.map(([s]) => s + filter + ';').join('')});out tags center;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'EvLY/1.0 (info@evly.ch)' },
-    body: new URLSearchParams({ data: query }),
-  });
-  if (!res.ok) throw new Error(`Overpass ${res.status}`);
-  const data: any = await res.json();
+  const query = `[out:json][timeout:180];area["ISO3166-2"="${cfg.area}"]->.a;(${SELECTORS.map(([s]) => s + filter + ';').join('')});out tags center;`;
+  const data = await overpass(query);
   const seen = new Set<string>();
   const out: NormalizedPlace[] = [];
   for (const e of data.elements ?? []) {

@@ -91,6 +91,8 @@ describe('GeNEVERsleep', () => {
   it('reprend un événement de la bonne ville, avec son identifiant stable', () => {
     expect(normalizeGeneverSleepEvent(ev, 'Genève', from, to)).toMatchObject({ externalId: 'gns-2026-10-24-1579aefe', place: 'La Fonte', city: 'Carouge', category: 'soiree', status: 'scheduled' });
     expect(normalizeGeneverSleepEvent(ev, 'Lausanne', from, to)).toBeNull();
+    // Source unique (2026-10-25) : tout le flux, quelle que soit la ville
+    expect(normalizeGeneverSleepEvent({ ...ev, city_group: 'Lausanne' }, undefined, from, to)?.externalId).toBe('gns-2026-10-24-1579aefe');
   });
   it('sans heure de début : laissé de côté ; annulé : signalé', () => {
     expect(normalizeGeneverSleepEvent({ ...ev, start: null }, 'Genève', from, to)).toBeNull();

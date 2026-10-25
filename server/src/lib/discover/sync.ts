@@ -5,7 +5,7 @@ import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
-import { withCoords } from './geo';
+import { nearestRegion, withCoords } from './geo';
 
 // Synchronisation des sources actives (tâche planifiée, protégée comme les autres, et bouton du panneau admin).
 // Événements : les 30 prochains jours ; une ligne supprimée chez la source disparaît, une ligne masquée par l'admin
@@ -16,15 +16,18 @@ const EVENT_SYNC_MS = 12 * 3600e3;      // agendas : deux fois par jour
 const PLACE_SYNC_MS = 7 * 24 * 3600e3;  // OpenStreetMap : une fois par semaine
 const GNS_SYNC_MS = 2 * 3600e3;         // GeNEVERsleep : toutes les 2 h (leur recommandation : 1 à 3 h)
 
-async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[]) {
+// Sources qui couvrent plusieurs régions (GeNEVERsleep) : chaque événement va dans la région la plus proche de sa ville
+// (anciennes apps qui cherchent par région)
+async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[], regionFromPlace = false) {
   const now = new Date();
   const keep = new Set(events.map(e => e.externalId));
   for (const e of events) {
     const { externalId, ...data } = withCoords(e, region);
+    const r = regionFromPlace && data.latitude != null && data.longitude != null ? nearestRegion({ lat: data.latitude, lon: data.longitude }) : region;
     await prisma.discoverEvent.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
-      create: { ...data, externalId, sourceId: source.id, region, state: source.autoPublish ? 'published' : 'pending' },
-      update: data, // l'état (publié, à valider, masqué) choisi dans le panneau admin est gardé
+      create: { ...data, externalId, sourceId: source.id, region: r, state: source.autoPublish ? 'published' : 'pending' },
+      update: { ...data, region: r }, // l'état (publié, à valider, masqué) choisi dans le panneau admin est gardé
     });
   }
   // Retirés chez la source (seulement les événements à venir : le passé est effacé par cleanPastEvents)
@@ -55,7 +58,7 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
     let count = 0;
     if (source.type === 'openagenda') count = await saveEvents(source, region, await fetchOpenAgenda(source.config as unknown as OpenAgendaConfig, from, to));
     else if (source.type === 'ical') count = await saveEvents(source, region, await fetchIcal(source.config as unknown as IcalConfig, from, to));
-    else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to));
+    else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to), true);
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
     else return { error: 'Cette source ne se synchronise pas' };
     await prisma.discoverSource.update({ where: { id: source.id }, data: { lastSyncAt: new Date(), lastError: null, lastCount: count } });
@@ -70,14 +73,27 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
 }
 
 // Tâche planifiée : chaque source active dont la dernière synchronisation est trop ancienne
+// Une seule tournée à la fois (26 cantons OpenStreetMap peuvent prendre plus d'une heure si Overpass est chargé), au plus
+// 8 cantons par tournée et une pause entre deux pour ménager le service public
+let syncing = false;
+const OSM_PER_RUN = 8;
 export async function syncDueSources() {
-  const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep'] } } });
-  for (const s of sources) {
-    const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;
-    if (s.lastSyncAt && Date.now() - s.lastSyncAt.getTime() < every) continue;
-    await syncSource(s);
-  }
-  await cleanPastEvents();
+  if (syncing) return;
+  syncing = true;
+  try {
+    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
+    let osm = 0;
+    for (const s of sources) {
+      const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;
+      if (s.lastSyncAt && Date.now() - s.lastSyncAt.getTime() < every) continue;
+      if (s.type === 'osm') {
+        if (osm >= OSM_PER_RUN) continue;
+        if (osm++ > 0) await new Promise(r => setTimeout(r, 20_000));
+      }
+      await syncSource(s);
+    }
+    await cleanPastEvents();
+  } finally { syncing = false; }
 }
 
 // Événements terminés : effacés le lendemain

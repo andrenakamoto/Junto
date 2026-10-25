@@ -4,10 +4,11 @@ import { cleanText, cleanUrl, TITLE_MAX } from './model';
 // Connecteur GeNEVERsleep (partenaire, accord du 2026-10-25) : flux JSON réservé à EvLY, spécification v1
 // (`version`, `events[]` avec `id` stable, `name`, `venue`, `city`, `city_group` « Genève » | « Lausanne », `start` ISO avec
 // décalage, `end`, `url`, `categories`, `cancelled`). Un flux couvre deux villes : une source par région, filtrée par
-// `cityGroup`. Seules les informations de base sont partagées ; le crédit « Source : GeNEVERsleep » avec un lien vers la page
+// `cityGroup` ; depuis le 2026-10-25, une seule source sans `cityGroup` reprend tout le flux (toutes les villes), chaque
+// événement rangé dans la région de sa ville (`regionFromPlace` de sync.ts). Seules les informations de base sont partagées ; le crédit « Source : GeNEVERsleep » avec un lien vers la page
 // de l'événement est obligatoire (`url`, et la mention affichée sur chaque carte de Découvrir).
 
-export interface GeneverSleepConfig { url: string; cityGroup: 'Genève' | 'Lausanne' }
+export interface GeneverSleepConfig { url: string; cityGroup?: string }
 
 // Styles musicaux qui font d'une soirée un concert ; tout le reste (electronic, house, techno, latin…) = soirée
 const CONCERT_STYLES = ['live music', 'concert', 'punk', 'jazz', 'classical', 'pop/chanson', 'rock', 'metal', 'folk', 'blues', 'chanson'];
@@ -18,8 +19,8 @@ export function categoryOf(categories: unknown): Category {
 }
 
 // Un événement du flux → un événement EvLY. Sans heure de début, il est laissé de côté (une heure inventée serait fausse).
-export function normalizeGeneverSleepEvent(e: any, cityGroup: string, from: Date, to: Date): NormalizedEvent | null {
-  if (!e || e.city_group !== cityGroup) return null;
+export function normalizeGeneverSleepEvent(e: any, cityGroup: string | undefined, from: Date, to: Date): NormalizedEvent | null {
+  if (!e || (cityGroup && e.city_group !== cityGroup)) return null;
   const externalId = typeof e.id === 'string' ? e.id.slice(0, 120) : null;
   const title = cleanText(e.name, TITLE_MAX);
   const startAt = typeof e.start === 'string' ? new Date(e.start) : null;

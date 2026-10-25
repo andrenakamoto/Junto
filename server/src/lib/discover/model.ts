@@ -2,8 +2,22 @@
 // sources (DiscoverSource) : agendas ouverts (OpenAgenda), OpenStreetMap, flux iCal autorisés, saisie manuelle dans
 // le panneau admin. Les sources « pending » (partenaires en attente d'accord) ne sont jamais synchronisées.
 
-// Régions des sources (synchronisation, anciennes apps) ; Découvrir cherche par lieu et rayon depuis le 2026-10-25
-export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne'] as const;
+// Régions des sources = cantons (synchronisation, anciennes apps ; `la` = Vaud, nom historique) ; Découvrir cherche par lieu et
+// rayon depuis le 2026-10-25, dans toute la Suisse
+export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne', 'ju', 'be', 'so', 'bs', 'bl', 'ag', 'lu', 'zg', 'sz', 'ur', 'ow', 'nw', 'zh', 'sh',
+  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti'] as const;
+// Nom français et code ISO de chaque canton (sources OpenStreetMap)
+export const CANTONS: Record<Region, { name: string; iso: string }> = {
+  ge: { name: 'canton de Genève', iso: 'CH-GE' }, la: { name: 'canton de Vaud', iso: 'CH-VD' }, vs: { name: 'Valais', iso: 'CH-VS' },
+  fr: { name: 'canton de Fribourg', iso: 'CH-FR' }, ne: { name: 'canton de Neuchâtel', iso: 'CH-NE' }, ju: { name: 'canton du Jura', iso: 'CH-JU' },
+  be: { name: 'canton de Berne', iso: 'CH-BE' }, so: { name: 'canton de Soleure', iso: 'CH-SO' }, bs: { name: 'Bâle-Ville', iso: 'CH-BS' },
+  bl: { name: 'Bâle-Campagne', iso: 'CH-BL' }, ag: { name: 'Argovie', iso: 'CH-AG' }, lu: { name: 'canton de Lucerne', iso: 'CH-LU' },
+  zg: { name: 'canton de Zoug', iso: 'CH-ZG' }, sz: { name: 'canton de Schwytz', iso: 'CH-SZ' }, ur: { name: 'Uri', iso: 'CH-UR' },
+  ow: { name: 'Obwald', iso: 'CH-OW' }, nw: { name: 'Nidwald', iso: 'CH-NW' }, zh: { name: 'canton de Zurich', iso: 'CH-ZH' },
+  sh: { name: 'canton de Schaffhouse', iso: 'CH-SH' }, tg: { name: 'Thurgovie', iso: 'CH-TG' }, sg: { name: 'canton de Saint-Gall', iso: 'CH-SG' },
+  ar: { name: 'Appenzell Rhodes-Extérieures', iso: 'CH-AR' }, ai: { name: 'Appenzell Rhodes-Intérieures', iso: 'CH-AI' },
+  gl: { name: 'canton de Glaris', iso: 'CH-GL' }, gr: { name: 'Grisons', iso: 'CH-GR' }, ti: { name: 'Tessin', iso: 'CH-TI' },
+};
 export type Region = typeof REGIONS[number];
 export const isRegion = (v: unknown): v is Region => typeof v === 'string' && (REGIONS as readonly string[]).includes(v);
 
