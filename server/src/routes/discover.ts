@@ -20,10 +20,20 @@ const formLimiter = rateLimit({
 const CACHE_MS = 5 * 60 * 1000;
 
 // Types de lieux connus des apps jusqu'à la 1.0.32 : elles affichent la clé brute (« discover.kinds.galerie ») pour les autres.
-// Le site et les apps suivantes demandent `v=2` et reçoivent tous les types.
 const LEGACY_KINDS = new Set(['escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee']);
-const forClient = (body: any, v: unknown) =>
-  v === '2' ? body : { ...body, places: body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)) };
+// Versions demandées par le client : sans `v` = apps ≤ 1.0.32 (anciens types de lieux seulement) ; `v=2` = apps 1.0.33 à
+// 1.0.35 (tous les lieux, pas de crédit des partenaires sur les cartes) ; `v=3` = site et apps suivantes. Les clients sans
+// crédit le reçoivent dans le texte du prix (vide pour ces sources).
+const CREDITED = new Set(['geneversleep', 'partner']);
+const forClient = (body: any, v: unknown) => {
+  if (v === '3') return body;
+  const credit = new Map<string, string>(body.sources.filter((s: any) => CREDITED.has(s.type)).map((s: any) => [s.id, s.attribution ?? s.name]));
+  return {
+    ...body,
+    places: v === '2' ? body.places : body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)),
+    events: body.events.map((e: any) => credit.has(e.sourceId) && !e.priceText ? { ...e, priceText: credit.get(e.sourceId) } : e),
+  };
+};
 
 // GET /api/discover?region=ge&days=7 — événements à venir, idées de sorties et sources (licences à afficher)
 router.get('/', async (req, res) => {

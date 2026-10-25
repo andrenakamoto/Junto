@@ -3,6 +3,7 @@ import type { DiscoverSource } from '@prisma/client';
 import { fetchOpenAgenda, OpenAgendaConfig } from './openagenda';
 import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
+import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 
 // Synchronisation des sources actives (tâche planifiée, protégée comme les autres, et bouton du panneau admin).
@@ -12,6 +13,7 @@ import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 export const EVENT_WINDOW_DAYS = 30;
 const EVENT_SYNC_MS = 12 * 3600e3;      // agendas : deux fois par jour
 const PLACE_SYNC_MS = 7 * 24 * 3600e3;  // OpenStreetMap : une fois par semaine
+const GNS_SYNC_MS = 2 * 3600e3;         // GeNEVERsleep : toutes les 2 h (leur recommandation : 1 à 3 h)
 
 async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[]) {
   const now = new Date();
@@ -52,6 +54,7 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
     let count = 0;
     if (source.type === 'openagenda') count = await saveEvents(source, region, await fetchOpenAgenda(source.config as unknown as OpenAgendaConfig, from, to));
     else if (source.type === 'ical') count = await saveEvents(source, region, await fetchIcal(source.config as unknown as IcalConfig, from, to));
+    else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to));
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
     else return { error: 'Cette source ne se synchronise pas' };
     await prisma.discoverSource.update({ where: { id: source.id }, data: { lastSyncAt: new Date(), lastError: null, lastCount: count } });
@@ -67,9 +70,9 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
 
 // Tâche planifiée : chaque source active dont la dernière synchronisation est trop ancienne
 export async function syncDueSources() {
-  const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm'] } } });
+  const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep'] } } });
   for (const s of sources) {
-    const every = s.type === 'osm' ? PLACE_SYNC_MS : EVENT_SYNC_MS;
+    const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;
     if (s.lastSyncAt && Date.now() - s.lastSyncAt.getTime() < every) continue;
     await syncSource(s);
   }

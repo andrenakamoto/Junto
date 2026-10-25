@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { normalizeOpenAgendaEvent } from './openagenda';
 import { normalizeOsmElement } from './osm';
 import { parseIcal, parseIcalDate } from './ical';
+import { categoryOf, normalizeGeneverSleepEvent } from './geneversleep';
 import { cleanUrl, parseManualEvent, parseProInterest } from './model';
 
 const from = new Date('2026-10-26T00:00:00+01:00');
@@ -80,5 +81,23 @@ describe('saisies', () => {
   it('demande d’organisateur', () => {
     expect(parseProInterest({ name: 'Ana', email: 'pas-un-email' })).toEqual({ error: 'Adresse email invalide' });
     expect(parseProInterest({ name: 'Ana', email: 'Ana@Bar.CH ' })).toMatchObject({ data: { email: 'ana@bar.ch' } });
+  });
+});
+
+describe('GeNEVERsleep', () => {
+  const from = new Date('2026-10-24T00:00:00Z'), to = new Date('2026-11-24T00:00:00Z');
+  const ev = { id: 'gns-2026-10-24-1579aefe', name: 'Carte blanche', venue: 'La Fonte', city: 'Carouge', city_group: 'Genève',
+    start: '2026-10-24T16:00:00+02:00', end: null, url: 'https://geneversleep.ch/soiree/x', categories: ['electronic'], cancelled: false };
+  it('reprend un événement de la bonne ville, avec son identifiant stable', () => {
+    expect(normalizeGeneverSleepEvent(ev, 'Genève', from, to)).toMatchObject({ externalId: 'gns-2026-10-24-1579aefe', place: 'La Fonte', city: 'Carouge', category: 'soiree', status: 'scheduled' });
+    expect(normalizeGeneverSleepEvent(ev, 'Lausanne', from, to)).toBeNull();
+  });
+  it('sans heure de début : laissé de côté ; annulé : signalé', () => {
+    expect(normalizeGeneverSleepEvent({ ...ev, start: null }, 'Genève', from, to)).toBeNull();
+    expect(normalizeGeneverSleepEvent({ ...ev, cancelled: true }, 'Genève', from, to)?.status).toBe('cancelled');
+  });
+  it('style live → concert', () => {
+    expect(categoryOf(['jazz'])).toBe('concert');
+    expect(categoryOf(['house', 'afro'])).toBe('soiree');
   });
 });
