@@ -100,6 +100,7 @@ const discover: Dict['discover'] = {
   allDay: "ganztags",
   moreInfo: "Mehr Infos auf {{site}}",
   website: "Website",
+  credit: "Quelle: {{name}}",
   goWith: "Mit einem Kreis hingehen",
   loginToGo: "Melde dich an, um mit einem Kreis hinzugehen",
   report: "Fehler melden",

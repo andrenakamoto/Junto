@@ -99,6 +99,7 @@ const discover = {
   allDay: "journée",
   moreInfo: "Plus d’infos sur {{site}}",
   website: "Site web",
+  credit: "Source : {{name}}",
   goWith: "Y aller avec un Cercle",
   loginToGo: "Connecte-toi pour y aller avec un Cercle",
   report: "Signaler une erreur",

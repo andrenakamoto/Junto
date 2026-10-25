@@ -1675,7 +1675,14 @@ vers les idées ; la recherche reste une liste directe. Bibliothèques (`amenity
 `20261031100000_discover_place_address`, `osmAddress` d'après `addr:*`, champ dans la saisie admin), touchée → recherche Google Maps. Panneau admin › Découvrir : idées de sorties en tuiles par catégorie avec filtre par source (OpenStreetMap / saisis à la main) et
 étiquette de source sur chaque lieu ; onglet **« Événements »** (à venir, recherche, « Masqués seulement », Masquer / Réafficher). Les
 administrateurs ont aussi un bouton **« Masquer »** sur chaque carte de Découvrir (événement et lieu). **Un événement ou un lieu masqué
-reste masqué** : la synchronisation met à jour les faits, jamais `state`. Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
+reste masqué** : la synchronisation met à jour les faits, jamais `state`. **GeNEVERsleep** (partenaire, 2026-10-25, `lib/discover/geneversleep.ts` testé) : flux JSON
+réservé (`https://geneversleep.ch/partners/evly/feed.json`, spécification v1 : `id` stable = clé, `city_group` Genève / Lausanne,
+`start` ISO, `categories`, `cancelled`), **deux sources** (`partner-geneversleep` = Genève, `partner-geneversleep-la` = Lausanne,
+type `geneversleep`, créées **en attente** : à activer dans le panneau admin quand l'adresse est en ligne), synchronisées toutes les 2 h ;
+sans heure de début, l'événement est ignoré ; styles live / jazz / punk… → `concert`, sinon `soiree`. **Crédit obligatoire** « Source :
+GeNEVERsleep » avec lien vers la page de l'événement : ligne sur chaque carte (`creditOf`, sources de type `geneversleep` / `partner`,
+clé `discover.credit`). Versions demandées par le client : sans `v` (apps ≤ 1.0.32) = anciens types de lieux seulement, `v=2` (1.0.33 à
+1.0.35) = tous les lieux, `v=3` (site et apps suivantes) = tout ; les clients sans crédit le reçoivent dans `priceText`. Étape suivante prévue (pas faite) : demande de compte pro vérifié (IDE, documents effacés après décision) et abonnement vendu sur le site. Panneau admin `DiscoverPanel` (sources, à valider, saisie, idées de sorties masquées, organisateurs intéressés). Démo :
 `demoDiscover` (fictif). Guide (fiche « Découvrir »), **conditions d'utilisation v5** (article « Découvrir », acceptation redemandée),
 politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap sans données personnelles, signalement, « Me prévenir » gardé
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD

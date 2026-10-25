@@ -40,7 +40,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   useEffect(() => {
     setData(null);
     setError(false);
-    api.get<DiscoverData>('/discover', { params: { region, days: 14, v: 2 } })
+    api.get<DiscoverData>('/discover', { params: { region, days: 14, v: 3 } })
       .then(res => setData(res.data))
       .catch(() => setError(true));
   }, [region]);
@@ -95,6 +95,13 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     try { await api.put(`/admin/discover/places/${p.id}/state`, { state: 'hidden' }); setData(d => d && { ...d, places: d.places.filter(x => x.id !== p.id) }); }
     catch { alert('Impossible de masquer ce lieu.'); }
   }
+
+  // Partenaires qui demandent un crédit sur chaque événement (GeNEVERsleep : « Source : GeNEVERsleep » + lien vers sa page)
+  const CREDITED = new Set(['geneversleep', 'partner']);
+  const creditOf = (e: DiscoverEvent) => {
+    const s = data?.sources.find(x => x.id === e.sourceId);
+    return s && CREDITED.has(s.type) ? (s.attribution ?? s.name).replace(/^Source\s*:\s*/i, '') : null;
+  };
 
   function goWith(e: DiscoverEvent) {
     if (user) setGoing(e);
@@ -199,13 +206,13 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
               {multi.length > 0 && (
                 <section className="space-y-2.5">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t('discover.multi')}</h3>
-                  {multi.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} />)}
+                  {multi.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} credit={creditOf(e)} />)}
                 </section>
               )}
               {[...byDay.keys()].sort().map(k => (
                 <section key={k} className="space-y-2.5">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide first-letter:uppercase">{dayTitle(k)}</h3>
-                  {byDay.get(k)!.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} />)}
+                  {byDay.get(k)!.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} credit={creditOf(e)} />)}
                 </section>
               ))}
 
@@ -253,7 +260,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   );
 }
 
-function EventCard({ e, onGo, onReport, onHide }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void }) {
+function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void; credit?: string | null }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const where = [e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', ');
@@ -273,6 +280,9 @@ function EventCard({ e, onGo, onReport, onHide }: { e: DiscoverEvent; onGo: (e: 
           {e.family && e.category !== 'famille' && <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">{catLabel('famille')}</span>}
           {status && <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-xs font-semibold">{status}</span>}
           {e.priceText && <span className="text-xs text-slate-500">{e.priceText}</span>}
+          {credit && (e.url
+            ? <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 underline underline-offset-2">{t('discover.credit', { name: credit })}</a>
+            : <span className="text-xs text-slate-500">{t('discover.credit', { name: credit })}</span>)}
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {e.status !== 'cancelled' && (
