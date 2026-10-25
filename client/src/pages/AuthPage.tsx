@@ -14,6 +14,7 @@ import { t, currentLang } from '../i18n';
 
 // Fiche de l'app iPhone (id App Store Connect de ch.evly.app)
 const APP_STORE_URL = 'https://apps.apple.com/app/id6818454100';
+const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=ch.evly.app';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 
 type Mode = 'login' | 'register';
@@ -384,13 +385,15 @@ export function AuthPage() {
           </div>
         </div>
 
-        {/* L'app iPhone (pas dans les apps elles-mêmes) : badge officiel d'Apple dans la langue de la page */}
+        {/* Les apps (pas dans les apps elles-mêmes) : badges officiels d'Apple et de Google dans la langue de la page */}
         {!Capacitor.isNativePlatform() && (
-          <div className="mt-8 flex flex-col items-center gap-2">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a href={APP_STORE_URL} target="_blank" rel="noopener" className="inline-block transition-opacity hover:opacity-85">
               <img src={`/badges/app-store-${currentLang()}.svg`} alt={t('auth.page.appStore')} className="h-11 w-auto" />
             </a>
-            <p className="text-xs text-slate-500">{t('auth.page.androidSoon')}</p>
+            <a href={GOOGLE_PLAY_URL} target="_blank" rel="noopener" className="inline-block transition-opacity hover:opacity-85">
+              <img src={`/badges/google-play-${currentLang()}.png`} alt={t('auth.page.googlePlay')} className="h-[52px] w-auto" />
+            </a>
           </div>
         )}
 

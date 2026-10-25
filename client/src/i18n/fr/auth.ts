@@ -76,7 +76,7 @@ export default {
     resend: 'Renvoyer',
     newHere: 'Nouveau sur EvLY ?',
     appStore: 'Télécharger EvLY dans l’App Store',
-    androidSoon: 'Android : bientôt disponible',
+    googlePlay: 'Disponible sur Google Play',
     organize: 'Organiser une sortie',
     demo: 'Voir la démo',
     discover: 'Découvrir EvLY',

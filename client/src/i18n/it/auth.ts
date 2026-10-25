@@ -77,7 +77,7 @@ const auth: Dict['auth'] = {
     resend: 'Invia di nuovo',
     newHere: 'Nuovo/a su EvLY?',
     appStore: 'Scarica EvLY su App Store',
-    androidSoon: 'Android: presto disponibile',
+    googlePlay: 'Disponibile su Google Play',
     organize: 'Organizza un’uscita',
     demo: 'Guarda la demo',
     discover: 'Scopri EvLY',
