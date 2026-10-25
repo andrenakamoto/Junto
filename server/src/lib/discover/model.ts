@@ -2,7 +2,8 @@
 // sources (DiscoverSource) : agendas ouverts (OpenAgenda), OpenStreetMap, flux iCal autorisés, saisie manuelle dans
 // le panneau admin. Les sources « pending » (partenaires en attente d'accord) ne sont jamais synchronisées.
 
-export const REGIONS = ['ge', 'la', 'vs'] as const;
+// Régions des sources (synchronisation, anciennes apps) ; Découvrir cherche par lieu et rayon depuis le 2026-10-25
+export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne'] as const;
 export type Region = typeof REGIONS[number];
 export const isRegion = (v: unknown): v is Region => typeof v === 'string' && (REGIONS as readonly string[]).includes(v);
 
@@ -53,6 +54,8 @@ export interface NormalizedPlace {
   kind: PlaceKind;
   city: string | null;
   address: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   website: string;
   family: boolean;
 }

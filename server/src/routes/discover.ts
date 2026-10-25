@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
+import { boundingBox, distanceKm, nearestRegion, searchLocalities } from '../lib/discover/geo';
 import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { escapeHtml } from '../lib/escapeHtml';
@@ -35,32 +36,65 @@ const forClient = (body: any, v: unknown) => {
   };
 };
 
-// GET /api/discover?region=ge&days=7 — événements à venir, idées de sorties et sources (licences à afficher)
+const RADII = [10, 25, 50];
+// Position arrondie au centième (~1 km) : rien de plus précis n'est utile, et le cache reste partagé
+function parsePoint(q: any): { lat: number; lon: number; radius: number } | null {
+  const lat = Number(q.lat), lon = Number(q.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 45.6 || lat > 48 || lon < 5.8 || lon > 10.6) return null;
+  const r = Number(q.radius);
+  return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, radius: RADII.includes(r) ? r : 25 };
+}
+
+// GET /api/discover/localities?q=nyo — « Ville ou village » de Découvrir (répertoire des localités de swisstopo, sur le serveur)
+router.get('/localities', (req, res) => {
+  const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 60) : '';
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.json(searchLocalities(q).map(l => ({ name: l.name, canton: l.canton, lat: l.lat, lon: l.lon })));
+});
+
+// GET /api/discover?lat=46.38&lon=6.24&radius=25&days=14 — événements à venir, idées de sorties et sources (licences à
+// afficher) autour d'un point, avec la distance de chacun. Anciennes apps : ?region=ge (inchangé). La position n'est ni
+// enregistrée ni journalisée.
 router.get('/', async (req, res) => {
-  const region = isRegion(req.query.region) ? req.query.region : 'ge';
+  const point = parsePoint(req.query);
+  const region = point ? nearestRegion(point) : isRegion(req.query.region) ? req.query.region : 'ge';
   const days = Math.min(31, Math.max(1, Number(req.query.days) || 7));
-  const key = `${region}|${days}`;
+  const key = point ? `${point.lat},${point.lon},${point.radius}|${days}` : `${region}|${days}`;
+  if (discoverCache.size > 300) discoverCache.clear();
   const hit = discoverCache.get(key);
   // Pas de copie dans le navigateur : la mémoire du serveur (vidée à chaque synchronisation) suffit
   res.set('Cache-Control', 'no-cache');
   if (hit && Date.now() - hit.at < CACHE_MS) { res.json(forClient(hit.body, req.query.v)); return; }
   const now = new Date();
   const until = new Date(now.getTime() + days * 24 * 3600e3);
-  const [events, places, sources] = await Promise.all([
+  // Autour d'un point : tout ce qui est dans le rayon, plus les éléments sans position de la région la plus proche
+  const box = point && boundingBox(point, point.radius);
+  const near = box
+    ? { OR: [{ latitude: { gte: box.minLat, lte: box.maxLat }, longitude: { gte: box.minLon, lte: box.maxLon } }, { latitude: null, region }] }
+    : { region };
+  const [allEvents, allPlaces, sources] = await Promise.all([
     prisma.discoverEvent.findMany({
-      where: { region, state: 'published', startAt: { lte: until }, OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] },
+      where: { AND: [near, { OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] }], state: 'published', startAt: { lte: until } },
       orderBy: { startAt: 'asc' },
-      take: 1500,
-      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true },
+      take: 3000,
+      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true },
     }),
     prisma.discoverPlace.findMany({
-      where: { region, state: 'published' },
+      where: { ...near, state: 'published' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, kind: true, city: true, address: true, website: true, family: true, sourceId: true },
+      select: { id: true, name: true, kind: true, city: true, address: true, website: true, family: true, sourceId: true, latitude: true, longitude: true },
     }),
     prisma.discoverSource.findMany({ where: { status: 'active' }, select: { id: true, name: true, type: true, attribution: true, license: true, licenseUrl: true, lastSyncAt: true } }),
   ]);
   // Annonces publiées depuis un Plan : inscription par son lien d'invitation, « complet » calculé en direct
+  // Distance exacte (le rectangle déborde du cercle) ; sans position : pas de distance affichée
+  const place = <T extends { latitude: number | null; longitude: number | null }>({ latitude, longitude, ...x }: T) => {
+    const d = point && latitude != null && longitude != null ? distanceKm(point, { lat: latitude, lon: longitude }) : null;
+    return { ...x, distanceKm: d == null ? null : Math.round(d * 10) / 10 };
+  };
+  const inRadius = (x: { distanceKm: number | null }) => !point || x.distanceKm == null || x.distanceKm <= point.radius;
+  const events = allEvents.map(place).filter(inRadius);
+  const places = allPlaces.map(place).filter(inRadius);
   const withSignup = await Promise.all(events.map(async ({ planId, ...e }) => {
     if (!planId) return e;
     const s = await planSignup(planId);
@@ -68,7 +102,7 @@ router.get('/', async (req, res) => {
   }));
   const used = new Set([...events.map(e => e.sourceId), ...places.map(p => p.sourceId)]);
   const body = {
-    region, from: now, until,
+    region, from: now, until, point,
     events: withSignup, places,
     sources: sources.filter(s => used.has(s.id)),
   };

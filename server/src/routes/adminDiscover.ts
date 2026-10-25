@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { isRegion, isState, parseManualEvent, parseManualPlace, cleanText, cleanUrl, isCategory } from '../lib/discover/model';
+import { withCoords } from '../lib/discover/geo';
 import { syncSource, discoverCache } from '../lib/discover/sync';
 import { openAgendaLicense, searchOpenAgendas } from '../lib/discover/openagenda';
 
@@ -123,7 +124,7 @@ async function manualSourceId() {
 router.post('/events', async (req: AuthRequest, res) => {
   const p = parseManualEvent(req.body);
   if ('error' in p) { res.status(400).json({ error: p.error }); return; }
-  const e = await prisma.discoverEvent.create({ data: { ...p.data, externalId: randomUUID(), sourceId: await manualSourceId(), state: 'published', createdById: req.userId } });
+  const e = await prisma.discoverEvent.create({ data: { ...withCoords(p.data, p.data.region), externalId: randomUUID(), sourceId: await manualSourceId(), state: 'published', createdById: req.userId } });
   discoverCache.clear();
   res.json(e);
 });
@@ -133,7 +134,7 @@ router.put('/events/:id', async (req, res) => {
   if (!cur || cur.source.type !== 'manual') { res.status(404).json({ error: 'Annonce introuvable' }); return; }
   const p = parseManualEvent(req.body);
   if ('error' in p) { res.status(400).json({ error: p.error }); return; }
-  const e = await prisma.discoverEvent.update({ where: { id: cur.id }, data: p.data });
+  const e = await prisma.discoverEvent.update({ where: { id: cur.id }, data: withCoords({ ...p.data, latitude: null, longitude: null }, p.data.region) });
   discoverCache.clear();
   res.json(e);
 });
@@ -165,7 +166,7 @@ router.put('/places/:id/state', async (req, res) => {
 router.post('/places', async (req, res) => {
   const p = parseManualPlace(req.body);
   if ('error' in p) { res.status(400).json({ error: p.error }); return; }
-  const place = await prisma.discoverPlace.create({ data: { ...p.data, externalId: randomUUID(), sourceId: await manualSourceId() } });
+  const place = await prisma.discoverPlace.create({ data: { ...withCoords(p.data, p.data.region), externalId: randomUUID(), sourceId: await manualSourceId() } });
   discoverCache.clear();
   res.json(place);
 });

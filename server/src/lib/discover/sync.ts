@@ -5,6 +5,7 @@ import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
+import { withCoords } from './geo';
 
 // Synchronisation des sources actives (tâche planifiée, protégée comme les autres, et bouton du panneau admin).
 // Événements : les 30 prochains jours ; une ligne supprimée chez la source disparaît, une ligne masquée par l'admin
@@ -19,7 +20,7 @@ async function saveEvents(source: DiscoverSource, region: Region, events: Normal
   const now = new Date();
   const keep = new Set(events.map(e => e.externalId));
   for (const e of events) {
-    const { externalId, ...data } = e;
+    const { externalId, ...data } = withCoords(e, region);
     await prisma.discoverEvent.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
       create: { ...data, externalId, sourceId: source.id, region, state: source.autoPublish ? 'published' : 'pending' },
@@ -34,7 +35,7 @@ async function saveEvents(source: DiscoverSource, region: Region, events: Normal
 async function savePlaces(source: DiscoverSource, region: Region, places: NormalizedPlace[]) {
   const keep = new Set(places.map(p => p.externalId));
   for (const p of places) {
-    const { externalId, ...data } = p;
+    const { externalId, ...data } = withCoords(p, region);
     await prisma.discoverPlace.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
       create: { ...data, externalId, sourceId: source.id, region, state: 'published' },

@@ -73,7 +73,10 @@ export function normalizeOsmElement(e: any): NormalizedPlace | null {
   const website = cleanUrl(t.website ?? t['contact:website']);
   const kind = placeKind(t);
   if (!name || !website || !kind) return null;
-  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), address: osmAddress(t), website, family: FAMILY_KINDS.includes(kind) };
+  // Position : le nœud lui-même, ou le centre d'un bâtiment / d'une zone (`out tags center`)
+  const lat = Number(e.lat ?? e.center?.lat), lon = Number(e.lon ?? e.center?.lon);
+  const pos = Number.isFinite(lat) && Number.isFinite(lon) ? { latitude: lat, longitude: lon } : { latitude: null, longitude: null };
+  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), address: osmAddress(t), ...pos, website, family: FAMILY_KINDS.includes(kind) };
 }
 
 // « Rue du Rhône 12, 1204 Genève » à partir des champs addr:* (null sans rue ni place)

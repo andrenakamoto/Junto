@@ -6,6 +6,8 @@ import { isPlanEnded } from '../planLifecycle';
 import { occupiedCount } from '../waitlist';
 import { isCategory, isRegion } from './model';
 import { discoverCache } from './sync';
+import { withCoords } from './geo';
+import type { Region } from './model';
 
 // Publier un Plan dans Découvrir (2026-10-23) : réservé aux comptes autorisés à la main dans le panneau admin
 // (User.canPublishDiscover, ou administrateur), créateurs du Plan ou gestionnaires de son Cercle, pour un Plan en
@@ -54,7 +56,8 @@ export async function publishPlan(planId: string, region: unknown, category: unk
   if (blocker) return { error: BLOCKER_ERRORS[blocker] };
   const source = await prisma.discoverSource.findUnique({ where: { key: PLAN_SOURCE_KEY }, select: { id: true } });
   if (!source) return { error: 'Découvrir indisponible' };
-  const data = { ...fields(plan), region, category, family: category === 'famille', state: 'published' };
+  // Position d'après le lieu du Plan (« Salle communale, Nyon ») : Découvrir par lieu et rayon
+  const data = withCoords({ ...fields(plan), latitude: null, longitude: null, region, category, family: category === 'famille', state: 'published' }, region);
   await prisma.discoverEvent.upsert({
     where: { planId },
     create: { ...data, planId, sourceId: source.id, externalId: planId, createdById: userId },
@@ -71,11 +74,11 @@ export async function unpublishPlan(planId: string) {
 
 // Après une modification du Plan : l'annonce suit (ou disparaît si le Plan n'est plus publiable)
 export async function refreshPlanDiscover(planId: string) {
-  const link = await prisma.discoverEvent.findUnique({ where: { planId }, select: { id: true } });
+  const link = await prisma.discoverEvent.findUnique({ where: { planId }, select: { id: true, region: true } });
   if (!link) return;
   const plan = await prisma.plan.findUnique({ where: { id: planId } });
   if (!plan || publishBlocker(plan)) { await unpublishPlan(planId); return; }
-  await prisma.discoverEvent.update({ where: { id: link.id }, data: fields(plan) });
+  await prisma.discoverEvent.update({ where: { id: link.id }, data: withCoords({ ...fields(plan), latitude: null, longitude: null }, link.region as Region) });
   discoverCache.clear();
 }
 
