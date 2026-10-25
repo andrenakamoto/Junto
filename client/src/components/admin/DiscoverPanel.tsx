@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Compass, RefreshCw } from 'lucide-react';
+import { ChevronDown, Compass, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import { DateTimeField } from '../ui/DateTimeField';
 import { isoToLocal, localToISO } from '../plans/PlanFormParts';
@@ -46,6 +46,8 @@ function Sources() {
   const [list, setList] = useState<any[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
+  // OpenStreetMap : une source par canton (26), regroupées en une ligne dépliable
+  const [osmOpen, setOsmOpen] = useState(false);
   const load = () => api.get('/admin/discover/sources').then(r => setList(r.data)).catch(() => setList([]));
   useEffect(() => { load(); }, []);
 
@@ -65,7 +67,30 @@ function Sources() {
     <div className="space-y-3">
       {msg && <p className="text-sm text-slate-700 bg-slate-100 rounded-lg px-3 py-2">{msg}</p>}
       {list === null && <p className="text-sm text-slate-400">Chargement…</p>}
-      {list?.map(s => (
+      {list && (() => {
+        const osm = list.filter(s => s.type === 'osm');
+        const errors = osm.filter(s => s.lastError).length;
+        const synced = osm.filter(s => s.lastSyncAt).length;
+        const places = osm.reduce((n, s) => n + (s.places ?? 0), 0);
+        return osm.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200">
+            <button onClick={() => setOsmOpen(o => !o)} className="w-full flex flex-wrap items-center gap-x-3 gap-y-1 p-3 text-left">
+              <span className="font-medium text-slate-800">OpenStreetMap – {osm.length} cantons</span>
+              <span className="text-xs text-slate-500">Lieux : {places} · {synced}/{osm.length} synchronisés</span>
+              {errors > 0 && <span className="text-xs text-red-600">{errors} en erreur (nouvel essai automatique)</span>}
+              <ChevronDown size={16} className={`ml-auto text-slate-400 transition-transform ${osmOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {osmOpen && <div className="border-t border-slate-100 p-2 space-y-2 bg-slate-50 rounded-b-xl">{osm.map(card)}</div>}
+          </div>
+        );
+      })()}
+      {list?.filter(s => s.type !== 'osm').map(card)}
+      <AddSource onAdded={load} />
+    </div>
+  );
+
+  function card(s: any) {
+    return (
         <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-3 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-slate-800">{s.name}</span>
@@ -95,10 +120,8 @@ function Sources() {
             )}
           </div>
         </div>
-      ))}
-      <AddSource onAdded={load} />
-    </div>
-  );
+    );
+  }
 }
 
 function AddSource({ onAdded }: { onAdded: () => void }) {
