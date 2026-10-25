@@ -19,6 +19,12 @@ const formLimiter = rateLimit({
 
 const CACHE_MS = 5 * 60 * 1000;
 
+// Types de lieux connus des apps jusqu'à la 1.0.32 : elles affichent la clé brute (« discover.kinds.galerie ») pour les autres.
+// Le site et les apps suivantes demandent `v=2` et reçoivent tous les types.
+const LEGACY_KINDS = new Set(['escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee']);
+const forClient = (body: any, v: unknown) =>
+  v === '2' ? body : { ...body, places: body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)) };
+
 // GET /api/discover?region=ge&days=7 — événements à venir, idées de sorties et sources (licences à afficher)
 router.get('/', async (req, res) => {
   const region = isRegion(req.query.region) ? req.query.region : 'ge';
@@ -27,7 +33,7 @@ router.get('/', async (req, res) => {
   const hit = discoverCache.get(key);
   // Pas de copie dans le navigateur : la mémoire du serveur (vidée à chaque synchronisation) suffit
   res.set('Cache-Control', 'no-cache');
-  if (hit && Date.now() - hit.at < CACHE_MS) { res.json(hit.body); return; }
+  if (hit && Date.now() - hit.at < CACHE_MS) { res.json(forClient(hit.body, req.query.v)); return; }
   const now = new Date();
   const until = new Date(now.getTime() + days * 24 * 3600e3);
   const [events, places, sources] = await Promise.all([
@@ -57,7 +63,7 @@ router.get('/', async (req, res) => {
     sources: sources.filter(s => used.has(s.id)),
   };
   discoverCache.set(key, { at: Date.now(), body });
-  res.json(body);
+  res.json(forClient(body, req.query.v));
 });
 
 // POST /api/discover/report { eventId | placeId, message } — « Signaler une erreur » : email à l'équipe

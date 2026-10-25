@@ -40,7 +40,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   useEffect(() => {
     setData(null);
     setError(false);
-    api.get<DiscoverData>('/discover', { params: { region, days: 14 } })
+    api.get<DiscoverData>('/discover', { params: { region, days: 14, v: 2 } })
       .then(res => setData(res.data))
       .catch(() => setError(true));
   }, [region]);
