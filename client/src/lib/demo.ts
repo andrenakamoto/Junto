@@ -430,6 +430,12 @@ function createPlan(circleId: string, body: any) {
     maxParticipants: body.maxParticipants ? Number(body.maxParticipants) : null,
     deletionMode: body.deletionMode ?? 'vote', disabledFeatures: body.disabledFeatures ?? [], editMode: body.editMode ?? 'creator',
     importantInfo: body.importantInfo?.trim() || null, importantInfoMode: body.importantInfoMode ?? 'creator',
+    // Réglages récents (Plans spécifiques, « Qui voit ce Plan ? », règles) : gardés comme le vrai serveur
+    kind: body.kind ?? null, enabledFeatures: Array.isArray(body.enabledFeatures) ? body.enabledFeatures : [],
+    recurrence: body.recurrence ?? null, recurrenceUntil: body.recurrenceUntil ?? null,
+    visibility: body.visibility ?? 'hidden', surprise: body.surprise ?? true,
+    membersVisibility: body.membersVisibility ?? 'all', filesMode: body.filesMode ?? 'all',
+    guestInviteMode: body.guestInviteMode ?? 'managers', allowCirclePlans: body.allowCirclePlans ?? true,
     creatorId: me.id, circleId, creator: meRef(), members: [member], unseen: [], unseenAt: null,
   };
   const detail = {
@@ -440,12 +446,75 @@ function createPlan(circleId: string, body: any) {
   fixtures![`GET /plans/${id}/messages`] = [];
   fixtures![`GET /rides/plan/${id}`] = { rides: [], requests: [] };
   fixtures![`GET /plans/${id}/expenses`] = { defaultCurrency: 'CHF', expenses: [], reimbursements: [], balances: [], suggestedTransfers: [] };
+  if (base.enabledFeatures.includes('pere_noel')) startDemoSanta(id, circleId, base);
   const listEntry = { ...(template ?? {}), ...base, _count: { messages: 0 } };
   for (const key of [`GET /circles/${circleId}/plans`, 'GET /plans']) {
     const list = fixtures![key];
     if (Array.isArray(list)) list.push(key === 'GET /plans' ? { ...listEntry, circle: fixtures!['GET /circles'].find((c: any) => c.id === circleId) } : listEntry);
   }
   return detail;
+}
+
+// Amis fictifs qui rejoignent un Cercle créé dans la démo (comme après l'envoi du lien d'invitation) : ceux des « copains »
+const DEMO_FRIENDS = ['tom_b', 'emma_v', 'noah_p', 'chloe_s', 'julie_r'];
+function demoFriends() {
+  const seen = new Map<string, any>();
+  for (const c of fixtures!['GET /circles'] as any[]) for (const m of c.members ?? []) if (DEMO_FRIENDS.includes(m.user.pseudo)) seen.set(m.user.pseudo, m.user);
+  return DEMO_FRIENDS.map(p => seen.get(p)).filter(Boolean);
+}
+function friendsJoinCircle(circleId: string) {
+  demoFriends().forEach((u, i) => window.setTimeout(() => {
+    const circle = (fixtures!['GET /circles'] as any[]).find(c => c.id === circleId);
+    if (!circle || circle.members.some((m: any) => m.userId === u.id)) return;
+    circle.members.push({ userId: u.id, circleId, role: 'member', joinedAt: now(), user: u });
+    changed(undefined, circleId);
+  }, 2500 + i * 900));
+}
+
+// Père Noël secret d'un Plan créé dans la démo : les membres du Cercle répondent « Je suis in » et notent leurs envies,
+// le tirage se fait pour de vrai (en mémoire), puis le Père Noël d'Alex lui écrit
+function santaWishes(): string[] { return tr('ui.demoApi.santaWishes').split('|'); }
+function startDemoSanta(planId: string, circleId: string, p: any) {
+  const key = `GET /plans/${planId}/santa`;
+  fixtures![key] = {
+    budget: null, drawn: false, revealed: false, canManage: true, canReveal: false, revealEndsPlan: p.kind === 'pere_noel',
+    eventDate: p.eventDate, endDate: p.endDate,
+    participants: [{ id: me.id, pseudo: me.pseudo, firstName: me.firstName, wishStatus: 'pending' }],
+    myWish: '', myNoWish: false, exclusions: [], me: null, santa: null, readyCount: 0, pairCount: 0, unpaired: [], reveal: null,
+    _wishes: {} as Record<string, string>,
+  };
+  const others = () => ((fixtures!['GET /circles'] as any[]).find(c => c.id === circleId)?.members ?? [])
+    .filter((m: any) => m.userId !== me.id).slice(0, 5).map((m: any) => m.user);
+  // Les amis arrivent un par un (y compris ceux qui rejoignent le Cercle juste après sa création)
+  [0, 1, 2, 3, 4].forEach(i => window.setTimeout(() => {
+    const st = fixtures![key]; const detail = fixtures![`GET /plans/${planId}`];
+    const u = others()[i];
+    if (!u || !st || !detail || st.drawn || st.participants.some((x: any) => x.id === u.id)) return;
+    const wish = i === 2 ? '' : santaWishes()[i % santaWishes().length];
+    st._wishes[u.id] = wish;
+    st.participants.push({ id: u.id, pseudo: u.pseudo, firstName: u.firstName, wishStatus: wish ? 'wish' : 'none' });
+    detail.members.push({ userId: u.id, planId, rsvp: 'in', joinedAt: now(), seen: {}, user: u, isGuest: false });
+    changed(planId, circleId);
+  }, 6000 + i * 1500));
+}
+function drawDemoSanta(planId: string) {
+  const st = fixtures![`GET /plans/${planId}/santa`];
+  if (st.participants.length < 3) throw new DemoError(400, tr('ui.demoApi.santaMin'));
+  // Un seul grand cercle ; la personne qu'Alex gâte a noté des envies (plus parlant dans la démo)
+  const others = st.participants.filter((x: any) => x.id !== me.id).sort(() => Math.random() - 0.5);
+  const first = Math.max(0, others.findIndex((x: any) => st._wishes[x.id]));
+  const receiver = others.splice(first, 1)[0];
+  st.drawn = true; st.pairCount = st.participants.length;
+  st.me = {
+    receiver: { id: receiver.id, pseudo: receiver.pseudo, firstName: receiver.firstName },
+    receiverWish: st._wishes[receiver.id] ?? '', receiverWishStatus: receiver.wishStatus, giftReady: false, withReceiver: [],
+  };
+  st.santa = { withSanta: [] };
+  // Le Père Noël d'Alex se manifeste quelques secondes après le tirage
+  window.setTimeout(() => {
+    st.santa.withSanta.push({ id: newId('santa'), mine: false, content: tr('ui.demoApi.santaHello'), createdAt: now() });
+    changed(planId);
+  }, 5000);
 }
 
 // Killer : la cible d'Alex confirme son élimination ; Alex reprend une mission (cible encore en jeu,
@@ -792,6 +861,8 @@ function route(method: string, path: string, body: any): any {
       // Une réponse arrive quelques secondes plus tard, pour donner vie à la démo
       const reply = body.to === 'receiver' ? tr('ui.demoApi.santaReplyReceiver') : tr('ui.demoApi.santaReplyGiver');
       window.setTimeout(() => { thread.push({ id: newId('santa'), mine: false, content: reply, createdAt: now() }); changed(m![1]); }, 2500);
+    } else if (sub === '/draw' && method === 'POST' && st.canManage && !st.drawn && st._wishes) {
+      drawDemoSanta(m[1]);
     } else if (sub === '' && method === 'PUT' && st.canManage && body.budget !== undefined) {
       st.budget = String(body.budget ?? '').trim() || null;
     } else throw new DemoError(403, NOT_IN_DEMO);
@@ -1297,6 +1368,7 @@ function route(method: string, path: string, body: any): any {
     fixtures![`GET /circles/${id}/plans`] = [];
     fixtures![`GET /circles/${id}/polls`] = [];
     fixtures![`GET /circles/${id}/history`] = [];
+    friendsJoinCircle(id);
     return circle;
   }
 

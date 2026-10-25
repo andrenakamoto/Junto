@@ -1839,6 +1839,12 @@ affiche, réunion du comité avec plan du site, course des 10 km en Mode annonce
 fictifs : `affiches.html` → `node affiches.js`. Photos des 7 Cercles (2026-10-18) : illustrations liées à chacun (salle de danse, ring, village, afterwork,
 anniversaire, chalet, fête) dans `public/demo/circles/<code>.svg`, générées par `client/scripts/demo-circles.py`, ajoutées
 par `demoAdapter` (GET /circles, `DEMO_CIRCLE_PHOTOS`). Nouvelles personnes : avatars dans `client/scripts/demo-avatars.py`.
+**Créer dans la démo** (2026-10-25) : un Cercle créé dans la démo est rejoint quelques secondes après par cinq amis fictifs
+(`friendsJoinCircle`, Tom, Emma, Noah, Chloé, Julie, comme après l'envoi du lien) ; un Plan créé garde ses réglages récents (`kind`,
+`enabledFeatures`, répétition, « Qui voit ce Plan ? », règles) et s'ouvre sur la rubrique de son type. **Père Noël secret d'un Plan créé**
+(`startDemoSanta` / `drawDemoSanta`) : les membres du Cercle répondent « Je suis in » avec leurs envies (`ui.demoApi.santaWishes`), le
+tirage marche en mémoire (la personne tirée a des envies), le Père Noël d'Alex écrit 5 s après (`santaHello`). Les autres fonctions à
+activer d'un Plan créé (quiz, Killer, assemblée…) renvoient le message « pas disponible dans la démo ». Parcours filmé dans la vidéo 48.
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
