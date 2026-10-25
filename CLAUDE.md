@@ -487,6 +487,9 @@ Conséquences pratiques :
     l'app : `refreshAll` de DashboardPage émet `evly-resync` (`hooks/useResync.ts`), écouté par les écrans qui chargent leurs propres
     données (sondages d'un Cercle, discussion du Cercle, sondage ouvert, covoiturage, dépenses, quiz) ; **tout nouvel écran de ce genre doit
     l'utiliser**. La liste des sondages d'un Cercle se recharge aussi quand sa carte change (`pollCount`, `lastActivityAt`).
+    **Version 1.0.36** (2026-10-25) : Android `versionCode` 38 (`evly-1.0.36-(38).aab`), iOS build 40 envoyé — Découvrir par lieu et rayon
+    dans toute la Suisse (ville, village ou « Autour de moi », 10 / 25 / 50 km, distances) ; autorisation de position approximative
+    (Android `ACCESS_COARSE_LOCATION`, iOS `NSLocationWhenInUseUsageDescription` en 4 langues).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
