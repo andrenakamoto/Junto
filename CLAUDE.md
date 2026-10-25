@@ -1688,6 +1688,21 @@ politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap san
 2 ans au plus). Droits : seulement des sources sous licence ouverte ou avec accord ; reprendre en masse un agenda privé exposerait à la LCD
 (art. 5 let. c).
 
+**Découvrir par lieu et rayon** (2026-10-25, `lib/discover/geo.ts` testé, migration `20261101100000_discover_place_coords`) : plus de
+boutons de région sur la page. Pastille « 📍 Genève · 25 km » → `PlacePicker` : « Autour de moi » (`navigator.geolocation`, redemandée à
+chaque ouverture, **jamais gardée**), recherche d'une **ville ou d'un village** (GET `/api/discover/localities?q=`, répertoire officiel des
+localités de **swisstopo** réduit dans `server/assets/localities.json`, 4 400 entrées, « © swisstopo », aucun service extérieur), rayon
+10 / 25 / 50 km, récents et grandes villes (`BIG_CITIES`). Choix gardé sur l'appareil (`evly_discover_place`, `evly_discover_recent` ;
+l'ancienne région devient sa ville). GET `/api/discover?lat=&lon=&radius=` (position arrondie au centième, ni enregistrée ni journalisée) :
+tout ce qui est dans le rayon (rectangle puis distance exacte) + les éléments sans position de la région la plus proche ; `distanceKm`
+sur chaque événement et lieu (affiché « · 3 km », idées triées du plus proche). **`?region=` inchangé pour les anciennes apps.**
+Positions : OpenAgenda et OSM fournissent les leurs (`DiscoverPlace.latitude/longitude` depuis cette date) ; sinon `withCoords` d'après la
+ville, ou un nom de localité cité dans l'adresse / le lieu (à 80 km au plus du centre de la région) — appliqué à la synchronisation, aux
+saisies admin, aux annonces de Plans, et au démarrage (`fillMissingCoords`). Régions des sources : `ge|la|vs|fr|ne` (`la` = **tout le canton
+de Vaud** depuis cette date, libellé « Vaud » ; nouvelles sources `osm-fr`, `osm-ne`). Apps : `ACCESS_COARSE_LOCATION` (Android, position
+approximative, Android 12+) et `NSLocationWhenInUseUsageDescription` (Info.plist + `InfoPlist.strings` ×4). Politique de confidentialité
+(25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises, Eventfrog.
+
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :
 en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N) »** et **« Inviter »**, cloche barrée seulement si le Cercle
 est en silence, et un menu **⋯** (silence, paramètres, copier le code, supprimer / voter, quitter) ; le code est aussi dans « Inviter ».

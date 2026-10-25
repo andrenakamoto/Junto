@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 23. Oktober 2026',
+  version: 'Fassung vom 25. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -60,7 +60,7 @@ const de: PrivacyText = {
           hast. Kein Standort wird gespeichert. Diese Angaben werden am Ende des gewählten Zeitraums <strong>automatisch gelöscht</strong>
           (3 Stunden, oder 4 Uhr morgens für „heute Abend“).</li>
         <li><strong>Entdecken</strong>: Das Ansehen von Events und Ausflugsideen erzeugt keine Daten über dich (kein Konto nötig,
-          keine Nachverfolgung); die gewählte Region bleibt auf deinem Gerät. Die Anzeigen stammen aus öffentlichen Agenden, aus
+          keine Nachverfolgung); der gewählte Ort (Stadt oder Dorf) und der Umkreis bleiben auf deinem Gerät. Wählst du „<strong>In meiner Nähe</strong>“, wird dein ungefährer Standort (auf etwa 1 km gerundet) nur an unseren Server gesendet, um Events in der Nähe zu finden: Er wird weder gespeichert noch auf deinem Gerät aufbewahrt. Die Ortschaften stammen aus dem amtlichen Verzeichnis von swisstopo, das auf unserem Server liegt. Die Anzeigen stammen aus öffentlichen Agenden, aus
           OpenStreetMap oder vom EvLY-Team; unser Server ruft sie ab, ohne etwas über dich zu übermitteln. Wenn du einen
           <strong> Fehler meldest</strong>, wird deine Nachricht per E-Mail an die Administration von EvLY gesendet. Wenn du für
           <strong> „Öffentliches Event veröffentlichen“</strong> informiert werden möchtest, werden dein Name, deine E-Mail-Adresse und die

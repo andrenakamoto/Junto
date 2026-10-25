@@ -5,8 +5,25 @@ const discover = {
   subtitle: "Sorties et événements près de chez toi",
   regions: {
     ge: "Genève",
-    la: "Lausanne",
+    la: "Vaud",
     vs: "Valais",
+    fr: "Fribourg",
+    ne: "Neuchâtel",
+  },
+  place: {
+    choose: "Choisir le lieu",
+    title: "Où chercher ?",
+    here: "Autour de moi",
+    locating: "Recherche de ta position…",
+    denied: "Position indisponible. Choisis une ville ou un village.",
+    search: "Ville ou village",
+    searchPlaceholder: "Ex. Nyon, Morges, Bulle",
+    noResult: "Aucune localité trouvée.",
+    radius: "Rayon",
+    recent: "Récemment",
+    cities: "Villes",
+    done: "Afficher",
+    credit: "Localités : © swisstopo",
   },
   searchLabel: "Rechercher un lieu ou un événement",
   searchPlaceholder: "Rechercher (ex. salsa, concert, escape game)",
@@ -153,7 +170,7 @@ const discover = {
   public: {
     login: "Se connecter",
     signup: "Créer un compte",
-    intro: "Les sorties de la semaine à Genève, Lausanne et en Valais. Avec EvLY, propose-les à tes amis et organisez-vous en un geste.",
+    intro: "Les sorties de la semaine en Suisse romande, autour du lieu de ton choix. Avec EvLY, propose-les à tes amis et organisez-vous en un geste.",
   },
 };
 export default discover;

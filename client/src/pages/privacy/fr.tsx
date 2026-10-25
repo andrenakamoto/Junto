@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 23 octobre 2026',
+  version: 'Version du 25 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -64,7 +64,7 @@ const fr: PrivacyText = {
           enregistrée. Ces informations sont <strong>effacées automatiquement</strong> à la fin du moment choisi (3 heures, ou 4 h du
           matin pour « ce soir »).</li>
         <li><strong>Découvrir</strong> : consulter les événements et les idées de sorties ne crée aucune donnée sur toi (ni compte requis,
-          ni suivi) ; la région choisie est gardée sur ton appareil. Les annonces viennent d'agendas publics, d'OpenStreetMap ou de
+          ni suivi) ; le lieu choisi (ville ou village) et le rayon sont gardés sur ton appareil. Si tu choisis « <strong>Autour de moi</strong> », ta position approximative (arrondie à environ 1 km) est envoyée à notre serveur seulement pour trouver les sorties proches : elle n'est ni enregistrée ni gardée sur ton appareil. Les localités viennent du répertoire officiel de swisstopo, gardé sur notre serveur. Les annonces viennent d'agendas publics, d'OpenStreetMap ou de
           l'équipe EvLY ; notre serveur les récupère sans rien transmettre te concernant. Si tu <strong>signales une erreur</strong>, ton
           message est envoyé par email à l'administrateur d'EvLY. Si tu demandes à être prévenu pour <strong>« Poster un événement
           public »</strong>, ton nom, ton email et les informations facultatives (établissement, ville, message) sont gardés pour te

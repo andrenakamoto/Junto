@@ -56,8 +56,8 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Discover', summary: 'Outings near you, and going together',
         body: <>
           <P>The <strong>“Discover”</strong> button (next to “Contacts”) shows events for the next 14 days and
-            <strong> outing ideas</strong> (escape rooms, bowling, museums…) in <strong>Geneva, Lausanne and Valais</strong>.
-            Choose your region, filter by day or category, or search for a word (“salsa”, “concert”…).</P>
+            <strong> outing ideas</strong> (escape rooms, bowling, museums…) in <strong>French-speaking Switzerland</strong>.
+            Choose the place (a town, a village or “Near me”) and the radius (10, 25 or 50 km), filter by day or category, or search for a word (“salsa”, “concert”…).</P>
           <P>On an event, <strong>“Go with a Circle”</strong> opens a ready-filled Plan (title, date, place, link) in the
             Circle of your choice; <strong>“More info”</strong> opens the website of the organiser or of the agenda the listing comes from.</P>
           <P>Listings come from public agendas (for example the City of Geneva’s) and from the EvLY team.

@@ -1,8 +1,9 @@
 import { t, intlLocale } from '../i18n';
 
 // « Découvrir » : événements publics et idées de sorties (serveur : lib/discover/, GET /api/discover)
-export type DiscoverRegion = 'ge' | 'la' | 'vs';
-export const REGIONS: DiscoverRegion[] = ['ge', 'la', 'vs'];
+// Régions = cantons des sources (publication d'un Plan, panneau admin) ; la page Découvrir cherche par lieu et rayon
+export type DiscoverRegion = 'ge' | 'la' | 'vs' | 'fr' | 'ne';
+export const REGIONS: DiscoverRegion[] = ['ge', 'la', 'vs', 'fr', 'ne'];
 
 export interface DiscoverEvent {
   id: string; title: string; place: string | null; city: string | null; category: string; family: boolean;
@@ -10,8 +11,10 @@ export interface DiscoverEvent {
   url: string | null; sourceId: string;
   // Annonce publiée depuis un Plan : inscription par son lien d'invitation (/invitation?token=…)
   signupPath?: string;
+  // Distance depuis le lieu choisi (km), absente si l'événement n'a pas de position
+  distanceKm?: number | null;
 }
-export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string }
+export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
 export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[]; places: DiscoverPlace[]; sources: DiscoverSourceInfo[] }
 
@@ -72,9 +75,54 @@ export const shortDate = (iso: string) => new Intl.DateTimeFormat(intlLocale(), 
 
 const REGION_KEY = 'evly_discover_region';
 export function savedRegion(): DiscoverRegion {
-  try { const r = localStorage.getItem(REGION_KEY); if (r === 'ge' || r === 'la' || r === 'vs') return r; } catch { /* stockage indisponible */ }
+  try { const r = localStorage.getItem(REGION_KEY); if (r && (REGIONS as string[]).includes(r)) return r as DiscoverRegion; } catch { /* stockage indisponible */ }
   return 'ge';
 }
+
+// Lieu et rayon de Découvrir (2026-10-25). « Autour de moi » : la position est redemandée à chaque ouverture, jamais
+// gardée sur l'appareil ; une ville choisie est mémorisée avec ses coordonnées (`evly_discover_place`).
+export const RADII = [10, 25, 50] as const;
+export type Radius = typeof RADII[number];
+export interface Spot { name: string; lat: number; lon: number }
+export interface SpotChoice { spot: Spot | null; here: boolean; radius: Radius }
+// Raccourcis (Suisse romande)
+export const BIG_CITIES: Spot[] = [
+  { name: 'Genève', lat: 46.2044, lon: 6.1432 }, { name: 'Nyon', lat: 46.3833, lon: 6.2398 },
+  { name: 'Lausanne', lat: 46.5197, lon: 6.6323 }, { name: 'Morges', lat: 46.5113, lon: 6.4985 },
+  { name: 'Vevey', lat: 46.4628, lon: 6.8419 }, { name: 'Montreux', lat: 46.4312, lon: 6.9107 },
+  { name: 'Yverdon-les-Bains', lat: 46.7785, lon: 6.6411 }, { name: 'Fribourg', lat: 46.8065, lon: 7.1620 },
+  { name: 'Neuchâtel', lat: 46.9900, lon: 6.9293 }, { name: 'Sion', lat: 46.2331, lon: 7.3606 },
+  { name: 'Martigny', lat: 46.1028, lon: 7.0726 }, { name: 'Monthey', lat: 46.2550, lon: 6.9540 },
+];
+const REGION_CITY: Record<DiscoverRegion, string> = { ge: 'Genève', la: 'Lausanne', vs: 'Sion', fr: 'Fribourg', ne: 'Neuchâtel' };
+const PLACE_KEY = 'evly_discover_place';
+const RECENT_KEY = 'evly_discover_recent';
+const isSpot = (x: any): x is Spot => x && typeof x.name === 'string' && Number.isFinite(x.lat) && Number.isFinite(x.lon);
+
+export function savedSpot(): SpotChoice {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PLACE_KEY) ?? 'null');
+    const radius = (RADII as readonly number[]).includes(raw?.radius) ? raw.radius as Radius : 25;
+    if (raw?.here) return { spot: null, here: true, radius };
+    if (isSpot(raw?.spot)) return { spot: raw.spot, here: false, radius };
+  } catch { /* stockage indisponible */ }
+  // Avant le 2026-10-25 : la région choisie devient sa ville principale
+  const city = BIG_CITIES.find(c => c.name === REGION_CITY[savedRegion()])!;
+  return { spot: city, here: false, radius: 25 };
+}
+export function saveSpot(c: SpotChoice) {
+  try {
+    localStorage.setItem(PLACE_KEY, JSON.stringify(c.here ? { here: true, radius: c.radius } : { spot: c.spot, radius: c.radius }));
+    if (!c.here && c.spot) {
+      const list = [c.spot, ...recentSpots().filter(s => s.name !== c.spot!.name)].slice(0, 4);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+    }
+  } catch { /* stockage indisponible */ }
+}
+export function recentSpots(): Spot[] {
+  try { const l = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); return Array.isArray(l) ? l.filter(isSpot) : []; } catch { return []; }
+}
+export const kmLabel = (d: number | null | undefined) => d == null ? null : d < 1 ? '< 1 km' : `${Math.round(d)} km`;
 export function saveRegion(r: DiscoverRegion) {
   try { localStorage.setItem(REGION_KEY, r); } catch { /* stockage indisponible */ }
 }

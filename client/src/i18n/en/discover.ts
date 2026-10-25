@@ -6,8 +6,25 @@ const discover: Dict['discover'] = {
   subtitle: "Outings and events near you",
   regions: {
     ge: "Geneva",
-    la: "Lausanne",
+    la: "Vaud",
     vs: "Valais",
+    fr: "Fribourg",
+    ne: "Neuchâtel",
+  },
+  place: {
+    choose: "Choose the place",
+    title: "Where to look?",
+    here: "Near me",
+    locating: "Finding your location…",
+    denied: "Location unavailable. Choose a town or village.",
+    search: "Town or village",
+    searchPlaceholder: "E.g. Nyon, Morges, Bulle",
+    noResult: "No locality found.",
+    radius: "Radius",
+    recent: "Recent",
+    cities: "Towns",
+    done: "Show",
+    credit: "Localities: © swisstopo",
   },
   searchLabel: "Search for a place or an event",
   searchPlaceholder: "Search (e.g. salsa, concert, escape room)",
@@ -154,7 +171,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Log in",
     signup: "Create an account",
-    intro: "This week’s outings in Geneva, Lausanne and Valais. With EvLY, suggest them to your friends and get organised in a tap.",
+    intro: "This week’s outings in French-speaking Switzerland, around the place of your choice. With EvLY, suggest them to your friends and get organised in a tap.",
   },
 };
 export default discover;

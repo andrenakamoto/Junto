@@ -6,8 +6,25 @@ const discover: Dict['discover'] = {
   subtitle: "Uscite ed eventi vicino a te",
   regions: {
     ge: "Ginevra",
-    la: "Losanna",
+    la: "Vaud",
     vs: "Vallese",
+    fr: "Friburgo",
+    ne: "Neuchâtel",
+  },
+  place: {
+    choose: "Scegli il luogo",
+    title: "Dove cercare?",
+    here: "Vicino a me",
+    locating: "Ricerca della tua posizione…",
+    denied: "Posizione non disponibile. Scegli una città o un paese.",
+    search: "Città o paese",
+    searchPlaceholder: "Es. Nyon, Morges, Bulle",
+    noResult: "Nessuna località trovata.",
+    radius: "Raggio",
+    recent: "Recenti",
+    cities: "Città",
+    done: "Mostra",
+    credit: "Località: © swisstopo",
   },
   searchLabel: "Cerca un luogo o un evento",
   searchPlaceholder: "Cerca (es. salsa, concerto, escape game)",
@@ -154,7 +171,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Accedi",
     signup: "Crea un account",
-    intro: "Le uscite della settimana a Ginevra, Losanna e in Vallese. Con EvLY le proponi ai tuoi amici e vi organizzate in un attimo.",
+    intro: "Le uscite della settimana in Svizzera romanda, intorno al luogo che scegli. Con EvLY le proponi ai tuoi amici e vi organizzate in un attimo.",
   },
 };
 export default discover;

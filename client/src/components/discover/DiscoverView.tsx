@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LocateFixed, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n';
 import {
-  CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, DiscoverRegion, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, REGIONS,
-  catLabel, dayChips, dayKey, dayTitle, host, kindLabel, norm, regionLabel, savedRegion, saveRegion, shortDate, timeLabel,
+  CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, SpotChoice,
+  catLabel, dayChips, dayKey, dayTitle, host, kindLabel, kmLabel, norm, savedSpot, saveSpot, shortDate, timeLabel,
 } from '../../lib/discover';
+import { PlacePicker } from './PlacePicker';
 import { DiscoverGoModal } from './DiscoverGoModal';
 import { ProSoonModal } from './ProSoonModal';
 import { ReportModal } from './ReportModal';
@@ -17,12 +18,17 @@ const MULTI = 'multi';
 const LATER = 'later';
 const ALL = 'all';
 
-// « Découvrir » : événements publics et idées de sorties de Genève, Lausanne et du Valais. Dans l'app (colonne du
-// tableau de bord) et sur la page publique /sorties (sans compte). Données : GET /api/discover (lib/discover/ du serveur).
+// « Découvrir » : événements publics et idées de sorties de Suisse romande, autour d'un lieu choisi (ville, village ou
+// « Autour de moi ») et dans un rayon de 10, 25 ou 50 km. Dans l'app (colonne du tableau de bord) et sur la page publique
+// /sorties (sans compte). Données : GET /api/discover?lat=&lon=&radius= (lib/discover/ du serveur).
 export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?: () => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [region, setRegion] = useState<DiscoverRegion>(savedRegion);
+  const [choice, setChoice] = useState<SpotChoice>(savedSpot);
+  // « Autour de moi » : position demandée au navigateur à chaque ouverture (jamais gardée), arrondie par le serveur
+  const [herePos, setHerePos] = useState<{ lat: number; lon: number } | null>(null);
+  const [hereError, setHereError] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [data, setData] = useState<DiscoverData | null>(null);
   const [error, setError] = useState(false);
   const [day, setDay] = useState(ALL);
@@ -38,16 +44,33 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [filtersOpen, setFiltersOpen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
 
   useEffect(() => {
+    if (!choice.here) return;
+    setHerePos(null);
+    setHereError(false);
+    if (!navigator.geolocation) { setHereError(true); setPicking(true); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => setHerePos({ lat: p.coords.latitude, lon: p.coords.longitude }),
+      () => { setHereError(true); setPicking(true); },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60 * 1000 },
+    );
+  }, [choice.here]);
+
+  const center = choice.here ? herePos : choice.spot;
+  useEffect(() => {
+    if (!center) return;
     setData(null);
     setError(false);
-    api.get<DiscoverData>('/discover', { params: { region, days: 14, v: 3 } })
+    api.get<DiscoverData>('/discover', { params: { lat: center.lat, lon: center.lon, radius: choice.radius, days: 14, v: 3 } })
       .then(res => setData(res.data))
       .catch(() => setError(true));
-  }, [region]);
+  }, [center?.lat, center?.lon, choice.radius]);
 
-  function chooseRegion(r: DiscoverRegion) { setRegion(r); saveRegion(r); setCat(ALL); setIdeaKind(null); }
+  function choosePlace(c: SpotChoice) {
+    setChoice(c); saveSpot(c);
+    if (c.here !== choice.here || c.spot?.name !== choice.spot?.name) { setCat(ALL); setIdeaKind(null); }
+  }
   useEffect(() => { setIdeaKind(null); }, [cat]);
-  useEffect(() => { setIdeaCity(null); }, [ideaKind, region]);
+  useEffect(() => { setIdeaCity(null); }, [ideaKind, center?.lat, center?.lon]);
 
   const chips = useMemo(() => dayChips(), [data]);
   const chipKeys = new Set(chips.map(c => c.key));
@@ -131,10 +154,14 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
         <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
           {mode === 'public' && <p className="text-sm text-slate-600">{t('discover.public.intro')}</p>}
 
-          {/* Région */}
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label={t('discover.title')}>
-            {REGIONS.map(r => <button key={r} onClick={() => chooseRegion(r)} aria-pressed={r === region} className={pill(r === region)}>{regionLabel(r)}</button>)}
-          </div>
+          {/* Lieu et rayon */}
+          <button onClick={() => setPicking(true)} aria-label={t('discover.place.choose')}
+            className="inline-flex items-center gap-1.5 max-w-full px-3.5 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-800 hover:border-indigo-300">
+            {choice.here ? <LocateFixed size={15} className="text-indigo-600 flex-shrink-0" /> : <MapPin size={15} className="text-indigo-600 flex-shrink-0" />}
+            <span className="truncate">{choice.here ? (herePos || hereError ? t('discover.place.here') : t('discover.place.locating')) : choice.spot?.name}</span>
+            <span className="text-slate-400 font-medium flex-shrink-0">· {choice.radius} km</span>
+            <ChevronDown size={15} className="text-slate-400 flex-shrink-0" />
+          </button>
 
           {/* Recherche */}
           <label className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-indigo-500">
@@ -189,7 +216,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
           )}
 
           {/* Liste */}
-          {error ? (
+          {choice.here && hereError && !data ? (
+            <p className="text-sm text-slate-500 text-center py-8">{t('discover.place.denied')}</p>
+          ) : error ? (
             <p className="text-sm text-slate-500 text-center py-8">{t('discover.error')}</p>
           ) : !data ? (
             <p className="text-sm text-slate-400 text-center py-8">{t('common.loading')}</p>
@@ -251,6 +280,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
         </div>
       </div>
 
+      {picking && <PlacePicker value={choice} onChange={choosePlace} onClose={() => setPicking(false)} hereError={choice.here && hereError} />}
       {going && <DiscoverGoModal event={going} onClose={() => setGoing(null)} />}
       {reporting && <ReportModal target={reporting.target} title={reporting.title} onClose={() => setReporting(null)} />}
       {showPro && (user?.canPublishDiscover
@@ -263,7 +293,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void; credit?: string | null }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const where = [e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', ');
+  const where = [[e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', '), kmLabel(e.distanceKm)].filter(Boolean).join(' · ');
   const status = e.status !== 'scheduled' ? t(`discover.status.${e.status}` as any) : null;
   return (
     <article className="bg-white border border-slate-200 rounded-2xl p-3.5 flex gap-3 shadow-sm">
@@ -320,7 +350,7 @@ function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: Dis
       <div className="flex-1 min-w-0">
         <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
           <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-          <span className="block text-xs text-slate-500 truncate">{p.address ? t('discover.website') : [p.city, t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
         </a>
         {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas) */}
         {p.address && (
@@ -368,7 +398,8 @@ function IdeasBrowser({ places, kind, onKind, city, onCity, onReport, onHide }: 
       </section>
     );
   }
-  const list = places.filter(p => p.kind === kind).sort((a, b) => a.name.localeCompare(b.name));
+  // Le plus proche d'abord (lieux sans position à la fin), sinon par nom
+  const list = places.filter(p => p.kind === kind).sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999) || a.name.localeCompare(b.name));
   const cities = [...new Set(list.map(p => p.city).filter((c): c is string => !!c))].sort((a, b) => a.localeCompare(b));
   const shown = city ? list.filter(p => p.city === city) : list;
   const pill = (active: boolean) => `px-3 py-1 rounded-full border text-xs font-medium ${active ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700'}`;

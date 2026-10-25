@@ -6,8 +6,25 @@ const discover: Dict['discover'] = {
   subtitle: "Ausgehen und Events in deiner Nähe",
   regions: {
     ge: "Genf",
-    la: "Lausanne",
+    la: "Waadt",
     vs: "Wallis",
+    fr: "Freiburg",
+    ne: "Neuenburg",
+  },
+  place: {
+    choose: "Ort wählen",
+    title: "Wo suchen?",
+    here: "In meiner Nähe",
+    locating: "Dein Standort wird gesucht…",
+    denied: "Standort nicht verfügbar. Wähle eine Stadt oder ein Dorf.",
+    search: "Stadt oder Dorf",
+    searchPlaceholder: "z. B. Nyon, Morges, Bulle",
+    noResult: "Keine Ortschaft gefunden.",
+    radius: "Umkreis",
+    recent: "Zuletzt",
+    cities: "Städte",
+    done: "Anzeigen",
+    credit: "Ortschaften: © swisstopo",
   },
   searchLabel: "Einen Ort oder ein Event suchen",
   searchPlaceholder: "Suchen (z. B. Salsa, Konzert, Escape Game)",
@@ -154,7 +171,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Anmelden",
     signup: "Konto erstellen",
-    intro: "Die Events der Woche in Genf, Lausanne und im Wallis. Mit EvLY schlägst du sie deinen Freunden vor und ihr organisiert euch im Handumdrehen.",
+    intro: "Die Events der Woche in der Westschweiz, rund um den Ort deiner Wahl. Mit EvLY schlägst du sie deinen Freunden vor und ihr organisiert euch im Handumdrehen.",
   },
 };
 export default discover;

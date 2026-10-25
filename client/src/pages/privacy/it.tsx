@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 23 ottobre 2026',
+  version: 'Versione del 25 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -58,7 +58,7 @@ const it: PrivacyText = {
           informazioni sono <strong>cancellate automaticamente</strong> alla fine del momento scelto (3 ore, oppure le 4 del mattino per
           «stasera»).</li>
         <li><strong>Scopri</strong>: consultare eventi e idee per uscire non crea alcun dato su di te (nessun account richiesto, nessun
-          tracciamento); la regione scelta resta sul tuo dispositivo. Gli annunci provengono da agende pubbliche, da OpenStreetMap o dal
+          tracciamento); il luogo scelto (città o paese) e il raggio restano sul tuo dispositivo. Se scegli «<strong>Vicino a me</strong>», la tua posizione approssimativa (arrotondata a circa 1 km) viene inviata al nostro server solo per trovare le uscite vicine: non viene né salvata né conservata sul tuo dispositivo. Le località provengono dall'elenco ufficiale di swisstopo, conservato sul nostro server. Gli annunci provengono da agende pubbliche, da OpenStreetMap o dal
           team di EvLY; il nostro server li recupera senza trasmettere nulla che ti riguardi. Se <strong>segnali un errore</strong>, il tuo
           messaggio viene inviato per email all'amministratore di EvLY. Se chiedi di essere avvisato per <strong>«Pubblica un evento
           pubblico»</strong>, il tuo nome, la tua email e le informazioni facoltative (locale, città, messaggio) sono conservati per

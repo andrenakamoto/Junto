@@ -1,5 +1,6 @@
 import type { AxiosAdapter, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { currentLang, t as tr } from '../i18n';
+import { BIG_CITIES, norm } from './discover';
 
 // Démo sans compte (/demo) : tout tourne dans le navigateur. Les données (public/demo/data.json)
 // sont de vraies réponses du serveur, enregistrées une fois sur une base jetable avec des
@@ -679,7 +680,16 @@ function route(method: string, path: string, body: any): any {
   let m: RegExpMatchArray | null;
 
   // Découvrir
-  if (path === '/discover' && method === 'GET') return demoDiscover(body?.region ?? 'ge');
+  if (path === '/discover/localities' && method === 'GET') {
+    const q = norm(body?.q ?? '');
+    return q.length < 2 ? [] : BIG_CITIES.filter(c => norm(c.name).includes(q)).map(c => ({ ...c, canton: '' }));
+  }
+  if (path === '/discover' && method === 'GET') {
+    // Lieu choisi : la ville fictive la plus proche (Genève, Lausanne ou Sion)
+    const lat = Number(body?.lat), lon = Number(body?.lon);
+    const region = body?.region ?? (!Number.isFinite(lat) ? 'ge' : lon > 7 ? 'vs' : lat > 46.43 ? 'la' : 'ge');
+    return demoDiscover(region);
+  }
   // « Je suis dispo »
   if ((m = path.match(/^\/availability\/circles\/([^/]+)$/))) {
     const list = dispoOf(m[1]);
