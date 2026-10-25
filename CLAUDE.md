@@ -1697,7 +1697,7 @@ boutons de région sur la page. Pastille « 📍 Genève · 25 km » → `PlaceP
 chaque ouverture, **jamais gardée**), recherche d'une **ville ou d'un village** (GET `/api/discover/localities?q=`, répertoire officiel des
 localités de **swisstopo** réduit dans `server/assets/localities.json`, 4 400 entrées, « © swisstopo », aucun service extérieur), rayon
 10 / 25 / 50 km, récents et grandes villes (`BIG_CITIES`). Choix gardé sur l'appareil (`evly_discover_place`, `evly_discover_recent` ;
-l'ancienne région devient sa ville). GET `/api/discover?lat=&lon=&radius=` (position arrondie au centième, ni enregistrée ni journalisée) :
+l'ancienne région devient sa ville). GET `/api/discover?lat=&lon=&radius=` (position arrondie au centième **par l'app** — depuis le site du 25 octobre et les apps 1.0.37 — puis par le serveur, ni enregistrée ni journalisée : **nginx note `/api/discover` sans ses paramètres**, format `sans_parametres`, dans `/etc/nginx/sites-available/evly.conf` et `deploy/infomaniak/nginx-evly.conf`) :
 tout ce qui est dans le rayon (rectangle puis distance exacte) + les éléments sans position de la région la plus proche ; `distanceKm`
 sur chaque événement et lieu (affiché « · 3 km », idées triées du plus proche). **`?region=` inchangé pour les anciennes apps.**
 Positions : OpenAgenda et OSM fournissent les leurs (`DiscoverPlace.latitude/longitude` depuis cette date) ; sinon `withCoords` d'après la

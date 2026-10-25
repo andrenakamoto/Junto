@@ -60,7 +60,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     if (!center) return;
     setData(null);
     setError(false);
-    api.get<DiscoverData>('/discover', { params: { lat: center.lat, lon: center.lon, radius: choice.radius, days: 14, v: 3 } })
+    // Position arrondie au centième (~1 km) sur l'appareil : rien de plus précis ne quitte le téléphone
+    const round = (x: number) => Math.round(x * 100) / 100;
+    api.get<DiscoverData>('/discover', { params: { lat: round(center.lat), lon: round(center.lon), radius: choice.radius, days: 14, v: 3 } })
       .then(res => setData(res.data))
       .catch(() => setError(true));
   }, [center?.lat, center?.lon, choice.radius]);
