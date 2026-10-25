@@ -477,6 +477,9 @@ Conséquences pratiques :
     ou au Cercle.
     **Version 1.0.32** (2026-10-24) : Android `versionCode` 34 (`evly-1.0.32-(34).aab`), iOS build 36 envoyé — menu « Créer » avec
     Plan standard / Plan spécifique (8 types préréglés), révélation du Père Noël secret qui termine le Plan.
+    **Version 1.0.33** (2026-10-25) : Android `versionCode` 35 (`evly-1.0.33-(35).aab`), iOS build 37 envoyé — Découvrir : idées de
+    sorties en tuiles par catégorie, nouvelles catégories, adresses, « Masquer » pour les administrateurs (les apps ≤ 1.0.32 ne reçoivent que
+    les anciens types de lieux : GET /api/discover sans `v=2`, `LEGACY_KINDS`).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
