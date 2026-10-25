@@ -55,7 +55,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Familie &amp; Freunde</b><span>Omas Geburtstag</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Arbeitskollegen</b><span>Der Teamapéro</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Vereine</b><span>Die GV, von der Einladung bis zum Protokoll</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in der iPhone-App; Android folgt bald.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou les apps iPhone et Android.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in den Apps für iPhone und Android.</small>'],
   ],
   it: [
     ['<html lang="fr">', '<html lang="it">'],
@@ -105,7 +105,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Famiglia &amp; amici</b><span>Il compleanno della nonna</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleghi</b><span>L’aperitivo di squadra</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associazioni</b><span>L’assemblea, dalla convocazione al verbale</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, nel browser o nell’app per iPhone; Android a breve.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou les apps iPhone et Android.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, nel browser o nelle app per iPhone e Android.</small>'],
   ],
   en: [
     ['<html lang="fr">', '<html lang="en">'],
@@ -155,7 +155,7 @@ const T = {
     ["<b>Famille &amp; amis</b><span>L'anniv de mamie</span>", '<b>Family &amp; friends</b><span>Grandma’s birthday</span>'],
     ["<b>Collègues</b><span>L'afterwork d'équipe</span>", '<b>Colleagues</b><span>Team drinks after work</span>'],
     ["<b>Associations</b><span>L'AG, de la convocation au PV</span>", '<b>Associations</b><span>The AGM, from notice to minutes</span>'],
-    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou l'app iPhone ; Android bientôt.</small>", 'Organise your next event.<small>Free, in the browser or the iPhone app; Android coming soon.</small>'],
+    ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou les apps iPhone et Android.</small>", 'Organise your next event.<small>Free, in the browser or the iPhone and Android apps.</small>'],
   ],
 };
 
