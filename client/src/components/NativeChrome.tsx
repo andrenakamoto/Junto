@@ -37,23 +37,31 @@ export function NativeChrome() {
 
   // Liens d'application (Android : assetlinks.json ; iPhone : apple-app-site-association) :
   // un lien www.evly.ch touché dans WhatsApp, un email… ouvre l'app sur la page concernée
+  // Une seule fois : `navigate` change à chaque page, et relire l'adresse de lancement ramenait sans cesse sur le lien
+  // (validation de l'email : « Lien invalide ou expiré », boutons sans effet). Au démarrage, Android et iOS peuvent
+  // aussi donner la même adresse deux fois (getLaunchUrl et appUrlOpen) : on l'ignore pendant 3 s.
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+    let last = { url: '', at: 0 };
     const open = (raw?: string) => {
       if (!raw) return;
+      if (raw === last.url && Date.now() - last.at < 3000) return;
+      last = { url: raw, at: Date.now() };
       try {
         const url = new URL(raw);
         if (!/(^|\.)evly\.ch$/.test(url.hostname)) return;
-        navigate(`${url.pathname}${url.search}`, { replace: true });
+        navigateRef.current(`${url.pathname}${url.search}`, { replace: true });
       } catch { /* adresse invalide : on reste où l'on est */ }
     };
     CapApp.getLaunchUrl().then(r => open(r?.url)).catch(() => {});
     const sub = CapApp.addListener('appUrlOpen', e => open(e.url));
     return () => { sub.then(h => h.remove()); };
-  }, [navigate]);
+  }, []);
 
   // Toucher une notification push ouvre le Plan / sondage / Cercle concerné
-  useEffect(() => listenPush(url => navigate(url)), [navigate]);
+  useEffect(() => listenPush(url => navigateRef.current(url)), []);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
