@@ -169,8 +169,7 @@ Conséquences pratiques :
   Playwright, captures réelles de l'app sur une base jetable, club fictif « Les Rayons », club
   cycliste de Carouge) dans **`~/Desktop/01-EvLY/03_Marketing/02_Associations/Brochure associations (sources)/`** sur le Mac de
   l'utilisateur, avec un LISEZMOI pour tout régénérer (`seed-club.js`, `capture.js`, `build.js`).
-  Annonce l'app iPhone disponible et **Android « bientôt »** (p. 1, p. 6 et FAQ) : à mettre à jour à la
-  publication Android. `seed-ag-seance.js` (séance de l'AG, après `seed-club.js`) et `add-icons.js` (icônes
+  Annonce les apps iPhone et Android (p. 1, p. 6 et FAQ ; mis à jour le 2026-10-25 à la sortie Android). `seed-ag-seance.js` (séance de l'AG, après `seed-club.js`) et `add-icons.js` (icônes
   Lucide) dans le même dossier. La régénérer quand une fonctionnalité mise en avant change.
 - **Brochure professionnels** (2026-10-19) : `client/public/fichiers/evly-professionnels.pdf` (**7 pages** A4, vouvoiement,
   **aucun prix**) pour les bars, clubs, salles, organisateurs, écoles et cours, activités de groupe (escape game, karting) : Mode annonce et affiche, inscriptions et liste
@@ -210,9 +209,10 @@ Conséquences pratiques :
   (serveur, base, site, fichiers, emails, Swiss Backup) ; restent aux États-Unis Google / Apple (notifications push,
   connexion Google, polices) — le relais Railway a été retiré le 18 octobre 2026 ; journaux du serveur 7 jours (journald +
   logrotate nginx), sauvegardes 14 jours (serveur) / 30 jours (Swiss Backup).
-- **Badge App Store** sur la page de connexion (2026-10-17, `AuthPage`, masqué dans les apps) : badge officiel d'Apple dans la
-  langue de la page (`public/badges/app-store-{fr,de,it,en}.svg`, outil marketing d'Apple), lien `https://apps.apple.com/app/id6818454100`,
-  et « Android : bientôt disponible » (à retirer à la publication Android).
+- **Badges App Store et Google Play** sur la page de connexion (2026-10-17 ; Google Play depuis le 2026-10-25, **app Android publiée en
+  production**, `AuthPage`, masqués dans les apps) : badges officiels dans la langue de la page (`public/badges/app-store-{fr,de,it,en}.svg`,
+  outil marketing d'Apple ; `public/badges/google-play-{fr,de,it,en}.png`, play.google.com/intl/en_us/badges), liens
+  `https://apps.apple.com/app/id6818454100` et `https://play.google.com/store/apps/details?id=ch.evly.app`.
 - **Fiche promo publique** : `client/public/decouvrir.html` (servie telle
   quelle par Vercel sur `evly.ch/decouvrir.html`, liée depuis AuthPage
   « Découvrir EvLY en 1 minute »). Page HTML autonome, imprimable sur
