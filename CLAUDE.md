@@ -483,6 +483,10 @@ Conséquences pratiques :
     **Version 1.0.34** (2026-10-25) : Android `versionCode` 36 (`evly-1.0.34-(36).aab`), iOS build 38 envoyé — liens qui ouvrent l'app
     (validation d'email, invitations) : `NativeChrome` relisait `getLaunchUrl` à chaque changement de page (effet dépendant de `navigate`),
     ce qui ramenait sans cesse sur le lien (« Lien invalide ou expiré », boutons sans effet) ; lecture unique, doublons ignorés 3 s.
+    **Version 1.0.35** (2026-10-25) : Android `versionCode` 37 (`evly-1.0.35-(37).aab`), iOS build 39 envoyé — rattrapage au retour dans
+    l'app : `refreshAll` de DashboardPage émet `evly-resync` (`hooks/useResync.ts`), écouté par les écrans qui chargent leurs propres
+    données (sondages d'un Cercle, discussion du Cercle, sondage ouvert, covoiturage, dépenses, quiz) ; **tout nouvel écran de ce genre doit
+    l'utiliser**. La liste des sondages d'un Cercle se recharge aussi quand sa carte change (`pollCount`, `lastActivityAt`).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
