@@ -480,6 +480,9 @@ Conséquences pratiques :
     **Version 1.0.33** (2026-10-25) : Android `versionCode` 35 (`evly-1.0.33-(35).aab`), iOS build 37 envoyé — Découvrir : idées de
     sorties en tuiles par catégorie, nouvelles catégories, adresses, « Masquer » pour les administrateurs (les apps ≤ 1.0.32 ne reçoivent que
     les anciens types de lieux : GET /api/discover sans `v=2`, `LEGACY_KINDS`).
+    **Version 1.0.34** (2026-10-25) : Android `versionCode` 36 (`evly-1.0.34-(36).aab`), iOS build 38 envoyé — liens qui ouvrent l'app
+    (validation d'email, invitations) : `NativeChrome` relisait `getLaunchUrl` à chaque changement de page (effet dépendant de `navigate`),
+    ce qui ramenait sans cesse sur le lien (« Lien invalide ou expiré », boutons sans effet) ; lecture unique, doublons ignorés 3 s.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
