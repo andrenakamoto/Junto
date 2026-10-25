@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { CalendarPlus, ChevronLeft, Clock, Flag, Megaphone, MessageCircle, SmilePlus, Trash2, X } from 'lucide-react';
 import { Circle, CircleMessage, Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -55,6 +56,7 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
   useSocketEvent<{ circleId: string; message: CircleMessage }>('circle-message-updated', p => { if (p.circleId === circle.id) replace(p.message); });
   useSocketEvent<{ circleId: string }>('circle-updated', p => { if (p.circleId === circle.id) load(); });
   useSocketEvent('connect', () => { load(); });
+  useResync(load);
 
   if (!user) return null;
   const isManager = isCircleManager(circle, user.id);

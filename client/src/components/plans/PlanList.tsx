@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { endedLast } from '../../lib/planEnd';
 import { usePlanSort } from '../../lib/planSort';
 import { sortPlans } from '../../lib/order';
@@ -89,9 +90,12 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
     api.get(`/circles/${id}/polls`).then(res => { setPolls(res.data); setPollsFor(id); }).catch(() => {});
   }
 
-  useEffect(() => { refreshPolls(); }, [circle.id]);
+  // Aussi quand la carte du Cercle change (rechargée au retour dans l'app, après une coupure) : un sondage créé pendant que
+  // l'app était en arrière-plan apparaissait sur la carte mais pas dans le Cercle, son signal temps réel étant perdu
+  useEffect(() => { refreshPolls(); }, [circle.id, circle.pollCount, circle.lastActivityAt]);
   // Sondage de dates créé, voté ou converti par un autre membre
   useSocketEvent<{ circleId: string }>('circle-updated', p => { if (p.circleId === circle.id) refreshPolls(); });
+  useResync(refreshPolls);
   // Compteur de messages des cartes de sondage
   useSocketEvent<{ pollId: string }>('poll-message', p => {
     setPolls(prev => prev.map(x => x.id === p.pollId ? { ...x, _count: { messages: (x._count?.messages ?? 0) + 1 } } : x));

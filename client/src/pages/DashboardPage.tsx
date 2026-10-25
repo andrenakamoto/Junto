@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { requestResync } from '../hooks/useResync';
 import { MuteProvider } from '../contexts/MuteContext';
 import { PhotosProvider, usePhotos } from '../contexts/PhotosContext';
 import { isCircleManager } from '../lib/settings';
@@ -187,6 +188,8 @@ export function DashboardPage() {
     refreshCircles();
     refreshPlans();
     refreshSelectedPlan();
+    // Discussion du Cercle, sondage ouvert, covoiturage, dépenses, quiz : chacun recharge ses propres données
+    requestResync();
   }
 
   useSocketEvent<{ circleId: string; message: { author: { id: string; pseudo: string }; content: string; imageKey: string | null; createdAt: string } }>('circle-message', ({ circleId, message }) => {

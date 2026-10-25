@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Plus, ArrowRight, Trash2, Check, Mail } from 'lucide-react';
 import { Currency, ExpensesData, Plan, PlanMember } from '../../types';
@@ -50,6 +51,7 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
   useEffect(() => { refresh(); }, [planId]);
   // Dépense ou remboursement ajouté par un autre membre
   useSocketEvent<{ planId: string }>('plan-updated', p => { if (p.planId === planId) refresh().catch(() => {}); });
+  useResync(() => { refresh().catch(() => {}); });
 
   function openForm() {
     setSplitWith(members.map(m => m.userId));

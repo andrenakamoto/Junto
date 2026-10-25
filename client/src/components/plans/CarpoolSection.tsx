@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { Car, Hand, Loader2, Pencil, Trash2, X } from 'lucide-react';
 import { Ride, RideRequest } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -73,6 +74,7 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
   }, [token, planId, load]);
   // Trajets modifiés pendant une coupure de connexion
   useSocketEvent('connect', () => { load(); });
+  useResync(load);
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);

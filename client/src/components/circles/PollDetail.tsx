@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { Calendar, CalendarPlus, Check, ChevronLeft, EyeOff, Flag, Gift, Hourglass, MessageSquare, Plus, SmilePlus, ThumbsDown, Trash2, Users, X } from 'lucide-react';
 import { DateTimeField } from '../ui/DateTimeField';
 import { formatOptionLabel, localDateTimeToISO } from './CreateCirclePollModal';
@@ -86,6 +87,7 @@ export function PollDetail({ pollId, circle, onBack, onClosed, onPlanCreated }: 
     setMessages(prev => prev.some(m => m.id === p.message.id) ? prev : [...prev, p.message]);
   });
   useSocketEvent('connect', () => { loadPoll(); loadMessages(); });
+  useResync(() => { loadPoll(); loadMessages(); });
   // Message modifié ou supprimé par son auteur
   const replaceMessage = (msg: CirclePollMessage) => setMessages(prev => prev.map(m => m.id === msg.id ? msg : m));
   useSocketEvent<{ pollId: string; message: CirclePollMessage }>('poll-message-updated', p => {

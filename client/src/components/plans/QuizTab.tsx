@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useResync } from '../../hooks/useResync';
 import { ArrowDown, ArrowUp, Check, Copy, ExternalLink, ImagePlus, Loader2, Minimize2, MonitorPlay, Pencil, Plus, Trash2, Trophy, X } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
@@ -62,6 +63,7 @@ function useQuiz(planId: string) {
   }, [planId]);
   useEffect(() => { load(); }, [load]);
   useSocketEvent<{ planId: string }>('quiz-updated', p => { if (p.planId === planId) load(); });
+  useResync(load);
   useKeyMoments(state, offset, load);
   return { state, offset, error, load };
 }
