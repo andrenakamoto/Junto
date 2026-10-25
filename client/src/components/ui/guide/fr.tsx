@@ -57,7 +57,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Découvrir', summary: 'Les sorties près de chez toi, et y aller à plusieurs',
         body: <>
           <P>Le bouton <strong>« Découvrir »</strong> (à côté de « Contacts ») montre les événements des 14 prochains jours et des
-            <strong> idées de sorties</strong> (escape games, bowling, musées…) en <strong>Suisse romande</strong>.
+            <strong> idées de sorties</strong> (escape games, bowling, musées…) partout en <strong>Suisse</strong>.
             Choisis le lieu (une ville, un village ou « Autour de moi ») et le rayon (10, 25 ou 50 km), filtre par jour ou par catégorie, ou cherche un mot (« salsa », « concert »…).</P>
           <P>Sur un événement, <strong>« Y aller avec un Cercle »</strong> ouvre un Plan déjà rempli (titre, date, lieu, lien) dans le
             Cercle de ton choix ; <strong>« Plus d'infos »</strong> ouvre le site de l'organisateur ou de l'agenda d'où vient l'annonce.</P>

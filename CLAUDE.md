@@ -1677,8 +1677,9 @@ vers les idées ; la recherche reste une liste directe. Bibliothèques (`amenity
 administrateurs ont aussi un bouton **« Masquer »** sur chaque carte de Découvrir (événement et lieu). **Un événement ou un lieu masqué
 reste masqué** : la synchronisation met à jour les faits, jamais `state`. **GeNEVERsleep** (partenaire, 2026-10-25, `lib/discover/geneversleep.ts` testé) : flux JSON
 réservé (`https://geneversleep.ch/partners/evly/feed.json`, spécification v1 : `id` stable = clé, `city_group` Genève / Lausanne,
-`start` ISO, `categories`, `cancelled`), **deux sources** (`partner-geneversleep` = Genève, `partner-geneversleep-la` = Lausanne,
-type `geneversleep`, créées **en attente** : à activer dans le panneau admin quand l'adresse est en ligne), synchronisées toutes les 2 h ;
+`start` ISO, `categories`, `cancelled`), **une seule source** `partner-geneversleep` (« GeNEVERsleep », tout le flux, toutes villes ;
+chaque événement rangé dans la région la plus proche de sa ville, `regionFromPlace` ; l'ancienne source `partner-geneversleep-la` est
+supprimée au démarrage), type `geneversleep`, créée **en attente** : à activer dans le panneau admin quand l'adresse est en ligne, synchronisées toutes les 2 h ;
 sans heure de début, l'événement est ignoré ; styles live / jazz / punk… → `concert`, sinon `soiree`. **Crédit obligatoire** « Source :
 GeNEVERsleep » avec lien vers la page de l'événement : ligne sur chaque carte (`creditOf`, sources de type `geneversleep` / `partner`,
 clé `discover.credit`). Versions demandées par le client : sans `v` (apps ≤ 1.0.32) = anciens types de lieux seulement, `v=2` (1.0.33 à
@@ -1698,8 +1699,11 @@ tout ce qui est dans le rayon (rectangle puis distance exacte) + les éléments 
 sur chaque événement et lieu (affiché « · 3 km », idées triées du plus proche). **`?region=` inchangé pour les anciennes apps.**
 Positions : OpenAgenda et OSM fournissent les leurs (`DiscoverPlace.latitude/longitude` depuis cette date) ; sinon `withCoords` d'après la
 ville, ou un nom de localité cité dans l'adresse / le lieu (à 80 km au plus du centre de la région) — appliqué à la synchronisation, aux
-saisies admin, aux annonces de Plans, et au démarrage (`fillMissingCoords`). Régions des sources : `ge|la|vs|fr|ne` (`la` = **tout le canton
-de Vaud** depuis cette date, libellé « Vaud » ; nouvelles sources `osm-fr`, `osm-ne`). Apps : `ACCESS_COARSE_LOCATION` (Android, position
+saisies admin, aux annonces de Plans, et au démarrage (`fillMissingCoords`). Régions des sources = **les 26 cantons** (`REGIONS` / `CANTONS`
+de `lib/discover/model.ts`, `la` = Vaud, nom historique) : une source OpenStreetMap par canton (`osm-<code>`), **toute la Suisse** ;
+`syncDueSources` fait une tournée à la fois, 8 cantons au plus par tournée, 20 s entre deux ; `overpass()` (`osm.ts`) réessaie sur
+502 / 504 / 429 et passe aux serveurs de secours (overpass.private.coffee, overpass.kumi.systems). Raccourcis de villes de toute la
+Suisse (`BIG_CITIES`). Apps : `ACCESS_COARSE_LOCATION` (Android, position
 approximative, Android 12+) et `NSLocationWhenInUseUsageDescription` (Info.plist + `InfoPlist.strings` ×4). Politique de confidentialité
 (25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises, Eventfrog.
 

@@ -58,7 +58,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Entdecken', summary: 'Ausgehen in deiner Nähe – und gemeinsam hingehen',
         body: <>
           <P>Der Button <strong>„Entdecken“</strong> (neben „Kontakte“) zeigt die Events der nächsten 14 Tage und
-            <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in der <strong>Westschweiz</strong>.
+            <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in der ganzen <strong>Schweiz</strong>.
             Wähle den Ort (eine Stadt, ein Dorf oder „In meiner Nähe“) und den Umkreis (10, 25 oder 50 km), filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …).</P>
           <P>Bei einem Event öffnet <strong>„Mit einem Kreis hingehen“</strong> einen fertig ausgefüllten Plan (Titel, Datum, Ort, Link)
             im Kreis deiner Wahl; <strong>„Mehr Infos“</strong> öffnet die Website der Veranstalter oder der Agenda, aus der die Anzeige stammt.</P>

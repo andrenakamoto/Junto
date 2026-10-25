@@ -1,9 +1,11 @@
 import { t, intlLocale } from '../i18n';
 
 // « Découvrir » : événements publics et idées de sorties (serveur : lib/discover/, GET /api/discover)
-// Régions = cantons des sources (publication d'un Plan, panneau admin) ; la page Découvrir cherche par lieu et rayon
-export type DiscoverRegion = 'ge' | 'la' | 'vs' | 'fr' | 'ne';
-export const REGIONS: DiscoverRegion[] = ['ge', 'la', 'vs', 'fr', 'ne'];
+// Régions = cantons des sources (publication d'un Plan, panneau admin ; `la` = Vaud) ; la page Découvrir cherche par lieu et
+// rayon, dans toute la Suisse
+export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne', 'ju', 'be', 'so', 'bs', 'bl', 'ag', 'lu', 'zg', 'sz', 'ur', 'ow', 'nw', 'zh', 'sh',
+  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti'] as const;
+export type DiscoverRegion = typeof REGIONS[number];
 
 export interface DiscoverEvent {
   id: string; title: string; place: string | null; city: string | null; category: string; family: boolean;
@@ -75,7 +77,7 @@ export const shortDate = (iso: string) => new Intl.DateTimeFormat(intlLocale(), 
 
 const REGION_KEY = 'evly_discover_region';
 export function savedRegion(): DiscoverRegion {
-  try { const r = localStorage.getItem(REGION_KEY); if (r && (REGIONS as string[]).includes(r)) return r as DiscoverRegion; } catch { /* stockage indisponible */ }
+  try { const r = localStorage.getItem(REGION_KEY); if (r && (REGIONS as readonly string[]).includes(r)) return r as DiscoverRegion; } catch { /* stockage indisponible */ }
   return 'ge';
 }
 
@@ -85,16 +87,19 @@ export const RADII = [10, 25, 50] as const;
 export type Radius = typeof RADII[number];
 export interface Spot { name: string; lat: number; lon: number }
 export interface SpotChoice { spot: Spot | null; here: boolean; radius: Radius }
-// Raccourcis (Suisse romande)
+// Raccourcis : grandes villes de toute la Suisse (noms et coordonnées du répertoire de swisstopo)
 export const BIG_CITIES: Spot[] = [
-  { name: 'Genève', lat: 46.2044, lon: 6.1432 }, { name: 'Nyon', lat: 46.3833, lon: 6.2398 },
-  { name: 'Lausanne', lat: 46.5197, lon: 6.6323 }, { name: 'Morges', lat: 46.5113, lon: 6.4985 },
-  { name: 'Vevey', lat: 46.4628, lon: 6.8419 }, { name: 'Montreux', lat: 46.4312, lon: 6.9107 },
-  { name: 'Yverdon-les-Bains', lat: 46.7785, lon: 6.6411 }, { name: 'Fribourg', lat: 46.8065, lon: 7.1620 },
-  { name: 'Neuchâtel', lat: 46.9900, lon: 6.9293 }, { name: 'Sion', lat: 46.2331, lon: 7.3606 },
-  { name: 'Martigny', lat: 46.1028, lon: 7.0726 }, { name: 'Monthey', lat: 46.2550, lon: 6.9540 },
+  { name: 'Genève', lat: 46.2044, lon: 6.1432 }, { name: 'Lausanne', lat: 46.5197, lon: 6.6323 },
+  { name: 'Nyon', lat: 46.3833, lon: 6.2398 }, { name: 'Montreux', lat: 46.4312, lon: 6.9107 },
+  { name: 'Fribourg', lat: 46.8065, lon: 7.1620 }, { name: 'Neuchâtel', lat: 46.9900, lon: 6.9293 },
+  { name: 'Sion', lat: 46.2331, lon: 7.3606 }, { name: 'Bern', lat: 46.9488, lon: 7.4276 },
+  { name: 'Biel/Bienne', lat: 47.1353, lon: 7.2490 }, { name: 'Basel', lat: 47.5566, lon: 7.5907 },
+  { name: 'Zürich', lat: 47.3799, lon: 8.5313 }, { name: 'Winterthur', lat: 47.5010, lon: 8.7550 },
+  { name: 'Luzern', lat: 47.0504, lon: 8.3012 }, { name: 'Zug', lat: 47.1574, lon: 8.5218 },
+  { name: 'St. Gallen', lat: 47.4245, lon: 9.3724 }, { name: 'Chur', lat: 46.8398, lon: 9.5540 },
+  { name: 'Lugano', lat: 46.0315, lon: 8.9877 }, { name: 'Locarno', lat: 46.1715, lon: 8.8286 },
 ];
-const REGION_CITY: Record<DiscoverRegion, string> = { ge: 'Genève', la: 'Lausanne', vs: 'Sion', fr: 'Fribourg', ne: 'Neuchâtel' };
+const REGION_CITY: Partial<Record<DiscoverRegion, string>> = { ge: 'Genève', la: 'Lausanne', vs: 'Sion', fr: 'Fribourg', ne: 'Neuchâtel' };
 const PLACE_KEY = 'evly_discover_place';
 const RECENT_KEY = 'evly_discover_recent';
 const isSpot = (x: any): x is Spot => x && typeof x.name === 'string' && Number.isFinite(x.lat) && Number.isFinite(x.lon);
@@ -107,7 +112,7 @@ export function savedSpot(): SpotChoice {
     if (isSpot(raw?.spot)) return { spot: raw.spot, here: false, radius };
   } catch { /* stockage indisponible */ }
   // Avant le 2026-10-25 : la région choisie devient sa ville principale
-  const city = BIG_CITIES.find(c => c.name === REGION_CITY[savedRegion()])!;
+  const city = BIG_CITIES.find(c => c.name === REGION_CITY[savedRegion()]) ?? BIG_CITIES[0];
   return { spot: city, here: false, radius: 25 };
 }
 export function saveSpot(c: SpotChoice) {

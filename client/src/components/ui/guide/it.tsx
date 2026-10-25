@@ -57,7 +57,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Scopri', summary: 'Le uscite vicino a te, e andarci insieme',
         body: <>
           <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Contatti») mostra gli eventi dei prossimi 14 giorni e delle
-            <strong> idee per uscire</strong> (escape game, bowling, musei…) in <strong>Svizzera romanda</strong>.
+            <strong> idee per uscire</strong> (escape game, bowling, musei…) in tutta la <strong>Svizzera</strong>.
             Scegli il luogo (una città, un paese o «Vicino a me») e il raggio (10, 25 o 50 km), filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…).</P>
           <P>Su un evento, <strong>«Andarci con un Cerchio»</strong> apre un Plan già compilato (titolo, data, luogo, link) nel
             Cerchio che preferisci; <strong>«Più info»</strong> apre il sito dell’organizzatore o dell’agenda da cui proviene l’annuncio.</P>
