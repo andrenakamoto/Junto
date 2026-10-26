@@ -1725,7 +1725,11 @@ sans position écartés (`needCoords`), données et clé jamais transmises. **Im
 synchronisation, refaite par sharp (600 px de large, JPEG, sans métadonnées) dans `STORAGE_DIR/discover/img/<clé>.jpg`, servie par GET
 `/api/discover/img/<clé>.jpg` (public, cache 1 an) ; `DiscoverEvent.imageKey` / `imageCredit` envoyés aux clients, `imageSource` (adresse
 d'origine) jamais ; nouvelle image = nouvelle clé, fichiers sans événement effacés à chaque synchronisation. **Jamais d'adresse d'image
-Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. Usage limité à « annoncer l'événement » :
+Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. **Séries** : des organisateurs saisissent chaque soirée d'un groupe
+(`groupId`) avec une fin des semaines plus tard ; dans un groupe de plusieurs dates, chaque date redevient une soirée (`inSeries`). **Doublons
+entre sources** (`lib/discover/dedupe.ts` testé, appliqué par GET /api/discover) : même titre, même jour, même endroit (moins de 1 km ou même
+ville) → une seule annonce, la source la plus sûre (`SOURCE_RANK` : Plans, saisie, agenda de Genève, iCal, GeNEVERsleep, Eventfrog) ; une date
+couverte par le même événement « sur plusieurs jours » d'une autre source est aussi retirée. Usage limité à « annoncer l'événement » :
 « Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :

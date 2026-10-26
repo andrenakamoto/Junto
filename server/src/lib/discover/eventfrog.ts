@@ -50,13 +50,18 @@ export function pickLang(o: unknown): string | null {
 
 export interface EventfrogLocation { name: string | null; city: string | null; lat: number | null; lon: number | null; at: number }
 
-export function normalizeEventfrogEvent(e: any, loc: EventfrogLocation | undefined, parentOf: Map<number, number>, from: Date, to: Date): NormalizedEvent | null {
+// `inSeries` : l'événement fait partie d'un groupe Eventfrog de plusieurs dates (un spectacle chaque soir…). Des organisateurs y
+// saisissent une fin des semaines plus tard : chaque date redevient une soirée (même heure de fin, le jour même), à son jour.
+export function normalizeEventfrogEvent(e: any, loc: EventfrogLocation | undefined, parentOf: Map<number, number>, from: Date, to: Date, inSeries = false): NormalizedEvent | null {
   if (!e || e.visible !== true || e.published !== true) return null;
   const externalId = typeof e.id === 'string' ? e.id : null;
   const title = cleanText(pickLang(e.title), TITLE_MAX);
   const startAt = typeof e.begin === 'string' ? new Date(e.begin) : null;
   if (!externalId || !title || !startAt || isNaN(startAt.getTime())) return null;
-  const endAt = typeof e.end === 'string' && !isNaN(new Date(e.end).getTime()) ? new Date(e.end) : null;
+  let endAt = typeof e.end === 'string' && !isNaN(new Date(e.end).getTime()) ? new Date(e.end) : null;
+  if (inSeries && endAt && endAt.getTime() - startAt.getTime() > 24 * 3600e3) {
+    endAt = new Date(startAt.getTime() + ((endAt.getTime() - startAt.getTime()) % (24 * 3600e3) || 3 * 3600e3));
+  }
   // Dans la fenêtre : commence avant la fin de la fenêtre, n'est pas terminé
   if (startAt > to || (endAt ?? new Date(startAt.getTime() + 3 * 3600e3)) < from) return null;
   const { category, family } = categoryOf(Number(e.rubricId), parentOf);
@@ -70,7 +75,7 @@ export function normalizeEventfrogEvent(e: any, loc: EventfrogLocation | undefin
     priceText: price ? `CHF ${price.toFixed(2)}` : null,
     status: e.cancelled === true ? 'cancelled' : e.soldOut === true ? 'full' : 'scheduled',
     startAt, endAt,
-    multiDay: !!endAt && endAt.getTime() - startAt.getTime() >= 3 * 24 * 3600e3, dateLabel: null,
+    multiDay: !inSeries && !!endAt && endAt.getTime() - startAt.getTime() >= 3 * 24 * 3600e3, dateLabel: null,
     url: cleanUrl(e.url) ?? 'https://eventfrog.ch/',
   };
 }
@@ -131,8 +136,10 @@ export async function fetchEventfrog(cfg: EventfrogConfig, from: Date, to: Date)
     if (i % 1000 === 0) await saveLocations(locs);
   }
   await saveLocations(locs);
+  const groupSize = new Map<string, number>();
+  for (const e of events) if (e.groupId && e.groupId !== '0') groupSize.set(e.groupId, (groupSize.get(e.groupId) ?? 0) + 1);
   const list = events
-    .map(e => normalizeEventfrogEvent(e, locs[e.locationIds?.[0]], parentOf, from, to))
+    .map(e => normalizeEventfrogEvent(e, locs[e.locationIds?.[0]], parentOf, from, to, (groupSize.get(e.groupId) ?? 0) > 1))
     .filter((e): e is NormalizedEvent => !!e);
   // Images des événements des 14 prochains jours (ce que Découvrir montre), avec leur crédit
   const horizon = from.getTime() + IMAGE_HORIZON_MS;

@@ -32,6 +32,13 @@ describe('Eventfrog', () => {
     expect(normalizeEventfrogEvent({ ...ev, cancelled: true }, loc, parentOf, from, to)?.status).toBe('cancelled');
     expect(normalizeEventfrogEvent({ ...ev, agendaEntryOnly: true }, loc, parentOf, from, to)?.priceText).toBeNull();
   });
+  it('série : une soirée par date, même si l’organisateur a saisi une fin des semaines plus tard', () => {
+    const night = { ...ev, rubricId: 79, begin: '2026-11-07T18:30:00+01:00', end: '2026-11-28T21:30:00+01:00' };
+    const e = normalizeEventfrogEvent(night, loc, parentOf, from, to, true)!;
+    expect(e.multiDay).toBe(false);
+    expect(e.endAt?.toISOString()).toBe('2026-11-07T20:30:00.000Z');
+    expect(normalizeEventfrogEvent(night, loc, parentOf, from, to, false)!.multiDay).toBe(true);
+  });
   it('écarte ce qui n’est pas public ou hors de la fenêtre ; exposition longue = plusieurs jours', () => {
     expect(normalizeEventfrogEvent({ ...ev, visible: false }, loc, parentOf, from, to)).toBeNull();
     expect(normalizeEventfrogEvent({ ...ev, begin: '2027-01-10T20:00:00+01:00', end: null }, loc, parentOf, from, to)).toBeNull();

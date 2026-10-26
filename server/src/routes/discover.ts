@@ -6,6 +6,7 @@ import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, nearestRegion, searchLocalities } from '../lib/discover/geo';
 import { imageFile, isImageKey } from '../lib/discover/images';
+import { dedupeEvents } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { escapeHtml } from '../lib/escapeHtml';
@@ -106,7 +107,9 @@ router.get('/', async (req, res) => {
     return { ...x, distanceKm: d == null ? null : Math.round(d * 10) / 10 };
   };
   const inRadius = (x: { distanceKm: number | null }) => !point || x.distanceKm == null || x.distanceKm <= point.radius;
-  const events = allEvents.map(place).filter(inRadius);
+  const typeOf = new Map(sources.map(s => [s.id, s.type]));
+  const events = dedupeEvents(allEvents.filter(e => !point || e.latitude == null || e.longitude == null || distanceKm(point, { lat: e.latitude, lon: e.longitude }) <= point.radius), id => typeOf.get(id) ?? '')
+    .map(place);
   const places = allPlaces.map(place).filter(inRadius);
   const withSignup = await Promise.all(events.map(async ({ planId, ...e }) => {
     if (!planId) return e;
