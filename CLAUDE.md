@@ -1711,7 +1711,7 @@ approximative, Android 12+) et `NSLocationWhenInUseUsageDescription` (Info.plist
 (25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises.
 **Eventfrog** (2026-10-26, `lib/discover/eventfrog.ts` testé ; accord par email de Jonas Hufschmid, COO, et conditions générales § 17
 « Utilisation de l'API ») : **Public API v1** (`https://api.eventfrog.net/public/v1`, jeton `Bearer`), clé « Public API: Read »
-**`EVENTFROG_API_KEY`** dans `/etc/evly/app.env`, **limitée à l'adresse IP du serveur** (179.237.127.103) et **valable jusqu'au 26.10.2027
+**`EVENTFROG_API_KEY`** dans `/etc/evly/app.env`, **limitée à l'adresse IP du serveur** (179.237.127.103) et **valable jusqu’au 26.10.2030
 (à renouveler avant)** ; compte Eventfrog de l'utilisateur. Une source `partner-eventfrog` (type `eventfrog`, **toute la Suisse**, créée en
 attente) : à chaque synchronisation (12 h), catégories (`/rubrics`, thèmes `parentId` → nos catégories par `PARENT_CATEGORY` /
 `RUBRIC_CATEGORY`), **tous les événements des 30 jours** (≈ 20 000, 1 000 par page), lieux par paquets de 100 gardés sur le disque
