@@ -83,6 +83,9 @@ router.post('/sources', async (req, res) => {
 router.post('/sources/:id/sync', async (req, res) => {
   const s = await prisma.discoverSource.findUnique({ where: { id: req.params.id } });
   if (!s) { res.status(404).json({ error: 'Source introuvable' }); return; }
+  // Eventfrog : plusieurs minutes (toute la Suisse, 30 requêtes par minute au plus) → lancée en arrière-plan, le résultat
+  // s'affiche ensuite sur la carte de la source (dernière synchronisation ou erreur)
+  if (s.type === 'eventfrog') { syncSource(s).catch(e => console.error('[discover eventfrog]', e)); res.json({ started: true }); return; }
   res.json(await syncSource(s));
 });
 

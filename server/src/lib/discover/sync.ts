@@ -4,6 +4,7 @@ import { fetchOpenAgenda, OpenAgendaConfig } from './openagenda';
 import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
+import { fetchEventfrog, EventfrogConfig } from './eventfrog';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 import { nearestRegion, withCoords } from './geo';
 
@@ -16,13 +17,15 @@ const EVENT_SYNC_MS = 12 * 3600e3;      // agendas : deux fois par jour
 const PLACE_SYNC_MS = 7 * 24 * 3600e3;  // OpenStreetMap : une fois par semaine
 const GNS_SYNC_MS = 2 * 3600e3;         // GeNEVERsleep : toutes les 2 h (leur recommandation : 1 à 3 h)
 
-// Sources qui couvrent plusieurs régions (GeNEVERsleep) : chaque événement va dans la région la plus proche de sa ville
-// (anciennes apps qui cherchent par région)
-async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[], regionFromPlace = false) {
+// Sources qui couvrent plusieurs régions (GeNEVERsleep, Eventfrog) : chaque événement va dans la région la plus proche de sa
+// ville (anciennes apps qui cherchent par région). `removeMissing` : tout ce que la source ne fournit plus disparaît, même un
+// événement déjà commencé (règle d'Eventfrog) ; `needCoords` : sans position, l'événement est laissé de côté (toute la Suisse).
+async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[], regionFromPlace = false, opts: { removeMissing?: boolean; needCoords?: boolean } = {}) {
   const now = new Date();
-  const keep = new Set(events.map(e => e.externalId));
-  for (const e of events) {
-    const { externalId, ...data } = withCoords(e, region);
+  const located = events.map(e => withCoords(e, region)).filter(e => !opts.needCoords || (e.latitude != null && e.longitude != null));
+  const keep = new Set(located.map(e => e.externalId));
+  for (const e of located) {
+    const { externalId, ...data } = e;
     const r = regionFromPlace && data.latitude != null && data.longitude != null ? nearestRegion({ lat: data.latitude, lon: data.longitude }) : region;
     await prisma.discoverEvent.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
@@ -30,9 +33,12 @@ async function saveEvents(source: DiscoverSource, region: Region, events: Normal
       update: { ...data, region: r }, // l'état (publié, à valider, masqué) choisi dans le panneau admin est gardé
     });
   }
-  // Retirés chez la source (seulement les événements à venir : le passé est effacé par cleanPastEvents)
-  await prisma.discoverEvent.deleteMany({ where: { sourceId: source.id, externalId: { notIn: [...keep] }, startAt: { gte: now } } });
-  return events.length;
+  // Retirés chez la source (sauf `removeMissing` : seulement les événements à venir, le passé est effacé par cleanPastEvents).
+  // Comparaison faite ici plutôt qu'en base : des dizaines de milliers d'identifiants avec Eventfrog
+  const existing = await prisma.discoverEvent.findMany({ where: { sourceId: source.id, ...(opts.removeMissing ? {} : { startAt: { gte: now } }) }, select: { id: true, externalId: true } });
+  const gone = existing.filter(x => !keep.has(x.externalId)).map(x => x.id);
+  for (let i = 0; i < gone.length; i += 1000) await prisma.discoverEvent.deleteMany({ where: { id: { in: gone.slice(i, i + 1000) } } });
+  return located.length;
 }
 
 async function savePlaces(source: DiscoverSource, region: Region, places: NormalizedPlace[]) {
@@ -58,6 +64,7 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
     let count = 0;
     if (source.type === 'openagenda') count = await saveEvents(source, region, await fetchOpenAgenda(source.config as unknown as OpenAgendaConfig, from, to));
     else if (source.type === 'ical') count = await saveEvents(source, region, await fetchIcal(source.config as unknown as IcalConfig, from, to));
+    else if (source.type === 'eventfrog') count = await saveEvents(source, region, await fetchEventfrog(source.config as unknown as EventfrogConfig, from, to), true, { removeMissing: true, needCoords: true });
     else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to), true);
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
     else return { error: 'Cette source ne se synchronise pas' };
@@ -81,7 +88,7 @@ export async function syncDueSources() {
   if (syncing) return;
   syncing = true;
   try {
-    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
+    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
     let osm = 0;
     for (const s of sources) {
       const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;

@@ -12,7 +12,7 @@ const kindGroupLabel = (g: string) => ({ jeux: 'Jeux et défis', sport: 'Sport e
 
 const dateFmt = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
 const STATUS_LABELS: Record<string, string> = { active: 'Active', pending: 'En attente', disabled: 'Coupée' };
-const TYPE_LABELS: Record<string, string> = { plan: 'Plans EvLY', openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire' };
+const TYPE_LABELS: Record<string, string> = { plan: 'Plans EvLY', openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire', geneversleep: 'GeNEVERsleep', eventfrog: 'Eventfrog (API)' };
 const CATEGORIES = CATEGORY_GROUPS.flatMap(([, l]) => l).filter(c => c !== IDEAS);
 const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
@@ -58,7 +58,7 @@ function Sources() {
     setBusy(id); setMsg('');
     try {
       const { data } = await api.post(`/admin/discover/sources/${id}/sync`);
-      setMsg(data.error ? `Erreur : ${data.error}` : `${data.count} éléments synchronisés.`);
+      setMsg(data.error ? `Erreur : ${data.error}` : data.started ? 'Synchronisation lancée : quelques minutes. Recharge la page pour voir le résultat.' : `${data.count} éléments synchronisés.`);
       load();
     } finally { setBusy(null); }
   }
@@ -113,7 +113,7 @@ function Sources() {
                 Publication automatique (sinon : « À valider »)
               </label>
             )}
-            {['openagenda', 'ical', 'osm'].includes(s.type) && s.status === 'active' && (
+            {['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'].includes(s.type) && s.status === 'active' && (
               <button onClick={() => sync(s.id)} disabled={busy === s.id} className="ml-auto flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50">
                 <RefreshCw size={12} className={busy === s.id ? 'animate-spin' : ''} />Synchroniser maintenant
               </button>

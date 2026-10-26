@@ -1708,7 +1708,21 @@ de `lib/discover/model.ts`, `la` = Vaud, nom historique) : une source OpenStreet
 502 / 504 / 429 et passe aux serveurs de secours (overpass.private.coffee, overpass.kumi.systems). Raccourcis de villes de toute la
 Suisse (`BIG_CITIES`). Apps : `ACCESS_COARSE_LOCATION` (Android, position
 approximative, Android 12+) et `NSLocationWhenInUseUsageDescription` (Info.plist + `InfoPlist.strings` ×4). Politique de confidentialité
-(25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises, Eventfrog.
+(25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises.
+**Eventfrog** (2026-10-26, `lib/discover/eventfrog.ts` testé ; accord par email de Jonas Hufschmid, COO, et conditions générales § 17
+« Utilisation de l'API ») : **Public API v1** (`https://api.eventfrog.net/public/v1`, jeton `Bearer`), clé « Public API: Read »
+**`EVENTFROG_API_KEY`** dans `/etc/evly/app.env`, **limitée à l'adresse IP du serveur** (179.237.127.103) et **valable jusqu'au 26.10.2027
+(à renouveler avant)** ; compte Eventfrog de l'utilisateur. Une source `partner-eventfrog` (type `eventfrog`, **toute la Suisse**, créée en
+attente) : à chaque synchronisation (12 h), catégories (`/rubrics`, thèmes `parentId` → nos catégories par `PARENT_CATEGORY` /
+`RUBRIC_CATEGORY`), **tous les événements des 30 jours** (≈ 20 000, 1 000 par page), lieux par paquets de 100 gardés sur le disque
+(`STORAGE_DIR/discover/eventfrog-locations.json`, relus après 30 jours), 2,2 s entre deux requêtes (30 / min, 2 000 / jour) : environ
+3 minutes ; « Synchroniser maintenant » la lance en arrière-plan. Titre en français sinon dans la langue de l'organisateur (jamais traduit
+ni modifié), prix « CHF x » s'il y a une billetterie, complet / annulé, plusieurs jours dès 3 jours. **Règles d'Eventfrog** : « Source :
+Eventfrog » et lien vers la page de l'événement (type présenté aux clients comme `partner`, crédit dans `priceText` pour les apps ≤ 1.0.35),
+mise à jour chaque jour, **retrait de tout ce que l'API ne fournit plus, même déjà commencé** (`saveEvents` avec `removeMissing`), événements
+sans position écartés (`needCoords`), données et clé jamais transmises ; **images** pas encore affichées (à télécharger et stocker chez nous,
+avec `emblemCredits`, le jour où on les montre — jamais d'adresse d'image Eventfrog dans l'app). Usage limité à « annoncer l'événement » :
+« Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :
 en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N) »** et **« Inviter »**, cloche barrée seulement si le Cercle

@@ -25,15 +25,17 @@ const LEGACY_KINDS = new Set(['escape', 'laser', 'bowling', 'trampoline', 'escal
 // Versions demandées par le client : sans `v` = apps ≤ 1.0.32 (anciens types de lieux seulement) ; `v=2` = apps 1.0.33 à
 // 1.0.35 (tous les lieux, pas de crédit des partenaires sur les cartes) ; `v=3` = site et apps suivantes. Les clients sans
 // crédit le reçoivent dans le texte du prix (vide pour ces sources).
-const CREDITED = new Set(['geneversleep', 'partner']);
+const CREDITED = new Set(['geneversleep', 'partner', 'eventfrog']);
+// Les clients connaissent les types `geneversleep` et `partner` pour le crédit : Eventfrog leur est présenté comme `partner`
+const asPartner = (body: any) => ({ ...body, sources: body.sources.map((s: any) => s.type === 'eventfrog' ? { ...s, type: 'partner' } : s) });
 const forClient = (body: any, v: unknown) => {
-  if (v === '3') return body;
+  if (v === '3') return asPartner(body);
   const credit = new Map<string, string>(body.sources.filter((s: any) => CREDITED.has(s.type)).map((s: any) => [s.id, s.attribution ?? s.name]));
-  return {
+  return asPartner({
     ...body,
     places: v === '2' ? body.places : body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)),
-    events: body.events.map((e: any) => credit.has(e.sourceId) && !e.priceText ? { ...e, priceText: credit.get(e.sourceId) } : e),
-  };
+    events: body.events.map((e: any) => credit.has(e.sourceId) ? { ...e, priceText: e.priceText ? `${e.priceText} · ${credit.get(e.sourceId)}` : credit.get(e.sourceId) } : e),
+  });
 };
 
 const RADII = [10, 25, 50];

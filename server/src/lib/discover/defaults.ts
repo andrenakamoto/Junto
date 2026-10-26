@@ -17,7 +17,9 @@ const DEFAULT_SOURCES = [
   ...REGIONS.map(r => ({ key: `osm-${r}`, name: `OpenStreetMap – ${CANTONS[r].name}`, type: 'osm', region: r, status: 'active', autoPublish: true, config: { area: CANTONS[r].iso }, ...ODBL })),
   { key: 'evly-plans', name: 'Organisateurs EvLY', type: 'plan', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: 'Organisateurs sur EvLY' },
   { key: 'manual', name: 'Saisie EvLY', type: 'manual', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: null },
-  { key: 'partner-eventfrog', name: 'Eventfrog', type: 'partner', region: null, status: 'pending', autoPublish: false, config: {}, license: null, licenseUrl: null, attribution: 'Eventfrog' },
+  // Eventfrog (Public API, accord du 2026-10-26) : toute la Suisse, une seule source ; chaque événement rangé d'après sa ville
+  { key: 'partner-eventfrog', name: 'Eventfrog (toute la Suisse)', type: 'eventfrog', region: 'ge', status: 'pending', autoPublish: true, config: { country: 'CH' },
+    license: 'Conditions de l’API Eventfrog', licenseUrl: 'https://eventfrog.ch/fr/agb.html', attribution: 'Source : Eventfrog' },
   // GeNEVERsleep (accord du 2026-10-25) : une source pour tout le flux, toutes villes (chaque événement rangé d'après sa ville) ; à
   // activer dans le panneau admin quand l'adresse est en ligne
   { key: 'partner-geneversleep', name: 'GeNEVERsleep', type: 'geneversleep', region: 'ge', status: 'pending', autoPublish: true, config: { url: GNS_FEED }, ...GNS_CREDIT },
@@ -50,6 +52,12 @@ export async function ensureDiscoverSources() {
   await prisma.discoverSource.updateMany({
     where: { key: 'partner-geneversleep', OR: [{ type: 'partner' }, { name: 'GeNEVERsleep – Genève' }] },
     data: { name: gns.name, type: gns.type, region: gns.region, autoPublish: gns.autoPublish, config: gns.config as any, license: gns.license, licenseUrl: gns.licenseUrl, attribution: gns.attribution },
+  });
+  // L'ancienne fiche « partenaire en attente » d'Eventfrog devient le connecteur de l'API (son état reste celui choisi)
+  const ef = DEFAULT_SOURCES.find(s => s.key === 'partner-eventfrog')!;
+  await prisma.discoverSource.updateMany({
+    where: { key: 'partner-eventfrog', type: 'partner' },
+    data: { name: ef.name, type: ef.type, region: ef.region, autoPublish: ef.autoPublish, config: ef.config as any, license: ef.license, licenseUrl: ef.licenseUrl, attribution: ef.attribution },
   });
   const manual = await prisma.discoverSource.findUnique({ where: { key: 'manual' } });
   if (!manual) return;
