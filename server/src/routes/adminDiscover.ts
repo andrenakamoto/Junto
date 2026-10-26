@@ -6,6 +6,9 @@ import { requireAdmin } from '../middleware/admin';
 import { isRegion, isState, parseManualEvent, parseManualPlace, cleanText, cleanUrl, isCategory } from '../lib/discover/model';
 import { withCoords } from '../lib/discover/geo';
 import { syncSource, discoverCache } from '../lib/discover/sync';
+import { DEFAULT_SOURCE_KEYS } from '../lib/discover/defaults';
+import { imageFile } from '../lib/discover/images';
+import { promises as fsp } from 'fs';
 import { openAgendaLicense, searchOpenAgendas } from '../lib/discover/openagenda';
 
 // Panneau admin « Découvrir » : sources, file « À valider », saisie manuelle, lieux masqués, organisateurs intéressés
@@ -23,6 +26,7 @@ router.get('/sources', async (_req, res) => {
     ...s,
     events: Object.fromEntries(counts.filter(c => c.sourceId === s.id).map(c => [c.state, c._count])),
     places: places.find(p => p.sourceId === s.id)?._count ?? 0,
+    deletable: !DEFAULT_SOURCE_KEYS.has(s.key),
   })));
 });
 
@@ -78,6 +82,19 @@ router.post('/sources', async (req, res) => {
     return;
   }
   res.status(400).json({ error: 'Type de source inconnu' });
+});
+
+// DELETE /sources/:id — source ajoutée dans le panneau admin (agenda OpenAgenda, flux iCal) : supprimée avec ses annonces, ses lieux
+// et leurs images. Les sources de base ne se suppriment pas (recréées au démarrage) : les désactiver.
+router.delete('/sources/:id', async (req, res) => {
+  const s = await prisma.discoverSource.findUnique({ where: { id: req.params.id } });
+  if (!s) { res.status(404).json({ error: 'Source introuvable' }); return; }
+  if (DEFAULT_SOURCE_KEYS.has(s.key)) { res.status(400).json({ error: 'Source de base : elle ne se supprime pas, mets-la sur « Désactivée »' }); return; }
+  const images = await prisma.discoverEvent.findMany({ where: { sourceId: s.id, imageKey: { not: null } }, select: { imageKey: true } });
+  await prisma.discoverSource.delete({ where: { id: s.id } }); // annonces et lieux en cascade
+  for (const i of images) await fsp.rm(imageFile(i.imageKey!), { force: true });
+  discoverCache.clear();
+  res.json({ ok: true });
 });
 
 router.post('/sources/:id/sync', async (req, res) => {

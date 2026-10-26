@@ -35,6 +35,9 @@ const MANUAL_PLACES = [
   { externalId: 'yatouland', region: 'ge', name: 'Yatouland', kind: 'parc', city: 'Genève', website: 'https://yatouland.ch/', family: true },
 ];
 
+// Sources de base : recréées au démarrage, donc pas supprimables dans le panneau admin (seulement désactivables)
+export const DEFAULT_SOURCE_KEYS = new Set(DEFAULT_SOURCES.map(s => s.key));
+
 export async function ensureDiscoverSources() {
   for (const s of DEFAULT_SOURCES) {
     await prisma.discoverSource.upsert({ where: { key: s.key }, create: { ...s, config: s.config as any }, update: {} });

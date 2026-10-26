@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, Compass, RefreshCw } from 'lucide-react';
+import { ChevronDown, Compass, RefreshCw, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { DateTimeField } from '../ui/DateTimeField';
 import { isoToLocal, localToISO } from '../plans/PlanFormParts';
@@ -53,6 +53,12 @@ function Sources() {
 
   async function update(id: string, data: any) {
     try { await api.put(`/admin/discover/sources/${id}`, data); load(); } catch (e: any) { setMsg(e?.response?.data?.error ?? 'Erreur'); }
+  }
+  async function remove(s: any) {
+    const n = (s.events?.published ?? 0) + (s.events?.pending ?? 0) + (s.events?.hidden ?? 0) + (s.places ?? 0);
+    if (!confirm(`Supprimer la source « ${s.name} »${n ? ` et ses ${n} annonces` : ''} ? C'est définitif.`)) return;
+    try { await api.delete(`/admin/discover/sources/${s.id}`); setMsg(`Source « ${s.name} » supprimée.`); load(); }
+    catch (e: any) { setMsg(e?.response?.data?.error ?? 'Erreur'); }
   }
   async function sync(id: string) {
     setBusy(id); setMsg('');
@@ -116,6 +122,11 @@ function Sources() {
             {['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'].includes(s.type) && s.status === 'active' && (
               <button onClick={() => sync(s.id)} disabled={busy === s.id} className="ml-auto flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50">
                 <RefreshCw size={12} className={busy === s.id ? 'animate-spin' : ''} />Synchroniser maintenant
+              </button>
+            )}
+            {s.deletable && (
+              <button onClick={() => remove(s)} className={`${['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'].includes(s.type) && s.status === 'active' ? '' : 'ml-auto '}flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50`}>
+                <Trash2 size={12} />Supprimer
               </button>
             )}
           </div>
