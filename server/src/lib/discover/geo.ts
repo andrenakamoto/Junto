@@ -104,16 +104,98 @@ export function locateInText(text: string | null | undefined, near?: { lat: numb
   return best ? locateCity(best, near) : null;
 }
 
-export function withCoords<T extends { city?: string | null; place?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }>(d: T, region: Region): T {
-  if (d.latitude != null && d.longitude != null) return d;
+// Position complétée, et canton déduit de la position (recherche par canton, 2026-10-26)
+export function withCoords<T extends { city?: string | null; place?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }>(d: T, region: Region): T & { canton: string | null } {
+  if (d.latitude != null && d.longitude != null) return { ...d, canton: cantonAt(d.latitude, d.longitude) };
   const near = REGION_CENTERS[region];
   // Un nom trouvé dans le texte n'est retenu que près de la région (« Bar du Port » ≠ une localité nommée Port à 150 km)
   const inText = (s: string | null | undefined) => { const p = locateInText(s, near); return p && distanceKm(p, near) <= 80 ? p : null; };
   const pos = locateCity(d.city, near) ?? inText(d.address) ?? inText(d.place);
-  return pos ? { ...d, latitude: pos.lat, longitude: pos.lon } : d;
+  return pos ? { ...d, latitude: pos.lat, longitude: pos.lon, canton: cantonAt(pos.lat, pos.lon) } : { ...d, canton: null };
 }
 
-// Rattrapage des positions manquantes (au démarrage : lignes enregistrées avant le 2026-10-25, saisies, annonces)
+// Canton d'une position : celui de la localité swisstopo la plus proche (grille de 0,1° pour ne pas tout parcourir)
+let grid: Map<string, Locality[]> | null = null;
+const cell = (lat: number, lon: number) => `${Math.floor(lat * 10)},${Math.floor(lon * 10)}`;
+export function cantonAt(lat: number, lon: number): string | null {
+  if (!grid) {
+    grid = new Map();
+    for (const l of data().list) { const k = cell(l.lat, l.lon); grid.set(k, [...(grid.get(k) ?? []), l]); }
+  }
+  const [a, b] = [Math.floor(lat * 10), Math.floor(lon * 10)];
+  for (const r of [1, 3, 6]) {
+    let best: Locality | null = null, bestD = Infinity;
+    for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) {
+      for (const l of grid.get(`${a + i},${b + j}`) ?? []) { const dd = (l.lat - lat) ** 2 + ((l.lon - lon) * 0.69) ** 2; if (dd < bestD) { bestD = dd; best = l; } }
+    }
+    if (best) return best.canton;
+  }
+  return null;
+}
+
+// Cantons (codes ISO) et noms cherchés, dans les 4 langues
+export const CANTON_NAMES: Record<string, string[]> = {
+  GE: ['Genève', 'Genf', 'Ginevra', 'Geneva'], VD: ['Vaud', 'Waadt'], VS: ['Valais', 'Wallis', 'Vallese'], FR: ['Fribourg', 'Freiburg', 'Friburgo'],
+  NE: ['Neuchâtel', 'Neuenburg'], JU: ['Jura', 'Giura'], BE: ['Berne', 'Bern', 'Berna'], SO: ['Soleure', 'Solothurn', 'Soletta'],
+  BS: ['Bâle-Ville', 'Basel-Stadt', 'Basilea Città'], BL: ['Bâle-Campagne', 'Basel-Landschaft', 'Basilea Campagna'],
+  AG: ['Argovie', 'Aargau', 'Argovia'], LU: ['Lucerne', 'Luzern', 'Lucerna'], ZG: ['Zoug', 'Zug', 'Zugo'], SZ: ['Schwytz', 'Schwyz', 'Svitto'],
+  UR: ['Uri'], OW: ['Obwald', 'Obwalden', 'Obvaldo'], NW: ['Nidwald', 'Nidwalden', 'Nidvaldo'], ZH: ['Zurich', 'Zürich', 'Zurigo'],
+  SH: ['Schaffhouse', 'Schaffhausen', 'Sciaffusa'], TG: ['Thurgovie', 'Thurgau', 'Turgovia'], SG: ['Saint-Gall', 'St. Gallen', 'San Gallo'],
+  AR: ['Appenzell Rhodes-Extérieures', 'Appenzell Ausserrhoden', 'Appenzello Esterno', 'Appenzell Outer Rhodes'],
+  AI: ['Appenzell Rhodes-Intérieures', 'Appenzell Innerrhoden', 'Appenzello Interno', 'Appenzell Inner Rhodes'],
+  GL: ['Glaris', 'Glarus', 'Glarona'], GR: ['Grisons', 'Graubünden', 'Grigioni'], TI: ['Tessin', 'Ticino'],
+};
+export const isCantonCode = (v: unknown): v is string => typeof v === 'string' && v in CANTON_NAMES;
+
+// Régions connues (sans limites officielles) : un centre et un rayon de recherche (10 ou 25 km, ceux de l'app)
+export const AREAS: { name: string; keys: string[]; lat: number; lon: number; radius: 10 | 25 }[] = [
+  { name: 'La Côte', keys: ['la cote'], lat: 46.4607, lon: 6.3246, radius: 25 },
+  { name: 'Riviera', keys: ['riviera', 'vevey montreux'], lat: 46.455, lon: 6.88, radius: 10 },
+  { name: 'Lavaux', keys: ['lavaux'], lat: 46.4871, lon: 6.7413, radius: 10 },
+  { name: 'Chablais', keys: ['chablais'], lat: 46.29, lon: 6.96, radius: 25 },
+  { name: 'Gros-de-Vaud', keys: ['gros de vaud'], lat: 46.641, lon: 6.6348, radius: 10 },
+  { name: 'Nord vaudois', keys: ['nord vaudois'], lat: 46.7646, lon: 6.6395, radius: 25 },
+  { name: 'Pays-d’Enhaut', keys: ['pays d enhaut'], lat: 46.4576, lon: 7.1423, radius: 10 },
+  { name: 'Vallée de Joux', keys: ['vallee de joux'], lat: 46.6064, lon: 6.2294, radius: 10 },
+  { name: 'Broye', keys: ['broye'], lat: 46.821, lon: 6.9431, radius: 10 },
+  { name: 'Gruyère', keys: ['gruyere', 'greyerz'], lat: 46.5987, lon: 7.0274, radius: 10 },
+  { name: 'Glâne', keys: ['glane'], lat: 46.691, lon: 6.9197, radius: 10 },
+  { name: 'Veveyse', keys: ['veveyse'], lat: 46.5231, lon: 6.9276, radius: 10 },
+  { name: 'Val-de-Travers', keys: ['val de travers'], lat: 46.9023, lon: 6.5827, radius: 10 },
+  { name: 'Montagnes neuchâteloises', keys: ['montagnes neuchateloises'], lat: 47.07, lon: 6.78, radius: 10 },
+  { name: 'Jura bernois', keys: ['jura bernois', 'berner jura'], lat: 47.2, lon: 7.18, radius: 25 },
+  { name: 'Ajoie', keys: ['ajoie'], lat: 47.4105, lon: 7.0669, radius: 10 },
+  { name: 'Bas-Valais', keys: ['bas valais', 'unterwallis', 'basso vallese', 'lower valais'], lat: 46.2, lon: 7.03, radius: 25 },
+  { name: 'Valais central', keys: ['valais central', 'mittelwallis', 'vallese centrale', 'central valais'], lat: 46.25, lon: 7.43, radius: 25 },
+  { name: 'Haut-Valais / Oberwallis', keys: ['haut valais', 'oberwallis', 'alto vallese', 'upper valais'], lat: 46.2903, lon: 7.8696, radius: 25 },
+  { name: 'Entremont', keys: ['entremont', 'verbier'], lat: 46.05, lon: 7.17, radius: 10 },
+  { name: 'Val d’Anniviers', keys: ['val d anniviers', 'anniviers'], lat: 46.2146, lon: 7.5827, radius: 10 },
+  { name: 'Seeland', keys: ['seeland'], lat: 47.0818, lon: 7.3093, radius: 25 },
+  { name: 'Oberland bernois / Berner Oberland', keys: ['oberland bernois', 'berner oberland', 'oberland bernese', 'bernese oberland'], lat: 46.6847, lon: 7.8601, radius: 25 },
+  { name: 'Emmental', keys: ['emmental'], lat: 46.9418, lon: 7.7882, radius: 25 },
+  { name: 'Zürcher Oberland', keys: ['zurcher oberland', 'oberland zurichois'], lat: 47.3326, lon: 8.8135, radius: 10 },
+  { name: 'Engadine / Engadin', keys: ['engadine', 'engadin', 'engadina'], lat: 46.4863, lon: 9.838, radius: 25 },
+  { name: 'Toggenburg', keys: ['toggenburg', 'toggenbourg'], lat: 47.2983, lon: 9.0834, radius: 10 },
+  { name: 'Sottoceneri', keys: ['sottoceneri', 'luganese'], lat: 45.98, lon: 8.95, radius: 25 },
+  { name: 'Locarnese', keys: ['locarnese'], lat: 46.1715, lon: 8.8286, radius: 10 },
+  { name: 'Mendrisiotto', keys: ['mendrisiotto'], lat: 45.8714, lon: 8.9665, radius: 10 },
+];
+
+export type PlaceHit = { kind: 'canton'; code: string } | { kind: 'region'; name: string; lat: number; lon: number; radius: number };
+// Recherche des cantons et régions (champ « Ville ou village » de Découvrir, apps à partir de la 1.0.37)
+export function searchAreas(q: string): PlaceHit[] {
+  const n = norm(q);
+  if (n.length < 2) return [];
+  const hit = (k: string) => k.startsWith(n) || (n.length >= 3 && k.split(' ').some(w => w.startsWith(n)));
+  const cantons = Object.entries(CANTON_NAMES)
+    .filter(([code, names]) => n === code.toLowerCase() || names.some(x => hit(norm(x))))
+    .map(([code]) => ({ kind: 'canton' as const, code }));
+  const areas = AREAS.filter(a => hit(norm(a.name)) || a.keys.some(hit)).map(a => ({ kind: 'region' as const, name: a.name, lat: a.lat, lon: a.lon, radius: a.radius }));
+  return [...cantons.slice(0, 3), ...areas.slice(0, 3)];
+}
+
+// Rattrapage des positions manquantes (au démarrage : lignes enregistrées avant le 2026-10-25, saisies, annonces), puis du canton
+// des lignes qui ont une position (avant le 2026-10-26), par paquets
 export async function fillMissingCoords(prisma: any) {
   const events = await prisma.discoverEvent.findMany({ where: { latitude: null }, select: { id: true, region: true, city: true, place: true } });
   for (const e of events) {
@@ -124,5 +206,11 @@ export async function fillMissingCoords(prisma: any) {
   for (const p of places) {
     const d = withCoords(p, p.region as Region);
     if (d.latitude != null) await prisma.discoverPlace.update({ where: { id: p.id }, data: { latitude: d.latitude, longitude: d.longitude } });
+  }
+  for (const model of [prisma.discoverEvent, prisma.discoverPlace]) {
+    const rows = await model.findMany({ where: { canton: null, latitude: { not: null } }, select: { id: true, latitude: true, longitude: true } });
+    const byCanton = new Map<string, string[]>();
+    for (const r of rows) { const c = cantonAt(r.latitude, r.longitude); if (c) byCanton.set(c, [...(byCanton.get(c) ?? []), r.id]); }
+    for (const [canton, ids] of byCanton) for (let i = 0; i < ids.length; i += 1000) await model.updateMany({ where: { id: { in: ids.slice(i, i + 1000) } }, data: { canton } });
   }
 }

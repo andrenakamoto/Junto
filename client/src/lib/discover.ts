@@ -18,6 +18,8 @@ export interface DiscoverEvent {
   // Image (Eventfrog) : copie gardée sur le serveur, crédit à afficher avec elle
   imageKey?: string | null;
   imageCredit?: string | null;
+  // Titres du même événement chez d'autres sources (doublons retirés) : pris en compte par la recherche
+  aliases?: string[];
 }
 export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
@@ -91,7 +93,12 @@ export function savedRegion(): DiscoverRegion {
 // gardée sur l'appareil ; une ville choisie est mémorisée avec ses coordonnées (`evly_discover_place`).
 export const RADII = [10, 25, 50] as const;
 export type Radius = typeof RADII[number];
-export interface Spot { name: string; lat: number; lon: number }
+// `canton` (code ISO, « VD ») : tout le canton, sans rayon ni distance
+export interface Spot { name: string; lat: number; lon: number; canton?: string }
+// Cantons : libellé « Vaud (canton) » d'après les noms de région (`la` = Vaud)
+export const cantonRegion = (code: string) => (code === 'VD' ? 'la' : code.toLowerCase());
+export const cantonLabel = (code: string) => t('discover.place.cantonLabel', { name: regionLabel(cantonRegion(code)) });
+export const ROMANDIE_CANTONS = ['GE', 'VD', 'VS', 'FR', 'NE', 'JU'];
 export interface SpotChoice { spot: Spot | null; here: boolean; radius: Radius }
 // Raccourcis : grandes villes de toute la Suisse (noms et coordonnées du répertoire de swisstopo)
 export const BIG_CITIES: Spot[] = [
@@ -133,7 +140,8 @@ export function saveSpot(c: SpotChoice) {
 export function recentSpots(): Spot[] {
   try { const l = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); return Array.isArray(l) ? l.filter(isSpot) : []; } catch { return []; }
 }
-export const kmLabel = (d: number | null | undefined) => d == null ? null : d < 1 ? '< 1 km' : `${Math.round(d)} km`;
+// Moins de 1 km : en mètres, par centaines
+export const kmLabel = (d: number | null | undefined) => d == null ? null : d < 0.1 ? '< 100 m' : d < 1 ? `${Math.round(d * 10) * 100} m` : `${Math.round(d)} km`;
 export function saveRegion(r: DiscoverRegion) {
   try { localStorage.setItem(REGION_KEY, r); } catch { /* stockage indisponible */ }
 }

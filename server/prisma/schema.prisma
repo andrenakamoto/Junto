@@ -1614,6 +1614,7 @@ model DiscoverEvent {
   imageKey    String?
   imageCredit String?
   imageSource String?
+  canton      String? // code ISO du canton (« VD »), d'après la position (localité swisstopo la plus proche) : recherche par canton
   state       String         @default("published") // published | pending | hidden
   createdById String? // saisie manuelle : la personne admin
   // Annonce publiée depuis un Plan (titre, dates, lieu suivent le Plan ; supprimée avec lui)
@@ -1624,6 +1625,7 @@ model DiscoverEvent {
 
   @@unique([sourceId, externalId])
   @@index([region, state, startAt])
+  @@index([canton, state, startAt])
 }
 
 // Idée de sortie ouverte toute l'année (escape game, bowling, musée…)
@@ -1639,6 +1641,7 @@ model DiscoverPlace {
   address    String? // « Rue du Rhône 12, 1204 Genève » (OpenStreetMap ou saisie)
   latitude   Float? // position (OpenStreetMap, sinon d'après la ville) : recherche par lieu et rayon
   longitude  Float?
+  canton     String? // code ISO du canton, comme DiscoverEvent.canton
   website    String
   family     Boolean        @default(false)
   state      String         @default("published") // published | hidden (gardé masqué même après une nouvelle synchronisation)
@@ -1647,6 +1650,7 @@ model DiscoverPlace {
 
   @@unique([sourceId, externalId])
   @@index([region, state])
+  @@index([canton, state])
 }
 
 // « Poster un événement public » (prochainement) : personnes qui veulent être prévenues

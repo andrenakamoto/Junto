@@ -56,16 +56,21 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   }, [choice.here]);
 
   const center = choice.here ? herePos : choice.spot;
+  const canton = !choice.here ? choice.spot?.canton : undefined;
   useEffect(() => {
     if (!center) return;
     setData(null);
     setError(false);
+    if (canton) {
+      api.get<DiscoverData>('/discover', { params: { canton, days: 14, v: 3 } }).then(res => setData(res.data)).catch(() => setError(true));
+      return;
+    }
     // Position arrondie au centième (~1 km) sur l'appareil : rien de plus précis ne quitte le téléphone
     const round = (x: number) => Math.round(x * 100) / 100;
     api.get<DiscoverData>('/discover', { params: { lat: round(center.lat), lon: round(center.lon), radius: choice.radius, days: 14, v: 3 } })
       .then(res => setData(res.data))
       .catch(() => setError(true));
-  }, [center?.lat, center?.lon, choice.radius]);
+  }, [center?.lat, center?.lon, choice.radius, canton]);
 
   function choosePlace(c: SpotChoice) {
     setChoice(c); saveSpot(c);
@@ -87,7 +92,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
   // Événements à afficher, rangés par jour (les événements sur plusieurs jours à part)
   const shown = events.filter(e => {
-    if (searching) return hit([e.title, e.place, e.city, catLabel(e.category), e.priceText].join(' '));
+    if (searching) return hit([e.title, ...(e.aliases ?? []), e.place, e.city, catLabel(e.category), e.priceText].join(' '));
     if (cat === IDEAS || !matchCat(e)) return false;
     if (day === ALL) return true;
     if (day === MULTI) return e.multiDay;
@@ -161,7 +166,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
             className="inline-flex items-center gap-1.5 max-w-full px-3.5 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-sm font-semibold text-slate-800 hover:border-indigo-300">
             {choice.here ? <LocateFixed size={15} className="text-indigo-600 flex-shrink-0" /> : <MapPin size={15} className="text-indigo-600 flex-shrink-0" />}
             <span className="truncate">{choice.here ? (herePos || hereError ? t('discover.place.here') : t('discover.place.locating')) : choice.spot?.name}</span>
-            <span className="text-slate-400 font-medium flex-shrink-0">· {choice.radius} km</span>
+            {!canton && <span className="text-slate-400 font-medium flex-shrink-0">· {choice.radius} km</span>}
             <ChevronDown size={15} className="text-slate-400 flex-shrink-0" />
           </button>
 

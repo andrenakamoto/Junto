@@ -751,7 +751,7 @@ function route(method: string, path: string, body: any): any {
   // Découvrir
   if (path === '/discover/localities' && method === 'GET') {
     const q = norm(body?.q ?? '');
-    return q.length < 2 ? [] : BIG_CITIES.filter(c => norm(c.name).includes(q)).map(c => ({ ...c, canton: '' }));
+    return q.length < 2 ? [] : BIG_CITIES.filter(c => norm(c.name).includes(q)).map(c => ({ kind: 'locality', ...c, canton: '' }));
   }
   if (path === '/discover' && method === 'GET') {
     // Lieu choisi : la ville fictive la plus proche (Genève, Lausanne ou Sion)

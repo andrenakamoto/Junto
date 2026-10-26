@@ -1114,10 +1114,15 @@ Junto/
   `toggle-reaction`, discussion du Cercle, sondages) ; panneau sur deux lignes (8 × 2) dans le chat des Plans. Chat des sondages
   de dates : table **CirclePollMessageReaction** (migration `20261023100000_poll_message_reactions`), POST
   `/circles/polls/messages/:id/reactions` (bascule, `poll-message-updated` vers l'audience), recopiées dans `MessageReaction`
-  quand le sondage devient un Plan. Barre de réactions : survol sur ordinateur ; sur écran tactile (`hover: none`),
+  quand le sondage devient un Plan. Barre de réactions : sur ordinateur, bouton 😊 qui apparaît au survol du message et l'ouvre au clic (depuis le 2026-10-26 ; avant, la barre s'ouvrait au simple survol, gênant) ; sur écran tactile (`hover: none`),
   un appui sur le message l'ouvre et l'appui suivant, n'importe où, la ferme (`ChatMessage`).
   Liens web (`https://`, `www.`) cliquables dans les deux chats (`renderContent`, exporté de
   `ChatMessage` et utilisé par `PollDetail`).
+  **Emojis et photos** (2026-10-26) : dans le texte, les emojis sont agrandis (`withEmojis`, `EMOJI_RE` de `ChatMessage` : drapeaux,
+  teintes, séquences ZWJ) ; un message fait seulement d'emojis (6 au plus, `isEmojiOnly`) s'affiche en grand sans bulle
+  (`EMOJI_ONLY_CLASS`) — chats des Plans, discussion du Cercle, sondages de dates. **Photo d'un chat : appui long = réactions**
+  (`hooks/useLongPress.ts`, `consumed()` empêche l'ouverture en grand qui suivrait ; menu système du téléphone bloqué), appui court =
+  visionneuse ; discussion du Cercle : l'appui long ouvre le choix des 16 réactions.
 - **Poll** / **PollOption** / **PollVote** : sondages ; `Poll.anonymous`
   (bool) — si vrai, l'API anonymise les userId des votes des autres membres
   dans la réponse (voir `anonymizePoll`/`anonymizePlanPolls` dans
@@ -1696,7 +1701,7 @@ politique de confidentialité (23 octobre 2026 : OpenAgenda et OpenStreetMap san
 boutons de région sur la page. Pastille « 📍 Genève · 25 km » → `PlacePicker` : « Autour de moi » (`navigator.geolocation`, redemandée à
 chaque ouverture, **jamais gardée**), recherche d'une **ville ou d'un village** (GET `/api/discover/localities?q=`, répertoire officiel des
 localités de **swisstopo** réduit dans `server/assets/localities.json`, 4 400 entrées, « © swisstopo », aucun service extérieur), rayon
-10 / 25 / 50 km, récents et grandes villes (`BIG_CITIES`). Choix gardé sur l'appareil (`evly_discover_place`, `evly_discover_recent` ;
+10 / 25 / 50 km (distances de moins de 1 km en mètres, `kmLabel` ; rayon de 1 km essayé puis retiré le 2026-10-26 : la position arrondie à ~1 km le rend imprécis), récents et grandes villes (`BIG_CITIES`). Choix gardé sur l'appareil (`evly_discover_place`, `evly_discover_recent` ;
 l'ancienne région devient sa ville). GET `/api/discover?lat=&lon=&radius=` (position arrondie au centième **par l'app** — depuis le site du 25 octobre et les apps 1.0.37 — puis par le serveur, ni enregistrée ni journalisée : **nginx note `/api/discover` sans ses paramètres**, format `sans_parametres`, dans `/etc/nginx/sites-available/evly.conf` et `deploy/infomaniak/nginx-evly.conf`) :
 tout ce qui est dans le rayon (rectangle puis distance exacte) + les éléments sans position de la région la plus proche ; `distanceKm`
 sur chaque événement et lieu (affiché « · 3 km », idées triées du plus proche). **`?region=` inchangé pour les anciennes apps.**
@@ -1706,7 +1711,15 @@ saisies admin, aux annonces de Plans, et au démarrage (`fillMissingCoords`). R�
 de `lib/discover/model.ts`, `la` = Vaud, nom historique) : une source OpenStreetMap par canton (`osm-<code>`), **toute la Suisse** ;
 `syncDueSources` fait une tournée à la fois, 8 cantons au plus par tournée, 20 s entre deux ; `overpass()` (`osm.ts`) réessaie sur
 502 / 504 / 429 et passe aux serveurs de secours (overpass.private.coffee, overpass.kumi.systems). Raccourcis de villes de toute la
-Suisse (`BIG_CITIES`). Apps : `ACCESS_COARSE_LOCATION` (Android, position
+Suisse (`BIG_CITIES`). **Cantons et régions** (2026-10-26, migration `20261103100000_discover_canton`) :
+`DiscoverEvent.canton` / `DiscoverPlace.canton` = code ISO (« VD ») déduit de la position (`cantonAt` : localité swisstopo la plus proche,
+grille de 0,1°), rempli par `withCoords` (synchronisations, saisies, annonces) et au démarrage (`fillMissingCoords`). GET
+`/api/discover?canton=VD` = tout le canton, sans rayon ni distance. GET `/discover/localities?v=2` (site et apps ≥ 1.0.37 ; sans `v`,
+localités seules pour les anciennes apps) : cantons (`CANTON_NAMES`, noms dans les 4 langues) et **régions connues** (`AREAS` : La Côte,
+Riviera, Gruyère, Chablais, Haut-Valais, Oberland bernois, Engadine… — un centre et un rayon de 10 ou 25 km, pas de limites officielles)
+avant les localités. Client : `Spot.canton`, libellé « Vaud (canton) » (`cantonLabel`), raccourcis des cantons romands
+(`ROMANDIE_CANTONS`) dans `PlacePicker`.
+Apps : `ACCESS_COARSE_LOCATION` (Android, position
 approximative, Android 12+) et `NSLocationWhenInUseUsageDescription` (Info.plist + `InfoPlist.strings` ×4). Politique de confidentialité
 (25 octobre 2026) et fiche « Découvrir » du guide mises à jour. Étape suivante prévue : agendas OpenAgenda des communes vaudoises.
 **Eventfrog** (2026-10-26, `lib/discover/eventfrog.ts` testé ; accord par email de Jonas Hufschmid, COO, et conditions générales § 17
@@ -1728,7 +1741,7 @@ d'origine) jamais ; nouvelle image = nouvelle clé, fichiers sans événement ef
 Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. **Séries** : des organisateurs saisissent chaque soirée d'un groupe
 (`groupId`) avec une fin des semaines plus tard ; dans un groupe de plusieurs dates, chaque date redevient une soirée (`inSeries`). **Doublons
 entre sources** (`lib/discover/dedupe.ts` testé, appliqué par GET /api/discover) : même titre (ou l'un contenu dans l'autre, 12 caractères au moins), même jour, même endroit (moins de 1 km ou même
-ville) → une seule annonce, la source la plus sûre (`SOURCE_RANK` : Plans, saisie, agenda de Genève, iCal, GeNEVERsleep, Eventfrog) ; une date
+ville) → une seule annonce, **celle qui a une photo** (choix de l'utilisateur, 2026-10-26 : les soirées Eventfrog l'emportent sur la ligne « sur plusieurs jours » de la Ville qui les couvre), sinon la source la plus sûre, qui garde les titres des autres pour la recherche (`aliases`) (`SOURCE_RANK` : Plans, saisie, agenda de Genève, iCal, GeNEVERsleep, Eventfrog) ; une date
 couverte par le même événement « sur plusieurs jours » d'une autre source est aussi retirée. Usage limité à « annoncer l'événement » :
 « Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 

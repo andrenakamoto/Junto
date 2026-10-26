@@ -38,3 +38,20 @@ describe('geo (Découvrir par lieu et rayon)', () => {
     expect(b.maxLat - b.minLat).toBeCloseTo(0.18, 2);
   });
 });
+
+import { cantonAt, searchAreas } from './geo';
+describe('cantons et régions', () => {
+  it('canton d’une position', () => {
+    expect(cantonAt(46.3887, 6.2357)).toBe('VD');  // Nyon
+    expect(cantonAt(46.2044, 6.1432)).toBe('GE');
+    expect(cantonAt(46.2208, 7.3612)).toBe('VS');  // Sion
+    expect(cantonAt(47.3769, 8.5417)).toBe('ZH');
+  });
+  it('recherche : canton dans toutes les langues, régions', () => {
+    expect(searchAreas('waadt')[0]).toEqual({ kind: 'canton', code: 'VD' });
+    expect(searchAreas('vs')[0]).toEqual({ kind: 'canton', code: 'VS' });
+    expect(searchAreas('riviera').map(h => h.kind === 'region' && h.name)).toContain('Riviera');
+    expect(searchAreas('oberwallis').some(h => h.kind === 'region')).toBe(true);
+    expect(searchAreas('x')).toEqual([]);
+  });
+});

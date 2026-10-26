@@ -4,7 +4,8 @@ import prisma from '../lib/prisma';
 import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
-import { boundingBox, distanceKm, nearestRegion, searchLocalities } from '../lib/discover/geo';
+import { boundingBox, distanceKm, isCantonCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
+import { CANTONS, REGIONS } from '../lib/discover/model';
 import { imageFile, isImageKey } from '../lib/discover/images';
 import { dedupeEvents } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
@@ -63,17 +64,22 @@ router.get(/^\/img\/([0-9a-f-]{36})\.jpg$/, (req, res) => {
 router.get('/localities', (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 60) : '';
   res.set('Cache-Control', 'public, max-age=86400');
-  res.json(searchLocalities(q).map(l => ({ name: l.name, canton: l.canton, lat: l.lat, lon: l.lon })));
+  const localities = searchLocalities(q).map(l => ({ name: l.name, canton: l.canton, lat: l.lat, lon: l.lon }));
+  // v=2 (site et apps à partir de la 1.0.37) : cantons et régions en tête ; les anciennes apps ne reçoivent que des localités
+  res.json(req.query.v === '2' ? [...searchAreas(q), ...localities.map(l => ({ kind: 'locality', ...l }))].slice(0, 10) : localities);
 });
 
 // GET /api/discover?lat=46.38&lon=6.24&radius=25&days=14 — événements à venir, idées de sorties et sources (licences à
 // afficher) autour d'un point, avec la distance de chacun. Anciennes apps : ?region=ge (inchangé). La position n'est ni
 // enregistrée ni journalisée.
 router.get('/', async (req, res) => {
-  const point = parsePoint(req.query);
-  const region = point ? nearestRegion(point) : isRegion(req.query.region) ? req.query.region : 'ge';
+  // ?canton=VD : tout le canton (sans rayon ni distance)
+  const canton = typeof req.query.canton === 'string' && isCantonCode(req.query.canton.toUpperCase()) ? req.query.canton.toUpperCase() : null;
+  const point = canton ? null : parsePoint(req.query);
+  const cantonRegion = canton ? REGIONS.find(r => CANTONS[r].iso === `CH-${canton}`) : undefined;
+  const region = cantonRegion ?? (point ? nearestRegion(point) : isRegion(req.query.region) ? req.query.region : 'ge');
   const days = Math.min(31, Math.max(1, Number(req.query.days) || 7));
-  const key = point ? `${point.lat},${point.lon},${point.radius}|${days}` : `${region}|${days}`;
+  const key = canton ? `canton:${canton}|${days}` : point ? `${point.lat},${point.lon},${point.radius}|${days}` : `${region}|${days}`;
   if (discoverCache.size > 300) discoverCache.clear();
   const hit = discoverCache.get(key);
   // Pas de copie dans le navigateur : la mémoire du serveur (vidée à chaque synchronisation) suffit
@@ -83,7 +89,7 @@ router.get('/', async (req, res) => {
   const until = new Date(now.getTime() + days * 24 * 3600e3);
   // Autour d'un point : tout ce qui est dans le rayon, plus les éléments sans position de la région la plus proche
   const box = point && boundingBox(point, point.radius);
-  const near = box
+  const near = canton ? { canton } : box
     ? { OR: [{ latitude: { gte: box.minLat, lte: box.maxLat }, longitude: { gte: box.minLon, lte: box.maxLon } }, { latitude: null, region }] }
     : { region };
   const [allEvents, allPlaces, sources] = await Promise.all([
@@ -118,7 +124,7 @@ router.get('/', async (req, res) => {
   }));
   const used = new Set([...events.map(e => e.sourceId), ...places.map(p => p.sourceId)]);
   const body = {
-    region, from: now, until, point,
+    region, from: now, until, point, canton,
     events: withSignup, places,
     sources: sources.filter(s => used.has(s.id)),
   };
