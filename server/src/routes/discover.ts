@@ -5,6 +5,7 @@ import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, nearestRegion, searchLocalities } from '../lib/discover/geo';
+import { imageFile, isImageKey } from '../lib/discover/images';
 import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { escapeHtml } from '../lib/escapeHtml';
@@ -47,6 +48,16 @@ function parsePoint(q: any): { lat: number; lon: number; radius: number } | null
   return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, radius: RADII.includes(r) ? r : 25 };
 }
 
+// GET /api/discover/img/<clé>.jpg — image d'un événement (copie chez nous, lib/discover/images.ts), public, en cache 1 an
+router.get(/^\/img\/([0-9a-f-]{36})\.jpg$/, (req, res) => {
+  const key = (req.params as any)[0] as string;
+  if (!isImageKey(key)) { res.status(404).end(); return; }
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.type('image/jpeg');
+  res.sendFile(imageFile(key), err => { if (err && !res.headersSent) res.status(404).end(); });
+});
+
 // GET /api/discover/localities?q=nyo — « Ville ou village » de Découvrir (répertoire des localités de swisstopo, sur le serveur)
 router.get('/localities', (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 60) : '';
@@ -79,7 +90,7 @@ router.get('/', async (req, res) => {
       where: { AND: [near, { OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] }], state: 'published', startAt: { lte: until } },
       orderBy: { startAt: 'asc' },
       take: 3000,
-      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true },
+      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true, imageKey: true, imageCredit: true },
     }),
     prisma.discoverPlace.findMany({
       where: { ...near, state: 'published' },

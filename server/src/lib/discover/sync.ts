@@ -5,6 +5,7 @@ import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import { fetchEventfrog, EventfrogConfig } from './eventfrog';
+import { syncEventImages } from './images';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 import { nearestRegion, withCoords } from './geo';
 
@@ -64,7 +65,13 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
     let count = 0;
     if (source.type === 'openagenda') count = await saveEvents(source, region, await fetchOpenAgenda(source.config as unknown as OpenAgendaConfig, from, to));
     else if (source.type === 'ical') count = await saveEvents(source, region, await fetchIcal(source.config as unknown as IcalConfig, from, to));
-    else if (source.type === 'eventfrog') count = await saveEvents(source, region, await fetchEventfrog(source.config as unknown as EventfrogConfig, from, to), true, { removeMissing: true, needCoords: true });
+    else if (source.type === 'eventfrog') {
+      const { events, images } = await fetchEventfrog(source.config as unknown as EventfrogConfig, from, to);
+      count = await saveEvents(source, region, events, true, { removeMissing: true, needCoords: true });
+      discoverCache.clear();
+      const r = await syncEventImages(source.id, images);
+      console.log(`[discover eventfrog] ${count} événements, ${r.added} images ajoutées, ${r.failed} échecs`);
+    }
     else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to), true);
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
     else return { error: 'Cette source ne se synchronise pas' };

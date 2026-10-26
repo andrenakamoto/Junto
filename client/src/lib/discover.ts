@@ -15,10 +15,16 @@ export interface DiscoverEvent {
   signupPath?: string;
   // Distance depuis le lieu choisi (km), absente si l'événement n'a pas de position
   distanceKm?: number | null;
+  // Image (Eventfrog) : copie gardée sur le serveur, crédit à afficher avec elle
+  imageKey?: string | null;
+  imageCredit?: string | null;
 }
 export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
 export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[]; places: DiscoverPlace[]; sources: DiscoverSourceInfo[] }
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
+export const discoverImageUrl = (key: string) => `${API_BASE}/discover/img/${key}.jpg`;
 
 export const IDEAS = 'ideas';
 // Catégories rangées en groupes (pas de défilement horizontal)

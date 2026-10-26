@@ -1720,8 +1720,12 @@ attente) : à chaque synchronisation (12 h), catégories (`/rubrics`, thèmes `p
 ni modifié), prix « CHF x » s'il y a une billetterie, complet / annulé, plusieurs jours dès 3 jours. **Règles d'Eventfrog** : « Source :
 Eventfrog » et lien vers la page de l'événement (type présenté aux clients comme `partner`, crédit dans `priceText` pour les apps ≤ 1.0.35),
 mise à jour chaque jour, **retrait de tout ce que l'API ne fournit plus, même déjà commencé** (`saveEvents` avec `removeMissing`), événements
-sans position écartés (`needCoords`), données et clé jamais transmises ; **images** pas encore affichées (à télécharger et stocker chez nous,
-avec `emblemCredits`, le jour où on les montre — jamais d'adresse d'image Eventfrog dans l'app). Usage limité à « annoncer l'événement » :
+sans position écartés (`needCoords`), données et clé jamais transmises. **Images** (2026-10-26, `lib/discover/images.ts`, migration
+`20261102100000_discover_event_image`) : pour les événements des **14 prochains jours** seulement, `emblemToShow` téléchargée après la
+synchronisation, refaite par sharp (600 px de large, JPEG, sans métadonnées) dans `STORAGE_DIR/discover/img/<clé>.jpg`, servie par GET
+`/api/discover/img/<clé>.jpg` (public, cache 1 an) ; `DiscoverEvent.imageKey` / `imageCredit` envoyés aux clients, `imageSource` (adresse
+d'origine) jamais ; nouvelle image = nouvelle clé, fichiers sans événement effacés à chaque synchronisation. **Jamais d'adresse d'image
+Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. Usage limité à « annoncer l'événement » :
 « Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :

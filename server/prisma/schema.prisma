@@ -1609,6 +1609,11 @@ model DiscoverEvent {
   multiDay    Boolean        @default(false)
   dateLabel   String? // « 26 - 29 octobre » pour un événement sur plusieurs jours
   url         String? // « Plus d'infos » : site de l'organisateur ou de la source
+  // Image (Eventfrog, 2026-10-26) : copie réduite chez nous (lib/discover/images.ts), crédit affiché avec elle ; imageSource = adresse
+  // d'origine, jamais envoyée aux clients (sert à repérer une image changée)
+  imageKey    String?
+  imageCredit String?
+  imageSource String?
   state       String         @default("published") // published | pending | hidden
   createdById String? // saisie manuelle : la personne admin
   // Annonce publiée depuis un Plan (titre, dates, lieu suivent le Plan ; supprimée avec lui)

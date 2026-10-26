@@ -3,12 +3,13 @@ import path from 'path';
 import type { Category, NormalizedEvent } from './model';
 import { cleanText, cleanUrl, TITLE_MAX } from './model';
 import { STORAGE_DIR } from '../storage';
+import { IMAGE_HORIZON_MS, SourceImage } from './images';
 
 // Connecteur Eventfrog (Public API v1, accord par email du 2026-10-26, conditions générales § 17 « Utilisation de l'API ») :
 // événements de toute la Suisse, clé « Public API: Read » dans EVENTFROG_API_KEY (/etc/evly/app.env, limitée à l'adresse IP du
 // serveur, valable jusqu’au 26.10.2030). Règles : mention « Source : Eventfrog » et lien vers la page de l'événement, contenu non
 // modifié, mise à jour chaque jour, retrait de ce que l'API ne fournit plus (synchronisation complète, `removeMissing`), données
-// et clé gardées chez EvLY. Images : pas encore affichées (à télécharger chez nous avec leur crédit le jour où on les montre).
+// et clé gardées chez EvLY. Images : `emblemToShow` copiée chez nous avec `emblemCredits` (lib/discover/images.ts), 14 prochains jours seulement.
 // Limites : 30 requêtes / minute, 2 000 / jour → une pause entre deux requêtes, lieux mis en cache sur le disque.
 
 const API = 'https://api.eventfrog.net/public/v1';
@@ -101,7 +102,7 @@ async function saveLocations(locs: Record<string, EventfrogLocation>) {
   await fs.writeFile(LOC_FILE, JSON.stringify(locs));
 }
 
-export async function fetchEventfrog(cfg: EventfrogConfig, from: Date, to: Date): Promise<NormalizedEvent[]> {
+export async function fetchEventfrog(cfg: EventfrogConfig, from: Date, to: Date): Promise<{ events: NormalizedEvent[]; images: Map<string, SourceImage> }> {
   const country = cfg.country ?? 'CH';
   const rubrics = await get('/rubrics?perPage=1000');
   const parentOf = new Map<number, number>((rubrics.rubrics ?? []).map((r: any) => [Number(r.id), Number(r.parentId)]));
@@ -130,7 +131,16 @@ export async function fetchEventfrog(cfg: EventfrogConfig, from: Date, to: Date)
     if (i % 1000 === 0) await saveLocations(locs);
   }
   await saveLocations(locs);
-  return events
+  const list = events
     .map(e => normalizeEventfrogEvent(e, locs[e.locationIds?.[0]], parentOf, from, to))
     .filter((e): e is NormalizedEvent => !!e);
+  // Images des événements des 14 prochains jours (ce que Découvrir montre), avec leur crédit
+  const horizon = from.getTime() + IMAGE_HORIZON_MS;
+  const kept = new Set(list.filter(e => e.startAt.getTime() <= horizon).map(e => e.externalId));
+  const images = new Map<string, SourceImage>();
+  for (const e of events) {
+    const url = e.emblemToShow?.url;
+    if (kept.has(e.id) && typeof url === 'string') images.set(e.id, { url, credit: cleanText(e.emblemCredits ?? null, 120) });
+  }
+  return { events: list, images };
 }
