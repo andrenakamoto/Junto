@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { REACTION_EMOJIS } from '../../lib/reactions';
 import { useBackClose } from '../../lib/backClose';
-import { Flag, ImageOff, MessageCircle, Trash2, X } from 'lucide-react';
+import { Flag, ImageOff, MessageCircle, SmilePlus, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { Message } from '../../types';
@@ -10,6 +10,7 @@ import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '
 import { VoiceMessage } from './VoiceMessage';
 import { SavePhotoButton } from './SavePhotoButton';
 import { intlLocale, t } from '../../i18n';
+import { useLongPress } from '../../hooks/useLongPress';
 
 // Réactions communes à tous les chats (lib/reactions.ts), sur deux lignes
 const QUICK_EMOJIS = REACTION_EMOJIS;
@@ -34,10 +35,27 @@ interface Props {
 const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
 const TRAILING = /[.,;:!?)\]}»"']+$/;
 
+// Emojis (drapeaux, séquences avec teinte de peau ou ZWJ) : agrandis dans le texte, trop petits sinon pour être reconnus
+const EMOJI_RE = /((?:\p{Regional_Indicator}{2})|(?:\p{Extended_Pictographic}\uFE0F?\p{Emoji_Modifier}?(?:\u200D\p{Extended_Pictographic}\uFE0F?\p{Emoji_Modifier}?)*))/gu;
+// Message fait seulement d'emojis (6 au plus) : affiché en grand, sans bulle
+export function isEmojiOnly(content: string): boolean {
+  const s = content.trim();
+  if (!s || s.length > 60) return false;
+  const found = s.match(EMOJI_RE) ?? [];
+  return found.length > 0 && found.length <= 6 && s.replace(EMOJI_RE, '').replace(/[\s\uFE0F\u200D]/g, '') === '';
+}
+export const EMOJI_ONLY_CLASS = 'text-4xl leading-tight whitespace-pre-wrap break-words select-text';
+
+function withEmojis(text: string, key: string) {
+  return text.split(EMOJI_RE).map((part, i) => i % 2 === 1
+    ? <span key={`${key}-e${i}`} className="text-[1.4em] leading-none align-[-0.12em]">{part}</span>
+    : <Fragment key={`${key}-t${i}`}>{part}</Fragment>);
+}
+
 function renderText(text: string, key: string) {
   return text.split(/(@\w+)/g).map((part, i) => (
     <Fragment key={`${key}-${i}`}>
-      {/^@\w+$/.test(part) ? <span className="font-semibold text-indigo-300">{part}</span> : part}
+      {/^@\w+$/.test(part) ? <span className="font-semibold text-indigo-300">{part}</span> : withEmojis(part, `${key}-${i}`)}
     </Fragment>
   ));
 }
@@ -79,12 +97,15 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
   const editable = useEditWindow(message.createdAt, message.deletedAt, isMe && !!onEdit && !!onDelete);
   const [editing, setEditing] = useState(false);
   // Réactions rapides sur écran tactile : un appui sur le message ouvre la barre, l'appui
-  // suivant (n'importe où) la ferme. Sur ordinateur, elle s'affiche au survol.
+  // suivant (n'importe où) la ferme. Sur ordinateur, un petit bouton 😊 apparaît au survol du message et
+  // l'ouvre au clic (avant le 2026-10-26, la barre s'ouvrait au simple survol : gênant en lisant).
   const [showReactions, setShowReactions] = useState(false);
   const bubbleRef = useRef<HTMLDivElement>(null);
   // Barre de réactions sous la bulle quand il n'y a pas la place au-dessus (premier message du
   // chat : sinon elle passe sous la barre des rubriques)
   const [reactionsBelow, setReactionsBelow] = useState(false);
+  // Photo : un appui court l'ouvre en grand, un appui long ouvre les réactions
+  const photoPress = useLongPress(() => { placeReactions(); setShowReactions(true); });
   function placeReactions() {
     const el = bubbleRef.current;
     if (!el) return;
@@ -138,8 +159,8 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           ) : (
             <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
               {photo && (
-                <button type="button" onClick={e => { e.stopPropagation(); setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
-                  <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" className="block max-w-[240px] max-h-[320px] object-cover" />
+                <button type="button" {...photoPress.handlers} onClick={e => { e.stopPropagation(); if (!photoPress.consumed()) setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm select-none">
+                  <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" draggable={false} className="block max-w-[240px] max-h-[320px] object-cover" />
                 </button>
               )}
               {voice && <VoiceMessage attachment={voice} mediaToken={mediaToken} isMe={isMe} />}
@@ -148,7 +169,9 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                   <ImageOff size={14} /> {t('chat.message.photoRemoved')}
                 </div>
               )}
-              {message.content && (
+              {message.content && (isEmojiOnly(message.content) ? (
+                <div className={EMOJI_ONLY_CLASS}>{message.content}</div>
+              ) : (
                 <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                   isMe
                     ? 'bg-indigo-600 text-white rounded-tr-sm'
@@ -156,7 +179,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 }`}>
                   {renderContent(message.content, isMe)}
                 </div>
-              )}
+              ))}
             </div>
           )}
           {viewing && photo && (
@@ -186,9 +209,21 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
             </div>
           )}
 
-          {/* Réactions rapides (survol sur ordinateur, appui sur mobile) : grands emojis,
+          {/* Ordinateur : bouton 😊 au survol, à côté de la bulle */}
+          {!deleted && !editing && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); placeReactions(); setShowReactions(v => !v); }}
+              aria-label={t('circle.chat.react')}
+              title={t('circle.chat.react')}
+              className={`hidden [@media(hover:hover)]:group-hover:flex absolute top-1/2 -translate-y-1/2 ${isMe ? '-left-9' : '-right-9'} w-7 h-7 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 shadow-sm hover:text-indigo-600 hover:border-indigo-300`}
+            >
+              <SmilePlus size={15} />
+            </button>
+          )}
+          {/* Réactions rapides (bouton 😊 sur ordinateur, appui sur mobile) : grands emojis,
               posés juste au-dessus de la bulle pour ne pas la masquer (en dessous s'il n'y a pas la place) */}
-          {!deleted && !editing && <div className={`${showReactions ? 'grid' : 'hidden'} [@media(hover:hover)]:group-hover:grid absolute ${reactionsBelow ? 'top-full mt-1' : 'bottom-full mb-1'} ${isMe ? 'right-0' : 'left-0'} w-max grid-cols-[repeat(8,2.25rem)] bg-white border border-slate-200 rounded-2xl shadow-lg p-1.5 gap-0.5 z-10`}>
+          {!deleted && !editing && <div className={`${showReactions ? 'grid' : 'hidden'} absolute ${reactionsBelow ? 'top-full mt-1' : 'bottom-full mb-1'} ${isMe ? 'right-0' : 'left-0'} w-max grid-cols-[repeat(8,2.25rem)] bg-white border border-slate-200 rounded-2xl shadow-lg p-1.5 gap-0.5 z-10`}>
             {QUICK_EMOJIS.map(emoji => (
               <button
                 key={emoji}

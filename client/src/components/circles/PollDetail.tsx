@@ -9,7 +9,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { displayName as firstNameOf } from '../../lib/names';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
-import { renderContent } from '../chat/ChatMessage';
+import { EMOJI_ONLY_CLASS, isEmojiOnly, renderContent } from '../chat/ChatMessage';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
@@ -423,11 +423,12 @@ function PollChatMessage({ message: m, isMe, userId, onReact, onEdit, onDelete, 
         ) : editing ? (
           <MessageEditor initial={m.content} onCancel={() => setEditing(false)} onSave={text => { setEditing(false); onEdit(text); }} />
         ) : (
+          isEmojiOnly(m.content) ? <div className={EMOJI_ONLY_CLASS}>{m.content}</div> : (
           <div className={`px-4 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
             isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
           }`}>
             {renderContent(m.content, isMe)}
-          </div>
+          </div>)
         )}
         {!m.deletedAt && groups.size > 0 && (
           <div className="flex flex-wrap gap-1">

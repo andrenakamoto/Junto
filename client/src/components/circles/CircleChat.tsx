@@ -6,7 +6,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
-import { renderContent } from '../chat/ChatMessage';
+import { EMOJI_ONLY_CLASS, isEmojiOnly, renderContent } from '../chat/ChatMessage';
+import { useLongPress } from '../../hooks/useLongPress';
 import { SavePhotoButton } from '../chat/SavePhotoButton';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
@@ -159,6 +160,8 @@ function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePla
 }) {
   const [editing, setEditing] = useState(false);
   const [picker, setPicker] = useState(false);
+  // Photo : un appui court l'ouvre en grand, un appui long ouvre le choix des réactions
+  const photoPress = useLongPress(() => setPicker(true));
   const pickerRef = useRef<HTMLDivElement>(null);
   // Liste des réactions ouverte : un toucher ou un clic n'importe où ailleurs la referme
   useEffect(() => {
@@ -190,17 +193,17 @@ function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePla
         ) : (
           <>
             {m.imageKey && (
-              <button type="button" onClick={() => onViewPhoto(m.imageKey!)} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
-                <img src={photoUrl(m.imageKey, true)} alt="" loading="lazy" className="max-w-[240px] max-h-[320px] object-cover block" />
+              <button type="button" {...photoPress.handlers} onClick={() => { if (!photoPress.consumed()) onViewPhoto(m.imageKey!); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 select-none">
+                <img src={photoUrl(m.imageKey, true)} alt="" loading="lazy" draggable={false} className="max-w-[240px] max-h-[320px] object-cover block" />
               </button>
             )}
-            {m.content && (
+            {m.content && (isEmojiOnly(m.content) ? <div className={EMOJI_ONLY_CLASS}>{m.content}</div> : (
               <div className={`px-4 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                 isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
               }`}>
                 {renderContent(m.content, isMe)}
               </div>
-            )}
+            ))}
           </>
         )}
         {!m.deletedAt && groups.size > 0 && (
