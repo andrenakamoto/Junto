@@ -20,20 +20,28 @@ const near = (a: DedupeEvent, b: DedupeEvent) => {
   return !!a.city && !!b.city && norm(a.city) === norm(b.city);
 };
 
+// Même titre, ou l'un contenu dans l'autre (« Intelligences en mouvement » / « Spectacle son et lumière : « Intelligences en
+// mouvement » »), à partir de 12 caractères
+const sameTitle = (a: string, b: string) => a === b || (Math.min(a.length, b.length) >= 12 && (a.includes(b) || b.includes(a)));
+
 export function dedupeEvents<T extends DedupeEvent>(events: T[], typeOfSource: (sourceId: string) => string): T[] {
   const rank = (e: T) => SOURCE_RANK[typeOfSource(e.sourceId)] ?? 9;
-  const byTitle = new Map<string, T[]>();
-  for (const e of events) { const k = norm(e.title); byTitle.set(k, [...(byTitle.get(k) ?? []), e]); }
+  // Regroupés par endroit (position arrondie à ~2 km, sinon la ville) : on ne compare que des événements voisins
+  const bucketOf = (e: T) => e.latitude != null && e.longitude != null
+    ? `${Math.round(e.latitude * 50)},${Math.round(e.longitude * 50)}` : `ville:${norm(e.city ?? '')}`;
+  const buckets = new Map<string, T[]>();
+  for (const e of events) { const k = bucketOf(e); buckets.set(k, [...(buckets.get(k) ?? []), e]); }
+  const titleOf = new Map(events.map(e => [e.id, norm(e.title)]));
   const drop = new Set<string>();
-  for (const group of byTitle.values()) {
-    if (group.length < 2) continue;
+  for (const group of buckets.values()) {
+    if (group.length < 2 || new Set(group.map(e => e.sourceId)).size < 2) continue;
     const sorted = [...group].sort((a, b) => rank(a) - rank(b));
     for (let i = 0; i < sorted.length; i++) {
       const a = sorted[i];
       if (drop.has(a.id)) continue;
       for (let j = i + 1; j < sorted.length; j++) {
         const b = sorted[j];
-        if (drop.has(b.id) || a.sourceId === b.sourceId || !near(a, b)) continue;
+        if (drop.has(b.id) || a.sourceId === b.sourceId || !near(a, b) || !sameTitle(titleOf.get(a.id)!, titleOf.get(b.id)!)) continue;
         const sameDay = dayOf(a.startAt) === dayOf(b.startAt);
         // b (moins sûr) tombe pendant l'événement a sur plusieurs jours
         const covered = a.multiDay && b.startAt >= a.startAt && b.startAt <= (a.endAt ?? a.startAt);
