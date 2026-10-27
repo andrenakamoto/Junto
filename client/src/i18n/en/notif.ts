@@ -45,7 +45,7 @@ const notif: Dict['notif'] = {
   goneTitle: 'Plan closed',
   goneBody: '“{{plan}}” has been deleted or is no longer available.',
   center: {
-    sections: { chat: 'Chat', infos: 'Info', trajets: 'Rides', membres: 'Members', votes: 'Votes', depenses: 'Expenses', benevoles: 'Schedule', taches: 'Tasks', deroule: 'Run of show' },
+    sections: { chat: 'Chat', infos: 'Info', trajets: 'Rides', membres: 'Members', votes: 'Votes', depenses: 'Expenses', benevoles: 'Schedule', taches: 'Tasks', deroule: 'Run of show', idees: 'Ideas' },
     justNow: 'just now',
     minutesAgo: '{{n}} min ago',
     hoursAgo: '{{n}} h ago',

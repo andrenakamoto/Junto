@@ -298,6 +298,16 @@ const groups: Group[] = [
           PDF zum Ausdrucken für das Team und die Dienstleister.</P>,
       },
       {
+        id: 'idees', emoji: '💡', title: 'Ideen', summary: 'Brainstorming in der Sitzung, die App auf einen Bildschirm projiziert',
+        body: <P>Um gemeinsam Ideen zu sammeln: Projiziere EvLY, eine Person tippt, alle schauen zu und diskutieren. <strong>«Im Vollbild
+          projizieren»</strong> zeigt die Themen in Spalten, in grosser Schrift, mit einem <strong>Timer</strong>: Wähle unten das Thema, tippe
+          die Idee, Enter. Ziehe eine Idee mit der Maus in ein anderes Thema. Tippe eine Idee an, um die <strong>Stimmen per Handzeichen</strong>
+          (+1 / −1) zu notieren, sie als ⭐ Ausgewählt, ❓ Weiter prüfen oder ✖ Verworfen zu markieren, ihr eine Farbe zu geben, sie mit einer
+          ähnlichen <strong>zusammenzuführen</strong> oder, wenn die Aufgaben aktiviert sind, <strong>in eine Aufgabe umzuwandeln</strong>
+          (Bereich und Verantwortliche). Doppelklick, um den Text zu korrigieren. Nach der Sitzung bleibt die Wand im Plan, alle können sie auf
+          dem Handy nachlesen, und «Protokoll kopieren» liefert die ausgewählten und weiter zu prüfenden Ideen nach Thema.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Einsatzplan', summary: 'Einsätze mit Zeiten, alle tragen sich ein',
         body: <P>Der Ersteller des Plans und die Organisatoren des Kreises erstellen die Einsätze (Zeit, Anzahl Personen).
           Sich eintragen heisst «Ich bin dabei». Übersicht «Es fehlen X Personen», Filter «Meine Einsätze», Warnung bei

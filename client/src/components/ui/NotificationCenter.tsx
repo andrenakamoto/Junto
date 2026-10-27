@@ -17,7 +17,7 @@ import { Trans } from 'react-i18next';
 // (les invitations et demandes d'adhésion restent : elles attendent une réponse). Les pastilles
 // des onglets ne changent pas : elles disparaissent quand l'onglet est consulté.
 
-const SECTIONS = ['chat', 'infos', 'trajets', 'membres', 'votes', 'depenses', 'benevoles', 'taches', 'deroule'];
+const SECTIONS = ['chat', 'infos', 'trajets', 'membres', 'votes', 'depenses', 'benevoles', 'taches', 'deroule', 'idees'];
 const sectionLabel = (s: string) => SECTIONS.includes(s) ? t(`notif.center.sections.${s}` as any) : s;
 
 function timeAgo(at: number): string {

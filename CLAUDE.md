@@ -950,6 +950,19 @@ Junto/
   « Copier le programme » (heures et titres, pour le Plan d'annonce) ; **feuille de route PDF** (GET `/plans/:id/program/pdf`, tout le monde
   qui voit le Plan, textes `programPdf` de `i18n/emails`). « Commencer avec un déroulé type » (`program.starterList`). Pas dans la démo. Fiche
   « Déroulé » du guide.
+- **Idées** (2026-10-27, `lib/ideas.ts` testé, `routes/ideas.ts` monté dans le routeur des Plans, `components/plans/IdeasTab.tsx`,
+  dictionnaire `i18n/<langue>/ideas.ts`, migration `20261106100000_plan_ideas`) : fonction **à activer** (`idees`, Organiser, après le
+  Déroulé ; activée aussi par le type « Organisation ») — brainstorming **en séance, l'app projetée sur un seul écran**, une personne au
+  clavier, sans interaction sur les téléphones (qui suivent en direct par `plan-updated`). Tables **IdeaColumn** (thème, `position`) et
+  **Idea** (`columnId?` SetNull = « sans thème », `status` `new|kept|dropped|explore`, `votes` = votes à main levée notés avec + / −,
+  `color` parmi 5, `taskId` = tâche créée, sans relation). Tout le monde qui voit le Plan modifie le tableau ; **aucune notification**.
+  **« Projeter en plein écran »** (`Projection` : API plein écran du navigateur, Échap → `closeTopOverlay`, `useBackClose`) : colonnes en
+  grand, saisie en bas (choisir le thème, taper, Entrée), glisser une idée vers un autre thème (drag & drop HTML5), **minuteur** 5 / 10 /
+  15 min (côté client seulement). Toucher une idée : +1 / −1, ⭐ Retenue / ❓ À creuser / ✖ Écartée (re-toucher = « nouvelle »), couleur,
+  modifier (double-clic), **fusionner** (`mergeIdeas` : textes réunis, votes additionnés, statut le plus avancé), **transformer en tâche**
+  (si `taches` actif : POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). Tri ordre d'arrivée / votes,
+  filtre « Retenues », « Commencer avec des thèmes types » (`ideas.starterList`), **« Copier le compte rendu »** (texte par thème : retenues,
+  à creuser, autres). Pas dans la démo. Fiche « Idées » du guide.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,

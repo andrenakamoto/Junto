@@ -238,4 +238,14 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Direction invalide': ['Ungültige Richtung', 'Direzione non valida', 'Invalid direction'],
   'Indique d’abord une heure de début': ['Gib zuerst eine Startzeit an', 'Indica prima un’ora di inizio', 'Set a start time first'],
   'Seuls la personne qui a créé ce moment et les organisateurs peuvent le supprimer': ['Nur wer diesen Programmpunkt erstellt hat und das Organisationsteam können ihn löschen', 'Solo chi ha creato questo momento e gli organizzatori possono eliminarlo', 'Only the person who created this item and the organisers can delete it'],
+  // Idées (routes/ideas.ts)
+  'Idée vide': ['Leere Idee', 'Idea vuota', 'Empty idea'],
+  'Idée : {0} caractères maximum': ['Idee: höchstens {0} Zeichen', 'Idea: al massimo {0} caratteri', 'Idea: {0} characters at most'],
+  'Nom du thème requis': ['Name des Themas erforderlich', 'Nome del tema obbligatorio', 'Theme name required'],
+  'Nom du thème : {0} caractères maximum': ['Name des Themas: höchstens {0} Zeichen', 'Nome del tema: al massimo {0} caratteri', 'Theme name: {0} characters at most'],
+  'Les idées ne sont pas activées pour ce Plan': ['Die Ideen sind für diesen Plan nicht aktiviert', 'Le idee non sono attivate per questo Plan', 'Ideas are not turned on for this Plan'],
+  'Thème introuvable': ['Thema nicht gefunden', 'Tema non trovato', 'Theme not found'],
+  '{0} thèmes au plus': ['Höchstens {0} Themen', 'Al massimo {0} temi', '{0} themes at most'],
+  '{0} idées au plus': ['Höchstens {0} Ideen', 'Al massimo {0} idee', '{0} ideas at most'],
+  'Vote invalide': ['Ungültige Stimme', 'Voto non valido', 'Invalid vote'],
 };

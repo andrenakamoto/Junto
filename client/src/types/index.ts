@@ -56,7 +56,7 @@ export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 /** Fonctions à activer (absentes par défaut) */
-export type OptionalFeature = 'benevoles' | 'taches' | 'deroule' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
+export type OptionalFeature = 'benevoles' | 'taches' | 'deroule' | 'idees' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
 
 export interface Circle {
   /** Dernière activité (GET /circles) : sert à l'ordre de la liste */

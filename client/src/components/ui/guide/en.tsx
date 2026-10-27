@@ -288,6 +288,15 @@ const groups: Group[] = [
           into the Plan for guests; “Run sheet” creates a full PDF to print for the team and suppliers.</P>,
       },
       {
+        id: 'idees', emoji: '💡', title: 'Ideas', summary: 'Brainstorming in a session, with the app projected on one screen',
+        body: <P>To come up with ideas together: project EvLY, one person types, everyone watches and talks. <strong>“Project full screen”</strong>
+          shows the themes in columns, in large text, with a <strong>timer</strong>: pick the theme at the bottom, type the idea, Enter. Drag an
+          idea to another theme with the mouse. Tap an idea to note <strong>show-of-hands votes</strong> (+1 / −1), mark it ⭐ Kept, ❓ To explore
+          or ✖ Dropped, give it a colour, <strong>merge</strong> it with a similar one or, if Tasks are turned on, <strong>turn it into a
+          task</strong> (area and people in charge). Double-click to fix the text. After the session the board stays in the Plan, everyone can
+          read it on their phone, and “Copy the summary” gives the kept ideas and those to explore, by theme.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Schedule', summary: 'Shifts with times, everyone signs up',
         body: <P>The Plan’s creator and the Circle’s organisers create the shifts (time, number of people). Signing up counts
           as “I’m in”. Summary “X people still needed”, “My shifts” filter, warning if two shifts overlap. Reminder by

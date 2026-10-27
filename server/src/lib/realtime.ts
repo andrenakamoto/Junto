@@ -72,7 +72,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres',
-  shifts: 'benevoles', tasks: 'taches', 'task-groups': 'taches', program: 'deroule', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
+  shifts: 'benevoles', tasks: 'taches', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -150,6 +150,15 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     }
     const task = await prisma.planTask.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(task?.planId, false, 'taches');
+  }
+  // Idées : /ideas/:ideaId/…, /idea-columns/:columnId/…
+  if (a === 'ideas') {
+    const idea = await prisma.idea.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(idea?.planId, false, 'idees');
+  }
+  if (a === 'idea-columns') {
+    const column = await prisma.ideaColumn.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(column?.planId, false, 'idees');
   }
   // Déroulé : /program/:itemId/…
   if (a === 'program') {

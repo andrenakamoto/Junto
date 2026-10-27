@@ -409,6 +409,8 @@ model Plan {
   taskGroups        PlanTaskGroup[]
   tasks             PlanTask[]
   programItems      PlanProgramItem[]
+  ideaColumns       IdeaColumn[]
+  ideas             Idea[]
   notificationMutes NotificationMute[]
   santa             SecretSanta?
   killer            KillerGame?
@@ -1020,6 +1022,40 @@ model PlanProgramAssignee {
 
   @@id([itemId, userId])
   @@index([planId, userId])
+}
+
+// Idées d'un Plan (lib/ideas.ts, fonction à activer « idees ») : brainstorming en séance, projeté sur un seul
+// écran. Thèmes en colonnes, post-its, statut (retenue, écartée, à creuser), votes à main levée, couleur.
+model IdeaColumn {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title     String
+  position  Int
+  createdAt DateTime @default(now())
+  ideas     Idea[]
+
+  @@index([planId])
+}
+
+model Idea {
+  id          String      @id @default(cuid())
+  planId      String
+  plan        Plan        @relation(fields: [planId], references: [id], onDelete: Cascade)
+  // Thème ; supprimer le thème laisse ses idées « sans thème »
+  columnId    String?
+  column      IdeaColumn? @relation(fields: [columnId], references: [id], onDelete: SetNull)
+  text        String
+  // new | kept | dropped | explore
+  status      String      @default("new")
+  votes       Int         @default(0)
+  color       String?
+  // Tâche créée à partir de l'idée (lib/tasks.ts), sans lien de base : la tâche peut être supprimée
+  taskId      String?
+  createdById String?
+  createdAt   DateTime    @default(now())
+
+  @@index([planId])
 }
 
 // Mode silencieux (lib/mutes.ts) : plus de push, d'email ni de bulle dans l'app pour un Plan ou

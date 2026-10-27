@@ -44,7 +44,7 @@ export default {
   goneTitle: 'Plan fermé',
   goneBody: '« {{plan}} » a été supprimé ou n’est plus accessible.',
   center: {
-    sections: { chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses', benevoles: 'Planning', taches: 'Tâches', deroule: 'Déroulé' },
+    sections: { chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses', benevoles: 'Planning', taches: 'Tâches', deroule: 'Déroulé', idees: 'Idées' },
     justNow: 'à l’instant',
     minutesAgo: 'il y a {{n}} min',
     hoursAgo: 'il y a {{n}} h',

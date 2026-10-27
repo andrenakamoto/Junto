@@ -74,7 +74,7 @@ const plan: Dict['plan'] = {
     organisation: {
       name: 'Organizzazione in gruppo',
       hint: 'Festa, torneo, tombola… con i compiti e i turni',
-      note: 'Compiti, Scaletta e Turni sono attivati: le cose da fare prima dell’evento, il programma della serata e i turni del giorno stesso.',
+      note: 'Compiti, Scaletta, Idee e Turni sono attivati: le cose da fare, il programma della serata, il brainstorming e i turni del giorno stesso.',
       info: 'Le cose da fare sono in Compiti, i turni del giorno stesso in Turni. Grazie a tutti per l’aiuto!',
     },
     annonce: {
@@ -402,7 +402,7 @@ const plan: Dict['plan'] = {
     exitFullscreen: 'Esci dallo schermo intero',
     tabs: {
       chat: 'Chat', infos: 'Info', trajets: 'Passaggi', membres: 'Membri', votes: 'Voti', depenses: 'Spese',
-      benevoles: 'Turni', taches: 'Compiti', deroule: 'Scaletta', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Parola trappola',
+      benevoles: 'Turni', taches: 'Compiti', deroule: 'Scaletta', idees: 'Idee', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Parola trappola',
       equipes: 'Squadre', cagnotte: 'Colletta',
     },
     skipConfirm: 'Annullare questo Plan per questa volta? Verrà eliminato e il successivo creato subito.',

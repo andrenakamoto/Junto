@@ -13,9 +13,10 @@ import photos from './photos';
 import discover from './discover';
 import tasks from './tasks';
 import program from './program';
+import ideas from './ideas';
 
 // Textes français d'EvLY, langue d'origine. Chaque fichier = un domaine de l'app.
-const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program };
+const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas };
 export default fr;
 
 // Même structure, chaînes de caractères dans une autre langue

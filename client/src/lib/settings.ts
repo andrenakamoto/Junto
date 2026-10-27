@@ -30,7 +30,7 @@ export function isEnabled(plan: { disabledFeatures?: PlanFeature[] }, feature: P
 }
 
 // Fonctions à activer : absentes tant que le créateur ne les coche pas
-export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = (['benevoles', 'taches', 'deroule', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'quiz'] as OptionalFeature[])
+export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = (['benevoles', 'taches', 'deroule', 'idees', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'quiz'] as OptionalFeature[])
   .map(value => ({ value, label: featureLabel(value) }));
 
 // Fonctions du Plan rangées par catégorie (fenêtres de création / modification / paramètres).
@@ -45,7 +45,7 @@ const item = <K extends 'base' | 'optional'>(kind: K, value: K extends 'base' ? 
 
 export const FEATURE_GROUPS: { key: string; title: string; icon: string; collapsible?: boolean; items: FeatureItem[] }[] = [
   { key: 'echanger', title: t('settings.groups.echanger'), icon: '💬', items: [item('base', 'chat'), item('base', 'votes'), item('base', 'fichiers')] },
-  { key: 'organiser', title: t('settings.groups.organiser'), icon: '🧭', items: [item('base', 'trajets'), item('base', 'depenses'), item('optional', 'taches'), item('optional', 'deroule'), item('optional', 'benevoles'), item('optional', 'assemblee')] },
+  { key: 'organiser', title: t('settings.groups.organiser'), icon: '🧭', items: [item('base', 'trajets'), item('base', 'depenses'), item('optional', 'taches'), item('optional', 'deroule'), item('optional', 'idees'), item('optional', 'benevoles'), item('optional', 'assemblee')] },
   { key: 'feter', title: t('settings.groups.feter'), icon: '🎁', collapsible: true, items: [item('optional', 'cagnotte'), item('optional', 'pere_noel')] },
   { key: 'jouer', title: t('settings.groups.jouer'), icon: '🎲', collapsible: true, items: [item('optional', 'quiz'), item('optional', 'killer'), item('optional', 'mot_piege'), item('optional', 'equipes')] },
 ];

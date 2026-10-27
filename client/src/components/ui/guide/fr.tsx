@@ -292,6 +292,16 @@ const groups: Group[] = [
           un PDF complet à imprimer pour l'équipe et les prestataires.</P>,
       },
       {
+        id: 'idees', emoji: '💡', title: 'Idées', summary: 'Le brainstorming en séance, l’app projetée sur un écran',
+        body: <P>Pour chercher des idées tous ensemble : projette EvLY, une personne tape au clavier, tout le monde regarde et discute.
+          <strong> « Projeter en plein écran »</strong> affiche les thèmes en colonnes, en gros caractères, avec un <strong>minuteur</strong> :
+          choisis le thème en bas, tape l'idée, Entrée. Glisse une idée d'un thème à l'autre à la souris. Touche une idée pour noter les
+          <strong> votes à main levée</strong> (+1 / −1), la marquer ⭐ Retenue, ❓ À creuser ou ✖ Écartée, lui donner une couleur, la
+          <strong> fusionner</strong> avec une idée proche ou, si les Tâches sont activées, la <strong>transformer en tâche</strong> (lot et
+          responsables). Double-clic pour corriger le texte. Après la séance, le tableau reste dans le Plan, chacun le relit sur son
+          téléphone, et « Copier le compte rendu » donne les idées retenues et à creuser, par thème.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Planning', summary: 'Postes et horaires, chacun s’inscrit',
         body: <P>Le créateur du Plan et les organisateurs du Cercle créent les postes (horaire, nombre de personnes). S'inscrire
           vaut « Je suis in ». Résumé « Il manque X personnes », filtre « Mes postes », avertissement si deux postes se

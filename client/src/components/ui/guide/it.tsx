@@ -293,6 +293,15 @@ const groups: Group[] = [
           titoli da incollare nel Plan per gli invitati; «Scaletta» crea un PDF completo da stampare per la squadra e i fornitori.</P>,
       },
       {
+        id: 'idees', emoji: '💡', title: 'Idee', summary: 'Il brainstorming in riunione, l’app proiettata su uno schermo',
+        body: <P>Per cercare idee tutti insieme: proietta EvLY, una persona scrive alla tastiera, tutti guardano e discutono. <strong>«Proietta
+          a schermo intero»</strong> mostra i temi in colonne, a caratteri grandi, con un <strong>timer</strong>: scegli il tema in basso, scrivi
+          l'idea, Invio. Trascina un'idea da un tema all'altro con il mouse. Tocca un'idea per annotare i <strong>voti per alzata di mano</strong>
+          (+1 / −1), segnarla ⭐ Scelta, ❓ Da approfondire o ✖ Scartata, darle un colore, <strong>unirla</strong> a un'idea simile o, se i
+          Compiti sono attivati, <strong>trasformarla in compito</strong> (area e responsabili). Doppio clic per correggere il testo. Dopo la
+          riunione la bacheca resta nel Plan, ognuno la rilegge sul telefono, e «Copia il resoconto» dà le idee scelte e da approfondire, per tema.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Turni', summary: 'Turni da coprire, ognuno si iscrive',
         body: <P>Il creatore del Plan e gli organizzatori del Cerchio creano i turni (orario, numero di persone). Iscriversi
           vale «Ci sono». Riepilogo «Mancano X persone», filtro «I miei turni», avviso se due turni si sovrappongono.
