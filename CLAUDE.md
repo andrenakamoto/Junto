@@ -493,6 +493,8 @@ Conséquences pratiques :
     **Version 1.0.37** (2026-10-26) : Android `versionCode` 39 (`evly-1.0.37-(39).aab`), iOS build 41 envoyé — Découvrir : photos
     des événements Eventfrog, recherche par canton ou région, position arrondie par l'app ; chats : appui long sur une photo pour réagir,
     emojis seuls en grand, bouton 😊 sur ordinateur.
+    **Version 1.0.38** (2026-10-27) : Android `versionCode` 40 (`evly-1.0.38-(40).aab`), iOS build 42 envoyé — Tâches (lots, responsables,
+    échéances, dépendances), Déroulé (programme de la soirée, « +15 min », feuille de route PDF), Idées (brainstorming projeté).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
