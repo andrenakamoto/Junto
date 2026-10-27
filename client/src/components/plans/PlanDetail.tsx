@@ -28,6 +28,7 @@ import { VolunteersTab } from './VolunteersTab';
 import { TasksTab } from './TasksTab';
 import { ProgramTab } from './ProgramTab';
 import { IdeasTab } from './IdeasTab';
+import { PlanTabBar } from './PlanTabBar';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
 import { WordTrapTab } from './WordTrapTab';
@@ -1063,26 +1064,8 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       {/* Tabs (only if member) */}
       {isMember && !showHub && (
         <>
-          <div className="hidden md:flex border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
-            {visibleTabs.map(({ key, Icon, label }) => (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                className={`flex-1 flex flex-col xl:flex-row items-center justify-center gap-0.5 xl:gap-1.5 px-1 py-2 xl:px-4 xl:py-3 text-xs xl:text-sm font-medium border-b-2 transition-colors min-w-0 ${
-                  tab === key
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <span className="relative">
-                  <Icon size={14} />
-                  {tab !== key && ((plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen)) && (
-                    <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-white" aria-label={t('plan.detail.new')} />
-                  )}
-                </span>
-                <span className="truncate leading-tight">{label}</span>
-              </button>
-            ))}
+          <div className="hidden md:block border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
+            <PlanTabBar tabs={visibleTabs} active={tab} onSelect={setTab} hasNews={hasNews} />
           </div>
 
           {activeTab === 'chat' && isEnabled(plan, 'chat') && (

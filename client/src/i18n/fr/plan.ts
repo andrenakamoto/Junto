@@ -416,6 +416,8 @@ export default {
     waiting_one: ' {{count}} personne attend déjà.',
     waiting_other: ' {{count}} personnes attendent déjà.',
     waitJoin: 'Rejoindre la liste d’attente',
+    tabsPrev: 'Onglets précédents',
+    tabsNext: 'Onglets suivants',
     new: 'Nouveau',
     recapError: 'Impossible de préparer le récapitulatif. Réessaie.',
     zipError: 'Impossible de préparer le téléchargement. Réessaie.',

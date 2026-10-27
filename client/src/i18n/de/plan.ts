@@ -417,6 +417,8 @@ const plan: Dict['plan'] = {
     waiting_one: ' {{count}} Person wartet schon.',
     waiting_other: ' {{count}} Personen warten schon.',
     waitJoin: 'Auf die Warteliste',
+    tabsPrev: 'Vorherige Reiter',
+    tabsNext: 'Nächste Reiter',
     new: 'Neu',
     recapError: 'Die Zusammenfassung kann nicht vorbereitet werden. Versuch es nochmal.',
     zipError: 'Download kann nicht vorbereitet werden. Versuch es nochmal.',
