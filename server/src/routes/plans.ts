@@ -40,6 +40,7 @@ import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
 import taskRoutes from './tasks';
+import programRoutes from './program';
 import { canInviteGuests, GUEST_ORDER } from '../lib/planInvites';
 import { canPublishPlan, publishBlocker, publishPlan, refreshPlanDiscover, unpublishPlan } from '../lib/discover/planPublish';
 import transitRoutes from './transit';
@@ -66,6 +67,7 @@ router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
 router.use(taskRoutes);
+router.use(programRoutes);
 router.use(transitRoutes);
 // Père Noël secret (/:id/santa…), Killer (/:id/killer…), équipes (/:id/teams…), cagnotte (/:id/pot…)
 router.use(secretSantaRoutes);

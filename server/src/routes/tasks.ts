@@ -4,7 +4,7 @@ import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { decryptMessage, encryptMessage } from '../lib/messageCrypto';
 import {
-  canManageTasks, commentRecipients, createsCycle, MAX_GROUPS, MAX_TASKS, newlyUnblocked, notifyTask, parseGroupTitle,
+  assignablePeople, canManageTasks, commentRecipients, createsCycle, MAX_GROUPS, MAX_TASKS, newlyUnblocked, notifyTask, parseGroupTitle,
   parseStatus, parseTaskComment, parseTaskInput, TaskInput, tasksEnabled, TASKS_DISABLED_ERROR,
 } from '../lib/tasks';
 
@@ -24,15 +24,7 @@ async function writablePlan(req: AuthRequest, res: any, planId: string | undefin
   return plan;
 }
 
-// Personnes à qui confier une tâche : participants du Plan avec un compte, sauf « Je passe »
-async function assignable(planId: string) {
-  const members = await prisma.planMember.findMany({
-    where: { planId, rsvp: { not: 'out' }, user: { isLight: false } },
-    orderBy: { joinedAt: 'asc' },
-    select: { user: { select: { id: true, pseudo: true, firstName: true } } },
-  });
-  return members.map(m => m.user);
-}
+const assignable = assignablePeople;
 
 const actor = (req: AuthRequest) => ({ id: req.userId!, pseudo: req.pseudo! });
 

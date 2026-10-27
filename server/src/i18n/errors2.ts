@@ -225,4 +225,17 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Statut invalide': ['Ungültiger Status', 'Stato non valido', 'Invalid status'],
   'Réponds d’abord « Je suis in » ou « Peut-être » au Plan': ['Antworte zuerst «Ich bin dabei» oder «Vielleicht» auf den Plan', 'Rispondi prima «Ci sono» o «Forse» al Plan', 'First answer “I’m in” or “Maybe” to the Plan'],
   'Seuls la personne qui a créé la tâche et les organisateurs peuvent la supprimer': ['Nur wer die Aufgabe erstellt hat und das Organisationsteam können sie löschen', 'Solo chi ha creato il compito e gli organizzatori possono eliminarlo', 'Only the person who created the task and the organisers can delete it'],
+  // Déroulé (routes/program.ts)
+  'Nom du moment requis': ['Name des Programmpunkts erforderlich', 'Nome del momento obbligatorio', 'Name of the item required'],
+  'Nom du moment : {0} caractères maximum': ['Name des Programmpunkts: höchstens {0} Zeichen', 'Nome del momento: al massimo {0} caratteri', 'Item name: {0} characters at most'],
+  'Durée invalide': ['Ungültige Dauer', 'Durata non valida', 'Invalid duration'],
+  'Heure invalide': ['Ungültige Uhrzeit', 'Ora non valida', 'Invalid time'],
+  'Lieu : {0} caractères maximum': ['Ort: höchstens {0} Zeichen', 'Luogo: al massimo {0} caratteri', 'Place: {0} characters at most'],
+  'Responsables : 10 au plus': ['Verantwortliche: höchstens 10', 'Responsabili: al massimo 10', 'People in charge: 10 at most'],
+  'Le déroulé n’est pas activé pour ce Plan': ['Der Ablauf ist für diesen Plan nicht aktiviert', 'La scaletta non è attivata per questo Plan', 'The run of show is not turned on for this Plan'],
+  'Moment introuvable': ['Programmpunkt nicht gefunden', 'Momento non trovato', 'Item not found'],
+  '{0} moments au plus': ['Höchstens {0} Programmpunkte', 'Al massimo {0} momenti', '{0} items at most'],
+  'Direction invalide': ['Ungültige Richtung', 'Direzione non valida', 'Invalid direction'],
+  'Indique d’abord une heure de début': ['Gib zuerst eine Startzeit an', 'Indica prima un’ora di inizio', 'Set a start time first'],
+  'Seuls la personne qui a créé ce moment et les organisateurs peuvent le supprimer': ['Nur wer diesen Programmpunkt erstellt hat und das Organisationsteam können ihn löschen', 'Solo chi ha creato questo momento e gli organizzatori possono eliminarlo', 'Only the person who created this item and the organisers can delete it'],
 };

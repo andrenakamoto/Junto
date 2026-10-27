@@ -80,6 +80,7 @@ model User {
   taskAssignments        PlanTaskAssignee[]
   taskComments           PlanTaskComment[]
   tasksDone              PlanTask[]                  @relation("TaskDoneBy")
+  programAssignments     PlanProgramAssignee[]
   notificationMutes      NotificationMute[]
   santaWishes            SecretSantaWish[]
   santaGiving            SecretSantaPair[]           @relation("SantaGiver")
@@ -407,6 +408,7 @@ model Plan {
   volunteerSignups  VolunteerSignup[]
   taskGroups        PlanTaskGroup[]
   tasks             PlanTask[]
+  programItems      PlanProgramItem[]
   notificationMutes NotificationMute[]
   santa             SecretSanta?
   killer            KillerGame?
@@ -983,6 +985,41 @@ model PlanTaskComment {
   createdAt DateTime @default(now())
 
   @@index([taskId])
+}
+
+// Déroulé d'un Plan (lib/program.ts, fonction à activer « deroule ») : les moments de l'événement, dans
+// l'ordre. Un moment commence à la fin du précédent (le premier au début du Plan), sauf s'il a une heure fixe.
+model PlanProgramItem {
+  id            String                @id @default(cuid())
+  planId        String
+  plan          Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  position      Int
+  title         String
+  durationMin   Int                   @default(30)
+  // Heure fixe (sinon : fin du moment précédent)
+  fixedStart    DateTime?
+  place         String?
+  // Matériel et technique (micro, vidéo à lancer…)
+  tech          String?
+  note          String?
+  createdById   String?
+  createdAt     DateTime              @default(now())
+  // Heure de début pour laquelle les responsables ont été prévenus (rappel renvoyé si le moment bouge)
+  remindedStart DateTime?
+  assignees     PlanProgramAssignee[]
+
+  @@index([planId])
+}
+
+model PlanProgramAssignee {
+  itemId String
+  item   PlanProgramItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId String
+
+  @@id([itemId, userId])
+  @@index([planId, userId])
 }
 
 // Mode silencieux (lib/mutes.ts) : plus de push, d'email ni de bulle dans l'app pour un Plan ou

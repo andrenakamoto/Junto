@@ -73,7 +73,7 @@ export default {
     organisation: {
       name: 'Organisation à plusieurs',
       hint: 'Fête, tournoi, loto… avec les tâches à mener et le planning',
-      note: 'Tâches et Planning sont activés : ajoute les actions à mener avant l’événement, puis les postes du jour J.',
+      note: 'Tâches, Déroulé et Planning sont activés : les actions à mener avant l’événement, le programme de la soirée et les postes du jour J.',
       info: 'Les actions à mener sont dans Tâches, les postes du jour J dans le Planning. Merci à tous pour votre aide !',
     },
     annonce: {
@@ -401,7 +401,7 @@ export default {
     exitFullscreen: 'Quitter le plein écran',
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
-      benevoles: 'Planning', taches: 'Tâches', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
+      benevoles: 'Planning', taches: 'Tâches', deroule: 'Déroulé', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
       equipes: 'Équipes', cagnotte: 'Cagnotte',
     },
     skipConfirm: 'Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.',

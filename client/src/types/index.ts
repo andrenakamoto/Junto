@@ -56,7 +56,7 @@ export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 /** Fonctions à activer (absentes par défaut) */
-export type OptionalFeature = 'benevoles' | 'taches' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
+export type OptionalFeature = 'benevoles' | 'taches' | 'deroule' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
 
 export interface Circle {
   /** Dernière activité (GET /circles) : sert à l'ordre de la liste */
@@ -435,6 +435,21 @@ export interface PlanTask {
   /** Tâches qui doivent être terminées avant */
   dependsOn: string[];
   comments: { id: string; content: string; createdAt: string; author: { id: string; pseudo: string; firstName?: string | null } }[];
+}
+
+// Moment du Déroulé d'un Plan (fonction « deroule », routes/program.ts) ; start / end calculés par le serveur
+export interface ProgramItem {
+  id: string;
+  title: string;
+  durationMin: number;
+  fixedStart: string | null;
+  place: string | null;
+  tech: string | null;
+  note: string | null;
+  createdById: string | null;
+  start: string | null;
+  end: string | null;
+  assignees: { userId: string; user: { id: string; pseudo: string; firstName?: string | null } }[];
 }
 
 // Message de la discussion d'un Cercle (effacé après 7 jours)

@@ -279,6 +279,15 @@ const groups: Group[] = [
           the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead.</P>,
       },
       {
+        id: 'deroule', emoji: '🎬', title: 'Run of show', summary: 'The evening’s programme, minute by minute',
+        body: <P>Add the items in order (guests arrive, speech, dinner…) with their <strong>duration</strong>: each one starts when the
+          previous one ends, the first when the Plan starts, and the times are worked out for you. An item can also start at a <strong>fixed
+          time</strong>. For each: place or room, people in charge (notified <strong>10 minutes before</strong>), equipment and tech, notes;
+          volunteers from the Schedule on duty at that time are shown too. On the night, the current and next items are highlighted, and
+          <strong> “+15 min”</strong> moves everything after it when you run late. “Copy the programme” gives the times and titles to paste
+          into the Plan for guests; “Run sheet” creates a full PDF to print for the team and suppliers.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Schedule', summary: 'Shifts with times, everyone signs up',
         body: <P>The Plan’s creator and the Circle’s organisers create the shifts (time, number of people). Signing up counts
           as “I’m in”. Summary “X people still needed”, “My shifts” filter, warning if two shifts overlap. Reminder by

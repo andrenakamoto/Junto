@@ -282,6 +282,16 @@ const groups: Group[] = [
           les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning.</P>,
       },
       {
+        id: 'deroule', emoji: '🎬', title: 'Déroulé', summary: 'Le programme de la soirée, minute par minute',
+        body: <P>Ajoute les moments dans l'ordre (accueil, discours, repas…) avec leur <strong>durée</strong> : chacun commence à la fin
+          du précédent, le premier au début du Plan, et les heures se recalculent toutes seules. Un moment peut aussi commencer à une
+          <strong> heure fixe</strong>. Pour chacun : lieu ou salle, responsables (prévenus <strong>10 minutes avant</strong>), matériel et
+          technique, remarques ; les bénévoles du Planning prévus à ce moment s'affichent aussi. Le soir même, le moment en cours est
+          mis en évidence avec le suivant, et <strong>« +15 min »</strong> décale toute la suite quand on prend du retard. « Copier le
+          programme » donne les heures et les titres, à coller dans le Plan qui annonce la soirée aux invités ; « Feuille de route » crée
+          un PDF complet à imprimer pour l'équipe et les prestataires.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Planning', summary: 'Postes et horaires, chacun s’inscrit',
         body: <P>Le créateur du Plan et les organisateurs du Cercle créent les postes (horaire, nombre de personnes). S'inscrire
           vaut « Je suis in ». Résumé « Il manque X personnes », filtre « Mes postes », avertissement si deux postes se

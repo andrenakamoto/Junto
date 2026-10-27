@@ -148,4 +148,6 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '⏰ « {0} » est à faire aujourd’hui': ['⏰ «{0}» ist heute fällig', '⏰ «{0}» è da fare oggi', '⏰ “{0}” is due today'],
   '⏰ « {0} » est à faire pour demain': ['⏰ «{0}» ist morgen fällig', '⏰ «{0}» è da fare per domani', '⏰ “{0}” is due tomorrow'],
   '⏰ « {0} » est à faire d’ici {1} jours': ['⏰ «{0}» ist in {1} Tagen fällig', '⏰ «{0}» è da fare entro {1} giorni', '⏰ “{0}” is due in {1} days'],
+  // Déroulé (lib/program.ts)
+  '🎬 « {0} » commence à {1}, dans {2} minutes': ['🎬 «{0}» beginnt um {1}, in {2} Minuten', '🎬 «{0}» inizia alle {1}, tra {2} minuti', '🎬 “{0}” starts at {1}, in {2} minutes'],
 };

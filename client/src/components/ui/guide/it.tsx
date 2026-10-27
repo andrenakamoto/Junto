@@ -284,6 +284,15 @@ const groups: Group[] = [
           giorno stesso usa piuttosto i Turni.</P>,
       },
       {
+        id: 'deroule', emoji: '🎬', title: 'Scaletta', summary: 'Il programma della serata, minuto per minuto',
+        body: <P>Aggiungi i momenti in ordine (accoglienza, discorso, cena…) con la loro <strong>durata</strong>: ognuno inizia alla fine del
+          precedente, il primo all'inizio del Plan, e gli orari si ricalcolano da soli. Un momento può anche iniziare a un'<strong>ora
+          fissa</strong>. Per ciascuno: luogo o sala, responsabili (avvisati <strong>10 minuti prima</strong>), materiale e tecnica,
+          osservazioni; compaiono anche i volontari dei Turni previsti in quel momento. La sera stessa il momento in corso e il successivo
+          sono evidenziati, e <strong>«+15 min»</strong> sposta tutto il resto quando si è in ritardo. «Copia il programma» dà orari e
+          titoli da incollare nel Plan per gli invitati; «Scaletta» crea un PDF completo da stampare per la squadra e i fornitori.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Turni', summary: 'Turni da coprire, ognuno si iscrive',
         body: <P>Il creatore del Plan e gli organizzatori del Cerchio creano i turni (orario, numero di persone). Iscriversi
           vale «Ci sono». Riepilogo «Mancano X persone», filtro «I miei turni», avviso se due turni si sovrappongono.

@@ -936,6 +936,20 @@ Junto/
   Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Pas dans la démo (rubrique vide, actions refusées),
   ni dans « En bref » ni dans le récapitulatif PDF. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
   « Idées » (brainstorming projeté), lien vers le Plan d'annonce, budget par lot, bilan et « Refaire l'an prochain ».
+- **Déroulé** (2026-10-27, `lib/program.ts` testé, `routes/program.ts` monté dans le routeur des Plans, `lib/programPdf.ts`,
+  `components/plans/ProgramTab.tsx`, dictionnaire `i18n/<langue>/program.ts`, migration `20261105100000_plan_program`) : fonction **à
+  activer** (`deroule`, Organiser, après les Tâches ; activée aussi par le type « Organisation ») — le programme de la soirée, pour l'équipe
+  (l'annonce aux invités est un autre Plan). Tables **PlanProgramItem** (`position`, `durationMin`, `fixedStart?`, lieu, `tech` = matériel et
+  technique, `note`, `remindedStart`) et **PlanProgramAssignee**. **Heures calculées** (`scheduleItems`) : un moment commence à la fin du
+  précédent, le premier au début du Plan, sauf heure fixe ; GET renvoie `start` / `end`. Tout le monde qui voit le Plan ajoute (à la fin ou
+  « après » un moment), modifie, réordonne (↑ ↓, `moveItem`) et décale ; supprimer : la personne qui l'a créé, le créateur du Plan ou un
+  gestionnaire du Cercle. **« +15 min »** (`delayChanges`) : `extend` prolonge le moment en cours, `shift` le fait commencer plus tard (allonge le
+  précédent ou avance son heure fixe) — la suite se décale, pas les heures fixes. Le soir même : bandeau « En ce moment / Ensuite » (rechargé
+  toutes les 30 s), moments passés grisés ; postes du Planning qui chevauchent un moment affichés dessus. Rappel aux responsables **10 minutes
+  avant** (`sendProgramReminders`, toutes les 5 min, gated ; renvoyé si l'heure du moment change), en `plan_activity` avec `tab: 'deroule'`.
+  « Copier le programme » (heures et titres, pour le Plan d'annonce) ; **feuille de route PDF** (GET `/plans/:id/program/pdf`, tout le monde
+  qui voit le Plan, textes `programPdf` de `i18n/emails`). « Commencer avec un déroulé type » (`program.starterList`). Pas dans la démo. Fiche
+  « Déroulé » du guide.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,

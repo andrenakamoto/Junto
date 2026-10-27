@@ -31,6 +31,16 @@ export async function canManageTasks(userId: string, plan: { creatorId: string; 
   return plan.creatorId === userId || isCircleManager(userId, plan.circleId);
 }
 
+// Personnes à qui confier une tâche ou un moment du déroulé : participants du Plan avec un compte, sauf « Je passe »
+export async function assignablePeople(planId: string) {
+  const members = await prisma.planMember.findMany({
+    where: { planId, rsvp: { not: 'out' }, user: { isLight: false } },
+    orderBy: { joinedAt: 'asc' },
+    select: { user: { select: { id: true, pseudo: true, firstName: true } } },
+  });
+  return members.map(m => m.user);
+}
+
 export function parseStatus(v: unknown): TaskStatus | null {
   return typeof v === 'string' && (TASK_STATUSES as readonly string[]).includes(v) ? v as TaskStatus : null;
 }

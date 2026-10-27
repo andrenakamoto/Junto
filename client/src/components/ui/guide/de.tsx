@@ -288,6 +288,16 @@ const groups: Group[] = [
           selbst nimmst du besser den Einsatzplan.</P>,
       },
       {
+        id: 'deroule', emoji: '🎬', title: 'Ablauf', summary: 'Das Programm des Abends, Minute für Minute',
+        body: <P>Füge die Programmpunkte der Reihe nach hinzu (Empfang, Ansprache, Essen…) mit ihrer <strong>Dauer</strong>: Jeder beginnt am
+          Ende des vorherigen, der erste zu Beginn des Plans, und die Zeiten werden automatisch neu berechnet. Ein Programmpunkt kann auch zu
+          einer <strong>festen Uhrzeit</strong> beginnen. Für jeden: Ort oder Raum, Verantwortliche (benachrichtigt <strong>10 Minuten
+          vorher</strong>), Material und Technik, Bemerkungen; die im Einsatzplan eingeteilten Helfenden erscheinen ebenfalls. Am Abend selbst
+          werden der laufende und der nächste Punkt hervorgehoben, und <strong>«+15 Min.»</strong> verschiebt alles Folgende, wenn es länger
+          dauert. «Programm kopieren» liefert Zeiten und Titel zum Einfügen in den Plan für die Gäste; «Ablaufplan» erstellt ein vollständiges
+          PDF zum Ausdrucken für das Team und die Dienstleister.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Einsatzplan', summary: 'Einsätze mit Zeiten, alle tragen sich ein',
         body: <P>Der Ersteller des Plans und die Organisatoren des Kreises erstellen die Einsätze (Zeit, Anzahl Personen).
           Sich eintragen heisst «Ich bin dabei». Übersicht «Es fehlen X Personen», Filter «Meine Einsätze», Warnung bei
