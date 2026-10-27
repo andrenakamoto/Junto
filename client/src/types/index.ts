@@ -56,7 +56,7 @@ export type EditMode = 'creator' | 'all';
 export type PlanCreationMode = 'all' | 'creator';
 export type PlanFeature = 'chat' | 'trajets' | 'votes' | 'depenses' | 'fichiers';
 /** Fonctions à activer (absentes par défaut) */
-export type OptionalFeature = 'benevoles' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
+export type OptionalFeature = 'benevoles' | 'taches' | 'pere_noel' | 'killer' | 'equipes' | 'cagnotte' | 'mot_piege' | 'assemblee' | 'quiz';
 
 export interface Circle {
   /** Dernière activité (GET /circles) : sert à l'ordre de la liste */
@@ -414,6 +414,27 @@ export interface VolunteerShift {
   comments?: { id: string; content: string; createdAt: string; author: { id: string; pseudo: string; firstName?: string | null } }[];
   doneAt?: string | null;
   doneBy?: { pseudo: string } | null;
+}
+
+// Tâches de préparation d'un Plan (fonction « taches », routes/tasks.ts côté serveur)
+export type TaskStatus = 'todo' | 'doing' | 'done';
+export interface PlanTaskGroup { id: string; title: string; createdById: string | null }
+export interface PlanTask {
+  id: string;
+  title: string;
+  note: string | null;
+  /** « AAAA-MM-JJ » */
+  dueDate: string | null;
+  status: TaskStatus;
+  groupId: string | null;
+  createdById: string | null;
+  createdAt: string;
+  doneAt: string | null;
+  doneBy: { pseudo: string } | null;
+  assignees: { userId: string; user: { id: string; pseudo: string; firstName?: string | null } }[];
+  /** Tâches qui doivent être terminées avant */
+  dependsOn: string[];
+  comments: { id: string; content: string; createdAt: string; author: { id: string; pseudo: string; firstName?: string | null } }[];
 }
 
 // Message de la discussion d'un Cercle (effacé après 7 jours)

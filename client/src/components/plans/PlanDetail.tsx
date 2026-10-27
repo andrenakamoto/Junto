@@ -3,7 +3,7 @@ import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
 import { PublishDiscoverModal } from './PublishDiscoverModal';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,6 +25,7 @@ import { DeletePlanModal } from './DeletePlanModal';
 import { PlanSettingsModal } from './PlanSettingsModal';
 import { hasFeature, isEnabled } from '../../lib/settings';
 import { VolunteersTab } from './VolunteersTab';
+import { TasksTab } from './TasksTab';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
 import { WordTrapTab } from './WordTrapTab';
@@ -60,7 +61,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'taches' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
 
 const rsvpConfig = {
   // Réponses non choisies : blanches, bordées de la couleur de la réponse (elles avaient l'air désactivées en gris)
@@ -76,6 +77,7 @@ const tabs = [
   { key: 'membres' as Tab,    Icon: Users,         label: t('plan.detail.tabs.membres') },
   { key: 'votes' as Tab,      Icon: BarChart2,     label: t('plan.detail.tabs.votes') },
   { key: 'depenses' as Tab,   Icon: Receipt,          label: t('plan.detail.tabs.depenses') },
+  { key: 'taches' as Tab,     Icon: ListChecks,       label: t('plan.detail.tabs.taches') },
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: t('plan.detail.tabs.benevoles') },
   { key: 'assemblee' as Tab,  Icon: Landmark,         label: t('plan.detail.tabs.assemblee') },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: t('plan.detail.tabs.pere_noel') },
@@ -85,7 +87,7 @@ const tabs = [
   { key: 'equipes' as Tab,    Icon: Trophy,           label: t('plan.detail.tabs.equipes') },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: t('plan.detail.tabs.cagnotte') },
 ];
-const OPTIONAL_TABS: Tab[] = ['benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
+const OPTIONAL_TABS: Tab[] = ['taches', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
 
 interface Props {
   plan: Plan;
@@ -1149,6 +1151,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
           {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
           {activeTab === 'assemblee' && <AssemblyTab plan={plan} userId={user.id} />}
+          {activeTab === 'taches' && <TasksTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

@@ -59,7 +59,7 @@ export function kindPreset(kind: PlanKind): KindPreset {
       return { title: t('plan.kinds.assemblee.title', { year: new Date().getFullYear() }), enabled: ['assemblee'], disabled: ['votes', 'depenses'],
         guestInviteMode: 'none', filesMode: 'managers', importantInfo: t('plan.kinds.assemblee.info'), tab: 'assemblee' };
     case 'organisation':
-      return { enabled: ['benevoles'], guestInviteMode: 'managers', importantInfo: t('plan.kinds.organisation.info'), tab: 'benevoles' };
+      return { enabled: ['taches', 'benevoles'], guestInviteMode: 'managers', importantInfo: t('plan.kinds.organisation.info'), tab: 'taches' };
     case 'annonce':
       return { disabled: ['chat', 'trajets', 'votes', 'depenses'], membersVisibility: 'managers', filesMode: 'managers', guestInviteMode: 'all', tab: 'infos' };
     case 'cours':

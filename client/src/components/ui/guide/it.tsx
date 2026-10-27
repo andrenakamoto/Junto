@@ -273,6 +273,17 @@ const groups: Group[] = [
     title: 'Funzioni da attivare',
     topics: [
       {
+        id: 'taches', emoji: '✅', title: 'Compiti', summary: 'Le cose da fare prima dell’evento, e cosa va fatto prima',
+        body: <P>Per preparare una festa o un evento in squadra. Raggruppa i compiti per <strong>area</strong> (Luogo, Catering,
+          Animazione… oppure «Inizia con le aree tipiche»), affida ciascuno a uno o più <strong>responsabili</strong> e fissa una
+          <strong> scadenza</strong>: ricevono un promemoria due giorni prima. In «Iniziare dopo» indica i compiti da completare prima: finché
+          non lo sono, il compito è <strong>bloccato</strong> 🔒, e quando l'ultimo è completato i responsabili vengono avvisati che possono
+          iniziare. La vista <strong>«Per stato»</strong> mostra cosa è in corso, pronto, bloccato o completato; «I miei compiti» e «In
+          ritardo» filtrano l'elenco. Spunta il cerchio di un compito per completarlo; toccalo per commentarlo, prenderlo («Me ne occupo io»)
+          o modificarlo. Tutti aggiungono e portano avanti i compiti; possono eliminarli chi li ha creati e gli organizzatori. Per i turni del
+          giorno stesso usa piuttosto i Turni.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Turni', summary: 'Turni da coprire, ognuno si iscrive',
         body: <P>Il creatore del Plan e gli organizzatori del Cerchio creano i turni (orario, numero di persone). Iscriversi
           vale «Ci sono». Riepilogo «Mancano X persone», filtro «I miei turni», avviso se due turni si sovrappongono.

@@ -39,6 +39,7 @@ const cleanQuantity = (v: unknown) => typeof v === 'string' && v.trim() ? v.trim
 import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
+import taskRoutes from './tasks';
 import { canInviteGuests, GUEST_ORDER } from '../lib/planInvites';
 import { canPublishPlan, publishBlocker, publishPlan, refreshPlanDiscover, unpublishPlan } from '../lib/discover/planPublish';
 import transitRoutes from './transit';
@@ -64,6 +65,7 @@ router.use(lockEndedPlans(resolvePlanWrite, planRouterLock));
 router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
+router.use(taskRoutes);
 router.use(transitRoutes);
 // Père Noël secret (/:id/santa…), Killer (/:id/killer…), équipes (/:id/teams…), cagnotte (/:id/pot…)
 router.use(secretSantaRoutes);

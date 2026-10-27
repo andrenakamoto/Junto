@@ -919,6 +919,23 @@ Junto/
   (`client/src/lib/calendar.ts`) — dans les apps, écran natif « Nouvel événement » pré-rempli comme pour un Plan ; sur le site, .ics
   par GET `/plans/shifts/:id/ical` (`routes/volunteers.ts`). Horaire du poste, sinon celui du Plan (`shiftEventTimes` de `lib/ical.ts`,
   fin absente = 2 h), titre « poste – Plan », lieu du Plan, lien `?planId=…&tab=benevoles`.
+- **Tâches** (2026-10-27, `lib/tasks.ts` testé, `routes/tasks.ts` monté dans le routeur des Plans, `components/plans/TasksTab.tsx`,
+  dictionnaire `i18n/<langue>/tasks.ts`, migration `20261104100000_plan_tasks`) : fonction **à activer** (`taches`, catégorie Organiser,
+  avant le Planning), pensée pour un Plan réservé à une équipe d'organisation (fête d'entreprise…) ; le type « Organisation » des Plans
+  spécifiques l'active avec le Planning et s'ouvre dessus. Tables **PlanTaskGroup** (lot), **PlanTask** (`dueDate` « AAAA-MM-JJ »,
+  `status` `todo|doing|done`, `doneBy`, `reminderSentAt`), **PlanTaskAssignee** (responsables : participants du Plan avec un compte, sauf
+  « Je passe »), **PlanTaskDependency** (`taskId` attend `dependsOnId` ; boucles refusées, `createsCycle`), **PlanTaskComment** (chiffré).
+  **Tout le monde qui voit le Plan** ajoute, modifie, confie et fait avancer les tâches et les lots ; supprimer : la personne qui l'a créé,
+  le créateur du Plan ou un gestionnaire du Cercle. « Bloquée » se calcule (`taskState`, miroir client). Vues « Par lot » / « Par état »
+  (mémorisée, `evly_tasks_view`), filtres « Mes tâches » / « En retard », « Commencer avec des lots types » (liste `tasks.starterList`).
+  Notifications (app + push, jamais d'email) : tâche confiée, commentaire, tâche terminée (à la personne qui l'a créée), **« Tu peux
+  commencer »** aux responsables des tâches pas encore commencées que la tâche terminée débloque (`newlyUnblocked`), rappel **2 jours avant
+  l'échéance** dès 9 h (`sendTaskReminders`, horaire, gated). **Envoyées en `plan_activity` avec `tab: 'taches'`** (`notifyTask`) : les apps
+  installées ne connaissent pas de nouveau type ; `AppNotification.tab` ouvre la rubrique (push : `&tab=`, client : DashboardPage), et
+  `NotificationToast` ignore désormais les types inconnus. Pastille « nouveau » : section `taches`. « Je passe », exclusion, départ du
+  Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Pas dans la démo (rubrique vide, actions refusées),
+  ni dans « En bref » ni dans le récapitulatif PDF. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
+  « Idées » (brainstorming projeté), lien vers le Plan d'annonce, budget par lot, bilan et « Refaire l'an prochain ».
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,

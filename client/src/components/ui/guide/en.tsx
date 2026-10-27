@@ -269,6 +269,16 @@ const groups: Group[] = [
     title: 'Features to turn on',
     topics: [
       {
+        id: 'taches', emoji: '✅', title: 'Tasks', summary: 'What to do before the event, and what must be done first',
+        body: <P>To prepare a party or an event as a team. Sort tasks into <strong>areas</strong> (Venue, Catering, Entertainment… or
+          “Start with typical areas”), give each one to one or more <strong>people in charge</strong> and set a <strong>due date</strong>: they
+          get a reminder two days before. In “Start after”, list the tasks that must be done first: until they are, the task is
+          <strong> blocked</strong> 🔒, and when the last one is done, the people in charge are told they can start. The <strong>“By
+          status”</strong> view shows what is in progress, ready, blocked or done; “My tasks” and “Overdue” filter the list. Tick a task’s
+          circle to mark it as done; tap it to comment, take it on (“I’ll take it”) or edit it. Everyone adds tasks and moves them forward;
+          the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Schedule', summary: 'Shifts with times, everyone signs up',
         body: <P>The Plan’s creator and the Circle’s organisers create the shifts (time, number of people). Signing up counts
           as “I’m in”. Summary “X people still needed”, “My shifts” filter, warning if two shifts overlap. Reminder by

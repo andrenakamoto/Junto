@@ -73,9 +73,9 @@ const plan: Dict['plan'] = {
     },
     organisation: {
       name: 'Organising together',
-      hint: 'Party, tournament, raffle… with a task schedule',
-      note: 'The Schedule is turned on: add the shifts, everyone signs up.',
-      info: 'Sign up for shifts in the Schedule. Thanks, everyone, for your help!',
+      hint: 'Party, tournament, raffle… with tasks and a schedule',
+      note: 'Tasks and Schedule are turned on: add what needs doing before the event, then the shifts on the day.',
+      info: 'What needs doing is in Tasks, the shifts on the day in the Schedule. Thanks, everyone, for your help!',
     },
     annonce: {
       name: 'Announcement',
@@ -402,7 +402,7 @@ const plan: Dict['plan'] = {
     exitFullscreen: 'Exit full screen',
     tabs: {
       chat: 'Chat', infos: 'Info', trajets: 'Rides', membres: 'Members', votes: 'Votes', depenses: 'Expenses',
-      benevoles: 'Schedule', assemblee: 'Assembly', pere_noel: 'Secret Santa', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Trap word',
+      benevoles: 'Schedule', taches: 'Tasks', assemblee: 'Assembly', pere_noel: 'Secret Santa', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Trap word',
       equipes: 'Teams', cagnotte: 'Gift pot',
     },
     skipConfirm: 'Cancel this Plan just this once? It will be deleted and the next one created right away.',

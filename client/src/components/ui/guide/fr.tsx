@@ -271,6 +271,17 @@ const groups: Group[] = [
     title: 'Fonctions à activer',
     topics: [
       {
+        id: 'taches', emoji: '✅', title: 'Tâches', summary: 'Les actions à mener avant l’événement, et ce qui doit être fait avant',
+        body: <P>Pour préparer une fête ou un événement en équipe. Range les tâches par <strong>lot</strong> (Lieu, Traiteur, Animation… ou
+          « Commencer avec des lots types »), confie chacune à un ou plusieurs <strong>responsables</strong> et fixe une <strong>échéance</strong> :
+          ils reçoivent un rappel deux jours avant. Dans « Commencer après », indique les tâches qui doivent être terminées avant :
+          tant qu'elles ne le sont pas, la tâche est <strong>bloquée</strong> 🔒, et quand la dernière se termine, ses responsables sont
+          prévenus qu'ils peuvent commencer. La vue <strong>« Par état »</strong> montre ce qui est en cours, prêt, bloqué ou terminé ;
+          « Mes tâches » et « En retard » filtrent la liste. Coche le rond d'une tâche pour la terminer, touche-la pour la commenter, la
+          prendre (« Je m'en occupe ») ou la modifier. Tout le monde ajoute et fait avancer les tâches ; les supprimer : la personne qui
+          les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Planning', summary: 'Postes et horaires, chacun s’inscrit',
         body: <P>Le créateur du Plan et les organisateurs du Cercle créent les postes (horaire, nombre de personnes). S'inscrire
           vaut « Je suis in ». Résumé « Il manque X personnes », filtre « Mes postes », avertissement si deux postes se

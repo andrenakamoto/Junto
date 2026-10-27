@@ -276,6 +276,18 @@ const groups: Group[] = [
     title: 'Funktionen zum Aktivieren',
     topics: [
       {
+        id: 'taches', emoji: '✅', title: 'Aufgaben', summary: 'Was vor dem Anlass zu tun ist, und was vorher erledigt sein muss',
+        body: <P>Um ein Fest oder einen Anlass im Team vorzubereiten. Ordne die Aufgaben nach <strong>Bereich</strong> (Ort, Catering,
+          Unterhaltung… oder «Mit typischen Bereichen beginnen»), gib jede einer oder mehreren <strong>verantwortlichen</strong> Personen und lege
+          eine <strong>Frist</strong> fest: Sie erhalten zwei Tage vorher eine Erinnerung. Unter «Beginnen nach» gibst du an, welche Aufgaben
+          vorher erledigt sein müssen: Solange sie es nicht sind, ist die Aufgabe <strong>blockiert</strong> 🔒, und sobald die letzte erledigt
+          ist, erfahren die Verantwortlichen, dass sie loslegen können. Die Ansicht <strong>«Nach Status»</strong> zeigt, was in Arbeit,
+          bereit, blockiert oder erledigt ist; «Meine Aufgaben» und «Überfällig» filtern die Liste. Hake den Kreis einer Aufgabe ab, um sie zu
+          erledigen; tippe sie an, um sie zu kommentieren, zu übernehmen («Ich kümmere mich darum») oder zu bearbeiten. Alle fügen Aufgaben
+          hinzu und bringen sie voran; löschen können sie die Person, die sie erstellt hat, und das Organisationsteam. Für die Einsätze am Tag
+          selbst nimmst du besser den Einsatzplan.</P>,
+      },
+      {
         id: 'benevoles', emoji: '🙋', title: 'Einsatzplan', summary: 'Einsätze mit Zeiten, alle tragen sich ein',
         body: <P>Der Ersteller des Plans und die Organisatoren des Kreises erstellen die Einsätze (Zeit, Anzahl Personen).
           Sich eintragen heisst «Ich bin dabei». Übersicht «Es fehlen X Personen», Filter «Meine Einsätze», Warnung bei

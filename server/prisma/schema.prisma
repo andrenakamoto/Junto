@@ -77,6 +77,9 @@ model User {
   shiftComments          VolunteerShiftComment[]
   pollMessageReactions   CirclePollMessageReaction[]
   shiftsDone             VolunteerShift[]            @relation("ShiftDoneBy")
+  taskAssignments        PlanTaskAssignee[]
+  taskComments           PlanTaskComment[]
+  tasksDone              PlanTask[]                  @relation("TaskDoneBy")
   notificationMutes      NotificationMute[]
   santaWishes            SecretSantaWish[]
   santaGiving            SecretSantaPair[]           @relation("SantaGiver")
@@ -402,6 +405,8 @@ model Plan {
   rideRequests      RideRequest[]
   volunteerShifts   VolunteerShift[]
   volunteerSignups  VolunteerSignup[]
+  taskGroups        PlanTaskGroup[]
+  tasks             PlanTask[]
   notificationMutes NotificationMute[]
   santa             SecretSanta?
   killer            KillerGame?
@@ -435,10 +440,10 @@ model PlanGuestLink {
 
 // Plan surprise : membres du Cercle pour qui le Plan est totalement invisible
 model PlanExclusion {
-  planId String
-  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId  String
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Personne retirée du Plan par le créateur ou un organisateur : même blocage, jamais affichée comme « Caché à… »
   removed Boolean @default(false)
 
@@ -898,6 +903,86 @@ model VolunteerSignup {
 
   @@id([shiftId, userId])
   @@index([planId, userId])
+}
+
+// Tâches de préparation d'un Plan (lib/tasks.ts, fonction à activer « taches ») : rangées par lot,
+// avec responsables, échéance, statut et dépendances (« commencer après… »).
+model PlanTaskGroup {
+  id          String     @id @default(cuid())
+  planId      String
+  plan        Plan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  title       String
+  createdById String?
+  createdAt   DateTime   @default(now())
+  tasks       PlanTask[]
+
+  @@index([planId])
+}
+
+model PlanTask {
+  id             String               @id @default(cuid())
+  planId         String
+  plan           Plan                 @relation(fields: [planId], references: [id], onDelete: Cascade)
+  // Lot (« Traiteur »…) ; supprimer le lot range ses tâches dans « Sans lot »
+  groupId        String?
+  group          PlanTaskGroup?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  title          String
+  note           String?
+  // Échéance « AAAA-MM-JJ » (un jour, heure suisse)
+  dueDate        String?
+  // todo | doing | done ; « bloquée » se déduit des dépendances
+  status         String               @default("todo")
+  createdById    String?
+  createdAt      DateTime             @default(now())
+  doneAt         DateTime?
+  doneById       String?
+  doneBy         User?                @relation("TaskDoneBy", fields: [doneById], references: [id], onDelete: SetNull)
+  // Rappel « à faire avant le … » (remis à zéro si l'échéance change)
+  reminderSentAt DateTime?
+  assignees      PlanTaskAssignee[]
+  dependsOn      PlanTaskDependency[] @relation("TaskWaits")
+  blocks         PlanTaskDependency[] @relation("TaskBlocks")
+  comments       PlanTaskComment[]
+
+  @@index([planId])
+}
+
+// Responsable d'une tâche (planId dupliqué pour retrouver vite les tâches d'une personne)
+model PlanTaskAssignee {
+  taskId    String
+  task      PlanTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    String
+  createdAt DateTime @default(now())
+
+  @@id([taskId, userId])
+  @@index([planId, userId])
+}
+
+// « taskId » attend que « dependsOnId » soit terminée
+model PlanTaskDependency {
+  taskId      String
+  task        PlanTask @relation("TaskWaits", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnId String
+  dependsOn   PlanTask @relation("TaskBlocks", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, dependsOnId])
+  @@index([dependsOnId])
+}
+
+// Commentaire d'une tâche, chiffré comme les messages (lib/messageCrypto.ts)
+model PlanTaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      PlanTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  planId    String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
 }
 
 // Mode silencieux (lib/mutes.ts) : plus de push, d'email ni de bulle dans l'app pour un Plan ou

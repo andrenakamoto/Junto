@@ -73,9 +73,9 @@ const plan: Dict['plan'] = {
     },
     organisation: {
       name: 'Gemeinsam organisieren',
-      hint: 'Fest, Turnier, Lotto… mit einem Aufgabenplan',
-      note: 'Der Einsatzplan ist aktiviert: Füge die Posten hinzu, alle tragen sich ein.',
-      info: 'Trag dich im Einsatzplan für die Posten ein. Danke allen für eure Hilfe!',
+      hint: 'Fest, Turnier, Lotto… mit Aufgaben und Einsatzplan',
+      note: 'Aufgaben und Einsatzplan sind aktiviert: Füge hinzu, was vor dem Anlass zu tun ist, und dann die Einsätze am Tag selbst.',
+      info: 'Was zu tun ist, steht unter Aufgaben, die Einsätze am Tag selbst im Einsatzplan. Danke allen für eure Hilfe!',
     },
     annonce: {
       name: 'Ankündigung',
@@ -402,7 +402,7 @@ const plan: Dict['plan'] = {
     exitFullscreen: 'Vollbild verlassen',
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Fahrten', membres: 'Mitglieder', votes: 'Abstimmen', depenses: 'Ausgaben',
-      benevoles: 'Einsatzplan', assemblee: 'Versammlung', pere_noel: 'Wichteln', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Fallenwort',
+      benevoles: 'Einsatzplan', taches: 'Aufgaben', assemblee: 'Versammlung', pere_noel: 'Wichteln', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Fallenwort',
       equipes: 'Teams', cagnotte: 'Geschenkkasse',
     },
     skipConfirm: 'Diesen Plan dieses Mal absagen? Er wird gelöscht und der nächste sofort erstellt.',
