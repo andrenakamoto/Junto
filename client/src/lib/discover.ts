@@ -10,6 +10,8 @@ export type DiscoverRegion = typeof REGIONS[number];
 export interface DiscoverEvent {
   id: string; title: string; place: string | null; city: string | null; category: string; family: boolean;
   priceText: string | null; status: string; startAt: string; endAt: string | null; multiDay: boolean; dateLabel: string | null;
+  /** Séances à plusieurs dates dont on ne connaît que la première et la dernière (Eventfrog, hors expositions et festivals) */
+  sessions?: boolean;
   url: string | null; sourceId: string;
   // Annonce publiée depuis un Plan : inscription par son lien d'invitation (/invitation?token=…)
   signupPath?: string;

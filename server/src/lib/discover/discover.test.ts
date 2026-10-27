@@ -3,7 +3,7 @@ import { normalizeOpenAgendaEvent } from './openagenda';
 import { normalizeOsmElement } from './osm';
 import { parseIcal, parseIcalDate } from './ical';
 import { categoryOf, normalizeGeneverSleepEvent } from './geneversleep';
-import { cleanUrl, parseManualEvent, parseProInterest } from './model';
+import { cleanUrl, isSessionSeries, parseManualEvent, parseProInterest } from './model';
 
 const from = new Date('2026-10-26T00:00:00+01:00');
 const to = new Date('2026-11-25T00:00:00+01:00');
@@ -106,5 +106,14 @@ describe('GeNEVERsleep', () => {
   it('style live → concert', () => {
     expect(categoryOf(['jazz'])).toBe('concert');
     expect(categoryOf(['house', 'afro'])).toBe('soiree');
+  });
+});
+
+describe('plusieurs dates', () => {
+  it('une série Eventfrog hors exposition et festival : séances, pas une période continue', () => {
+    expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'eventfrog')).toBe(true);
+    expect(isSessionSeries({ multiDay: true, category: 'expo' }, 'eventfrog')).toBe(false);
+    expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'openagenda')).toBe(false);
+    expect(isSessionSeries({ multiDay: false, category: 'concert' }, 'eventfrog')).toBe(false);
   });
 });

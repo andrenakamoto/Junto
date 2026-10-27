@@ -2,7 +2,7 @@ import { Router, Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { verifySessionToken } from '../middleware/auth';
-import { isRegion, parseProInterest, cleanText } from '../lib/discover/model';
+import { isRegion, parseProInterest, cleanText, isSessionSeries } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, isCantonCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
 import { CANTONS, REGIONS } from '../lib/discover/model';
@@ -115,7 +115,7 @@ router.get('/', async (req, res) => {
   const inRadius = (x: { distanceKm: number | null }) => !point || x.distanceKm == null || x.distanceKm <= point.radius;
   const typeOf = new Map(sources.map(s => [s.id, s.type]));
   const events = dedupeEvents(allEvents.filter(e => !point || e.latitude == null || e.longitude == null || distanceKm(point, { lat: e.latitude, lon: e.longitude }) <= point.radius), id => typeOf.get(id) ?? '')
-    .map(place);
+    .map(e => ({ ...place(e), ...(isSessionSeries(e, typeOf.get(e.sourceId)) ? { sessions: true } : {}) }));
   const places = allPlaces.map(place).filter(inRadius);
   const withSignup = await Promise.all(events.map(async ({ planId, ...e }) => {
     if (!planId) return e;

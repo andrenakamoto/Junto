@@ -97,6 +97,8 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     if (day === ALL) return true;
     if (day === MULTI) return e.multiDay;
     const k = dayKey(e.startAt);
+    // Plusieurs dates sans le détail des séances : rangées sous aucun jour précis
+    if (e.sessions) return false;
     if (e.multiDay) return day !== LATER && k <= day && dayKey(e.endAt ?? e.startAt) >= day;
     return day === LATER ? !chipKeys.has(k) : k === day;
   });
@@ -106,7 +108,8 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     ? hit([p.name, p.city, p.address, kindLabel(p.kind)].join(' '))
     : cat === IDEAS || (cat === 'famille' && p.family));
 
-  const multi = shown.filter(e => e.multiDay);
+  const multi = shown.filter(e => e.multiDay && !e.sessions);
+  const sessions = shown.filter(e => e.sessions);
   const single = shown.filter(e => !e.multiDay);
   const byDay = new Map<string, DiscoverEvent[]>();
   for (const e of single) { const k = dayKey(e.startAt); byDay.set(k, [...(byDay.get(k) ?? []), e]); }
@@ -245,6 +248,12 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                   {multi.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} credit={creditOf(e)} />)}
                 </section>
               )}
+              {sessions.length > 0 && (
+                <section className="space-y-2.5">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t('discover.sessions')}</h3>
+                  {sessions.map(e => <EventCard key={e.id} e={e} onGo={goWith} onReport={() => setReporting({ target: { eventId: e.id }, title: e.title })} onHide={isAdmin ? () => hideEvent(e) : undefined} credit={creditOf(e)} />)}
+                </section>
+              )}
               {[...byDay.keys()].sort().map(k => (
                 <section key={k} className="space-y-2.5">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide first-letter:uppercase">{dayTitle(k)}</h3>
@@ -297,6 +306,12 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   );
 }
 
+// Horaire d'une séance d'une série « plusieurs dates »
+function sessionTime(e: DiscoverEvent) {
+  const a = timeLabel(e.startAt), b = e.endAt ? timeLabel(e.endAt) : null;
+  return b && b !== a ? `${a} – ${b}` : a;
+}
+
 function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void; credit?: string | null }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -313,13 +328,16 @@ function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; on
       )}
       <div className="p-3.5 flex gap-3">
       <div className="w-14 flex-shrink-0 self-start text-center rounded-xl bg-indigo-50 text-indigo-700 py-2 tabular-nums">
-        {e.multiDay
+        {e.sessions
+          ? <><span className="block text-[10px] uppercase tracking-wide leading-tight">{t('discover.sessionsTop')}</span><span className="block text-[12px] font-bold leading-tight">{t('discover.sessionsBottom')}</span></>
+          : e.multiDay
           ? <><span className="block text-[10px] uppercase tracking-wide">{t('discover.until')}</span><span className="block text-[13px] font-bold">{shortDate(e.endAt ?? e.startAt)}</span></>
           : <span className="block text-[15px] font-bold">{timeLabel(e.startAt)}</span>}
       </div>
       <div className="flex-1 min-w-0 space-y-1.5">
         <p className="font-semibold text-slate-900 break-words">{e.title}</p>
-        {(where || e.dateLabel) && <p className="text-[13px] text-slate-500 break-words">{[where, e.multiDay ? e.dateLabel : null].filter(Boolean).join(' · ')}</p>}
+        {(where || e.dateLabel) && <p className="text-[13px] text-slate-500 break-words">{[where, e.multiDay && !e.sessions ? e.dateLabel : null].filter(Boolean).join(' · ')}</p>}
+        {e.sessions && <p className="text-[13px] text-slate-600 break-words">{t('discover.sessionsLine', { from: shortDate(e.startAt), to: shortDate(e.endAt ?? e.startAt), time: sessionTime(e) })}</p>}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">{catLabel(e.category)}</span>
           {e.family && e.category !== 'famille' && <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">{catLabel('famille')}</span>}

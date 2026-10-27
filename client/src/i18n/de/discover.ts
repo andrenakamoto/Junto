@@ -60,6 +60,10 @@ const discover: Dict['discover'] = {
   today: "Heute",
   tomorrow: "Morgen",
   later: "Später",
+  sessions: "Mehrere Termine",
+  sessionsTop: "Mehrere",
+  sessionsBottom: "Termine",
+  sessionsLine: "Mehrere Termine zwischen {{from}} und {{to}}, {{time}} · die genauen Daten stehen auf der Seite der Veranstalter",
   multi: "Über mehrere Tage",
   all: "Alles anzeigen",
   groups: {

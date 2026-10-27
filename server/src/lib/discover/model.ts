@@ -139,3 +139,12 @@ export function parseProInterest(b: any): { error: string } | { data: { name: st
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 160) return { error: 'Adresse email invalide' };
   return { data: { name, company: cleanText(b?.company, 100), email, city: cleanText(b?.city, 60), message: cleanText(b?.message, 500) } };
 }
+
+// « Plusieurs dates » (2026-10-27) : Eventfrog ne donne qu'un début et une fin. Pour une exposition ou un festival, c'est
+// une période continue ; pour le reste (cours chaque semaine, conférence donnée deux fois, chorale…), ce sont des séances
+// dont on ne connaît pas les dates exactes : l'app l'annonce comme tel, renvoie vers la page de l'organisateur et ne le
+// range sous aucun jour précis.
+export const CONTINUOUS_CATEGORIES: readonly string[] = ['expo', 'festival'];
+export function isSessionSeries(e: { multiDay: boolean; category: string }, sourceType: string | undefined): boolean {
+  return e.multiDay && sourceType === 'eventfrog' && !CONTINUOUS_CATEGORIES.includes(e.category);
+}

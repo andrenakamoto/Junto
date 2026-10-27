@@ -59,6 +59,10 @@ const discover = {
   today: "Aujourd’hui",
   tomorrow: "Demain",
   later: "Plus tard",
+  sessions: "Plusieurs dates",
+  sessionsTop: "Plusieurs",
+  sessionsBottom: "dates",
+  sessionsLine: "Plusieurs dates entre le {{from}} et le {{to}}, {{time}} · les dates exactes sont sur la page de l’organisateur",
   multi: "Sur plusieurs jours",
   all: "Tout voir",
   groups: {
