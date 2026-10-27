@@ -44,6 +44,7 @@ const ideas = {
   taskDone: 'Tâche créée',
   delete: 'Supprimer',
   deleteConfirm: 'Supprimer cette idée ?',
+  confirmDelete: "Supprimer ?",
   color: 'Couleur',
   noColor: 'Sans couleur',
   timer: 'Minuteur',

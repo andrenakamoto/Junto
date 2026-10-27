@@ -49,6 +49,7 @@ const ideas: Dict['ideas'] = {
   taskDone: "Aufgabe erstellt",
   delete: "Löschen",
   deleteConfirm: "Diese Idee löschen?",
+  confirmDelete: "Löschen?",
   color: "Farbe",
   noColor: "Ohne Farbe",
   timer: "Timer",

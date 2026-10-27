@@ -128,6 +128,8 @@ export function IdeasTab({ plan }: { plan: Plan; userId: string }) {
 // Plein écran pour la salle (Échap ou bouton retour Android pour sortir), avec le minuteur
 function Projection({ title, onClose, error, children }: { title: string; onClose: () => void; error: string; children: React.ReactNode }) {
   useBackClose(onClose);
+  // Une seule fois, à l'ouverture : relancé à chaque rendu (onClose change), il sortait du plein écran à chaque idée
+  // ajoutée, et le navigateur refuse d'y revenir sans un clic
   useEffect(() => {
     // Échap ferme la fenêtre du dessus : une fenêtre ouverte par-dessus la projection, sinon la projection
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') closeTopOverlay(); };
@@ -137,7 +139,7 @@ function Projection({ title, onClose, error, children }: { title: string; onClos
       window.removeEventListener('keydown', h);
       if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     };
-  }, [onClose]);
+  }, []);
   return (
     <div className="fixed inset-0 z-[70] bg-slate-100 flex flex-col">
       <div className="flex flex-wrap items-center gap-3 px-6 py-3 bg-white border-b border-slate-200">
@@ -263,7 +265,7 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
                 onPick={() => { setActive(c.id); input.current?.focus(); }}
                 onRename={title => run(() => api.put(`/plans/idea-columns/${c.id}`, { title }))}
                 onMove={dir => run(() => api.post(`/plans/idea-columns/${c.id}/move`, { dir }))}
-                onDelete={() => { if (confirm(t('ideas.deleteColumnConfirm', { title: c.title }))) run(() => api.delete(`/plans/idea-columns/${c.id}`)); }} />
+                onDelete={() => run(() => api.delete(`/plans/idea-columns/${c.id}`))} />
               <div className={`space-y-2 mt-2 ${big ? 'flex-1 min-h-0 overflow-y-auto pr-1' : ''}`}>
                 {list.map(i => (
                   <IdeaCard key={i.id} idea={i} big={big} selected={selected === i.id} mergeTarget={!!merging && merging.id !== i.id} tasksOn={tasksOn}
@@ -274,7 +276,7 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
                     onEdit={text => put(i, { text })}
                     onMerge={() => { setMerging(i); setSelected(null); }}
                     onTask={() => setTaskFor(i)}
-                    onDelete={() => { if (confirm(t('ideas.deleteConfirm'))) run(() => api.delete(`/plans/ideas/${i.id}`)); }} />
+                    onDelete={() => run(() => api.delete(`/plans/ideas/${i.id}`))} />
                 ))}
               </div>
               {!big && <QuickAdd onAdd={text => add(c.id, text)} />}
@@ -337,9 +339,23 @@ function ColumnHeader({ big, column, count, first, last, onPick, onRename, onMov
         <button disabled={first} onClick={() => onMove('left')} title={t('ideas.moveLeft')} aria-label={t('ideas.moveLeft')} className={`${icon} hidden md:block`}><ArrowLeft size={13} /></button>
         <button disabled={last} onClick={() => onMove('right')} title={t('ideas.moveRight')} aria-label={t('ideas.moveRight')} className={`${icon} hidden md:block`}><ArrowRight size={13} /></button>
         <button onClick={() => setRenaming(column.title)} title={t('ideas.renameColumn')} aria-label={t('ideas.renameColumn')} className={icon}><Pencil size={13} /></button>
-        <button onClick={onDelete} title={t('ideas.deleteColumn')} aria-label={t('ideas.deleteColumn')} className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-white"><Trash2 size={13} /></button>
+        <ConfirmButton onConfirm={onDelete} label={t('ideas.deleteColumn')} hint={t('ideas.deleteColumnConfirm', { title: column.title })} size={13} />
       </>}
     </div>
+  );
+}
+
+// Suppression en deux clics, sans fenêtre du navigateur (confirm() ferait sortir du plein écran) : le premier clic
+// affiche « Supprimer ? » en rouge pendant 3 secondes, le second supprime
+function ConfirmButton({ onConfirm, label, hint, size }: { onConfirm: () => void; label: string; hint: string; size: number }) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => { if (!armed) return; const id = setTimeout(() => setArmed(false), 3000); return () => clearTimeout(id); }, [armed]);
+  return armed ? (
+    <button onClick={() => { setArmed(false); onConfirm(); }} title={hint} className="flex items-center gap-1 px-2 py-1 rounded-md bg-red-600 text-white text-xs font-semibold hover:bg-red-700">
+      <Trash2 size={size - 1} />{t('ideas.confirmDelete')}
+    </button>
+  ) : (
+    <button onClick={() => setArmed(true)} title={label} aria-label={label} className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-white"><Trash2 size={size} /></button>
   );
 }
 
@@ -404,7 +420,7 @@ function IdeaCard({ idea: i, big, selected, mergeTarget, tasksOn, onClick, onSta
             <button onClick={() => setEditing(i.text)} title={t('ideas.edit')} aria-label={t('ideas.edit')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><Pencil size={14} /></button>
             <button onClick={onMerge} title={t('ideas.merge')} aria-label={t('ideas.merge')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><Combine size={14} /></button>
             {tasksOn && !i.taskId && <button onClick={onTask} title={t('ideas.toTask')} aria-label={t('ideas.toTask')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><ClipboardList size={14} /></button>}
-            <button onClick={onDelete} title={t('ideas.delete')} aria-label={t('ideas.delete')} className="p-1.5 rounded-md text-slate-500 hover:text-red-500 hover:bg-white"><Trash2 size={14} /></button>
+            <ConfirmButton onConfirm={onDelete} label={t('ideas.delete')} hint={t('ideas.deleteConfirm')} size={14} />
           </div>
         </div>
       )}
