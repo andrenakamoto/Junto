@@ -406,7 +406,7 @@ export function DashboardPage() {
       setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
     } else if (n.planId) {
       // Message ou mention : directement dans le chat ; le reste, page principale du Plan
-      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'quiz' ? 'quiz' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' || n.type === 'shift' ? 'benevoles' : n.type === 'transit' || n.type === 'transit_reminder' ? 'trajets' : n.type === 'match' || n.type === 'wheel' ? 'votes' : n.type.startsWith('assembly') ? 'assemblee' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
+      handleSelectPlan({ id: n.planId, circleId: n.circleId } as any, n.tab ? n.tab : n.type === 'new_message' || n.type === 'mention' ? 'chat' : n.type.startsWith('santa_') ? 'pere_noel' : n.type === 'killer' ? 'killer' : n.type === 'quiz' ? 'quiz' : n.type === 'words' ? 'mot_piege' : n.type === 'shift_reminder' || n.type === 'shift' ? 'benevoles' : n.type === 'transit' || n.type === 'transit_reminder' ? 'trajets' : n.type === 'match' || n.type === 'wheel' ? 'votes' : n.type.startsWith('assembly') ? 'assemblee' : n.type === 'teams' ? 'equipes' : n.type === 'pot' ? 'cagnotte' : undefined);
     } else if ((n.type === 'circle_mention' || n.type === 'circle_message') && n.circleId) {
       openCircleChat(n.circleId);
     } else if (n.pollId && n.circleId) {

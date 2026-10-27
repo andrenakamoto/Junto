@@ -26,6 +26,8 @@ export type AppNotification = {
   /** Auteur de l'action : pas de notification si le destinataire l'a masqué (lib/moderation.ts) */
   actorId?: string;
   preview?: string;
+  /** Rubrique du Plan à ouvrir (plan_activity) : « taches »… Les anciennes apps l'ignorent */
+  tab?: string;
   /** Suggestion dont le statut a changé (type suggestion_update) */
   suggestionId?: string;
   status?: string;
@@ -67,7 +69,7 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
     case 'new_plan':
       return { title: n.circleName ?? T.newPlanTitle, body: fill(T.newPlan), url: planUrl, group: `plan:${n.planId}` };
     case 'plan_activity':
-      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? T.planNews, url: planUrl, group: `activity:${n.planId}` };
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? T.planNews, url: n.tab && /^[a-z_]+$/.test(n.tab) ? `${planUrl}&tab=${n.tab}` : planUrl, group: `activity:${n.planId}` };
     case 'santa_draw':
     case 'santa_message':
     case 'santa_reveal':
