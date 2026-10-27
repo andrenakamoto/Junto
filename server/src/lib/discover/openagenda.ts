@@ -56,6 +56,13 @@ export function normalizeOpenAgendaEvent(e: any, cfg: OpenAgendaConfig, from: Da
     status: STATUS[e.status] ?? 'scheduled',
   };
   const days = [...new Set(timings.map((t: any) => dayKey(t.begin)))] as string[];
+  // Une exposition sur plusieurs jours, ou tout événement sur trois jours ou plus : une seule ligne « plusieurs jours ».
+  // Une exposition d'un seul jour (vernissage…) reste un événement normal, sous le même identifiant qu'avant le 2026-10-27
+  // (la ligne déjà enregistrée est corrigée à la synchronisation suivante).
+  if (category === 'expo' && days.length === 1) {
+    const t = timings[0];
+    return [{ ...base, externalId: `${e.uid}`, startAt: t.begin, endAt: t.end, multiDay: false, dateLabel: null }];
+  }
   if (category === 'expo' || days.length > 2) {
     const last = timings[timings.length - 1];
     return [{ ...base, externalId: `${e.uid}`, startAt: timings[0].begin, endAt: last.end ?? last.begin, multiDay: true, dateLabel: cleanText(fr(e.dateRange), 60) }];

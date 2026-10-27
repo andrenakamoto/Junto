@@ -22,6 +22,11 @@ describe('OpenAgenda', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ externalId: '42', multiDay: true, dateLabel: '26 - 28 octobre' });
   });
+  it('une exposition d’un seul soir (vernissage) n’est pas « sur plusieurs jours »', () => {
+    const rows = normalizeOpenAgendaEvent({ ...base, 'type-devenement': [41], timings: [{ begin: '2026-10-28T18:00:00+01:00', end: '2026-10-28T21:00:00+01:00' }], dateRange: { fr: 'Mercredi 28 octobre, 18h00' } }, cfg, from, to);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ externalId: '42', category: 'expo', multiDay: false, dateLabel: null });
+  });
   it('statut annulé, lien d’inscription en priorité, rien hors de la période', () => {
     const rows = normalizeOpenAgendaEvent({ ...base, status: 6, registration: [{ type: 'link', value: 'https://billets.example.ch' }], organisator_url: 'https://org.example.ch', timings: [{ begin: '2026-10-30T20:00:00+01:00' }, { begin: '2027-02-01T20:00:00+01:00' }] }, cfg, from, to);
     expect(rows).toHaveLength(1);
