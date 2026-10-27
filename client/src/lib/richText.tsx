@@ -1,5 +1,7 @@
-import { Fragment, ReactNode, useRef } from 'react';
-import { Bold, Italic, List, ListOrdered, Underline } from 'lucide-react';
+import { Fragment, ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Bold, Italic, List, ListOrdered, Maximize2, Underline } from 'lucide-react';
+import { useBackClose } from './backClose';
 import { renderContent } from '../components/chat/ChatMessage';
 import { t } from '../i18n';
 
@@ -86,12 +88,25 @@ export function RichText({ text, className = '' }: { text: string; className?: s
   return <div className={`break-words space-y-1 ${className}`}>{blocks}</div>;
 }
 
-// Champ de saisie avec la barre de mise en forme (gras, italique, listes) et le compteur de caractères visibles
-export function RichTextArea({ value, onChange, max, rows = 3, placeholder, autoFocus, className = '' }: {
+// Champ de saisie avec la barre de mise en forme (gras, italique, listes) et le compteur de caractères visibles.
+// Il grandit avec le texte jusqu'aux deux tiers de l'écran, puis défile (2026-10-27) ; « Agrandir » ouvre le même
+// éditeur en plein écran (texte long, clavier du téléphone qui cache la moitié de l'écran).
+export function RichTextArea({ value, onChange, max, rows = 3, placeholder, autoFocus, className = '', fullscreen, onDone }: {
   value: string; onChange: (v: string) => void; max: number; rows?: number; placeholder?: string; autoFocus?: boolean; className?: string;
+  /** Interne : l'éditeur plein écran ouvert par « Agrandir » */
+  fullscreen?: boolean; onDone?: () => void;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
+  const [expanded, setExpanded] = useState(false);
   const count = visibleLength(value);
+
+  // Hauteur suivant le texte : au moins `rows` lignes, au plus les deux tiers de l'écran
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || fullscreen) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight + 2, Math.round(window.innerHeight * 0.66))}px`;
+  }, [value, fullscreen, expanded]);
 
   // Remplace la sélection et la garde sélectionnée (le clavier reste ouvert sur téléphone)
   function apply(next: string, selStart: number, selEnd: number) {
@@ -134,8 +149,9 @@ export function RichTextArea({ value, onChange, max, rows = 3, placeholder, auto
 
   const btn = 'p-1.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-100';
   return (
-    <div className={`rounded-lg border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-indigo-500 ${className}`}>
-      <div className="flex items-center gap-0.5 px-1.5 py-1 border-b border-slate-200">
+    <div className={fullscreen ? 'flex-1 min-h-0 flex flex-col bg-white' : `rounded-lg border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-indigo-500 ${className}`}>
+      {/* Barre collée en haut quand la fenêtre défile */}
+      <div className={`flex items-center gap-0.5 px-1.5 py-1 border-b border-slate-200 bg-white ${fullscreen ? '' : 'sticky top-0 z-10 rounded-t-lg'}`}>
         {/* onMouseDown : garder la sélection du champ au clic */}
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => wrap('**')} title={t('plan.format.bold')} aria-label={t('plan.format.bold')} className={btn}><Bold size={15} /></button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => wrap('_')} title={t('plan.format.italic')} aria-label={t('plan.format.italic')} className={btn}><Italic size={15} /></button>
@@ -143,6 +159,11 @@ export function RichTextArea({ value, onChange, max, rows = 3, placeholder, auto
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => list(false)} title={t('plan.format.bullets')} aria-label={t('plan.format.bullets')} className={btn}><List size={15} /></button>
         <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => list(true)} title={t('plan.format.numbers')} aria-label={t('plan.format.numbers')} className={btn}><ListOrdered size={15} /></button>
         <span className={`ml-auto text-xs tabular-nums ${count > max ? 'text-red-600 font-semibold' : 'text-slate-400'}`}>{count}/{max}</span>
+        {fullscreen ? (
+          <button type="button" onClick={onDone} className="ml-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">{t('plan.format.done')}</button>
+        ) : (
+          <button type="button" onClick={() => setExpanded(true)} title={t('plan.format.expand')} aria-label={t('plan.format.expand')} className={`${btn} ml-1`}><Maximize2 size={15} /></button>
+        )}
       </div>
       <textarea
         ref={ref}
@@ -150,9 +171,32 @@ export function RichTextArea({ value, onChange, max, rows = 3, placeholder, auto
         onChange={e => onChange(e.target.value)}
         rows={rows}
         placeholder={placeholder}
-        autoFocus={autoFocus}
-        className="block w-full px-3 py-2 rounded-b-lg text-sm text-slate-900 bg-transparent resize-y focus:outline-none"
+        autoFocus={autoFocus || fullscreen}
+        className={fullscreen
+          ? 'flex-1 min-h-0 block w-full px-4 py-3 text-base text-slate-900 bg-transparent resize-none focus:outline-none'
+          : 'block w-full px-3 py-2 rounded-b-lg text-sm text-slate-900 bg-transparent resize-none overflow-y-auto focus:outline-none'}
       />
+      {expanded && createPortal(
+        <FullscreenEditor onClose={() => setExpanded(false)}>
+          <RichTextArea value={value} onChange={onChange} max={max} placeholder={placeholder} fullscreen onDone={() => setExpanded(false)} />
+        </FullscreenEditor>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
+// Éditeur plein écran : par-dessus tout (fenêtres comprises), fermé par « Terminé », Échap ou le bouton retour Android
+function FullscreenEditor({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  useBackClose(onClose);
+  useLayoutEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
+    window.addEventListener('keydown', h, true);
+    return () => window.removeEventListener('keydown', h, true);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[100] bg-white flex flex-col" style={{ paddingTop: 'var(--sa-top, 0px)', paddingBottom: 'var(--sa-bottom, 0px)' }}>
+      {children}
     </div>
   );
 }

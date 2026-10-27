@@ -139,6 +139,8 @@ export default {
     empty: 'Aucune modification enregistrée.',
   },
   format: {
+    expand: 'Agrandir',
+    done: 'Terminé',
     bold: 'Gras',
     italic: 'Italique',
     underline: 'Souligné',

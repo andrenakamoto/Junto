@@ -140,6 +140,8 @@ const plan: Dict['plan'] = {
     empty: 'No changes recorded.',
   },
   format: {
+    expand: 'Expand',
+    done: 'Done',
     bold: 'Bold',
     italic: 'Italic',
     underline: 'Underline',

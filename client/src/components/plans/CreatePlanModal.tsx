@@ -187,7 +187,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
         <OptionsBox>
           <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
             summary={importantInfo.trim() ? stripFormatting(importantInfo.trim()).split('\n')[0] : t('plan.form.sum.none')}>
-            <RichTextArea value={importantInfo} onChange={setImportantInfo} max={IMPORTANT_INFO_MAX} rows={4} placeholder={t('plan.form.importantInfoPlaceholder')} />
+            <RichTextArea value={importantInfo} onChange={setImportantInfo} max={IMPORTANT_INFO_MAX} rows={6} placeholder={t('plan.form.importantInfoPlaceholder')} />
           </OptionRow>
           <OptionRow icon={<Puzzle size={16} />} label={t('plan.form.rows.features')} modified={disabledFeatures.length > 0 || enabledFeatures.length > 0}
             summary={annonce ? t('settings.annonce.title') : featuresSummary(disabledFeatures, enabledFeatures)}>

@@ -797,7 +797,7 @@ Junto/
     elle change au PUT : une ancienne description plus longue reste), **informations importantes 5 000**. Affichage `RichText`
     (Infos, encadré ambre, fiche d'un non-membre, page d'invitation) ; e-mail de rappel `richTextToHtml` ; récapitulatif PDF gras
     et listes (italique droit, pas de police italique d'Inter) ; **texte sans repères** (`stripFormatting`) sur les cartes, « En
-    bref », le résumé copié, l'agenda (.ics et écran natif). Les apps ≤ 1.0.22 affichent les repères tels quels.
+    bref », le résumé copié, l'agenda (.ics et écran natif). Les apps ≤ 1.0.22 affichent les repères tels quels. **Saisie** (2026-10-27, `RichTextArea`) : le champ grandit avec le texte (au moins `rows` lignes, au plus les deux tiers de l'écran, puis défile ; barre collée en haut) et le bouton ⤢ « Agrandir » ouvre le même éditeur en plein écran (`FullscreenEditor`, portail sur `body`, « Terminé », Échap ou retour Android).
 - **CirclePoll** / **CirclePollOption** / **CirclePollVote** : sondage pour
   caler une date *avant* de créer un Plan (contrairement à Poll qui
   appartient à un Plan déjà créé). Vote **multiple** — chaque membre coche
