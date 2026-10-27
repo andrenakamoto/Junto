@@ -8,6 +8,7 @@ const src = readFileSync(new URL('../public/decouvrir.html', import.meta.url), '
 
 const T = {
   de: [
+    ["<b>Pas d'idée pour ce week-end ?</b> Les événements et sorties de toute la Suisse sont dans EvLY : concerts, expos, spectacles, idées de sorties… à proposer à ton Cercle en un geste.", "<b>Keine Idee fürs Wochenende?</b> Anlässe und Ausflüge aus der ganzen Schweiz sind in EvLY: Konzerte, Ausstellungen, Shows… mit einem Tipp deinem Kreis vorschlagen."],
     ['<html lang="fr">', '<html lang="de">'],
     ['<title>Découvrir EvLY</title>', '<title>EvLY entdecken</title>'],
     ["EvLY organise les événements des familles, des entreprises et des associations : un Cercle pour le groupe, un Plan par événement, et tout ce qu'un groupe WhatsApp ne fait pas.", 'EvLY organisiert die Anlässe von Familien, Unternehmen und Vereinen: ein Kreis für die Gruppe, ein Plan pro Anlass und alles, was eine WhatsApp-Gruppe nicht kann.'],
@@ -58,6 +59,7 @@ const T = {
     ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou les apps iPhone et Android.</small>", 'Organisiere deinen nächsten Anlass.<small>Gratis, im Browser oder in den Apps für iPhone und Android.</small>'],
   ],
   it: [
+    ["<b>Pas d'idée pour ce week-end ?</b> Les événements et sorties de toute la Suisse sont dans EvLY : concerts, expos, spectacles, idées de sorties… à proposer à ton Cercle en un geste.", "<b>Nessuna idea per il fine settimana?</b> Gli eventi e le uscite di tutta la Svizzera sono in EvLY: concerti, mostre, spettacoli, idee per uscire… da proporre al tuo Cerchio con un tocco."],
     ['<html lang="fr">', '<html lang="it">'],
     ['<title>Découvrir EvLY</title>', '<title>Scopri EvLY</title>'],
     ["EvLY organise les événements des familles, des entreprises et des associations : un Cercle pour le groupe, un Plan par événement, et tout ce qu'un groupe WhatsApp ne fait pas.", 'EvLY organizza gli eventi di famiglie, aziende e associazioni: un Cerchio per il gruppo, un Plan per ogni evento, e tutto ciò che un gruppo WhatsApp non fa.'],
@@ -108,6 +110,7 @@ const T = {
     ["Organise ton prochain événement.<small>Gratuit, dans le navigateur ou les apps iPhone et Android.</small>", 'Organizza il tuo prossimo evento.<small>Gratis, nel browser o nelle app per iPhone e Android.</small>'],
   ],
   en: [
+    ["<b>Pas d'idée pour ce week-end ?</b> Les événements et sorties de toute la Suisse sont dans EvLY : concerts, expos, spectacles, idées de sorties… à proposer à ton Cercle en un geste.", "<b>No plans for the weekend?</b> Events and outings from all over Switzerland are in EvLY: concerts, exhibitions, shows, ideas for going out… to suggest to your Circle in one tap."],
     ['<html lang="fr">', '<html lang="en">'],
     ['<title>Découvrir EvLY</title>', '<title>Discover EvLY</title>'],
     ["EvLY organise les événements des familles, des entreprises et des associations : un Cercle pour le groupe, un Plan par événement, et tout ce qu'un groupe WhatsApp ne fait pas.", 'EvLY organises events for families, companies and associations: a Circle for the group, a Plan for each event, and everything a WhatsApp group can’t do.'],
