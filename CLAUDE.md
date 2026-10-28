@@ -363,7 +363,11 @@ Conséquences pratiques :
     Apple exigera alors aussi « Sign in with Apple » (règle 4.8).
   - **Notifications push** (2026-10-01) : Firebase Cloud Messaging, projet
     Firebase **`evly-23d40`** (« EvLY »), clé APNs `.p8` (Key ID `3C84P5R6S4`)
-    importée dans Firebase. Fichiers de config **non commités** :
+    importée dans Firebase **comme clé de développement ET de production** (Paramètres du projet › Cloud Messaging ›
+    app `ch.evly.app` ; jusqu'au 2026-10-28 elle n'était qu'en développement : aucun iPhone App Store / TestFlight ne
+    recevait de push, erreur `messaging/third-party-auth-error` « Invalid APNs credential » ; fichier
+    `~/Downloads/AuthKey_3C84P5R6S4.p8`, Team ID `LDRKKV8GR7`). Un essai à blanc (`send(msg, true)`) ne va pas jusqu'à Apple :
+    tester par un vrai envoi. Fichiers de config **non commités** :
     `android/app/google-services.json` et `ios/App/App/GoogleService-Info.plist`
     (à re-télécharger depuis la console Firebase si besoin). Serveur :
     `lib/push.ts` — **toute notification passe par `notifyUser(io, userId, n)`**
