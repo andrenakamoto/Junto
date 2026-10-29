@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, ArrowRight, PartyPopper } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowRight, PartyPopper, Check, Gift } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { lightTokenField } from '../lib/lightGuest';
 import { sourceField } from '../lib/source';
-import { MiniGarland } from '../components/noel/ChristmasDecor';
+import { MiniGarland, Snowfall, TreeScene } from '../components/noel/ChristmasDecor';
+import { requestNewPlan } from '../lib/newPlanIntent';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
@@ -158,21 +159,9 @@ export function AuthPage() {
       <div className="absolute top-3 right-3 text-slate-300" style={{ marginTop: 'var(--sa-top, 0px)' }}>
         <LanguagePicker compact />
       </div>
+      {/* Campagne de Noël : sur grand écran, le panneau du Père Noël secret à droite de la connexion */}
+      <div className="flex items-center justify-center gap-12 xl:gap-20 w-full">
       <div className="w-full max-w-sm">
-        {/* Campagne de Noël (/pere-noel) : bandeau en tête, visible dès l'ouverture, même sur téléphone */}
-        {santaSeason() && (
-          <Link to="/pere-noel" className="block mb-8 mt-8 sm:mt-0 rounded-2xl overflow-hidden border border-rose-400/30 bg-gradient-to-br from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] shadow-lg shadow-black/30 hover:border-rose-300/60 transition-colors">
-            <MiniGarland />
-            <div className="flex items-center gap-3 px-4 pt-2 pb-3.5">
-              <span aria-hidden className="text-3xl">🎅</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold text-sm leading-snug">{t('noel.authBanner')}</p>
-                <p className="text-rose-100/80 text-xs mt-0.5">{t('noel.authBannerSub')}</p>
-              </div>
-              <span className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">{t('noel.authBannerCta')} <ArrowRight size={13} /></span>
-            </div>
-          </Link>
-        )}
         {/* En-tête épuré : la connexion d'abord, le reste sous le formulaire */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-3">
@@ -402,10 +391,15 @@ export function AuthPage() {
               <ArrowRight size={15} />
             </Link>
           </div>
-          {/* Campagne de Noël (/pere-noel) : jusqu'au 25 décembre */}
+          {/* Campagne de Noël (/pere-noel), téléphone et tablette : une carte sous le formulaire (sur grand écran : panneau à droite) */}
           {santaSeason() && (
-            <Link to="/pere-noel" className="mt-2 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-rose-400/40 bg-rose-500/10 text-rose-100 hover:bg-rose-500/20 font-semibold text-sm transition-colors">
-              {t('noel.authLink')}
+            <Link to="/pere-noel" className="lg:hidden mt-3 flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl border border-rose-400/30 bg-gradient-to-br from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] hover:border-rose-300/60 transition-colors">
+              <TreeScene className="w-16 flex-shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-white font-semibold text-sm leading-snug">{t('noel.authBanner')}</span>
+                <span className="block text-rose-100/80 text-xs mt-0.5">{t('noel.authBannerSub')}</span>
+              </span>
+              <span className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">{t('noel.authBannerCta')} <ArrowRight size={13} /></span>
             </Link>
           )}
         </div>
@@ -433,6 +427,43 @@ export function AuthPage() {
           <br />info@evly.ch
         </p>
       </div>
+      {santaSeason() && <SantaPanel onOrganize={() => {
+        countStep('funnel_cta_santa');
+        requestNewPlan('pere_noel');
+        switchMode('register');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }} />}
+      </div>
     </div>
+  );
+}
+
+// Campagne de Noël, grand écran : à droite de la connexion. « Organiser » ouvre l'inscription et mémorise l'intention
+// (lib/newPlanIntent.ts) : après l'inscription, le tableau de bord ouvre la création du Père Noël secret.
+function SantaPanel({ onOrganize }: { onOrganize: () => void }) {
+  return (
+    <aside className="hidden lg:flex flex-col relative overflow-hidden w-[440px] flex-shrink-0 rounded-3xl border border-rose-400/20 bg-gradient-to-b from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] text-white shadow-2xl shadow-black/40">
+      <Snowfall count={16} />
+      <MiniGarland count={15} />
+      <div className="relative px-8 pt-4 pb-8">
+        <TreeScene className="w-40 mx-auto drop-shadow-2xl" />
+        <p className="mt-4 inline-block text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-rose-100">{t('noel.badge')}</p>
+        <h2 className="mt-3 text-3xl font-bold leading-tight" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.title')}</h2>
+        <ul className="mt-4 space-y-2.5">
+          {(['draw', 'wishes', 'messages'] as const).map(k => (
+            <li key={k} className="flex gap-2.5 text-sm">
+              <Check size={16} className="flex-shrink-0 mt-0.5 text-amber-300" />
+              <span><b className="text-white">{t(`noel.features.${k}.title`)}</b> <span className="text-rose-50/80">· {t(`noel.features.${k}.text`)}</span></span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 flex flex-col gap-2.5">
+          <button onClick={onOrganize} className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-900/30 transition-colors">
+            <Gift size={18} />{t('noel.cta')}<ArrowRight size={16} />
+          </button>
+          <Link to="/demo?voir=pere-noel" className="inline-flex items-center justify-center px-5 py-3 rounded-2xl border border-white/25 text-sm font-semibold text-white hover:bg-white/10">{t('noel.demo')}</Link>
+        </div>
+      </div>
+    </aside>
   );
 }

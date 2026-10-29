@@ -51,7 +51,6 @@ const noel = {
   chooseLinkHint: 'Sans Cercle : tu invites qui tu veux',
   // Page d'invitation d'un Père Noël secret
   inviteNote: 'Pour participer au tirage, crée ton compte EvLY (gratuit, une minute) : c’est ainsi que tu découvriras en secret la personne que tu gâtes.',
-  authLink: '🎅 Père Noël secret : organise-le en 2 minutes',
   authBanner: 'Ton Père Noël secret, organisé en 2 minutes',
   authBannerSub: 'Tirage au sort, listes d’envies, messages anonymes',
   authBannerCta: 'Découvrir',

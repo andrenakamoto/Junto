@@ -49,7 +49,6 @@ const noel: Dict['noel'] = {
   chooseLink: 'With an invitation link',
   chooseLinkHint: 'No Circle: invite whoever you like',
   inviteNote: 'To join the draw, create your EvLY account (free, one minute): that’s how you’ll secretly find out who you’re buying for.',
-  authLink: '🎅 Secret Santa: set it up in 2 minutes',
   authBanner: 'Your Secret Santa, set up in 2 minutes',
   authBannerSub: 'Draw, wish lists, anonymous messages',
   authBannerCta: 'Discover',

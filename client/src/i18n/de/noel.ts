@@ -49,7 +49,6 @@ const noel: Dict['noel'] = {
   chooseLink: 'Mit einem Einladungslink',
   chooseLinkHint: 'Ohne Kreis: Du lädst ein, wen du willst',
   inviteNote: 'Um bei der Auslosung mitzumachen, erstelle dein EvLY-Konto (gratis, eine Minute): So erfährst du geheim, wen du beschenkst.',
-  authLink: '🎅 Wichteln: in 2 Minuten organisiert',
   authBanner: 'Dein Wichteln, organisiert in 2 Minuten',
   authBannerSub: 'Auslosung, Wunschlisten, anonyme Nachrichten',
   authBannerCta: 'Entdecken',
