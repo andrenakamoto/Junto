@@ -1922,6 +1922,14 @@ payé », idées, votes, réglages d'Alex) (2026-10-07). « Foot de la semaine �
 un Plan récurrent (titre sans jour de la semaine : les dates sont décalées au chargement). Le reste renvoie un 403 « Dans la démo, cette action n'est pas
 disponible… ». Deux Cercles de plus (2026-10-11) : **« Collègues »** (« Afterwork de fin de mois 🍻 » créé par Alex, match « Où va-t-on pour l'afterwork ? » : les collègues ont joué, oui de tous à la brasserie ; vue complète de Sarah via `matchViewers` dans `ids.json`) et **« Team évènements »** (« Atelier peinture 🎨 », planning des bénévoles, Alex organisateur du Cercle et « Peut-être » : s'inscrire le passe en « Je suis in »). Bandeau `DemoBanner` (Créer mon compte / Quitter) en haut du tableau de bord ;
 déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
+**Démo réduite à 4 Cercles le 2026-10-29** (demande de l'utilisateur : 7, c'était trop) : **Les copains** (DEMO6X), **Famille Rochat**
+(DEMO5X), **Best collègues** (DEMO4X) et **Association Jeunesse de Montvert** (DEMO3X), codes fixés dans `seed.js` (la démo reconnaît les
+Cercles à leur code). L'association reprend la fête du village (Planning, affiche), la course des 10 km (Mode annonce, liste d'attente, réponses
+sans compte) et l'**Assemblée générale 2026 ouverte** (vote à bulletin secret en cours, Alex vote pour lui et pour Yann par procuration), plus
+« Foot de la semaine ⚽ » (récurrent, complet, liste d'attente, en silence). Danse, Boxe et Team events retirés (avatars et illustrations
+supprimés). `/demo?voir=pere-noel` (`DemoPage`) ouvre directement le Père Noël secret de « Noël entre copains ». Sur `/demo` même,
+`AuthContext` ne charge rien (sinon la redirection interrompait le chargement et faisait quitter la démo). Le paragraphe suivant décrit
+la version du 2026-10-17.
 **Démo refaite le 2026-10-17** (`server/scripts/demo-site/seed.js`, demande de l'utilisateur : des cas concrets pour chaque type
 d'utilisateur, toutes les fonctions parcourues). Alex est membre des **7 Cercles**, tous avec la discussion ouverte (messages dans
 `CIRCLE_CHATS` de `lib/demo.ts`, Cercles reconnus par leur code `DEMO1X`…`DEMO7X`, textes traduits par `i18n.json`) :
