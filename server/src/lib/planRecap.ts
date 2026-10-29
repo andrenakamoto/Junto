@@ -13,6 +13,8 @@ import { leaderboard } from './quiz';
 import { leagueStandings } from './teams';
 import { ranking as wordRanking } from './wordGame';
 import { potTotals } from './giftPot';
+import { scheduleItems } from './program';
+import { zurichDay } from './tasks';
 
 // Récapitulatif PDF d'un Plan (à garder avant sa suppression automatique) : infos, répétition,
 // participants, liste d'attente, planning, « qui apporte quoi », dépenses et remboursements, votes,
@@ -77,7 +79,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   const m = mail(locale);
   const who = whoIn(m);
   const has = (f: string) => plan.enabledFeatures.includes(f);
-  const [assembly, quiz, teamDraw, killer, words, santa, pot] = await Promise.all([
+  const [assembly, quiz, teamDraw, killer, words, santa, pot, programItems, taskGroups, tasks, ideaColumns, ideas] = await Promise.all([
     has('assemblee') ? prisma.assembly.findUnique({ where: { planId }, include: { items: { orderBy: { position: 'asc' }, include: { candidates: true, ballots: true } } } }) : null,
     has('quiz') ? prisma.quiz.findUnique({ where: { planId }, include: { questions: { select: { id: true } } } }) : null,
     has('equipes') ? prisma.teamDraw.findUnique({ where: { planId }, include: { teams: { orderBy: { position: 'asc' }, include: { members: { include: { user: { select: PERSON } } } } }, matches: { orderBy: [{ round: 'asc' }, { position: 'asc' }] } } }) : null,
@@ -85,6 +87,11 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     has('mot_piege') ? prisma.wordGame.findUnique({ where: { planId }, include: { players: { include: { user: { select: PERSON } } } } }) : null,
     has('pere_noel') ? prisma.secretSanta.findUnique({ where: { planId }, include: { pairs: { include: { giver: { select: PERSON }, receiver: { select: PERSON } } } } }) : null,
     has('cagnotte') ? prisma.giftPot.findUnique({ where: { planId }, include: { pledges: { orderBy: { createdAt: 'asc' }, include: { user: { select: PERSON } } }, ideas: true } }) : null,
+    has('deroule') ? prisma.planProgramItem.findMany({ where: { planId }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }], include: { assignees: { include: { user: { select: PERSON } } } } }) : [],
+    has('taches') ? prisma.planTaskGroup.findMany({ where: { planId }, orderBy: { createdAt: 'asc' }, select: { id: true, title: true } }) : [],
+    has('taches') ? prisma.planTask.findMany({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { assignees: { include: { user: { select: PERSON } } }, dependsOn: { select: { dependsOnId: true } } } }) : [],
+    has('idees') ? prisma.ideaColumn.findMany({ where: { planId }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }], select: { id: true, title: true } }) : [],
+    has('idees') ? prisma.idea.findMany({ where: { planId }, orderBy: { createdAt: 'asc' } }) : [],
   ]);
   // Quiz : seulement une fois la partie terminée
   const quizAnswers = quiz?.endedAt ? await prisma.quizAnswer.findMany({ where: { planId }, select: { userId: true, points: true } }) : [];
@@ -203,6 +210,76 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
       if (s.note) para(s.note, DIM);
       para(s.signups.length ? m.s('recapPdf.signed', { names: s.signups.map(x => who(x.user)).join(', ') }) : m.s('recapPdf.nobodySigned'), s.signups.length ? INK : DIM);
       doc.moveDown(0.5);
+    }
+  }
+
+  // Déroulé : heures calculées comme dans l'app (lib/program.ts), responsables, lieu, matériel et remarques
+  if (programItems.length > 0) {
+    section(m.s('recapPdf.program'), m.s('recapPdf.programSub', { count: programItems.length }));
+    const hm = zurich(m, { hour: '2-digit', minute: '2-digit' });
+    for (const i of scheduleItems(programItems, plan.eventDate)) {
+      if (doc.y > doc.page.height - 110) doc.addPage();
+      const hours = i.start ? `${hm.format(i.start)}${i.end && i.durationMin > 0 ? ` – ${hm.format(i.end)}` : ''}` : '';
+      doc.font('semibold').fontSize(10.5).fillColor(INK).text(hours ? `${hours}   ` : '', { continued: true }).text(i.title, { width });
+      const details = [
+        i.place && `${m.s('programPdf.place')} : ${i.place}`,
+        i.assignees.length && `${m.s('programPdf.who')} : ${i.assignees.map(a => who(a.user)).join(', ')}`,
+        i.tech && `${m.s('programPdf.tech')} : ${i.tech}`,
+        i.note && `${m.s('programPdf.note')} : ${i.note}`,
+      ].filter(Boolean) as string[];
+      for (const d of details) para(d, DIM);
+      doc.moveDown(0.5);
+    }
+  }
+
+  // Tâches, par lot : état, responsables, échéance, ce qu'elles attendent (sans les commentaires)
+  if (tasks.length > 0) {
+    const doneCount = tasks.filter(x => x.status === 'done').length;
+    section(m.s('recapPdf.tasks'), m.s('recapPdf.tasksSub', { done: doneCount, total: tasks.length }));
+    const today = zurichDay();
+    const dayFmt = zurich(m, { day: 'numeric', month: 'long' });
+    const titleOf = new Map(tasks.map(x => [x.id, x.title]));
+    const ORDER: Record<string, number> = { doing: 0, todo: 1, done: 2 };
+    const lots = [...taskGroups.map(g => ({ id: g.id as string | null, title: g.title })), { id: null, title: m.s('recapPdf.taskNoGroup') }];
+    for (const lot of lots) {
+      const list = tasks.filter(x => x.groupId === lot.id).sort((a, b) => (ORDER[a.status] ?? 1) - (ORDER[b.status] ?? 1) || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'));
+      if (list.length === 0) continue;
+      sub(`${lot.title}  (${list.filter(x => x.status === 'done').length}/${list.length})`);
+      for (const x of list) {
+        if (doc.y > doc.page.height - 90) doc.addPage();
+        const late = x.status !== 'done' && !!x.dueDate && x.dueDate < today;
+        const state = m.s(x.status === 'done' ? 'recapPdf.taskDone' : x.status === 'doing' ? 'recapPdf.taskDoing' : 'recapPdf.taskTodo');
+        doc.font('regular').fontSize(10).fillColor(x.status === 'done' ? DIM : INK).text(`•  ${x.title}`, { continued: true })
+          .font('semibold').fillColor(x.status === 'done' ? '#059669' : late ? CORAL : DIM).text(`  ·  ${late ? m.s('recapPdf.taskLate') : state}`);
+        const details = [
+          x.assignees.length ? x.assignees.map(a => who(a.user)).join(', ') : '',
+          x.dueDate ? m.s('recapPdf.taskDue', { date: dayFmt.format(new Date(`${x.dueDate}T12:00:00Z`)) }) : '',
+          x.status !== 'done' && x.dependsOn.length ? m.s('recapPdf.taskWaits', { titles: x.dependsOn.map(d => titleOf.get(d.dependsOnId)).filter(Boolean).join(', ') }) : '',
+        ].filter(Boolean);
+        doc.x = left + 12;
+        if (details.length) doc.font('regular').fontSize(9).fillColor(DIM).text(details.join('  ·  '), left + 12, doc.y, { width: width - 12 });
+        if (x.note) doc.font('regular').fontSize(9).fillColor(DIM).text(x.note, left + 12, doc.y, { width: width - 12 });
+        doc.x = left;
+      }
+    }
+  }
+
+  // Idées, par thème : retenues, à creuser, autres, écartées ; votes notés en séance
+  if (ideas.length > 0) {
+    section(m.s('recapPdf.ideas'), m.s('recapPdf.ideasSub', { count: ideas.length }));
+    const RANK: Record<string, number> = { kept: 0, explore: 1, new: 2, dropped: 3 };
+    const LABEL: Record<string, string> = { kept: m.s('recapPdf.ideaKept'), explore: m.s('recapPdf.ideaExplore'), dropped: m.s('recapPdf.ideaDropped') };
+    const themes = [...ideaColumns.map(c => ({ id: c.id as string | null, title: c.title })), { id: null, title: m.s('recapPdf.ideaNoColumn') }];
+    for (const th of themes) {
+      const list = ideas.filter(x => x.columnId === th.id).sort((a, b) => (RANK[a.status] ?? 2) - (RANK[b.status] ?? 2) || b.votes - a.votes);
+      if (list.length === 0) continue;
+      sub(th.title);
+      for (const x of list) {
+        if (doc.y > doc.page.height - 80) doc.addPage();
+        const tags = [LABEL[x.status], x.votes ? m.s('recapPdf.ideaVotes', { count: x.votes }) : '', x.taskId ? m.s('recapPdf.ideaTask') : ''].filter(Boolean);
+        doc.font(x.status === 'kept' ? 'semibold' : 'regular').fontSize(10).fillColor(x.status === 'dropped' ? DIM : INK).text(`•  ${x.text}`, { width, continued: tags.length > 0 });
+        if (tags.length) doc.font('regular').fillColor(x.status === 'kept' ? '#059669' : DIM).text(`  ·  ${tags.join('  ·  ')}`);
+      }
     }
   }
 
