@@ -504,8 +504,8 @@ Conséquences pratiques :
     et « Agrandir », Idées en plein écran stable, tâches dans « En bref », « Transformer en tâche » complet avec nouveau lot, lots repliés,
     « Créer un poste » depuis le Déroulé, Déroulé / Tâches / Idées dans le récapitulatif PDF.
     **Version 1.0.40** (2026-10-29) : Android `versionCode` 42 (`evly-1.0.40-(42).aab`), iOS build 44 envoyé — campagne Père Noël secret
-    (panneau / carte sur la page de connexion), démo « Que veux-tu découvrir ? » (un exemple par type de Plan), tâches dans « En bref »,
-    « Transformer en tâche » complet, lots repliés, « Créer un poste » depuis le Déroulé, sources des inscriptions (`?src=`).
+    (carte sous le formulaire de connexion, page `/pere-noel`), démo « Que veux-tu découvrir ? » (un exemple par type de Plan, démo à 4
+    Cercles), sources des inscriptions (`?src=`), ouverture directe de `/demo` corrigée.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
