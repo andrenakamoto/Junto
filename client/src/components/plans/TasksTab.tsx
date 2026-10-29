@@ -19,6 +19,7 @@ type State = 'ready' | 'blocked' | 'doing' | 'done';
 type Data = { groups: PlanTaskGroup[]; tasks: PlanTask[]; people: Person[]; canManage: boolean };
 
 const VIEW_KEY = 'evly_tasks_view';
+const NEW_GROUP = '__new';
 const dayFmt = new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 const commentFmt = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -60,6 +61,10 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [filter, setFilter] = useState<'all' | 'mine' | 'late'>('all');
   const [form, setForm] = useState<{ task?: PlanTask; groupId?: string | null } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  // Lots repliés à l'ouverture de la rubrique ; ouverts : ceux qu'on déplie, celui où l'on ajoute une tâche
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const toggleGroup = (key: string) => setOpenGroups(o => { const n = new Set(o); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  const openGroup = (key: string) => setOpenGroups(o => new Set(o).add(key));
   const [error, setError] = useState('');
 
   async function load() {
@@ -198,10 +203,13 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
             const list = sortTasks(shown.filter(x => x.groupId === (g?.id ?? null)));
             if (filter !== 'all' && list.length === 0) return null;
             const all = tasks.filter(x => x.groupId === (g?.id ?? null));
+            const key = g?.id ?? 'none';
+            // Avec « Mes tâches » / « En retard », ou quand une tâche y est ouverte (lien « Attend »), le lot est déplié
+            const unfolded = filter !== 'all' || openGroups.has(key) || list.some(x => x.id === openId);
             return (
-              <GroupBlock key={g?.id ?? 'none'} group={g} total={all.length} done={all.filter(x => x.status === 'done').length}
+              <GroupBlock key={key} group={g} folded={!unfolded} onToggle={() => toggleGroup(key)} total={all.length} done={all.filter(x => x.status === 'done').length}
                 canDelete={!!g && (g.createdById === userId || canManage)}
-                onAdd={() => setForm({ groupId: g?.id ?? null })}
+                onAdd={() => { openGroup(key); setForm({ groupId: g?.id ?? null }); }}
                 onRename={title => run(() => api.put(`/plans/task-groups/${g!.id}`, { title }))}
                 onDelete={() => { if (confirm(t('tasks.deleteGroupConfirm', { title: g!.title }))) run(() => api.delete(`/plans/task-groups/${g!.id}`)); }}>
                 {list.map(x => card(x, false))}
@@ -228,11 +236,11 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
 
       {form && (
         <TaskForm
-          task={form.task} groupId={form.task ? form.task.groupId : form.groupId ?? null} groups={groups} people={people} tasks={tasks}
+          planId={plan.id} task={form.task} groupId={form.task ? form.task.groupId : form.groupId ?? null} groups={groups} people={people} tasks={tasks}
           onCancel={() => setForm(null)}
           onSubmit={async body => {
             const ok = await run(() => form.task ? api.put(`/plans/tasks/${form.task.id}`, body) : api.post(`/plans/${plan.id}/tasks`, body));
-            if (ok) setForm(null);
+            if (ok) { openGroup((body as { groupId?: string | null }).groupId ?? 'none'); setForm(null); }
             return ok;
           }}
         />
@@ -241,16 +249,15 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   );
 }
 
-function GroupBlock({ group, total, done, canDelete, onAdd, onRename, onDelete, children }: {
-  group: PlanTaskGroup | null; total: number; done: number; canDelete: boolean;
+function GroupBlock({ group, folded, onToggle, total, done, canDelete, onAdd, onRename, onDelete, children }: {
+  group: PlanTaskGroup | null; folded: boolean; onToggle: () => void; total: number; done: number; canDelete: boolean;
   onAdd: () => void; onRename: (title: string) => Promise<boolean>; onDelete: () => void; children: React.ReactNode;
 }) {
-  const [folded, setFolded] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   return (
     <section className="rounded-2xl bg-slate-100/80 border border-slate-200 p-2.5">
       <div className="flex items-center gap-1.5 px-1">
-        <button onClick={() => setFolded(!folded)} className="flex items-center gap-1.5 flex-1 min-w-0 text-left py-1">
+        <button onClick={onToggle} aria-expanded={!folded} className="flex items-center gap-1.5 flex-1 min-w-0 text-left py-1">
           {folded ? <ChevronRight size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronDown size={16} className="text-slate-400 flex-shrink-0" />}
           {renaming === null && <span className="font-semibold text-sm text-slate-800 truncate">{group?.title ?? t('tasks.noGroup')}</span>}
           {renaming === null && total > 0 && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${done === total ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-500'}`}>{done}/{total}</span>}
@@ -449,12 +456,17 @@ function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unl
   );
 }
 
-function TaskForm({ task, groupId: initialGroup, groups, people, tasks, onSubmit, onCancel }: {
-  task?: PlanTask; groupId: string | null; groups: PlanTaskGroup[]; people: Person[]; tasks: PlanTask[];
+// Formulaire d'une tâche, aussi utilisé par « Transformer en tâche » des Idées (IdeasTab) : `initialTitle`,
+// `heading` et `submitLabel` y remplacent les textes. « + Nouveau lot… » crée le lot à l'envoi.
+export function TaskForm({ planId, task, groupId: initialGroup, groups, people, tasks, onSubmit, onCancel, initialTitle, heading, submitLabel }: {
+  planId: string; task?: PlanTask; groupId: string | null; groups: PlanTaskGroup[]; people: Person[]; tasks: PlanTask[];
   onSubmit: (body: object) => Promise<boolean>; onCancel: () => void;
+  initialTitle?: string; heading?: string; submitLabel?: string;
 }) {
-  const [title, setTitle] = useState(task?.title ?? '');
+  const [title, setTitle] = useState(task?.title ?? initialTitle ?? '');
   const [groupId, setGroupId] = useState<string>(initialGroup ?? '');
+  const [newGroup, setNewGroup] = useState('');
+  const [groupError, setGroupError] = useState('');
   const [assignees, setAssignees] = useState<string[]>(task?.assignees.map(a => a.userId) ?? []);
   const [due, setDue] = useState(task?.dueDate ?? '');
   const [deps, setDeps] = useState<string[]>(task?.dependsOn ?? []);
@@ -482,30 +494,47 @@ function TaskForm({ task, groupId: initialGroup, groups, people, tasks, onSubmit
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) { setMissing(true); return; }
+    if (groupId === NEW_GROUP && !newGroup.trim()) { setGroupError(t('tasks.form.newGroupRequired')); return; }
     setBusy(true);
-    await onSubmit({ title, groupId: groupId || null, assigneeIds: assignees, dueDate: due || null, dependsOnIds: deps, note });
+    let group: string | null = groupId || null;
+    if (groupId === NEW_GROUP) {
+      // Un lot du même nom existe déjà : on le reprend (le serveur ne crée pas de doublon)
+      const same = groups.find(g => g.title.trim().toLowerCase() === newGroup.trim().toLowerCase());
+      try {
+        group = same ? same.id : (await api.post(`/plans/${planId}/task-groups`, { title: newGroup.trim() })).data.ids[0] ?? null;
+      } catch (err: any) {
+        setGroupError(err.response?.data?.error || t('common.retryError'));
+        setBusy(false);
+        return;
+      }
+    }
+    await onSubmit({ title, groupId: group, assigneeIds: assignees, dueDate: due || null, dependsOnIds: deps, note });
     setBusy(false);
   }
 
   const toggle = (list: string[], set: (l: string[]) => void, id: string) => set(list.includes(id) ? list.filter(x => x !== id) : [...list, id]);
 
   return (
-    <Modal title={task ? t('tasks.form.editTitle') : t('tasks.form.newTitle')} onClose={onCancel}>
+    <Modal title={heading ?? (task ? t('tasks.form.editTitle') : t('tasks.form.newTitle'))} onClose={onCancel}>
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">{t('tasks.form.title')}</label>
           <input autoFocus value={title} maxLength={120} onChange={e => { setTitle(e.target.value); setMissing(false); }} placeholder={t('tasks.form.titlePlaceholder')} className={input} />
           {missing && <p className="text-xs text-red-500 mt-1">{t('tasks.form.titleRequired')}</p>}
         </div>
-        {groups.length > 0 && (
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">{t('tasks.form.group')}</label>
-            <select value={groupId} onChange={e => setGroupId(e.target.value)} className={input}>
-              <option value="">{t('tasks.noGroup')}</option>
-              {groups.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-            </select>
-          </div>
-        )}
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">{t('tasks.form.group')}</label>
+          <select value={groupId} onChange={e => { setGroupId(e.target.value); setGroupError(''); }} className={input}>
+            <option value="">{t('tasks.noGroup')}</option>
+            {groups.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
+            <option value={NEW_GROUP}>{t('tasks.form.newGroup')}</option>
+          </select>
+          {groupId === NEW_GROUP && (
+            <input autoFocus value={newGroup} maxLength={60} onChange={e => { setNewGroup(e.target.value); setGroupError(''); }}
+              placeholder={t('tasks.groupPlaceholder')} className={`${input} mt-2`} />
+          )}
+          {groupError && <p className="text-xs text-red-500 mt-1">{groupError}</p>}
+        </div>
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">{t('tasks.form.assignees')}</label>
           <div className="flex flex-wrap gap-1.5">
@@ -562,7 +591,7 @@ function TaskForm({ task, groupId: initialGroup, groups, people, tasks, onSubmit
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel} className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">{t('common.cancel')}</button>
           <button type="submit" disabled={busy} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
-            {task ? t('tasks.form.save') : t('tasks.form.create')}
+            {submitLabel ?? (task ? t('tasks.form.save') : t('tasks.form.create'))}
           </button>
         </div>
       </form>

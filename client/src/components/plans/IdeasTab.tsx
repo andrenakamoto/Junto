@@ -3,7 +3,8 @@ import {
   ArrowLeft, ArrowRight, Check, CircleHelp, ClipboardList, Copy, Combine, ListChecks, Maximize2, Minus, Pause, Pencil, Play, Plus,
   RotateCcw, Star, Timer, Trash2, X,
 } from 'lucide-react';
-import { Plan, PlanTaskGroup } from '../../types';
+import { Plan, PlanTask, PlanTaskGroup } from '../../types';
+import { TaskForm } from './TasksTab';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
 import { hasFeature } from '../../lib/settings';
@@ -428,64 +429,29 @@ function IdeaCard({ idea: i, big, selected, mergeTarget, tasksOn, onClick, onSta
   );
 }
 
-// « Transformer en tâche » : crée la tâche (routes/tasks.ts) puis la relie à l'idée, qui passe « retenue »
+// « Transformer en tâche » : le même formulaire que dans les Tâches (TaskForm : lot, nouveau lot, responsables, échéance,
+// dépendances, remarque) ; crée la tâche (routes/tasks.ts) puis la relie à l'idée, qui passe « retenue »
 function TaskFromIdea({ plan, idea, onClose, run }: { plan: Plan; idea: Idea; onClose: () => void; run: (a: () => Promise<unknown>) => Promise<boolean> }) {
-  const [title, setTitle] = useState(idea.text.slice(0, 120));
-  const [groups, setGroups] = useState<PlanTaskGroup[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
-  const [groupId, setGroupId] = useState('');
-  const [assignees, setAssignees] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [data, setData] = useState<{ groups: PlanTaskGroup[]; people: Person[]; tasks: PlanTask[] } | null>(null);
   useEffect(() => {
-    api.get(`/plans/${plan.id}/tasks`).then(r => { setGroups(r.data.groups); setPeople(r.data.people); }).catch(() => {});
+    api.get(`/plans/${plan.id}/tasks`).then(r => setData(r.data)).catch(() => setData({ groups: [], people: [], tasks: [] }));
   }, [plan.id]);
-  const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white';
+  if (!data) return null;
   return (
     <div className="relative z-[80]">
-      <Modal title={t('ideas.taskForm.title')} onClose={onClose}>
-        <form className="space-y-4" onSubmit={async e => {
-          e.preventDefault();
-          if (!title.trim()) return;
-          setBusy(true);
+      <TaskForm
+        planId={plan.id} groupId={null} groups={data.groups} people={data.people} tasks={data.tasks}
+        initialTitle={idea.text.slice(0, 120)} heading={t('ideas.taskForm.title')} submitLabel={t('ideas.taskForm.create')}
+        onCancel={onClose}
+        onSubmit={async body => {
           const ok = await run(async () => {
-            const { data } = await api.post(`/plans/${plan.id}/tasks`, { title, groupId: groupId || null, assigneeIds: assignees });
-            await api.put(`/plans/ideas/${idea.id}`, { taskId: data.id });
+            const { data: task } = await api.post(`/plans/${plan.id}/tasks`, body);
+            await api.put(`/plans/ideas/${idea.id}`, { taskId: task.id });
           });
-          setBusy(false);
           if (ok) onClose();
-        }}>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">{t('ideas.taskForm.name')}</label>
-            <input autoFocus value={title} maxLength={120} onChange={e => setTitle(e.target.value)} className={input} />
-          </div>
-          {groups.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">{t('ideas.taskForm.group')}</label>
-              <select value={groupId} onChange={e => setGroupId(e.target.value)} className={input}>
-                <option value="">{t('tasks.noGroup')}</option>
-                {groups.map(g => <option key={g.id} value={g.id}>{g.title}</option>)}
-              </select>
-            </div>
-          )}
-          {people.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">{t('ideas.taskForm.assignees')}</label>
-              <div className="flex flex-wrap gap-1.5">
-                {people.map(p => (
-                  <button type="button" key={p.id} aria-pressed={assignees.includes(p.id)} onClick={() => setAssignees(a => a.includes(p.id) ? a.filter(x => x !== p.id) : [...a, p.id])}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium border ${assignees.includes(p.id) ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
-                    {displayName(p) || `@${p.pseudo}`}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="flex gap-2 justify-end">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300">{t('common.cancel')}</button>
-            <button type="submit" disabled={busy || !title.trim()} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">{t('ideas.taskForm.create')}</button>
-          </div>
-        </form>
-      </Modal>
+          return ok;
+        }}
+      />
     </div>
   );
 }

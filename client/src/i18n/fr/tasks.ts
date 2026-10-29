@@ -61,6 +61,8 @@ const tasks = {
     titlePlaceholder: 'Ex. Réserver la salle',
     titleRequired: 'Écris le nom de la tâche.',
     group: 'Lot',
+    newGroup: '+ Nouveau lot…',
+    newGroupRequired: 'Écris le nom du lot.',
     assignees: 'Responsables',
     assigneesHint: 'Les personnes qui ont répondu « Je suis in » ou « Peut-être » au Plan.',
     due: 'À faire avant le',

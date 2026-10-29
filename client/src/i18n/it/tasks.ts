@@ -62,6 +62,8 @@ const tasks: Dict['tasks'] = {
     titlePlaceholder: 'Es. Prenotare la sala',
     titleRequired: 'Scrivi il nome del compito.',
     group: 'Area',
+    newGroup: '+ Nuova area…',
+    newGroupRequired: 'Scrivi il nome dell’area.',
     assignees: 'Responsabili',
     assigneesHint: 'Le persone che hanno risposto «Ci sono» o «Forse» al Plan.',
     due: 'Da fare entro il',
