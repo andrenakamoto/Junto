@@ -499,6 +499,10 @@ Conséquences pratiques :
     emojis seuls en grand, bouton 😊 sur ordinateur.
     **Version 1.0.38** (2026-10-27) : Android `versionCode` 40 (`evly-1.0.38-(40).aab`), iOS build 42 envoyé — Tâches (lots, responsables,
     échéances, dépendances), Déroulé (programme de la soirée, « +15 min », feuille de route PDF), Idées (brainstorming projeté).
+    **Version 1.0.39** (2026-10-29) : Android `versionCode` 41 (`evly-1.0.39-(41).aab`), iOS build 43 envoyé — Découvrir « Plusieurs dates »
+    (séries Eventfrog) et vernissages d'un jour, onglets du Plan sur une ligne qui défile, champ des informations importantes qui grandit
+    et « Agrandir », Idées en plein écran stable, tâches dans « En bref », « Transformer en tâche » complet avec nouveau lot, lots repliés,
+    « Créer un poste » depuis le Déroulé, Déroulé / Tâches / Idées dans le récapitulatif PDF.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
