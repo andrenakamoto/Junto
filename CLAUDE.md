@@ -1957,7 +1957,8 @@ tirage marche en mémoire (la personne tirée a des envies), le Père Noël d'Al
 activer d'un Plan créé (quiz, Killer, assemblée…) renvoient le message « pas disponible dans la démo ». Parcours filmé dans la vidéo 48.
 
 **Campagne « Père Noël secret »** (2026-10-29, page publique **`/pere-noel`** = `pages/SantaPage.tsx`, textes `i18n/<langue>/noel.ts`) :
-explique la fonction (étapes, fonctions, pour qui, FAQ) ; « Organiser mon Père Noël secret » mémorise l'intention sur l'appareil 7 jours
+explique la fonction (étapes, fonctions, pour qui, FAQ), en décor de Noël (`components/noel/ChristmasDecor.tsx` : neige qui tombe,
+guirlande, sapin et cadeaux en SVG, sol enneigé ; animations coupées avec `prefers-reduced-motion`) ; « Organiser mon Père Noël secret » mémorise l'intention sur l'appareil 7 jours
 (`lib/newPlanIntent.ts`, `evly_new_plan`, survit à la validation de l'email) puis envoie vers l'inscription (ou le tableau de bord) ;
 DashboardPage, **après l'acceptation des conditions**, ouvre `KindCircleChooser` (Cercles où l'on peut créer un Plan, ou « Avec un lien
 d'invitation » = Cercle personnel par POST `/circles/personal`) puis `CreatePlanModal` avec `kind` `pere_noel`. Page d'invitation
