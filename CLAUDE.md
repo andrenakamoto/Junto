@@ -932,15 +932,17 @@ Junto/
   `status` `todo|doing|done`, `doneBy`, `reminderSentAt`), **PlanTaskAssignee** (responsables : participants du Plan avec un compte, sauf
   « Je passe »), **PlanTaskDependency** (`taskId` attend `dependsOnId` ; boucles refusées, `createsCycle`), **PlanTaskComment** (chiffré).
   **Tout le monde qui voit le Plan** ajoute, modifie, confie et fait avancer les tâches et les lots ; supprimer : la personne qui l'a créé,
-  le créateur du Plan ou un gestionnaire du Cercle. « Bloquée » se calcule (`taskState`, miroir client). Vues « Par lot » / « Par état »
+  le créateur du Plan ou un gestionnaire du Cercle. « Bloquée » se calcule (`taskState`, miroir client). Vues « Par lot » (lots **repliés à l'ouverture** depuis le 2026-10-29, `openGroups` ; dépliés avec « Mes tâches » /
+  « En retard », quand on y ajoute une tâche ou qu'une de ses tâches est ouverte) / « Par état »
   (mémorisée, `evly_tasks_view`), filtres « Mes tâches » / « En retard », « Commencer avec des lots types » (liste `tasks.starterList`).
   Notifications (app + push, jamais d'email) : tâche confiée, commentaire, tâche terminée (à la personne qui l'a créée), **« Tu peux
   commencer »** aux responsables des tâches pas encore commencées que la tâche terminée débloque (`newlyUnblocked`), rappel **2 jours avant
   l'échéance** dès 9 h (`sendTaskReminders`, horaire, gated). **Envoyées en `plan_activity` avec `tab: 'taches'`** (`notifyTask`) : les apps
   installées ne connaissent pas de nouveau type ; `AppNotification.tab` ouvre la rubrique (push : `&tab=`, client : DashboardPage), et
   `NotificationToast` ignore désormais les types inconnus. Pastille « nouveau » : section `taches`. « Je passe », exclusion, départ du
-  Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Pas dans la démo (rubrique vide, actions refusées),
-  ni dans « En bref » ni dans le récapitulatif PDF. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
+  Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Pas dans la démo (rubrique vide, actions refusées) ;
+  dans le récapitulatif PDF depuis le 2026-10-29 ; dans « En bref » (2026-10-29, `myTasks` de `lib/planSummary.ts`) : « Tu as N tâches à faire (dont X en
+  retard) » et la plus urgente, pour les tâches confiées à la personne. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
   « Idées » (brainstorming projeté), lien vers le Plan d'annonce, budget par lot, bilan et « Refaire l'an prochain ».
 - **Déroulé** (2026-10-27, `lib/program.ts` testé, `routes/program.ts` monté dans le routeur des Plans, `lib/programPdf.ts`,
   `components/plans/ProgramTab.tsx`, dictionnaire `i18n/<langue>/program.ts`, migration `20261105100000_plan_program`) : fonction **à
@@ -951,7 +953,9 @@ Junto/
   « après » un moment), modifie, réordonne (↑ ↓, `moveItem`) et décale ; supprimer : la personne qui l'a créé, le créateur du Plan ou un
   gestionnaire du Cercle. **« +15 min »** (`delayChanges`) : `extend` prolonge le moment en cours, `shift` le fait commencer plus tard (allonge le
   précédent ou avance son heure fixe) — la suite se décale, pas les heures fixes. Le soir même : bandeau « En ce moment / Ensuite » (rechargé
-  toutes les 30 s), moments passés grisés ; postes du Planning qui chevauchent un moment affichés dessus. Rappel aux responsables **10 minutes
+  toutes les 30 s), moments passés grisés ; postes du Planning qui chevauchent un moment affichés dessus. **« Créer un poste »** (2026-10-29, sur un moment déplié, si le Planning est actif et
+  pour qui gère les postes) : `ShiftForm` exporté de `VolunteersTab`, pré-rempli (nom, horaire calculé, une place par responsable, lieu
+  et matériel en remarque), « Poste créé » quand un poste du même nom commence à la même heure ; les responsables ne sont pas inscrits. Rappel aux responsables **10 minutes
   avant** (`sendProgramReminders`, toutes les 5 min, gated ; renvoyé si l'heure du moment change), en `plan_activity` avec `tab: 'deroule'`.
   « Copier le programme » (heures et titres, pour le Plan d'annonce) ; **feuille de route PDF** (GET `/plans/:id/program/pdf`, tout le monde
   qui voit le Plan, textes `programPdf` de `i18n/emails`). « Commencer avec un déroulé type » (`program.starterList`). Pas dans la démo. Fiche
@@ -966,7 +970,8 @@ Junto/
   grand, saisie en bas (choisir le thème, taper, Entrée), glisser une idée vers un autre thème (drag & drop HTML5), **minuteur** 5 / 10 /
   15 min (côté client seulement). Toucher une idée : +1 / −1, ⭐ Retenue / ❓ À creuser / ✖ Écartée (re-toucher = « nouvelle »), couleur,
   modifier (double-clic), **fusionner** (`mergeIdeas` : textes réunis, votes additionnés, statut le plus avancé), **transformer en tâche**
-  (si `taches` actif : POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). Tri ordre d'arrivée / votes,
+  (si `taches` actif : même formulaire que les Tâches, `TaskForm` exporté de `TasksTab` — lot ou « + Nouveau lot… », responsables,
+  échéance, dépendances, remarque —, POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). Tri ordre d'arrivée / votes,
   filtre « Retenues », « Commencer avec des thèmes types » (`ideas.starterList`), **« Copier le compte rendu »** (texte par thème : retenues,
   à creuser, autres). Pas dans la démo. Fiche « Idées » du guide.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
@@ -1066,7 +1071,7 @@ Junto/
   « Peut-être »** (403 sinon). Renvoie seulement ce qui concerne la personne, rubrique par rubrique et en respectant les fonctions
   masquées / à activer : réponses (+ liste d'attente), première ligne des informations importantes, **son trajet** (conducteur,
   passager, en recherche, ou places proposées), « qui apporte quoi » (ce qu'elle apporte — `claimedBy` contient le **pseudo** —,
-  ce qui manque), **ses comptes** (virements suggérés qui la concernent), sa cagnotte, ses postes de bénévole, votes et matchs qui
+  ce qui manque), **ses comptes** (virements suggérés qui la concernent), sa cagnotte, ses postes de bénévole, ses tâches pas terminées (`tasks`), votes et matchs qui
   l'attendent, nombre de photos (comme le ZIP). Pas de table. Ouverte par le bouton « En bref » de `PlanCard` (prop `onSummary`,
   `PlanList`), la carte en tête de la page principale du Plan sur téléphone et une icône de l'en-tête sur grand écran ; chaque ligne
   ouvre sa rubrique. **« Copier le résumé »** : texte sans rien de personnel (date, lieu, qui vient, infos importantes, places
@@ -1472,7 +1477,9 @@ liste d'attente, planning (inscrits, places manquantes, lignes de programme) et,
 quoi », dépenses (soldes, virements, remboursements faits), votes, et depuis le 2026-10-11 : assemblée (résultat de
 chaque point, totaux seulement ; le PV reste le document officiel), quiz (classement), équipes (composition,
 classement ou tableau), Killer et mot piège **une fois la partie terminée**, Père Noël secret **après la
-révélation**, cagnotte **détaillée** (montant et état de chacun : les destinataires gèrent la cagnotte). Chaque
+révélation**, cagnotte **détaillée** (montant et état de chacun : les destinataires gèrent la cagnotte). Depuis le 2026-10-29 : **Déroulé** (heures calculées, lieu,
+responsables, matériel, remarques), **Tâches** par lot (état, en retard, responsables, échéance, « attend », remarque ; jamais les
+commentaires) et **Idées** par thème (retenues, à creuser, autres, écartées ; votes, « tâche créée »). Chaque
 rubrique de jeu seulement si sa fonction est active. **Jamais le chat ni rien de ce que l'app cache encore.** **Réservé au créateur du Plan et aux gestionnaires du Cercle**
 (`canDownloadRecap` ; GET /plans/:id renvoie `canRecap`). GET /plans/:id/recap (PDF) ; client
 `lib/planRecap.ts` (`saveFile` : téléchargement sur le site, menu de partage dans les apps). Boutons :
