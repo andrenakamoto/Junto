@@ -34,9 +34,12 @@ async function saveEvents(source: DiscoverSource, region: Region, events: Normal
       update: { ...data, region: r }, // l'état (publié, à valider, masqué) choisi dans le panneau admin est gardé
     });
   }
-  // Retirés chez la source (sauf `removeMissing` : seulement les événements à venir, le passé est effacé par cleanPastEvents).
+  // Retirés chez la source (sauf `removeMissing` : seulement les événements pas encore terminés, le passé est effacé par
+  // cleanPastEvents). Pas encore terminés, et non pas « à venir » : une ligne « sur plusieurs jours » déjà commencée, que la source
+  // découpe ensuite en dates (identifiants différents), resterait sinon en double jusqu'à sa fin (constaté le 2026-10-29).
   // Comparaison faite ici plutôt qu'en base : des dizaines de milliers d'identifiants avec Eventfrog
-  const existing = await prisma.discoverEvent.findMany({ where: { sourceId: source.id, ...(opts.removeMissing ? {} : { startAt: { gte: now } }) }, select: { id: true, externalId: true } });
+  const notEnded = { OR: [{ startAt: { gte: now } }, { endAt: { gte: now } }] };
+  const existing = await prisma.discoverEvent.findMany({ where: { sourceId: source.id, ...(opts.removeMissing ? {} : notEnded) }, select: { id: true, externalId: true } });
   const gone = existing.filter(x => !keep.has(x.externalId)).map(x => x.id);
   for (let i = 0; i < gone.length; i += 1000) await prisma.discoverEvent.deleteMany({ where: { id: { in: gone.slice(i, i + 1000) } } });
   return located.length;

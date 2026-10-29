@@ -113,7 +113,9 @@ describe('plusieurs dates', () => {
   it('une série Eventfrog hors exposition et festival : séances, pas une période continue', () => {
     expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'eventfrog')).toBe(true);
     expect(isSessionSeries({ multiDay: true, category: 'expo' }, 'eventfrog')).toBe(false);
-    expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'openagenda')).toBe(false);
+    expect(isSessionSeries({ multiDay: true, category: 'theatre' }, 'openagenda')).toBe(true);
+    expect(isSessionSeries({ multiDay: true, category: 'expo' }, 'openagenda')).toBe(false);
+    expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'manual')).toBe(false);
     expect(isSessionSeries({ multiDay: false, category: 'concert' }, 'eventfrog')).toBe(false);
   });
 });

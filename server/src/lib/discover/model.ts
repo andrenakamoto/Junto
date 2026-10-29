@@ -145,6 +145,9 @@ export function parseProInterest(b: any): { error: string } | { data: { name: st
 // dont on ne connaît pas les dates exactes : l'app l'annonce comme tel, renvoie vers la page de l'organisateur et ne le
 // range sous aucun jour précis.
 export const CONTINUOUS_CATEGORIES: readonly string[] = ['expo', 'festival'];
+// Sources dont une ligne « sur plusieurs jours » regroupe des représentations (pièce de théâtre jouée plusieurs soirs…) : Eventfrog,
+// et l'agenda de Genève (OpenAgenda) depuis le 2026-10-29
+const SESSION_SOURCES = ['eventfrog', 'openagenda'];
 export function isSessionSeries(e: { multiDay: boolean; category: string }, sourceType: string | undefined): boolean {
-  return e.multiDay && sourceType === 'eventfrog' && !CONTINUOUS_CATEGORIES.includes(e.category);
+  return e.multiDay && SESSION_SOURCES.includes(sourceType ?? '') && !CONTINUOUS_CATEGORIES.includes(e.category);
 }
