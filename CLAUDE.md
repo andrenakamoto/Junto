@@ -1927,7 +1927,10 @@ déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
 Cercles à leur code). L'association reprend la fête du village (Planning, affiche), la course des 10 km (Mode annonce, liste d'attente, réponses
 sans compte) et l'**Assemblée générale 2026 ouverte** (vote à bulletin secret en cours, Alex vote pour lui et pour Yann par procuration), plus
 « Foot de la semaine ⚽ » (récurrent, complet, liste d'attente, en silence). Danse, Boxe et Team events retirés (avatars et illustrations
-supprimés). `/demo?voir=pere-noel` (`DemoPage`) ouvre directement le Père Noël secret de « Noël entre copains ». Sur `/demo` même,
+supprimés). `/demo?voir=pere-noel` (`DemoPage`, lien « Voir un exemple » de `/pere-noel`) = **démo resserrée** (`startDemo('pere-noel')`,
+`evly_demo_focus`, `focusOnSanta` de `lib/demo.ts`) : un seul Cercle « La famille » (code `DEMO-NOEL`, photo des copains) avec un seul Plan,
+« Noël en famille 🎁 » (le Père Noël secret des copains, tirage fait), sans discussion, dispo, sondage, Trajets, Votes ni Dépenses ; `/demo`
+seul remet la démo complète. Sur `/demo` même,
 `AuthContext` ne charge rien (sinon la redirection interrompait le chargement et faisait quitter la démo). Le paragraphe suivant décrit
 la version du 2026-10-17.
 **Démo refaite le 2026-10-17** (`server/scripts/demo-site/seed.js`, demande de l'utilisateur : des cas concrets pour chaque type
