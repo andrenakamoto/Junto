@@ -1963,7 +1963,8 @@ guirlande, sapin et cadeaux en SVG, sol enneigé ; animations coupées avec `pre
 DashboardPage, **après l'acceptation des conditions**, ouvre `KindCircleChooser` (Cercles où l'on peut créer un Plan, ou « Avec un lien
 d'invitation » = Cercle personnel par POST `/circles/personal`) puis `CreatePlanModal` avec `kind` `pere_noel`. Page d'invitation
 (`/invitation`) d'un tel Plan sans compte : encadré « Pour participer au tirage, crée ton compte » (`santa` de GET `/api/invite/:token`).
-Lien saisonnier sur `AuthPage` (`santaSeason`, 25 oct. → 25 déc.). Compteurs `pere_noel` (visites) et `funnel_cta_santa`. Visuels
+Sur `AuthPage` (`santaSeason`, 25 oct. → 25 déc.) : grand écran = panneau `SantaPanel` à droite de la connexion (sapin, neige, « Organiser »
+= mode inscription + intention, « Voir un exemple ») ; téléphone et tablette = carte sous le formulaire vers `/pere-noel`. Compteurs `pere_noel` (visites) et `funnel_cta_santa`. Visuels
 Instagram : `~/Desktop/01-EvLY/03_Marketing/03_Reseaux_sociaux/Instagram - Père Noël secret/` (LISEZMOI, un .txt par visuel).
 **Provenance des visiteurs** (même date, `lib/source.ts` client, `SOURCES` / `countSourceSignup` de `lib/funnel.ts`) : un lien `?src=` de la
 liste fermée (instagram, tiktok, facebook, whatsapp, email, affiche, partenaire) compte une visite `src_<source>` par session et garde la
