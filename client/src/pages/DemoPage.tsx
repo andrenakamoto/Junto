@@ -25,8 +25,13 @@ async function showcasePath(key: string | null): Promise<string> {
   }
 }
 
+// Une seule fois par chargement : une seconde redirection (effet relancé) couperait le chargement de la démo
+let started = false;
+
 export function DemoPage() {
   useEffect(() => {
+    if (started) return;
+    started = true;
     countStep('funnel_demo');
     startDemo();
     showcasePath(new URLSearchParams(window.location.search).get('voir')).then(path => window.location.replace(path));

@@ -23,7 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Démo sans compte (lib/demo.ts) : session fictive d'Alex, rien n'est envoyé au serveur
+    // Démo sans compte (lib/demo.ts) : session fictive d'Alex, rien n'est envoyé au serveur. Sur /demo même, rien :
+    // la page redirige aussitôt, et un chargement interrompu par la redirection ferait quitter la démo.
+    if (window.location.pathname === '/demo') { setLoading(false); return; }
     if (isDemo()) {
       loadDemo()
         .then(() => api.get('/auth/me'))
