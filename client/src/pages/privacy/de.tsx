@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 25. Oktober 2026',
+  version: 'Fassung vom 29. Oktober 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -189,6 +189,9 @@ const de: PrivacyText = {
         Vorstellungsseite werden bereits bei EvLY angemeldete Personen nicht gezählt. Ebenso werden einige Schritte der
         Registrierung (Klick auf «Konto erstellen» oder «Einen Ausflug organisieren», erstellter oder geteilter Ausflug,
         Registrierung, Bestätigung der E-Mail, erster Plan) als Tagestotale gezählt, ohne zu wissen, wer sie gemacht hat.
+        Kommst du über einen Kampagnen-Link (zum Beispiel evly.ch/pere-noel?src=instagram), wird der Name der Quelle (Instagram,
+        Plakat …) 30 Tage nur auf deinem Gerät gespeichert; erstellst du ein Konto, zählt eine Registrierung zum Total dieser Quelle,
+        ebenfalls ohne zu wissen, wer du bist.
       </p>
     </Section>
 

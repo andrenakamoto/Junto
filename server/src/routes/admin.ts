@@ -18,7 +18,7 @@ import { destroyFiles } from '../lib/storage';
 import { notifyUser } from '../lib/push';
 import { isSuggestionStatus, NOTIFIED_STATUSES, SUGGESTION_REPLY_MAX } from '../lib/suggestions';
 
-import { FUNNEL_STEPS } from '../lib/funnel';
+import { FUNNEL_STEPS, SOURCES, SOURCE_LABELS } from '../lib/funnel';
 const router = Router();
 router.use(requireAuth as any);
 router.use(requireAdmin as any);
@@ -149,6 +149,18 @@ router.get('/funnel', async (_req, res) => {
     const sum = (from?: Date) => mine.filter(r => !from || r.day >= from).reduce((n, r) => n + r.count, 0);
     return { page: s.page, label: s.label, last7: sum(since7), last30: sum(since30), total: sum() };
   }));
+});
+
+// GET /admin/sources — provenance des visiteurs (lib/funnel.ts) : visites et inscriptions par source
+router.get('/sources', async (_req, res) => {
+  const since30 = new Date(visitDay().getTime() - 29 * 864e5);
+  const rows = await prisma.pageVisit.findMany({ where: { page: { startsWith: 'src_' } } });
+  const sum = (page: string, from?: Date) => rows.filter(r => r.page === page && (!from || r.day >= from)).reduce((n, r) => n + r.count, 0);
+  res.json(SOURCES.map(s => ({
+    source: s, label: SOURCE_LABELS[s],
+    visits30: sum(`src_${s}`, since30), visits: sum(`src_${s}`),
+    signups30: sum(`src_${s}_signup`, since30), signups: sum(`src_${s}_signup`),
+  })));
 });
 
 // GET /admin/plan-kinds — Plans créés par type (« Plan standard » ou « Plan spécifique ») : 30 jours, total, en cours

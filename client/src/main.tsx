@@ -6,6 +6,9 @@ import { UpdateBanner } from './components/ui/UpdateBanner';
 import { OfflineBanner } from './components/ui/OfflineBanner';
 import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
+import { captureSource } from './lib/source';
+
+captureSource();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

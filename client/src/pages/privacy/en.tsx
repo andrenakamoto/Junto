@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 25 October 2026',
+  version: 'Version of 29 October 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -177,6 +177,9 @@ const en: PrivacyText = {
         page, people already logged in to EvLY are not counted. Likewise, a few sign-up steps (clicking “Create my
         account” or “Organise an outing”, outing created or shared, registration, email confirmation, first Plan) are
         counted as daily totals, without knowing who took them.
+        If you arrive through a campaign link (for example evly.ch/pere-noel?src=instagram), the name of the source (Instagram,
+        poster…) is kept for 30 days on your device only, and if you create an account, one sign-up is added to that source’s
+        total, still without knowing who you are.
       </p>
     </Section>
 

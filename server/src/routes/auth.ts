@@ -15,7 +15,7 @@ import { deleteUserAccount } from '../lib/accountDeletion';
 import { sendPasswordReset } from '../lib/passwordReset';
 import { validatePseudo, isPseudoTaken } from '../lib/pseudo';
 import { absorbLightUser, readLightUser } from '../lib/lightGuest';
-import { countFunnel } from '../lib/funnel';
+import { countFunnel, countSourceSignup } from '../lib/funnel';
 import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailChange } from '../lib/emailChange';
 
 const router = Router();
@@ -193,6 +193,7 @@ router.post('/register', registerLimiter, async (req, res) => {
 
     await sendVerificationEmail(emailLower, pseudo, verifyToken, requestLocale(req));
     countFunnel('funnel_register');
+    if (!light) countSourceSignup(req.body.src);
     res.json({ pendingVerification: true, user: safeUser(user) });
   } catch (e) {
     console.error('[register]', e);
@@ -327,6 +328,7 @@ router.post('/google', loginLimiter, async (req, res) => {
           locale: localeFromHeader(req.headers['accept-language']),
         },
       });
+      countSourceSignup(req.body.src);
     }
 
     if (user.status === 'rejected') {

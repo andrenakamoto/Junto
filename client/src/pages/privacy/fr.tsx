@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 25 octobre 2026',
+  version: 'Version du 29 octobre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -198,7 +198,9 @@ const fr: PrivacyText = {
         connectées à EvLY ne sont pas comptées. De la même façon, quelques étapes de l'inscription
         (clic sur « Créer mon compte » ou « Organiser une sortie », sortie créée ou partagée,
         inscription, validation de l'email, premier Plan) sont comptées en totaux par jour, sans
-        savoir qui les a faites.
+        savoir qui les a faites. Quand tu arrives par un lien de campagne (par exemple evly.ch/pere-noel?src=instagram),
+        le nom de la source (Instagram, affiche…) est gardé 30 jours sur ton appareil seulement, et si tu crées ton compte,
+        une inscription est ajoutée au total de cette source, toujours sans savoir qui tu es.
       </p>
     </Section>
 

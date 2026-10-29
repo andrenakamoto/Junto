@@ -12,7 +12,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 25 ottobre 2026',
+  version: 'Versione del 29 ottobre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -182,6 +182,9 @@ const it: PrivacyText = {
         identificativo. Sulla pagina di presentazione, le persone già connesse a EvLY non sono contate. Allo stesso modo,
         alcune tappe dell’iscrizione (clic su «Crea il mio account» o «Organizza un’uscita», uscita creata o condivisa,
         iscrizione, conferma dell’email, primo Plan) sono contate in totali giornalieri, senza sapere chi le ha fatte.
+        Se arrivi da un link di una campagna (per esempio evly.ch/pere-noel?src=instagram), il nome della fonte (Instagram,
+        manifesto…) è conservato per 30 giorni solo sul tuo dispositivo e, se crei il tuo account, un’iscrizione è aggiunta al
+        totale di quella fonte, sempre senza sapere chi sei.
       </p>
     </Section>
 
