@@ -1,5 +1,6 @@
 // Données fictives de la démo du site (/demo), à lancer sur une BASE JETABLE (voir LISEZMOI.md).
-// Refaite le 2026-10-17 : 7 Cercles, un par type d'utilisateur, et des Plans qui montrent toutes les fonctions.
+// Refaite le 2026-10-17, réduite le 2026-10-29 à 4 Cercles (copains, famille, collègues, association) : moins de choix à
+// l'arrivée, les Plans les plus parlants des anciens Cercles (danse, boxe, comité) repris par l'association.
 // Alex (la personne de la démo) est membre de tous les Cercles.
 process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:55432/evly_test';
 const { PrismaClient } = require('@prisma/client'); const jwt = require('jsonwebtoken'); const { io } = require('socket.io-client'); const fs = require('fs');
@@ -11,8 +12,8 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
 (async () => {
   await prisma.user.create({ data: { pseudo: 'admin_demo', email: 'admin@demo.test', emailVerified: true, isAdmin: true, acceptedTermsVersion: 99 } });
   const people = [['alex', 'Alex'], ['lea_m', 'Léa'], ['tom_b', 'Tom'], ['julie_r', 'Julie'], ['noah_p', 'Noah'], ['emma_v', 'Emma'], ['lucas_d', 'Lucas'], ['chloe_s', 'Chloé'], ['max_g', 'Maxime'],
-    ['sarah_k', 'Sarah'], ['marc_l', 'Marc'], ['ines_b', 'Inès'], ['karim_a', 'Karim'], ['nadia_f', 'Nadia'], ['paul_r', 'Paul'], ['zoe_m', 'Zoé'],
-    ['sofia_g', 'Sofia'], ['hugo_t', 'Hugo'], ['manon_c', 'Manon'], ['yann_k', 'Yann'], ['elena_r', 'Elena'], ['marco_p', 'Marco'], ['sophie_d', 'Sophie'],
+    ['sarah_k', 'Sarah'], ['marc_l', 'Marc'], ['nadia_f', 'Nadia'], ['paul_r', 'Paul'], ['zoe_m', 'Zoé'],
+    ['sofia_g', 'Sofia'], ['hugo_t', 'Hugo'], ['yann_k', 'Yann'], ['sophie_d', 'Sophie'],
     ['pierre_r', 'Pierre'], ['monique_r', 'Monique'], ['nathalie_r', 'Nathalie'], ['leo_r', 'Léo']];
   const U = {};
   for (const [pseudo, firstName] of people) U[pseudo] = await prisma.user.create({ data: { pseudo, firstName, email: `${pseudo}@exemple.test`, emailVerified: true, acceptedTermsVersion: 99 } });
@@ -20,24 +21,18 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   const pseudoOf = id => Object.keys(U).find(k => U[k].id === id);
 
   // Cercles (créés directement : les adhésions passeraient sinon par un vote). Discussion ouverte partout.
-  let code = 0;
-  const circle = (name, description, color, creator, members, organizers = []) => prisma.circle.create({ data: {
-    name, description, color, code: `DEMO${++code}X`, creatorId: U[creator].id, chatMode: 'open',
+  // Codes fixes : la démo (client/src/lib/demo.ts) reconnaît les Cercles à leur code (discussion, photo)
+  const circle = (code, name, description, color, creator, members, organizers = []) => prisma.circle.create({ data: {
+    name, description, color, code, creatorId: U[creator].id, chatMode: 'open',
     members: { create: [creator, ...members].map(p => ({ userId: U[p].id, role: p === creator ? 'admin' : organizers.includes(p) ? 'organizer' : 'member' })) } } });
-  const danse = await circle('Studio Danse Arc-en-Ciel', 'Cours de salsa, bachata et hip-hop pour adultes et ados 💃', '#ec4899', 'ines_b',
-    ['alex', 'sofia_g', 'hugo_t', 'manon_c', 'yann_k', 'elena_r', 'marco_p', 'chloe_s', 'lucas_d', 'lea_m', 'emma_v']);
-  const boxe = await circle('Boxing Club du Rhône', 'Boxe anglaise, cours débutants et compétition 🥊', '#f43f5e', 'karim_a',
-    ['alex', 'noah_p', 'tom_b', 'max_g', 'yann_k', 'sofia_g', 'marc_l', 'hugo_t', 'lucas_d'], ['marc_l']);
-  const jeu = await circle('Association Jeunesse de Montvert', 'Soirées, lotos, sorties et girons 🎉', '#f59e0b', 'lea_m',
-    ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g'], ['alex']);
-  const col = await circle('Best collègues', 'Pauses café, afterworks et sorties d’équipe ☕', '#8b5cf6', 'sarah_k',
+  const jeu = await circle('DEMO3X', 'Association Jeunesse de Montvert', 'Soirées, foot, fête du village et sorties 🎉', '#f59e0b', 'lea_m',
+    ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g', 'nadia_f', 'paul_r', 'zoe_m', 'hugo_t', 'sofia_g', 'yann_k'], ['alex', 'nadia_f']);
+  const col = await circle('DEMO4X', 'Best collègues', 'Pauses café, afterworks et sorties d’équipe ☕', '#8b5cf6', 'sarah_k',
     ['alex', 'marc_l', 'paul_r', 'zoe_m', 'sophie_d']);
-  const fam = await circle('Famille Rochat', 'Anniversaires, Noël et vacances en famille 🏡', '#10b981', 'julie_r',
+  const fam = await circle('DEMO5X', 'Famille Rochat', 'Anniversaires, Noël et vacances en famille 🏡', '#10b981', 'julie_r',
     ['alex', 'pierre_r', 'monique_r', 'nathalie_r', 'leo_r']);
-  const cop = await circle('Les copains', 'Apéros, anniversaires et week-ends', '#06b6d4', 'alex',
+  const cop = await circle('DEMO6X', 'Les copains', 'Apéros, anniversaires et week-ends', '#06b6d4', 'alex',
     ['tom_b', 'emma_v', 'noah_p', 'lucas_d', 'chloe_s', 'julie_r']);
-  const evt = await circle('Team events', 'Le comité qui organise la fête du village et la course 🎪', '#14b8a6', 'nadia_f',
-    ['alex', 'paul_r', 'zoe_m', 'hugo_t', 'lea_m', 'emma_v'], ['alex']);
 
   const mk = (c, who, body) => call('POST', `/circles/${c.id}/plans`, body, T[who]);
   const join = async (plan, list) => { for (const entry of list) { const [p, rsvp] = Array.isArray(entry) ? entry : [entry, 'in']; await call('POST', `/plans/${plan.id}/join`, {}, T[p]); if (rsvp !== 'in') await call('PUT', `/plans/${plan.id}/rsvp`, { rsvp }, T[p]); } };
@@ -45,67 +40,12 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   const items = async (plan, who, list) => { for (const [label, taker, quantity] of list) { const it = await call('POST', `/plans/${plan.id}/items`, { label, quantity }, T[who]); if (taker) await call('PUT', `/plans/items/${it.id}/claim`, {}, T[taker]); } };
   const guests = async (plan, who, list) => { const { token } = await call('POST', `/plans/${plan.id}/guest-link`, {}, T[who]); for (const [firstName, rsvp] of list) await call('POST', `/invite/${token}/respond`, { firstName, rsvp }); };
 
-  // ───────── Studio Danse Arc-en-Ciel (Inès, professeure) ─────────
-  const salsa = await mk(danse, 'ines_b', { title: 'Salsa débutants 💃', description: 'Cours hebdomadaire, 1 h 30. Pas besoin de venir en couple, on tourne les partenaires.', eventDate: at(3, 19), endDate: at(3, 20, 30),
-    location: 'Studio Arc-en-Ciel, rue des Lilas 12', recurrence: 'weekly', maxParticipants: 8 });
-  await join(salsa, ['sofia_g', 'hugo_t', 'manon_c', 'yann_k', 'elena_r', 'marco_p', 'chloe_s']);
-  for (const p of ['lucas_d', 'emma_v', 'alex']) await call('POST', `/plans/${salsa.id}/waitlist`, {}, T[p]);
-  const bachata = await mk(danse, 'ines_b', { title: 'Bachata intermédiaire', description: 'Figures et musicalité. Niveau : 1 an de bachata ou plus.', eventDate: at(4, 20), endDate: at(4, 21, 30),
-    location: 'Studio Arc-en-Ciel, rue des Lilas 12', recurrence: 'weekly', maxParticipants: 12 });
-  await join(bachata, ['sofia_g', 'hugo_t', 'manon_c', 'yann_k', 'elena_r', 'marco_p', 'lea_m', 'alex']);
-  const couples = await call('POST', `/plans/${bachata.id}/polls`, { question: 'Pour équilibrer les couples : tu es…', options: ['Homme', 'Femme'], anonymous: false }, T.ines_b);
-  for (const [p, i] of [['hugo_t', 0], ['yann_k', 0], ['marco_p', 0], ['sofia_g', 1], ['manon_c', 1], ['elena_r', 1], ['lea_m', 1]]) await call('POST', `/plans/polls/${couples.options[i].id}/vote`, {}, T[p]);
-  const stage = await mk(danse, 'ines_b', { title: 'Stage hip-hop du week-end', description: 'Deux jours pour apprendre une chorégraphie complète, ouverts dès 14 ans.', eventDate: at(13, 10), endDate: at(14, 17),
-    location: 'Studio Arc-en-Ciel, grande salle', importantInfo: 'Tenue souple et baskets propres pour la salle.\nPique-nique pour samedi midi.\nPetit spectacle dimanche à 16 h 30 : les familles sont bienvenues !' });
-  await join(stage, ['manon_c', 'hugo_t', 'chloe_s', 'emma_v', ['alex', 'maybe']]);
-  await upload(stage.id, 'ines_b', 'programme-stage.png');
-  const gala = await mk(danse, 'ines_b', { title: 'Gala de fin d’année ✨', description: 'Le spectacle de tous les cours du studio. Entrée libre, chapeau à la sortie.', eventDate: at(30, 20), endDate: at(30, 23, 30),
-    location: 'Salle des fêtes de Montvert', maxParticipants: 150, disabledFeatures: ANNONCE_OFF, membersVisibility: 'managers' });
-  await upload(gala.id, 'ines_b', 'affiche-gala.png', 'affiche');
-  await join(gala, ['sofia_g', 'hugo_t', 'manon_c', 'elena_r', 'marco_p', 'lea_m', 'emma_v', 'alex']);
-
-  // ───────── Boxing Club du Rhône (Karim, entraîneur) ─────────
-  const boxing = await mk(boxe, 'karim_a', { title: 'Entraînement boxe anglaise 🥊', description: 'Échauffement, technique, sac et sparring léger. Gants et protège-dents obligatoires.', eventDate: at(2, 18), endDate: at(2, 19, 30),
-    location: 'Salle du Bord-de-l’Eau', recurrence: 'weekly', maxParticipants: 14 });
-  await join(boxing, ['noah_p', 'tom_b', 'max_g', 'yann_k', 'sofia_g', 'hugo_t', 'alex', ['lucas_d', 'maybe']]);
-  const trophee = await mk(boxe, 'karim_a', { title: 'Trophée du Rhône 🏆', description: 'Notre tournoi amateur : 24 combats sur deux jours. On a besoin de vous pour l’organisation !', eventDate: at(20, 8), endDate: at(21, 20),
-    location: 'Salle omnisport du Bord-de-l’Eau', enabledFeatures: ['benevoles'], importantInfo: 'Bénévoles : t-shirt du club fourni, rendez-vous à l’entrée des artistes.\nRepas offert aux bénévoles à midi.' });
-  await upload(trophee.id, 'karim_a', 'affiche-boxe.png', 'affiche');
-  const tShift = (title, d, h0, h1, needed, note) => call('POST', `/plans/${trophee.id}/shifts`, { title, needed, note, startsAt: at(20 + d, h0), endsAt: at(20 + d, h1) }, T.karim_a);
-  await tShift('Pesée des boxeurs', 0, 8, 9, 0, 'Programme : pesée officielle');
-  const tRing = await tShift('Montage du ring', 0, 7, 9, 4, 'Gants de travail fournis');
-  const tAccueil = await tShift('Accueil et billetterie', 0, 9, 13, 2, null);
-  const tBuvette = await tShift('Buvette', 0, 11, 18, 3, 'Tablier du club fourni');
-  const tJuges = await tShift('Table des juges et chronométrage', 1, 9, 18, 2, 'Formation de 15 min le matin');
-  const tRange = await tShift('Démontage et rangement', 1, 17, 20, 5, null);
-  for (const [s, who] of [[tRing, ['karim_a', 'noah_p', 'max_g']], [tAccueil, ['sofia_g']], [tBuvette, ['tom_b', 'hugo_t']], [tJuges, ['marc_l', 'yann_k']], [tRange, ['noah_p']]])
-    for (const p of who) await call('POST', `/plans/shifts/${s.id}/signup`, {}, T[p]);
-  // Assemblée générale du club : ouverte, comptes adoptés, vote en cours — Alex vote pour lui et pour Yann (procuration)
-  const agBoxe = await mk(boxe, 'karim_a', { title: 'Assemblée générale 2026', description: 'AG ordinaire du club. Verrée offerte après la séance 🥂', eventDate: at(0, 19, 30), endDate: at(6, 23),
-    location: 'Club-house du Boxing Club', enabledFeatures: ['assemblee'] });
-  await join(agBoxe, ['alex', 'noah_p', 'tom_b', 'max_g', 'sofia_g', 'marc_l', 'hugo_t', 'lucas_d', ['yann_k', 'out']]);
-  const AGB = `/plans/${agBoxe.id}/assembly`;
-  await call('PUT', AGB, { quorumMode: 'count', quorumValue: 6, codeCheckIn: true, secretaryId: U.marc_l.id }, T.karim_a);
-  const agbItem = async body => (await call('POST', `${AGB}/items`, body, T.karim_a)).id;
-  const bRapport = await agbItem({ title: 'Rapport du président', kind: 'info', description: 'Bilan de la saison : 3 titres régionaux, 12 nouveaux membres et un Trophée record.' });
-  const bComptes = await agbItem({ title: 'Approbation des comptes 2025-2026', kind: 'vote', majority: 'simple', description: 'Bénéfice de 2 380 CHF, surtout grâce au Trophée du Rhône.' });
-  const bGants = await agbItem({ title: 'Achat de gants pour l’école de boxe : 1 500 CHF', kind: 'vote', majority: 'simple', secret: true, description: 'Proposition du comité : renouveler le matériel des débutants.' });
-  const bComite = await agbItem({ title: 'Élection du comité', kind: 'election', seats: 2, description: 'Deux sièges à repourvoir.' });
-  await agbItem({ title: 'Divers', kind: 'info' });
-  for (const p of ['noah_p', 'sofia_g', 'max_g']) await call('POST', `/plans/assembly/items/${bComite}/candidates`, { userId: U[p].id }, T.karim_a);
-  await call('POST', `${AGB}/proxy`, { holderId: U.alex.id }, T.yann_k);
-  await call('POST', `${AGB}/convoke`, {}, T.karim_a);
-  await call('POST', `${AGB}/open`, {}, T.karim_a);
-  for (const p of ['karim_a', 'alex', 'noah_p', 'tom_b', 'max_g', 'sofia_g', 'marc_l', 'hugo_t', 'lucas_d']) await call('PUT', `${AGB}/attendance/${U[p].id}`, { present: true }, T.karim_a);
-  await call('PUT', `/plans/assembly/items/${bRapport}/notes`, { notes: 'Le président remercie les entraîneurs et les bénévoles du Trophée. Applaudissements.' }, T.marc_l);
-  await call('POST', `/plans/assembly/items/${bComptes}/open`, {}, T.karim_a);
-  for (const [p, ch] of [['karim_a', 'yes'], ['noah_p', 'yes'], ['tom_b', 'yes'], ['max_g', 'yes'], ['sofia_g', 'yes'], ['marc_l', 'yes'], ['hugo_t', 'abstain'], ['lucas_d', 'yes']]) await call('POST', `/plans/assembly/items/${bComptes}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
-  await call('POST', `/plans/assembly/items/${bComptes}/vote`, { votes: [{ onBehalfOfId: U.alex.id, choice: 'yes' }, { onBehalfOfId: U.yann_k.id, choice: 'yes' }] }, T.alex);
-  await call('POST', `/plans/assembly/items/${bComptes}/close`, {}, T.karim_a);
-  await call('POST', `/plans/assembly/items/${bGants}/open`, {}, T.karim_a);
-  for (const [p, ch] of [['karim_a', 'yes'], ['noah_p', 'yes'], ['tom_b', 'no'], ['sofia_g', 'yes']]) await call('POST', `/plans/assembly/items/${bGants}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
-
-  // ───────── Association Jeunesse de Montvert (Léa présidente, Alex organisateur) ─────────
+  // ───────── Association Jeunesse de Montvert (Léa présidente, Alex et Nadia organisateurs) ─────────
+  // Foot du jeudi : chaque semaine, complet, liste d'attente (et en silence pour Alex, voir plus bas)
+  const foot = await mk(jeu, 'tom_b', { title: 'Foot de la semaine ⚽', description: 'Match amical à 5 contre 5. Chasubles fournies, on tourne les équipes.', eventDate: at(2, 19), endDate: at(2, 20, 30),
+    location: 'Terrain synthétique de Montvert', recurrence: 'weekly', maxParticipants: 10 });
+  await join(foot, ['alex', 'noah_p', 'max_g', 'yann_k', 'hugo_t', 'lucas_d', 'paul_r', 'sofia_g', 'zoe_m']);
+  for (const p of ['emma_v', 'chloe_s']) await call('POST', `/plans/${foot.id}/waitlist`, {}, T[p]);
   const petanque = await mk(jeu, 'lea_m', { title: 'Tournoi de pétanque 🥇', description: 'Doublettes tirées au sort, championnat sur l’après-midi. Grillades ensuite !', eventDate: at(9, 14), endDate: at(9, 22),
     location: 'Place de la Fontaine, Montvert', enabledFeatures: ['equipes'] });
   await join(petanque, ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g']);
@@ -149,17 +89,31 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   await call('POST', `/rides/plan/${europa.id}`, { departure: 'Gare de Sion', seats: 3, departureAt: at(25, 6, 15) }, T.julie_r);
   for (const p of ['tom_b', 'emma_v']) await call('POST', `/rides/${er1.id}/join`, {}, T[p]);
   await call('POST', `/rides/plan/${europa.id}/request`, { fromLocation: 'Sierre' }, T.chloe_s);
-  // Assemblée générale de printemps : convoquée, pas encore ouverte (ordre du jour, procurations)
-  const agJeu = await mk(jeu, 'lea_m', { title: 'Assemblée générale de printemps', description: 'Ordre du jour ci-dessous. Si tu ne peux pas venir, donne ta procuration dans l’app.', eventDate: at(18, 19, 30), endDate: at(18, 23),
+  // Assemblée générale : ouverte, comptes adoptés, vote à bulletin secret en cours — Alex vote pour lui et pour Yann (procuration)
+  const agJeu = await mk(jeu, 'lea_m', { title: 'Assemblée générale 2026', description: 'AG ordinaire de la jeunesse. Verrée offerte après la séance 🥂', eventDate: at(0, 19, 30), endDate: at(6, 23),
     location: 'Salle communale de Montvert', enabledFeatures: ['assemblee'] });
-  await join(agJeu, ['alex', 'tom_b', 'julie_r', 'noah_p', ['emma_v', 'maybe'], ['max_g', 'out']]);
+  await join(agJeu, ['alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g', 'nadia_f', 'paul_r', 'zoe_m', ['yann_k', 'out']]);
   const AGJ = `/plans/${agJeu.id}/assembly`;
-  await call('PUT', AGJ, { quorumMode: 'percent', quorumValue: 50, secretaryId: U.julie_r.id }, T.lea_m);
-  for (const body of [{ title: 'Accueil et liste de présence', kind: 'info' }, { title: 'Rapport de la présidente', kind: 'info', description: 'Bilan de l’hiver : loto, sortie ski et soirée quiz.' },
-    { title: 'Budget de la fête du village', kind: 'vote', majority: 'simple', description: 'Proposition : 3 000 CHF, à partager avec la Team events.' },
-    { title: 'Nouveau caissier ou nouvelle caissière', kind: 'election', seats: 1 }, { title: 'Divers', kind: 'info' }]) await call('POST', `${AGJ}/items`, body, T.lea_m);
-  await call('POST', `${AGJ}/proxy`, { holderId: U.julie_r.id }, T.max_g);
+  await call('PUT', AGJ, { quorumMode: 'count', quorumValue: 8, codeCheckIn: true, secretaryId: U.julie_r.id }, T.lea_m);
+  const agItem = async body => (await call('POST', `${AGJ}/items`, body, T.lea_m)).id;
+  const iRapport = await agItem({ title: 'Rapport de la présidente', kind: 'info', description: 'Bilan de l’année : loto, sortie ski, soirée quiz et 6 nouveaux membres.' });
+  const iComptes = await agItem({ title: 'Approbation des comptes 2025-2026', kind: 'vote', majority: 'simple', description: 'Bénéfice de 1 840 CHF, surtout grâce au loto et à la buvette de la fête.' });
+  const iBudget = await agItem({ title: 'Budget de la fête du village : 3 000 CHF', kind: 'vote', majority: 'simple', secret: true, description: 'Proposition du comité : marché, grillades et concert de la fanfare.' });
+  const iComite = await agItem({ title: 'Élection du comité', kind: 'election', seats: 2, description: 'Deux sièges à repourvoir.' });
+  await agItem({ title: 'Divers', kind: 'info' });
+  for (const p of ['noah_p', 'emma_v', 'max_g']) await call('POST', `/plans/assembly/items/${iComite}/candidates`, { userId: U[p].id }, T.lea_m);
+  await call('POST', `${AGJ}/proxy`, { holderId: U.alex.id }, T.yann_k);
   await call('POST', `${AGJ}/convoke`, {}, T.lea_m);
+  await call('POST', `${AGJ}/open`, {}, T.lea_m);
+  const agPresent = ['lea_m', 'alex', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lucas_d', 'chloe_s', 'max_g', 'nadia_f', 'paul_r', 'zoe_m'];
+  for (const p of agPresent) await call('PUT', `${AGJ}/attendance/${U[p].id}`, { present: true }, T.lea_m);
+  await call('PUT', `/plans/assembly/items/${iRapport}/notes`, { notes: 'La présidente remercie les bénévoles de la fête et du loto. Applaudissements.' }, T.julie_r);
+  await call('POST', `/plans/assembly/items/${iComptes}/open`, {}, T.lea_m);
+  for (const p of agPresent.filter(p => p !== 'alex')) await call('POST', `/plans/assembly/items/${iComptes}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: p === 'max_g' ? 'abstain' : 'yes' }] }, T[p]);
+  await call('POST', `/plans/assembly/items/${iComptes}/vote`, { votes: [{ onBehalfOfId: U.alex.id, choice: 'yes' }, { onBehalfOfId: U.yann_k.id, choice: 'yes' }] }, T.alex);
+  await call('POST', `/plans/assembly/items/${iComptes}/close`, {}, T.lea_m);
+  await call('POST', `/plans/assembly/items/${iBudget}/open`, {}, T.lea_m);
+  for (const [p, ch] of [['lea_m', 'yes'], ['tom_b', 'yes'], ['noah_p', 'no'], ['nadia_f', 'yes'], ['paul_r', 'yes']]) await call('POST', `/plans/assembly/items/${iBudget}/vote`, { votes: [{ onBehalfOfId: U[p].id, choice: ch }] }, T[p]);
 
   // ───────── Best collègues (Sarah) ─────────
   const afterwork = await mk(col, 'alex', { title: 'Afterwork de fin de mois 🍻', description: 'On fête la fin du projet ! Le lieu se choisit avec le match dans l’onglet Votes 👇', eventDate: at(5, 18), endDate: at(5, 23, 30), location: 'À choisir avec le match' });
@@ -201,7 +155,7 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   await join(mamie, ['pierre_r', 'nathalie_r', 'leo_r', 'alex']);
   await items(mamie, 'julie_r', [['Gâteau d’anniversaire', 'nathalie_r'], ['Album photo souvenir', 'julie_r'], ['Bouquet de fleurs', null], ['Champagne', 'alex', '3 bouteilles'], ['Bougies 8 et 0', 'leo_r']]);
   const ph = await upload(mamie.id, 'pierre_r', 'lac.png', 'chat');
-  const sock = {}; for (const p of ['chloe_s', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lea_m', 'lucas_d', 'pierre_r', 'nathalie_r', 'leo_r', 'ines_b', 'karim_a', 'sofia_g', 'nadia_f', 'paul_r', 'zoe_m', 'sarah_k', 'marc_l', 'hugo_t']) sock[p] = io('http://localhost:3999', { auth: { token: T[p] }, transports: ['websocket'] });
+  const sock = {}; for (const p of ['chloe_s', 'tom_b', 'julie_r', 'noah_p', 'emma_v', 'lea_m', 'lucas_d', 'pierre_r', 'nathalie_r', 'leo_r', 'sofia_g', 'nadia_f', 'paul_r', 'zoe_m', 'sarah_k', 'marc_l', 'hugo_t']) sock[p] = io('http://localhost:3999', { auth: { token: T[p] }, transports: ['websocket'] });
   await sleep(1200);
   const chat = async (planId, listener, lines) => {
     sock[listener].emit('join-plan', planId); await sleep(300);
@@ -323,9 +277,9 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   const pot = await call('GET', `/plans/${anniv.id}/pot`, null, T.alex);
   await call('POST', `/plans/${anniv.id}/pot/ideas/${pot.ideas.find(i => i.text.includes('parapente')).id}/vote`, {}, T.noah_p);
 
-  // ───────── Team events (Nadia, Alex organisateur) ─────────
-  const fete = await mk(evt, 'alex', { title: 'Fête du village de Montvert 🎪', description: 'Organisée avec l’Association Jeunesse de Montvert : marché, grillades, concert de la fanfare et démonstration de danse.', eventDate: at(32, 11), endDate: at(32, 23, 59),
-    location: 'Place de la Fontaine, Montvert', enabledFeatures: ['benevoles'], extraCircleIds: [jeu.id], importantInfo: 'Bénévoles : rendez-vous à 9 h à l’accueil pour le montage.\nGilet orange fourni.' });
+  // ───────── Jeunesse de Montvert, suite : la fête du village et la course (Nadia et Alex organisent) ─────────
+  const fete = await mk(jeu, 'alex', { title: 'Fête du village de Montvert 🎪', description: 'Organisée par la jeunesse : marché, grillades, concert de la fanfare et démonstration de danse.', eventDate: at(32, 11), endDate: at(32, 23, 59),
+    location: 'Place de la Fontaine, Montvert', enabledFeatures: ['benevoles'], importantInfo: 'Bénévoles : rendez-vous à 9 h à l’accueil pour le montage.\nGilet orange fourni.' });
   await upload(fete.id, 'alex', 'affiche-fete.png', 'affiche');
   await join(fete, ['nadia_f', 'paul_r', 'zoe_m', 'lea_m', 'tom_b', 'julie_r', 'emma_v', ['hugo_t', 'maybe']]);
   const fShift = (title, h0, h1, needed, note) => call('POST', `/plans/${fete.id}/shifts`, { title, needed, note, startsAt: at(32, h0), endsAt: at(32, h1) }, T.alex);
@@ -336,34 +290,17 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   const fRange = await fShift('Rangement de la place', 22, 24, 6, null);
   for (const [s, who] of [[fMontage, ['nadia_f', 'paul_r', 'tom_b']], [fGrill, ['lea_m', 'julie_r']], [fBuv, ['zoe_m', 'paul_r', 'emma_v']], [fRange, ['nadia_f']]])
     for (const p of who) await call('POST', `/plans/shifts/${s.id}/signup`, {}, T[p]);
-  const reunion = await mk(evt, 'nadia_f', { title: 'Réunion du comité', description: 'Dernière réunion avant la fête : stands, bénévoles, budget. Le plan du site est dans Infos.', eventDate: at(4, 19), endDate: at(4, 21),
-    location: 'Salle de la Tour, Montvert' });
-  await join(reunion, ['alex', 'paul_r', 'zoe_m', 'lea_m', ['hugo_t', 'out']]);
-  await upload(reunion.id, 'nadia_f', 'plan-du-site.png');
-  await chat(reunion.id, 'nadia_f', [
-    ['nadia_f', 'J’ai mis le plan du site dans Infos, dites-moi si on garde la buvette près de la fontaine 🗺️'],
-    ['paul_r', 'Ça me va. Il faudra une rallonge électrique de plus pour les grillades'],
-    ['zoe_m', 'Je m’occupe des affiches dans les commerces du village 📌'],
-  ]);
-  const course = await mk(evt, 'nadia_f', { title: 'Course populaire des 10 km 🏃', description: 'Course ouverte à tous, départ place de l’école. Inscription par le lien, avec ou sans compte EvLY.', eventDate: at(45, 9, 30), endDate: at(45, 13),
+  const course = await mk(jeu, 'nadia_f', { title: 'Course populaire des 10 km 🏃', description: 'Course ouverte à tous, départ place de l’école. Inscription par le lien, avec ou sans compte EvLY.', eventDate: at(45, 9, 30), endDate: at(45, 13),
     location: 'Place de l’école, Montvert', maxParticipants: 12, disabledFeatures: ANNONCE_OFF, membersVisibility: 'managers', importantInfo: 'Retrait des dossards dès 8 h 30.\nInscription : 20 CHF, à payer sur place.' });
   await upload(course.id, 'nadia_f', 'affiche-course.png', 'affiche');
   await join(course, ['paul_r', 'lea_m', 'emma_v', 'alex']);
   await guests(course, 'nadia_f', [['Bastien', 'in'], ['Laura', 'in'], ['Mehdi', 'in'], ['Anna', 'in'], ['Rémy', 'in'], ['Inès', 'in'], ['Jonas', 'in']]);
   for (const p of ['zoe_m', 'hugo_t']) await call('POST', `/plans/${course.id}/waitlist`, {}, T[p]);
-  const nextMeeting = await call('POST', `/circles/${evt.id}/polls`, { question: 'Réunion bilan après la fête', options: [
+  const nextMeeting = await call('POST', `/circles/${jeu.id}/polls`, { question: 'Réunion bilan après la fête', options: [
     { label: 'Lundi', eventDate: at(35, 19) }, { label: 'Mercredi', eventDate: at(37, 19) }] }, T.nadia_f);
   for (const [p, os] of [['nadia_f', [0, 1]], ['paul_r', [1]], ['zoe_m', [1]]]) for (const i of os) await call('POST', `/circles/polls/options/${nextMeeting.options[i].id}/vote`, {}, T[p]);
 
   // Chats de quelques Plans
-  await chat(boxing.id, 'karim_a', [
-    ['karim_a', 'Ce soir : travail au sac et sparring léger. Protège-dents obligatoire 🥊'],
-    ['noah_p', 'Je ramène les cordes à sauter du club'],
-  ]);
-  await chat(bachata.id, 'ines_b', [
-    ['ines_b', 'Il manque des hommes pour équilibrer les couples : répondez au sondage et invitez vos amis ! 🕺'],
-    ['sofia_g', 'Mon frère veut essayer, je l’amène jeudi 😊'],
-  ]);
   await chat(afterwork.id, 'sarah_k', [
     ['sarah_k', 'Super idée ! J’ai mis 4 propositions dans le match, à vous de jouer 😄'],
     ['marc_l', 'Je peux réserver dès qu’on a le lieu, j’ai le numéro de la brasserie 📞'],
@@ -374,6 +311,14 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
     ['emma_v', 'Je réserve ma place dans la voiture de Noah 🚗'],
   ]);
 
+  await chat(agJeu.id, 'lea_m', [
+    ['lea_m', 'Les comptes et le rapport sont dans l’onglet Assemblée. À ce soir !'],
+    ['paul_r', 'J’amène les gâteaux pour la verrée 🍰'],
+  ]);
+  await chat(foot.id, 'tom_b', [
+    ['tom_b', 'Complet pour ce match ! Si tu ne peux plus venir, mets « Je passe » : la personne en attente entre toute seule ⚽'],
+    ['noah_p', 'J’amène le ballon neuf'],
+  ]);
   await chat(quiz.id, 'lea_m', [
     ['lea_m', 'Bravo à tous, et surtout à @alex pour la victoire 🏆'],
     ['tom_b', 'Revanche le mois prochain 😤'],
@@ -393,28 +338,20 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
     ['lea_m', 'La jeunesse s’occupe du stand grillades, comme l’an passé 🍔'],
     ['paul_r', 'Je tiens la caisse de la buvette 💰'],
   ]);
-  await chat(agBoxe.id, 'karim_a', [
-    ['karim_a', 'Les comptes et le rapport sont dans l’onglet Assemblée. À ce soir !'],
-    ['sofia_g', 'Je serai là, j’amène les gâteaux pour la verrée 🍰'],
-  ]);
-  await chat(trophee.id, 'karim_a', [
-    ['karim_a', 'Le planning est en ligne : merci de vous inscrire dans l’onglet Planning 🥊'],
-    ['tom_b', 'Je prends la buvette le samedi 🍺'],
-  ]);
   // La soirée a eu lieu hier : Plan « Terminé », en lecture seule jusqu'à sa suppression
   await prisma.plan.update({ where: { id: quiz.id }, data: { eventDate: new Date(at(-1, 20)), endDate: new Date(at(0, 0, 30)) } });
   // Alex a presque tout vu ; quelques nouveautés restent (pastilles)
-  const all = [salsa, bachata, stage, gala, boxing, trophee, agBoxe, petanque, quiz, europa, agJeu, afterwork, depart, noelBureau, mamie, noelFam, tessin, raclette, chalet, concert, noel, anniv, fete, reunion, course];
+  const all = [foot, petanque, quiz, europa, agJeu, fete, course, afterwork, depart, noelBureau, mamie, noelFam, tessin, raclette, chalet, concert, noel, anniv];
   for (const plan of all) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
-  // Mode silencieux : l'entraînement (rendez-vous de chaque semaine) en silence
-  await call('PUT', '/mutes', { planId: boxing.id, muted: true }, T.alex);
+  // Mode silencieux : le foot (rendez-vous de chaque semaine) en silence
+  await call('PUT', '/mutes', { planId: foot.id, muted: true }, T.alex);
 
   fs.writeFileSync(__dirname + '/ids.json', JSON.stringify({
     alex: T.alex, alexId: U.alex.id, tom: T.tom_b,
-    circles: [danse.id, boxe.id, jeu.id, col.id, fam.id, cop.id, evt.id],
+    circles: [jeu.id, col.id, fam.id, cop.id],
     plans: all.map(p => p.id),
     santaPlans: [noel.id, noelBureau.id], matchPlans: [afterwork.id], matchViewers: { [afterwork.id]: T.sarah_k },
-    wheelPlans: [noelFam.id], assemblyPlans: [agBoxe.id, agJeu.id], killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id],
+    wheelPlans: [noelFam.id], assemblyPlans: [agJeu.id], killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id],
     potPlans: [anniv.id, depart.id], quizPlans: [quiz.id], transitPlans: { [tessin.id]: tessinConns, [concert.id]: concertConns },
   }));
   Object.values(sock).forEach(s => s.close());

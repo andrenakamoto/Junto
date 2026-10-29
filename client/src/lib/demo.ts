@@ -640,24 +640,15 @@ function recomputeStandings(st: any) {
   st.championId = st.matches.every((m: any) => m.homeScore != null) ? st.standings[0]?.teamId ?? null : null;
 }
 
-const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'ines_b', 'karim_a', 'nadia_f', 'zoe_m',
-  'sofia_g', 'hugo_t', 'manon_c', 'yann_k', 'elena_r', 'marco_p', 'sophie_d', 'pierre_r', 'monique_r', 'nathalie_r', 'leo_r'];
+const DEMO_AVATARS = ['alex', 'lea_m', 'tom_b', 'chloe_s', 'emma_v', 'lucas_d', 'noah_p', 'julie_r', 'sarah_k', 'marc_l', 'nadia_f', 'zoe_m',
+  'sofia_g', 'hugo_t', 'yann_k', 'sophie_d', 'pierre_r', 'monique_r', 'nathalie_r', 'leo_r'];
 
-// Discussion des Cercles (démo) : ouverte dans les 7 Cercles, en mémoire. Cercles reconnus par leur code
+// Discussion des Cercles (démo) : ouverte dans les 4 Cercles, en mémoire. Cercles reconnus par leur code
 // (server/scripts/demo-site/seed.js), les noms étant traduits.
 const CIRCLE_CHATS: Record<string, [string, string, number, [string, string][]?][]> = {
-  DEMO1X: [ // Studio Danse Arc-en-Ciel
-    ['ines_b', 'Les inscriptions au gala sont ouvertes : réservez vos places dans le Plan ✨', 30, [['👏', 'sofia_g'], ['❤️', 'manon_c']]],
-    ['sofia_g', 'Quelqu’un a la playlist du cours de bachata ? 🎶', 5],
-    ['marco_p', 'Je l’ai, je la mets ici ce soir 😉', 4],
-  ],
-  DEMO2X: [ // Boxing Club du Rhône
-    ['karim_a', 'Rappel : l’AG c’est ce soir à 19 h 30 au club-house. Venez nombreux ! 🥊', 8, [['👍', 'noah_p'], ['👍', 'tom_b']]],
-    ['marc_l', 'Pensez à donner votre procuration dans l’app si vous ne pouvez pas venir', 6],
-    ['noah_p', 'Qui vient courir dimanche matin au bord du Rhône ? 🏃', 2],
-  ],
   DEMO3X: [ // Association Jeunesse de Montvert
     ['lea_m', 'Merci à tous pour la soirée quiz, c’était génial ! 🧠🏆', 10, [['🎉', 'tom_b'], ['🎉', 'emma_v'], ['❤️', 'julie_r']]],
+    ['nadia_f', 'Les affiches de la fête sont prêtes, je les dépose dans les commerces 📌', 6, [['🙏', 'paul_r']]],
     ['tom_b', 'Il reste une place pour Europa-Park, qui la veut ? 🎢', 3],
     ['chloe_s', 'Moi peut-être, je confirme demain !', 2],
   ],
@@ -676,14 +667,10 @@ const CIRCLE_CHATS: Record<string, [string, string, number, [string, string][]?]
     ['julie_r', 'On y va un soir la semaine prochaine ?', 3, [['❤️', 'tom_b'], ['❤️', 'noah_p']]],
     ['noah_p', 'Chaud pour jeudi 😄 @alex tu viens ?', 1],
   ],
-  DEMO7X: [ // Team events
-    ['nadia_f', 'Les affiches de la fête sont imprimées, je les dépose au local 📌', 22, [['🙏', 'paul_r']]],
-    ['zoe_m', 'La boulangerie offre les croissants pour le montage 🥐', 4, [['😍', 'nadia_f'], ['👍', 'hugo_t']]],
-  ],
 };
 const demoChats = new Map<string, { mode: 'open' | 'announce'; seen: boolean; messages: any[] }>();
 // Photos des Cercles : illustrations liées à chaque Cercle (public/demo/circles, client/scripts/demo-circles.py)
-const DEMO_CIRCLE_PHOTOS = new Set(['DEMO1X', 'DEMO2X', 'DEMO3X', 'DEMO4X', 'DEMO5X', 'DEMO6X', 'DEMO7X']);
+const DEMO_CIRCLE_PHOTOS = new Set(['DEMO3X', 'DEMO4X', 'DEMO5X', 'DEMO6X']);
 
 function chatOf(circleId: string) {
   if (demoChats.size === 0) {

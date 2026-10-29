@@ -17,11 +17,11 @@ PEOPLE = {
     'alex': (0, 1, 0, 0, 'short', False), 'lea_m': (4, 3, 5, 5, 'long', False), 'tom_b': (1, 0, 1, 1, 'curly', False),
     'chloe_s': (0, 5, 4, 3, 'bun', True), 'emma_v': (2, 2, 3, 6, 'long', False), 'lucas_d': (5, 4, 2, 2, 'short', True),
     'noah_p': (3, 4, 6, 4, 'curly', False), 'julie_r': (4, 1, 7, 7, 'bob', False), 'sarah_k': (2, 0, 2, 5, 'long', True),
-    'marc_l': (0, 6, 1, 7, 'bald', True), 'ines_b': (5, 0, 4, 0, 'bun', False), 'karim_a': (3, 0, 3, 1, 'short', False),
+    'marc_l': (0, 6, 1, 7, 'bald', True),
     'nadia_f': (1, 5, 6, 3, 'bob', False), 'zoe_m': (4, 2, 0, 4, 'long', False),
-    # Démo refaite le 2026-10-17 : danse, boxe, famille Rochat, collègues
-    'sofia_g': (2, 0, 5, 5, 'bun', False), 'hugo_t': (0, 2, 1, 2, 'short', False), 'manon_c': (4, 3, 7, 0, 'long', False),
-    'yann_k': (1, 0, 3, 7, 'short', True), 'elena_r': (5, 0, 4, 6, 'curly', False), 'marco_p': (1, 1, 2, 1, 'curly', False),
+    # Démo refaite le 2026-10-17 (réduite à 4 Cercles le 2026-10-29) : famille Rochat, collègues
+    'sofia_g': (2, 0, 5, 5, 'bun', False), 'hugo_t': (0, 2, 1, 2, 'short', False),
+    'yann_k': (1, 0, 3, 7, 'short', True),
     'sophie_d': (0, 5, 6, 3, 'bob', True), 'pierre_r': (1, 6, 1, 7, 'bald', True), 'monique_r': (0, 6, 5, 5, 'bun', True),
     'nathalie_r': (4, 2, 0, 4, 'bob', False), 'leo_r': (0, 3, 6, 1, 'short', False),
 }
