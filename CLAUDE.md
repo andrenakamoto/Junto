@@ -1945,6 +1945,20 @@ par `demoAdapter` (GET /circles, `DEMO_CIRCLE_PHOTOS`). Nouvelles personnes : av
 tirage marche en mémoire (la personne tirée a des envies), le Père Noël d'Alex écrit 5 s après (`santaHello`). Les autres fonctions à
 activer d'un Plan créé (quiz, Killer, assemblée…) renvoient le message « pas disponible dans la démo ». Parcours filmé dans la vidéo 48.
 
+**Campagne « Père Noël secret »** (2026-10-29, page publique **`/pere-noel`** = `pages/SantaPage.tsx`, textes `i18n/<langue>/noel.ts`) :
+explique la fonction (étapes, fonctions, pour qui, FAQ) ; « Organiser mon Père Noël secret » mémorise l'intention sur l'appareil 7 jours
+(`lib/newPlanIntent.ts`, `evly_new_plan`, survit à la validation de l'email) puis envoie vers l'inscription (ou le tableau de bord) ;
+DashboardPage, **après l'acceptation des conditions**, ouvre `KindCircleChooser` (Cercles où l'on peut créer un Plan, ou « Avec un lien
+d'invitation » = Cercle personnel par POST `/circles/personal`) puis `CreatePlanModal` avec `kind` `pere_noel`. Page d'invitation
+(`/invitation`) d'un tel Plan sans compte : encadré « Pour participer au tirage, crée ton compte » (`santa` de GET `/api/invite/:token`).
+Lien saisonnier sur `AuthPage` (`santaSeason`, 25 oct. → 25 déc.). Compteurs `pere_noel` (visites) et `funnel_cta_santa`. Visuels
+Instagram : `~/Desktop/01-EvLY/03_Marketing/03_Reseaux_sociaux/Instagram - Père Noël secret/` (LISEZMOI, un .txt par visuel).
+**Provenance des visiteurs** (même date, `lib/source.ts` client, `SOURCES` / `countSourceSignup` de `lib/funnel.ts`) : un lien `?src=` de la
+liste fermée (instagram, tiktok, facebook, whatsapp, email, affiche, partenaire) compte une visite `src_<source>` par session et garde la
+source 30 jours sur l'appareil (`evly_src`) ; jointe à `/auth/register` et `/auth/google` (nouveau compte), elle compte
+`src_<source>_signup`. Panneau admin « Provenance des visiteurs » (`SourcesPanel`, GET `/admin/sources`, partie Statistiques). Politique de
+confidentialité (version du 29 octobre 2026).
+
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
 (`countStep` dans `client/src/lib/funnel.ts` → POST /api/stats/visit, pages autorisées
