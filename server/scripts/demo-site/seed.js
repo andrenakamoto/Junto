@@ -6,6 +6,8 @@ process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:55432/evly_test
 const { PrismaClient } = require('@prisma/client'); const jwt = require('jsonwebtoken'); const { io } = require('socket.io-client'); const fs = require('fs');
 const prisma = new PrismaClient(); const API = 'http://localhost:3999/api'; const sleep = ms => new Promise(r => setTimeout(r, ms));
 const call = async (m, p, b, t) => { const r = await fetch(API + p, { method: m, headers: { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}) }, body: b && JSON.stringify(b) }); const d = await r.json().catch(() => null); if (r.status >= 400) console.error('!!', m, p, r.status, d); return d; };
+// Jour local « AAAA-MM-JJ » dans n jours (échéances des tâches)
+const day = n => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const at = (days, h, min = 0) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, min, 0, 0); return d.toISOString(); };
 const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
 
@@ -148,6 +150,41 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   const bowling = await call('POST', `/circles/${col.id}/polls`, { question: 'Sortie bowling', options: [
     { label: 'Jeudi', eventDate: at(12, 18, 30) }, { label: 'Vendredi', eventDate: at(13, 18, 30) }, { label: 'Mardi', eventDate: at(17, 18, 30) }] }, T.zoe_m);
   for (const [p, os] of [['zoe_m', [0, 1]], ['marc_l', [1]], ['sarah_k', [1, 2]], ['paul_r', [0, 1]]]) for (const i of os) await call('POST', `/circles/polls/options/${bowling.options[i].id}/vote`, {}, T[p]);
+
+  // Fête de fin d'année de l'entreprise : le Plan de l'équipe qui l'organise (Tâches, Déroulé, Idées), Alex coordonne
+  const orga = await mk(col, 'alex', { title: 'Fête de fin d’année 🎉', description: 'Le Plan de l’équipe d’organisation : tâches, programme de la soirée et idées. L’annonce aux collègues se fera dans un autre Plan.',
+    eventDate: at(38, 18), endDate: at(39, 1), location: 'Salle des fêtes du Moléson', enabledFeatures: ['taches', 'deroule', 'idees'] });
+  await join(orga, ['marc_l', 'paul_r', 'zoe_m']);
+  const O = id => `/plans/${orga.id}${id}`;
+  const lots = (await call('POST', O('/task-groups'), { titles: ['Lieu et repas', 'Animation', 'Décoration', 'Communication'] }, T.alex)).ids;
+  const task = async (who, body, status) => { const { id } = await call('POST', O('/tasks'), body, T[who]); if (status === 'doing' || status === 'done') await call('POST', `/plans/tasks/${id}/status`, { status: 'doing' }, T[who]); if (status === 'done') await call('POST', `/plans/tasks/${id}/status`, { status: 'done' }, T[who]); return id; };
+  const as = (...p) => p.map(x => U[x].id);
+  await task('alex', { title: 'Réserver la salle', groupId: lots[0], assigneeIds: as('alex'), dueDate: day(-5) }, 'done');
+  const traiteur = await task('marc_l', { title: 'Choisir le traiteur', groupId: lots[0], assigneeIds: as('marc_l'), dueDate: day(4), note: 'Trois devis reçus, on compare vendredi.' }, 'doing');
+  await task('marc_l', { title: 'Valider le menu', groupId: lots[0], assigneeIds: as('marc_l', 'zoe_m'), dueDate: day(10), dependsOnIds: [traiteur], note: 'Prévoir un menu végétarien et sans gluten.' });
+  await task('paul_r', { title: 'Commander les boissons', groupId: lots[0], assigneeIds: as('paul_r'), dueDate: day(20) });
+  await task('zoe_m', { title: 'Trouver un DJ', groupId: lots[1], assigneeIds: as('zoe_m'), dueDate: day(6) }, 'doing');
+  await task('paul_r', { title: 'Louer le photobooth', groupId: lots[1], assigneeIds: as('paul_r'), dueDate: day(-1) });
+  await task('alex', { title: 'Préparer le quiz de l’équipe', groupId: lots[1], assigneeIds: as('alex'), dueDate: day(25) });
+  const guirlandes = await task('zoe_m', { title: 'Acheter les guirlandes', groupId: lots[2], assigneeIds: as('zoe_m'), dueDate: day(15) });
+  await task('alex', { title: 'Décorer la salle', groupId: lots[2], assigneeIds: as('alex', 'paul_r'), dueDate: day(38), dependsOnIds: [guirlandes] });
+  await task('alex', { title: 'Envoyer l’invitation à tous les collègues', groupId: lots[3], assigneeIds: as('alex'), dueDate: day(-10) }, 'done');
+  await task('marc_l', { title: 'Faire la liste des allergies', groupId: lots[3], assigneeIds: as('marc_l'), dueDate: day(18) });
+  for (const it of [
+    { title: 'Accueil et apéritif', durationMin: 60, place: 'Hall d’entrée', tech: 'Playlist d’ambiance', assigneeIds: as('zoe_m') },
+    { title: 'Discours de la direction', durationMin: 15, place: 'Scène', tech: 'Micro sans fil', assigneeIds: as('alex') },
+    { title: 'Repas', durationMin: 90, place: 'Grande salle', note: 'Service à l’assiette', assigneeIds: as('marc_l') },
+    { title: 'Quiz de l’équipe', durationMin: 30, place: 'Grande salle', tech: 'Projecteur et écran', assigneeIds: as('alex') },
+    { title: 'Remise des prix et photos', durationMin: 15, place: 'Scène', assigneeIds: as('paul_r') },
+    { title: 'Soirée dansante avec le DJ', durationMin: 180, place: 'Grande salle', tech: 'Sono du DJ, éclairage', assigneeIds: as('zoe_m') },
+  ]) await call('POST', O('/program'), it, T.alex);
+  const themes = (await call('POST', O('/idea-columns'), { titles: ['Animation', 'Décoration', 'Cadeaux'] }, T.alex)).ids;
+  for (const [col_, text, status, votes, color] of [[0, 'Karaoké', 'kept', 7, 'yellow'], [0, 'Photobooth avec accessoires', 'kept', 5, 'pink'], [0, 'Blind test des années 2000', 'explore', 3, null],
+    [0, 'Magicien', 'dropped', 0, null], [1, 'Thème années 80', 'explore', 4, 'purple'], [1, 'Guirlandes lumineuses partout', 'kept', 6, 'yellow'], [2, 'Chocolats personnalisés', 'new', 2, null], [2, 'Tombola', 'new', 1, 'green']]) {
+    const { id } = await call('POST', O('/ideas'), { text, columnId: themes[col_] }, T.alex);
+    if (status !== 'new' || color) await call('PUT', `/plans/ideas/${id}`, { ...(status !== 'new' ? { status } : {}), ...(color ? { color } : {}) }, T.alex);
+    for (let v = 0; v < votes; v++) await call('POST', `/plans/ideas/${id}/vote`, { delta: 1 }, T.alex);
+  }
 
   // ───────── Famille Rochat (Julie) ─────────
   const mamie = await mk(fam, 'julie_r', { title: 'Les 80 ans de Mamie 🎂', description: 'Chut ! Mamie ne voit pas ce Plan. Grand repas surprise chez Nathalie, avec toute la famille.', eventDate: at(11, 12), endDate: at(11, 20),
@@ -341,7 +378,7 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
   // La soirée a eu lieu hier : Plan « Terminé », en lecture seule jusqu'à sa suppression
   await prisma.plan.update({ where: { id: quiz.id }, data: { eventDate: new Date(at(-1, 20)), endDate: new Date(at(0, 0, 30)) } });
   // Alex a presque tout vu ; quelques nouveautés restent (pastilles)
-  const all = [foot, petanque, quiz, europa, agJeu, fete, course, afterwork, depart, noelBureau, mamie, noelFam, tessin, raclette, chalet, concert, noel, anniv];
+  const all = [foot, petanque, quiz, europa, agJeu, fete, course, afterwork, depart, noelBureau, orga, mamie, noelFam, tessin, raclette, chalet, concert, noel, anniv];
   for (const plan of all) await prisma.planMember.updateMany({ where: { planId: plan.id, userId: U.alex.id }, data: { seen: { chat: new Date(Date.now() - 864e5).toISOString() } } });
   // Mode silencieux : le foot (rendez-vous de chaque semaine) en silence
   await call('PUT', '/mutes', { planId: foot.id, muted: true }, T.alex);
@@ -352,7 +389,10 @@ const ANNONCE_OFF = ['chat', 'trajets', 'votes', 'depenses'];
     plans: all.map(p => p.id),
     santaPlans: [noel.id, noelBureau.id], matchPlans: [afterwork.id], matchViewers: { [afterwork.id]: T.sarah_k },
     wheelPlans: [noelFam.id], assemblyPlans: [agJeu.id], killerPlans: [chalet.id], wordPlans: [chalet.id], teamPlans: [petanque.id],
-    potPlans: [anniv.id, depart.id], quizPlans: [quiz.id], transitPlans: { [tessin.id]: tessinConns, [concert.id]: concertConns },
+    potPlans: [anniv.id, depart.id], orgPlans: [orga.id],
+    // Exemples par type (fenêtre « Que veux-tu découvrir ? » de la démo, client/src/pages/DemoPage.tsx) : Plan et rubrique ouverte
+    showcase: { amis: [raclette.id, 'chat'], surprise: [anniv.id, 'cagnotte'], 'pere-noel': [noel.id, 'pere_noel'], jeux: [chalet.id, 'killer'], voyage: [tessin.id, 'trajets'],
+      cours: [foot.id, 'membres'], annonce: [course.id, 'infos'], organisation: [orga.id, 'taches'], assemblee: [agJeu.id, 'assemblee'] }, quizPlans: [quiz.id], transitPlans: { [tessin.id]: tessinConns, [concert.id]: concertConns },
   }));
   Object.values(sock).forEach(s => s.close());
   console.log('ok'); process.exit(0);

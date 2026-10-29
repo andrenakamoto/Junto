@@ -27,6 +27,7 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
     if ((I.teamPlans || []).includes(id)) await take(`/plans/${id}/teams`);
     if ((I.potPlans || []).includes(id)) await take(`/plans/${id}/pot`);
     if ((I.quizPlans || []).includes(id)) await take(`/plans/${id}/quiz`);
+    if ((I.orgPlans || []).includes(id)) { await take(`/plans/${id}/tasks`); await take(`/plans/${id}/program`); await take(`/plans/${id}/ideas`); }
     // Transports publics : état d'Alex et voyages proposés ; correspondances fictives écrites par seed.js (pas de clé OJP en test)
     if ((I.transitPlans || {})[id]) { await take(`/plans/${id}/transit`); fx[`GET /plans/${id}/transit/connections`] = I.transitPlans[id]; }
     for (const a of plan?.attachments ?? []) {
@@ -34,6 +35,8 @@ const get = async p => { const r = await fetch(API + p, { headers: { Authorizati
       fs.writeFileSync(`${OUT}/photos/${a.id}.png`, Buffer.from(await r.arrayBuffer())); photos++;
     }
   }
+  // Exemples par type de Plan (démo resserrée, /demo?voir=…)
+  fx.DEMO_SHOWCASE = I.showcase;
   fs.writeFileSync(`${OUT}/data.json`, JSON.stringify({ capturedAt: new Date().toISOString(), userId: I.alexId, fixtures: fx }));
   console.log(Object.keys(fx).length, 'réponses,', photos, 'photos');
 })();
