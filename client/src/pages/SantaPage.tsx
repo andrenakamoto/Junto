@@ -5,6 +5,7 @@ import { ArrowRight, BellRing, Briefcase, Gift, Heart, Home, ListChecks, PartyPo
 import { useAuth } from '../contexts/AuthContext';
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
+import { Garland, Snowfall, SnowGround, TreeScene } from '../components/noel/ChristmasDecor';
 import { countStep } from '../lib/funnel';
 import { requestNewPlan } from '../lib/newPlanIntent';
 import { currentLang, t } from '../i18n';
@@ -34,8 +35,9 @@ const AUDIENCES = [
 ] as const;
 const FAQ = ['1', '2', '3', '4'] as const;
 
-// Flocons de la bannière : positions fixes (pas d'aléatoire au rendu)
-const FLAKES = [[6, 14, 3], [18, 62, 2], [27, 30, 4], [39, 78, 2], [48, 10, 3], [57, 50, 2], [66, 24, 4], [74, 70, 3], [83, 38, 2], [92, 16, 3], [12, 86, 2], [88, 84, 3]];
+// Couleurs de Noël pour les étapes et les fonctions : rouge, vert, or
+const TONES = ['bg-red-600', 'bg-emerald-600', 'bg-amber-500'];
+const SOFT = ['bg-red-50 text-red-700', 'bg-emerald-50 text-emerald-700', 'bg-amber-50 text-amber-700'];
 
 export function SantaPage() {
   const { user } = useAuth();
@@ -64,16 +66,17 @@ export function SantaPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       {/* Bannière */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-[#3b0d0c] via-[#5c1513] to-slate-950 text-white">
-        {FLAKES.map(([x, y, r], i) => (
-          <span key={i} aria-hidden className="absolute rounded-full bg-white/25" style={{ left: `${x}%`, top: `${y}%`, width: r * 2, height: r * 2 }} />
-        ))}
-        <div className="relative max-w-5xl mx-auto px-4 pt-4 pb-14 sm:pb-20">
+      <header className="relative overflow-hidden bg-gradient-to-b from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] text-white">
+        <Snowfall />
+        <Garland />
+        <TreeScene className="hidden lg:block absolute right-[max(1rem,calc((100vw-64rem)/2))] bottom-10 w-[330px] drop-shadow-2xl" />
+        <SnowGround />
+        <div className="relative max-w-5xl mx-auto px-4 pt-12 sm:pt-14 pb-20 sm:pb-28">
           <div className="flex items-center justify-between">
             <Link to="/auth" aria-label="EvLY"><LogoFull iconSize={26} /></Link>
             <LanguagePicker compact loggedIn={!!user} />
           </div>
-          <div className="mt-10 sm:mt-16 max-w-2xl">
+          <div className="mt-8 sm:mt-14 max-w-2xl lg:max-w-[34rem]">
             <p className="inline-block text-[11px] sm:text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-rose-100">{t('noel.badge')}</p>
             <h1 className="mt-4 text-3xl sm:text-5xl font-bold leading-tight" style={{ fontFamily: 'Fraunces, serif' }}>
               <span aria-hidden>🎅 </span>{t('noel.title')}
@@ -86,6 +89,8 @@ export function SantaPage() {
             {!user && (
               <button onClick={() => start(true)} className="mt-3 text-sm text-rose-100/80 underline underline-offset-4 hover:text-white">{t('noel.login')}</button>
             )}
+            {/* Téléphone et tablette : le sapin sous les boutons */}
+            <TreeScene className="lg:hidden mx-auto mt-6 w-44 sm:w-52 drop-shadow-2xl" />
           </div>
         </div>
       </header>
@@ -96,7 +101,7 @@ export function SantaPage() {
           <div className="grid sm:grid-cols-3 gap-3">
             {STEPS.map((s, i) => (
               <div key={s} className="bg-white rounded-2xl border border-slate-200 shadow-md p-5">
-                <span className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-sm flex items-center justify-center">{i + 1}</span>
+                <span className={`w-8 h-8 rounded-full ${TONES[i % 3]} text-white font-bold text-sm flex items-center justify-center`}>{i + 1}</span>
                 <h3 className="mt-3 font-semibold text-slate-900">{t(`noel.steps.${s}.title`)}</h3>
                 <p className="mt-1 text-sm text-slate-600 leading-relaxed">{t(`noel.steps.${s}.text`)}</p>
               </div>
@@ -107,11 +112,11 @@ export function SantaPage() {
 
         {/* Fonctions */}
         <section className="mt-14">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.featuresTitle')}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}><span aria-hidden>🎁 </span>{t('noel.featuresTitle')}</h2>
           <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {FEATURES.map(({ key, Icon }) => (
+            {FEATURES.map(({ key, Icon }, i) => (
               <div key={key} className="flex gap-3 bg-white rounded-2xl border border-slate-200 p-4">
-                <span className="w-10 h-10 flex-shrink-0 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center"><Icon size={20} /></span>
+                <span className={`w-10 h-10 flex-shrink-0 rounded-xl ${SOFT[i % 3]} flex items-center justify-center`}><Icon size={20} /></span>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-slate-900">{t(`noel.features.${key}.title`)}</h3>
                   <p className="mt-0.5 text-sm text-slate-600 leading-relaxed">{t(`noel.features.${key}.text`)}</p>
@@ -123,11 +128,11 @@ export function SantaPage() {
 
         {/* Pour qui */}
         <section className="mt-14">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.forTitle')}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}><span aria-hidden>🎄 </span>{t('noel.forTitle')}</h2>
           <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
             {AUDIENCES.map(({ key, Icon }) => (
               <div key={key} className="flex items-center gap-2.5 bg-white rounded-2xl border border-slate-200 px-4 py-3.5">
-                <Icon size={18} className="text-indigo-600 flex-shrink-0" />
+                <Icon size={18} className="text-emerald-600 flex-shrink-0" />
                 <span className="text-sm font-medium text-slate-800">{t(`noel.for.${key}`)}</span>
               </div>
             ))}
@@ -136,7 +141,7 @@ export function SantaPage() {
 
         {/* Questions */}
         <section className="mt-14">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.faqTitle')}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900" style={{ fontFamily: 'Fraunces, serif' }}><span aria-hidden>❄️ </span>{t('noel.faqTitle')}</h2>
           <div className="mt-5 space-y-2">
             {FAQ.map(n => (
               <details key={n} className="group bg-white rounded-2xl border border-slate-200 px-4 py-3">
@@ -150,8 +155,11 @@ export function SantaPage() {
         </section>
 
         {/* Dernier appel */}
-        <section className="mt-14 mb-10 rounded-3xl bg-gradient-to-br from-[#5c1513] to-slate-950 text-white p-6 sm:p-10 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.bottomTitle')}</h2>
+        <section className="relative overflow-hidden mt-14 mb-10 rounded-3xl bg-gradient-to-b from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] text-white p-6 sm:p-10 text-center">
+          <Snowfall count={14} />
+          <div className="relative">
+          <p aria-hidden className="text-4xl">🎄🎁🎅</p>
+          <h2 className="mt-2 text-2xl sm:text-3xl font-bold" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.bottomTitle')}</h2>
           <p className="mt-2 text-rose-50/85">{t('noel.bottomText')}</p>
           <div className="mt-6">{cta()}</div>
           {!Capacitor.isNativePlatform() && (
@@ -164,6 +172,7 @@ export function SantaPage() {
               </a>
             </div>
           )}
+          </div>
         </section>
       </main>
 
