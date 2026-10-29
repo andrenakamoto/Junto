@@ -288,6 +288,10 @@ ROWS += [
  ("La boulangerie offre les croissants pour le montage 🥐", "Die Bäckerei offeriert die Gipfeli für den Aufbau 🥐", "La panetteria offre i cornetti per il montaggio 🥐", "The bakery is giving us croissants for setting up 🥐"),
  # Démo réduite à 4 Cercles (2026-10-29)
  ("Soirées, foot, fête du village et sorties 🎉", "Abende, Fussball, Dorffest und Ausflüge 🎉", "Serate, calcio, festa del paese e uscite 🎉", "Parties, football, village fair and outings 🎉"),
+ # Démo du Père Noël secret (/demo?voir=pere-noel)
+ ("La famille", "Die Familie", "La famiglia", "The family"),
+ ("Noël en famille 🎁", "Weihnachten mit der Familie 🎁", "Natale in famiglia 🎁", "Family Christmas 🎁"),
+ ("Noël, anniversaires et vacances ensemble 🎄", "Weihnachten, Geburtstage und Ferien zusammen 🎄", "Natale, compleanni e vacanze insieme 🎄", "Christmas, birthdays and holidays together 🎄"),
  ("Foot de la semaine ⚽", "Fussball der Woche ⚽", "Calcio della settimana ⚽", "Weekly football ⚽"),
  ("Match amical à 5 contre 5. Chasubles fournies, on tourne les équipes.", "Freundschaftsspiel 5 gegen 5. Leibchen vorhanden, wir mischen die Teams.", "Partita amichevole 5 contro 5. Casacche fornite, si cambiano le squadre.", "Friendly 5-a-side match. Bibs provided, we rotate the teams."),
  ("Terrain synthétique de Montvert", "Kunstrasen von Montvert", "Campo sintetico di Montvert", "Montvert artificial pitch"),

@@ -20,9 +20,15 @@ export function isDemo(): boolean {
   try { return sessionStorage.getItem(FLAG) === '1'; } catch { return false; }
 }
 
-export function startDemo() {
-  try { sessionStorage.setItem(FLAG, '1'); } catch { /* stockage indisponible */ }
+// `focus` : démo resserrée sur une seule fonction (/demo?voir=pere-noel, page /pere-noel) ; sans, la démo complète
+const FOCUS = 'evly_demo_focus';
+export function startDemo(focus?: 'pere-noel') {
+  try {
+    sessionStorage.setItem(FLAG, '1');
+    if (focus) sessionStorage.setItem(FOCUS, focus); else sessionStorage.removeItem(FOCUS);
+  } catch { /* stockage indisponible */ }
 }
+const demoFocus = () => { try { return sessionStorage.getItem(FOCUS); } catch { return null; } };
 
 export function exitDemo(to = '/auth') {
   try { sessionStorage.removeItem(FLAG); } catch { /* stockage indisponible */ }
@@ -64,9 +70,38 @@ export function loadDemo(): Promise<void> {
         fixtures = shiftDates(data.fixtures, delta, texts);
         const u = fixtures!['GET /auth/me'];
         me = { id: u.id, pseudo: u.pseudo, firstName: u.firstName };
+        if (demoFocus() === 'pere-noel') focusOnSanta();
       });
   }
   return loading;
+}
+
+// Démo du Père Noël secret (campagne de Noël) : un seul Cercle, « La famille », avec un seul Plan, le Père Noël secret de
+// « Noël entre copains » (tirage fait, envies, message anonyme) ; ni discussion du Cercle, ni dispo, ni sondage, et seulement
+// les rubriques utiles. Le Cercle change de code : ni la discussion ni les dispos des copains ne s'y attachent.
+export const FOCUS_CIRCLE_CODE = 'DEMO-NOEL';
+function focusOnSanta() {
+  const f = fixtures!;
+  // Celui des copains (code du Cercle, pas le titre : il est déjà traduit), comme /demo?voir=pere-noel (DemoPage)
+  const copainsId = (f['GET /circles'] as any[]).find(c => c.code === 'DEMO6X')?.id;
+  const santas = Object.entries(f).filter(([k, v]) => /^GET \/plans\/[^/]+$/.test(k) && v?.enabledFeatures?.includes('pere_noel')).map(([, v]) => v);
+  const santa = santas.find((p: any) => p.circleId === copainsId) ?? santas[0];
+  if (!santa) return;
+  const circle = (f['GET /circles'] as any[]).find(c => c.id === santa.circleId);
+  if (!circle) return;
+  const title = texts['Noël en famille 🎁'] ?? 'Noël en famille 🎁';
+  const off = ['trajets', 'votes', 'depenses'];
+  const retitle = (p: any) => ({ ...p, title, disabledFeatures: off });
+  // Carte du Cercle : 1 Plan, et c'est lui le prochain événement
+  const next = (circle.plans ?? [])[0];
+  f['GET /circles'] = [{ ...circle, code: FOCUS_CIRCLE_CODE, photoKey: `demo/circles/${circle.code}.svg`, _count: { ...circle._count, plans: 1 },
+    plans: next ? [Object.fromEntries(Object.keys(next).map(k => [k, k === 'title' ? title : santa[k] ?? next[k]]))] : [],
+    name: texts['La famille'] ?? 'La famille', description: texts['Noël, anniversaires et vacances ensemble 🎄'] ?? 'Noël, anniversaires et vacances ensemble 🎄' }];
+  f[`GET /plans/${santa.id}`] = retitle(santa);
+  f[`GET /circles/${circle.id}/plans`] = ((f[`GET /circles/${circle.id}/plans`] ?? []) as any[]).filter(p => p.id === santa.id).map(retitle);
+  f['GET /plans'] = ((f['GET /plans'] ?? []) as any[]).filter(p => p.id === santa.id)
+    .map(p => ({ ...retitle(p), circle: p.circle ? { ...p.circle, name: f['GET /circles'][0].name } : p.circle }));
+  f[`GET /circles/${circle.id}/polls`] = [];
 }
 
 export function demoUser() {
@@ -813,7 +848,7 @@ function route(method: string, path: string, body: any): any {
         ...c, photoKey: c.photoKey ?? (DEMO_CIRCLE_PHOTOS.has(c.code) ? `demo/circles/${c.code}.svg` : null),
         pollCount: polls.length, pendingPolls: pending.map(p => ({ id: p.id, question: p.question })),
         chatMode: chat?.mode ?? 'off', chatUnseen: !!chat && !chat.seen,
-        availabilityEnabled: true, availabilityThreshold: 3,
+        availabilityEnabled: c.code !== FOCUS_CIRCLE_CODE, availabilityThreshold: 3,
         dispo: (() => { const d = dispoOf(c.id); return d.length ? { count: d.length, pseudos: d.slice(0, 5).map((e: any) => e.user.pseudo) } : null; })(),
         chatLast: last ? { author: last.author.pseudo, text: last.content.slice(0, 90), at: last.createdAt } : null,
       };
