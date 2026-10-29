@@ -37,7 +37,7 @@ async function findPlan(token: string) {
       plan: {
         select: {
           id: true, title: true, description: true, eventDate: true, endDate: true, location: true,
-          maxParticipants: true, circleId: true, membersVisibility: true,
+          maxParticipants: true, circleId: true, membersVisibility: true, enabledFeatures: true,
           creator: { select: { firstName: true, pseudo: true } },
           members: { select: { userId: true, rsvp: true, user: { select: { firstName: true, pseudo: true } } } },
         },
@@ -73,6 +73,8 @@ function preview(plan: InvitePlan, meId: string | null) {
     },
     places: plan.maxParticipants != null ? { taken: plan.members.filter(m => m.rsvp !== 'out').length, max: plan.maxParticipants } : null,
     full: isFull(plan),
+    // Père Noël secret : seuls les comptes entrent dans le tirage (la page invite à en créer un)
+    santa: plan.enabledFeatures.includes('pere_noel'),
     me: me ? { firstName: me.user.firstName, rsvp: me.rsvp } : null,
     participants: me && plan.membersVisibility !== 'managers'
       ? plan.members

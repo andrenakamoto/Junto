@@ -21,6 +21,7 @@ import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
+import { getOrCreatePersonalCircle } from '../lib/express';
 import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR, parseChatMode, parseFilesMode, parseGuestInviteMode } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
@@ -30,7 +31,7 @@ import { countFunnel } from '../lib/funnel';
 import { compareByActivity, planLastActivity, sortCirclesByActivity } from '../lib/planOrder';
 import { unseenByPlan } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
-import { parseLocale, translateMessage } from '../lib/i18n';
+import { parseLocale, requestLocale, translateMessage } from '../lib/i18n';
 import { mail } from '../lib/emailText';
 import { wantsEmail } from '../lib/notificationPrefs';
 
@@ -381,6 +382,14 @@ router.get('/by-code/:code', joinLimiter, async (req: AuthRequest, res) => {
   });
   if (!circle) { res.status(404).json({ error: 'Ce lien d\'invitation n\'est plus valide (code inconnu).' }); return; }
   res.json({ name: circle.name, color: circle.color, memberCount: circle._count.members });
+});
+
+// POST /circles/personal — le Cercle personnel « Mes Plans » (lib/express.ts), créé au besoin : pour un Plan partagé
+// seulement par lien (page /pere-noel, quand on ne veut pas le ranger dans un Cercle)
+router.post('/personal', async (req: AuthRequest, res) => {
+  const circle = await getOrCreatePersonalCircle(req.userId!, requestLocale(req));
+  joinCircleRoom(req.app.get('io'), req.userId!, circle.id);
+  res.json({ id: circle.id });
 });
 
 router.post('/join', joinLimiter, async (req: AuthRequest, res) => {

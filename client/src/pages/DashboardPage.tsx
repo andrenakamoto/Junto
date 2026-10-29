@@ -17,6 +17,10 @@ import { CalendarView } from '../components/plans/CalendarView';
 import { ContactsView } from '../components/circles/ContactsView';
 import { DiscoverView } from '../components/discover/DiscoverView';
 import { CreatePlanModal } from '../components/plans/CreatePlanModal';
+import { KindCircleChooser } from '../components/plans/KindCircleChooser';
+import { takeNewPlanIntent } from '../lib/newPlanIntent';
+import type { PlanKind } from '../lib/planKinds';
+import { isDemo } from '../lib/demo';
 import { NotificationToast, AppNotification } from '../components/ui/NotificationToast';
 import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
@@ -60,6 +64,9 @@ export function DashboardPage() {
   const [discoverActive, setDiscoverActive] = useState(false);
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
+  // Plan spécifique demandé par une page publique (/pere-noel) : choix du Cercle, puis création
+  const [createKind, setCreateKind] = useState<PlanKind | null>(null);
+  const [chooseKindCircle, setChooseKindCircle] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   // Historique des notifications reçues (panneau de la cloche), gardé sur l'appareil pour ce
   // compte : 30 dernières, 7 jours au plus
@@ -266,6 +273,27 @@ export function DashboardPage() {
     const pending = getPendingInvite();
     if (pending) navigate(`/invitation?token=${pending}`, { replace: true });
   }, [navigate]);
+
+  // Page /pere-noel : une fois les Cercles chargés, ouvrir la création du Plan (lib/newPlanIntent.ts)
+  const kindCircles = circles.filter(c => !c.isPersonal && (c.planCreationMode !== 'creator' || isCircleManager(c, user?.id)));
+  useEffect(() => {
+    // Après l'acceptation des conditions d'utilisation (nouveau compte), pas par-dessus
+    if (!circlesLoaded || !user || !user.termsAccepted || isDemo()) return;
+    const kind = takeNewPlanIntent();
+    if (!kind) return;
+    setCreateKind(kind);
+    if (kindCircles.length > 0) setChooseKindCircle(true);
+    else createInPersonalCircle();
+  }, [circlesLoaded, user?.id, user?.termsAccepted]);
+
+  async function createInPersonalCircle() {
+    setChooseKindCircle(false);
+    try {
+      const { data } = await api.post('/circles/personal');
+      setCircles((await api.get('/circles')).data);
+      setCreatePlanIn(data.id);
+    } catch { setCreateKind(null); }
+  }
 
   // Deep-link depuis un lien d'invitation vers un Plan précis (?planId=...)
   useEffect(() => {
@@ -823,12 +851,19 @@ export function DashboardPage() {
       </div>
     </div>
     </div>
+    {chooseKindCircle && (
+      <KindCircleChooser circles={kindCircles}
+        onChoose={id => { setChooseKindCircle(false); setCreatePlanIn(id); }}
+        onPersonal={createInPersonalCircle}
+        onClose={() => { setChooseKindCircle(false); setCreateKind(null); }} />
+    )}
     {createPlanIn && circles.some(c => c.id === createPlanIn) && (
       <CreatePlanModal
         circleId={createPlanIn}
         circleMembers={circles.find(c => c.id === createPlanIn)!.members}
-        onClose={() => setCreatePlanIn(null)}
-        onCreated={plan => { setCreatePlanIn(null); handlePlanCreated(plan); }}
+        kind={createKind}
+        onClose={() => { setCreatePlanIn(null); setCreateKind(null); }}
+        onCreated={(plan, tab) => { setCreatePlanIn(null); setCreateKind(null); handlePlanCreated(plan, tab); }}
       />
     )}
     </PhotosProvider>

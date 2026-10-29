@@ -6,6 +6,7 @@ import { SocialLogin } from '@capgo/capacitor-social-login';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { lightTokenField } from '../lib/lightGuest';
+import { sourceField } from '../lib/source';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
@@ -13,6 +14,9 @@ import { countStep } from '../lib/funnel';
 import { t, currentLang } from '../i18n';
 
 // Fiche de l'app iPhone (id App Store Connect de ch.evly.app)
+// De novembre au 25 décembre (et dès fin octobre, pour lancer la campagne)
+const santaSeason = (d = new Date()) => (d.getMonth() === 9 && d.getDate() >= 25) || d.getMonth() === 10 || (d.getMonth() === 11 && d.getDate() <= 25);
+
 const APP_STORE_URL = 'https://apps.apple.com/app/id6818454100';
 const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=ch.evly.app';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
@@ -77,7 +81,7 @@ export function AuthPage() {
     setSuccess('');
     try {
       if (mode === 'register') {
-        await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ...lightTokenField() });
+        await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ...lightTokenField(), ...sourceField() });
         setSuccess(t('auth.page.created'));
         setEmail('');
         setPseudo('');
@@ -115,7 +119,7 @@ export function AuthPage() {
       const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
       const idToken = res.provider === 'google' && 'idToken' in res.result ? res.result.idToken : null;
       if (!idToken) throw new Error('Pas de jeton Google');
-      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField() });
+      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField(), ...sourceField() });
       login(data.token, data.user);
       navigate(afterLogin, { replace: true });
     } catch (err: any) {
@@ -131,7 +135,7 @@ export function AuthPage() {
     setGoogleLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField() });
+      const { data } = await api.post('/auth/google', { idToken, ...lightTokenField(), ...sourceField() });
       login(data.token, data.user);
       navigate(afterLogin, { replace: true });
     } catch (err: any) {
@@ -383,6 +387,12 @@ export function AuthPage() {
               <ArrowRight size={15} />
             </Link>
           </div>
+          {/* Campagne de Noël (/pere-noel) : jusqu'au 25 décembre */}
+          {santaSeason() && (
+            <Link to="/pere-noel" className="mt-2 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-rose-400/40 bg-rose-500/10 text-rose-100 hover:bg-rose-500/20 font-semibold text-sm transition-colors">
+              {t('noel.authLink')}
+            </Link>
+          )}
         </div>
 
         {/* Les apps (pas dans les apps elles-mêmes) : badges officiels d'Apple et de Google dans la langue de la page */}

@@ -10,6 +10,7 @@ import { AdminPage } from './pages/AdminPage';
 import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { OrganizePage } from './pages/OrganizePage';
+import { SantaPage } from './pages/SantaPage';
 import { DemoPage } from './pages/DemoPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/rejoindre-cercle"      element={<JoinPage />} />
         <Route path="/invitation"            element={<GuestInvitePage />} />
         <Route path="/organiser"             element={<OrganizePage />} />
+        <Route path="/pere-noel"             element={<SantaPage />} />
         <Route path="/demo"                  element={<DemoPage />} />
         <Route path="/sorties"               element={<DiscoverPage />} />
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}

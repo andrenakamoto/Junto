@@ -15,6 +15,7 @@ import discover from './discover';
 import tasks from './tasks';
 import program from './program';
 import ideas from './ideas';
+import noel from './noel';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas, noel };
 export default dict;

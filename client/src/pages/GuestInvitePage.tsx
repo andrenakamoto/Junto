@@ -37,6 +37,8 @@ interface PublicPreview {
   counts: { in: number; maybe: number } | null;
   places?: { taken: number; max: number } | null;
   full: boolean;
+  /** Père Noël secret : seuls les comptes entrent dans le tirage */
+  santa?: boolean;
   me: { firstName: string | null; rsvp: Rsvp } | null;
   participants?: { name: string; rsvp: Rsvp; isMe: boolean }[];
 }
@@ -163,6 +165,17 @@ function AnonymousInvite({ token }: { token: string }) {
     <div className="space-y-4">
       <Card>
         <PlanSummary preview={preview} />
+
+        {preview.santa && (
+          <div className="rounded-xl bg-rose-500/10 border border-rose-400/30 p-3 space-y-2.5">
+            <p className="text-sm text-rose-100 leading-relaxed">🎅 {t('noel.inviteNote')}</p>
+            <button onClick={() => goAuth(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors text-sm">
+              {t('noel.inviteCta')} <ArrowRight size={16} />
+            </button>
+            <button onClick={() => goAuth(false)} className="w-full text-xs text-rose-100/80 underline hover:text-white">{t('noel.login')}</button>
+          </div>
+        )}
 
         {me ? (
           <>
