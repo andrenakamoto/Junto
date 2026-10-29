@@ -6,9 +6,11 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  /** Fenêtre plus large (choix de la démo) */
+  wide?: boolean;
 }
 
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, wide }: ModalProps) {
   useBackClose(onClose);
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -19,7 +21,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90dvh] overflow-y-auto">
+      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-md'} mx-4 p-6 max-h-[90dvh] overflow-y-auto`}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600">

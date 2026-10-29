@@ -1,5 +1,13 @@
 // Connexion, inscription, mots de passe, emails
 export default {
+  // Démo : choix d'un exemple par type de Plan (components/ui/DemoChoices.tsx, pages/DemoPage.tsx)
+  demoChooser: {
+    title: 'Que veux-tu découvrir ?',
+    sub: 'Choisis un exemple : tu arrives directement dessus, sans compte et sans rien installer.',
+    amis: 'Sortie entre amis',
+    amisHint: 'Qui vient, qui apporte quoi, le covoiturage et les comptes',
+    all: 'Tout voir (démo complète)',
+  },
   back: 'Retour',
   emailPlaceholder: 'toi@example.com',
   openEvly: 'Ouvrir EvLY',

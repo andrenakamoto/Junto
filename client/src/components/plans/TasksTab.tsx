@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Plan, PlanTask, PlanTaskGroup } from '../../types';
 import api from '../../services/api';
+import { isDemo } from '../../lib/demo';
 import { displayName } from '../../lib/names';
 import { useResync } from '../../hooks/useResync';
 import { Modal } from '../ui/Modal';
@@ -64,7 +65,7 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   // Lots repliés à l'ouverture de la rubrique ; ouverts : ceux qu'on déplie, celui où l'on ajoute une tâche
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const toggleGroup = (key: string) => setOpenGroups(o => { const n = new Set(o); if (n.has(key)) n.delete(key); else n.add(key); return n; });
-  const openGroup = (key: string) => setOpenGroups(o => new Set(o).add(key));
+  const openGroup = (key: string) => setOpenGroups(o => { const n = new Set(o); if (isDemo()) n.delete(key); else n.add(key); return n; });
   const [error, setError] = useState('');
 
   async function load() {
@@ -205,7 +206,8 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
             const all = tasks.filter(x => x.groupId === (g?.id ?? null));
             const key = g?.id ?? 'none';
             // Avec « Mes tâches » / « En retard », ou quand une tâche y est ouverte (lien « Attend »), le lot est déplié
-            const unfolded = filter !== 'all' || openGroups.has(key) || list.some(x => x.id === openId);
+            // Démo : lots dépliés d'emblée (toucher un lot le replie), pour montrer les tâches
+            const unfolded = filter !== 'all' || (isDemo() ? !openGroups.has(key) : openGroups.has(key)) || list.some(x => x.id === openId);
             return (
               <GroupBlock key={key} group={g} folded={!unfolded} onToggle={() => toggleGroup(key)} total={all.length} done={all.filter(x => x.status === 'done').length}
                 canDelete={!!g && (g.createdById === userId || canManage)}

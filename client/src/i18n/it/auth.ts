@@ -1,6 +1,14 @@
 import type { Dict } from '../fr';
 
 const auth: Dict['auth'] = {
+  // Démo : choix d'un exemple par type de Plan (components/ui/DemoChoices.tsx, pages/DemoPage.tsx)
+  demoChooser: {
+    title: 'Cosa vuoi scoprire?',
+    sub: 'Scegli un esempio: ci arrivi direttamente, senza account e senza installare nulla.',
+    amis: 'Uscita tra amici',
+    amisHint: 'Chi viene, chi porta cosa, i passaggi in auto e i conti',
+    all: 'Vedi tutto (demo completa)',
+  },
   back: 'Indietro',
   emailPlaceholder: 'tu@example.com',
   openEvly: 'Apri EvLY',

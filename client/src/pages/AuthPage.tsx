@@ -9,6 +9,8 @@ import { lightTokenField } from '../lib/lightGuest';
 import { sourceField } from '../lib/source';
 import { MiniGarland, Snowfall, TreeScene } from '../components/noel/ChristmasDecor';
 import { requestNewPlan } from '../lib/newPlanIntent';
+import { Modal } from '../components/ui/Modal';
+import { DemoChoices } from '../components/ui/DemoChoices';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
@@ -54,6 +56,8 @@ export function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // « Voir la démo » : choix d'un exemple par type de Plan
+  const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -383,13 +387,13 @@ export function AuthPage() {
               <PartyPopper size={16} className="text-indigo-300" />
               {t('auth.page.organize')}
             </Link>
-            <Link
-              to="/demo"
+            <button
+              onClick={() => setShowDemo(true)}
               className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-slate-600 text-slate-200 hover:bg-slate-700/40 font-semibold text-sm transition-colors"
             >
               {t('auth.page.demo')}
               <ArrowRight size={15} />
-            </Link>
+            </button>
           </div>
           {/* Campagne de Noël (/pere-noel), téléphone et tablette : une carte sous le formulaire (sur grand écran : panneau à droite) */}
           {santaSeason() && (
@@ -427,6 +431,12 @@ export function AuthPage() {
           <br />info@evly.ch
         </p>
       </div>
+      {showDemo && (
+        <Modal wide title={t('auth.demoChooser.title')} onClose={() => setShowDemo(false)}>
+          <p className="text-sm text-slate-500 -mt-1 mb-4">{t('auth.demoChooser.sub')}</p>
+          <DemoChoices />
+        </Modal>
+      )}
       {santaSeason() && <SantaPanel onOrganize={() => {
         countStep('funnel_cta_santa');
         requestNewPlan('pere_noel');

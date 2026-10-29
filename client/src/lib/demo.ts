@@ -20,9 +20,10 @@ export function isDemo(): boolean {
   try { return sessionStorage.getItem(FLAG) === '1'; } catch { return false; }
 }
 
-// `focus` : démo resserrée sur une seule fonction (/demo?voir=pere-noel, page /pere-noel) ; sans, la démo complète
+// `focus` : démo resserrée sur un exemple (/demo?voir=amis, pere-noel, organisation… : clés de DEMO_SHOWCASE dans data.json,
+// écrites par server/scripts/demo-site/seed.js) ; sans, la démo complète
 const FOCUS = 'evly_demo_focus';
-export function startDemo(focus?: 'pere-noel') {
+export function startDemo(focus?: string) {
   try {
     sessionStorage.setItem(FLAG, '1');
     if (focus) sessionStorage.setItem(FOCUS, focus); else sessionStorage.removeItem(FOCUS);
@@ -42,6 +43,8 @@ let loading: Promise<void> | null = null;
 
 let texts: Record<string, string> = {};
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const shiftDay = (d: string, delta: number) => new Date(Date.parse(`${d}T12:00:00Z`) + delta).toISOString().slice(0, 10);
 
 // Décale toutes les dates du nombre de jours écoulés depuis l'enregistrement et traduit les textes
 // de la démo (public/demo/i18n.json, généré par scripts/demo-i18n.py ; absent = français)
@@ -50,7 +53,8 @@ function shiftDates(value: any, delta: number, texts: Record<string, string> = {
   if (Array.isArray(value)) return value.map(v => shiftDates(v, delta, texts));
   if (value && typeof value === 'object') {
     const out: any = {};
-    for (const [k, v] of Object.entries(value)) out[k] = shiftDates(v, delta, texts);
+    // Échéances des tâches (« AAAA-MM-JJ ») : décalées comme les dates
+    for (const [k, v] of Object.entries(value)) out[k] = k === 'dueDate' && typeof v === 'string' && DAY.test(v) ? shiftDay(v, delta) : shiftDates(v, delta, texts);
     return out;
   }
   return value;
@@ -70,37 +74,36 @@ export function loadDemo(): Promise<void> {
         fixtures = shiftDates(data.fixtures, delta, texts);
         const u = fixtures!['GET /auth/me'];
         me = { id: u.id, pseudo: u.pseudo, firstName: u.firstName };
-        if (demoFocus() === 'pere-noel') focusOnSanta();
+        const focus = demoFocus();
+        if (focus) focusOnPlan(focus);
       });
   }
   return loading;
 }
 
-// Démo du Père Noël secret (campagne de Noël) : un seul Cercle, « La famille », avec un seul Plan, le Père Noël secret de
-// « Noël entre copains » (tirage fait, envies, message anonyme) ; ni discussion du Cercle, ni dispo, ni sondage, et seulement
-// les rubriques utiles. Le Cercle change de code : ni la discussion ni les dispos des copains ne s'y attachent.
-export const FOCUS_CIRCLE_CODE = 'DEMO-NOEL';
-function focusOnSanta() {
+// Démo resserrée (/demo?voir=…) : un seul Cercle, celui de l'exemple, avec ce seul Plan ; ni discussion du Cercle, ni dispo,
+// ni sondage (le Cercle change de code : ni la discussion ni les dispos ne s'y attachent). Père Noël secret (campagne de Noël) :
+// le Cercle devient « La famille », le Plan « Noël en famille 🎁 », sans Trajets, Votes ni Dépenses.
+export const FOCUS_CIRCLE_CODE = 'DEMO-FOCUS';
+function focusOnPlan(key: string) {
   const f = fixtures!;
-  // Celui des copains (code du Cercle, pas le titre : il est déjà traduit), comme /demo?voir=pere-noel (DemoPage)
-  const copainsId = (f['GET /circles'] as any[]).find(c => c.code === 'DEMO6X')?.id;
-  const santas = Object.entries(f).filter(([k, v]) => /^GET \/plans\/[^/]+$/.test(k) && v?.enabledFeatures?.includes('pere_noel')).map(([, v]) => v);
-  const santa = santas.find((p: any) => p.circleId === copainsId) ?? santas[0];
-  if (!santa) return;
-  const circle = (f['GET /circles'] as any[]).find(c => c.id === santa.circleId);
+  const planId = (f.DEMO_SHOWCASE as Record<string, [string, string]> | undefined)?.[key]?.[0];
+  const focused = planId ? f[`GET /plans/${planId}`] : null;
+  if (!focused) return;
+  const circle = (f['GET /circles'] as any[]).find(c => c.id === focused.circleId);
   if (!circle) return;
-  const title = texts['Noël en famille 🎁'] ?? 'Noël en famille 🎁';
-  const off = ['trajets', 'votes', 'depenses'];
-  const retitle = (p: any) => ({ ...p, title, disabledFeatures: off });
+  const christmas = key === 'pere-noel';
+  const title = christmas ? texts['Noël en famille 🎁'] ?? 'Noël en famille 🎁' : focused.title;
+  const adjust = (p: any) => christmas ? { ...p, title, disabledFeatures: ['trajets', 'votes', 'depenses'] } : p;
   // Carte du Cercle : 1 Plan, et c'est lui le prochain événement
   const next = (circle.plans ?? [])[0];
-  f['GET /circles'] = [{ ...circle, code: FOCUS_CIRCLE_CODE, photoKey: `demo/circles/${circle.code}.svg`, _count: { ...circle._count, plans: 1 },
-    plans: next ? [Object.fromEntries(Object.keys(next).map(k => [k, k === 'title' ? title : santa[k] ?? next[k]]))] : [],
-    name: texts['La famille'] ?? 'La famille', description: texts['Noël, anniversaires et vacances ensemble 🎄'] ?? 'Noël, anniversaires et vacances ensemble 🎄' }];
-  f[`GET /plans/${santa.id}`] = retitle(santa);
-  f[`GET /circles/${circle.id}/plans`] = ((f[`GET /circles/${circle.id}/plans`] ?? []) as any[]).filter(p => p.id === santa.id).map(retitle);
-  f['GET /plans'] = ((f['GET /plans'] ?? []) as any[]).filter(p => p.id === santa.id)
-    .map(p => ({ ...retitle(p), circle: p.circle ? { ...p.circle, name: f['GET /circles'][0].name } : p.circle }));
+  f['GET /circles'] = [{ ...circle, code: FOCUS_CIRCLE_CODE, photoKey: circle.photoKey ?? `demo/circles/${circle.code}.svg`, _count: { ...circle._count, plans: 1 },
+    plans: next ? [Object.fromEntries(Object.keys(next).map(k => [k, k === 'title' ? title : focused[k] ?? next[k]]))] : [],
+    ...(christmas ? { name: texts['La famille'] ?? 'La famille', description: texts['Noël, anniversaires et vacances ensemble 🎄'] ?? 'Noël, anniversaires et vacances ensemble 🎄' } : {}) }];
+  f[`GET /plans/${focused.id}`] = adjust(focused);
+  f[`GET /circles/${circle.id}/plans`] = ((f[`GET /circles/${circle.id}/plans`] ?? []) as any[]).filter(p => p.id === focused.id).map(adjust);
+  f['GET /plans'] = ((f['GET /plans'] ?? []) as any[]).filter(p => p.id === focused.id)
+    .map(p => ({ ...adjust(p), circle: p.circle ? { ...p.circle, name: f['GET /circles'][0].name } : p.circle }));
   f[`GET /circles/${circle.id}/polls`] = [];
 }
 
