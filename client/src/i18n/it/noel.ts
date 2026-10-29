@@ -50,6 +50,9 @@ const noel: Dict['noel'] = {
   chooseLinkHint: 'Senza Cerchio: inviti chi vuoi',
   inviteNote: 'Per partecipare all’estrazione, crea il tuo account EvLY (gratis, un minuto): così scoprirai in segreto chi devi viziare.',
   authLink: '🎅 Babbo Natale segreto: organizzalo in 2 minuti',
+  authBanner: 'Il tuo Babbo Natale segreto, organizzato in 2 minuti',
+  authBannerSub: 'Estrazione, liste dei desideri, messaggi anonimi',
+  authBannerCta: 'Scopri',
   inviteCta: 'Crea il mio account e partecipa',
 };
 export default noel;

@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { lightTokenField } from '../lib/lightGuest';
 import { sourceField } from '../lib/source';
+import { MiniGarland } from '../components/noel/ChristmasDecor';
 import { LogoIcon } from '../components/ui/Logo';
 import { GoogleWebButton } from '../components/ui/GoogleWebButton';
 import { siteUrl } from '../lib/siteUrl';
@@ -158,6 +159,20 @@ export function AuthPage() {
         <LanguagePicker compact />
       </div>
       <div className="w-full max-w-sm">
+        {/* Campagne de Noël (/pere-noel) : bandeau en tête, visible dès l'ouverture, même sur téléphone */}
+        {santaSeason() && (
+          <Link to="/pere-noel" className="block mb-8 mt-8 sm:mt-0 rounded-2xl overflow-hidden border border-rose-400/30 bg-gradient-to-br from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] shadow-lg shadow-black/30 hover:border-rose-300/60 transition-colors">
+            <MiniGarland />
+            <div className="flex items-center gap-3 px-4 pt-2 pb-3.5">
+              <span aria-hidden className="text-3xl">🎅</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm leading-snug">{t('noel.authBanner')}</p>
+                <p className="text-rose-100/80 text-xs mt-0.5">{t('noel.authBannerSub')}</p>
+              </div>
+              <span className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold">{t('noel.authBannerCta')} <ArrowRight size={13} /></span>
+            </div>
+          </Link>
+        )}
         {/* En-tête épuré : la connexion d'abord, le reste sous le formulaire */}
         <div className="text-center mb-10">
           <div className="flex justify-center mb-3">

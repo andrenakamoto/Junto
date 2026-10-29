@@ -112,3 +112,21 @@ export function SnowGround({ fill = '#f8fafc' }: { fill?: string }) {
     </svg>
   );
 }
+
+// Petite guirlande pour un encadré (page de connexion) : une rangée d'ampoules qui scintillent
+export function MiniGarland({ count = 11 }: { count?: number }) {
+  return (
+    <div aria-hidden className="flex justify-between px-3 -mt-1">
+      <style>{`
+        @keyframes evly-twinkle-mini { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+        .evly-bulb-mini { animation: evly-twinkle-mini 2.4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .evly-bulb-mini { animation: none; } }
+      `}</style>
+      {Array.from({ length: count }, (_, i) => (
+        <span key={i} className="evly-bulb-mini w-2 h-3 rounded-b-full" style={{
+          background: BULB_COLORS[i % BULB_COLORS.length], marginTop: i % 2 ? 6 : 2, animationDelay: `${(i % 5) * 0.45}s`,
+        }} />
+      ))}
+    </div>
+  );
+}
