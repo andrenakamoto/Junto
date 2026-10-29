@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bringSummary, moneySummary, pendingMatches, rideSummary, unansweredPolls } from './planSummary';
+import { bringSummary, moneySummary, myTasks, pendingMatches, rideSummary, unansweredPolls } from './planSummary';
 
 const nico = { id: 'nico', pseudo: 'nico', firstName: 'Nico' };
 const lea = { id: 'lea', pseudo: 'lea_m', firstName: null };
@@ -42,5 +42,28 @@ describe('à faire', () => {
       { ...base, closedAt: new Date(), swipes: [] },
       { ...base, deadline: new Date('2020-01-01'), swipes: [] },
     ], 'me')).toBe(1);
+  });
+});
+
+describe('myTasks', () => {
+  const at = (n: number) => new Date(2026, 9, n);
+  it('rien quand tout est terminé', () => {
+    expect(myTasks([], '2026-11-10')).toBeNull();
+    expect(myTasks([{ title: 'Salle', status: 'done', dueDate: null, createdAt: at(1) }], '2026-11-10')).toBeNull();
+  });
+  it('compte les tâches ouvertes et en retard, la plus urgente d’abord', () => {
+    const r = myTasks([
+      { title: 'Déco', status: 'todo', dueDate: null, createdAt: at(1) },
+      { title: 'Menu', status: 'todo', dueDate: '2026-11-20', createdAt: at(2) },
+      { title: 'Traiteur', status: 'doing', dueDate: '2026-11-05', createdAt: at(3) },
+      { title: 'Salle', status: 'done', dueDate: '2026-11-01', createdAt: at(4) },
+    ], '2026-11-10');
+    expect(r).toEqual({ count: 3, late: 1, next: { title: 'Traiteur', dueDate: '2026-11-05', late: true } });
+  });
+  it('sans échéance : une tâche commencée passe devant', () => {
+    expect(myTasks([
+      { title: 'A', status: 'todo', dueDate: null, createdAt: at(1) },
+      { title: 'B', status: 'doing', dueDate: null, createdAt: at(2) },
+    ], '2026-11-10')?.next.title).toBe('B');
   });
 });

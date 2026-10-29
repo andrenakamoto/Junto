@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Calendar, Car, Check, Copy, HandHeart, Images, ListTodo, MapPin, PiggyBank, Receipt, ShoppingBasket, Users, X } from 'lucide-react';
+import { AlertTriangle, Calendar, Car, Check, Copy, HandHeart, Images, ListChecks, ListTodo, MapPin, PiggyBank, Receipt, ShoppingBasket, Users, X } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 import { shortDateTime } from '../../lib/dates';
@@ -27,6 +27,8 @@ interface Summary {
   money: { owe: { to: string; amount: number; currency: string }[]; owed: { from: string; amount: number; currency: string }[] } | null;
   pot: { forWhom: string | null; currency: string; amount: number | null; status: 'none' | 'pledged' | 'paid' | 'received' } | null;
   shifts: { title: string; startsAt: string | null; endsAt: string | null }[];
+  /** Mes tâches pas terminées (fonction « Tâches ») ; absent avant le 2026-10-29 */
+  tasks?: { count: number; late: number; next: { title: string; dueDate: string | null; late: boolean } } | null;
   todo: { polls: number; matches: number };
   photos: number;
 }
@@ -90,6 +92,15 @@ function rows(s: Summary): Row[] {
     const next = s.shifts.find(sh => sh.startsAt && new Date(sh.endsAt ?? sh.startsAt).getTime() >= now) ?? s.shifts.find(sh => sh.startsAt);
     const sub = next ? t('plan.summary.shiftNext', { title: next.title, when: shiftWhen(next) }) : t('plan.summary.shiftFirst', { title: s.shifts[0].title });
     out.push({ key: 'shifts', Icon: HandHeart, text: t('plan.summary.shiftsMany', { count: s.shifts.length }), sub, tab: 'benevoles' });
+  }
+  if (s.tasks) {
+    const tk = s.tasks;
+    const due = tk.next.dueDate ? dayDate(`${tk.next.dueDate}T12:00:00`) : '';
+    const sub = tk.next.late ? t('plan.summary.taskLate', { title: tk.next.title, date: due })
+      : tk.next.dueDate ? t('plan.summary.taskNextDue', { title: tk.next.title, date: due })
+      : t('plan.summary.taskNext', { title: tk.next.title });
+    const text = t('plan.summary.tasks', { count: tk.count }) + (tk.late ? t('plan.summary.tasksLate', { count: tk.late }) : '');
+    out.push({ key: 'tasks', Icon: ListChecks, text, sub, tab: 'taches', tone: tk.late ? 'warn' : undefined });
   }
   if (s.todo.polls) out.push({ key: 'polls', Icon: ListTodo, text: t('plan.summary.polls', { count: s.todo.polls }), tab: 'votes', tone: 'warn' });
   if (s.todo.matches) out.push({ key: 'matches', Icon: ListTodo, text: t('plan.summary.matches', { count: s.todo.matches }), tab: 'votes', tone: 'warn' });

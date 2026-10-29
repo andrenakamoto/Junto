@@ -75,3 +75,17 @@ export function pendingMatches(
     return m.options.some(o => !done.has(o.id));
   }).length;
 }
+
+// Mes tâches pas encore terminées (fonction « Tâches ») : combien, combien en retard, et la plus urgente (échéance la
+// plus proche, sinon une tâche commencée, sinon la première)
+export function myTasks(tasks: { title: string; status: string; dueDate: string | null; createdAt: Date }[], today: string) {
+  const open = tasks.filter(t => t.status !== 'done');
+  if (!open.length) return null;
+  const late = open.filter(t => t.dueDate && t.dueDate < today).length;
+  const sorted = [...open].sort((a, b) =>
+    (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')
+    || (a.status === 'doing' ? 0 : 1) - (b.status === 'doing' ? 0 : 1)
+    || a.createdAt.getTime() - b.createdAt.getTime());
+  const next = sorted[0];
+  return { count: open.length, late, next: { title: next.title, dueDate: next.dueDate, late: !!next.dueDate && next.dueDate < today } };
+}

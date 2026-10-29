@@ -5,7 +5,8 @@ import { AuthRequest } from '../middleware/auth';
 import { canSeeMembers } from '../lib/memberPrivacy';
 import { getPlanAccess } from '../lib/planAccess';
 import { computeByCurrency } from '../lib/expenses';
-import { bringSummary, moneySummary, pendingMatches, personName, rideOffers, rideSummary, unansweredPolls } from '../lib/planSummary';
+import { zurichDay } from '../lib/tasks';
+import { bringSummary, moneySummary, myTasks, pendingMatches, personName, rideOffers, rideSummary, unansweredPolls } from '../lib/planSummary';
 
 // GET /plans/:id/summary — « En bref » (lib/planSummary.ts), monté dans le routeur des Plans. Réservé aux
 // participants « Je suis in » et « Peut-être ». Ne renvoie que ce qui concerne la personne, rubrique par
@@ -31,7 +32,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
   const optional = (f: string) => plan.enabledFeatures.includes(f);
   const nameOf = (id: string) => personName(members.find(m => m.userId === id)?.user);
 
-  const [waitlist, rides, requests, items, expenses, reimbursements, polls, matches, pot, shifts, photos] = await Promise.all([
+  const [waitlist, rides, requests, items, expenses, reimbursements, polls, matches, pot, shifts, tasks, photos] = await Promise.all([
     prisma.planWaitlist.count({ where: { planId } }),
     on('trajets') ? prisma.ride.findMany({ where: { planId }, include: { driver: person, passengers: { select: { userId: true } } } }) : [],
     on('trajets') ? prisma.rideRequest.findMany({ where: { planId }, select: { userId: true, fromLocation: true } }) : [],
@@ -42,6 +43,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
     on('votes') ? prisma.matchPoll.findMany({ where: { planId }, select: { closedAt: true, deadline: true, options: { select: { id: true, swipes: { where: { userId }, select: { optionId: true, userId: true } } } } } }) : [],
     optional('cagnotte') ? prisma.giftPot.findUnique({ where: { planId }, select: { forWhom: true, currency: true, closedAt: true, pledges: { where: { userId }, select: { amount: true, declaredPaidAt: true, receivedAt: true } } } }) : null,
     optional('benevoles') ? prisma.volunteerShift.findMany({ where: { planId, signups: { some: { userId } } }, select: { title: true, startsAt: true, endsAt: true }, orderBy: { startsAt: 'asc' } }) : [],
+    optional('taches') ? prisma.planTask.findMany({ where: { planId, assignees: { some: { userId } } }, select: { title: true, status: true, dueDate: true, createdAt: true } }) : [],
     // Comme le ZIP des photos : images du Plan, sans les photos des matchs ni du quiz
     prisma.attachment.count({ where: { planId, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] } }),
   ]);
@@ -68,6 +70,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
       ? { forWhom: pot.forWhom, currency: pot.currency, amount: pledge?.amount ?? null, status: !pledge ? 'none' : pledge.receivedAt ? 'received' : pledge.declaredPaidAt ? 'paid' : 'pledged' }
       : null,
     shifts: shifts.map(s => ({ title: s.title, startsAt: s.startsAt, endsAt: s.endsAt })),
+    tasks: myTasks(tasks, zurichDay()),
     todo: {
       polls: unansweredPolls(polls, userId),
       matches: pendingMatches(matches.map(m => ({ ...m, swipes: m.options.flatMap(o => o.swipes) })), userId),
