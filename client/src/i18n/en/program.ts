@@ -3,6 +3,10 @@ import type { Dict } from '../fr';
 const program: Dict['program'] = {
   add: 'Add an item',
   addAfter: 'Add an item after',
+  toShift: 'Create a shift',
+  shiftMade: 'Shift created',
+  toShiftTitle: 'Create a shift in the Schedule',
+  toShiftHint: 'This item becomes a shift in the Schedule: people can sign up and get a reminder an hour before.',
   summary_one: '{{count}} item · from {{start}} to {{end}}',
   summary_other: '{{count}} items · from {{start}} to {{end}}',
   noStart: 'Give the Plan a start date, or the first item a fixed time, to work out the times.',

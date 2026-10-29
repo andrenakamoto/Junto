@@ -3,6 +3,10 @@ import type { Dict } from '../fr';
 const program: Dict['program'] = {
   add: 'Aggiungi un momento',
   addAfter: 'Aggiungi un momento dopo',
+  toShift: 'Crea un turno',
+  shiftMade: 'Turno creato',
+  toShiftTitle: 'Crea un turno',
+  toShiftHint: 'Il momento diventa un turno: ognuno può iscriversi e riceve un promemoria un’ora prima.',
   summary_one: '{{count}} momento · dalle {{start}} alle {{end}}',
   summary_other: '{{count}} momenti · dalle {{start}} alle {{end}}',
   noStart: 'Indica una data di inizio al Plan, o un’ora fissa al primo momento, per calcolare gli orari.',

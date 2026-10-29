@@ -3,6 +3,10 @@ import type { Dict } from '../fr';
 const program: Dict['program'] = {
   add: 'Programmpunkt hinzufügen',
   addAfter: 'Danach einen Programmpunkt hinzufügen',
+  toShift: 'Einsatz erstellen',
+  shiftMade: 'Einsatz erstellt',
+  toShiftTitle: 'Einsatz im Einsatzplan erstellen',
+  toShiftHint: 'Der Programmpunkt wird zu einem Einsatz im Einsatzplan: Alle können sich eintragen und werden eine Stunde vorher erinnert.',
   summary_one: '{{count}} Programmpunkt · von {{start}} bis {{end}}',
   summary_other: '{{count}} Programmpunkte · von {{start}} bis {{end}}',
   noStart: 'Gib dem Plan ein Startdatum oder dem ersten Programmpunkt eine feste Uhrzeit, um die Zeiten zu berechnen.',

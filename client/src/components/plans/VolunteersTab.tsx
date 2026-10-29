@@ -312,14 +312,18 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
   );
 }
 
-function ShiftForm({ plan, shift, onSubmit, onCancel }: {
-  plan: Plan; shift?: VolunteerShift; onSubmit: (body: object) => void; onCancel: () => void;
+// Formulaire d'un poste, aussi ouvert par « Créer un poste » du Déroulé (ProgramTab), pré-rempli par `initial`
+export function ShiftForm({ plan, shift, initial, onSubmit, onCancel }: {
+  plan: Plan; shift?: VolunteerShift;
+  initial?: Pick<VolunteerShift, 'title' | 'needed' | 'startsAt' | 'endsAt' | 'note'>;
+  onSubmit: (body: object) => void; onCancel: () => void;
 }) {
-  const [title, setTitle] = useState(shift?.title ?? '');
-  const [needed, setNeeded] = useState(String(shift?.needed ?? 1));
-  const [start, setStart] = useState(shift ? toLocalInput(shift.startsAt) : '');
-  const [end, setEnd] = useState(toTimeInput(shift?.endsAt));
-  const [note, setNote] = useState(shift?.note ?? '');
+  const from = shift ?? initial;
+  const [title, setTitle] = useState(from?.title ?? '');
+  const [needed, setNeeded] = useState(String(from?.needed ?? 1));
+  const [start, setStart] = useState(from ? toLocalInput(from.startsAt) : '');
+  const [end, setEnd] = useState(toTimeInput(from?.endsAt));
+  const [note, setNote] = useState(from?.note ?? '');
   const [busy, setBusy] = useState(false);
   const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-0';
 

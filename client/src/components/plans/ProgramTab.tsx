@@ -7,6 +7,7 @@ import { hasFeature } from '../../lib/settings';
 import { saveFile } from '../../lib/saveFile';
 import { useResync } from '../../hooks/useResync';
 import { Modal } from '../ui/Modal';
+import { ShiftForm } from './VolunteersTab';
 import { intlLocale, t } from '../../i18n';
 
 // Déroulé d'un Plan (fonction « deroule ») : les moments de l'événement dans l'ordre, chacun avec sa durée ; les
@@ -25,6 +26,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
 export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [data, setData] = useState<Data | null>(null);
   const [shifts, setShifts] = useState<VolunteerShift[]>([]);
+  const [canShifts, setCanShifts] = useState(false);
+  const [shiftFrom, setShiftFrom] = useState<ProgramItem | null>(null);
   const [form, setForm] = useState<{ item?: ProgramItem; afterId?: string } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -34,7 +37,11 @@ export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
   async function load() {
     try {
       setData((await api.get(`/plans/${plan.id}/program`)).data);
-      if (hasFeature(plan, 'benevoles')) setShifts((await api.get(`/plans/${plan.id}/shifts`)).data.shifts ?? []);
+      if (hasFeature(plan, 'benevoles')) {
+        const r = (await api.get(`/plans/${plan.id}/shifts`)).data;
+        setShifts(r.shifts ?? []);
+        setCanShifts(!!r.canManage);
+      }
     } catch {
       setData(d => d ?? { items: [], people: [], canManage: false });
     }
@@ -73,6 +80,13 @@ export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
   const soon = !live.current && live.next && +new Date(live.next.start!) - now < 60 * 60e3 && (!first || +new Date(first.start!) - now < 60 * 60e3);
 
   // Postes du Planning qui chevauchent un moment
+  // « Créer un poste » : le moment devient un poste du Planning (nom, horaire, une place par responsable, lieu et
+  // matériel en remarque) ; déjà fait quand un poste du même nom commence à la même heure
+  const shiftMade = (i: ProgramItem) => shifts.some(s => s.title.trim().toLowerCase() === i.title.trim().toLowerCase() && (s.startsAt ?? null) === (i.start ?? null));
+  const shiftDraft = (i: ProgramItem) => ({
+    title: i.title.slice(0, 100), needed: Math.max(1, i.assignees.length), startsAt: i.start, endsAt: i.end,
+    note: [i.place, i.tech].filter(Boolean).join(' · ').replace(/\s*\n\s*/g, ', ').slice(0, 300) || null,
+  });
   const shiftsFor = (i: ProgramItem) => {
     if (!i.start || !i.end) return [];
     const a = +new Date(i.start), b = +new Date(i.end);
@@ -223,6 +237,13 @@ export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
                     <button onClick={() => setForm({ afterId: i.id })} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100">
                       <Plus size={13} />{t('program.addAfter')}
                     </button>
+                    {canShifts && (shiftMade(i) ? (
+                      <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-700"><Check size={13} />{t('program.shiftMade')}</span>
+                    ) : (
+                      <button onClick={() => setShiftFrom(i)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100">
+                        <HandHeart size={13} />{t('program.toShift')}
+                      </button>
+                    ))}
                     <span className="flex-1" />
                     <button onClick={() => setForm({ item: i })} title={t('program.edit')} aria-label={t('program.edit')} className="p-1.5 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={15} /></button>
                     {(i.createdById === userId || canManage) && (
@@ -236,6 +257,14 @@ export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
           );
         })}
       </ol>
+
+      {shiftFrom && (
+        <Modal title={t('program.toShiftTitle')} onClose={() => setShiftFrom(null)}>
+          <p className="text-xs text-slate-500 mb-3">{t('program.toShiftHint')}</p>
+          <ShiftForm plan={plan} initial={shiftDraft(shiftFrom)} onCancel={() => setShiftFrom(null)}
+            onSubmit={async body => { if (await run(() => api.post(`/plans/${plan.id}/shifts`, body))) setShiftFrom(null); }} />
+        </Modal>
+      )}
 
       {form && (
         <ProgramForm plan={plan} item={form.item} people={people} onCancel={() => setForm(null)}

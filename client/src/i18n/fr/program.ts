@@ -2,6 +2,10 @@
 const program = {
   add: 'Ajouter un moment',
   addAfter: 'Ajouter un moment après',
+  toShift: 'Créer un poste',
+  shiftMade: 'Poste créé',
+  toShiftTitle: 'Créer un poste dans le Planning',
+  toShiftHint: 'Le moment devient un poste du Planning : chacun peut s’y inscrire et reçoit un rappel une heure avant.',
   summary_one: '{{count}} moment · de {{start}} à {{end}}',
   summary_other: '{{count}} moments · de {{start}} à {{end}}',
   noStart: 'Indique une date de début au Plan, ou une heure fixe au premier moment, pour calculer les heures.',
