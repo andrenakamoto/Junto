@@ -944,7 +944,7 @@ Junto/
   l'échéance** dès 9 h (`sendTaskReminders`, horaire, gated). **Envoyées en `plan_activity` avec `tab: 'taches'`** (`notifyTask`) : les apps
   installées ne connaissent pas de nouveau type ; `AppNotification.tab` ouvre la rubrique (push : `&tab=`, client : DashboardPage), et
   `NotificationToast` ignore désormais les types inconnus. Pastille « nouveau » : section `taches`. « Je passe », exclusion, départ du
-  Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Pas dans la démo (rubrique vide, actions refusées) ;
+  Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Dans la démo depuis le 2026-10-29 (« Fête de fin d'année », lecture seule) ;
   dans le récapitulatif PDF depuis le 2026-10-29 ; dans « En bref » (2026-10-29, `myTasks` de `lib/planSummary.ts`) : « Tu as N tâches à faire (dont X en
   retard) » et la plus urgente, pour les tâches confiées à la personne. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
   « Idées » (brainstorming projeté), lien vers le Plan d'annonce, budget par lot, bilan et « Refaire l'an prochain ».
@@ -1927,10 +1927,14 @@ déconnexion = quitter la démo. Compteur `funnel_demo` (« Démo ouverte »).
 Cercles à leur code). L'association reprend la fête du village (Planning, affiche), la course des 10 km (Mode annonce, liste d'attente, réponses
 sans compte) et l'**Assemblée générale 2026 ouverte** (vote à bulletin secret en cours, Alex vote pour lui et pour Yann par procuration), plus
 « Foot de la semaine ⚽ » (récurrent, complet, liste d'attente, en silence). Danse, Boxe et Team events retirés (avatars et illustrations
-supprimés). `/demo?voir=pere-noel` (`DemoPage`, lien « Voir un exemple » de `/pere-noel`) = **démo resserrée** (`startDemo('pere-noel')`,
-`evly_demo_focus`, `focusOnSanta` de `lib/demo.ts`) : un seul Cercle « La famille » (code `DEMO-NOEL`, photo des copains) avec un seul Plan,
-« Noël en famille 🎁 » (le Père Noël secret des copains, tirage fait), sans discussion, dispo, sondage, Trajets, Votes ni Dépenses ; `/demo`
-seul remet la démo complète. Sur `/demo` même,
+supprimés). **`/demo` = « Que veux-tu découvrir ? »** (2026-10-29, `DemoPage` + `components/ui/DemoChoices.tsx`, aussi en fenêtre depuis « Voir la démo » de
+`AuthPage`) : une tuile par exemple — Sortie entre amis (raclette) et chaque Plan spécifique (surprise, Père Noël, jeux, voyage, cours, annonce,
+organisation, assemblée) — et « Tout voir » (`?voir=tout`, démo complète). `?voir=<exemple>` = **démo resserrée** (`startDemo(clé)`,
+`evly_demo_focus`, `focusOnPlan` de `lib/demo.ts`) : le seul Cercle de l'exemple (code `DEMO-FOCUS` : ni discussion ni dispo) avec ce seul
+Plan, ouvert sur sa rubrique ; exemples dans `DEMO_SHOWCASE` de `data.json` ([id du Plan, rubrique], écrit par `seed.js` → `ids.json`
+`showcase` → `capture.js`). Père Noël (`?voir=pere-noel`, page `/pere-noel`) : Cercle « La famille », Plan « Noël en famille 🎁 », sans
+Trajets, Votes ni Dépenses. Organisation : « Fête de fin d'année 🎉 » (Best collègues) avec **Tâches, Déroulé et Idées** à regarder (écritures
+refusées), lots de tâches dépliés dans la démo ; échéances des tâches décalées comme les dates (`shiftDay`). Sur `/demo` même,
 `AuthContext` ne charge rien (sinon la redirection interrompait le chargement et faisait quitter la démo). Le paragraphe suivant décrit
 la version du 2026-10-17.
 **Démo refaite le 2026-10-17** (`server/scripts/demo-site/seed.js`, demande de l'utilisateur : des cas concrets pour chaque type
