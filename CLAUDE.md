@@ -1496,7 +1496,8 @@ lien dans la bulle ⏳. Option de compte **`User.recapEmailEnabled`** (désactiv
 `sendRecapBeforeDeletion` avant de supprimer (PDF en pièce jointe Resend ; destinataires : créateur du Plan + gestionnaires du Cercle **qui participent au Plan** — « Je suis in » / « Peut-être », depuis le 2026-10-22 : ni liste d'attente, ni « Je passe », ni exclus d'un Plan surprise), sans tenir compte du
 canal de notification ni du mode silencieux (choix explicite). Mentionné dans la politique de
 confidentialité. **pdfkit : écrire sous la marge du bas ajoute une page** (pied de page : marge
-remise à 0 le temps de l'écrire).
+remise à 0 le temps de l'écrire). **Emoji retirés de tout texte des PDF** (2026-10-30, `stripEmojiFromPdf` de `lib/pdfText.ts`,
+appliqué au récapitulatif, au PV et à la feuille de route : les polices n'en ont pas, ils s'affichaient en carré vide).
 
 **Panneau admin** (`AdminPage`, refait le 2026-10-24) : page principale = vue d'ensemble (chiffres) + un bouton par partie
 (`SECTIONS` : Membres, Signalements, Suggestions, Découvrir, Statistiques, Stockage) avec le nombre d'éléments à traiter ; chaque partie
@@ -1937,7 +1938,11 @@ organisation, assemblée) — et « Tout voir » (`?voir=tout`, démo complète)
 Plan, ouvert sur sa rubrique ; exemples dans `DEMO_SHOWCASE` de `data.json` ([id du Plan, rubrique], écrit par `seed.js` → `ids.json`
 `showcase` → `capture.js`). Père Noël (`?voir=pere-noel`, page `/pere-noel`) : Cercle « La famille », Plan « Noël en famille 🎁 », sans
 Trajets, Votes ni Dépenses. Organisation : « Fête de fin d'année 🎉 » (Best collègues) avec **Tâches, Déroulé et Idées** à regarder (écritures
-refusées), lots de tâches dépliés dans la démo ; échéances des tâches décalées comme les dates (`shiftDay`). Sur `/demo` même,
+refusées), lots de tâches dépliés dans la démo ; échéances des tâches décalées comme les dates (`shiftDay`). Depuis le 2026-10-30, un exemple s'ouvre sur la **page principale** (liste des Cercles sur téléphone,
+Cercle de l'exemple ouvert sur grand écran) et non dans la rubrique. **Assemblée de la démo jouable de bout en bout** (2026-10-30, `lib/demo.ts`) :
+voter, clore un vote, ajouter / retirer un candidat, ouvrir un vote ou une élection, élire (bulletins des autres simulés), clore
+l'assemblée ; **PV et récapitulatif PDF** = vrais PDF générés une fois (`server/scripts/demo-site/pdf.js`, `client/public/demo/pdf/
+assemblee-{pv,recap}-<langue>.pdf`, servis par `demoPdf` du `demoAdapter`). Sur `/demo` même,
 `AuthContext` ne charge rien (sinon la redirection interrompait le chargement et faisait quitter la démo). Le paragraphe suivant décrit
 la version du 2026-10-17.
 **Démo refaite le 2026-10-17** (`server/scripts/demo-site/seed.js`, demande de l'utilisateur : des cas concrets pour chaque type
