@@ -49,6 +49,8 @@ const ui: Dict['ui'] = {
     santaHello: 'Ho ho ho! 🎅 Ich habe deine Wunschliste gelesen. Hast du eine Lieblingsfarbe?',
     playFirst: 'Spiel zuerst deine Karten, um die Ergebnisse zu sehen',
     voteNotOpen: 'Die Abstimmung ist nicht geöffnet',
+    otherVoteOpen: 'Eine andere Abstimmung läuft: Schliesse sie zuerst',
+    addCandidates: 'Füge zuerst die Kandidierenden hinzu',
     wheelEmpty: 'Es ist niemand auf dem Rad',
     wheelSpinning: 'Das Rad dreht sich schon!',
     noMission: 'Du hast gerade keine Mission',

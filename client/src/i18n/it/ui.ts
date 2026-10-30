@@ -49,6 +49,8 @@ const ui: Dict['ui'] = {
     santaHello: 'Oh oh oh! 🎅 Ho letto la tua lista dei desideri. Hai un colore preferito?',
     playFirst: 'Gioca prima le tue carte per vedere i risultati',
     voteNotOpen: 'La votazione non è aperta',
+    otherVoteOpen: 'È in corso un’altra votazione: chiudila prima',
+    addCandidates: 'Aggiungi prima i candidati',
     wheelEmpty: 'Non c’è nessuno sulla ruota',
     wheelSpinning: 'La ruota sta già girando!',
     noMission: 'Non hai nessuna missione in corso',

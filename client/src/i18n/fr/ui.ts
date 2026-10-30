@@ -49,6 +49,8 @@ export default {
     santaHello: 'Ho ho ho ! 🎅 J’ai bien lu ta liste d’envies. Une couleur préférée ?',
     playFirst: 'Joue d’abord tes cartes pour voir les résultats',
     voteNotOpen: 'Le vote n’est pas ouvert',
+    otherVoteOpen: 'Un autre vote est en cours : clos-le d’abord',
+    addCandidates: 'Ajoute d’abord les candidats',
     wheelEmpty: 'Il n’y a personne sur la roue',
     wheelSpinning: 'La roue tourne déjà !',
     noMission: 'Tu n’as pas de mission en cours',

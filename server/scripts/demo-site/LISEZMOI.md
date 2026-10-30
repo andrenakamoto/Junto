@@ -18,6 +18,10 @@ base jetable »). Personnes, Cercles et Plans entièrement fictifs.
 5. Enregistrement : `node scripts/demo-site/capture.js ../client/public/demo`
 6. Supprimer les anciennes photos de `client/public/demo/photos/` qui ne servent plus.
 
+PDF de l'assemblée (procès-verbal et récapitulatif, dans `client/public/demo/pdf/`) : sur une base fraîchement remplie par
+`seed.js`, `NODE_PATH=$PWD/node_modules node scripts/demo-site/pdf.js ../client/public/demo/pdf` (clôt l'assemblée : refaire
+`seed.js` avant `capture.js`).
+
 Ensuite : `python3 client/scripts/demo-i18n.py` (traductions ; compléter `ROWS` pour tout nouveau texte — la liste des
 textes manquants s'obtient en comparant les chaînes de `data.json` aux clés de `i18n.json`).
 

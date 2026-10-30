@@ -7,15 +7,18 @@ import { LanguagePicker } from '../components/ui/LanguagePicker';
 import { t } from '../i18n';
 
 // /demo : démo sans compte (lib/demo.ts). Sans ?voir : « Que veux-tu découvrir ? » (un exemple par type de Plan).
-// ?voir=<exemple> (amis, pere-noel, organisation…) : démo resserrée sur ce Plan, ouverte sur sa rubrique (DEMO_SHOWCASE de
-// public/demo/data.json : [identifiant du Plan, rubrique]) ; ?voir=tout : démo complète. Rechargement complet pour que la
+// ?voir=<exemple> (amis, pere-noel, organisation…) : démo resserrée sur ce Plan (DEMO_SHOWCASE de public/demo/data.json :
+// [identifiant du Plan, rubrique]), ouverte sur la page principale ; ?voir=tout : démo complète. Rechargement complet pour que la
 // session et le client API passent en mode démo.
 
+// L'exemple s'ouvre sur la page principale, pour voir comment l'app est organisée : la liste des Cercles sur téléphone,
+// le Cercle de l'exemple ouvert (avec son Plan) sur grand écran
 async function showcasePath(key: string): Promise<string> {
   try {
     const { fixtures } = await (await fetch('/demo/data.json')).json() as { fixtures: Record<string, any> };
     const sc = (fixtures.DEMO_SHOWCASE as Record<string, [string, string]> | undefined)?.[key];
-    return sc ? `/dashboard?planId=${sc[0]}&tab=${sc[1]}` : '/dashboard';
+    const circleId = sc ? fixtures[`GET /plans/${sc[0]}`]?.circleId : null;
+    return circleId && window.matchMedia('(min-width: 768px)').matches ? `/dashboard?circleId=${circleId}` : '/dashboard';
   } catch {
     return '/dashboard';
   }

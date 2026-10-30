@@ -946,24 +946,81 @@ function route(method: string, path: string, body: any): any {
 
   // Assemblée générale de la jeunesse : Alex vote (pour lui et pour Chloé), les autres finissent de voter quelques
   // secondes plus tard ; Alex, organisateur du Cercle, peut clore le vote. Notes du PV en mémoire.
-  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/(vote|close|notes)$/))) {
+  // Clore l'assemblée (aucun vote ouvert) : le PV n'est plus un « projet »
+  if ((m = path.match(/^\/plans\/([^/]+)\/assembly\/close$/)) && method === 'POST') {
+    const st = fixtures![`GET /plans/${m[1]}/assembly`];
+    if (!st?.canManage || st.status !== 'open') throw new DemoError(403, NOT_IN_DEMO);
+    if ((st.items as any[]).some(i => i.status === 'open')) throw new DemoError(400, tr('ui.demoApi.otherVoteOpen'));
+    st.status = 'closed'; st.closedAt = now();
+    changed(m[1]);
+    return { ok: true };
+  }
+  // Candidats d'une élection (avant son ouverture), en mémoire
+  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/candidates$/)) && method === 'POST') {
+    const found = findDemoAssemblyItem(m[1]);
+    if (!found || !found.st.canManage || found.item.kind !== 'election' || found.item.status !== 'pending') throw new DemoError(403, NOT_IN_DEMO);
+    const { planId, st, item } = found;
+    const member = (st.members as any[]).find(x => x.id === body?.userId);
+    const name = member?.name ?? String(body?.name ?? '').trim();
+    if (!name || (member && item.candidates.some((c: any) => c.userId === member.id))) throw new DemoError(400, NOT_IN_DEMO);
+    item.candidates.push({ id: newId('cand'), name, userId: member?.id ?? null, elected: false });
+    changed(planId);
+    return { ok: true };
+  }
+  if ((m = path.match(/^\/plans\/assembly\/candidates\/([^/]+)$/)) && method === 'DELETE') {
+    for (const k of Object.keys(fixtures!)) {
+      const mm = k.match(/^GET \/plans\/([^/]+)\/assembly$/);
+      const item = mm && (fixtures![k].items as any[]).find(i => i.status === 'pending' && i.candidates.some((c: any) => c.id === m![1]));
+      if (item) { item.candidates = item.candidates.filter((c: any) => c.id !== m![1]); changed(mm![1]); return { ok: true }; }
+    }
+    throw new DemoError(403, NOT_IN_DEMO);
+  }
+  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/(vote|close|notes|open)$/))) {
     const found = findDemoAssemblyItem(m[1]);
     if (!found) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, st, item } = found;
+    // Voix d'Alex (la sienne et celle de Yann, par procuration), d'après l'assemblée enregistrée
+    const mandates = () => ((st.me?.mandates ?? []) as any[]).map(x => ({ id: x.id, name: x.name, voted: false }));
     if (m[2] === 'notes') { item.notes = String(body.notes ?? '').trim() || null; changed(planId); return { ok: true }; }
+    // Ouvrir le vote d'un point (vote ou élection), un seul à la fois
+    if (m[2] === 'open') {
+      if (!st.canManage || item.kind === 'info' || item.status !== 'pending') throw new DemoError(403, NOT_IN_DEMO);
+      if ((st.items as any[]).some(i => i.status === 'open')) throw new DemoError(400, tr('ui.demoApi.otherVoteOpen'));
+      if (item.kind === 'election' && !item.candidates.length) throw new DemoError(400, tr('ui.demoApi.addCandidates'));
+      item.status = 'open'; item.eligibleVotes = st.quorum?.represented ?? 13; item.votedCount = 0; item.myMandates = mandates();
+      changed(planId);
+      return { ok: true };
+    }
     if (m[2] === 'vote') {
       if (item.status !== 'open') throw new DemoError(400, tr('ui.demoApi.voteNotOpen'));
       for (const v of body.votes ?? []) {
         const mandate = item.myMandates.find((x: any) => x.id === v.onBehalfOfId);
         if (!mandate || mandate.voted) continue;
         mandate.voted = true; item.votedCount += 1;
-        (item._mine ??= []).push(v.choice);
+        (item._mine ??= []).push(item.kind === 'election' ? (Array.isArray(v.candidateIds) ? v.candidateIds : []) : v.choice);
       }
       window.setTimeout(() => { if (item.status === 'open') { item.votedCount = item.eligibleVotes; changed(planId); } }, 4000);
       changed(planId);
       return { ok: true };
     }
     if (!st.canManage || item.status !== 'open') throw new DemoError(403, NOT_IN_DEMO);
+    // Élection : bulletins d'Alex + ceux des autres (répartis entre les candidats), élus = les plus de voix (comme lib/assembly.ts)
+    if (item.kind === 'election') {
+      const seats = item.seats ?? 1;
+      const cands = item.candidates as any[];
+      const votes = new Map(cands.map(c => [c.id, 0]));
+      const ballots: string[][] = [...(item._mine ?? [])];
+      const others = Math.max((item.eligibleVotes ?? 0) - ballots.length, 0);
+      for (let i = 0; i < others; i++) ballots.push(cands.length ? [...new Set(Array.from({ length: Math.min(seats, cands.length) }, (_, j) => cands[(i + j * 2) % cands.length].id))] : []);
+      for (const b of ballots) for (const id of b) if (votes.has(id)) votes.set(id, votes.get(id)! + 1);
+      const ranking = [...votes.entries()].sort((a, b) => b[1] - a[1]).map(([id, n]) => ({ id, name: cands.find(c => c.id === id)?.name ?? '?', votes: n }));
+      const electedIds = new Set(ranking.filter(r => r.votes > 0).slice(0, seats).map(r => r.id));
+      for (const c of cands) c.elected = electedIds.has(c.id);
+      item.status = 'closed'; item.votedCount = item.eligibleVotes; item.myMandates = [];
+      item.result = { tacit: false, ranking, elected: cands.filter(c => c.elected).map(c => c.name), tie: false, tiedIds: [], blank: ballots.filter(b => !b.length).length, ballots: ballots.length };
+      changed(planId);
+      return { ok: true };
+    }
     // Voix des autres (bulletin secret) : celles déjà enregistrées dans la démo + les retardataires
     const mine: string[] = item._mine ?? [];
     const others = (item.eligibleVotes ?? 0) - mine.length;
@@ -1409,6 +1466,14 @@ function route(method: string, path: string, body: any): any {
   throw new DemoError(403, NOT_IN_DEMO);
 }
 
+function demoPdf(path: string): string | null {
+  let m: RegExpMatchArray | null;
+  if (path.match(/^\/plans\/[^/]+\/assembly\/pv$/)) return 'assemblee-pv';
+  const agId = (fixtures?.DEMO_SHOWCASE as Record<string, [string, string]> | undefined)?.assemblee?.[0];
+  if ((m = path.match(/^\/plans\/([^/]+)\/recap$/)) && m[1] === agId) return 'assemblee-recap';
+  return null;
+}
+
 export const demoAdapter: AxiosAdapter = async (config: InternalAxiosRequestConfig) => {
   await loadDemo();
   const method = (config.method ?? 'get').toUpperCase();
@@ -1420,6 +1485,13 @@ export const demoAdapter: AxiosAdapter = async (config: InternalAxiosRequestConf
   const respond = (status: number, data: any): AxiosResponse => ({ data, status, statusText: String(status), headers: {}, config, request: {} });
   // Petit délai, comme un vrai réseau
   await new Promise(r => setTimeout(r, 60));
+  // PDF de l'assemblée de la démo (procès-verbal et récapitulatif du Plan) : de vrais PDF, générés une fois sur la base de
+  // démo et l'assemblée close (public/demo/pdf, server/scripts/demo-site/LISEZMOI.md)
+  const pdf = method === 'GET' ? demoPdf(path) : null;
+  if (pdf) {
+    const res = await fetch(`/demo/pdf/${pdf}-${currentLang()}.pdf`);
+    if (res.ok) return respond(200, await res.blob());
+  }
   try {
     const data = route(method, path, body);
     return respond(200, JSON.parse(JSON.stringify(data ?? { ok: true })));
