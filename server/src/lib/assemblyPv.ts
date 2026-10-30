@@ -1,4 +1,5 @@
 import path from 'path';
+import { stripEmojiFromPdf } from './pdfText';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
 import type { Locale } from './i18n';
@@ -55,7 +56,7 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
   const docIds = [...new Set(a.items.flatMap(i => i.attachmentIds))];
   const docs = new Map((docIds.length ? await prisma.attachment.findMany({ where: { id: { in: docIds } }, select: { id: true, name: true } }) : []).map(d => [d.id, d.name]));
 
-  const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 56, right: 56 }, bufferPages: true, info: { Title: m.s('pvPdf.title', { plan: plan.title }), Author: 'EvLY' } });
+  const doc = stripEmojiFromPdf(new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 56, right: 56 }, bufferPages: true, info: { Title: m.s('pvPdf.title', { plan: plan.title }), Author: 'EvLY' } }));
   const chunks: Buffer[] = [];
   doc.on('data', c => chunks.push(c));
   const done = new Promise<Buffer>(resolve => doc.on('end', () => resolve(Buffer.concat(chunks))));

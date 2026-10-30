@@ -1,4 +1,5 @@
 import path from 'path';
+import { stripEmojiFromPdf } from './pdfText';
 import { parseRichText, stripFormatting } from './richText';
 import { escapeHtml } from './escapeHtml';
 import PDFDocument from 'pdfkit';
@@ -97,7 +98,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   const quizAnswers = quiz?.endedAt ? await prisma.quizAnswer.findMany({ where: { planId }, select: { userId: true, points: true } }) : [];
   const quizPeople = new Map((await prisma.user.findMany({ where: { id: { in: [...new Set(quizAnswers.map(a => a.userId))] } }, select: { id: true, ...PERSON } })).map(u => [u.id, u]));
 
-  const doc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 52, right: 52 }, bufferPages: true, info: { Title: m.s('recapPdf.title', { plan: plan.title }), Author: 'EvLY' } });
+  const doc = stripEmojiFromPdf(new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 60, left: 52, right: 52 }, bufferPages: true, info: { Title: m.s('recapPdf.title', { plan: plan.title }), Author: 'EvLY' } }));
   const chunks: Buffer[] = [];
   doc.on('data', c => chunks.push(c));
   const done = new Promise<Buffer>(resolve => doc.on('end', () => resolve(Buffer.concat(chunks))));

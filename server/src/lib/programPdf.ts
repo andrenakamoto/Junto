@@ -1,4 +1,5 @@
 import path from 'path';
+import { stripEmojiFromPdf } from './pdfText';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
 import { type Locale } from './i18n';
@@ -30,7 +31,7 @@ export async function buildProgramPdf(planId: string, locale: Locale = 'fr'): Pr
   const time = zurich({ hour: '2-digit', minute: '2-digit' });
   const day = zurich({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  const doc = new PDFDocument({ size: 'A4', bufferPages: true, margins: { top: 40, bottom: 50, left: 50, right: 50 }, info: { Title: `${m.s('programPdf.file')} — ${plan.title}` } });
+  const doc = stripEmojiFromPdf(new PDFDocument({ size: 'A4', bufferPages: true, margins: { top: 40, bottom: 50, left: 50, right: 50 }, info: { Title: `${m.s('programPdf.file')} — ${plan.title}` } }));
   const chunks: Buffer[] = [];
   doc.on('data', c => chunks.push(c));
   const done = new Promise<Buffer>(resolve => doc.on('end', () => resolve(Buffer.concat(chunks))));
