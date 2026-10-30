@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, FileDown, FileText, Paperclip, Pencil, Plus, Settings2, Trash2, Users, X } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
@@ -46,6 +46,9 @@ const dateFmt = new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'n
 export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
   const [s, setS] = useState<State | null>(null);
   const [error, setError] = useState('');
+  // L'erreur s'affiche en haut de la rubrique : on la fait venir à l'écran (le bouton cliqué peut être tout en bas)
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => { if (error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, [error]);
   const [showSettings, setShowSettings] = useState(false);
   const [editing, setEditing] = useState<Item | 'new' | null>(null);
   async function load() {
@@ -100,7 +103,7 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
         )}
       </div>
 
-      {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+      {error && <p ref={errorRef} className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
 
       {/* Vote en cours : toujours en haut */}
       {openItem && <VoteCard item={openItem} state={s} onRun={run} />}
