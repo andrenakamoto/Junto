@@ -320,6 +320,9 @@ const groups: Group[] = [
               email), <strong>procurations</strong> à un autre membre.</>,
             <><strong>Réglages</strong> : membres votants (décoche les membres passifs), quorum, pointage avec le{' '}
               <strong>code de la salle</strong>, assemblée <strong>hybride</strong> (participation à distance).</>,
+            <><strong>Pointage</strong> : à l'ouverture, « Afficher le code en grand » projette le code de la salle et un QR code.
+              Chacun se pointe en tapant le code ou en scannant le QR code ; l'organisateur coche les autres dans la liste de
+              présence (pas encore pointés en premier, recherche).</>,
             <><strong>Pendant</strong> : seules les personnes pointées présentes votent, une fois pour elles et une fois par
               procuration. Quorum en direct, votes au <strong>bulletin secret</strong> ou à main levée, majorité simple, absolue
               ou des deux tiers, élections, décisions par acclamation.</>,

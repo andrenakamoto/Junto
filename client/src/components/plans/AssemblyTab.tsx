@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, FileDown, FileText, Paperclip, Pencil, Plus, Settings2, Trash2, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Paperclip, Pencil, Plus, Search, Settings2, Trash2, Users, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import QRCode from 'qrcode';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { saveFile } from '../../lib/saveFile';
+import { publicOrigin } from '../../lib/siteUrl';
+import { useBackClose } from '../../lib/backClose';
+import { RichText, RichTextArea, visibleLength } from '../../lib/richText';
+import { assemblyCodeLink, takeAssemblyCode } from '../../lib/assemblyCode';
 import { Modal } from '../ui/Modal';
 import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
@@ -40,6 +46,8 @@ const CHOICES = [
   { value: 'abstain', label: t('games.assembly.choice.abstain'), cls: 'bg-slate-500' },
 ];
 const CHOICE_LABEL: Record<string, string> = { yes: t('games.assembly.choiceLower.yes'), no: t('games.assembly.choiceLower.no'), abstain: t('games.assembly.choiceLower.abstain') };
+// Description d'un point : caractères visibles, comme ITEM_TEXT_MAX du serveur (lib/assembly.ts)
+const ITEM_DESCRIPTION_MAX = 2000;
 const errorOf = (e: any) => e?.response?.data?.error || t('common.retryError');
 const dateFmt = new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
@@ -50,6 +58,8 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
   const errorRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => { if (error) errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, [error]);
   const [showSettings, setShowSettings] = useState(false);
+  const [showCode, setShowCode] = useState(false);
+  const [focusId, setFocusId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Item | 'new' | null>(null);
   async function load() {
     try { setS((await api.get(`/plans/${plan.id}/assembly`)).data); } catch (e) { setError(errorOf(e)); }
@@ -78,7 +88,12 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
             {s.status === 'open' ? t('games.assembly.statusOpen') : s.status === 'closed' ? t('games.assembly.statusClosed') : t('games.assembly.statusPrep')}
           </span>
           {s.eventDate && <span className="text-xs text-slate-500">{dateFmt.format(new Date(s.eventDate))}</span>}
-          {s.canManage && <button onClick={() => setShowSettings(true)} className="ml-auto p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100" aria-label={t('games.assembly.settingsAria')}><Settings2 size={16} /></button>}
+          {s.canManage && (
+            <button onClick={() => setShowSettings(true)} aria-label={t('games.assembly.settingsAria')}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-semibold hover:bg-indigo-100">
+              <Settings2 size={16} /> {t('games.assembly.settingsButton')}
+            </button>
+          )}
         </div>
         {s.status === 'preparation' && (
           <p className="text-sm text-slate-600 mt-2">
@@ -105,8 +120,17 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
 
       {error && <p ref={errorRef} className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
 
-      {/* Vote en cours : toujours en haut */}
-      {openItem && <VoteCard item={openItem} state={s} onRun={run} />}
+      {/* Pas encore pointé·e : le pointage passe avant tout */}
+      {s.circleMember && s.status === 'open' && !s.me.present && <CheckInCard plan={plan} s={s} onRun={run} />}
+
+      {/* Vote en cours : il reste à sa place dans l'ordre du jour ; ce bandeau collé en haut y mène */}
+      {openItem && (
+        <button onClick={() => document.getElementById(`ag-item-${openItem.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          className="sticky top-0 z-10 w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md text-left">
+          <span className="flex-1 min-w-0 truncate">🗳️ {t('games.assembly.voteBanner', { title: openItem.title })}</span>
+          <span className="flex-shrink-0 flex items-center gap-1 underline underline-offset-2">{t('games.assembly.goToVote')} <ArrowDown size={15} /></span>
+        </button>
+      )}
 
       {/* Ma participation */}
       {s.circleMember && <MyParticipation plan={plan} s={s} onRun={run} />}
@@ -120,6 +144,9 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
             <div className="mt-3 p-3 rounded-xl bg-indigo-50 text-center">
               <p className="text-xs text-indigo-700">{t('games.assembly.roomCode')}</p>
               <p className="text-4xl font-black tracking-[0.3em] text-indigo-700">{s.checkInCode}</p>
+              <button onClick={() => setShowCode(true)} className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-500">
+                <Maximize2 size={15} /> {t('games.assembly.showCode')}
+              </button>
             </div>
           )}
         </div>
@@ -135,9 +162,13 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
       </div>
       {s.items.length === 0 && <p className="text-sm text-slate-400 italic">{s.canManage ? t('games.assembly.emptyManager') : t('games.assembly.emptyMember')}</p>}
       {s.items.map((item, n) => (
-        <ItemCard key={item.id} plan={plan} item={item} index={n} s={s} onRun={run} onEdit={() => setEditing(item)} />
+        <ItemCard key={item.id} plan={plan} item={item} index={n} s={s} onRun={run} onEdit={() => setEditing(item)} onFocus={() => setFocusId(item.id)} />
       ))}
 
+      {focusId && s.items.some(i => i.id === focusId) && (
+        <ItemFocus plan={plan} s={s} itemId={focusId} onRun={run} onMove={setFocusId} onEdit={item => setEditing(item)} onClose={() => setFocusId(null)} />
+      )}
+      {showCode && s.checkInCode && <RoomCodeScreen plan={plan} s={s} code={s.checkInCode} onClose={() => setShowCode(false)} />}
       {editing && <ItemModal plan={plan} item={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />}
       {showSettings && <SettingsModal plan={plan} s={s} onClose={() => setShowSettings(false)} onSaved={() => { setShowSettings(false); load(); }} />}
     </div>
@@ -148,27 +179,13 @@ type Run = (action: () => Promise<unknown>, confirmText?: string) => Promise<voi
 
 function MyParticipation({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run }) {
   const [holder, setHolder] = useState('');
-  const [code, setCode] = useState('');
   const others = s.members.filter(m => m.isVoter && m.id !== undefined && !s.me.mandates.some(x => x.id === m.id));
   if (!s.isVoter && s.status === 'preparation') return <div className="bg-white rounded-xl border border-slate-200 p-4 text-sm text-slate-500">{t('games.assembly.noVoteRight')}</div>;
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-2">
       <p className="text-sm font-semibold text-slate-800">{t('games.assembly.myParticipation')}</p>
       {!s.isVoter && <p className="text-sm text-slate-500">{t('games.assembly.noVoteRightShort')}</p>}
-      {s.status === 'open' && (s.me.present
-        ? <p className="text-sm text-emerald-700 flex items-center gap-1.5"><CheckCircle2 size={16} /> {s.me.remote ? t('games.assembly.presentRemote') : t('games.assembly.present')}</p>
-        : (
-          <div className="space-y-2">
-            {s.settings.codeCheckIn && (
-              <div className="flex gap-2">
-                <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" placeholder={t('games.assembly.roomCodePlaceholder')} className="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm tracking-widest" />
-                <button onClick={() => onRun(() => api.post(`/plans/${plan.id}/assembly/checkin`, { code }))} disabled={code.length !== 4} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-40">{t('games.assembly.imHere')}</button>
-              </div>
-            )}
-            {s.settings.hybrid && <button onClick={() => onRun(() => api.post(`/plans/${plan.id}/assembly/checkin`, { remote: true }))} className="w-full py-2 rounded-lg bg-white border border-indigo-200 text-indigo-700 text-sm font-semibold">{t('games.assembly.remote')}</button>}
-            {!s.settings.codeCheckIn && !s.settings.hybrid && <p className="text-sm text-slate-500">{t('games.assembly.organizerChecks')}</p>}
-          </div>
-        ))}
+      {s.status === 'open' && s.me.present && <p className="text-sm text-emerald-700 flex items-center gap-1.5"><CheckCircle2 size={16} /> {s.me.remote ? t('games.assembly.presentRemote') : t('games.assembly.present')}</p>}
       {s.isVoter && s.me.proxiesHeld.length > 0 && <p className="text-sm text-slate-700"><Trans i18nKey="games.assembly.youRepresent" values={{ names: s.me.proxiesHeld.map(p => p.name).join(', ') }} components={{ b: <strong /> }} />{s.status === 'open' && !s.me.present ? t('games.assembly.validOnceHere') : ''}</p>}
       {s.isVoter && s.settings.proxiesAllowed && s.status === 'preparation' && (s.me.proxyGivenTo
         ? <p className="text-sm text-slate-700 flex items-center gap-2 flex-wrap"><span><Trans i18nKey="games.assembly.proxyGiven" values={{ name: s.me.proxyGivenTo.name }} components={{ b: <strong /> }} /></span>
@@ -190,6 +207,7 @@ function MyParticipation({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run 
   );
 }
 
+// Vote ou élection en cours, dans la carte de son point (l'ordre du jour ne bouge pas)
 function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run }) {
   const [choices, setChoices] = useState<Record<string, string | string[]>>({});
   const todo = item.myMandates.filter(m => !m.voted);
@@ -205,9 +223,8 @@ function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run
     return onRun(() => api.post(`/plans/assembly/items/${item.id}/vote`, { votes }));
   }
   return (
-    <div className="bg-white rounded-xl border-2 border-indigo-400 shadow-md p-4">
+    <div className="mt-3 rounded-xl bg-indigo-50/70 border border-indigo-200 p-3">
       <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">{t('games.assembly.voteOpen', { mode: item.secret ? t('games.assembly.secret') : t('games.assembly.handRaise') })}</p>
-      <p className="text-base font-bold text-slate-900 mt-1">{item.title}</p>
       {item.kind === 'vote' && <p className="text-xs text-slate-500 mt-0.5">{t(`games.assembly.majorityAdopted.${item.majority}` as any, { defaultValue: item.majorityLabel })}</p>}
       {item.kind === 'election' && <p className="text-xs text-slate-500 mt-0.5">{t('games.assembly.seatsHint', { count: seats })}</p>}
       <p className="text-sm text-slate-600 mt-2">{t('games.assembly.votedCount', { voted: item.votedCount, eligible: item.eligibleVotes ?? '?' })}</p>
@@ -220,7 +237,7 @@ function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run
             <div className="grid grid-cols-3 gap-2">
               {CHOICES.map(c => (
                 <button key={c.value} onClick={() => setChoices({ ...choices, [m.id]: c.value })}
-                  className={`py-3 rounded-xl text-sm font-bold ${choices[m.id] === c.value ? `${c.cls} text-white` : 'bg-slate-100 text-slate-700'}`}>{c.label}</button>
+                  className={`py-3 rounded-xl text-sm font-bold ${choices[m.id] === c.value ? `${c.cls} text-white` : 'bg-white border border-slate-200 text-slate-700'}`}>{c.label}</button>
               ))}
             </div>
           ) : (
@@ -270,7 +287,8 @@ function ItemResult({ item }: { item: Item }) {
   );
 }
 
-function ItemCard({ plan, item, index, s, onRun, onEdit }: { plan: Plan; item: Item; index: number; s: State; onRun: Run; onEdit: () => void }) {
+// Un point de l'ordre du jour ; `big` = affiché seul en grand (ItemFocus) : texte agrandi, sans les flèches ni le crayon
+function ItemCard({ plan, item, index, s, onRun, onEdit, onFocus, big }: { plan: Plan; item: Item; index: number; s: State; onRun: Run; onEdit: () => void; onFocus?: () => void; big?: boolean }) {
   const [notes, setNotes] = useState(item.notes ?? '');
   const [editNotes, setEditNotes] = useState(false);
   const [candidate, setCandidate] = useState('');
@@ -288,14 +306,17 @@ function ItemCard({ plan, item, index, s, onRun, onEdit }: { plan: Plan; item: I
   };
   const free = (item.seats ?? 1) - (item.result?.elected?.length ?? 0);
   return (
-    <div className={`bg-white rounded-xl border shadow-sm p-4 ${item.status === 'open' ? 'border-indigo-300' : 'border-slate-200'}`}>
+    <div id={big ? undefined : `ag-item-${item.id}`} className={`bg-white rounded-xl scroll-mt-16 ${big ? 'p-5 sm:p-8 shadow-sm border border-slate-200' : 'p-4'} ${!big && (item.status === 'open' ? 'border-2 border-indigo-400 shadow-md' : 'border border-slate-200 shadow-sm')}`}>
       <div className="flex items-start gap-2">
-        <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center flex-shrink-0">{index + 1}</span>
+        <span className={`rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center flex-shrink-0 ${big ? 'w-10 h-10 text-lg' : 'w-6 h-6 text-xs'}`}>{index + 1}</span>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
-          <p className="text-xs text-slate-500">{KIND_LABEL[item.kind]}{item.kind !== 'info' ? ` · ${item.secret ? t('games.assembly.secret') : t('games.assembly.handRaise')}` : ''}{item.kind === 'election' ? ` · ${t('games.assembly.seats', { count: item.seats ?? 1 })}` : ''}</p>
+          <p className={`font-semibold text-slate-800 ${big ? 'text-2xl sm:text-3xl leading-tight' : 'text-sm'}`}>{item.title}</p>
+          <p className={`text-slate-500 ${big ? 'text-sm mt-1' : 'text-xs'}`}>{KIND_LABEL[item.kind]}{item.kind !== 'info' ? ` · ${item.secret ? t('games.assembly.secret') : t('games.assembly.handRaise')}` : ''}{item.kind === 'election' ? ` · ${t('games.assembly.seats', { count: item.seats ?? 1 })}` : ''}</p>
         </div>
-        {s.canManage && s.status !== 'closed' && (
+        {onFocus && !big && (
+          <button onClick={onFocus} aria-label={t('games.assembly.showItem')} title={t('games.assembly.showItem')} className="p-1.5 -mt-0.5 rounded-lg text-indigo-600 hover:bg-indigo-50"><Maximize2 size={16} /></button>
+        )}
+        {s.canManage && s.status !== 'closed' && !big && (
           <div className="flex items-center gap-0.5 text-slate-400">
             {index > 0 && <button onClick={() => move(-1)} aria-label={t('games.assembly.up')} className="p-1 hover:text-slate-700"><ArrowUp size={14} /></button>}
             {index < s.items.length - 1 && <button onClick={() => move(1)} aria-label={t('games.assembly.down')} className="p-1 hover:text-slate-700"><ArrowDown size={14} /></button>}
@@ -304,7 +325,7 @@ function ItemCard({ plan, item, index, s, onRun, onEdit }: { plan: Plan; item: I
           </div>
         )}
       </div>
-      {item.description && <p className="text-sm text-slate-600 mt-2 whitespace-pre-line">{item.description}</p>}
+      {item.description && <RichText text={item.description} className={big ? 'text-base sm:text-xl text-slate-700 mt-5 leading-relaxed space-y-1' : 'text-sm text-slate-600 mt-2'} />}
       {item.documents.length > 0 && (
         <div className="mt-2 space-y-1">
           {item.documents.map(d => (
@@ -335,6 +356,7 @@ function ItemCard({ plan, item, index, s, onRun, onEdit }: { plan: Plan; item: I
           )}
         </div>
       )}
+      {item.status === 'open' && <VoteCard item={item} state={s} onRun={onRun} />}
       <ItemResult item={item} />
       {s.canManage && item.result?.tie && (
         <div className="mt-2 p-2.5 rounded-lg bg-amber-50 text-sm">
@@ -395,29 +417,167 @@ function ItemCard({ plan, item, index, s, onRun, onEdit }: { plan: Plan; item: I
   );
 }
 
+// Un point affiché seul, en grand (pendant la séance, ou projeté) : on ne voit pas les points suivants. Le vote s'y fait
+// comme dans la liste ; ← → (ou les flèches du clavier) passent d'un point à l'autre
+function ItemFocus({ plan, s, itemId, onRun, onMove, onEdit, onClose }: {
+  plan: Plan; s: State; itemId: string; onRun: Run; onMove: (id: string) => void; onEdit: (item: Item) => void; onClose: () => void;
+}) {
+  const index = s.items.findIndex(i => i.id === itemId);
+  const item = s.items[index];
+  const prev = s.items[index - 1], next = s.items[index + 1];
+  useBackClose(onClose);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+      if (e.key === 'Escape') onClose();
+      else if (!typing && e.key === 'ArrowLeft' && prev) onMove(prev.id);
+      else if (!typing && e.key === 'ArrowRight' && next) onMove(next.id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, onMove, prev, next]);
+  const nav = 'flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold disabled:opacity-30';
+  return createPortal(
+    <div className="fixed inset-0 z-[80] bg-slate-100 flex flex-col" role="dialog" aria-modal="true" style={{ paddingTop: 'var(--sa-top, 0px)', paddingBottom: 'var(--sa-bottom, 0px)' }}>
+      <div className="flex items-center gap-2 px-3 sm:px-6 py-3 bg-white border-b border-slate-200">
+        <p className="flex-1 min-w-0 text-sm text-slate-500 truncate">{plan.title} · <span className="font-semibold text-slate-700">{t('games.assembly.itemOf', { n: index + 1, total: s.items.length })}</span></p>
+        <button onClick={onClose} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-semibold text-slate-700"><X size={16} /> {t('games.assembly.screenClose')}</button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-6">
+        <div className="max-w-3xl mx-auto">
+          <ItemCard key={item.id} plan={plan} item={item} index={index} s={s} onRun={onRun} onEdit={() => onEdit(item)} big />
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 px-3 sm:px-6 py-3 bg-white border-t border-slate-200">
+        <button onClick={() => prev && onMove(prev.id)} disabled={!prev} className={`${nav} bg-white border border-slate-200 text-slate-700`}><ChevronLeft size={18} /> {t('games.assembly.prevItem')}</button>
+        <button onClick={() => next && onMove(next.id)} disabled={!next} className={`${nav} bg-indigo-600 text-white`}>{t('games.assembly.nextItem')} <ChevronRight size={18} /></button>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// Pointage d'un membre pas encore présent, en tête de la rubrique : code de la salle (tapé, ou reçu par le QR code
+// projeté, qui pointe tout seul), « à distance » si l'assemblée est hybride, sinon l'organisateur pointe à l'entrée
+function CheckInCard({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run }) {
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function checkIn(value: string) {
+    setBusy(true);
+    await onRun(() => api.post(`/plans/${plan.id}/assembly/checkin`, { code: value }));
+    setBusy(false);
+  }
+  useEffect(() => {
+    const scanned = takeAssemblyCode(plan.id);
+    if (scanned && s.settings.codeCheckIn) { setCode(scanned); checkIn(scanned); }
+  }, [plan.id]);
+  return (
+    <div className="bg-white rounded-xl border-2 border-indigo-400 shadow-md p-4 space-y-3">
+      <div>
+        <p className="text-base font-bold text-slate-900">{t('games.assembly.checkInTitle')}</p>
+        <p className="text-sm text-slate-600 mt-0.5">{s.settings.codeCheckIn ? t('games.assembly.checkInHint') : t('games.assembly.organizerChecks')}</p>
+      </div>
+      {s.settings.codeCheckIn && (
+        <div className="flex gap-2">
+          <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric"
+            placeholder={t('games.assembly.roomCodePlaceholder')} className="min-w-0 flex-1 px-3 py-2.5 rounded-lg border border-slate-300 text-lg font-semibold tracking-[0.3em] text-center placeholder:text-sm placeholder:font-normal placeholder:tracking-normal" />
+          <button onClick={() => checkIn(code)} disabled={code.length !== 4 || busy} className="px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-40">
+            {busy ? t('games.assembly.checkingIn') : t('games.assembly.imHere')}
+          </button>
+        </div>
+      )}
+      {s.settings.hybrid && <button onClick={() => onRun(() => api.post(`/plans/${plan.id}/assembly/checkin`, { remote: true }))} className="w-full py-2 rounded-lg bg-white border border-indigo-200 text-indigo-700 text-sm font-semibold">{t('games.assembly.remote')}</button>}
+    </div>
+  );
+}
+
+// Code de la salle en plein écran, pour le projeter : le code en très grand, un QR code qui ouvre l'app sur
+// l'assemblée et pointe la personne, et le nombre de présents (mis à jour avec l'assemblée)
+function RoomCodeScreen({ plan, s, code, onClose }: { plan: Plan; s: State; code: string; onClose: () => void }) {
+  const [qr, setQr] = useState('');
+  useBackClose(onClose);
+  useEffect(() => {
+    QRCode.toDataURL(assemblyCodeLink(plan.id, code, publicOrigin()), { width: 480, margin: 1, color: { dark: '#0f172a', light: '#ffffff' } })
+      .then(setQr).catch(() => setQr(''));
+  }, [plan.id, code]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  const present = s.members.filter(m => m.present).length;
+  return createPortal(
+    <div className="fixed inset-0 z-[90] bg-slate-900 text-white overflow-y-auto" role="dialog" aria-modal="true">
+      <button onClick={onClose} className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold" style={{ marginTop: 'var(--sa-top, 0px)' }}>
+        <X size={18} /> {t('games.assembly.screenClose')}
+      </button>
+      <div className="min-h-full flex flex-col items-center justify-center gap-6 px-6 py-16 text-center">
+        <p className="text-lg sm:text-2xl text-slate-300">{plan.title}</p>
+        <h2 className="text-3xl sm:text-5xl font-bold" style={{ fontFamily: 'Fraunces, serif' }}>📍 {t('games.assembly.screenTitle')}</h2>
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+          <p className="font-black tracking-[0.25em] -mr-[0.25em] leading-none text-[22vw] lg:text-[14vw] text-white">{code}</p>
+          {qr && <img src={qr} alt="" className="w-56 h-56 sm:w-72 sm:h-72 rounded-2xl bg-white p-3" />}
+        </div>
+        <p className="max-w-2xl text-base sm:text-xl text-slate-300">{t('games.assembly.screenHint')}</p>
+        <p className="text-xl sm:text-3xl font-semibold text-emerald-300">{t('games.assembly.screenCount', { present, total: s.members.length })}</p>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function AttendancePanel({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run }) {
   const [open, setOpen] = useState(s.status === 'open');
+  const [query, setQuery] = useState('');
   const present = s.members.filter(m => m.present).length;
+  const norm = (x: string) => x.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const shown = s.members.filter(m => !query || norm(m.name).includes(norm(query)))
+    .sort((a, b) => a.name.localeCompare(b.name, intlLocale()));
+  const missing = shown.filter(m => !m.present);
+  const here = shown.filter(m => m.present);
+  const row = (m: State['members'][number]) => (
+    <label key={m.id} className="flex items-center gap-3 py-2 text-sm cursor-pointer">
+      <input type="checkbox" checked={m.present} onChange={e => onRun(() => api.put(`/plans/${plan.id}/assembly/attendance/${m.id}`, { present: e.target.checked }))} className="accent-indigo-600 w-5 h-5" />
+      <span className="flex-1">{m.name}{!m.isVoter && <span className="text-xs text-slate-400">{t('games.assembly.noVoteRightTag')}</span>}</span>
+      {m.remote && <span className="text-xs text-indigo-600">{t('games.assembly.remoteTag')}</span>}
+      {m.proxyTo && !m.present && <span className="text-xs text-slate-400">→ {m.proxyTo.name}</span>}
+    </label>
+  );
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
       <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 text-left">
         <Users size={16} className="text-slate-500" />
         <span className="flex-1 text-sm font-semibold text-slate-800">{t('games.assembly.attendance')}</span>
-        <span className="text-xs text-slate-500">{t('games.assembly.attendanceCount', { present, proxies: s.proxies.length })}</span>
+        <span className="text-xs text-slate-500">{s.status === 'open' ? t('games.assembly.attendanceProgress', { present, total: s.members.length }) : t('games.assembly.attendanceCount', { present, proxies: s.proxies.length })}</span>
       </button>
       {open && (
         <div className="mt-3 space-y-3">
           {s.status === 'open' && (
-            <div className="divide-y divide-slate-100">
-              {s.members.map(m => (
-                <label key={m.id} className="flex items-center gap-2 py-1.5 text-sm">
-                  <input type="checkbox" checked={m.present} onChange={e => onRun(() => api.put(`/plans/${plan.id}/assembly/attendance/${m.id}`, { present: e.target.checked }))} className="accent-indigo-600 w-4 h-4" />
-                  <span className="flex-1">{m.name}{!m.isVoter && <span className="text-xs text-slate-400">{t('games.assembly.noVoteRightTag')}</span>}</span>
-                  {m.remote && <span className="text-xs text-indigo-600">{t('games.assembly.remoteTag')}</span>}
-                  {m.proxyTo && !m.present && <span className="text-xs text-slate-400">→ {m.proxyTo.name}</span>}
-                </label>
-              ))}
-            </div>
+            <>
+              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full bg-emerald-500 transition-all" style={{ width: `${s.members.length ? (present / s.members.length) * 100 : 0}%` }} />
+              </div>
+              {s.members.length > 10 && (
+                <div className="relative">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('games.assembly.searchMember')} className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-sm" />
+                </div>
+              )}
+              {shown.length === 0 && <p className="text-sm text-slate-400 italic">{t('games.assembly.noMatch')}</p>}
+              {missing.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-amber-700">{t('games.assembly.notCheckedIn', { count: missing.length })}</p>
+                  <div className="divide-y divide-slate-100">{missing.map(row)}</div>
+                </div>
+              )}
+              {!query && missing.length === 0 && <p className="text-sm text-emerald-700 flex items-center gap-1.5"><CheckCircle2 size={16} /> {t('games.assembly.allCheckedIn')}</p>}
+              {here.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-emerald-700">{t('games.assembly.checkedIn', { count: here.length })}</p>
+                  <div className="divide-y divide-slate-100">{here.map(row)}</div>
+                </div>
+              )}
+            </>
           )}
           {s.status !== 'open' && <p className="text-xs text-slate-500">{t('games.assembly.attendanceLater')}</p>}
           {s.proxies.length > 0 && (
@@ -458,6 +618,7 @@ function ItemModal({ plan, item, onClose, onSaved }: { plan: Plan; item: Item | 
     setBusy(false);
   }
   async function save() {
+    if (visibleLength(description) > ITEM_DESCRIPTION_MAX) { setError(t('games.assembly.descTooLong', { count: ITEM_DESCRIPTION_MAX })); return; }
     setBusy(true); setError('');
     const body = { title, description, kind, secret, majority, seats, attachmentIds: docs.map(d => d.id) };
     try {
@@ -467,10 +628,11 @@ function ItemModal({ plan, item, onClose, onSaved }: { plan: Plan; item: Item | 
     } catch (e) { setError(errorOf(e)); setBusy(false); }
   }
   return (
-    <Modal title={item ? t('games.assembly.editItem') : t('games.assembly.newItem')} onClose={onClose}>
+    <Modal wide title={item ? t('games.assembly.editItem') : t('games.assembly.newItem')} onClose={onClose}>
       <div className="space-y-3">
         <input autoFocus value={title} onChange={e => setTitle(e.target.value)} maxLength={150} placeholder={t('games.assembly.titlePlaceholder')} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
-        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} maxLength={2000} placeholder={t('games.assembly.descPlaceholder')} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+        {/* Description mise en forme (gras, listes…), comme celle d'un Plan ; « Agrandir » l'ouvre en plein écran */}
+        <RichTextArea value={description} onChange={setDescription} max={ITEM_DESCRIPTION_MAX} rows={8} placeholder={t('games.assembly.descPlaceholder')} />
         <div className="grid grid-cols-3 gap-1.5">
           {(['info', 'vote', 'election'] as const).map(k => (
             <button key={k} disabled={locked} onClick={() => setKind(k)} className={`py-2 rounded-lg text-sm font-medium ${kind === k ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'} disabled:opacity-60`}>{KIND_LABEL[k]}</button>

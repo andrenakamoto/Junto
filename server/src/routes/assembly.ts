@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
 import { escapeHtml } from '../lib/escapeHtml';
+import { richTextToHtml } from '../lib/richText';
 import {
   ASSEMBLY_DISABLED_ERROR, MAX_CANDIDATES, MAX_ITEMS, MAJORITY_LABEL, NOTES_MAX, QUORUM_MODES, VOTE_CHOICES,
   assemblyEnabled, canManageAssembly, checkInCode, circleVoters, countVotes, electionResult, isAdopted,
@@ -35,7 +36,9 @@ async function load(req: AuthRequest, res: any, planId: string | undefined, opts
   if (opts.write && !access.isCircleMember) { res.status(403).json({ error: 'Réservé aux membres du Cercle' }); return null; }
   let assembly = await getAssembly(plan.id);
   if (!assembly) {
-    await prisma.assembly.upsert({ where: { planId: plan.id }, update: {}, create: { planId: plan.id } });
+    // Pointage avec le code de la salle activé d'emblée (depuis le 2026-10-31 ; la colonne garde false en base
+    // pour les assemblées déjà créées)
+    await prisma.assembly.upsert({ where: { planId: plan.id }, update: {}, create: { planId: plan.id, codeCheckIn: true } });
     assembly = (await getAssembly(plan.id))!;
   }
   return { plan, assembly, manager, circleMember: access.isCircleMember };
@@ -278,7 +281,6 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   // Email : convocation officielle, à tous les membres du Cercle quel que soit leur réglage de notifications (et même pour
   // un Cercle en silence), avec une copie pour la personne qui convoque
   // Retours à la ligne gardés comme dans l'app (les clients mail ignorent ceux du texte brut)
-  const multiline = (text: string) => escapeHtml(text.trim()).replace(/\r?\n/g, '<br>');
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
     where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null } },
@@ -294,7 +296,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
     const place = ctx.plan.location;
     const vars = { name: u.firstName ?? u.pseudo, date: date ?? '', place: place ?? '' };
     const intro = m.t(date && place ? 'convocation.textWhenWhere' : date ? 'convocation.textWhen' : place ? 'convocation.textWhere' : 'convocation.text', vars);
-    const agenda = items.map(i => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? m.t('convocation.vote') : i.kind === 'election' ? m.t('convocation.election') : ''}${i.description ? `<br><span style="color:#64748b">${multiline(i.description)}</span>` : ''}</li>`).join('');
+    const agenda = items.map(i => `<li style="margin:4px 0"><b>${escapeHtml(i.title)}</b>${i.kind === 'vote' ? m.t('convocation.vote') : i.kind === 'election' ? m.t('convocation.election') : ''}${i.description ? `<div style="color:#64748b">${richTextToHtml(i.description)}</div>` : ''}</li>`).join('');
     resend.emails.send({
       from: FROM_EMAIL, to: u.email!,
       subject: m.s('convocation.subject', { plan: ctx.plan.title }),
