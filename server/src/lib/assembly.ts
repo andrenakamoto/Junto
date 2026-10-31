@@ -1,6 +1,7 @@
 import { randomInt } from 'crypto';
 import prisma from './prisma';
 import { isCircleManager } from './circleRoles';
+import { parseRichInput } from './richText';
 
 // Assemblée : fonction à activer dans un Plan (enabledFeatures « assemblee »). La date du Plan est celle de
 // l'assemblée. Organisée par le créateur du Plan et les gestionnaires du Cercle (la « présidence »), avec un ou
@@ -122,8 +123,11 @@ export function parseItemInput(body: any): { error: string } | {
   const majority = (MAJORITIES as readonly string[]).includes(body?.majority) ? body.majority as Majority : 'simple';
   const seatsRaw = Number(body?.seats);
   const seats = kind === 'election' ? (Number.isInteger(seatsRaw) && seatsRaw >= 1 && seatsRaw <= 20 ? seatsRaw : 1) : null;
+  // Description mise en forme (lib/richText.ts) : limite en caractères visibles, comme les informations importantes
+  const description = parseRichInput(body?.description, ITEM_TEXT_MAX);
+  if (description === undefined) return { error: `Description : ${ITEM_TEXT_MAX} caractères maximum` };
   const attachmentIds = Array.isArray(body?.attachmentIds) ? [...new Set(body.attachmentIds.filter((x: unknown): x is string => typeof x === 'string'))].slice(0, 10) as string[] : [];
-  return { title, description: text(body?.description, ITEM_TEXT_MAX) || null, kind, secret: body?.secret !== false, majority, seats, attachmentIds };
+  return { title, description: description || null, kind, secret: body?.secret !== false, majority, seats, attachmentIds };
 }
 
 // Prénom + nom (le procès-verbal identifie les personnes ; jamais dans l'app pour les autres membres)

@@ -117,6 +117,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Ta participation a déjà été reçue : demande à l’organisateur pour la changer': ['Dein Beitrag wurde schon erhalten: Frag den Organisator, um ihn zu ändern', 'La tua quota è già stata ricevuta: chiedi all’organizzatore per cambiarla', 'Your contribution has already been received: ask the organiser to change it'],
   'Tape SUPPRIMER pour confirmer': ['Gib zur Bestätigung das verlangte Wort ein', 'Scrivi la parola richiesta per confermare', 'Type the requested word to confirm'],
   'Tirage impossible avec ces exclusions : retire-en une': ['Auslosung mit diesen Ausschlüssen unmöglich: Entferne einen', 'Sorteggio impossibile con queste esclusioni: togline una', 'The draw is impossible with these exclusions: remove one'],
+  'Description : {0} caractères maximum': ['Beschreibung: höchstens {0} Zeichen', 'Descrizione: al massimo {0} caratteri', 'Description: {0} characters at most'],
   'Titre : {0} caractères maximum': ['Titel: höchstens {0} Zeichen', 'Titolo: al massimo {0} caratteri', 'Title: {0} characters at most'],
   'Titre requis': ['Titel erforderlich', 'Titolo obbligatorio', 'Title required'],
   'Token expiré ou invalide': ['Token abgelaufen oder ungültig', 'Token scaduto o non valido', 'Token expired or invalid'],

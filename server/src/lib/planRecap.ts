@@ -1,6 +1,6 @@
 import path from 'path';
-import { stripEmojiFromPdf } from './pdfText';
-import { parseRichText, stripFormatting } from './richText';
+import { stripEmojiFromPdf, writeRichText } from './pdfText';
+import { stripFormatting } from './richText';
 import { escapeHtml } from './escapeHtml';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
@@ -140,14 +140,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
 
   // Texte mis en forme (lib/richText.ts) : gras et listes ; l'italique reste droit (pas de police italique d'Inter)
   const richPara = (text: string, color: string, x: number, w: number) => {
-    for (const line of parseRichText(text)) {
-      const prefix = line.kind === 'bullet' ? '•  ' : line.kind === 'number' ? `${line.number}.  ` : '';
-      const parts = [{ text: prefix, bold: false }, ...line.parts].filter(p => p.text);
-      doc.x = x;
-      if (parts.length === 0) { doc.font('regular').fontSize(10).moveDown(0.6); continue; }
-      parts.forEach((p, i) => doc.font(p.bold ? 'semibold' : 'regular').fontSize(10).fillColor(color)
-        .text(p.text, { width: w, lineGap: 1.5, underline: !!(p as { underline?: boolean }).underline, continued: i < parts.length - 1 }));
-    }
+    writeRichText(doc, text, { color, x, width: w });
     doc.x = left;
   };
 

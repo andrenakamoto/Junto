@@ -1,5 +1,5 @@
 import path from 'path';
-import { stripEmojiFromPdf } from './pdfText';
+import { stripEmojiFromPdf, writeRichText } from './pdfText';
 import PDFDocument from 'pdfkit';
 import prisma from './prisma';
 import type { Locale } from './i18n';
@@ -121,7 +121,7 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
   a.items.forEach((i, n) => {
     if (doc.y > doc.page.height - 130) doc.addPage();
     doc.moveDown(0.5).font('semibold').fontSize(11.5).fillColor(INK).text(`${n + 1}. ${i.title}`, { width });
-    if (i.description) para(i.description, DIM);
+    if (i.description) { writeRichText(doc, i.description, { color: DIM, x: doc.page.margins.left, width }); doc.x = doc.page.margins.left; }
     const d = i.attachmentIds.map(id => docs.get(id)).filter(Boolean);
     if (d.length) para(m.s('pvPdf.documents', { names: d.join(', ') }), DIM);
     if (i.notes) { doc.moveDown(0.2); para(i.notes); }
