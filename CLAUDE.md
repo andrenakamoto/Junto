@@ -1250,7 +1250,21 @@ Junto/
   exemptée du mode silencieux)** → `?tab=assemblee`. **PV** (GET /:id/assembly/pv, organisateur et secrétaire,
   « projet » tant que l'assemblée n'est pas close) : **prénom et nom** des présents, procurations, excusés,
   quorum, chaque point avec notes, résultats (noms à main levée), élus, signatures ; **envoyé par email au créateur
-  du Plan seul** à la clôture. Politique de confidentialité mise à jour (9 octobre 2026). Démo : « Assemblée générale
+  du Plan seul** à la clôture. **Pointage** (2026-10-31) : « Pointage avec le code de la salle » **activé d'emblée** pour les
+  nouvelles assemblées (`create` de `load` dans `routes/assembly.ts` ; la colonne garde `false` en base) ; « Afficher le code en
+  grand » (`RoomCodeScreen`, plein écran à projeter : code, QR code, nombre de présents) ; le QR code ouvre
+  `/dashboard?planId=…&tab=assemblee&code=1234` (`lib/assemblyCode.ts`, code gardé en `sessionStorage` puis pointage automatique ;
+  sans connexion, `Protected` renvoie vers `/auth?redirect=` pour toute adresse `/dashboard?…`) ; carte « 📍 Pointe ta présence » en
+  tête de la rubrique pour qui n'est pas pointé (`CheckInCard`) ; liste de présence de l'organisateur : barre de progression,
+  recherche dès 10 membres, « Pas encore pointés » puis « Présents ». Bouton « Réglages » écrit (plus seulement une icône). Démo :
+  liste de présence et pointage par code simulés. **Description d'un point mise en forme** (2026-10-31) : fenêtre « Nouveau point »
+  large, `RichTextArea` (gras, listes, « Agrandir »), 2 000 caractères visibles (`parseRichInput` dans `parseItemInput`), affichée par
+  `RichText`, dans la convocation (`richTextToHtml`) et dans le PV (`writeRichText` de `lib/pdfText.ts`, partagé avec le récapitulatif).
+  **Vote dans l'ordre du jour** (2026-10-31) : le vote ou l'élection en cours s'affiche dans la carte de son point (`VoteCard` dans
+  `ItemCard`), plus en tête de la rubrique ; un bandeau collé en haut « Vote en cours… Aller au vote » y fait défiler. **Point en grand**
+  (`ItemFocus`, icône ⤢ de chaque point, pour tout le monde) : un seul point en plein écran, texte agrandi, vote possible, « Précédent » /
+  « Point suivant » ou flèches du clavier, Échap ou retour Android pour fermer (local à chaque appareil, rien n'est synchronisé).
+  Politique de confidentialité mise à jour (9 octobre 2026). Démo : « Assemblée générale
   2026 » (Jeunesse de Montvert, ouverte, comptes adoptés, vote de la cotisation en cours : Alex vote pour lui et
   pour Chloé, puis peut clore le vote — `findDemoAssemblyItem`).
 - **BringItem** : liste "qui apporte quoi" — **partie intégrante de l'onglet Dépenses**
