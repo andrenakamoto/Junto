@@ -320,10 +320,10 @@ const groups: Group[] = [
             <><strong>Prima</strong>: ordine del giorno (informazione, votazione, elezione) con documenti, convocazione (app,
               notifica, email), <strong>deleghe</strong> a un altro membro.</>,
             <><strong>Impostazioni</strong>: membri con diritto di voto (togli la spunta ai membri passivi), quorum,
-              registrazione con il <strong>codice della sala</strong>, assemblea <strong>ibrida</strong> (partecipazione a
+              assemblea <strong>ibrida</strong> (partecipazione a
               distanza).</>,
             <><strong>Presenze</strong>: all’apertura, «Mostra il codice in grande» proietta il codice della sala e un codice
-              QR. Ognuno si registra digitando il codice o scansionando il QR; l’organizzazione spunta gli altri nella lista
+              QR. Ognuno si registra digitando il codice o scansionando il QR; l’organizzazione spunta chi non ha il telefono nella lista
               delle presenze (prima chi non è ancora registrato, ricerca).</>,
             <><strong>Durante</strong>: votano solo le persone registrate come presenti, una volta per sé e una volta per
               delega. Quorum in diretta, voti a <strong>scrutinio segreto</strong> o per alzata di mano, maggioranza

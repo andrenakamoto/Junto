@@ -313,10 +313,9 @@ const groups: Group[] = [
           <L items={[
             <><strong>Before</strong>: agenda (information, vote, election) with documents, notice (app, notification,
               email), <strong>proxies</strong> to another member.</>,
-            <><strong>Settings</strong>: voting members (untick passive members), quorum, check-in with the{' '}
-              <strong>room code</strong>, <strong>hybrid</strong> assembly (remote participation).</>,
+            <><strong>Settings</strong>: voting members (untick passive members), quorum, <strong>hybrid</strong> assembly (remote participation).</>,
             <><strong>Check-in</strong>: when the assembly opens, “Show the code full screen” projects the room code and a QR
-              code. Everyone checks in by typing the code or scanning the QR code; the organiser ticks the others in the
+              code. Everyone checks in by typing the code or scanning the QR code; the organiser ticks those without their phone in the
               attendance list (people not checked in yet first, search).</>,
             <><strong>During</strong>: only people checked in vote, once for themselves and once per proxy. Live quorum,{' '}
               <strong>secret ballot</strong> or show of hands, simple, absolute or two-thirds majority, elections, decisions

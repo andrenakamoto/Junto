@@ -48,6 +48,8 @@ const CHOICES = [
 const CHOICE_LABEL: Record<string, string> = { yes: t('games.assembly.choiceLower.yes'), no: t('games.assembly.choiceLower.no'), abstain: t('games.assembly.choiceLower.abstain') };
 // Description d'un point : caractères visibles, comme ITEM_TEXT_MAX du serveur (lib/assembly.ts)
 const ITEM_DESCRIPTION_MAX = 2000;
+// Notes du procès-verbal d'un point : comme NOTES_MAX du serveur
+const NOTES_MAX = 4000;
 const errorOf = (e: any) => e?.response?.data?.error || t('common.retryError');
 const dateFmt = new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
@@ -397,15 +399,17 @@ function ItemCard({ plan, item, index, s, onRun, onEdit, onFocus, big }: { plan:
         <div className="mt-3 pt-2 border-t border-slate-100">
           {editNotes ? (
             <div>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} maxLength={4000} autoFocus placeholder={t('games.assembly.notesPlaceholder')} className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+              {/* Mise en forme comme la description (gras, listes…) ; « Agrandir » ouvre l'éditeur en plein écran */}
+              <RichTextArea autoFocus value={notes} onChange={setNotes} max={NOTES_MAX} rows={big ? 12 : 8} placeholder={t('games.assembly.notesPlaceholder')} />
               <div className="flex gap-2 mt-1">
-                <button onClick={() => onRun(() => api.put(`/plans/assembly/items/${item.id}/notes`, { notes })).then(() => setEditNotes(false))} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold">{t('games.assembly.save')}</button>
+                <button onClick={() => onRun(() => api.put(`/plans/assembly/items/${item.id}/notes`, { notes })).then(() => setEditNotes(false))} disabled={visibleLength(notes) > NOTES_MAX} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold disabled:opacity-40">{t('games.assembly.save')}</button>
                 <button onClick={() => setEditNotes(false)} className="text-xs text-slate-500">{t('common.cancel')}</button>
               </div>
             </div>
           ) : item.notes ? (
-            <div className="text-sm text-slate-600 whitespace-pre-line">
-              <span className="text-xs font-semibold text-slate-400 block">{t('games.assembly.notes')}</span>{item.notes}
+            <div className="text-sm text-slate-600">
+              <span className="text-xs font-semibold text-slate-400 block">{t('games.assembly.notes')}</span>
+              <RichText text={item.notes} className={big ? 'text-base sm:text-lg text-slate-700 space-y-1' : ''} />
               {canNotes && <button onClick={() => setEditNotes(true)} className="block text-xs text-indigo-600 mt-1">{t('games.assembly.editNotes')}</button>}
             </div>
           ) : (
@@ -458,7 +462,8 @@ function ItemFocus({ plan, s, itemId, onRun, onMove, onEdit, onClose }: {
 }
 
 // Pointage d'un membre pas encore présent, en tête de la rubrique : code de la salle (tapé, ou reçu par le QR code
-// projeté, qui pointe tout seul), « à distance » si l'assemblée est hybride, sinon l'organisateur pointe à l'entrée
+// projeté, qui pointe tout seul), « à distance » si l'assemblée est hybride. Toujours possible, en plus de la liste de
+// présence de l'organisateur (pour celles et ceux qui n'ont pas leur téléphone)
 function CheckInCard({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run }) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -469,23 +474,21 @@ function CheckInCard({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run }) {
   }
   useEffect(() => {
     const scanned = takeAssemblyCode(plan.id);
-    if (scanned && s.settings.codeCheckIn) { setCode(scanned); checkIn(scanned); }
+    if (scanned) { setCode(scanned); checkIn(scanned); }
   }, [plan.id]);
   return (
     <div className="bg-white rounded-xl border-2 border-indigo-400 shadow-md p-4 space-y-3">
       <div>
         <p className="text-base font-bold text-slate-900">{t('games.assembly.checkInTitle')}</p>
-        <p className="text-sm text-slate-600 mt-0.5">{s.settings.codeCheckIn ? t('games.assembly.checkInHint') : t('games.assembly.organizerChecks')}</p>
+        <p className="text-sm text-slate-600 mt-0.5">{t('games.assembly.checkInHint')}</p>
       </div>
-      {s.settings.codeCheckIn && (
-        <div className="flex gap-2">
+      <div className="flex gap-2">
           <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric"
             placeholder={t('games.assembly.roomCodePlaceholder')} className="min-w-0 flex-1 px-3 py-2.5 rounded-lg border border-slate-300 text-lg font-semibold tracking-[0.3em] text-center placeholder:text-sm placeholder:font-normal placeholder:tracking-normal" />
           <button onClick={() => checkIn(code)} disabled={code.length !== 4 || busy} className="px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-40">
             {busy ? t('games.assembly.checkingIn') : t('games.assembly.imHere')}
           </button>
         </div>
-      )}
       {s.settings.hybrid && <button onClick={() => onRun(() => api.post(`/plans/${plan.id}/assembly/checkin`, { remote: true }))} className="w-full py-2 rounded-lg bg-white border border-indigo-200 text-indigo-700 text-sm font-semibold">{t('games.assembly.remote')}</button>}
     </div>
   );
@@ -726,7 +729,6 @@ function SettingsModal({ plan, s, onClose, onSaved }: { plan: Plan; s: State; on
         </div>
         <div className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">{t('games.assembly.attendanceVotes')}</p>
-          {check(t('games.assembly.codeCheckIn'), v.codeCheckIn, b => set({ codeCheckIn: b }), t('games.assembly.codeCheckInHint'))}
           {check(t('games.assembly.hybrid'), v.hybrid, b => set({ hybrid: b }), t('games.assembly.hybridHint'))}
           {check(t('games.assembly.proxiesAllowed'), v.proxiesAllowed, b => set({ proxiesAllowed: b }))}
           {v.proxiesAllowed && (

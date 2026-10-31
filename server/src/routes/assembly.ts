@@ -6,7 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
 import { notifyUser } from '../lib/push';
 import { escapeHtml } from '../lib/escapeHtml';
-import { richTextToHtml } from '../lib/richText';
+import { parseRichInput, richTextToHtml } from '../lib/richText';
 import {
   ASSEMBLY_DISABLED_ERROR, MAX_CANDIDATES, MAX_ITEMS, MAJORITY_LABEL, NOTES_MAX, QUORUM_MODES, VOTE_CHOICES,
   assemblyEnabled, canManageAssembly, checkInCode, circleVoters, countVotes, electionResult, isAdopted,
@@ -36,8 +36,6 @@ async function load(req: AuthRequest, res: any, planId: string | undefined, opts
   if (opts.write && !access.isCircleMember) { res.status(403).json({ error: 'Réservé aux membres du Cercle' }); return null; }
   let assembly = await getAssembly(plan.id);
   if (!assembly) {
-    // Pointage avec le code de la salle activé d'emblée (depuis le 2026-10-31 ; la colonne garde false en base
-    // pour les assemblées déjà créées)
     await prisma.assembly.upsert({ where: { planId: plan.id }, update: {}, create: { planId: plan.id, codeCheckIn: true } });
     assembly = (await getAssembly(plan.id))!;
   }
@@ -99,10 +97,12 @@ router.get('/:id/assembly', async (req: AuthRequest, res) => {
     eventDate: plan.eventDate,
     settings: {
       nonVoterIds: assembly.nonVoterIds, proxiesAllowed: assembly.proxiesAllowed, maxProxies: assembly.maxProxies,
-      quorumMode: assembly.quorumMode, quorumValue: assembly.quorumValue, codeCheckIn: assembly.codeCheckIn,
+      quorumMode: assembly.quorumMode, quorumValue: assembly.quorumValue, codeCheckIn: true,
       hybrid: assembly.hybrid, noticeDays: assembly.noticeDays, secretaryId: assembly.secretaryId,
     },
-    checkInCode: manager && assembly.openedAt && !assembly.closedAt && assembly.codeCheckIn ? assembly.checkInCode : null,
+    // Pointage par le code de la salle toujours possible (depuis le 2026-11-01), en plus du pointage par l'organisateur :
+    // `Assembly.codeCheckIn` n'est plus lu ; les apps installées reçoivent toujours `codeCheckIn: true`
+    checkInCode: manager && assembly.openedAt && !assembly.closedAt ? assembly.checkInCode : null,
     // Membres du Cercle (pas pour un invité externe : il ne voit rien du Cercle)
     members: circleMember ? r.members.map(m => ({
       id: m.id, name: nameOf(m), isVoter: r.voterIds.includes(m.id),
@@ -161,7 +161,6 @@ router.put('/:id/assembly', async (req: AuthRequest, res) => {
   if ((QUORUM_MODES as readonly string[]).includes(b.quorumMode)) data.quorumMode = b.quorumMode;
   if (b.quorumValue === null || (Number.isInteger(b.quorumValue) && b.quorumValue >= 1 && b.quorumValue <= 10000)) data.quorumValue = b.quorumValue;
   if ((data.quorumMode ?? ctx.assembly.quorumMode) === 'percent' && (data.quorumValue ?? ctx.assembly.quorumValue) > 100) { res.status(400).json({ error: 'Quorum : 100 % maximum' }); return; }
-  if (typeof b.codeCheckIn === 'boolean') { data.codeCheckIn = b.codeCheckIn; if (b.codeCheckIn && !ctx.assembly.checkInCode) data.checkInCode = checkInCode(); }
   if (typeof b.hybrid === 'boolean') data.hybrid = b.hybrid;
   if (Number.isInteger(b.noticeDays) && b.noticeDays >= 0 && b.noticeDays <= 90) data.noticeDays = b.noticeDays;
   if (b.secretaryId === null || (typeof b.secretaryId === 'string' && memberIds.includes(b.secretaryId))) data.secretaryId = b.secretaryId;
@@ -227,7 +226,9 @@ router.put('/:id/assembly/order', async (req: AuthRequest, res) => {
 router.put('/assembly/items/:itemId/notes', async (req: AuthRequest, res) => {
   const c = await itemCtx(req, res, req.params.itemId); if (!c) return;
   if (!c.manager && c.assembly.secretaryId !== req.userId) { res.status(403).json({ error: 'Réservé à l’organisateur et au ou à la secrétaire' }); return; }
-  const notes = typeof req.body?.notes === 'string' ? req.body.notes.trim().slice(0, NOTES_MAX) : '';
+  // Notes mises en forme (lib/richText.ts) : limite en caractères visibles
+  const notes = parseRichInput(req.body?.notes, NOTES_MAX);
+  if (notes === undefined) { res.status(400).json({ error: `Notes : ${NOTES_MAX} caractères maximum` }); return; }
   await prisma.assemblyItem.update({ where: { id: c.item.id }, data: { notes: notes || null } });
   res.json({ ok: true });
 });
@@ -367,7 +368,6 @@ router.post('/:id/assembly/checkin', async (req: AuthRequest, res) => {
   const remote = req.body?.remote === true;
   if (remote && !a.hybrid) { res.status(403).json({ error: 'Cette assemblée ne se suit pas à distance' }); return; }
   if (!remote) {
-    if (!a.codeCheckIn) { res.status(403).json({ error: 'Demande à l’organisateur de te pointer présent·e' }); return; }
     if (String(req.body?.code ?? '').trim() !== a.checkInCode) { res.status(400).json({ error: 'Code incorrect : regarde le code affiché dans la salle' }); return; }
   }
   await prisma.assemblyAttendance.upsert({

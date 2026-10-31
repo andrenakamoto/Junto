@@ -1250,8 +1250,9 @@ Junto/
   exemptée du mode silencieux)** → `?tab=assemblee`. **PV** (GET /:id/assembly/pv, organisateur et secrétaire,
   « projet » tant que l'assemblée n'est pas close) : **prénom et nom** des présents, procurations, excusés,
   quorum, chaque point avec notes, résultats (noms à main levée), élus, signatures ; **envoyé par email au créateur
-  du Plan seul** à la clôture. **Pointage** (2026-10-31) : « Pointage avec le code de la salle » **activé d'emblée** pour les
-  nouvelles assemblées (`create` de `load` dans `routes/assembly.ts` ; la colonne garde `false` en base) ; « Afficher le code en
+  du Plan seul** à la clôture. **Pointage** (2026-10-31) : **les deux façons sont toujours possibles** depuis le 2026-11-01 — chacun se pointe
+  avec le code de la salle sur son téléphone, l'organisateur coche les autres. Plus de réglage : `Assembly.codeCheckIn` n'est plus lu,
+  GET renvoie toujours `codeCheckIn: true` (les apps installées affichent alors le champ du code) ; « Afficher le code en
   grand » (`RoomCodeScreen`, plein écran à projeter : code, QR code, nombre de présents) ; le QR code ouvre
   `/dashboard?planId=…&tab=assemblee&code=1234` (`lib/assemblyCode.ts`, code gardé en `sessionStorage` puis pointage automatique ;
   sans connexion, `Protected` renvoie vers `/auth?redirect=` pour toute adresse `/dashboard?…`) ; carte « 📍 Pointe ta présence » en
@@ -1260,6 +1261,8 @@ Junto/
   liste de présence et pointage par code simulés. **Description d'un point mise en forme** (2026-10-31) : fenêtre « Nouveau point »
   large, `RichTextArea` (gras, listes, « Agrandir »), 2 000 caractères visibles (`parseRichInput` dans `parseItemInput`), affichée par
   `RichText`, dans la convocation (`richTextToHtml`) et dans le PV (`writeRichText` de `lib/pdfText.ts`, partagé avec le récapitulatif).
+  **Notes du PV** mises en forme de la même façon (même date, `RichTextArea` de 8 lignes, 12 en grand, 4 000 caractères visibles,
+  `parseRichInput` dans PUT `/assembly/items/:id/notes`, PV par `writeRichText`).
   **Vote dans l'ordre du jour** (2026-10-31) : le vote ou l'élection en cours s'affiche dans la carte de son point (`VoteCard` dans
   `ItemCard`), plus en tête de la rubrique ; un bandeau collé en haut « Vote en cours… Aller au vote » y fait défiler. **Point en grand**
   (`ItemFocus`, icône ⤢ de chaque point, pour tout le monde) : un seul point en plein écran, texte agrandi, vote possible, « Précédent » /

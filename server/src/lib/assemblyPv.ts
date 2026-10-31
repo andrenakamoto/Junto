@@ -124,7 +124,7 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
     if (i.description) { writeRichText(doc, i.description, { color: DIM, x: doc.page.margins.left, width }); doc.x = doc.page.margins.left; }
     const d = i.attachmentIds.map(id => docs.get(id)).filter(Boolean);
     if (d.length) para(m.s('pvPdf.documents', { names: d.join(', ') }), DIM);
-    if (i.notes) { doc.moveDown(0.2); para(i.notes); }
+    if (i.notes) { doc.moveDown(0.2); writeRichText(doc, i.notes, { color: INK, x: doc.page.margins.left, width }); doc.x = doc.page.margins.left; }
     if (i.kind === 'vote') {
       doc.moveDown(0.2);
       if (i.status === 'tacit') para(i.tacitAdopted ? m.s('pvPdf.tacitAdopted') : m.s('pvPdf.tacitRejected'), i.tacitAdopted ? GREEN : RED, 'semibold');
