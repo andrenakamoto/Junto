@@ -50,6 +50,7 @@ export default {
     playFirst: 'Joue d’abord tes cartes pour voir les résultats',
     voteNotOpen: 'Le vote n’est pas ouvert',
     otherVoteOpen: 'Un autre vote est en cours : clos-le d’abord',
+    wrongCode: 'Code incorrect : regarde le code affiché dans la salle',
     addCandidates: 'Ajoute d’abord les candidats',
     wheelEmpty: 'Il n’y a personne sur la roue',
     wheelSpinning: 'La roue tourne déjà !',

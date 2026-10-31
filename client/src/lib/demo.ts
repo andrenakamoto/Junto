@@ -1031,6 +1031,27 @@ function route(method: string, path: string, body: any): any {
     changed(planId);
     return { ok: true };
   }
+  // Liste de présence (Alex, organisateur) : pointer / retirer un membre, quorum recalculé comme lib/assembly.ts
+  // et se pointer soi-même avec le code de la salle
+  let checkIn: RegExpMatchArray | null = null;
+  if (((m = path.match(/^\/plans\/([^/]+)\/assembly\/attendance\/([^/]+)$/)) && method === 'PUT')
+    || ((checkIn = path.match(/^\/plans\/([^/]+)\/assembly\/checkin$/)) && method === 'POST')) {
+    const planId = (m ?? checkIn)![1];
+    const st = fixtures![`GET /plans/${planId}/assembly`];
+    if (checkIn && st && String(body.code ?? '').trim() !== st.checkInCode) throw new DemoError(400, tr('ui.demoApi.wrongCode'));
+    const member = st?.status === 'open' && (checkIn ? (st.members as any[]).find(x => x.id === st.me?.id || x.name === 'Alex') : st.canManage && (st.members as any[]).find(x => x.id === m![2]));
+    if (!member) throw new DemoError(403, NOT_IN_DEMO);
+    member.present = checkIn ? true : body.present !== false; member.remote = false;
+    if (member.name === 'Alex') st.me.present = member.present;
+    const present = new Set((st.members as any[]).filter(x => x.present).map(x => x.id));
+    const q = st.quorum;
+    q.presentVoters = (st.members as any[]).filter(x => x.isVoter && x.present).length;
+    q.validProxies = ((st.proxies ?? []) as any[]).filter(p => !present.has(p.giver.id) && present.has(p.holder.id)).length;
+    q.represented = q.presentVoters + q.validProxies;
+    q.reached = q.required === null || q.represented >= q.required;
+    changed(planId);
+    return { ok: true };
+  }
   if (path.match(/^\/plans\/(assembly|[^/]+\/assembly)/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Qui s'y colle ? (soirée raclette) : retirer / remettre des personnes et lancer la roue, en mémoire

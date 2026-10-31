@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { t } from './i18n';
 import { NativeChrome } from './components/NativeChrome';
 import { useAuth } from './contexts/AuthContext';
@@ -25,6 +25,7 @@ import { ResendVerificationPage } from './pages/ResendVerificationPage';
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-900">
@@ -32,7 +33,11 @@ function Protected({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (!user) return <Navigate to="/auth" replace />;
+  // Lien vers une page précise (QR code d'une assemblée, email…) : on y revient après la connexion
+  if (!user) {
+    const back = location.pathname + location.search;
+    return <Navigate to={back !== '/dashboard' && back.startsWith('/dashboard') ? `/auth?redirect=${encodeURIComponent(back)}` : '/auth'} replace />;
+  }
   if (user.status === 'pending') return <Navigate to="/pending" replace />;
   return <>{children}</>;
 }

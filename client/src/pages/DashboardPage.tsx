@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Circle, Plan } from '../types';
 import api from '../services/api';
+import { rememberAssemblyCode } from '../lib/assemblyCode';
 import { CircleSidebar } from '../components/circles/CircleSidebar';
 import { PlanList } from '../components/plans/PlanList';
 import { PlanDetail } from '../components/plans/PlanDetail';
@@ -302,7 +303,10 @@ export function DashboardPage() {
     const deepLinkTab = searchParams.get('tab') || undefined;
     // Un invité externe peut n'être dans aucun Cercle : on attend le chargement, pas un Cercle
     if (!deepLinkPlanId || !circlesLoaded) return;
-    setSearchParams(prev => { prev.delete('planId'); prev.delete('tab'); return prev; }, { replace: true });
+    // Code de la salle d'une assemblée (QR code projeté) : la rubrique Assemblée pointe la personne
+    const assemblyCode = searchParams.get('code');
+    if (assemblyCode) rememberAssemblyCode(deepLinkPlanId, assemblyCode);
+    setSearchParams(prev => { prev.delete('planId'); prev.delete('tab'); prev.delete('code'); return prev; }, { replace: true });
     api.get(`/plans/${deepLinkPlanId}`)
       .then(res => handleSelectPlan(res.data, deepLinkTab))
       .catch(() => {});

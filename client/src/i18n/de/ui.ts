@@ -50,6 +50,7 @@ const ui: Dict['ui'] = {
     playFirst: 'Spiel zuerst deine Karten, um die Ergebnisse zu sehen',
     voteNotOpen: 'Die Abstimmung ist nicht geöffnet',
     otherVoteOpen: 'Eine andere Abstimmung läuft: Schliesse sie zuerst',
+    wrongCode: 'Falscher Code: Schau dir den Code im Saal an',
     addCandidates: 'Füge zuerst die Kandidierenden hinzu',
     wheelEmpty: 'Es ist niemand auf dem Rad',
     wheelSpinning: 'Das Rad dreht sich schon!',
