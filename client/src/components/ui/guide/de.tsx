@@ -327,9 +327,11 @@ const groups: Group[] = [
               Benachrichtigung, E-Mail), <strong>Vollmachten</strong> an ein anderes Mitglied.</>,
             <><strong>Einstellungen</strong>: stimmberechtigte Mitglieder (Passivmitglieder abwählen), Quorum,
               <strong>hybride</strong> Versammlung (Teilnahme online).</>,
-            <><strong>Anwesenheit</strong>: Bei der Eröffnung zeigt „Code groß anzeigen“ den Saalcode und einen QR-Code für die
+            <><strong>Anwesenheit</strong>: Bei der Eröffnung zeigt „Code gross anzeigen“ den Saalcode und einen QR-Code für die
               Leinwand. Alle melden sich mit dem Code oder dem QR-Code an; die Organisation hakt alle ohne Handy in der
-              Anwesenheitsliste ab (noch nicht Gemeldete zuerst, Suche).</>,
+              Anwesenheitsliste ab (noch nicht Gemeldete zuerst, Suche). <strong>Ohne Handy</strong> stimmt jemand auf dem Gerät der
+              Organisation ab („Jemanden auf diesem Gerät abstimmen lassen“, die Stimme bleibt geheim) oder auf Papier (Knopf „Papier“
+              in der Liste, die Organisation gibt die Zählung vor dem Abschluss ein).</>,
             <><strong>Während</strong>: Nur als anwesend Eingetragene stimmen ab, einmal für sich und einmal pro Vollmacht.
               Quorum live, <strong>geheime</strong> oder offene Abstimmungen, einfaches, absolutes oder Zweidrittelmehr,
               Wahlen, Beschlüsse per Akklamation.</>,

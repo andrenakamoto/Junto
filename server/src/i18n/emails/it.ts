@@ -289,6 +289,7 @@ const it: EmailDict = {
     file: 'riepilogo',
   },
   pvPdf: {
+    paperBallots: 'Di cui {count} scheda/e cartacea/e, contata/e dall’organizzazione.',
     title: 'Verbale — {plan}',
     header: 'VERBALE',
     draftHeader: 'BOZZA DI VERBALE',

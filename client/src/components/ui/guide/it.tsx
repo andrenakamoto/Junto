@@ -324,7 +324,9 @@ const groups: Group[] = [
               distanza).</>,
             <><strong>Presenze</strong>: all’apertura, «Mostra il codice in grande» proietta il codice della sala e un codice
               QR. Ognuno si registra digitando il codice o scansionando il QR; l’organizzazione spunta chi non ha il telefono nella lista
-              delle presenze (prima chi non è ancora registrato, ricerca).</>,
+              delle presenze (prima chi non è ancora registrato, ricerca). <strong>Senza telefono</strong>, una persona vota sul dispositivo
+              dell’organizzazione («Far votare qualcuno su questo dispositivo», la scheda resta segreta) o su carta (pulsante «Carta»
+              nella lista, l’organizzazione inserisce il conteggio prima di chiudere il voto).</>,
             <><strong>Durante</strong>: votano solo le persone registrate come presenti, una volta per sé e una volta per
               delega. Quorum in diretta, voti a <strong>scrutinio segreto</strong> o per alzata di mano, maggioranza
               semplice, assoluta o dei due terzi, elezioni, decisioni per acclamazione.</>,

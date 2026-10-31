@@ -289,6 +289,7 @@ const de: EmailDict = {
     file: 'Zusammenfassung',
   },
   pvPdf: {
+    paperBallots: 'Davon {count} Papierstimmzettel, von der Organisation gezählt.',
     title: 'Protokoll — {plan}',
     header: 'PROTOKOLL',
     draftHeader: 'PROTOKOLLENTWURF',

@@ -134,6 +134,8 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
         para(m.s(i.secret ? 'pvPdf.voteSecret' : 'pvPdf.voteOpen', { majority: MAJORITY[i.majority] ?? i.majority }), DIM);
         const vars = { verdict: ok ? m.s('pvPdf.adopted') : m.s('pvPdf.rejected'), yes: c.yes, no: c.no, abstain: c.abstain, cast: i.ballots.length, eligible: i.eligibleVotes ?? '' };
         para(m.s(i.eligibleVotes ? 'pvPdf.resultCast' : 'pvPdf.result', vars), ok ? GREEN : RED, 'semibold');
+        const paper = i.ballots.filter(b => b.paper).length;
+        if (paper) para(m.s('pvPdf.paperBallots', { count: paper }), DIM);
         if (!i.secret && i.voters.length) para(i.voters.map(v => `${v.userId !== v.onBehalfOfId ? m.s('pvPdf.by', { name: name(v.onBehalfOfId), by: name(v.userId) }) : name(v.onBehalfOfId)} : ${CHOICE[v.choice ?? ''] ?? '?'}`).join(' ; '), DIM);
       } else para(m.s('pvPdf.notVoted'), DIM);
     }
@@ -145,6 +147,8 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
         const res = electionResult(i.candidates.map(c => c.id), i.ballots, i.seats ?? 1);
         const key = i.secret ? (i.eligibleVotes ? 'pvPdf.electionSecretOf' : 'pvPdf.electionSecret') : (i.eligibleVotes ? 'pvPdf.electionOpenOf' : 'pvPdf.electionOpen');
         para(m.s(key, { seats: i.seats ?? 1, ballots: i.ballots.length, eligible: i.eligibleVotes ?? '' }), DIM);
+        const paperCount = i.ballots.filter(b => b.paper).length;
+        if (paperCount) para(m.s('pvPdf.paperBallots', { count: paperCount }), DIM);
         para(res.ranking.map(x => m.s('pvPdf.candidateVotes', { name: i.candidates.find(c => c.id === x.id)?.name ?? '?', count: x.votes })).join(' ; '), DIM);
         para(elected.length ? m.s('pvPdf.elected', { names: elected.join(', ') }) : m.s('pvPdf.nobodyElected'), elected.length ? GREEN : RED, 'semibold');
         if (res.tie && elected.length > res.elected.length) para(m.s('pvPdf.tieBroken'), DIM);

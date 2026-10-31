@@ -51,6 +51,8 @@ const ui: Dict['ui'] = {
     voteNotOpen: 'Die Abstimmung ist nicht geöffnet',
     otherVoteOpen: 'Eine andere Abstimmung läuft: Schliesse sie zuerst',
     wrongCode: 'Falscher Code: Schau dir den Code im Saal an',
+    paperLocked: 'Eine Abstimmung läuft: Ändere die Papierstimme nach deren Abschluss',
+    itemTitle: 'Gib den Titel des Punkts an',
     addCandidates: 'Füge zuerst die Kandidierenden hinzu',
     wheelEmpty: 'Es ist niemand auf dem Rad',
     wheelSpinning: 'Das Rad dreht sich schon!',

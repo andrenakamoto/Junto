@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Paperclip, Pencil, Plus, Search, Settings2, Trash2, Users, X } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, CheckCircle2, CircleHelp, ChevronLeft, ChevronRight, FileDown, FileText, Maximize2, Paperclip, Pencil, Plus, Search, Settings2, Trash2, Users, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { Plan } from '../../types';
@@ -11,6 +11,7 @@ import { useBackClose } from '../../lib/backClose';
 import { RichText, RichTextArea, visibleLength } from '../../lib/richText';
 import { assemblyCodeLink, takeAssemblyCode } from '../../lib/assemblyCode';
 import { Modal } from '../ui/Modal';
+import { AssemblyHelp } from './AssemblyHelp';
 import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
 
@@ -24,6 +25,7 @@ type Item = {
   id: string; position: number; title: string; description: string | null; kind: 'info' | 'vote' | 'election'; notes: string | null;
   documents: { id: string; name: string; mimeType: string }[]; secret: boolean; majority: string; majorityLabel: string; seats: number | null;
   status: 'pending' | 'open' | 'closed' | 'tacit'; eligibleVotes: number | null; votedCount: number;
+  paperCount?: number; paperRights?: number; paperInput?: any; votedIds?: string[];
   myMandates: (P & { voted: boolean })[]; candidates: { id: string; name: string; userId: string | null; elected: boolean }[];
   result: any; openVotes: { name: string; by: string | null; choice: string | null }[];
 };
@@ -32,9 +34,9 @@ type State = {
   status: 'preparation' | 'open' | 'closed'; convokedAt: string | null; openedAt: string | null; closedAt: string | null; eventDate: string | null;
   settings: { nonVoterIds: string[]; proxiesAllowed: boolean; maxProxies: number; quorumMode: string; quorumValue: number | null; codeCheckIn: boolean; hybrid: boolean; noticeDays: number; secretaryId: string | null };
   checkInCode: string | null;
-  members: { id: string; name: string; isVoter: boolean; present: boolean; remote: boolean; proxyTo: P | null }[];
+  members: { id: string; name: string; isVoter: boolean; present: boolean; remote: boolean; paper?: boolean; mandates?: P[]; proxyTo: P | null }[];
   quorum: { required: number | null; represented: number; presentVoters: number; validProxies: number; voterCount: number; reached: boolean };
-  me: { present: boolean; remote: boolean; proxyGivenTo: P | null; proxiesHeld: P[]; mandates: P[] };
+  me: { present: boolean; remote: boolean; paper?: boolean; proxyGivenTo: P | null; proxiesHeld: P[]; mandates: P[] };
   proxies: { id: string; giver: P; holder: P }[];
   items: Item[];
 };
@@ -62,6 +64,7 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [editing, setEditing] = useState<Item | 'new' | null>(null);
   async function load() {
     try { setS((await api.get(`/plans/${plan.id}/assembly`)).data); } catch (e) { setError(errorOf(e)); }
@@ -85,14 +88,18 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
       {/* État de l'assemblée */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${s.status === 'open' ? 'bg-emerald-100 text-emerald-700' : s.status === 'closed' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'}`}>
             {s.status === 'open' ? t('games.assembly.statusOpen') : s.status === 'closed' ? t('games.assembly.statusClosed') : t('games.assembly.statusPrep')}
           </span>
           {s.eventDate && <span className="text-xs text-slate-500">{dateFmt.format(new Date(s.eventDate))}</span>}
+          <button onClick={() => setShowHelp(true)}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50">
+            <CircleHelp size={16} /> {t('games.assembly.helpButton')}
+          </button>
           {s.canManage && (
             <button onClick={() => setShowSettings(true)} aria-label={t('games.assembly.settingsAria')}
-              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-semibold hover:bg-indigo-100">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-semibold hover:bg-indigo-100">
               <Settings2 size={16} /> {t('games.assembly.settingsButton')}
             </button>
           )}
@@ -167,6 +174,7 @@ export function AssemblyTab({ plan }: { plan: Plan; userId: string }) {
         <ItemCard key={item.id} plan={plan} item={item} index={n} s={s} onRun={run} onEdit={() => setEditing(item)} onFocus={() => setFocusId(item.id)} />
       ))}
 
+      {showHelp && <AssemblyHelp onClose={() => setShowHelp(false)} />}
       {focusId && s.items.some(i => i.id === focusId) && (
         <ItemFocus plan={plan} s={s} itemId={focusId} onRun={run} onMove={setFocusId} onEdit={item => setEditing(item)} onClose={() => setFocusId(null)} />
       )}
@@ -209,9 +217,12 @@ function MyParticipation({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run 
   );
 }
 
-// Vote ou élection en cours, dans la carte de son point (l'ordre du jour ne bouge pas)
-function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run }) {
+// Vote ou élection en cours, dans la carte de son point (l'ordre du jour ne bouge pas). `forUser` : bulletin d'une
+// personne sans téléphone, sur l'appareil de l'organisateur (KioskBallot) — sans les commandes de l'organisateur
+function VoteCard({ item, state, onRun, forUser, onVoted }: { item: Item; state: State; onRun: Run; forUser?: P; onVoted?: () => void }) {
   const [choices, setChoices] = useState<Record<string, string | string[]>>({});
+  const [kioskFor, setKioskFor] = useState<P | null>(null);
+  const [localError, setLocalError] = useState('');
   const todo = item.myMandates.filter(m => !m.voted);
   const seats = item.seats ?? 1;
   const ready = todo.length > 0 && todo.every(m => item.kind === 'vote' ? !!choices[m.id] : Array.isArray(choices[m.id]));
@@ -220,17 +231,22 @@ function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run
     const next = cur.includes(cid) ? cur.filter(x => x !== cid) : cur.length < seats ? [...cur, cid] : cur;
     setChoices({ ...choices, [mid]: next });
   }
-  function submit() {
+  async function submit() {
     const votes = todo.map(m => item.kind === 'vote' ? { onBehalfOfId: m.id, choice: choices[m.id] } : { onBehalfOfId: m.id, candidateIds: choices[m.id] });
-    return onRun(() => api.post(`/plans/assembly/items/${item.id}/vote`, { votes }));
+    if (!forUser) return onRun(() => api.post(`/plans/assembly/items/${item.id}/vote`, { votes }));
+    setLocalError('');
+    try { await api.post(`/plans/assembly/items/${item.id}/vote`, { votes, forUserId: forUser.id }); onVoted?.(); }
+    catch (e) { setLocalError(errorOf(e)); }
   }
+  const manage = state.canManage && !forUser;
+  const paperCount = item.paperCount ?? 0;
   return (
     <div className="mt-3 rounded-xl bg-indigo-50/70 border border-indigo-200 p-3">
       <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">{t('games.assembly.voteOpen', { mode: item.secret ? t('games.assembly.secret') : t('games.assembly.handRaise') })}</p>
       {item.kind === 'vote' && <p className="text-xs text-slate-500 mt-0.5">{t(`games.assembly.majorityAdopted.${item.majority}` as any, { defaultValue: item.majorityLabel })}</p>}
       {item.kind === 'election' && <p className="text-xs text-slate-500 mt-0.5">{t('games.assembly.seatsHint', { count: seats })}</p>}
-      <p className="text-sm text-slate-600 mt-2">{t('games.assembly.votedCount', { voted: item.votedCount, eligible: item.eligibleVotes ?? '?' })}</p>
-      {item.myMandates.length === 0 && <p className="text-sm text-slate-500 mt-2">{state.isVoter ? t('games.assembly.checkInToVote') : t('games.assembly.notVoter')}</p>}
+      {!forUser && <p className="text-sm text-slate-600 mt-2">{t('games.assembly.votedCount', { voted: item.votedCount + paperCount, eligible: item.eligibleVotes ?? '?' })}{paperCount ? t('games.assembly.votedPaper', { count: paperCount }) : ''}</p>}
+      {item.myMandates.length === 0 && !forUser && <p className="text-sm text-slate-500 mt-2">{state.me.paper ? t('games.assembly.youVotePaper') : state.isVoter ? t('games.assembly.checkInToVote') : t('games.assembly.notVoter')}</p>}
       {item.myMandates.length > 0 && todo.length === 0 && <p className="text-sm text-emerald-700 font-semibold mt-2 flex items-center gap-1.5"><CheckCircle2 size={16} /> {item.myMandates.length > 1 ? t('games.assembly.votedAll') : t('games.assembly.voted')}</p>}
       {todo.map(m => (
         <div key={m.id} className="mt-3">
@@ -258,13 +274,116 @@ function VoteCard({ item, state, onRun }: { item: Item; state: State; onRun: Run
         </div>
       ))}
       {todo.length > 0 && <button onClick={submit} disabled={!ready} className="mt-3 w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold disabled:opacity-40">{todo.length > 1 ? t('games.assembly.voteN', { count: todo.length }) : t('games.assembly.vote')}</button>}
-      {state.canManage && (
+      {localError && <p className="mt-2 text-sm text-red-600">{localError}</p>}
+      {manage && <NoPhoneVoting item={item} state={state} onRun={onRun} onKiosk={setKioskFor} />}
+      {kioskFor && <KioskBallot item={item} state={state} person={kioskFor} onRun={onRun} onClose={() => setKioskFor(null)} />}
+      {manage && (
         <div className="flex gap-2 mt-3">
           <button onClick={() => onRun(() => api.post(`/plans/assembly/items/${item.id}/close`), t('games.assembly.closeVoteConfirm'))} className="flex-1 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">{t('games.assembly.closeVote')}</button>
           <button onClick={() => onRun(() => api.post(`/plans/assembly/items/${item.id}/reset`), t('games.assembly.resetVoteConfirm'))} className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm">{t('common.cancel')}</button>
         </div>
       )}
     </div>
+  );
+}
+
+// Organisateur, vote en cours : faire voter sur cet appareil une personne présente sans téléphone, et saisir le décompte
+// des bulletins papier (personnes marquées « papier » dans la liste de présence)
+function NoPhoneVoting({ item, state, onRun, onKiosk }: { item: Item; state: State; onRun: Run; onKiosk: (p: P) => void }) {
+  const voted = new Set(item.votedIds ?? []);
+  // Présents avec l'app qui ont encore une voix à donner
+  const waiting = state.members.filter(m => m.present && !m.paper && (m.mandates ?? []).some(x => !voted.has(x.id)));
+  const [pick, setPick] = useState('');
+  return (
+    <div className="mt-3 pt-3 border-t border-indigo-200 space-y-2">
+      <p className="text-xs font-semibold text-slate-600">{t('games.assembly.noPhoneTitle')}</p>
+      {waiting.length ? (
+        <div className="flex gap-2">
+          <select value={pick} onChange={e => setPick(e.target.value)} className="min-w-0 flex-1 px-2 py-2 rounded-lg border border-slate-300 text-sm bg-white">
+            <option value="">{t('games.assembly.kioskChoose')}</option>
+            {waiting.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+          <button onClick={() => { const m = waiting.find(x => x.id === pick); if (m) { onKiosk({ id: m.id, name: m.name }); setPick(''); } }} disabled={!pick}
+            className="px-3 py-2 rounded-lg bg-white border border-indigo-300 text-indigo-700 text-sm font-semibold disabled:opacity-40">{t('games.assembly.kioskButton')}</button>
+        </div>
+      ) : <p className="text-xs text-slate-500">{t('games.assembly.kioskNobody')}</p>}
+      {(item.paperRights ?? 0) > 0 && <PaperCount item={item} onRun={onRun} />}
+    </div>
+  );
+}
+
+// Décompte des bulletins papier : oui / non / abstention, ou bulletins et voix par candidat (remplace la saisie précédente)
+function PaperCount({ item, onRun }: { item: Item; onRun: Run }) {
+  const saved = item.paperInput;
+  const [v, setV] = useState<Record<string, string>>((): Record<string, string> => {
+    if (!saved) return {};
+    if (item.kind === 'vote') return { yes: String(saved.yes), no: String(saved.no), abstain: String(saved.abstain) };
+    return { ballots: String(saved.ballots), ...Object.fromEntries(Object.entries(saved.votes).map(([k, n]) => [`c:${k}`, String(n)])) };
+  });
+  const num = (k: string) => Number(v[k] || 0);
+  const field = (k: string, label: string) => (
+    <label key={k} className="flex items-center justify-between gap-2 text-sm">
+      <span className="min-w-0 truncate text-slate-700">{label}</span>
+      <input value={v[k] ?? ''} onChange={e => setV({ ...v, [k]: e.target.value.replace(/\D/g, '').slice(0, 4) })} inputMode="numeric" placeholder="0"
+        className="w-20 px-2 py-1.5 rounded-lg border border-slate-300 text-sm text-right" />
+    </label>
+  );
+  function save() {
+    const body = item.kind === 'vote'
+      ? { yes: num('yes'), no: num('no'), abstain: num('abstain') }
+      : { ballots: num('ballots'), votes: Object.fromEntries(item.candidates.map(c => [c.id, num(`c:${c.id}`)])) };
+    return onRun(() => api.post(`/plans/assembly/items/${item.id}/paper`, body));
+  }
+  const total = item.kind === 'vote' ? num('yes') + num('no') + num('abstain') : num('ballots');
+  return (
+    <div className="rounded-lg bg-white border border-slate-200 p-3 space-y-1.5">
+      <p className="text-xs font-semibold text-slate-600">📄 {t('games.assembly.paperTitle', { count: item.paperRights })}</p>
+      {item.kind === 'vote'
+        ? CHOICES.map(c => field(c.value, c.label))
+        : [field('ballots', t('games.assembly.paperBallotsLabel')), ...item.candidates.map(c => field(`c:${c.id}`, c.name))]}
+      <button onClick={save} disabled={total > (item.paperRights ?? 0)} className="w-full mt-1 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold disabled:opacity-40">{t('games.assembly.paperSave')}</button>
+      {(item.paperCount ?? 0) > 0 && <p className="text-xs text-emerald-700">{t('games.assembly.paperSaved', { count: item.paperCount })}</p>}
+    </div>
+  );
+}
+
+// Isoloir sur l'appareil de l'organisateur : seul le bulletin de la personne est affiché ; après son vote, un écran
+// « Vote enregistré » sans rien de son choix, à rendre à l'organisateur
+function KioskBallot({ item, state, person, onRun, onClose }: { item: Item; state: State; person: P; onRun: Run; onClose: () => void }) {
+  const [done, setDone] = useState(false);
+  useBackClose(onClose);
+  const voted = new Set(item.votedIds ?? []);
+  const member = state.members.find(m => m.id === person.id);
+  const ballotItem: Item = { ...item, myMandates: (member?.mandates ?? []).map(x => ({ ...x, voted: voted.has(x.id) })) };
+  function finish() { onClose(); onRun(async () => {}); }
+  return createPortal(
+    <div className="fixed inset-0 z-[90] bg-slate-100 overflow-y-auto" role="dialog" aria-modal="true" style={{ paddingTop: 'var(--sa-top, 0px)' }}>
+      <div className="max-w-xl mx-auto px-4 py-8">
+        {done ? (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
+            <CheckCircle2 size={56} className="mx-auto text-emerald-600" />
+            <p className="mt-4 text-2xl font-bold text-slate-900">{t('games.assembly.kioskDone')}</p>
+            <p className="mt-2 text-slate-600">{t('games.assembly.kioskGiveBack')}</p>
+            <button onClick={finish} className="mt-6 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold">{t('games.assembly.kioskFinish')}</button>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-slate-900">{t('games.assembly.kioskTitle', { name: person.name })}</p>
+                <p className="text-sm text-slate-600 mt-1">{t('games.assembly.kioskHint')}</p>
+              </div>
+              <button onClick={onClose} aria-label={t('games.assembly.screenClose')} className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600"><X size={18} /></button>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+              <p className="text-lg font-semibold text-slate-900">{item.title}</p>
+              <VoteCard item={ballotItem} state={state} onRun={onRun} forUser={person} onVoted={() => setDone(true)} />
+            </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -275,7 +394,7 @@ function ItemResult({ item }: { item: Item }) {
     const ok = r.adopted;
     return (
       <div className={`mt-2 p-2.5 rounded-lg text-sm ${ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>
-        <strong>{ok ? t('games.assembly.adopted') : t('games.assembly.rejected')}</strong>{r.tacit ? t('games.assembly.tacitAcclaim') : t('games.assembly.counts', { yes: r.counts.yes, no: r.counts.no, count: r.counts.abstain })}
+        <strong>{ok ? t('games.assembly.adopted') : t('games.assembly.rejected')}</strong>{r.tacit ? t('games.assembly.tacitAcclaim') : t('games.assembly.counts', { yes: r.counts.yes, no: r.counts.no, count: r.counts.abstain })}{r.paper ? t('games.assembly.paperResult', { count: r.paper }) : ''}
         {item.openVotes.length > 0 && <p className="text-xs mt-1 opacity-80">{item.openVotes.map(v => `${v.by ? t('games.assembly.by', { name: v.name, by: v.by }) : v.name} : ${CHOICE_LABEL[v.choice ?? ''] ?? '?'}`).join(' · ')}</p>}
       </div>
     );
@@ -283,7 +402,7 @@ function ItemResult({ item }: { item: Item }) {
   return (
     <div className="mt-2 p-2.5 rounded-lg text-sm bg-emerald-50 text-emerald-900">
       <strong>{r.elected.length ? t('games.assembly.elected', { names: r.elected.join(', ') }) : t('games.assembly.nobodyElected')}</strong>{r.tacit ? t('games.assembly.tacitly') : ''}
-      {!r.tacit && <p className="text-xs mt-1 opacity-80">{r.ranking.map((x: any) => `${x.name} : ${x.votes}`).join(' · ')}{r.blank ? t('games.assembly.blanks', { count: r.blank }) : ''}</p>}
+      {!r.tacit && <p className="text-xs mt-1 opacity-80">{r.ranking.map((x: any) => `${x.name} : ${x.votes}`).join(' · ')}{r.blank ? t('games.assembly.blanks', { count: r.blank }) : ''}{r.paper ? t('games.assembly.paperResult', { count: r.paper }) : ''}</p>}
       {r.tie && <p className="text-xs mt-1 text-amber-800 font-semibold">{t('games.assembly.tie')}</p>}
     </div>
   );
@@ -537,6 +656,7 @@ function AttendancePanel({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run 
   const shown = s.members.filter(m => !query || norm(m.name).includes(norm(query)))
     .sort((a, b) => a.name.localeCompare(b.name, intlLocale()));
   const missing = shown.filter(m => !m.present);
+  const voteOpen = s.items.some(i => i.status === 'open');
   const here = shown.filter(m => m.present);
   const row = (m: State['members'][number]) => (
     <label key={m.id} className="flex items-center gap-3 py-2 text-sm cursor-pointer">
@@ -544,6 +664,13 @@ function AttendancePanel({ plan, s, onRun }: { plan: Plan; s: State; onRun: Run 
       <span className="flex-1">{m.name}{!m.isVoter && <span className="text-xs text-slate-400">{t('games.assembly.noVoteRightTag')}</span>}</span>
       {m.remote && <span className="text-xs text-indigo-600">{t('games.assembly.remoteTag')}</span>}
       {m.proxyTo && !m.present && <span className="text-xs text-slate-400">→ {m.proxyTo.name}</span>}
+      {m.present && m.isVoter && !m.remote && (
+        <button type="button" onClick={e => { e.preventDefault(); onRun(() => api.put(`/plans/${plan.id}/assembly/attendance/${m.id}`, { present: true, paper: !m.paper })); }}
+          disabled={voteOpen} title={voteOpen ? t('games.assembly.paperLocked') : t('games.assembly.paperToggleHint')}
+          className={`text-xs px-2 py-1 rounded-full border disabled:opacity-50 ${m.paper ? 'bg-amber-100 border-amber-300 text-amber-800 font-semibold' : 'bg-white border-slate-200 text-slate-500'}`}>
+          📄 {t('games.assembly.paperToggle')}
+        </button>
+      )}
     </label>
   );
   return (

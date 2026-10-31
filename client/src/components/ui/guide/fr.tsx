@@ -321,7 +321,9 @@ const groups: Group[] = [
             <><strong>Réglages</strong> : membres votants (décoche les membres passifs), quorum, assemblée <strong>hybride</strong> (participation à distance).</>,
             <><strong>Pointage</strong> : à l'ouverture, « Afficher le code en grand » projette le code de la salle et un QR code.
               Chacun se pointe avec son téléphone en tapant le code ou en scannant le QR code ; l'organisateur coche celles et ceux qui n'ont pas leur téléphone dans la liste de
-              présence (pas encore pointés en premier, recherche).</>,
+              présence (pas encore pointés en premier, recherche). <strong>Sans téléphone</strong>, une personne vote sur l'appareil de
+              l'organisateur (« Faire voter quelqu'un sur cet appareil », son bulletin reste secret) ou sur papier (bouton « Papier »
+              dans la liste, l'organisateur saisit le décompte avant de clore le vote).</>,
             <><strong>Pendant</strong> : seules les personnes pointées présentes votent, une fois pour elles et une fois par
               procuration. Quorum en direct, votes au <strong>bulletin secret</strong> ou à main levée, majorité simple, absolue
               ou des deux tiers, élections, décisions par acclamation.</>,

@@ -9,7 +9,7 @@ import { escapeHtml } from '../lib/escapeHtml';
 import { parseRichInput, richTextToHtml } from '../lib/richText';
 import {
   ASSEMBLY_DISABLED_ERROR, MAX_CANDIDATES, MAX_ITEMS, MAJORITY_LABEL, NOTES_MAX, QUORUM_MODES, VOTE_CHOICES,
-  assemblyEnabled, canManageAssembly, checkInCode, circleVoters, countVotes, electionResult, isAdopted,
+  assemblyEnabled, canManageAssembly, checkInCode, paperBallots, paperRights, circleVoters, countVotes, electionResult, isAdopted,
   loadAssemblyPlan, parseItemInput, proxyError, quorumRequired, votingRights,
 } from '../lib/assembly';
 import { buildAssemblyPvPdf } from '../lib/assemblyPv';
@@ -70,6 +70,16 @@ async function notifyMembers(req: AuthRequest, ctx: Ctx, preview: string, opts: 
 const resultText = (item: { kind: string; majority: string }, c: { yes: number; no: number; abstain: number }) =>
   `${isAdopted(c, item.majority) ? 'Adopté' : 'Rejeté'} — ${c.yes} oui, ${c.no} non, ${c.abstain} abstention${c.abstain > 1 ? 's' : ''}`;
 
+// Décompte papier déjà saisi pour un point (l'organisateur peut le corriger tant que le vote est ouvert)
+function paperInput(i: { kind: string; ballots: { paper: boolean; choice: string | null; candidateIds: string[] }[] }) {
+  const paper = i.ballots.filter(b => b.paper);
+  if (!paper.length) return null;
+  if (i.kind === 'vote') return countVotes(paper);
+  const votes: Record<string, number> = {};
+  for (const b of paper) for (const id of b.candidateIds) votes[id] = (votes[id] ?? 0) + 1;
+  return { ballots: paper.length, votes };
+}
+
 // GET /:id/assembly — tout l'état de l'assemblée, selon la personne
 router.get('/:id/assembly', async (req: AuthRequest, res) => {
   const ctx = await load(req, res, req.params.id); if (!ctx) return;
@@ -89,6 +99,9 @@ router.get('/:id/assembly', async (req: AuthRequest, res) => {
   const isSecretary = assembly.secretaryId === req.userId;
   const attendance = new Map(assembly.attendances.map(a => [a.userId, a]));
   const myProxy = assembly.proxies.find(p => p.giverId === req.userId);
+  // Présents qui votent sur papier : leurs voix ne se votent pas dans l'app
+  const paperIds = new Set(assembly.attendances.filter(a => a.paper).map(a => a.userId));
+  const onPaper = paperRights(r.mandates, paperIds);
 
   res.json({
     canManage: manager, isSecretary, canSeePv: manager || isSecretary, isVoter: r.voterIds.includes(req.userId!), circleMember,
@@ -106,12 +119,14 @@ router.get('/:id/assembly', async (req: AuthRequest, res) => {
     // Membres du Cercle (pas pour un invité externe : il ne voit rien du Cercle)
     members: circleMember ? r.members.map(m => ({
       id: m.id, name: nameOf(m), isVoter: r.voterIds.includes(m.id),
-      present: attendance.has(m.id), remote: attendance.get(m.id)?.remote ?? false,
+      present: attendance.has(m.id), remote: attendance.get(m.id)?.remote ?? false, paper: paperIds.has(m.id),
+      // Voix de la personne (elle et ses procurations valables), pour la faire voter sur l'appareil de l'organisateur
+      mandates: manager ? (r.mandates.get(m.id) ?? []).map(id => person(id)) : [],
       proxyTo: manager ? person(assembly.proxies.find(p => p.giverId === m.id)?.holderId) : null,
     })) : [],
     quorum: { required, represented: r.represented, presentVoters: r.presentVoters, validProxies: r.validProxies.length, voterCount: r.voterIds.length, reached: required === null || r.represented >= required },
     me: {
-      present: attendance.has(req.userId!), remote: attendance.get(req.userId!)?.remote ?? false,
+      present: attendance.has(req.userId!), remote: attendance.get(req.userId!)?.remote ?? false, paper: paperIds.has(req.userId!),
       proxyGivenTo: person(myProxy?.holderId),
       proxiesHeld: assembly.proxies.filter(p => p.holderId === req.userId).map(p => person(p.giverId)),
       mandates: myMandates.map(id => person(id)),
@@ -127,10 +142,15 @@ router.get('/:id/assembly', async (req: AuthRequest, res) => {
         documents: i.attachmentIds.map(id => docById.get(id)).filter(Boolean),
         secret: i.secret, majority: i.majority, majorityLabel: MAJORITY_LABEL[i.majority as keyof typeof MAJORITY_LABEL], seats: i.seats,
         status: i.status, eligibleVotes: i.eligibleVotes, votedCount: i.voters.length,
-        myMandates: i.status === 'open' ? myMandates.map(id => ({ ...person(id)!, voted: votedFor.has(id) })) : [],
+        // Bulletins papier saisis, et voix sur papier (organisateur, vote en cours)
+        paperCount: i.ballots.filter(b => b.paper).length,
+        paperRights: manager && i.status === 'open' ? onPaper : 0,
+        paperInput: manager && i.status === 'open' ? paperInput(i) : null,
+        votedIds: manager && i.status === 'open' ? [...votedFor] : [],
+        myMandates: i.status === 'open' && !paperIds.has(req.userId!) ? myMandates.map(id => ({ ...person(id)!, voted: votedFor.has(id) })) : [],
         candidates: i.candidates.map(c => ({ id: c.id, name: c.name, userId: c.userId, elected: c.elected })),
         result: !done ? null : i.kind === 'vote'
-          ? (i.status === 'tacit' ? { tacit: true, adopted: !!i.tacitAdopted } : { counts, adopted: isAdopted(counts, i.majority) })
+          ? (i.status === 'tacit' ? { tacit: true, adopted: !!i.tacitAdopted } : { counts, adopted: isAdopted(counts, i.majority), paper: i.ballots.filter(b => b.paper).length })
           : {
             tacit: i.status === 'tacit',
             ranking: election?.ranking.map(x => ({ id: x.id, name: i.candidates.find(c => c.id === x.id)?.name ?? '?', votes: x.votes })) ?? [],
@@ -138,6 +158,7 @@ router.get('/:id/assembly', async (req: AuthRequest, res) => {
             tie: !!election?.tie && i.candidates.filter(c => c.elected).length < (i.seats ?? 1),
             tiedIds: election?.tiedIds ?? [],
             blank: i.ballots.filter(b => b.candidateIds.length === 0).length,
+            paper: i.ballots.filter(b => b.paper).length,
             ballots: i.ballots.length,
           },
         // Main levée : qui a voté quoi, à la clôture
@@ -384,10 +405,16 @@ router.put('/:id/assembly/attendance/:userId', async (req: AuthRequest, res) => 
   if (!a.openedAt || a.closedAt) { res.status(400).json({ error: 'L’assemblée n’est pas ouverte' }); return; }
   const { members } = await circleVoters(ctx.plan.circleId, []);
   if (!members.some(m => m.id === req.params.userId)) { res.status(404).json({ error: 'Membre introuvable' }); return; }
+  // Passer au vote sur papier (ou en revenir) entre deux votes seulement : sinon une voix pourrait compter deux fois
+  const paper = req.body?.paper === true;
+  const current = a.attendances.find(x => x.userId === req.params.userId);
+  if ((current?.paper ?? false) !== (paper && req.body?.present !== false) && await prisma.assemblyItem.count({ where: { assemblyId: a.id, status: 'open' } })) {
+    res.status(400).json({ error: 'Un vote est en cours : change le vote sur papier après sa clôture' }); return;
+  }
   if (req.body?.present === false) await prisma.assemblyAttendance.deleteMany({ where: { assemblyId: a.id, userId: req.params.userId } });
   else await prisma.assemblyAttendance.upsert({
     where: { assemblyId_userId: { assemblyId: a.id, userId: req.params.userId } },
-    update: { remote: req.body?.remote === true }, create: { assemblyId: a.id, userId: req.params.userId, remote: req.body?.remote === true, checkedById: req.userId! },
+    update: { remote: req.body?.remote === true, paper }, create: { assemblyId: a.id, userId: req.params.userId, remote: req.body?.remote === true, paper, checkedById: req.userId! },
   });
   res.json({ ok: true });
 });
@@ -454,7 +481,14 @@ router.post('/assembly/items/:itemId/vote', async (req: AuthRequest, res) => {
   const c = await itemCtx(req, res, req.params.itemId, { write: true }); if (!c) return;
   if (c.item.status !== 'open') { res.status(400).json({ error: 'Le vote n’est pas ouvert' }); return; }
   const r = await rights(c);
-  const mine = r.mandates.get(req.userId!) ?? [];
+  // { forUserId } : l'organisateur fait voter sur son appareil une personne présente sans téléphone (elle vote elle-même,
+  // pour elle et ses procurations ; le bulletin reste anonyme)
+  const forUserId = typeof req.body?.forUserId === 'string' ? req.body.forUserId : null;
+  if (forUserId && !c.manager) { res.status(403).json({ error: 'Réservé à l’organisateur' }); return; }
+  const voterId = forUserId ?? req.userId!;
+  if (c.assembly.attendances.some(a => a.userId === voterId && a.paper)) { res.status(403).json({ error: forUserId ? 'Cette personne vote sur papier' : 'Tu votes sur papier : l’organisateur compte ton bulletin' }); return; }
+  const mine = r.mandates.get(voterId) ?? [];
+  if (forUserId && !mine.length) { res.status(403).json({ error: 'Cette personne n’est pas pointée présente' }); return; }
   if (!mine.length) { res.status(403).json({ error: r.voterIds.includes(req.userId!) ? 'Pointe d’abord ta présence pour voter' : 'Tu ne fais pas partie des votants' }); return; }
   const votes: any[] = Array.isArray(req.body?.votes) ? req.body.votes : [];
   if (!votes.length) { res.status(400).json({ error: 'Aucun vote' }); return; }
@@ -476,7 +510,7 @@ router.post('/assembly/items/:itemId/vote', async (req: AuthRequest, res) => {
     await prisma.$transaction(async tx => {
       for (const row of rows) {
         // « Qui a voté » ; au bulletin secret, sans le choix
-        await tx.assemblyVoter.create({ data: { itemId: c.item.id, userId: req.userId!, onBehalfOfId: row.onBehalfOfId, choice: c.item.secret ? null : row.choice, candidateIds: c.item.secret ? [] : row.candidateIds } });
+        await tx.assemblyVoter.create({ data: { itemId: c.item.id, userId: voterId, onBehalfOfId: row.onBehalfOfId, choice: c.item.secret ? null : row.choice, candidateIds: c.item.secret ? [] : row.candidateIds } });
       }
       // Bulletins anonymes, mélangés
       for (const row of [...rows].sort(() => Math.random() - 0.5)) await tx.assemblyBallot.create({ data: { itemId: c.item.id, choice: row.choice, candidateIds: row.candidateIds } });
@@ -485,6 +519,23 @@ router.post('/assembly/items/:itemId/vote', async (req: AuthRequest, res) => {
     if (e?.code === 'P2002') { res.status(409).json({ error: 'Déjà voté' }); return; }
     throw e;
   }
+  res.json({ ok: true });
+});
+
+// POST /assembly/items/:itemId/paper — décompte des bulletins papier (organisateur, vote ouvert) : remplace la saisie
+// précédente. Vote { yes, no, abstain } ; élection { ballots, votes: { candidatId: n } }
+router.post('/assembly/items/:itemId/paper', async (req: AuthRequest, res) => {
+  const c = await itemCtx(req, res, req.params.itemId, { manage: true }); if (!c) return;
+  if (c.item.status !== 'open') { res.status(400).json({ error: 'Le vote n’est pas ouvert' }); return; }
+  const r = await rights(c);
+  const limit = paperRights(r.mandates, new Set(c.assembly.attendances.filter(a => a.paper).map(a => a.userId)));
+  if (!limit) { res.status(400).json({ error: 'Personne ne vote sur papier' }); return; }
+  const rows = paperBallots(c.item.kind, req.body, limit, c.item.seats ?? 1, c.item.candidates.map(x => x.id));
+  if ('error' in rows) { res.status(400).json({ error: rows.error }); return; }
+  await prisma.$transaction([
+    prisma.assemblyBallot.deleteMany({ where: { itemId: c.item.id, paper: true } }),
+    prisma.assemblyBallot.createMany({ data: rows.map(b => ({ itemId: c.item.id, choice: b.choice, candidateIds: b.candidateIds, paper: true })) }),
+  ]);
   res.json({ ok: true });
 });
 

@@ -289,6 +289,7 @@ const fr = {
     file: 'récapitulatif',
   },
   pvPdf: {
+    paperBallots: 'Dont {count} bulletin(s) papier, comptés par l’organisation.',
     title: 'Procès-verbal — {plan}',
     header: 'PROCÈS-VERBAL',
     draftHeader: 'PROJET DE PROCÈS-VERBAL',

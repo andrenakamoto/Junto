@@ -51,6 +51,8 @@ const ui: Dict['ui'] = {
     voteNotOpen: 'The vote isn’t open',
     otherVoteOpen: 'Another vote is open: close it first',
     wrongCode: 'Wrong code: look at the code shown in the room',
+    paperLocked: 'A vote is open: change paper voting after it closes',
+    itemTitle: 'Enter the item’s title',
     addCandidates: 'Add the candidates first',
     wheelEmpty: 'There’s nobody on the wheel',
     wheelSpinning: 'The wheel is already spinning!',

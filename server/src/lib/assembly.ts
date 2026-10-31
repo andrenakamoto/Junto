@@ -150,3 +150,49 @@ export async function circleVoters(circleId: string, nonVoterIds: string[]) {
   const all = members.map(m => m.user).sort((a, b) => (a.firstName ?? a.pseudo).localeCompare(b.firstName ?? b.pseudo, 'fr'));
   return { members: all, voterIds: all.filter(u => !nonVoterIds.includes(u.id)).map(u => u.id) };
 }
+
+// Bulletins papier ------------------------------------------------------------------------------------------
+// Des présents sans téléphone votent sur papier (AssemblyAttendance.paper) : leurs voix (la leur et leurs procurations)
+// ne se votent pas dans l'app ; l'organisateur saisit le décompte, transformé en bulletins anonymes (paper = true).
+
+// Nombre de voix exprimées sur papier
+export function paperRights(mandates: Map<string, string[]>, paperIds: Set<string>): number {
+  let n = 0;
+  for (const [holder, list] of mandates) if (paperIds.has(holder)) n += list.length;
+  return n;
+}
+
+export type PaperBallot = { choice: string | null; candidateIds: string[] };
+const count = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : null);
+
+// Vote : { yes, no, abstain } ; élection : { ballots, votes: { candidatId: n } }. `limit` = voix sur papier.
+// Une élection devient `ballots` bulletins, les noms répartis à tour de rôle (jamais deux fois le même nom sur un
+// bulletin, au plus `seats` noms) : le classement, les bulletins blancs et le nombre de bulletins restent justes.
+export function paperBallots(kind: string, body: any, limit: number, seats: number, candidateIds: string[]): { error: string } | PaperBallot[] {
+  if (kind === 'vote') {
+    const yes = count(body?.yes), no = count(body?.no), abstain = count(body?.abstain);
+    if (yes === null || no === null || abstain === null) return { error: 'Indique le nombre de oui, de non et d’abstentions' };
+    if (yes + no + abstain > limit) return { error: `${limit} voix sur papier au plus` };
+    return [
+      ...Array.from({ length: yes }, () => ({ choice: 'yes', candidateIds: [] })),
+      ...Array.from({ length: no }, () => ({ choice: 'no', candidateIds: [] })),
+      ...Array.from({ length: abstain }, () => ({ choice: 'abstain', candidateIds: [] })),
+    ];
+  }
+  const ballots = count(body?.ballots);
+  if (ballots === null) return { error: 'Indique le nombre de bulletins papier' };
+  if (ballots > limit) return { error: `${limit} voix sur papier au plus` };
+  const votes: [string, number][] = [];
+  for (const id of candidateIds) {
+    const n = count(body?.votes?.[id] ?? 0);
+    if (n === null) return { error: 'Nombre de voix invalide' };
+    if (n > ballots) return { error: 'Un candidat ne peut pas avoir plus de voix que de bulletins' };
+    if (n) votes.push([id, n]);
+  }
+  const total = votes.reduce((s, [, n]) => s + n, 0);
+  if (total > ballots * seats) return { error: `Chaque bulletin porte ${seats} nom${seats > 1 ? 's' : ''} au plus` };
+  const rows: PaperBallot[] = Array.from({ length: ballots }, () => ({ choice: null, candidateIds: [] }));
+  let next = 0;
+  for (const [id, n] of votes) for (let k = 0; k < n; k++) { rows[next % ballots].candidateIds.push(id); next++; }
+  return rows;
+}

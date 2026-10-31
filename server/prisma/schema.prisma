@@ -1567,6 +1567,8 @@ model AssemblyBallot {
   // yes | no | abstain (vote) ; vide pour une élection
   choice       String?
   candidateIds String[]     @default([])
+  // Bulletin papier saisi par l'organisateur (décompte), et non voté dans l'app
+  paper        Boolean      @default(false)
 
   @@index([itemId])
 }
@@ -1587,6 +1589,8 @@ model AssemblyAttendance {
   assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   userId      String
   remote      Boolean  @default(false)
+  // Vote sur papier (pas de téléphone) : ses voix ne se votent pas dans l'app, l'organisateur saisit le décompte
+  paper       Boolean  @default(false)
   checkedInAt DateTime @default(now())
   checkedById String?
 

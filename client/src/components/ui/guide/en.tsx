@@ -316,7 +316,9 @@ const groups: Group[] = [
             <><strong>Settings</strong>: voting members (untick passive members), quorum, <strong>hybrid</strong> assembly (remote participation).</>,
             <><strong>Check-in</strong>: when the assembly opens, “Show the code full screen” projects the room code and a QR
               code. Everyone checks in by typing the code or scanning the QR code; the organiser ticks those without their phone in the
-              attendance list (people not checked in yet first, search).</>,
+              attendance list (people not checked in yet first, search). <strong>Without a phone</strong>, someone votes on the
+              organiser’s device (“Let someone vote on this device”, the ballot stays secret) or on paper (“Paper” button in the
+              list; the organiser enters the count before closing the vote).</>,
             <><strong>During</strong>: only people checked in vote, once for themselves and once per proxy. Live quorum,{' '}
               <strong>secret ballot</strong> or show of hands, simple, absolute or two-thirds majority, elections, decisions
               by acclamation.</>,
