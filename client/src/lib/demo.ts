@@ -307,6 +307,18 @@ function plan(id: string) {
   return p;
 }
 
+// Rubrique Membres : membres du Cercle qui n'ont pas encore répondu (comme lib/planPending.ts du serveur) et relance
+function demoPlanWithPending(p: any) {
+  if (p.membersHidden || p.viewerIsGuest) return p;
+  const circle = (fixtures!['GET /circles'] as any[] | undefined)?.find(c => c.id === p.circleId);
+  if (!circle) return p;
+  const taken = new Set<string>([...p.members.map((m: any) => m.userId), ...((p.waitlist ?? []) as any[]).map(w => w.userId), ...(p.excludedUserIds ?? [])]);
+  const pending = (circle.members as any[]).filter(m => !taken.has(m.userId)).map(m => m.user)
+    .sort((a, b) => (a.firstName ?? a.pseudo).localeCompare(b.firstName ?? b.pseudo, 'fr'));
+  const manages = p.creatorId === me.id || (circle.members as any[]).some(m => m.userId === me.id && (m.role === 'admin' || m.role === 'organizer'));
+  return { ...p, pending, canNudge: manages, nextNudgeAt: p._nudgedAt ? new Date(Date.parse(p._nudgedAt) + 86400000).toISOString() : null };
+}
+
 // « En bref » (GET /plans/:id/summary) : même calcul que le serveur (server/src/lib/planSummary.ts),
 // à partir des données de la démo, pour suivre les actions du visiteur (trajet, cagnotte, postes…)
 function demoSummary(id: string) {
@@ -848,10 +860,19 @@ function route(method: string, path: string, body: any): any {
     throw new DemoError(404, NOT_IN_DEMO);
   }
 
+  // Relancer ceux qui n'ont pas répondu : rien n'est envoyé, la relance est notée pour la journée
+  if ((m = path.match(/^\/plans\/([^/]+)\/nudge$/)) && method === 'POST') {
+    const p = demoPlanWithPending(plan(m[1]));
+    if (!p.canNudge) throw new DemoError(403, NOT_IN_DEMO);
+    plan(m[1])._nudgedAt = now();
+    return { ok: true, count: p.pending?.length ?? 0 };
+  }
+
   if (method === 'GET') {
     // Roue : l'heure du « serveur » est celle du navigateur (animation synchronisée)
     if (path.match(/^\/plans\/[^/]+\/wheels$/) && key in fixtures!) return { ...fixtures![key], serverNow: Date.now() };
     if ((m = path.match(/^\/plans\/([^/]+)\/summary$/))) return demoSummary(m[1]);
+    if (path.match(/^\/plans\/[^/]+$/) && key in fixtures!) return demoPlanWithPending(fixtures![key]);
     if (path.match(/^\/plans\/[^/]+\/assembly$/) && key in fixtures!) return demoAssemblyState(fixtures![key]);
     if ((m = path.match(/^\/plans\/([^/]+)\/transit\/stops$/))) {
       const q = String(body?.q ?? '').toLowerCase();
