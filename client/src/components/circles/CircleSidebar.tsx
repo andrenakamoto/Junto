@@ -383,7 +383,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
         </button>
 
         {showMenu && (
-          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
+          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-64 max-h-[75dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
             {user?.isAdmin && (
               <button
                 onClick={() => { setShowMenu(false); navigate('/admin'); }}

@@ -71,6 +71,7 @@ export default {
     firstName: 'Prénom',
     lastName: 'Nom (facultatif, visible seulement par toi)',
     languageHint: 'Langue de l’app, des emails et des notifications.',
+    deleteHint: 'Ton compte et tes données sont effacés définitivement.',
     email: 'Email',
     change: 'Changer',
     noEmail: 'Aucun email associé à ce compte.',

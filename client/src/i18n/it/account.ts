@@ -72,6 +72,7 @@ const account: Dict['account'] = {
     firstName: 'Nome',
     lastName: 'Cognome (facoltativo, visibile solo a te)',
     languageHint: 'Lingua dell’app, delle email e delle notifiche.',
+    deleteHint: 'Il tuo account e i tuoi dati vengono eliminati definitivamente.',
     email: 'Email',
     change: 'Cambia',
     noEmail: 'Nessuna email associata a questo account.',

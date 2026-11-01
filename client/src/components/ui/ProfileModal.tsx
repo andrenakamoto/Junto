@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, Trash2 } from 'lucide-react';
+import { DeleteAccountModal } from './DeleteAccountModal';
 import { Modal } from './Modal';
 import { Input } from './Input';
 import { Button } from './Button';
@@ -22,6 +23,8 @@ export function ProfileModal({ onClose }: Props) {
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // Supprimer le compte : aussi ici, et pas seulement dans le menu ☰ (Apple, règle 5.1.1(v) : facile à trouver)
+  const [deleting, setDeleting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +41,8 @@ export function ProfileModal({ onClose }: Props) {
     }
   }
 
+  // La fenêtre de suppression remplace celle du profil (une seule fenêtre à la fois)
+  if (deleting) return <DeleteAccountModal onClose={() => setDeleting(false)} />;
   return (
     <Modal title={t('account.profile.title')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,6 +63,13 @@ export function ProfileModal({ onClose }: Props) {
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           <Button type="submit" disabled={saving || !firstName.trim()}>{saving ? t('common.saving') : t('common.save')}</Button>
+        </div>
+        <div className="pt-4 mt-2 border-t border-slate-200">
+          <button type="button" onClick={() => setDeleting(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50">
+            <Trash2 size={16} /> {t('circle.sidebar.deleteAccount')}
+          </button>
+          <p className="mt-1.5 text-xs text-slate-400 text-center">{t('account.profile.deleteHint')}</p>
         </div>
       </form>
     </Modal>
