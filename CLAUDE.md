@@ -517,6 +517,8 @@ Conséquences pratiques :
     notes du PV mises en forme ; visionneuse des photos des chats (défiler, zoomer) ; démo (exemples sur la page principale, assemblée jouable).
     **Version 1.0.42** (2026-11-01) : Android `versionCode` 44 (`evly-1.0.42-(44).aab`), iOS build 46 envoyé — rubrique Membres par groupe
     avec « Pas encore répondu » et relance, assemblée « Réservé à… », session rechargée entre onglets.
+    **2026-11-01 : build 46 refusé par Apple** (5.1.1(v), suppression du compte introuvable) → **iOS build 47** (même version 1.0.42) :
+    « Supprimer mon compte » aussi dans « Mon profil », plus de zoom automatique d'iOS sur les champs.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
