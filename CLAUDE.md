@@ -1281,22 +1281,25 @@ Junto/
   liste de présence et pointage par code simulés. **Description d'un point mise en forme** (2026-10-31) : fenêtre « Nouveau point »
   large, `RichTextArea` (gras, listes, « Agrandir »), 2 000 caractères visibles (`parseRichInput` dans `parseItemInput`), affichée par
   `RichText`, dans la convocation (`richTextToHtml`) et dans le PV (`writeRichText` de `lib/pdfText.ts`, partagé avec le récapitulatif).
-  **Présents sans téléphone** (2026-11-01, migration `20261107100000_assembly_paper`) : (1) **isoloir** — dans le vote en cours,
-  l'organisateur choisit une personne présente et la fait voter sur son appareil (`KioskBallot`, POST `/vote` avec `forUserId`,
-  organisateur seulement ; `AssemblyVoter.userId` = la personne ; GET renvoie aux organisateurs `members[].mandates` et `items[].votedIds`) ;
-  (2) **papier** — bouton « Papier » d'un présent dans la liste (`AssemblyAttendance.paper`, changeable seulement hors d'un vote ouvert) :
-  ses voix ne se votent plus dans l'app, l'organisateur saisit le décompte (POST `/assembly/items/:id/paper`, `paperBallots` /
-  `paperRights` de `lib/assembly.ts`, testés), transformé en bulletins anonymes `AssemblyBallot.paper` (élection : noms répartis à tour de
-  rôle) ; « dont N bulletins papier » dans le résultat et le PV. Démo simulée (`demoAssemblyState`).
+  **Présents sans téléphone** (2026-11-01) : **isoloir** — dans le vote en cours, l'organisateur choisit une personne présente et la
+  fait voter sur son appareil (`KioskBallot`, POST `/vote` avec `forUserId`, organisateur seulement ; `AssemblyVoter.userId` = la
+  personne ; GET renvoie aux organisateurs `members[].mandates` et `items[].votedIds`). Le **vote sur papier** (décompte saisi par
+  l'organisateur) a été essayé puis **retiré le même jour** à la demande de l'utilisateur (trop compliqué) : colonnes
+  `AssemblyAttendance.paper` / `AssemblyBallot.paper` gardées (migration `20261107100000_assembly_paper`) mais plus lues.
+  **Participants sans EvLY** (2026-11-01, migration `20261109100000_assembly_guests`, table **AssemblyGuest** : prénom, nom, `isVoter`) :
+  l'organisateur les ajoute à la main en bas de la liste de présence (« Ajouter une personne sans EvLY », POST / DELETE
+  `/:id/assembly/guests`, retrait refusé s'ils ont voté). `people()` de `routes/assembly.ts` les ajoute aux membres et aux votants (quorum
+  compris, même absents) ; leur id sert de « personne » dans le pointage, l'isoloir, les candidats et le PV (`assemblyPv.ts`). Pas de
+  procuration, de convocation ni de notification. Étiquette « sans EvLY » ; hors de la liste « Membres votants » des réglages.
   **Démo de l'assemblée complète** (même date) : en plus du vote, l'organisateur (Alex) peut y ajouter / modifier / supprimer / déplacer
-  un point, enregistrer les réglages, annuler un vote, décider sans scrutin, départager, clore et rouvrir, pointer (liste, code, papier)
+  un point, enregistrer les réglages, annuler un vote, décider sans scrutin, départager, clore et rouvrir, pointer (liste, code)
   et faire voter sur son appareil ; le PV et le récapitulatif restent les PDF fixes générés une fois (`scripts/demo-site/pdf.js`).
   **Assemblée « Réservé à… » / « Caché à… »** (2026-11-01) : les personnes à qui le Plan est caché (`PlanExclusion`) ne font pas partie
   de l'assemblée — `circleVoters(plan, …)` les écarte (votants, liste de présence, candidats, notifications, quorum), comme le PV
   (`assemblyPv.ts`) et l'email de convocation (`planExclusions: { none: … }`).
   **Aide de l'onglet** (2026-11-01, bouton « Aide » à côté de « Réglages », pour tout le monde) : `AssemblyHelp` + textes
   `components/plans/assemblyHelp/{fr,de,it,en}.tsx` — 10 étapes dépliables (réglages, ordre du jour, convocation, procurations,
-  ouverture, présences, séance, votes, vote sans téléphone, clôture et PV) et « Ce que font les membres ». **À tenir à jour dans les
+  ouverture, présences, séance, votes, vote sans téléphone sur l'appareil de l'organisation, clôture et PV) et « Ce que font les membres ». **À tenir à jour dans les
   4 langues à chaque changement de l'assemblée.**
   **Notes du PV** mises en forme de la même façon (même date, `RichTextArea` de 8 lignes, 12 en grand, 4 000 caractères visibles,
   `parseRichInput` dans PUT `/assembly/items/:id/notes`, PV par `writeRichText`).
