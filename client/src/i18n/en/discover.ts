@@ -31,6 +31,8 @@ const discover: Dict['discover'] = {
     gl: "Glarus",
     gr: "Graubünden",
     ti: "Ticino",
+    f01: "Ain",
+    f74: "Haute-Savoie",
   },
   place: {
     choose: "Choose the place",
@@ -45,10 +47,14 @@ const discover: Dict['discover'] = {
     recent: "Recent",
     cities: "Towns",
     done: "Show",
-    credit: "Localities: © swisstopo",
+    credit: "Localities: © swisstopo · French communes: geo.api.gouv.fr (Licence Ouverte)",
     cantonLabel: "{{name}} (canton)",
     cantons: "Cantons",
     wholeCanton: "Whole canton",
+    departmentLabel: "{{name}} (department)",
+    wholeDepartment: "Whole department",
+    franceTag: "{{code}} · France",
+    nearbyFrance: "Nearby France",
   },
   searchLabel: "Search for a place or an event",
   searchPlaceholder: "Search (e.g. salsa, concert, escape room)",
@@ -199,7 +205,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Log in",
     signup: "Create an account",
-    intro: "This week’s outings all over Switzerland, around the place of your choice. With EvLY, suggest them to your friends and get organised in a tap.",
+    intro: "This week’s outings all over Switzerland and nearby France, around the place of your choice. With EvLY, suggest them to your friends and get organised in a tap.",
   },
 };
 export default discover;

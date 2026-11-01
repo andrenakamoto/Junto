@@ -31,6 +31,8 @@ const discover: Dict['discover'] = {
     gl: "Glarona",
     gr: "Grigioni",
     ti: "Ticino",
+    f01: "Ain",
+    f74: "Alta Savoia",
   },
   place: {
     choose: "Scegli il luogo",
@@ -45,10 +47,14 @@ const discover: Dict['discover'] = {
     recent: "Recenti",
     cities: "Città",
     done: "Mostra",
-    credit: "Località: © swisstopo",
+    credit: "Località: © swisstopo · Comuni francesi: geo.api.gouv.fr (Licence Ouverte)",
     cantonLabel: "{{name}} (cantone)",
     cantons: "Cantoni",
     wholeCanton: "Tutto il cantone",
+    departmentLabel: "{{name}} (dipartimento)",
+    wholeDepartment: "Tutto il dipartimento",
+    franceTag: "{{code}} · Francia",
+    nearbyFrance: "Francia vicina",
   },
   searchLabel: "Cerca un luogo o un evento",
   searchPlaceholder: "Cerca (es. salsa, concerto, escape game)",
@@ -199,7 +205,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Accedi",
     signup: "Crea un account",
-    intro: "Le uscite della settimana in tutta la Svizzera, intorno al luogo che scegli. Con EvLY le proponi ai tuoi amici e vi organizzate in un attimo.",
+    intro: "Le uscite della settimana in tutta la Svizzera e nella Francia vicina, intorno al luogo che scegli. Con EvLY le proponi ai tuoi amici e vi organizzate in un attimo.",
   },
 };
 export default discover;

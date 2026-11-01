@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText, isSessionSeries } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
-import { boundingBox, distanceKm, isCantonCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
+import { boundingBox, distanceKm, isCantonCode, isFrenchCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
 import { CANTONS, REGIONS } from '../lib/discover/model';
 import { imageFile, isImageKey } from '../lib/discover/images';
 import { dedupeEvents } from '../lib/discover/dedupe';
@@ -37,7 +37,10 @@ const forClient = (body: any, v: unknown) => {
   return asPartner({
     ...body,
     places: v === '2' ? body.places : body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)),
-    events: body.events.map((e: any) => credit.has(e.sourceId) ? { ...e, priceText: e.priceText ? `${e.priceText} · ${credit.get(e.sourceId)}` : credit.get(e.sourceId) } : e),
+    events: body.events.map(({ credit: own, ...e }: any) => {
+      const c = own ?? credit.get(e.sourceId);
+      return c ? { ...e, priceText: e.priceText ? `${e.priceText} · ${c}` : c } : e;
+    }),
   });
 };
 
@@ -45,7 +48,8 @@ const RADII = [10, 25, 50];
 // Position arrondie au centième (~1 km) : rien de plus précis n'est utile, et le cache reste partagé
 function parsePoint(q: any): { lat: number; lon: number; radius: number } | null {
   const lat = Number(q.lat), lon = Number(q.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 45.6 || lat > 48 || lon < 5.8 || lon > 10.6) return null;
+  // Suisse et France voisine (Ain, Haute-Savoie depuis le 2026-11-01)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 45.4 || lat > 48 || lon < 4.6 || lon > 10.6) return null;
   const r = Number(q.radius);
   return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, radius: RADII.includes(r) ? r : 25 };
 }
@@ -66,7 +70,9 @@ router.get('/localities', (req, res) => {
   res.set('Cache-Control', 'public, max-age=86400');
   const localities = searchLocalities(q).map(l => ({ name: l.name, canton: l.canton, lat: l.lat, lon: l.lon }));
   // v=2 (site et apps à partir de la 1.0.37) : cantons et régions en tête ; les anciennes apps ne reçoivent que des localités
-  res.json(req.query.v === '2' ? [...searchAreas(q), ...localities.map(l => ({ kind: 'locality', ...l }))].slice(0, 10) : localities);
+  // v=3 (2026-11-01) : aussi les départements et régions de la France voisine
+  const v = req.query.v;
+  res.json(v === '2' || v === '3' ? [...searchAreas(q, v === '3'), ...localities.map(l => ({ kind: 'locality', ...l }))].slice(0, 10) : localities);
 });
 
 // GET /api/discover?lat=46.38&lon=6.24&radius=25&days=14 — événements à venir, idées de sorties et sources (licences à
@@ -76,7 +82,7 @@ router.get('/', async (req, res) => {
   // ?canton=VD : tout le canton (sans rayon ni distance)
   const canton = typeof req.query.canton === 'string' && isCantonCode(req.query.canton.toUpperCase()) ? req.query.canton.toUpperCase() : null;
   const point = canton ? null : parsePoint(req.query);
-  const cantonRegion = canton ? REGIONS.find(r => CANTONS[r].iso === `CH-${canton}`) : undefined;
+  const cantonRegion = canton ? REGIONS.find(r => CANTONS[r].iso === (isFrenchCode(canton) ? `FR-${canton}` : `CH-${canton}`)) : undefined;
   const region = cantonRegion ?? (point ? nearestRegion(point) : isRegion(req.query.region) ? req.query.region : 'ge');
   const days = Math.min(31, Math.max(1, Number(req.query.days) || 7));
   const key = canton ? `canton:${canton}|${days}` : point ? `${point.lat},${point.lon},${point.radius}|${days}` : `${region}|${days}`;
@@ -97,7 +103,7 @@ router.get('/', async (req, res) => {
       where: { AND: [near, { OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] }], state: 'published', startAt: { lte: until } },
       orderBy: { startAt: 'asc' },
       take: 3000,
-      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true, imageKey: true, imageCredit: true },
+      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true, imageKey: true, imageCredit: true, credit: true },
     }),
     prisma.discoverPlace.findMany({
       where: { ...near, state: 'published' },

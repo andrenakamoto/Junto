@@ -5,6 +5,7 @@ const processors: Processor[] = [
   { name: 'Infomaniak', role: "hosting of the server, the database (accounts, messages, Plans), the evly.ch website, photos, voice messages and files; sending emails; backups (Swiss Backup)", where: "Switzerland", safeguard: "no transfer abroad" },
   { name: 'Opentransportdata.swiss (OJP)', role: "public transport timetables (Rides section): only the chosen stops or addresses (coordinates) and the requested time are sent, from our server, without your identity", where: "Switzerland (official public transport platform, SBB on behalf of the FOT)", safeguard: "no personal data transmitted" },
   { name: 'OpenAgenda', role: "public agendas under an open licence (Discover section, for example the City of Geneva’s agenda): our server reads the events without sending anything about you", where: "France", safeguard: "no personal data transmitted" },
+  { name: 'DATAtourisme', role: "festivals and events in nearby France (Ain, Haute-Savoie), under the Licence Ouverte (Discover section): our server reads the events without sending anything about you", where: "France", safeguard: "no personal data transmitted" },
   { name: 'OpenStreetMap (Overpass)', role: "outing ideas (Discover section): our server reads public places without sending anything about you", where: "Germany", safeguard: "no personal data transmitted" },
   { name: 'Google', role: 'sign-in with a Google account (if you choose it), website fonts and delivery of app notifications (Firebase Cloud Messaging)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'delivery of iPhone app notifications (Apple Push Notification service)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
@@ -12,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 29 October 2026',
+  version: 'Version of 1 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -56,7 +57,7 @@ const en: PrivacyText = {
           optional short note, visible to members of the Circles where you say you’re free. No location is stored. This information is
           <strong>automatically deleted</strong> at the end of the chosen time (3 hours, or 4 am for “tonight”).</li>
         <li><strong>Discover</strong>: browsing events and outing ideas creates no data about you (no account needed, no tracking); the
-          place you choose (town or village) and the radius are kept on your device. If you choose “<strong>Near me</strong>”, your approximate location (rounded to about 1 km) is sent to our server only to find outings nearby: it is neither stored nor kept on your device. Localities come from the official swisstopo directory, kept on our server. Listings come from public agendas, OpenStreetMap or the EvLY team; our server fetches
+          place you choose (town or village) and the radius are kept on your device. If you choose “<strong>Near me</strong>”, your approximate location (rounded to about 1 km) is sent to our server only to find outings nearby: it is neither stored nor kept on your device. Localities come from the official swisstopo directory and, for nearby France, from the official list of communes (geo.api.gouv.fr), both kept on our server. Listings come from public agendas, OpenStreetMap or the EvLY team; our server fetches
           them without sending anything about you. If you <strong>report a mistake</strong>, your message is emailed to the EvLY
           administrator. If you ask to be notified about <strong>“Post a public event”</strong>, your name, email and optional details
           (venue, town, message) are kept to contact you when it opens, then deleted at the latest two years later, or with your account.</li>

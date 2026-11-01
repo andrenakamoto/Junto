@@ -1,10 +1,12 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import type { Region } from './model';
+import { isFrenchRegion } from './model';
 
 // Découvrir par lieu et rayon (2026-10-25). Localités suisses : répertoire officiel des localités de swisstopo (données
 // ouvertes, « © swisstopo »), réduit à [nom, canton, latitude, longitude] dans assets/localities.json (une ligne par
-// localité et par commune, coordonnées moyennes de leurs NPA). Sert à situer les événements et lieux qui n'ont qu'un nom
+// localité et par commune, coordonnées moyennes de leurs NPA). Depuis le 2026-11-01, aussi les communes françaises de l'Ain et
+// de la Haute-Savoie (geo.api.gouv.fr, Licence Ouverte, « canton » = numéro du département : « 01 », « 74 »). Sert à situer les événements et lieux qui n'ont qu'un nom
 // de ville, et à la recherche de lieu de Découvrir. Aucun service extérieur n'est appelé.
 
 export type Locality = { name: string; canton: string; lat: number; lon: number };
@@ -37,7 +39,11 @@ export const REGION_CENTERS: Record<Region, { lat: number; lon: number; name: st
   gl: { lat: 47.0396, lon: 9.0443, name: 'Glarus' },
   gr: { lat: 46.8398, lon: 9.5540, name: 'Chur' },
   ti: { lat: 46.2023, lon: 9.0150, name: 'Bellinzona' },
+  f01: { lat: 46.2052, lon: 5.2255, name: 'Bourg-en-Bresse' },
+  f74: { lat: 45.8992, lon: 6.1294, name: 'Annecy' },
 };
+// Localité française (département) ou suisse (canton) : un canton suisse s'écrit en lettres, un département en chiffres
+export const isFrenchCode = (code: string) => /^\d/.test(code);
 
 export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’']/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
 
@@ -106,21 +112,28 @@ export function locateInText(text: string | null | undefined, near?: { lat: numb
 
 // Position complétée, et canton déduit de la position (recherche par canton, 2026-10-26)
 export function withCoords<T extends { city?: string | null; place?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }>(d: T, region: Region): T & { canton: string | null } {
-  if (d.latitude != null && d.longitude != null) return { ...d, canton: cantonAt(d.latitude, d.longitude) };
+  const country = isFrenchRegion(region) ? 'FR' : 'CH';
+  if (d.latitude != null && d.longitude != null) return { ...d, canton: cantonAt(d.latitude, d.longitude, country) };
   const near = REGION_CENTERS[region];
   // Un nom trouvé dans le texte n'est retenu que près de la région (« Bar du Port » ≠ une localité nommée Port à 150 km)
   const inText = (s: string | null | undefined) => { const p = locateInText(s, near); return p && distanceKm(p, near) <= 80 ? p : null; };
   const pos = locateCity(d.city, near) ?? inText(d.address) ?? inText(d.place);
-  return pos ? { ...d, latitude: pos.lat, longitude: pos.lon, canton: cantonAt(pos.lat, pos.lon) } : { ...d, canton: null };
+  return pos ? { ...d, latitude: pos.lat, longitude: pos.lon, canton: cantonAt(pos.lat, pos.lon, country) } : { ...d, canton: null };
 }
 
-// Canton d'une position : celui de la localité swisstopo la plus proche (grille de 0,1° pour ne pas tout parcourir)
-let grid: Map<string, Locality[]> | null = null;
+// Canton d'une position : celui de la localité la plus proche (grille de 0,1° pour ne pas tout parcourir), parmi les localités
+// suisses pour une source suisse et parmi les communes françaises pour une source française (près de la frontière, un événement
+// de Chêne-Bourg ne doit pas finir en Haute-Savoie, ni l'inverse)
+const grids: Partial<Record<'CH' | 'FR', Map<string, Locality[]>>> = {};
 const cell = (lat: number, lon: number) => `${Math.floor(lat * 10)},${Math.floor(lon * 10)}`;
-export function cantonAt(lat: number, lon: number): string | null {
+export function cantonAt(lat: number, lon: number, country: 'CH' | 'FR' = 'CH'): string | null {
+  let grid = grids[country];
   if (!grid) {
-    grid = new Map();
-    for (const l of data().list) { const k = cell(l.lat, l.lon); grid.set(k, [...(grid.get(k) ?? []), l]); }
+    grid = grids[country] = new Map();
+    for (const l of data().list) {
+      if (isFrenchCode(l.canton) !== (country === 'FR')) continue;
+      const k = cell(l.lat, l.lon); grid.set(k, [...(grid.get(k) ?? []), l]);
+    }
   }
   const [a, b] = [Math.floor(lat * 10), Math.floor(lon * 10)];
   for (const r of [1, 3, 6]) {
@@ -144,6 +157,8 @@ export const CANTON_NAMES: Record<string, string[]> = {
   AR: ['Appenzell Rhodes-Extérieures', 'Appenzell Ausserrhoden', 'Appenzello Esterno', 'Appenzell Outer Rhodes'],
   AI: ['Appenzell Rhodes-Intérieures', 'Appenzell Innerrhoden', 'Appenzello Interno', 'Appenzell Inner Rhodes'],
   GL: ['Glaris', 'Glarus', 'Glarona'], GR: ['Grisons', 'Graubünden', 'Grigioni'], TI: ['Tessin', 'Ticino'],
+  // Départements français (2026-11-01)
+  '01': ['Ain'], '74': ['Haute-Savoie', 'Hochsavoyen', 'Alta Savoia'],
 };
 export const isCantonCode = (v: unknown): v is string => typeof v === 'string' && v in CANTON_NAMES;
 
@@ -179,18 +194,27 @@ export const AREAS: { name: string; keys: string[]; lat: number; lon: number; ra
   { name: 'Sottoceneri', keys: ['sottoceneri', 'luganese'], lat: 45.98, lon: 8.95, radius: 25 },
   { name: 'Locarnese', keys: ['locarnese'], lat: 46.1715, lon: 8.8286, radius: 10 },
   { name: 'Mendrisiotto', keys: ['mendrisiotto'], lat: 45.8714, lon: 8.9665, radius: 10 },
+  // France voisine (2026-11-01) : à partir d'ici (FRANCE_AREAS_FROM)
+  { name: 'Pays de Gex', keys: ['pays de gex'], lat: 46.33, lon: 6.06, radius: 10 },
+  { name: 'Genevois français', keys: ['genevois francais', 'grand geneve'], lat: 46.15, lon: 6.15, radius: 10 },
+  { name: 'Chablais français', keys: ['chablais francais', 'thonon evian'], lat: 46.37, lon: 6.5, radius: 25 },
+  { name: 'Lac d’Annecy', keys: ['lac d annecy', 'annecy'], lat: 45.86, lon: 6.17, radius: 10 },
+  { name: 'Vallée de Chamonix', keys: ['vallee de chamonix', 'chamonix mont blanc'], lat: 45.92, lon: 6.87, radius: 10 },
+  { name: 'Bugey', keys: ['bugey'], lat: 45.9, lon: 5.6, radius: 25 },
 ];
 
+const FRANCE_AREAS_FROM = AREAS.findIndex(a => a.name === 'Pays de Gex');
 export type PlaceHit = { kind: 'canton'; code: string } | { kind: 'region'; name: string; lat: number; lon: number; radius: number };
 // Recherche des cantons et régions (champ « Ville ou village » de Découvrir, apps à partir de la 1.0.37)
-export function searchAreas(q: string): PlaceHit[] {
+// `withFrance` : départements français et régions de la France voisine (site et apps qui savent les afficher, `v=3`)
+export function searchAreas(q: string, withFrance = false): PlaceHit[] {
   const n = norm(q);
   if (n.length < 2) return [];
   const hit = (k: string) => k.startsWith(n) || (n.length >= 3 && k.split(' ').some(w => w.startsWith(n)));
   const cantons = Object.entries(CANTON_NAMES)
-    .filter(([code, names]) => n === code.toLowerCase() || names.some(x => hit(norm(x))))
+    .filter(([code, names]) => (withFrance || !isFrenchCode(code)) && (n === code.toLowerCase() || names.some(x => hit(norm(x)))))
     .map(([code]) => ({ kind: 'canton' as const, code }));
-  const areas = AREAS.filter(a => hit(norm(a.name)) || a.keys.some(hit)).map(a => ({ kind: 'region' as const, name: a.name, lat: a.lat, lon: a.lon, radius: a.radius }));
+  const areas = AREAS.filter((a, i) => (withFrance || i < FRANCE_AREAS_FROM) && (hit(norm(a.name)) || a.keys.some(hit))).map(a => ({ kind: 'region' as const, name: a.name, lat: a.lat, lon: a.lon, radius: a.radius }));
   return [...cantons.slice(0, 3), ...areas.slice(0, 3)];
 }
 

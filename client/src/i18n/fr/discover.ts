@@ -30,6 +30,8 @@ const discover = {
     gl: "Glaris",
     gr: "Grisons",
     ti: "Tessin",
+    f01: "Ain",
+    f74: "Haute-Savoie",
   },
   place: {
     choose: "Choisir le lieu",
@@ -44,10 +46,14 @@ const discover = {
     recent: "Récemment",
     cities: "Villes",
     done: "Afficher",
-    credit: "Localités : © swisstopo",
+    credit: "Localités : © swisstopo · Communes de France : geo.api.gouv.fr (Licence Ouverte)",
     cantonLabel: "{{name}} (canton)",
     cantons: "Cantons",
     wholeCanton: "Tout le canton",
+    departmentLabel: "{{name}} (département)",
+    wholeDepartment: "Tout le département",
+    franceTag: "{{code}} · France",
+    nearbyFrance: "France voisine",
   },
   searchLabel: "Rechercher un lieu ou un événement",
   searchPlaceholder: "Rechercher (ex. salsa, concert, escape game)",
@@ -198,7 +204,7 @@ const discover = {
   public: {
     login: "Se connecter",
     signup: "Créer un compte",
-    intro: "Les sorties de la semaine partout en Suisse, autour du lieu de ton choix. Avec EvLY, propose-les à tes amis et organisez-vous en un geste.",
+    intro: "Les sorties de la semaine partout en Suisse et en France voisine, autour du lieu de ton choix. Avec EvLY, propose-les à tes amis et organisez-vous en un geste.",
   },
 };
 export default discover;

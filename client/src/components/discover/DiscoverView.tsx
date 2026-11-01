@@ -18,7 +18,7 @@ const MULTI = 'multi';
 const LATER = 'later';
 const ALL = 'all';
 
-// « Découvrir » : événements publics et idées de sorties de toute la Suisse, autour d'un lieu choisi (ville, village ou
+// « Découvrir » : événements publics et idées de sorties de toute la Suisse et de la France voisine (Ain, Haute-Savoie), autour d'un lieu choisi (ville, village ou
 // « Autour de moi ») et dans un rayon de 10, 25 ou 50 km. Dans l'app (colonne du tableau de bord) et sur la page publique
 // /sorties (sans compte). Données : GET /api/discover?lat=&lon=&radius= (lib/discover/ du serveur).
 export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?: () => void }) {
@@ -131,7 +131,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
   // Partenaires qui demandent un crédit sur chaque événement (GeNEVERsleep : « Source : GeNEVERsleep » + lien vers sa page)
   const CREDITED = new Set(['geneversleep', 'partner']);
+  // DATAtourisme : l'auteur de chaque donnée (office de tourisme) et sa date de mise à jour, exigés par la licence
   const creditOf = (e: DiscoverEvent) => {
+    if (e.credit) return e.credit;
     const s = data?.sources.find(x => x.id === e.sourceId);
     return s && CREDITED.has(s.type) ? (s.attribution ?? s.name).replace(/^Source\s*:\s*/i, '') : null;
   };

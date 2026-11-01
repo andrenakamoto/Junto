@@ -4,8 +4,9 @@
 
 // Régions des sources = cantons (synchronisation, anciennes apps ; `la` = Vaud, nom historique) ; Découvrir cherche par lieu et
 // rayon depuis le 2026-10-25, dans toute la Suisse
+// France voisine depuis le 2026-11-01 : départements, codes `f` + numéro (`f74` = Haute-Savoie), code « canton » = le numéro (« 74 »)
 export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne', 'ju', 'be', 'so', 'bs', 'bl', 'ag', 'lu', 'zg', 'sz', 'ur', 'ow', 'nw', 'zh', 'sh',
-  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti'] as const;
+  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti', 'f01', 'f74'] as const;
 // Nom français et code ISO de chaque canton (sources OpenStreetMap)
 export const CANTONS: Record<Region, { name: string; iso: string }> = {
   ge: { name: 'canton de Genève', iso: 'CH-GE' }, la: { name: 'canton de Vaud', iso: 'CH-VD' }, vs: { name: 'Valais', iso: 'CH-VS' },
@@ -17,7 +18,10 @@ export const CANTONS: Record<Region, { name: string; iso: string }> = {
   sh: { name: 'canton de Schaffhouse', iso: 'CH-SH' }, tg: { name: 'Thurgovie', iso: 'CH-TG' }, sg: { name: 'canton de Saint-Gall', iso: 'CH-SG' },
   ar: { name: 'Appenzell Rhodes-Extérieures', iso: 'CH-AR' }, ai: { name: 'Appenzell Rhodes-Intérieures', iso: 'CH-AI' },
   gl: { name: 'canton de Glaris', iso: 'CH-GL' }, gr: { name: 'Grisons', iso: 'CH-GR' }, ti: { name: 'Tessin', iso: 'CH-TI' },
+  f01: { name: 'Ain (France)', iso: 'FR-01' }, f74: { name: 'Haute-Savoie (France)', iso: 'FR-74' },
 };
+// Région française (département) : position cherchée parmi les communes françaises, pas les localités suisses
+export const isFrenchRegion = (r: string | null | undefined) => !!r && /^f\d/.test(r);
 export type Region = typeof REGIONS[number];
 export const isRegion = (v: unknown): v is Region => typeof v === 'string' && (REGIONS as readonly string[]).includes(v);
 
@@ -60,6 +64,10 @@ export interface NormalizedEvent {
   multiDay: boolean;
   dateLabel: string | null;
   url: string | null;
+  // Connecteurs qui couvrent plusieurs régions et la connaissent (DATAtourisme : le département)
+  region?: Region;
+  // Auteur de la donnée exigé par la licence (DATAtourisme), affiché sur la carte
+  credit?: string | null;
 }
 
 export interface NormalizedPlace {

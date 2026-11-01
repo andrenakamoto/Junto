@@ -3,10 +3,10 @@ import { LocateFixed, Map as MapIcon, MapPin, Mountain, Search } from 'lucide-re
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { t } from '../../i18n';
-import { BIG_CITIES, RADII, ROMANDIE_CANTONS, Radius, Spot, SpotChoice, cantonLabel, norm, recentSpots } from '../../lib/discover';
+import { BIG_CITIES, FRANCE_CITIES, NEARBY_DEPARTMENTS, RADII, ROMANDIE_CANTONS, Radius, Spot, SpotChoice, cantonLabel, isDepartment, norm, recentSpots } from '../../lib/discover';
 
 // « Où chercher ? » de Découvrir : autour de moi, une ville ou un village (répertoire de swisstopo, GET
-// /api/discover/localities?v=2), un canton entier ou une région connue (Riviera, Gruyère…), le rayon, les lieux récents, les
+// /api/discover/localities?v=3), un canton ou un département entier ou une région connue (Riviera, Gruyère…), le rayon, les lieux récents, les
 // cantons romands et les grandes villes.
 type Hit = { kind: 'canton'; code: string } | { kind: 'region'; name: string; lat: number; lon: number; radius: number }
   | { kind?: 'locality'; name: string; canton: string; lat: number; lon: number };
@@ -21,7 +21,7 @@ export function PlacePicker({ value, onChange, onClose, hereError }: {
   useEffect(() => {
     if (norm(q).trim().length < 2) { setFound(null); return; }
     const timer = setTimeout(() => {
-      api.get('/discover/localities', { params: { q, v: 2 } }).then(r => setFound(r.data)).catch(() => setFound([]));
+      api.get('/discover/localities', { params: { q, v: 3 } }).then(r => setFound(r.data)).catch(() => setFound([]));
     }, 200);
     return () => clearTimeout(timer);
   }, [q]);
@@ -55,7 +55,7 @@ export function PlacePicker({ value, onChange, onClose, hereError }: {
                   <button key={`c-${h.code}`} onClick={() => pickCanton(h.code)} className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50">
                     <MapIcon size={14} className="text-indigo-500 flex-shrink-0" />
                     <span className="flex-1 min-w-0 truncate font-medium text-slate-800">{cantonLabel(h.code)}</span>
-                    <span className="text-xs text-slate-400">{t('discover.place.wholeCanton')}</span>
+                    <span className="text-xs text-slate-400">{t(isDepartment(h.code) ? 'discover.place.wholeDepartment' : 'discover.place.wholeCanton')}</span>
                   </button>
                 ) : h.kind === 'region' ? (
                   <button key={`r-${h.name}`} onClick={() => pick({ name: h.name, lat: h.lat, lon: h.lon }, (RADII as readonly number[]).includes(h.radius) ? h.radius as Radius : value.radius)}
@@ -69,7 +69,7 @@ export function PlacePicker({ value, onChange, onClose, hereError }: {
                     className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50">
                     <MapPin size={14} className="text-slate-400 flex-shrink-0" />
                     <span className="flex-1 min-w-0 truncate text-slate-800">{h.name}</span>
-                    {h.canton && <span className="text-xs text-slate-400">{h.canton}</span>}
+                    {h.canton && <span className="text-xs text-slate-400">{isDepartment(h.canton) ? t('discover.place.franceTag', { code: h.canton }) : h.canton}</span>}
                   </button>
                 ))}
               </div>)}
@@ -95,6 +95,14 @@ export function PlacePicker({ value, onChange, onClose, hereError }: {
         <div className="space-y-1.5">
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('discover.place.cities')}</p>
           <div className="flex flex-wrap gap-1.5">{BIG_CITIES.map(s => <button key={s.name} onClick={() => pick(s)} className={pill(isCurrent(s))}>{s.name}</button>)}</div>
+        </div>
+
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">{t('discover.place.nearbyFrance')}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {NEARBY_DEPARTMENTS.map(c => <button key={c} onClick={() => pickCanton(c)} className={pill(isCanton(c))}>{cantonLabel(c).replace(/ \(.*\)$/, '')}</button>)}
+            {FRANCE_CITIES.map(s => <button key={s.name} onClick={() => pick(s)} className={pill(isCurrent(s))}>{s.name}</button>)}
+          </div>
         </div>
 
         <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">{t('discover.place.done')}</button>

@@ -5,6 +5,7 @@ const processors: Processor[] = [
   { name: 'Infomaniak', role: "Hosting des Servers, der Datenbank (Konten, Nachrichten, Pläne), der Website evly.ch, der Fotos, Sprachnachrichten und Dateien; Versand der E-Mails; Sicherungskopien (Swiss Backup)", where: "Schweiz", safeguard: "keine Übermittlung ins Ausland" },
   { name: 'Opentransportdata.swiss (OJP)', role: "Fahrpläne des öffentlichen Verkehrs (Bereich Fahrten): Es werden nur die gewählten Haltestellen oder Adressen (Koordinaten) und die gesuchte Zeit von unserem Server gesendet, ohne deine Identität", where: "Schweiz (offizielle Plattform des öffentlichen Verkehrs, SBB im Auftrag des BAV)", safeguard: "keine Personendaten übermittelt" },
   { name: 'OpenAgenda', role: "öffentliche Agenden unter offener Lizenz (Bereich Entdecken, zum Beispiel die Agenda der Stadt Genf): Unser Server liest die Events, ohne etwas über dich zu übermitteln", where: "Frankreich", safeguard: "keine Personendaten übermittelt" },
+  { name: 'DATAtourisme', role: "Feste und Veranstaltungen im angrenzenden Frankreich (Ain, Hochsavoyen), unter Licence Ouverte (Bereich Entdecken): Unser Server liest die Events, ohne etwas über dich zu übermitteln", where: "Frankreich", safeguard: "keine Personendaten übermittelt" },
   { name: 'OpenStreetMap (Overpass)', role: "Ausflugsideen (Bereich Entdecken): Unser Server liest öffentliche Orte, ohne etwas über dich zu übermitteln", where: "Deutschland", safeguard: "keine Personendaten übermittelt" },
   { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst), Schriften der Website und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
@@ -12,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 29. Oktober 2026',
+  version: 'Fassung vom 1. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -60,7 +61,7 @@ const de: PrivacyText = {
           hast. Kein Standort wird gespeichert. Diese Angaben werden am Ende des gewählten Zeitraums <strong>automatisch gelöscht</strong>
           (3 Stunden, oder 4 Uhr morgens für „heute Abend“).</li>
         <li><strong>Entdecken</strong>: Das Ansehen von Events und Ausflugsideen erzeugt keine Daten über dich (kein Konto nötig,
-          keine Nachverfolgung); der gewählte Ort (Stadt oder Dorf) und der Umkreis bleiben auf deinem Gerät. Wählst du „<strong>In meiner Nähe</strong>“, wird dein ungefährer Standort (auf etwa 1 km gerundet) nur an unseren Server gesendet, um Events in der Nähe zu finden: Er wird weder gespeichert noch auf deinem Gerät aufbewahrt. Die Ortschaften stammen aus dem amtlichen Verzeichnis von swisstopo, das auf unserem Server liegt. Die Anzeigen stammen aus öffentlichen Agenden, aus
+          keine Nachverfolgung); der gewählte Ort (Stadt oder Dorf) und der Umkreis bleiben auf deinem Gerät. Wählst du „<strong>In meiner Nähe</strong>“, wird dein ungefährer Standort (auf etwa 1 km gerundet) nur an unseren Server gesendet, um Events in der Nähe zu finden: Er wird weder gespeichert noch auf deinem Gerät aufbewahrt. Die Ortschaften stammen aus dem amtlichen Verzeichnis von swisstopo und, für das angrenzende Frankreich, aus der amtlichen Gemeindeliste (geo.api.gouv.fr); beide liegen auf unserem Server. Die Anzeigen stammen aus öffentlichen Agenden, aus
           OpenStreetMap oder vom EvLY-Team; unser Server ruft sie ab, ohne etwas über dich zu übermitteln. Wenn du einen
           <strong> Fehler meldest</strong>, wird deine Nachricht per E-Mail an die Administration von EvLY gesendet. Wenn du für
           <strong> „Öffentliches Event veröffentlichen“</strong> informiert werden möchtest, werden dein Name, deine E-Mail-Adresse und die

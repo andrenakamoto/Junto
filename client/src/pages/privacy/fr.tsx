@@ -5,6 +5,7 @@ const processors: Processor[] = [
   { name: 'Infomaniak', role: "hébergement du serveur, de la base de données (comptes, messages, Plans), du site evly.ch, des photos, messages vocaux et fichiers ; envoi des emails ; sauvegardes (Swiss Backup)", where: "Suisse", safeguard: "aucun transfert à l’étranger" },
   { name: 'Opentransportdata.swiss (OJP)', role: "horaires des transports publics (rubrique Trajets) : seuls les arrêts ou les adresses choisis (coordonnées) et l'heure recherchée sont envoyés, depuis notre serveur, sans ton identité", where: "Suisse (plateforme officielle des transports publics, CFF sur mandat de l'OFT)", safeguard: "aucune donnée personnelle transmise" },
   { name: 'OpenAgenda', role: "agendas publics sous licence ouverte (rubrique Découvrir, par exemple l'agenda de la Ville de Genève) : notre serveur lit les événements, sans rien transmettre te concernant", where: "France", safeguard: "aucune donnée personnelle transmise" },
+  { name: 'DATAtourisme', role: "fêtes et manifestations de la France voisine (Ain, Haute-Savoie), sous Licence Ouverte (rubrique Découvrir) : notre serveur lit les événements, sans rien transmettre te concernant", where: "France", safeguard: "aucune donnée personnelle transmise" },
   { name: 'OpenStreetMap (Overpass)', role: "idées de sorties (rubrique Découvrir) : notre serveur lit les lieux publics, sans rien transmettre te concernant", where: "Allemagne", safeguard: "aucune donnée personnelle transmise" },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
@@ -12,7 +13,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 29 octobre 2026',
+  version: 'Version du 1er novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -64,7 +65,7 @@ const fr: PrivacyText = {
           enregistrée. Ces informations sont <strong>effacées automatiquement</strong> à la fin du moment choisi (3 heures, ou 4 h du
           matin pour « ce soir »).</li>
         <li><strong>Découvrir</strong> : consulter les événements et les idées de sorties ne crée aucune donnée sur toi (ni compte requis,
-          ni suivi) ; le lieu choisi (ville ou village) et le rayon sont gardés sur ton appareil. Si tu choisis « <strong>Autour de moi</strong> », ta position approximative (arrondie à environ 1 km) est envoyée à notre serveur seulement pour trouver les sorties proches : elle n'est ni enregistrée ni gardée sur ton appareil. Les localités viennent du répertoire officiel de swisstopo, gardé sur notre serveur. Les annonces viennent d'agendas publics, d'OpenStreetMap ou de
+          ni suivi) ; le lieu choisi (ville ou village) et le rayon sont gardés sur ton appareil. Si tu choisis « <strong>Autour de moi</strong> », ta position approximative (arrondie à environ 1 km) est envoyée à notre serveur seulement pour trouver les sorties proches : elle n'est ni enregistrée ni gardée sur ton appareil. Les localités viennent du répertoire officiel de swisstopo et, pour la France voisine, de la liste officielle des communes (geo.api.gouv.fr), gardés sur notre serveur. Les annonces viennent d'agendas publics, d'OpenStreetMap ou de
           l'équipe EvLY ; notre serveur les récupère sans rien transmettre te concernant. Si tu <strong>signales une erreur</strong>, ton
           message est envoyé par email à l'administrateur d'EvLY. Si tu demandes à être prévenu pour <strong>« Poster un événement
           public »</strong>, ton nom, ton email et les informations facultatives (établissement, ville, message) sont gardés pour te

@@ -15,6 +15,10 @@ const DEFAULT_SOURCES = [
   },
   // Idées de sorties : un canton par source, toute la Suisse depuis le 2026-10-25 (avant : Genève, Vaud autour de Lausanne, Valais)
   ...REGIONS.map(r => ({ key: `osm-${r}`, name: `OpenStreetMap – ${CANTONS[r].name}`, type: 'osm', region: r, status: 'active', autoPublish: true, config: { area: CANTONS[r].iso }, ...ODBL })),
+  // DATAtourisme (France voisine, 2026-11-01) : fêtes et manifestations de l'Ain et de la Haute-Savoie, Licence Ouverte ; l'auteur de
+  // chaque donnée est cité sur sa carte (crédit exigé par la licence)
+  { key: 'datatourisme', name: 'DATAtourisme (Ain, Haute-Savoie)', type: 'datatourisme', region: 'f74', status: 'active', autoPublish: true, config: { departments: ['01', '74'] },
+    license: 'Licence Ouverte 2.0', licenseUrl: 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/', attribution: 'DATAtourisme' },
   { key: 'evly-plans', name: 'Organisateurs EvLY', type: 'plan', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: 'Organisateurs sur EvLY' },
   { key: 'manual', name: 'Saisie EvLY', type: 'manual', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: null },
   // Eventfrog (Public API, accord du 2026-10-26) : toute la Suisse, une seule source ; chaque événement rangé d'après sa ville

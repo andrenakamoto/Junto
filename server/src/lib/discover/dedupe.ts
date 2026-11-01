@@ -4,7 +4,7 @@ import { norm } from './geo';
 // n'apparaît qu'une fois dans Découvrir (2026-10-26). Même titre, même jour, même endroit (moins de 1 km, ou même ville sans
 // position) : on garde **l'annonce qui a une photo**, sinon la source la plus sûre (choix de l'utilisateur) ; quand l'un des deux
 // est « sur plusieurs jours » et couvre la date de l'autre, le moins bien placé disparaît aussi.
-export const SOURCE_RANK: Record<string, number> = { plan: 0, manual: 1, openagenda: 2, ical: 3, geneversleep: 4, partner: 5, eventfrog: 6 };
+export const SOURCE_RANK: Record<string, number> = { plan: 0, manual: 1, openagenda: 2, ical: 3, datatourisme: 3, geneversleep: 4, partner: 5, eventfrog: 6 };
 
 export interface DedupeEvent {
   id: string; title: string; sourceId: string; startAt: Date; endAt: Date | null; multiDay: boolean;

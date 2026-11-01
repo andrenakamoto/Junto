@@ -5,6 +5,7 @@ import { fetchOsmPlaces, OsmConfig } from './osm';
 import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import { fetchEventfrog, EventfrogConfig } from './eventfrog';
+import { fetchDatatourisme, DatatourismeConfig } from './datatourisme';
 import { syncEventImages } from './images';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 import { nearestRegion, withCoords } from './geo';
@@ -23,11 +24,11 @@ const GNS_SYNC_MS = 2 * 3600e3;         // GeNEVERsleep : toutes les 2 h (leur r
 // événement déjà commencé (règle d'Eventfrog) ; `needCoords` : sans position, l'événement est laissé de côté (toute la Suisse).
 async function saveEvents(source: DiscoverSource, region: Region, events: NormalizedEvent[], regionFromPlace = false, opts: { removeMissing?: boolean; needCoords?: boolean } = {}) {
   const now = new Date();
-  const located = events.map(e => withCoords(e, region)).filter(e => !opts.needCoords || (e.latitude != null && e.longitude != null));
+  const located = events.map(e => withCoords(e, e.region ?? region)).filter(e => !opts.needCoords || (e.latitude != null && e.longitude != null));
   const keep = new Set(located.map(e => e.externalId));
   for (const e of located) {
-    const { externalId, ...data } = e;
-    const r = regionFromPlace && data.latitude != null && data.longitude != null ? nearestRegion({ lat: data.latitude, lon: data.longitude }) : region;
+    const { externalId, region: own, ...data } = e;
+    const r = own ?? (regionFromPlace && data.latitude != null && data.longitude != null ? nearestRegion({ lat: data.latitude, lon: data.longitude }) : region);
     await prisma.discoverEvent.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
       create: { ...data, externalId, sourceId: source.id, region: r, state: source.autoPublish ? 'published' : 'pending' },
@@ -75,6 +76,7 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
       const r = await syncEventImages(source.id, images);
       console.log(`[discover eventfrog] ${count} événements, ${r.added} images ajoutées, ${r.failed} échecs`);
     }
+    else if (source.type === 'datatourisme') count = await saveEvents(source, region, await fetchDatatourisme(source.config as unknown as DatatourismeConfig, from, to), false, { needCoords: true });
     else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to), true);
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
     else return { error: 'Cette source ne se synchronise pas' };
@@ -98,7 +100,7 @@ export async function syncDueSources() {
   if (syncing) return;
   syncing = true;
   try {
-    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
+    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog', 'datatourisme'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
     let osm = 0;
     for (const s of sources) {
       const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;

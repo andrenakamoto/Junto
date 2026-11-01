@@ -31,6 +31,8 @@ const discover: Dict['discover'] = {
     gl: "Glarus",
     gr: "Graubünden",
     ti: "Tessin",
+    f01: "Ain",
+    f74: "Hochsavoyen",
   },
   place: {
     choose: "Ort wählen",
@@ -45,10 +47,14 @@ const discover: Dict['discover'] = {
     recent: "Zuletzt",
     cities: "Städte",
     done: "Anzeigen",
-    credit: "Ortschaften: © swisstopo",
+    credit: "Ortschaften: © swisstopo · Gemeinden in Frankreich: geo.api.gouv.fr (Licence Ouverte)",
     cantonLabel: "{{name}} (Kanton)",
     cantons: "Kantone",
     wholeCanton: "Ganzer Kanton",
+    departmentLabel: "{{name}} (Departement)",
+    wholeDepartment: "Ganzes Departement",
+    franceTag: "{{code}} · Frankreich",
+    nearbyFrance: "Angrenzendes Frankreich",
   },
   searchLabel: "Einen Ort oder ein Event suchen",
   searchPlaceholder: "Suchen (z. B. Salsa, Konzert, Escape Game)",
@@ -199,7 +205,7 @@ const discover: Dict['discover'] = {
   public: {
     login: "Anmelden",
     signup: "Konto erstellen",
-    intro: "Die Events der Woche in der ganzen Schweiz, rund um den Ort deiner Wahl. Mit EvLY schlägst du sie deinen Freunden vor und ihr organisiert euch im Handumdrehen.",
+    intro: "Die Events der Woche in der ganzen Schweiz und im angrenzenden Frankreich, rund um den Ort deiner Wahl. Mit EvLY schlägst du sie deinen Freunden vor und ihr organisiert euch im Handumdrehen.",
   },
 };
 export default discover;

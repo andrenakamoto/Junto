@@ -2,9 +2,9 @@ import { t, intlLocale } from '../i18n';
 
 // « Découvrir » : événements publics et idées de sorties (serveur : lib/discover/, GET /api/discover)
 // Régions = cantons des sources (publication d'un Plan, panneau admin ; `la` = Vaud) ; la page Découvrir cherche par lieu et
-// rayon, dans toute la Suisse
+// rayon, dans toute la Suisse et, depuis le 2026-11-01, en France voisine (Ain `f01`, Haute-Savoie `f74`, codes « 01 », « 74 »)
 export const REGIONS = ['ge', 'la', 'vs', 'fr', 'ne', 'ju', 'be', 'so', 'bs', 'bl', 'ag', 'lu', 'zg', 'sz', 'ur', 'ow', 'nw', 'zh', 'sh',
-  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti'] as const;
+  'tg', 'sg', 'ar', 'ai', 'gl', 'gr', 'ti', 'f01', 'f74'] as const;
 export type DiscoverRegion = typeof REGIONS[number];
 
 export interface DiscoverEvent {
@@ -20,6 +20,8 @@ export interface DiscoverEvent {
   // Image (Eventfrog) : copie gardée sur le serveur, crédit à afficher avec elle
   imageKey?: string | null;
   imageCredit?: string | null;
+  // Auteur de la donnée, exigé par la licence (DATAtourisme : office de tourisme et date de mise à jour)
+  credit?: string | null;
   // Titres du même événement chez d'autres sources (doublons retirés) : pris en compte par la recherche
   aliases?: string[];
 }
@@ -98,9 +100,18 @@ export type Radius = typeof RADII[number];
 // `canton` (code ISO, « VD ») : tout le canton, sans rayon ni distance
 export interface Spot { name: string; lat: number; lon: number; canton?: string }
 // Cantons : libellé « Vaud (canton) » d'après les noms de région (`la` = Vaud)
-export const cantonRegion = (code: string) => (code === 'VD' ? 'la' : code.toLowerCase());
-export const cantonLabel = (code: string) => t('discover.place.cantonLabel', { name: regionLabel(cantonRegion(code)) });
+// Départements français : code en chiffres (« 74 »), région `f74`
+export const isDepartment = (code: string) => /^\d/.test(code);
+export const cantonRegion = (code: string) => (code === 'VD' ? 'la' : isDepartment(code) ? `f${code}` : code.toLowerCase());
+export const cantonLabel = (code: string) => t(isDepartment(code) ? 'discover.place.departmentLabel' : 'discover.place.cantonLabel', { name: regionLabel(cantonRegion(code)) });
 export const ROMANDIE_CANTONS = ['GE', 'VD', 'VS', 'FR', 'NE', 'JU'];
+// France voisine : départements et villes proches de Genève (communes de geo.api.gouv.fr)
+export const NEARBY_DEPARTMENTS = ['01', '74'];
+export const FRANCE_CITIES: Spot[] = [
+  { name: 'Annemasse', lat: 46.1934, lon: 6.2342 }, { name: 'Saint-Julien-en-Genevois', lat: 46.1442, lon: 6.0819 },
+  { name: 'Gex', lat: 46.3333, lon: 6.0578 }, { name: 'Thonon-les-Bains', lat: 46.3705, lon: 6.4797 },
+  { name: 'Annecy', lat: 45.8992, lon: 6.1294 }, { name: 'Chamonix-Mont-Blanc', lat: 45.9237, lon: 6.8694 },
+];
 export interface SpotChoice { spot: Spot | null; here: boolean; radius: Radius }
 // Raccourcis : grandes villes de toute la Suisse (noms et coordonnées du répertoire de swisstopo)
 export const BIG_CITIES: Spot[] = [

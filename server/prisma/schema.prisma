@@ -1796,7 +1796,9 @@ model DiscoverEvent {
   imageKey    String?
   imageCredit String?
   imageSource String?
-  canton      String? // code ISO du canton (« VD »), d'après la position (localité swisstopo la plus proche) : recherche par canton
+  canton      String? // code ISO du canton (« VD »), d'après la position (localité swisstopo la plus proche) : recherche par canton ; « 01 », « 74 » = département français
+  // Auteur de la donnée exigé par la licence (DATAtourisme : « Office de Tourisme du Pays de Gex · DATAtourisme, mise à jour 09.10.2026 »)
+  credit      String?
   state       String         @default("published") // published | pending | hidden
   createdById String? // saisie manuelle : la personne admin
   // Annonce publiée depuis un Plan (titre, dates, lieu suivent le Plan ; supprimée avec lui)
