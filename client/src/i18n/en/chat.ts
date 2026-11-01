@@ -37,6 +37,7 @@ const chat: Dict['chat'] = {
     placeholderTouch: 'Message… (@ to mention)',
     recordVoice: 'Record a voice message',
   },
+  viewer: { previous: 'Previous photo', next: 'Next photo' },
   message: {
     edited: ' (edited)',
     photoRemoved: 'Photo removed',

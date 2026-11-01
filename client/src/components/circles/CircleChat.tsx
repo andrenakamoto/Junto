@@ -8,12 +8,11 @@ import { Avatar } from '../ui/Avatar';
 import { ChatInput } from '../chat/ChatInput';
 import { EMOJI_ONLY_CLASS, isEmojiOnly, renderContent } from '../chat/ChatMessage';
 import { useLongPress } from '../../hooks/useLongPress';
-import { SavePhotoButton } from '../chat/SavePhotoButton';
+import { PhotoViewer } from '../chat/PhotoViewer';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from '../chat/MessageEditing';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
 import { CreatePlanModal } from '../plans/CreatePlanModal';
 import { REACTION_EMOJIS } from '../../lib/reactions';
-import { useBackClose } from '../../lib/backClose';
 import { photoUrl } from '../../lib/photos';
 import { isCircleManager } from '../../lib/settings';
 import api from '../../services/api';
@@ -39,7 +38,6 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
   const [reporting, setReporting] = useState<CircleMessage | null>(null);
   const [planFrom, setPlanFrom] = useState<string | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
-  useBackClose(() => setViewing(null), !!viewing);
   const endRef = useRef<HTMLDivElement>(null);
   const blocked = new Set(user?.blockedUserIds ?? []);
 
@@ -131,13 +129,14 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
       ))}
 
       {viewing && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setViewing(null)}>
-          <button className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }} aria-label={t('common.close')}><X size={20} /></button>
-          <img src={photoUrl(viewing)} alt="" className="max-w-full max-h-full object-contain" />
-          <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}>
-            <SavePhotoButton url={photoUrl(viewing)} filename={`${circle.name.replace(/[/\\:*?"<>|]/g, '_').slice(0, 60)} - photo.jpg`} />
-          </div>
-        </div>
+        <PhotoViewer
+          photos={messages.filter(m => m.imageKey && !m.deletedAt).map(m => ({
+            id: m.imageKey!, src: photoUrl(m.imageKey!), download: photoUrl(m.imageKey!),
+            filename: `${circle.name.replace(/[/\\:*?"<>|]/g, '_').slice(0, 60)} - photo.jpg`,
+          }))}
+          startId={viewing}
+          onClose={() => setViewing(null)}
+        />
       )}
       {reporting && <ReportMessageModal kind="circle" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />}
       {planFrom !== null && (

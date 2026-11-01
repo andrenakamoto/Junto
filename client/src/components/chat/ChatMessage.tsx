@@ -1,14 +1,13 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { REACTION_EMOJIS } from '../../lib/reactions';
-import { useBackClose } from '../../lib/backClose';
-import { Flag, ImageOff, MessageCircle, SmilePlus, Trash2, X } from 'lucide-react';
+import { Flag, ImageOff, MessageCircle, SmilePlus } from 'lucide-react';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
 import { VoiceMessage } from './VoiceMessage';
-import { SavePhotoButton } from './SavePhotoButton';
+import { PhotoViewer } from './PhotoViewer';
 import { intlLocale, t } from '../../i18n';
 import { useLongPress } from '../../hooks/useLongPress';
 
@@ -29,6 +28,8 @@ interface Props {
   onReport?: (message: Message) => void;
   /** Jeton du Plan pour afficher les photos envoyées dans le chat */
   mediaToken?: string;
+  /** Ouvrir la photo dans la visionneuse du chat (toutes les photos, PlanDetail) ; sinon, visionneuse de cette seule photo */
+  onViewPhoto?: (attachmentId: string) => void;
 }
 
 // Liens web (https://…, http://… ou www.…) cliquables ; la ponctuation finale reste du texte
@@ -84,9 +85,8 @@ export function renderContent(content: string, isMe: boolean) {
   });
 }
 
-export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken }: Props) {
+export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken, onViewPhoto }: Props) {
   const [viewing, setViewing] = useState(false);
-  useBackClose(() => setViewing(false), viewing);
   const photo = !message.deletedAt && message.attachment?.mimeType.startsWith('image/') ? message.attachment : null;
   const voice = !message.deletedAt && message.attachment?.mimeType.startsWith('audio/') ? message.attachment : null;
   // Message photo dont la photo a été retirée depuis l'onglet Infos (plus de texte ni de photo)
@@ -159,7 +159,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
           ) : (
             <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
               {photo && (
-                <button type="button" {...photoPress.handlers} onClick={e => { e.stopPropagation(); if (!photoPress.consumed()) setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm select-none">
+                <button type="button" {...photoPress.handlers} onClick={e => { e.stopPropagation(); if (photoPress.consumed()) return; if (onViewPhoto) onViewPhoto(photo.id); else setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm select-none">
                   <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" draggable={false} className="block max-w-[240px] max-h-[320px] object-cover" />
                 </button>
               )}
@@ -183,30 +183,12 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
             </div>
           )}
           {viewing && photo && (
-            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setViewing(false); }}>
-              <button type="button" aria-label={t('common.close')} className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white" style={{ marginTop: 'var(--sa-top)' }}>
-                <X size={20} />
-              </button>
-              <img src={mediaUrl(photo.id, mediaToken, 1600)} alt={photo.name} className="max-w-full max-h-full object-contain rounded-lg" />
-              {/* Enregistrer la photo ; l'auteur peut aussi la retirer à tout moment (le message reste : « Photo retirée ») */}
-              <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2" style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}>
-                <SavePhotoButton url={mediaUrl(photo.id, mediaToken)} filename={photo.name || 'photo-evly.jpg'} />
-                {isMe && (
-                  <button
-                    type="button"
-                    onClick={async e => {
-                      e.stopPropagation();
-                      if (!confirm(t('chat.message.deletePhotoConfirm'))) return;
-                      try { await api.delete(`/attachments/${photo.id}`); setViewing(false); }
-                      catch (err: any) { alert(err?.response?.data?.error || t('chat.message.deletePhotoFailed')); }
-                    }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/65 backdrop-blur text-white text-sm font-medium shadow-lg hover:bg-red-600"
-                  >
-                    <Trash2 size={16} /> {t('chat.message.deletePhoto')}
-                  </button>
-                )}
-              </div>
-            </div>
+            <PhotoViewer
+              photos={[{ id: photo.id, src: mediaUrl(photo.id, mediaToken, 1600), download: mediaUrl(photo.id, mediaToken), filename: photo.name || 'photo-evly.jpg', canDelete: isMe }]}
+              startId={photo.id}
+              onClose={() => setViewing(false)}
+              onDelete={async id => { await api.delete(`/attachments/${id}`); setViewing(false); }}
+            />
           )}
 
           {/* Ordinateur : bouton 😊 au survol, à côté de la bulle */}

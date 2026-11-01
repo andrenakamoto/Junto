@@ -10,6 +10,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { ChatInput } from '../chat/ChatInput';
 import { ChatMessage } from '../chat/ChatMessage';
+import { PhotoViewer, type ViewerPhoto } from '../chat/PhotoViewer';
+import { mediaUrl as chatPhotoUrl } from '../../lib/media';
 import { ReportMessageModal } from '../chat/ReportMessageModal';
 import { InfosTab } from './InfosTab';
 import { MembresTab } from './MembresTab';
@@ -149,6 +151,14 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   const [reporting, setReporting] = useState<Message | null>(null);
   const blocked = new Set(me?.blockedUserIds ?? []);
   const visibleMessages = messages.filter(m => !blocked.has(m.author.id));
+  // Visionneuse : toutes les photos du chat dans l'ordre des messages (et celles du fil ouvert, après leur message)
+  const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
+  const chatPhotos: ViewerPhoto[] = visibleMessages.flatMap(m => [m, ...(openThreadId === m.id ? threadReplies.filter(r => !blocked.has(r.author.id)) : [])])
+    .filter(m => !m.deletedAt && m.attachment?.mimeType.startsWith('image/'))
+    .map(m => ({
+      id: m.attachment!.id, src: chatPhotoUrl(m.attachment!.id, plan.mediaToken, 1600), download: chatPhotoUrl(m.attachment!.id, plan.mediaToken),
+      filename: m.attachment!.name || 'photo-evly.jpg', canDelete: m.author.id === user.id,
+    }));
   const openThreadIdRef = useRef<string | null>(null);
   useEffect(() => { openThreadIdRef.current = openThreadId; }, [openThreadId]);
 
@@ -1089,6 +1099,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                         onDelete={handleDeleteMessage}
                         onReport={setReporting}
                         mediaToken={plan.mediaToken}
+                        onViewPhoto={setViewingPhoto}
                       />
                       {openThreadId === msg.id && (
                         <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
@@ -1103,6 +1114,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                               onDelete={handleDeleteMessage}
                               onReport={setReporting}
                               mediaToken={plan.mediaToken}
+                              onViewPhoto={setViewingPhoto}
                             />
                           ))}
                         </div>
@@ -1167,6 +1179,14 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         />
       )}
 
+      {viewingPhoto && chatPhotos.length > 0 && (
+        <PhotoViewer
+          photos={chatPhotos}
+          startId={viewingPhoto}
+          onClose={() => setViewingPhoto(null)}
+          onDelete={async id => { await api.delete(`/attachments/${id}`); }}
+        />
+      )}
       {reporting && (
         <ReportMessageModal kind="plan" messageId={reporting.id} author={reporting.author} onClose={() => setReporting(null)} />
       )}

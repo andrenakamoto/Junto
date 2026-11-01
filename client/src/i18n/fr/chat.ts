@@ -36,6 +36,7 @@ export default {
     placeholderTouch: 'Message… (@ pour mentionner)',
     recordVoice: 'Enregistrer un message vocal',
   },
+  viewer: { previous: 'Photo précédente', next: 'Photo suivante' },
   message: {
     edited: ' (modifié)',
     photoRemoved: 'Photo retirée',
