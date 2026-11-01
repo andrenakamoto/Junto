@@ -1882,6 +1882,20 @@ ville) → une seule annonce, **celle qui a une photo** (choix de l'utilisateur,
 couverte par le même événement « sur plusieurs jours » d'une autre source est aussi retirée. Usage limité à « annoncer l'événement » :
 « Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 
+**France voisine dans Découvrir** (2026-11-01, d'abord l'**Ain et la Haute-Savoie**) : régions `f01` / `f74` (codes « canton » `01` / `74`,
+`isFrenchRegion`, `isFrenchCode`) à côté des cantons ; communes des deux départements ajoutées à `server/assets/localities.json` (geo.api.gouv.fr,
+Licence Ouverte) ; `cantonAt(lat, lon, country)` cherche parmi les localités du **même pays** que la source (un événement de Chêne-Bourg ne finit
+pas en Haute-Savoie). **DATAtourisme** (`lib/discover/datatourisme.ts` testé, source `datatourisme`, plateforme nationale, Licence Ouverte 2.0) :
+API `https://api.datatourisme.fr/v1/entertainmentAndEvent` (paramètre `filters`, ex. `isLocatedAt.address.hasAddressCity.isPartOfDepartment.insee[in]=01,74
+AND takesPlaceAt.endDate[gte]=…`, 100 par page, 1 000 requêtes / heure), clé **`DATATOURISME_API_KEY`** dans `/etc/evly/app.env` (compte de
+l'utilisateur, info@evly.ch). Une ligne par date (12 au plus), période de 3 jours et plus = « plusieurs jours », heure de Paris ; **crédit exigé par
+la licence** = auteur de la donnée (`hasBeenCreatedBy`, souvent l'office de tourisme) + date de mise à jour, colonne `DiscoverEvent.credit`
+(migration `20261111100000_discover_credit`) affichée sur la carte (anciennes apps : dans `priceText`). Pas d'images pour l'instant. OpenStreetMap
+`osm-f01` / `osm-f74` (`FR-01`, `FR-74`). Recherche : départements, Pays de Gex, Genevois français, Chablais français, Lac d'Annecy, Chamonix, Bugey
+(seulement pour `/discover/localities?v=3` : les apps ≤ 1.0.42 demandent `v=2`) ; raccourcis « France voisine » du `PlacePicker`. Position
+acceptée par `parsePoint` : latitude 45,4–48, longitude 4,6–10,6. Politique de confidentialité (1er novembre 2026) et guide mis à jour ; les
+conditions d'utilisation parlaient déjà d'« agendas publiés sous licence ouverte » (pas de nouvelle acceptation).
+
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :
 en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N) »** et **« Inviter »**, cloche barrée seulement si le Cercle
 est en silence, et un menu **⋯** (silence, paramètres, copier le code, supprimer / voter, quitter) ; le code est aussi dans « Inviter ».
