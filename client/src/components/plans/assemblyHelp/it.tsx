@@ -77,7 +77,7 @@ const it: AssemblyHelpText = {
             cima; da 10 membri compare una ricerca.</li>
           <li><b>A distanza</b> (assemblea ibrida): la persona tocca «Partecipo a distanza».</li>
           <li><b>Senza EvLY</b> (né account né telefono): «Aggiungi una persona senza EvLY», in fondo alla lista delle presenze (nome,
-            cognome, diritto di voto). Conta per il quorum, la registri come presente, vota sul tuo dispositivo e figura nel verbale.</li>
+            cognome, diritto di voto). Conta per il quorum; aggiunta durante l’assemblea, è subito registrata come presente (altrimenti registrala al suo arrivo); vota sul tuo dispositivo e figura nel verbale.</li>
         </ul>
         <p>Il quorum (presenti + deleghe valide) si aggiorna a ogni registrazione.</p>
       </>,

@@ -460,7 +460,7 @@ export default {
     showCode: 'Afficher le code en grand',
     guestTag: 'sans EvLY',
     addGuest: 'Ajouter une personne sans EvLY',
-    addGuestHint: 'Pour un membre sans téléphone ni compte : tu le pointes présent, il vote sur ton appareil et figure au procès-verbal.',
+    addGuestHint: 'Pour un membre sans téléphone ni compte : pendant l’assemblée, il est pointé présent d’emblée ; il vote sur ton appareil et figure au procès-verbal.',
     guestFirstName: 'Prénom',
     guestLastName: 'Nom (facultatif)',
     guestVotes: 'A le droit de vote',

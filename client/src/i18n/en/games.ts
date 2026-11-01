@@ -461,7 +461,7 @@ const games: Dict['games'] = {
     showCode: 'Show the code full screen',
     guestTag: 'no EvLY',
     addGuest: 'Add someone without EvLY',
-    addGuestHint: 'For a member with no phone or account: you check them in, they vote on your device and appear in the minutes.',
+    addGuestHint: 'For a member with no phone or account: during the assembly they’re checked in straight away; they vote on your device and appear in the minutes.',
     guestFirstName: 'First name',
     guestLastName: 'Last name (optional)',
     guestVotes: 'Has voting rights',

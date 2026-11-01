@@ -402,6 +402,9 @@ router.post('/:id/assembly/guests', async (req: AuthRequest, res) => {
   if (!firstName) { res.status(400).json({ error: 'Indique le prénom' }); return; }
   if (ctx.assembly.guests.length >= MAX_GUESTS) { res.status(400).json({ error: `${MAX_GUESTS} participants sans EvLY au plus` }); return; }
   const guest = await prisma.assemblyGuest.create({ data: { assemblyId: ctx.assembly.id, firstName, lastName: lastName || null, isVoter: req.body?.isVoter !== false } });
+  // Ajoutée pendant l'assemblée ouverte : la personne est dans la salle, donc pointée présente d'emblée (sinon elle n'apparaît
+  // pas dans l'isoloir) ; ajoutée à l'avance, elle se pointe à son arrivée
+  if (ctx.assembly.openedAt) await prisma.assemblyAttendance.create({ data: { assemblyId: ctx.assembly.id, userId: guest.id, checkedById: req.userId! } });
   res.json({ id: guest.id });
 });
 

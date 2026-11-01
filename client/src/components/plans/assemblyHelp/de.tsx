@@ -77,7 +77,7 @@ const de: AssemblyHelpText = {
             stehen zuoberst; ab 10 Mitgliedern gibt es eine Suche.</li>
           <li><b>Online</b> (hybride Versammlung): Die Person tippt auf „Ich nehme online teil“.</li>
           <li><b>Ohne EvLY</b> (weder Konto noch Handy): „Person ohne EvLY hinzufügen“ unten in der Anwesenheitsliste (Vorname, Nachname,
-            Stimmrecht). Sie zählt fürs Quorum, du meldest sie an, sie stimmt auf deinem Gerät ab und steht im Protokoll.</li>
+            Stimmrecht). Sie zählt fürs Quorum; während der Versammlung hinzugefügt, ist sie gleich als anwesend gemeldet (sonst meldest du sie bei ihrer Ankunft an); sie stimmt auf deinem Gerät ab und steht im Protokoll.</li>
         </ul>
         <p>Das Quorum (Anwesende + gültige Vollmachten) wird bei jeder Meldung aktualisiert.</p>
       </>,

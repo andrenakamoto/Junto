@@ -77,7 +77,7 @@ const en: AssemblyHelpText = {
             first; a search appears from 10 members.</li>
           <li><b>Remotely</b> (hybrid assembly): the person taps “I’m joining remotely”.</li>
           <li><b>Without EvLY</b> (no account, no phone): “Add someone without EvLY” at the bottom of the attendance list (first name, last
-            name, voting rights). They count towards the quorum, you check them in, they vote on your device and appear in the minutes.</li>
+            name, voting rights). They count towards the quorum; added during the assembly, they’re checked in straight away (otherwise check them in when they arrive); they vote on your device and appear in the minutes.</li>
         </ul>
         <p>The quorum (present + valid proxies) updates with every check-in.</p>
       </>,

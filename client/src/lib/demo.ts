@@ -1097,7 +1097,7 @@ function route(method: string, path: string, body: any): any {
       const firstName = String(body.firstName ?? '').trim().slice(0, 50);
       if (!firstName) throw new DemoError(400, tr('ui.demoApi.guestName'));
       const name = [firstName, String(body.lastName ?? '').trim().slice(0, 50)].filter(Boolean).join(' ');
-      (st.members as any[]).push({ id: newId('guest'), name, isVoter: body.isVoter !== false, present: false, remote: false, guest: true, proxyTo: null });
+      (st.members as any[]).push({ id: newId('guest'), name, isVoter: body.isVoter !== false, present: st.status === 'open', remote: false, guest: true, proxyTo: null });
     } else st.members = (st.members as any[]).filter(x => x.id !== m![2]);
     demoQuorum(st);
     changed(m[1]);

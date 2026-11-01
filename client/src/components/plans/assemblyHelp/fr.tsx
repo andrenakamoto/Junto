@@ -80,7 +80,7 @@ const fr: AssemblyHelpText = {
             pointées sont en premier ; une recherche apparaît dès 10 membres.</li>
           <li><b>À distance</b> (assemblée hybride) : la personne touche « Je participe à distance ».</li>
           <li><b>Sans EvLY</b> (ni compte ni téléphone) : « Ajouter une personne sans EvLY », en bas de la liste de présence (prénom, nom,
-            droit de vote). Elle compte dans le quorum, tu la pointes présente, elle vote sur ton appareil et figure au PV.</li>
+            droit de vote). Elle compte dans le quorum ; ajoutée pendant l’assemblée, elle est pointée présente d’emblée (sinon, pointe-la à son arrivée) ; elle vote sur ton appareil et figure au PV.</li>
         </ul>
         <p>Le quorum (présents + procurations valables) se met à jour à chaque pointage.</p>
       </>,
