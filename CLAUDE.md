@@ -1087,6 +1087,13 @@ Junto/
   ouvre sa rubrique. **« Copier le résumé »** : texte sans rien de personnel (date, lieu, qui vient, infos importantes, places
   libres, ce qui manque) + lien `/invitation?token=…` (réponse sans compte). Démo : calculée dans `lib/demo.ts` (`demoSummary`) à
   partir des données en mémoire. Fiche « En bref » dans le guide.
+- **Rubrique Membres** (2026-11-01, `MembresTab`, `lib/planPending.ts` testé, migration `20261108100000_plan_nudge`) : résumé
+  « 12 in · 2 peut-être · 1 absent(s) · 5 sans réponse » qui sert de filtre, puis groupes Je suis in / Peut-être / liste d'attente /
+  Absent(e) / **Pas encore répondu** (GET /plans/:id renvoie `pending` = membres des Cercles du Plan sans réponse, sauf personnes à qui il
+  est caché, liste d'attente et réponses sans compte ; jamais à un invité externe ni si la liste est réservée ; pas pour un Plan terminé).
+  **Relance** : POST `/plans/:id/nudge`, créateur du Plan et organisateurs du Cercle, une fois par 24 h (`Plan.lastNudgeAt`, réservation
+  atomique, `canNudge` / `nextNudgeAt`), notification `plan_activity` « ⏰ @x attend ta réponse » (mode silencieux respecté). « · N sans
+  réponse » dans l'en-tête du Plan. Démo : `demoPlanWithPending`. Fiche « Répondre et liste d'attente » du guide.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), joinedAt, seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet). Depuis le 2026-10-14, les participants sont
   toujours renvoyés **dans l'ordre d'arrivée** (`orderBy: { joinedAt: 'asc' }` sur tous les includes `members`) et la
