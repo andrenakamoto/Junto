@@ -1226,9 +1226,17 @@ Junto/
   (`SwipeDeck` : glisser ou boutons ✖️ / 💚, flèches du clavier, annuler), ordre mélangé propre à chacun
   (`deckOrder`). **Personne ne voit les réponses des autres avant d'avoir fini ses cartes** (ou échéance passée,
   match clos) ; **match = oui de tous les joueurs** (`isUnanimous`), visible de tous et notifié une seule fois.
-  **Tout participant peut ajouter des propositions** (15 max). Le **créateur du Plan** « Choisit » (après avoir
-  joué) : lieu du Plan et / ou informations importantes mis à jour (historique `PlanChangeLog`), match clos,
-  participants prévenus. Rappel la veille de l'échéance (`sendMatchReminders`, horaire). Notifications `match` →
+  **Tout participant peut ajouter des propositions** (15 max). **Gagnant = la proposition qui a le plus de oui**
+  (depuis le 2026-11-01, demande de l'utilisateur : avant, le créateur du Plan pouvait « Choisir » n'importe quelle proposition, et un
+  match des citrouilles a été « décidé » sur une proposition à 2 oui sur 5) : `finalizeMatch` (`lib/matchPoll.ts`, `topOptionIds` testé)
+  clôt le match quand tous les joueurs ont fini, à l'échéance (`finalizeDueMatches`, toutes les 15 min, gated) ou sur « Clore le match
+  maintenant » du créateur du Plan (POST `/matches/:id/close`, avertissement s'il manque des joueurs) ; **ex aequo → tirage au sort par le
+  serveur** (`MatchPoll.tieDraw`, migration `20261110100000_match_tie_draw`) ; aucun oui → pas de gagnant. GET /:id/matches corrige aussi un
+  match déjà clos dont le choix n'est pas le plus voté (anciens matchs) ; notification « 🏆 Résultat du match… » à chaque joueur. Le créateur
+  du Plan peut ensuite **ajouter le gagnant aux informations importantes** (POST `/matches/:id/apply`, une seule fois, historique
+  `PlanChangeLog`) — **plus de report dans le lieu** : le match sert à toutes sortes de votes (lieu, menu, plus belle citrouille…).
+  Personne ne choisit autre chose : `canChoose` vaut toujours faux (les apps ≤ 1.0.42 n'affichent plus « Choisir »), l'ancienne route
+  `/choose` n'accepte que le gagnant. Client : bandeau « 🏆 Gagnant » (« égalité avec … : tiré au sort »), étiquette « En tête » pendant le jeu. Rappel la veille de l'échéance (`sendMatchReminders`, horaire). Notifications `match` →
   `?tab=votes`. Démo : « Où va-t-on pour l'afterwork ? » (Best collègues ; vue complète de Sarah dans
   `DEMO_FULL /plans/:id/matches`, `findDemoMatch` / `revealDemoMatch`).
 - **Qui s'y colle ?** (2026-10-09, roue de la décision, `lib/wheel.ts` testé, `routes/wheel.ts` monté dans le
