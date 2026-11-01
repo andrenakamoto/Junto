@@ -506,6 +506,9 @@ Conséquences pratiques :
     **Version 1.0.40** (2026-10-29) : Android `versionCode` 42 (`evly-1.0.40-(42).aab`), iOS build 44 envoyé — campagne Père Noël secret
     (carte sous le formulaire de connexion, page `/pere-noel`), démo « Que veux-tu découvrir ? » (un exemple par type de Plan, démo à 4
     Cercles), sources des inscriptions (`?src=`), ouverture directe de `/demo` corrigée.
+    **Version 1.0.41** (2026-11-01) : Android `versionCode` 43 (`evly-1.0.41-(43).aab`), iOS build 45 envoyé — Assemblée : pointage par
+    code et QR code, liste de présence, vote dans l'ordre du jour, point en grand, vote sans téléphone (isoloir, papier), aide, description et
+    notes du PV mises en forme ; visionneuse des photos des chats (défiler, zoomer) ; démo (exemples sur la page principale, assemblée jouable).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
