@@ -1271,6 +1271,9 @@ Junto/
   **Démo de l'assemblée complète** (même date) : en plus du vote, l'organisateur (Alex) peut y ajouter / modifier / supprimer / déplacer
   un point, enregistrer les réglages, annuler un vote, décider sans scrutin, départager, clore et rouvrir, pointer (liste, code, papier)
   et faire voter sur son appareil ; le PV et le récapitulatif restent les PDF fixes générés une fois (`scripts/demo-site/pdf.js`).
+  **Assemblée « Réservé à… » / « Caché à… »** (2026-11-01) : les personnes à qui le Plan est caché (`PlanExclusion`) ne font pas partie
+  de l'assemblée — `circleVoters(plan, …)` les écarte (votants, liste de présence, candidats, notifications, quorum), comme le PV
+  (`assemblyPv.ts`) et l'email de convocation (`planExclusions: { none: … }`).
   **Aide de l'onglet** (2026-11-01, bouton « Aide » à côté de « Réglages », pour tout le monde) : `AssemblyHelp` + textes
   `components/plans/assemblyHelp/{fr,de,it,en}.tsx` — 10 étapes dépliables (réglages, ordre du jour, convocation, procurations,
   ouverture, présences, séance, votes, vote sans téléphone, clôture et PV) et « Ce que font les membres ». **À tenir à jour dans les
@@ -1724,6 +1727,10 @@ type `circle_message` ; **activé par défaut pour tous les comptes depuis le 20
 Accès : carte « 💬 Discussion » en tête de `PlanList` (dernier message, `chatLast`) → panneau de droite (`chatCircleId` dans
 DashboardPage, exclusif avec Plan et sondage). Signalement : `MessageReport` kind `circle` (admin : « Discussion du Cercle … »).
 Démo : discussion de « Les copains » (ouverte) et de « Jeunesse de Montvert » (annonces), en mémoire (`chatOf` dans `lib/demo.ts`).
+**Visionneuse des photos des chats** (2026-11-01, `components/chat/PhotoViewer.tsx`, commune au chat d'un Plan et à la discussion du
+Cercle) : toutes les photos du chat dans l'ordre des messages (fil ouvert compris, `chatPhotos` de `PlanDetail`, prop `onViewPhoto` de
+`ChatMessage` ; sans elle, la photo seule), compteur « 2 / 5 », glisser ou flèches (écran et clavier) pour changer de photo, zoom en
+pinçant / double toucher / double clic / molette puis déplacement dans la photo, « Enregistrer » et « Supprimer la photo » (son auteur).
 **« Enregistrer la photo »** (2026-10-17, `components/chat/SavePhotoButton.tsx`) dans la visionneuse des deux chats (Cercle et Plan) :
 photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
@@ -1964,7 +1971,7 @@ sans compte) et l'**Assemblée générale 2026 ouverte** (vote à bulletin secre
 « Foot de la semaine ⚽ » (récurrent, complet, liste d'attente, en silence). Danse, Boxe et Team events retirés (avatars et illustrations
 supprimés). **`/demo` = « Que veux-tu découvrir ? »** (2026-10-29, `DemoPage` + `components/ui/DemoChoices.tsx`, aussi en fenêtre depuis « Voir la démo » de
 `AuthPage`) : une tuile par exemple — Sortie entre amis (raclette) et chaque Plan spécifique (surprise, Père Noël, jeux, voyage, cours, annonce,
-organisation, assemblée) — et « Tout voir » (`?voir=tout`, démo complète). `?voir=<exemple>` = **démo resserrée** (`startDemo(clé)`,
+organisation, assemblée ; ordre fixé le 2026-11-01 : Sortie entre amis, Surprise, Assemblée, Organisation, Père Noël, Annonce, Cours, Soirée jeux, Week-end ou voyage) — et « Tout voir » (`?voir=tout`, démo complète). `?voir=<exemple>` = **démo resserrée** (`startDemo(clé)`,
 `evly_demo_focus`, `focusOnPlan` de `lib/demo.ts`) : le seul Cercle de l'exemple (code `DEMO-FOCUS` : ni discussion ni dispo) avec ce seul
 Plan, ouvert sur sa rubrique ; exemples dans `DEMO_SHOWCASE` de `data.json` ([id du Plan, rubrique], écrit par `seed.js` → `ids.json`
 `showcase` → `capture.js`). Père Noël (`?voir=pere-noel`, page `/pere-noel`) : Cercle « La famille », Plan « Noël en famille 🎁 », sans
@@ -2006,7 +2013,7 @@ guirlande, sapin et cadeaux en SVG, sol enneigé ; animations coupées avec `pre
 DashboardPage, **après l'acceptation des conditions**, ouvre `KindCircleChooser` (Cercles où l'on peut créer un Plan, ou « Avec un lien
 d'invitation » = Cercle personnel par POST `/circles/personal`) puis `CreatePlanModal` avec `kind` `pere_noel`. Page d'invitation
 (`/invitation`) d'un tel Plan sans compte : encadré « Pour participer au tirage, crée ton compte » (`santa` de GET `/api/invite/:token`).
-Sur `AuthPage` (`santaSeason`, 25 oct. → 25 déc.) : grand écran = panneau `SantaPanel` à droite de la connexion (sapin, neige, « Organiser »
+Sur `AuthPage` (`santaSeason`, **15 nov. → 25 déc.** — retirée le 2026-11-01 jusqu'au lancement de la promotion, d'abord du 25 oct.) : grand écran = panneau `SantaPanel` à droite de la connexion (sapin, neige, « Organiser »
 = mode inscription + intention, « Voir un exemple ») ; téléphone et tablette = carte sous le formulaire vers `/pere-noel`. Compteurs `pere_noel` (visites) et `funnel_cta_santa`. Visuels
 Instagram : `~/Desktop/01-EvLY/03_Marketing/03_Reseaux_sociaux/Instagram - Père Noël secret/` (LISEZMOI, un .txt par visuel).
 **Provenance des visiteurs** (même date, `lib/source.ts` client, `SOURCES` / `countSourceSignup` de `lib/funnel.ts`) : un lien `?src=` de la
@@ -2074,6 +2081,10 @@ son Plan juste après avoir accepté l'invitation).
   `planId` ou `light`. Les autres jetons signés avec `JWT_SECRET` (photo `?t=` 12 h, téléchargement,
   invité sans compte) servent uniquement à leur usage. **Tout nouveau jeton à usage précis doit
   porter un `purpose`.** (Avant cette date, l'adresse d'une photo donnait accès au compte 12 h.)
+- **Une seule session par navigateur** (2026-11-01, `AuthContext`) : tous les onglets partagent `estelle_token` (localStorage). Se
+  connecter avec un autre compte ou se déconnecter dans un onglet **recharge les autres** (événement `storage`, et vérification au retour
+  sur l'onglet) : avant, un onglet affichait encore l'ancien compte en appelant le serveur avec le nouveau jeton. Pour tester deux comptes
+  en même temps : fenêtre privée ou autre navigateur.
 - **Admin vérifié en base** à chaque requête (`middleware/admin.ts`), pas d'après le jeton (7 jours).
 - **Invitations par email / SMS** (`routes/invitations.ts`) : le serveur fabrique le lien et le texte
   à partir de `{ circleId | planId, guest }` (forme ancienne `{ circleCode, joinLink }` encore acceptée
