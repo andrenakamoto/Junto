@@ -142,9 +142,11 @@ export async function loadAssemblyPlan(planId: string) {
 }
 
 // Votants : membres du Cercle (comptes normaux), moins les personnes décochées
-export async function circleVoters(circleId: string, nonVoterIds: string[]) {
+// Membres de l'assemblée = membres du Cercle (comptes normaux) à qui le Plan n'est pas caché : un Plan « Réservé à… » ou
+// « Caché à… » exclut ces personnes de la convocation, des votants, du quorum et du PV
+export async function circleVoters(plan: { id: string; circleId: string }, nonVoterIds: string[]) {
   const members = await prisma.circleMember.findMany({
-    where: { circleId, user: { isLight: false } },
+    where: { circleId: plan.circleId, user: { isLight: false, planExclusions: { none: { planId: plan.id } } } },
     select: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
   });
   const all = members.map(m => m.user).sort((a, b) => (a.firstName ?? a.pseudo).localeCompare(b.firstName ?? b.pseudo, 'fr'));

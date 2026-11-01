@@ -43,7 +43,8 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
   if (!plan?.assembly) return null;
   const a = plan.assembly;
   const circleMembers = await prisma.circleMember.findMany({
-    where: { circleId: plan.circleId, user: { isLight: false } },
+    // Comme circleVoters : sans les personnes à qui le Plan est caché (« Réservé à… », « Caché à… »)
+    where: { circleId: plan.circleId, user: { isLight: false, planExclusions: { none: { planId: plan.id } } } },
     select: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
   });
   const users = new Map(circleMembers.map(m => [m.user.id, m.user]));

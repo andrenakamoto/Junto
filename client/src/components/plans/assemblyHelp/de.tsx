@@ -12,7 +12,7 @@ const de: AssemblyHelpText = {
         <p>Das <b>Datum des Plans</b> ist das der Versammlung. Wer den Plan erstellt hat und die Organisatorinnen und Organisatoren
           des Kreises organisieren sie; sie sehen den Knopf <b>Einstellungen</b>:</p>
         <ul>
-          <li><b>Stimmberechtigte</b>: Alle Mitglieder des Kreises stimmen ab; wähle Passivmitglieder oder Mitglieder ohne Stimmrecht ab.</li>
+          <li><b>Stimmberechtigte</b>: Alle Mitglieder des Kreises stimmen ab; wähle Passivmitglieder oder Mitglieder ohne Stimmrecht ab. Ist die Versammlung ein Plan <b>„Nur für…“</b> (Wer sieht diesen Plan?), gehören nur diese Personen zur Versammlung.</li>
           <li><b>Quorum</b>: keines, eine Anzahl Stimmen oder ein Prozentsatz der Stimmberechtigten. Es wird während der Sitzung live berechnet.</li>
           <li><b>Vollmachten</b>: erlaubt oder nicht, und wie viele eine Person tragen darf.</li>
           <li><b>Hybride Versammlung</b>: Mitglieder können auch online teilnehmen und abstimmen.</li>
@@ -39,7 +39,7 @@ const de: AssemblyHelpText = {
     {
       id: 'convoquer', emoji: '📣', title: '3. Die Einladung senden',
       body: <>
-        <p><b>Einladung senden</b> schickt sie an <b>alle Mitglieder des Kreises</b>: Mitteilung in der App und E-Mail mit Datum,
+        <p><b>Einladung senden</b> schickt sie an <b>alle Mitglieder der Versammlung</b> (die des Kreises, ausser den Personen, vor denen der Plan verborgen ist): Mitteilung in der App und E-Mail mit Datum,
           Ort und Traktandenliste, unabhängig von ihren Mitteilungseinstellungen. Du erhältst eine Kopie.</p>
         <p>Ändert sich die Traktandenliste, kannst du sie erneut senden (höchstens alle 10 Minuten). Die Einladung über EvLY
           ersetzt nicht die Form, die eure Statuten vorschreiben.</p>

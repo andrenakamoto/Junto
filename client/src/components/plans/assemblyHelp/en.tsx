@@ -12,7 +12,7 @@ const en: AssemblyHelpText = {
         <p>The <b>Plan’s date</b> is the assembly’s date. The Plan’s creator and the Circle’s organisers run it; they see the
           <b> Settings</b> button:</p>
         <ul>
-          <li><b>Voting members</b>: every member of the Circle votes; untick passive members or those without voting rights.</li>
+          <li><b>Voting members</b>: every member of the Circle votes; untick passive members or those without voting rights. If the assembly is a <b>“Only for…”</b> Plan (Who sees this Plan?), only those people belong to the assembly.</li>
           <li><b>Quorum</b>: none, a number of votes or a percentage of voters. It is calculated live during the meeting.</li>
           <li><b>Proxies</b>: allowed or not, and how many one person may hold.</li>
           <li><b>Hybrid assembly</b>: members can also take part and vote remotely.</li>
@@ -39,7 +39,7 @@ const en: AssemblyHelpText = {
     {
       id: 'convoquer', emoji: '📣', title: '3. Send the notice',
       body: <>
-        <p><b>Send the notice</b> goes to <b>every member of the Circle</b>: in-app notification and email with the date, place
+        <p><b>Send the notice</b> goes to <b>every member of the assembly</b> (the Circle’s members, except people the Plan is hidden from): in-app notification and email with the date, place
           and agenda, whatever their notification settings. You receive a copy.</p>
         <p>You can send it again if the agenda changes (at most once every 10 minutes). The EvLY notice does not replace the form
           required by your articles of association.</p>

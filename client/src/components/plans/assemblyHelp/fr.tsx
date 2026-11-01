@@ -14,7 +14,7 @@ const fr: AssemblyHelpText = {
         <p>La <b>date du Plan</b> est celle de l’assemblée. Le créateur du Plan et les organisateurs du Cercle l’organisent ;
           ils voient le bouton <b>Réglages</b> :</p>
         <ul>
-          <li><b>Membres votants</b> : tous les membres du Cercle votent ; décoche les membres passifs ou sans droit de vote.</li>
+          <li><b>Membres votants</b> : tous les membres du Cercle votent ; décoche les membres passifs ou sans droit de vote. Si l’assemblée est un Plan <b>« Réservé à… »</b> (Qui voit ce Plan ?), seules ces personnes sont membres de l’assemblée.</li>
           <li><b>Quorum</b> : aucun, un nombre de voix ou un pourcentage des votants. Il se calcule en direct pendant la séance.</li>
           <li><b>Procurations</b> : autorisées ou non, et combien une même personne peut en porter.</li>
           <li><b>Assemblée hybride</b> : les membres peuvent aussi participer et voter à distance.</li>
@@ -42,7 +42,7 @@ const fr: AssemblyHelpText = {
     {
       id: 'convoquer', emoji: '📣', title: '3. Envoyer la convocation',
       body: <>
-        <p><b>Envoyer la convocation</b> la transmet à <b>tous les membres du Cercle</b> : notification dans l’app et email avec
+        <p><b>Envoyer la convocation</b> la transmet à <b>tous les membres de l’assemblée</b> (ceux du Cercle, sauf les personnes à qui le Plan est caché) : notification dans l’app et email avec
           la date, le lieu et l’ordre du jour, quel que soit leur réglage de notifications. Tu en reçois une copie.</p>
         <p>Tu peux la renvoyer si l’ordre du jour change (au plus une fois toutes les 10 minutes). La convocation
           EvLY ne remplace pas la forme prévue par tes statuts.</p>

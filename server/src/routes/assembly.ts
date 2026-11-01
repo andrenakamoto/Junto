@@ -50,7 +50,7 @@ async function itemCtx(req: AuthRequest, res: any, itemId: string, opts: { write
 }
 
 async function rights(ctx: Ctx) {
-  const { members, voterIds } = await circleVoters(ctx.plan.circleId, ctx.assembly.nonVoterIds);
+  const { members, voterIds } = await circleVoters(ctx.plan, ctx.assembly.nonVoterIds);
   const present = new Set(ctx.assembly.attendances.map(a => a.userId));
   return { members, voterIds, present, ...votingRights(voterIds, present, ctx.assembly.proxies) };
 }
@@ -58,7 +58,7 @@ async function rights(ctx: Ctx) {
 // Personnes à prévenir : membres du Cercle (comptes normaux), hors auteur ; `notWatching` : hors de la room du Plan
 async function notifyMembers(req: AuthRequest, ctx: Ctx, preview: string, opts: { type?: string; only?: string[]; notWatching?: boolean } = {}) {
   const io = req.app.get('io');
-  const { members } = await circleVoters(ctx.plan.circleId, []);
+  const { members } = await circleVoters(ctx.plan, []);
   const watching = new Set<string>();
   if (opts.notWatching && io) for (const s of await io.in(`plan:${ctx.plan.id}`).fetchSockets()) watching.add(s.data.userId);
   for (const m of members) {
@@ -173,7 +173,7 @@ router.put('/:id/assembly', async (req: AuthRequest, res) => {
   const ctx = await load(req, res, req.params.id, { manage: true }); if (!ctx) return;
   if (ctx.assembly.closedAt) { res.status(400).json({ error: 'L’assemblée est close' }); return; }
   const b = req.body ?? {};
-  const { members } = await circleVoters(ctx.plan.circleId, []);
+  const { members } = await circleVoters(ctx.plan, []);
   const memberIds = members.map(m => m.id);
   const data: any = {};
   if (Array.isArray(b.nonVoterIds)) data.nonVoterIds = [...new Set(b.nonVoterIds.filter((x: unknown) => typeof x === 'string' && memberIds.includes(x as string)))];
@@ -262,7 +262,7 @@ router.post('/assembly/items/:itemId/candidates', async (req: AuthRequest, res) 
   let name = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 80) : '';
   let userId: string | null = null;
   if (typeof req.body?.userId === 'string') {
-    const { members } = await circleVoters(c.plan.circleId, []);
+    const { members } = await circleVoters(c.plan, []);
     const m = members.find(x => x.id === req.body.userId);
     if (!m) { res.status(400).json({ error: 'Membre introuvable' }); return; }
     if (c.item.candidates.some(x => x.userId === m.id)) { res.status(400).json({ error: 'Déjà candidat(e)' }); return; }
@@ -305,7 +305,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
   // Retours à la ligne gardés comme dans l'app (les clients mail ignorent ceux du texte brut)
   const circle = await prisma.circle.findUnique({ where: { id: ctx.plan.circleId }, select: { name: true } });
   const users = await prisma.user.findMany({
-    where: { memberships: { some: { circleId: ctx.plan.circleId } }, isLight: false, emailVerified: true, email: { not: null } },
+    where: { memberships: { some: { circleId: ctx.plan.circleId } }, planExclusions: { none: { planId: ctx.plan.id } }, isLight: false, emailVerified: true, email: { not: null } },
     select: { id: true, email: true, firstName: true, pseudo: true, locale: true },
   });
   const { resend, FROM_EMAIL, APP_URL } = await import('../lib/mailer');
@@ -343,7 +343,7 @@ router.post('/:id/assembly/convoke', async (req: AuthRequest, res) => {
 router.post('/:id/assembly/proxy', async (req: AuthRequest, res) => {
   const ctx = await load(req, res, req.params.id, { write: true }); if (!ctx) return;
   const holderId = String(req.body?.holderId ?? '');
-  const { voterIds } = await circleVoters(ctx.plan.circleId, ctx.assembly.nonVoterIds);
+  const { voterIds } = await circleVoters(ctx.plan, ctx.assembly.nonVoterIds);
   const err = proxyError(ctx.assembly, voterIds, ctx.assembly.proxies, req.userId!, holderId);
   if (err) { res.status(400).json({ error: err }); return; }
   await prisma.assemblyProxy.upsert({
@@ -403,7 +403,7 @@ router.put('/:id/assembly/attendance/:userId', async (req: AuthRequest, res) => 
   const ctx = await load(req, res, req.params.id, { manage: true }); if (!ctx) return;
   const a = ctx.assembly;
   if (!a.openedAt || a.closedAt) { res.status(400).json({ error: 'L’assemblée n’est pas ouverte' }); return; }
-  const { members } = await circleVoters(ctx.plan.circleId, []);
+  const { members } = await circleVoters(ctx.plan, []);
   if (!members.some(m => m.id === req.params.userId)) { res.status(404).json({ error: 'Membre introuvable' }); return; }
   // Passer au vote sur papier (ou en revenir) entre deux votes seulement : sinon une voix pourrait compter deux fois
   const paper = req.body?.paper === true;

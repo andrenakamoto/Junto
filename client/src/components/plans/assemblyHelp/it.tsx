@@ -12,7 +12,7 @@ const it: AssemblyHelpText = {
         <p>La <b>data del Plan</b> è quella dell’assemblea. Chi ha creato il Plan e chi organizza il Cerchio la gestiscono;
           vedono il pulsante <b>Impostazioni</b>:</p>
         <ul>
-          <li><b>Membri con diritto di voto</b>: votano tutti i membri del Cerchio; togli la spunta ai membri passivi o senza diritto di voto.</li>
+          <li><b>Membri con diritto di voto</b>: votano tutti i membri del Cerchio; togli la spunta ai membri passivi o senza diritto di voto. Se l’assemblea è un Plan <b>«Riservato a…»</b> (Chi vede questo Plan?), solo queste persone fanno parte dell’assemblea.</li>
           <li><b>Quorum</b>: nessuno, un numero di voti o una percentuale degli aventi diritto. Si calcola in diretta durante la seduta.</li>
           <li><b>Deleghe</b>: permesse o no, e quante ne può portare una stessa persona.</li>
           <li><b>Assemblea ibrida</b>: i membri possono anche partecipare e votare a distanza.</li>
@@ -39,7 +39,7 @@ const it: AssemblyHelpText = {
     {
       id: 'convoquer', emoji: '📣', title: '3. Inviare la convocazione',
       body: <>
-        <p><b>Invia la convocazione</b> la manda a <b>tutti i membri del Cerchio</b>: notifica nell’app ed email con data,
+        <p><b>Invia la convocazione</b> la manda a <b>tutti i membri dell’assemblea</b> (quelli del Cerchio, tranne le persone a cui il Plan è nascosto): notifica nell’app ed email con data,
           luogo e ordine del giorno, qualunque sia la loro impostazione delle notifiche. Ne ricevi una copia.</p>
         <p>Puoi rinviarla se l’ordine del giorno cambia (al massimo una volta ogni 10 minuti). La convocazione EvLY non
           sostituisce la forma prevista dal vostro statuto.</p>
