@@ -129,6 +129,8 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Chaque bulletin porte {0} nom au plus': ['Jeder Stimmzettel trägt höchstens {0} Namen', 'Ogni scheda porta al massimo {0} nome', 'Each ballot has {0} name at most'],
   'Chaque bulletin porte {0} noms au plus': ['Jeder Stimmzettel trägt höchstens {0} Namen', 'Ogni scheda porta al massimo {0} nomi', 'Each ballot has {0} names at most'],
   'Un vote est en cours : change le vote sur papier après sa clôture': ['Eine Abstimmung läuft: Ändere die Papierstimme nach deren Abschluss', 'È in corso una votazione: cambia il voto su carta dopo la chiusura', 'A vote is open: change paper voting after it closes'],
+  'Déjà relancé aujourd’hui : réessaie demain': ['Heute schon erinnert: Versuch es morgen wieder', 'Già sollecitato oggi: riprova domani', 'Already reminded today: try again tomorrow'],
+  'Tout le monde a déjà répondu': ['Alle haben schon geantwortet', 'Hanno già risposto tutti', 'Everyone has already answered'],
   'Notes : {0} caractères maximum': ['Notizen: höchstens {0} Zeichen', 'Note: al massimo {0} caratteri', 'Notes: {0} characters at most'],
   'Description : {0} caractères maximum': ['Beschreibung: höchstens {0} Zeichen', 'Descrizione: al massimo {0} caratteri', 'Description: {0} characters at most'],
   'Titre : {0} caractères maximum': ['Titel: höchstens {0} Zeichen', 'Titolo: al massimo {0} caratteri', 'Title: {0} characters at most'],

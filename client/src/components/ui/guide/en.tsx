@@ -116,6 +116,9 @@ const groups: Group[] = [
           <P><strong>Waiting list</strong>: a Plan with a limit is full when the “I’m in” and “Maybe” replies reach it. Join
             the waiting list: as soon as a spot opens up, you’re added automatically, in order, and notified. Your position
             shows on the card (“Waiting no. 2”).</P>
+          <P><strong>Members section</strong>: replies by group (I’m in, Maybe, waiting list, Can’t make it) and the Circle members who
+            <strong> haven’t answered yet</strong>; tap a number in the summary to see only that group. The Plan’s creator and the
+            organisers can <strong>remind</strong> those who haven’t answered, once a day.</P>
         </>,
       },
       {

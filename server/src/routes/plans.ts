@@ -19,6 +19,7 @@ import { icsEscape, icsDate, icsEventTimes } from '../lib/ical';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
 import { removeUserFromRides } from '../lib/rides';
 import { notifyUser } from '../lib/push';
+import { nextNudgeAt, pendingMembers } from '../lib/planPending';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { canSeeMembers, forViewer, managedCircleIds, maskMembers, parseMembersVisibility } from '../lib/memberPrivacy';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, planCircleIds, exclusionsFor, hideReservedList } from '../lib/planAccess';
@@ -218,10 +219,17 @@ router.get('/:id', async (req: AuthRequest, res) => {
   const unseen = (await unseenDetails(req.userId!, [plan.id])).get(plan.id);
   const showMembers = await canSeeMembers(plan, req.userId!);
   const polled = anonymizePlanPolls(withGuests, req.userId!);
+  const manages = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
+  const ended = plan.endDate < new Date();
   res.json({
     ...hideReservedList(showMembers ? polled : maskMembers(polled, req.userId!), req.userId!),
     // Photos et fichiers : le créateur et les organisateurs en ajoutent même si la fonction est décochée (affiche)
-    canManageFiles: plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId),
+    canManageFiles: manages,
+    // Rubrique Membres : membres des Cercles qui n'ont pas encore répondu (lib/planPending.ts) — pas pour un invité externe,
+    // ni quand la liste des participants est réservée ; relance par le créateur du Plan et l'organisation, une fois par jour
+    pending: !access.isGuest && showMembers && !ended ? await pendingMembers(plan) : undefined,
+    canNudge: manages && !ended,
+    nextNudgeAt: manages ? nextNudgeAt(plan.lastNudgeAt) : null,
     // « Qui invite des personnes extérieures » (lib/planInvites.ts) : la fenêtre « Inviter » propose ou non le lien du Plan
     canInviteGuests: !access.isGuest && await canInviteGuests(req.userId!, plan),
     // Plan pour plusieurs Cercles : noms des Cercles réunis (jamais montrés à un invité externe)
@@ -245,6 +253,28 @@ router.get('/:id', async (req: AuthRequest, res) => {
       discoverBlocker: publishBlocker(plan),
     } : {}),
   });
+});
+
+// POST /:id/nudge — relancer les membres qui n'ont pas encore répondu (créateur du Plan et organisation, une fois par jour)
+router.post('/:id/nudge', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!access || access.isExcluded || !access.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, circleId: true, creatorId: true, lastNudgeAt: true, endDate: true } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (plan.creatorId !== req.userId && !await isCircleManager(req.userId!, plan.circleId)) { res.status(403).json({ error: 'Réservé au créateur du Plan et aux organisateurs du Cercle' }); return; }
+  if (nextNudgeAt(plan.lastNudgeAt)) { res.status(429).json({ error: 'Déjà relancé aujourd’hui : réessaie demain' }); return; }
+  const pending = await pendingMembers(plan);
+  if (!pending.length) { res.status(400).json({ error: 'Tout le monde a déjà répondu' }); return; }
+  // Réservation : une seule relance même si deux personnes appuient en même temps
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const taken = await prisma.plan.updateMany({ where: { id: plan.id, OR: [{ lastNudgeAt: null }, { lastNudgeAt: { lt: since } }] }, data: { lastNudgeAt: new Date() } });
+  if (!taken.count) { res.status(429).json({ error: 'Déjà relancé aujourd’hui : réessaie demain' }); return; }
+  res.json({ ok: true, count: pending.length });
+  const io = req.app.get('io');
+  for (const u of pending) {
+    // plan_activity (connu de toutes les apps installées) ; respecte le mode silencieux et les personnes masquées
+    notifyUser(io, u.id, { type: 'plan_activity', planId: plan.id, planTitle: plan.title, circleId: plan.circleId, from: req.pseudo!, actorId: req.userId!, preview: `⏰ @${req.pseudo} attend ta réponse` });
+  }
 });
 
 // PUT /:id/discover { region, category } — publier le Plan dans Découvrir (ou changer région / catégorie)

@@ -342,6 +342,8 @@ model Plan {
   reminderSentAt       DateTime?
   // Notification « supprimé dans 4 heures » envoyée (lib/planLifecycle.ts)
   deletionNoticeSentAt DateTime?
+  // Dernière relance des membres qui n'ont pas répondu (POST /plans/:id/nudge, une fois par jour)
+  lastNudgeAt          DateTime?
   maxParticipants      Int?
   // Paramètres avancés : suppression "vote" ou "creator" ; fonctions masquées (chat, trajets, votes, depenses, fichiers)
   deletionMode         String    @default("vote")

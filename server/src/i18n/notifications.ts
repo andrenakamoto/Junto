@@ -25,6 +25,7 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '🚌 Départ à {0} : {1}, {2}': ['🚌 Abfahrt um {0}: {1}, {2}', '🚌 Partenza alle {0}: {1}, {2}', '🚌 Departure at {0}: {1}, {2}'],
   '{0} a ajouté un poste au planning': ['{0} hat einen Einsatz zum Einsatzplan hinzugefügt', '{0} ha aggiunto un turno', '{0} added a shift to the schedule'],
   // Personne retirée d'un Plan (routes/plans.ts, DELETE /:id/members/:userId)
+  '⏰ @{0} attend ta réponse': ['⏰ @{0} wartet auf deine Antwort', '⏰ @{0} aspetta la tua risposta', '⏰ @{0} is waiting for your answer'],
   'Tu ne fais plus partie de ce Plan': ['Du nimmst nicht mehr an diesem Plan teil', 'Non fai più parte di questo Plan', 'You’re no longer part of this Plan'],
   // Plan annulé (lib/planCancel.ts)
   '🚫 Annulé cette fois-ci : le Plan suivant est déjà prévu': ['🚫 Diesmal abgesagt: Der nächste Plan ist schon geplant', '🚫 Annullato questa volta: il Plan successivo è già previsto', '🚫 Cancelled this time: the next Plan is already scheduled'],

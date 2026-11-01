@@ -120,6 +120,10 @@ const groups: Group[] = [
           <P><strong>Warteliste</strong>: Ein Plan mit Grenze ist voll, wenn die «Ich bin dabei» und «Vielleicht» sie
             erreichen. Trag dich auf die Warteliste ein: Sobald ein Platz frei wird, wirst du automatisch der Reihe nach
             eingetragen und benachrichtigt. Deine Position steht auf der Karte («Warteliste Nr. 2»).</P>
+          <P><strong>Rubrik Mitglieder</strong>: die Antworten nach Gruppe (Ich bin dabei, Vielleicht, Warteliste, Abwesend) und die
+            Mitglieder des Kreises, die <strong>noch nicht geantwortet</strong> haben; tippe auf eine Zahl der Übersicht, um nur diese
+            Gruppe zu sehen. Wer den Plan erstellt hat und die Organisation können alle ohne Antwort <strong>erinnern</strong>, einmal
+            pro Tag.</P>
         </>,
       },
       {

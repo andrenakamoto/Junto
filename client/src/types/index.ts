@@ -193,6 +193,11 @@ export interface Plan {
   maxParticipants?: number | null;
   /** Liste d'attente (Plan complet), dans l'ordre ; `user` seulement dans le détail du Plan */
   waitlist?: { userId: string; createdAt?: string; user?: { id: string; pseudo: string; firstName?: string | null } }[];
+  /** Membres des Cercles qui n'ont pas encore répondu (GET /plans/:id, lib/planPending.ts du serveur) */
+  pending?: { id: string; pseudo: string; firstName?: string | null }[];
+  /** Relancer ceux qui n'ont pas répondu (créateur du Plan et organisation) ; prochaine relance possible */
+  canNudge?: boolean;
+  nextNudgeAt?: string | null;
   deletionMode?: DeletionMode;
   /** Fonctions masquées (les données sont conservées) */
   disabledFeatures?: PlanFeature[];

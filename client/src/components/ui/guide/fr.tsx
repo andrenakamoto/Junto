@@ -116,6 +116,9 @@ const groups: Group[] = [
           <P><strong>Liste d'attente</strong> : un Plan avec une limite est complet quand les « Je suis in » et « Peut-être »
             l'atteignent. Inscris-toi en attente : dès qu'une place se libère, tu es inscrit(e) automatiquement, dans l'ordre,
             et prévenu(e). Ta position s'affiche sur la carte (« En attente n°2 »).</P>
+          <P><strong>Rubrique Membres</strong> : les réponses par groupe (Je suis in, Peut-être, liste d'attente, Absent(e)) et les
+            membres du Cercle qui n'ont <strong>pas encore répondu</strong> ; toucher un chiffre du résumé n'affiche que ce groupe. Le
+            créateur du Plan et les organisateurs peuvent <strong>relancer</strong> ceux qui n'ont pas répondu, une fois par jour.</P>
         </>,
       },
       {

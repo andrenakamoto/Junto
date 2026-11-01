@@ -967,6 +967,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
               <span className="text-emerald-600">{t('common.inCount', { count: inCount })}</span>{' '}·{' '}
               <span className="text-amber-600">{maybeCount} ?</span>{' '}·{' '}
               <span className="text-slate-400">{t('plan.detail.countOut', { count: outCount })}</span>
+              {!!plan.pending?.length && <>{' '}·{' '}<span className="text-slate-400">{t('plan.detail.countPending', { count: plan.pending.length })}</span></>}
               </>}
               {plan.maxParticipants != null && (
                 <>{plan.membersHidden ? ' ' : <>{' '}· </>}<span className={isFull ? 'text-red-500 font-semibold' : 'text-slate-400'}>{occupied}/{plan.maxParticipants}</span>{waitingCount > 0 && <span className="text-amber-600">{t('plan.detail.waitingCount', { count: waitingCount })}</span>}</>
@@ -1140,8 +1141,9 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'infos' && (
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
-          {activeTab === 'membres' && <MembresTab members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} creatorId={plan.creatorId} canRemove={!!plan.canManageFiles && !plan.viewerIsGuest}
-            onRemove={async userId => { await api.delete(`/plans/${plan.id}/members/${userId}`); const { data } = await api.get(`/plans/${plan.id}`); onPlanUpdated(data); }} />}
+          {activeTab === 'membres' && <MembresTab plan={plan} members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} creatorId={plan.creatorId} canRemove={!!plan.canManageFiles && !plan.viewerIsGuest}
+            onRemove={async userId => { await api.delete(`/plans/${plan.id}/members/${userId}`); const { data } = await api.get(`/plans/${plan.id}`); onPlanUpdated(data); }}
+            onNudge={async () => { const { data } = await api.post(`/plans/${plan.id}/nudge`); api.get(`/plans/${plan.id}`).then(r => onPlanUpdated(r.data)).catch(() => {}); return data.count; }} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'quiz' && <QuizTab plan={plan} userId={user.id} />}

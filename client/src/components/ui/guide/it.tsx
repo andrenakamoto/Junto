@@ -118,6 +118,9 @@ const groups: Group[] = [
           <P><strong>Lista d’attesa</strong>: un Plan con un limite è completo quando i «Ci sono» e i «Forse» lo
             raggiungono. Iscriviti in attesa: appena si libera un posto, vieni iscritto/a automaticamente, in ordine, e
             avvisato/a. La tua posizione appare sulla scheda («In attesa n°2»).</P>
+          <P><strong>Rubrica Membri</strong>: le risposte per gruppo (Ci sono, Forse, lista d’attesa, Assente) e i membri del Cerchio
+            che <strong>non hanno ancora risposto</strong>; tocca un numero del riepilogo per vedere solo quel gruppo. Chi ha creato il
+            Plan e l’organizzazione possono <strong>sollecitare</strong> chi non ha risposto, una volta al giorno.</P>
         </>,
       },
       {
