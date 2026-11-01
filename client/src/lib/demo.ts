@@ -641,22 +641,30 @@ function findDemoAssemblyItem(itemId: string): { planId: string; st: any; item: 
   return null;
 }
 
+// Assemblée : quorum recalculé comme lib/assembly.ts (présents votants + procurations valables)
+function demoQuorum(st: any) {
+  const members = st.members as any[];
+  const present = new Set(members.filter(x => x.present).map(x => x.id));
+  const q = st.quorum;
+  q.voterCount = members.filter(x => x.isVoter).length;
+  q.presentVoters = members.filter(x => x.isVoter && x.present).length;
+  q.validProxies = ((st.proxies ?? []) as any[]).filter(p => !present.has(p.giver.id) && present.has(p.holder.id)).length;
+  q.represented = q.presentVoters + q.validProxies;
+  q.reached = q.required === null || q.represented >= q.required;
+}
+
 // Assemblée : voix de chaque présent (lui et ses procurations, comme votingRights de lib/assembly.ts) pour l'isoloir de
-// l'organisateur, et voix sur papier (présents marqués « papier »)
+// l'organisateur
 function demoAssemblyState(st: any) {
   const members = st.members as any[];
   const present = new Set(members.filter(m => m.present).map(m => m.id));
   const mandatesOf = (m: any) => !m.present || !m.isVoter ? [] : [{ id: m.id, name: m.name },
     ...((st.proxies ?? []) as any[]).filter(p => p.holder.id === m.id && !present.has(p.giver.id)).map(p => p.giver)];
-  const paperRights = members.filter(m => m.paper).reduce((n, m) => n + mandatesOf(m).length, 0);
   return {
     ...st,
-    me: { ...st.me, paper: !!members.find(m => m.name === 'Alex')?.paper },
-    members: members.map(m => ({ ...m, mandates: m.paper ? [] : mandatesOf(m) })),
+    members: members.map(m => ({ ...m, mandates: mandatesOf(m) })),
     items: (st.items as any[]).map(i => i.status !== 'open' ? i : {
-      ...i, votedIds: [...(i._votedIds ?? [])], paperRights: st.canManage ? paperRights : 0, paperCount: i._paper?.length ?? 0,
-      votedCount: Math.min(i.votedCount, (i.eligibleVotes ?? 0) - (i._paper?.length ?? 0)),
-      myMandates: members.find(m => m.name === 'Alex')?.paper ? [] : i.myMandates,
+      ...i, votedIds: [...(i._votedIds ?? [])], votedCount: Math.min(i.votedCount, i.eligibleVotes ?? 0),
     }),
   };
 }
@@ -1017,29 +1025,13 @@ function route(method: string, path: string, body: any): any {
     }
     throw new DemoError(403, NOT_IN_DEMO);
   }
-  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/(vote|close|notes|open|paper)$/))) {
+  if ((m = path.match(/^\/plans\/assembly\/items\/([^/]+)\/(vote|close|notes|open)$/))) {
     const found = findDemoAssemblyItem(m[1]);
     if (!found) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, st, item } = found;
     // Voix d'Alex (la sienne et celle de Yann, par procuration), d'après l'assemblée enregistrée
     const mandates = () => ((st.me?.mandates ?? []) as any[]).map(x => ({ id: x.id, name: x.name, voted: false }));
     if (m[2] === 'notes') { item.notes = String(body.notes ?? '').trim() || null; changed(planId); return { ok: true }; }
-    // Bulletins papier saisis par Alex (organisateur) : des bulletins anonymes de plus, comme lib/assembly.ts
-    if (m[2] === 'paper') {
-      if (!st.canManage || item.status !== 'open') throw new DemoError(403, NOT_IN_DEMO);
-      const rows: any[] = [];
-      if (item.kind === 'vote') for (const c of ['yes', 'no', 'abstain']) for (let k = 0; k < (Number(body[c]) || 0); k++) rows.push(c);
-      else {
-        const n = Number(body.ballots) || 0;
-        for (let k = 0; k < n; k++) rows.push([]);
-        let next = 0;
-        for (const c of item.candidates as any[]) for (let k = 0; k < Math.min(Number(body.votes?.[c.id]) || 0, n); k++) { rows[next % n].push(c.id); next++; }
-      }
-      item._paper = rows;
-      item.paperInput = item.kind === 'vote' ? { yes: Number(body.yes) || 0, no: Number(body.no) || 0, abstain: Number(body.abstain) || 0 } : { ballots: Number(body.ballots) || 0, votes: body.votes ?? {} };
-      changed(planId);
-      return { ok: true };
-    }
     // Ouvrir le vote d'un point (vote ou élection), un seul à la fois
     if (m[2] === 'open') {
       if (!st.canManage || item.kind === 'info' || item.status !== 'pending') throw new DemoError(403, NOT_IN_DEMO);
@@ -1075,7 +1067,7 @@ function route(method: string, path: string, body: any): any {
       const seats = item.seats ?? 1;
       const cands = item.candidates as any[];
       const votes = new Map(cands.map(c => [c.id, 0]));
-      const ballots: string[][] = [...(item._mine ?? []), ...(item._paper ?? [])];
+      const ballots: string[][] = [...(item._mine ?? [])];
       const others = Math.max((item.eligibleVotes ?? 0) - ballots.length, 0);
       for (let i = 0; i < others; i++) ballots.push(cands.length ? [...new Set(Array.from({ length: Math.min(seats, cands.length) }, (_, j) => cands[(i + j * 2) % cands.length].id))] : []);
       for (const b of ballots) for (const id of b) if (votes.has(id)) votes.set(id, votes.get(id)! + 1);
@@ -1083,18 +1075,32 @@ function route(method: string, path: string, body: any): any {
       const electedIds = new Set(ranking.filter(r => r.votes > 0).slice(0, seats).map(r => r.id));
       for (const c of cands) c.elected = electedIds.has(c.id);
       item.status = 'closed'; item.votedCount = item.eligibleVotes; item.myMandates = [];
-      item.result = { tacit: false, ranking, elected: cands.filter(c => c.elected).map(c => c.name), tie: false, tiedIds: [], blank: ballots.filter(b => !b.length).length, ballots: ballots.length, paper: item._paper?.length ?? 0 };
+      item.result = { tacit: false, ranking, elected: cands.filter(c => c.elected).map(c => c.name), tie: false, tiedIds: [], blank: ballots.filter(b => !b.length).length, ballots: ballots.length };
       changed(planId);
       return { ok: true };
     }
     // Voix des autres (bulletin secret) : celles déjà enregistrées dans la démo + les retardataires
-    const mine: string[] = [...(item._mine ?? []), ...(item._paper ?? [])];
+    const mine: string[] = item._mine ?? [];
     const others = Math.max((item.eligibleVotes ?? 0) - mine.length, 0);
     const counts = { yes: Math.max(others - 2, 0), no: Math.min(1, others), abstain: others >= 2 ? 1 : 0 };
     for (const ch of mine) counts[ch as 'yes' | 'no' | 'abstain'] += 1;
     item.status = 'closed'; item.votedCount = item.eligibleVotes; item.myMandates = [];
-    item.result = { counts, adopted: counts.yes > counts.no, paper: item._paper?.length ?? 0 };
+    item.result = { counts, adopted: counts.yes > counts.no };
     changed(planId);
+    return { ok: true };
+  }
+  // Participants sans EvLY ajoutés à la main par Alex (organisateur), en mémoire
+  if ((m = path.match(/^\/plans\/([^/]+)\/assembly\/guests(?:\/([^/]+))?$/)) && (method === 'POST' || method === 'DELETE')) {
+    const st = fixtures![`GET /plans/${m[1]}/assembly`];
+    if (!st?.canManage || st.status === 'closed') throw new DemoError(403, NOT_IN_DEMO);
+    if (method === 'POST') {
+      const firstName = String(body.firstName ?? '').trim().slice(0, 50);
+      if (!firstName) throw new DemoError(400, tr('ui.demoApi.guestName'));
+      const name = [firstName, String(body.lastName ?? '').trim().slice(0, 50)].filter(Boolean).join(' ');
+      (st.members as any[]).push({ id: newId('guest'), name, isVoter: body.isVoter !== false, present: false, remote: false, guest: true, proxyTo: null });
+    } else st.members = (st.members as any[]).filter(x => x.id !== m![2]);
+    demoQuorum(st);
+    changed(m[1]);
     return { ok: true };
   }
   // Liste de présence (Alex, organisateur) : pointer / retirer un membre, quorum recalculé comme lib/assembly.ts
@@ -1107,16 +1113,9 @@ function route(method: string, path: string, body: any): any {
     if (checkIn && st && String(body.code ?? '').trim() !== st.checkInCode) throw new DemoError(400, tr('ui.demoApi.wrongCode'));
     const member = st?.status === 'open' && (checkIn ? (st.members as any[]).find(x => x.id === st.me?.id || x.name === 'Alex') : st.canManage && (st.members as any[]).find(x => x.id === m![2]));
     if (!member) throw new DemoError(403, NOT_IN_DEMO);
-    if (!checkIn && !!member.paper !== (body.paper === true && body.present !== false) && (st.items as any[]).some(i => i.status === 'open')) throw new DemoError(400, tr('ui.demoApi.paperLocked'));
     member.present = checkIn ? true : body.present !== false; member.remote = false;
-    member.paper = !checkIn && member.present && body.paper === true;
     if (member.name === 'Alex') st.me.present = member.present;
-    const present = new Set((st.members as any[]).filter(x => x.present).map(x => x.id));
-    const q = st.quorum;
-    q.presentVoters = (st.members as any[]).filter(x => x.isVoter && x.present).length;
-    q.validProxies = ((st.proxies ?? []) as any[]).filter(p => !present.has(p.giver.id) && present.has(p.holder.id)).length;
-    q.represented = q.presentVoters + q.validProxies;
-    q.reached = q.required === null || q.represented >= q.required;
+    demoQuorum(st);
     changed(planId);
     return { ok: true };
   }
@@ -1182,7 +1181,7 @@ function route(method: string, path: string, body: any): any {
     if (!found?.st.canManage) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, item } = found;
     if (m[2] === 'reset') {
-      Object.assign(item, { status: 'pending', eligibleVotes: null, votedCount: 0, myMandates: [], result: null, paperInput: null, _mine: [], _paper: [], _votedIds: [] });
+      Object.assign(item, { status: 'pending', eligibleVotes: null, votedCount: 0, myMandates: [], result: null, _mine: [], _votedIds: [] });
       for (const c of item.candidates as any[]) c.elected = false;
     } else if (m[2] === 'tacit') {
       if (item.status !== 'pending') throw new DemoError(400, NOT_IN_DEMO);

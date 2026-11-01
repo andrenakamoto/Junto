@@ -79,6 +79,8 @@ const fr: AssemblyHelpText = {
           <li><b>Sans téléphone</b> : l’organisation coche la personne dans « Présences et procurations ». Les personnes pas encore
             pointées sont en premier ; une recherche apparaît dès 10 membres.</li>
           <li><b>À distance</b> (assemblée hybride) : la personne touche « Je participe à distance ».</li>
+          <li><b>Sans EvLY</b> (ni compte ni téléphone) : « Ajouter une personne sans EvLY », en bas de la liste de présence (prénom, nom,
+            droit de vote). Elle compte dans le quorum, tu la pointes présente, elle vote sur ton appareil et figure au PV.</li>
         </ul>
         <p>Le quorum (présents + procurations valables) se met à jour à chaque pointage.</p>
       </>,
@@ -112,19 +114,13 @@ const fr: AssemblyHelpText = {
     {
       id: 'sans-telephone', emoji: '📵', title: '9. Voter sans téléphone',
       body: <>
-        <p>Une personne présente sans téléphone (ou sans batterie) peut quand même voter, de deux façons :</p>
+        <p>Une personne présente sans téléphone (ou sans batterie), ou ajoutée « sans EvLY », peut quand même voter, sur l’appareil de l’organisation :</p>
         <ul>
           <li><b>Sur l’appareil de l’organisation</b> : pendant le vote, dans « Sans téléphone », choisis la personne puis
             « Faire voter quelqu’un sur cet appareil ». L’écran ne montre que son bulletin ; elle vote elle-même (pour elle et
             ses procurations), voit « Vote enregistré » et te rend l’appareil. <b>Le bulletin reste secret</b> : détourne les
             yeux. Une tablette posée dans la salle peut servir d’isoloir.</li>
-          <li><b>Sur papier</b> : dans la liste de présence, touche <b>📄 Papier</b> à côté de son nom <b>avant d’ouvrir le
-            vote</b> (le bouton est bloqué pendant un vote, pour qu’une voix ne compte jamais deux fois). Ses voix ne se votent
-            plus dans l’app. Pendant le vote, saisis le décompte dans « Bulletins papier » (oui / non / abstention, ou bulletins
-            et voix par candidat) <b>avant de clore</b>. Le résultat et le PV indiquent « dont N bulletins papier ».</li>
         </ul>
-        <p>Pour beaucoup de membres sans smartphone, le papier est plus rapide ; pour une ou deux personnes, l’appareil de
-          l’organisation suffit.</p>
       </>,
     },
     {
@@ -148,8 +144,7 @@ const fr: AssemblyHelpText = {
         <li><b>Avant</b> : lire l’ordre du jour et les documents, donner sa procuration s’ils ne peuvent pas venir.</li>
         <li><b>Sur place</b> : se pointer avec le code de la salle ou le QR code, puis voter dans la carte du point quand le
           vote s’ouvre (le bandeau « Aller au vote » y mène).</li>
-        <li><b>Sans téléphone</b> : se signaler à l’organisation, qui les pointe et les fait voter sur son appareil ou sur
-          papier.</li>
+        <li><b>Sans téléphone</b> : se signaler à l’organisation, qui les pointe et les fait voter sur son appareil.</li>
       </ul>
     </>,
   },

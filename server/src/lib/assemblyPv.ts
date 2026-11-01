@@ -34,7 +34,7 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
       members: { select: { userId: true, rsvp: true } },
       assembly: {
         include: {
-          proxies: true, attendances: true,
+          proxies: true, attendances: true, guests: true,
           items: { orderBy: { position: 'asc' }, include: { candidates: true, voters: true, ballots: true } },
         },
       },
@@ -48,9 +48,12 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
     select: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
   });
   const users = new Map(circleMembers.map(m => [m.user.id, m.user]));
+  // Participants sans EvLY ajoutés par l'organisateur : présents, votants et noms du PV comme les membres
+  for (const g of a.guests) users.set(g.id, { id: g.id, pseudo: '', firstName: g.firstName, lastName: g.lastName });
+  const nonVoters = new Set([...a.nonVoterIds, ...a.guests.filter(g => !g.isVoter).map(g => g.id)]);
   const name = (id: string | null | undefined) => { const u = id ? users.get(id) : null; return u ? fullName(u) : m.s('pvPdf.deleted'); };
   const sortByName = (ids: string[]) => [...ids].sort((x, y) => name(x).localeCompare(name(y), m.intl));
-  const voterIds = [...users.keys()].filter(id => !a.nonVoterIds.includes(id));
+  const voterIds = [...users.keys()].filter(id => !nonVoters.has(id));
   const present = new Set(a.attendances.map(x => x.userId));
   const r = votingRights(voterIds, present, a.proxies);
   const required = quorumRequired(a.quorumMode, a.quorumValue, voterIds.length);
@@ -95,7 +98,7 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
   section(m.s('pvPdf.presence'), m.s('pvPdf.presentCount', { count: presentIds.length }));
   if (presentIds.length) para(presentIds.map(id => {
     const att = a.attendances.find(x => x.userId === id);
-    const tags = [att?.remote ? m.s('pvPdf.remote') : null, a.nonVoterIds.includes(id) ? m.s('pvPdf.noVote') : null].filter(Boolean);
+    const tags = [att?.remote ? m.s('pvPdf.remote') : null, nonVoters.has(id) ? m.s('pvPdf.noVote') : null].filter(Boolean);
     return `${name(id)}${tags.length ? ` (${tags.join(', ')})` : ''}`;
   }).join(', '));
   else para(m.s('pvPdf.nobodyPresent'), DIM);
@@ -135,8 +138,6 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
         para(m.s(i.secret ? 'pvPdf.voteSecret' : 'pvPdf.voteOpen', { majority: MAJORITY[i.majority] ?? i.majority }), DIM);
         const vars = { verdict: ok ? m.s('pvPdf.adopted') : m.s('pvPdf.rejected'), yes: c.yes, no: c.no, abstain: c.abstain, cast: i.ballots.length, eligible: i.eligibleVotes ?? '' };
         para(m.s(i.eligibleVotes ? 'pvPdf.resultCast' : 'pvPdf.result', vars), ok ? GREEN : RED, 'semibold');
-        const paper = i.ballots.filter(b => b.paper).length;
-        if (paper) para(m.s('pvPdf.paperBallots', { count: paper }), DIM);
         if (!i.secret && i.voters.length) para(i.voters.map(v => `${v.userId !== v.onBehalfOfId ? m.s('pvPdf.by', { name: name(v.onBehalfOfId), by: name(v.userId) }) : name(v.onBehalfOfId)} : ${CHOICE[v.choice ?? ''] ?? '?'}`).join(' ; '), DIM);
       } else para(m.s('pvPdf.notVoted'), DIM);
     }
@@ -148,8 +149,6 @@ export async function buildAssemblyPvPdf(planId: string, locale: Locale = 'fr'):
         const res = electionResult(i.candidates.map(c => c.id), i.ballots, i.seats ?? 1);
         const key = i.secret ? (i.eligibleVotes ? 'pvPdf.electionSecretOf' : 'pvPdf.electionSecret') : (i.eligibleVotes ? 'pvPdf.electionOpenOf' : 'pvPdf.electionOpen');
         para(m.s(key, { seats: i.seats ?? 1, ballots: i.ballots.length, eligible: i.eligibleVotes ?? '' }), DIM);
-        const paperCount = i.ballots.filter(b => b.paper).length;
-        if (paperCount) para(m.s('pvPdf.paperBallots', { count: paperCount }), DIM);
         para(res.ranking.map(x => m.s('pvPdf.candidateVotes', { name: i.candidates.find(c => c.id === x.id)?.name ?? '?', count: x.votes })).join(' ; '), DIM);
         para(elected.length ? m.s('pvPdf.elected', { names: elected.join(', ') }) : m.s('pvPdf.nobodyElected'), elected.length ? GREEN : RED, 'semibold');
         if (res.tie && elected.length > res.elected.length) para(m.s('pvPdf.tieBroken'), DIM);

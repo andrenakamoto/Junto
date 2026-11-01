@@ -334,8 +334,7 @@ const groups: Group[] = [
             <><strong>Anwesenheit</strong>: Bei der Eröffnung zeigt „Code gross anzeigen“ den Saalcode und einen QR-Code für die
               Leinwand. Alle melden sich mit dem Code oder dem QR-Code an; die Organisation hakt alle ohne Handy in der
               Anwesenheitsliste ab (noch nicht Gemeldete zuerst, Suche). <strong>Ohne Handy</strong> stimmt jemand auf dem Gerät der
-              Organisation ab („Jemanden auf diesem Gerät abstimmen lassen“, die Stimme bleibt geheim) oder auf Papier (Knopf „Papier“
-              in der Liste, die Organisation gibt die Zählung vor dem Abschluss ein).</>,
+              Organisation ab („Jemanden auf diesem Gerät abstimmen lassen“, die Stimme bleibt geheim). Ein Mitglied <strong>ohne EvLY</strong> wird in der Anwesenheitsliste von Hand hinzugefügt.</>,
             <><strong>Während</strong>: Nur als anwesend Eingetragene stimmen ab, einmal für sich und einmal pro Vollmacht.
               Quorum live, <strong>geheime</strong> oder offene Abstimmungen, einfaches, absolutes oder Zweidrittelmehr,
               Wahlen, Beschlüsse per Akklamation.</>,

@@ -76,6 +76,8 @@ const it: AssemblyHelpText = {
           <li><b>Senza telefono</b>: l’organizzazione spunta la persona in «Presenze e deleghe». Chi non è ancora registrato è in
             cima; da 10 membri compare una ricerca.</li>
           <li><b>A distanza</b> (assemblea ibrida): la persona tocca «Partecipo a distanza».</li>
+          <li><b>Senza EvLY</b> (né account né telefono): «Aggiungi una persona senza EvLY», in fondo alla lista delle presenze (nome,
+            cognome, diritto di voto). Conta per il quorum, la registri come presente, vota sul tuo dispositivo e figura nel verbale.</li>
         </ul>
         <p>Il quorum (presenti + deleghe valide) si aggiorna a ogni registrazione.</p>
       </>,
@@ -109,18 +111,13 @@ const it: AssemblyHelpText = {
     {
       id: 'sans-telephone', emoji: '📵', title: '9. Votare senza telefono',
       body: <>
-        <p>Una persona presente senza telefono (o senza batteria) può votare comunque, in due modi:</p>
+        <p>Una persona presente senza telefono (o senza batteria), o aggiunta «senza EvLY», può votare comunque, sul dispositivo dell’organizzazione:</p>
         <ul>
           <li><b>Sul dispositivo dell’organizzazione</b>: durante la votazione, in «Senza telefono», scegli la persona poi «Far
             votare qualcuno su questo dispositivo». Lo schermo mostra solo la sua scheda; vota di persona (per sé e per le sue
             deleghe), vede «Voto registrato» e ti restituisce il dispositivo. <b>La scheda resta segreta</b>: distogli lo sguardo.
             Un tablet in sala può fare da cabina elettorale.</li>
-          <li><b>Su carta</b>: nella lista delle presenze, tocca <b>📄 Carta</b> accanto al suo nome <b>prima di aprire la
-            votazione</b> (il pulsante è bloccato durante un voto, perché un voto non conti mai due volte). I suoi voti non si
-            esprimono più nell’app. Durante la votazione, inserisci il conteggio in «Schede cartacee» (sì / no / astensione, o
-            schede e voti per candidato) <b>prima di chiudere</b>. Il risultato e il verbale indicano «di cui N su carta».</li>
         </ul>
-        <p>Con molti membri senza smartphone, la carta è più rapida; per una o due persone basta il dispositivo dell’organizzazione.</p>
       </>,
     },
     {
@@ -145,7 +142,7 @@ const it: AssemblyHelpText = {
         <li><b>Prima</b>: leggere l’ordine del giorno e i documenti, dare la delega se non possono venire.</li>
         <li><b>In sala</b>: registrarsi con il codice della sala o il codice QR, poi votare nella scheda del punto quando si apre
           la votazione («Vai alla votazione» ci porta).</li>
-        <li><b>Senza telefono</b>: farsi riconoscere dall’organizzazione, che li registra e li fa votare sul suo dispositivo o su carta.</li>
+        <li><b>Senza telefono</b>: farsi riconoscere dall’organizzazione, che li registra e li fa votare sul suo dispositivo.</li>
       </ul>
     </>,
   },

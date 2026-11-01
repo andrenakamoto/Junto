@@ -320,8 +320,7 @@ const groups: Group[] = [
             <><strong>Check-in</strong>: when the assembly opens, “Show the code full screen” projects the room code and a QR
               code. Everyone checks in by typing the code or scanning the QR code; the organiser ticks those without their phone in the
               attendance list (people not checked in yet first, search). <strong>Without a phone</strong>, someone votes on the
-              organiser’s device (“Let someone vote on this device”, the ballot stays secret) or on paper (“Paper” button in the
-              list; the organiser enters the count before closing the vote).</>,
+              organiser’s device (“Let someone vote on this device”, the ballot stays secret). A member <strong>without EvLY</strong> can be added by hand in the attendance list.</>,
             <><strong>During</strong>: only people checked in vote, once for themselves and once per proxy. Live quorum,{' '}
               <strong>secret ballot</strong> or show of hands, simple, absolute or two-thirds majority, elections, decisions
               by acclamation.</>,

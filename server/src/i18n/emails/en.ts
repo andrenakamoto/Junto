@@ -289,7 +289,6 @@ const en: EmailDict = {
     file: 'summary',
   },
   pvPdf: {
-    paperBallots: 'Including {count} paper ballot(s), counted by the organisers.',
     title: 'Minutes — {plan}',
     header: 'MINUTES',
     draftHeader: 'DRAFT MINUTES',

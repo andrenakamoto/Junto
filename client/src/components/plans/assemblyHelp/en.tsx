@@ -76,6 +76,8 @@ const en: AssemblyHelpText = {
           <li><b>Without a phone</b>: the organisers tick the person in “Attendance and proxies”. People not checked in yet come
             first; a search appears from 10 members.</li>
           <li><b>Remotely</b> (hybrid assembly): the person taps “I’m joining remotely”.</li>
+          <li><b>Without EvLY</b> (no account, no phone): “Add someone without EvLY” at the bottom of the attendance list (first name, last
+            name, voting rights). They count towards the quorum, you check them in, they vote on your device and appear in the minutes.</li>
         </ul>
         <p>The quorum (present + valid proxies) updates with every check-in.</p>
       </>,
@@ -108,18 +110,13 @@ const en: AssemblyHelpText = {
     {
       id: 'sans-telephone', emoji: '📵', title: '9. Voting without a phone',
       body: <>
-        <p>Someone present without a phone (or with a flat battery) can still vote, in two ways:</p>
+        <p>Someone present without a phone (or with a flat battery), or added “without EvLY”, can still vote, on the organiser’s device:</p>
         <ul>
           <li><b>On the organiser’s device</b>: during the vote, under “Without a phone”, choose the person then “Let someone vote
             on this device”. The screen shows only their ballot; they vote themselves (for themselves and their proxies), see
             “Vote recorded” and hand the device back. <b>The ballot stays secret</b>: look away. A tablet in the room can serve as
             a voting booth.</li>
-          <li><b>On paper</b>: in the attendance list, tap <b>📄 Paper</b> next to their name <b>before opening the vote</b> (the
-            button is locked during a vote, so a vote can never count twice). Their votes are no longer cast in the app. During
-            the vote, enter the count under “Paper ballots” (yes / no / abstention, or ballots and votes per candidate) <b>before
-            closing</b>. The result and the minutes show “including N on paper”.</li>
         </ul>
-        <p>With many members without a smartphone, paper is quicker; for one or two people, the organiser’s device is enough.</p>
       </>,
     },
     {
@@ -143,7 +140,7 @@ const en: AssemblyHelpText = {
         <li><b>Before</b>: read the agenda and documents, give their proxy if they cannot come.</li>
         <li><b>In the room</b>: check in with the room code or the QR code, then vote on the item’s card when the vote opens
           (“Go to the vote” takes them there).</li>
-        <li><b>Without a phone</b>: tell the organisers, who check them in and let them vote on their device or on paper.</li>
+        <li><b>Without a phone</b>: tell the organisers, who check them in and let them vote on their device.</li>
       </ul>
     </>,
   },

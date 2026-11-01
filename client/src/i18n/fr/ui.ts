@@ -51,7 +51,7 @@ export default {
     voteNotOpen: 'Le vote n’est pas ouvert',
     otherVoteOpen: 'Un autre vote est en cours : clos-le d’abord',
     wrongCode: 'Code incorrect : regarde le code affiché dans la salle',
-    paperLocked: 'Un vote est en cours : change le vote sur papier après sa clôture',
+    guestName: 'Indique le prénom',
     itemTitle: 'Indique le titre du point',
     addCandidates: 'Ajoute d’abord les candidats',
     wheelEmpty: 'Il n’y a personne sur la roue',

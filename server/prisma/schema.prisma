@@ -1501,6 +1501,7 @@ model Assembly {
   items          AssemblyItem[]
   proxies        AssemblyProxy[]
   attendances    AssemblyAttendance[]
+  guests         AssemblyGuest[]
 }
 
 model AssemblyItem {
@@ -1569,7 +1570,7 @@ model AssemblyBallot {
   // yes | no | abstain (vote) ; vide pour une élection
   choice       String?
   candidateIds String[]     @default([])
-  // Bulletin papier saisi par l'organisateur (décompte), et non voté dans l'app
+  // Bulletin papier : retiré le 2026-11-01 ; colonne gardée (anciens décomptes déjà comptés dans les résultats)
   paper        Boolean      @default(false)
 
   @@index([itemId])
@@ -1586,12 +1587,27 @@ model AssemblyProxy {
   @@unique([assemblyId, giverId])
 }
 
+// Participant sans EvLY (pas de compte ni de téléphone), ajouté à la main par l'organisateur dans la liste de présence :
+// membre de l'assemblée (votant si isVoter, compte dans le quorum), pointé par l'organisateur, vote sur l'appareil de
+// l'organisateur (isoloir), figure au PV. Son id sert de « personne » dans AssemblyAttendance / AssemblyVoter.
+model AssemblyGuest {
+  id         String   @id @default(cuid())
+  assemblyId String
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  firstName  String
+  lastName   String?
+  isVoter    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([assemblyId])
+}
+
 model AssemblyAttendance {
   assemblyId  String
   assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   userId      String
   remote      Boolean  @default(false)
-  // Vote sur papier (pas de téléphone) : ses voix ne se votent pas dans l'app, l'organisateur saisit le décompte
+  // Vote sur papier : retiré le 2026-11-01 (on vote sur l'appareil de l'organisateur) ; colonne gardée, plus lue
   paper       Boolean  @default(false)
   checkedInAt DateTime @default(now())
   checkedById String?

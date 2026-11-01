@@ -76,6 +76,8 @@ const de: AssemblyHelpText = {
           <li><b>Ohne Handy</b>: Die Organisation hakt die Person unter „Anwesenheit und Vollmachten“ ab. Noch nicht Gemeldete
             stehen zuoberst; ab 10 Mitgliedern gibt es eine Suche.</li>
           <li><b>Online</b> (hybride Versammlung): Die Person tippt auf „Ich nehme online teil“.</li>
+          <li><b>Ohne EvLY</b> (weder Konto noch Handy): „Person ohne EvLY hinzufügen“ unten in der Anwesenheitsliste (Vorname, Nachname,
+            Stimmrecht). Sie zählt fürs Quorum, du meldest sie an, sie stimmt auf deinem Gerät ab und steht im Protokoll.</li>
         </ul>
         <p>Das Quorum (Anwesende + gültige Vollmachten) wird bei jeder Meldung aktualisiert.</p>
       </>,
@@ -109,19 +111,13 @@ const de: AssemblyHelpText = {
     {
       id: 'sans-telephone', emoji: '📵', title: '9. Abstimmen ohne Handy',
       body: <>
-        <p>Wer anwesend ist, aber kein Handy (oder keinen Akku) hat, kann trotzdem abstimmen, auf zwei Arten:</p>
+        <p>Wer anwesend ist, aber kein Handy (oder keinen Akku) hat oder „ohne EvLY“ hinzugefügt wurde, kann trotzdem abstimmen, auf dem Gerät der Organisation:</p>
         <ul>
           <li><b>Auf dem Gerät der Organisation</b>: Wähle während der Abstimmung unter „Ohne Handy“ die Person und dann „Jemanden
             auf diesem Gerät abstimmen lassen“. Der Bildschirm zeigt nur ihren Stimmzettel; sie stimmt selbst ab (für sich und
             ihre Vollmachten), sieht „Stimme gespeichert“ und gibt dir das Gerät zurück. <b>Die Stimme bleibt geheim</b>: schau
             weg. Ein Tablet im Saal kann als Wahlkabine dienen.</li>
-          <li><b>Auf Papier</b>: Tippe in der Anwesenheitsliste <b>vor dem Eröffnen der Abstimmung</b> auf <b>📄 Papier</b> neben
-            dem Namen (während einer Abstimmung ist der Knopf gesperrt, damit keine Stimme doppelt zählt). Die Stimmen dieser Person
-            werden nicht mehr in der App abgegeben. Gib während der Abstimmung unter „Papierstimmzettel“ die Zählung ein (Ja /
-            Nein / Enthaltung, oder Stimmzettel und Stimmen pro Person) <b>vor dem Schliessen</b>. Ergebnis und Protokoll zeigen
-            „davon N auf Papier“.</li>
         </ul>
-        <p>Bei vielen Mitgliedern ohne Smartphone ist Papier schneller; für ein, zwei Personen genügt das Gerät der Organisation.</p>
       </>,
     },
     {
@@ -146,7 +142,7 @@ const de: AssemblyHelpText = {
         <li><b>Vorher</b>: Traktandenliste und Dokumente lesen, die Vollmacht geben, wenn sie nicht kommen können.</li>
         <li><b>Vor Ort</b>: sich mit dem Saalcode oder dem QR-Code melden, dann in der Karte des Punkts abstimmen, sobald die
           Abstimmung eröffnet ist („Zur Abstimmung“ führt hin).</li>
-        <li><b>Ohne Handy</b>: sich bei der Organisation melden, die sie abhakt und auf ihrem Gerät oder auf Papier abstimmen lässt.</li>
+        <li><b>Ohne Handy</b>: sich bei der Organisation melden, die sie abhakt und auf ihrem Gerät abstimmen lässt.</li>
       </ul>
     </>,
   },
