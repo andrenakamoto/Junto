@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useBackClose } from '../../lib/backClose';
-import { Heart, X, Undo2, ExternalLink, ImagePlus, Loader2, Plus, Trash2, Check } from 'lucide-react';
+import { Heart, X, Undo2, ExternalLink, ImagePlus, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
@@ -9,14 +9,16 @@ import { intlLocale, t } from '../../i18n';
 
 // Match de groupe (serveur : routes/matchPoll.ts), dans l'onglet Votes à côté des sondages. Chacun fait
 // défiler les propositions (oui à droite, non à gauche) ; oui de tout le monde = « C'est un match ! ».
-// Le créateur du Plan applique ensuite le choix au Plan (lieu, informations importantes).
+// Le gagnant est toujours la proposition qui a le plus de oui (tirage au sort entre ex aequo, fait par le serveur),
+// annoncé quand tout le monde a joué, à l'échéance ou quand le créateur du Plan clôt le match ; il peut ensuite l'ajouter
+// aux informations importantes (le match sert à toutes sortes de votes, pas seulement un lieu). Personne ne choisit autre chose.
 
 type Person = { id: string; pseudo: string; firstName?: string | null };
 type Card = { id: string; label: string; note: string | null; url: string | null; attachmentId: string | null; createdBy: Person | null };
 type Result = Card & { yes: number; no: number; canDelete: boolean; likers?: string[] };
 export interface Match {
-  id: string; question: string; anonymous: boolean; deadline: string | null; closed: boolean; chosenOptionId: string | null;
-  createdBy: Person | null; canDelete: boolean; canChoose: boolean; isPlayer: boolean;
+  id: string; question: string; anonymous: boolean; deadline: string | null; closed: boolean; chosenOptionId: string | null; tieDraw?: boolean;
+  createdBy: Person | null; canDelete: boolean; canChoose: boolean; canClose?: boolean; canApply?: boolean; isPlayer: boolean;
   playerCount: number; finishedCount: number; allFinished: boolean;
   deck: Card[]; myLikes: string[]; matchedIds: string[]; results: Result[] | null; optionCount: number;
 }
@@ -198,48 +200,17 @@ function SwipeDeck({ match, plan, onClose }: { match: Match; plan: Plan; onClose
   );
 }
 
-function ChooseModal({ match, option, plan, onClose, onDone }: { match: Match; option: Result; plan: Plan; onClose: () => void; onDone: () => void }) {
-  useBackClose(onClose);
-  const [setLocation, setSetLocation] = useState(true);
-  const [addToInfo, setAddToInfo] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  async function confirm() {
-    setBusy(true); setError('');
-    try { await api.post(`/plans/matches/${match.id}/choose`, { optionId: option.id, setLocation, addToInfo }); onDone(); }
-    catch (err: any) { setError(err?.response?.data?.error || t('common.retryError')); setBusy(false); }
-  }
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-sm bg-white rounded-2xl p-5 space-y-3" onClick={e => e.stopPropagation()}>
-        <p className="font-bold text-slate-900">{t('votes.match.decided', { label: option.label })}</p>
-        <label className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
-          <input type="checkbox" checked={setLocation} onChange={e => setSetLocation(e.target.checked)} className="accent-indigo-600 mt-0.5" />
-          <span>{t('votes.match.setLocation', { label: option.label })}{plan.location ? <span className="block text-xs text-slate-400">{t('votes.match.replaces', { location: plan.location })}</span> : null}</span>
-        </label>
-        <label className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer">
-          <input type="checkbox" checked={addToInfo} onChange={e => setAddToInfo(e.target.checked)} className="accent-indigo-600 mt-0.5" />
-          <span>{t('votes.match.addToInfo')}</span>
-        </label>
-        <p className="text-xs text-slate-500">{t('votes.match.chooseHint')}</p>
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        <div className="flex gap-2 justify-end">
-          <button onClick={onClose} className="px-3 py-2 rounded-lg text-sm text-slate-600">{t('common.cancel')}</button>
-          <button onClick={confirm} disabled={busy} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{t('common.confirm')}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan; onChanged: () => void }) {
   const [playing, setPlaying] = useState(false);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState<OptionDraft>(emptyOption());
-  const [choosing, setChoosing] = useState<Result | null>(null);
+  const [applied, setApplied] = useState(false);
   const [error, setError] = useState('');
   const matched = match.results?.filter(r => match.matchedIds.includes(r.id)) ?? [];
   const chosen = match.results?.find(r => r.id === match.chosenOptionId);
+  const tiedWith = chosen && match.tieDraw ? (match.results ?? []).filter(r => r.id !== chosen.id && r.yes === chosen.yes).map(r => r.label) : [];
+  const topYes = Math.max(0, ...(match.results ?? []).map(r => r.yes));
+  const notFinished = Math.max(0, match.playerCount - match.finishedCount);
 
   async function addOption() {
     if (!draft.label.trim()) { setError(t('common.required.proposal')); return; }
@@ -265,7 +236,14 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
       </p>
 
       {chosen ? (
-        <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-800 font-medium flex items-center gap-2"><Check size={16} /> {t('votes.match.decided', { label: chosen.label })}</div>
+        <div className="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-800">
+          <p className="font-semibold">🏆 {t('votes.match.winner', { label: chosen.label })}</p>
+          <p className="text-xs mt-0.5">{t('votes.match.yesCount', { count: chosen.yes })}{t('votes.match.outOf', { total: match.playerCount })}{tiedWith.length > 0 && ` · ${t('votes.match.tieDraw', { others: tiedWith.join(', ') })}`}</p>
+          {match.canApply && (applied ? <p className="mt-2 text-xs font-semibold text-emerald-700">✓ {t('votes.match.applied')}</p>
+            : <button onClick={() => run(async () => { await api.post(`/plans/matches/${match.id}/apply`); setApplied(true); })} className="mt-2 text-xs font-semibold text-indigo-600">{t('votes.match.apply')}</button>)}
+        </div>
+      ) : match.closed && match.results ? (
+        <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-600">{t('votes.match.noWinner')}</div>
       ) : matched.length > 0 && (
         <div className="mt-3 p-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-600 text-white">
           <p className="font-bold">{matched.length > 1 ? t('votes.match.itsAMatchMany') : t('votes.match.itsAMatch')}</p>
@@ -294,7 +272,7 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
                   ? <img src={mediaUrl(r.attachmentId, plan.mediaToken, 200)} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
                   : <div className="w-12 h-12 rounded-lg bg-pink-100 text-pink-600 font-bold text-lg flex items-center justify-center flex-shrink-0">{isMatch ? '❤️' : r.label.charAt(0).toUpperCase()}</div>}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{r.label}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">{r.label}{!match.closed && topYes > 0 && r.yes === topYes && <span className="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">{t('votes.match.leading')}</span>}</p>
                   {r.note && <p className="text-xs text-slate-500 truncate">{r.note}</p>}
                   <p className="text-xs text-slate-400">
                     <span className="text-emerald-600 font-semibold">{t('votes.match.yesCount', { count: r.yes })}</span>{t('votes.match.outOf', { total: match.playerCount })}
@@ -303,7 +281,6 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  {match.canChoose && <button onClick={() => setChoosing(r)} className="text-xs font-semibold text-indigo-600">{t('votes.match.choose')}</button>}
                   {r.canDelete && !match.closed && <button onClick={() => { if (confirm(t('votes.match.removeConfirm'))) run(() => api.delete(`/plans/matches/options/${r.id}`)); }} className="text-slate-300 hover:text-red-500" aria-label={t('votes.match.remove')}><Trash2 size={12} /></button>}
                 </div>
               </div>
@@ -323,10 +300,13 @@ export function MatchCard({ match, plan, onChanged }: { match: Match; plan: Plan
       ) : match.optionCount < 15 && (
         <button onClick={() => setAdding(true)} className="mt-3 text-sm text-indigo-600 font-medium flex items-center gap-1"><Plus size={14} /> {t('votes.match.proposeMore')}</button>
       ))}
+      {match.canClose && (
+        <button onClick={() => { if (confirm(notFinished ? t('votes.match.closeConfirm', { count: notFinished }) : t('votes.match.closeConfirmAll'))) run(() => api.post(`/plans/matches/${match.id}/close`)); }}
+          className="mt-3 block text-xs font-semibold text-slate-500 hover:text-indigo-600">{t('votes.match.close')}</button>
+      )}
       {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
 
       {playing && <SwipeDeck match={match} plan={plan} onClose={() => { setPlaying(false); onChanged(); }} />}
-      {choosing && <ChooseModal match={match} option={choosing} plan={plan} onClose={() => setChoosing(null)} onDone={() => { setChoosing(null); onChanged(); }} />}
     </div>
   );
 }

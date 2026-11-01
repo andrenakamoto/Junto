@@ -235,8 +235,10 @@ const groups: Group[] = [
           <L items={[
             <><strong>Poll</strong>: one question, one choice. Anonymous or not; if not, everyone sees who voted for what.</>,
             <><strong>Match</strong> ❤️: everyone says yes or no to each suggestion (swipeable cards, optional photo).
-              Others’ answers stay hidden until you’ve finished. “It’s a match” when everyone said yes. The Plan’s creator
-              chooses and can copy the choice into the place or the important information.</>,
+              Others’ answers stay hidden until you’ve finished. “It’s a match” when everyone said yes. Once
+              everyone has played (or at the deadline), <strong>the suggestion with the most yeses wins</strong>, drawn by lot if there’s a tie:
+              nobody can pick anything else. The Plan’s creator can close the match if someone hasn’t played, and add the winner to the
+              important information. The match works for any kind of vote: a place, a menu, the best pumpkin…</>,
             <><strong>Whose turn?</strong> 🎡: a wheel picks someone from the Plan at random (“I’m in” and “Maybe”). Untick
               the people to take off: their names are shown with the result. The wheel spins at the same time on every phone
               watching the Plan. Option “Never the same person twice”.</>,

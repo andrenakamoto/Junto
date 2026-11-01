@@ -41,7 +41,7 @@ import { sendShiftReminders } from './lib/volunteers';
 import { sendTaskReminders } from './lib/tasks';
 import { sendProgramReminders } from './lib/program';
 import { sendTransitReminders } from './lib/transit';
-import { sendMatchReminders } from './lib/matchPoll';
+import { finalizeDueMatches, sendMatchReminders } from './lib/matchPoll';
 import { spawnRecurringPlans } from './lib/recurrence';
 import { createPlanInCircle } from './routes/circles';
 import { encryptLegacyMessages } from './lib/messageBackfill';
@@ -160,6 +160,9 @@ if (cronEnabled) {
   setInterval(() => sendSantaReminders(io), 60 * 60 * 1000);
   // Match de groupe : rappel la veille de l'échéance à ceux qui n'ont pas joué
   setInterval(() => sendMatchReminders(io), 60 * 60 * 1000);
+  // Match de groupe : à l'échéance, le gagnant (le plus de oui) est annoncé
+  finalizeDueMatches(io);
+  setInterval(() => finalizeDueMatches(io), 15 * 60 * 1000);
   // Bénévoles : rappel une heure avant la prise de poste
   sendShiftReminders(io);
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);

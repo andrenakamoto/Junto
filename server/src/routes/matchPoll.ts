@@ -7,12 +7,14 @@ import { destroyFiles } from '../lib/storage';
 import { FEATURE_DISABLED_ERROR, IMPORTANT_INFO_MAX } from '../lib/settings';
 import {
   MATCH_LABEL_MAX, MATCH_NOTE_MAX, MATCH_OPTIONS_MAX, MATCH_QUESTION_MAX, Swipe, finishedCount, isUnanimous,
-  matchPlayers, parseMatchText, parseMatchUrl, rankOptions, remainingFor,
+  finalizeMatch, matchPlayers, parseMatchText, parseMatchUrl, rankOptions, remainingFor,
 } from '../lib/matchPoll';
 
 // Match de groupe (lib/matchPoll.ts), monté dans le routeur des Plans (/api/plans), dans l'onglet Votes.
 // Règle : avant d'avoir fini ses cartes, on ne voit pas les réponses des autres ; les matchs (oui de tous)
-// sont visibles de tous.
+// sont visibles de tous. Le gagnant est toujours la proposition qui a le plus de oui (tirage au sort entre ex
+// aequo, `finalizeMatch`), annoncé quand tout le monde a joué, à l'échéance ou quand le créateur du Plan clôt le match :
+// personne ne peut choisir autre chose (demande de l'utilisateur, 2026-11-01).
 const router = Router();
 
 const person = { select: { id: true, pseudo: true, firstName: true } } as const;
@@ -85,6 +87,8 @@ async function checkMatches(req: AuthRequest, plan: PlanLite, matchId: string) {
 router.get('/:id/matches', async (req: AuthRequest, res) => {
   const plan = await loadPlan(req, res, req.params.id); if (!plan) return;
   const me = req.userId!;
+  // Clore les matchs terminés (tout le monde a joué, échéance) et corriger un choix qui ne serait pas le plus voté
+  for (const m of await prisma.matchPoll.findMany({ where: { planId: plan.id }, select: { id: true } })) await finalizeMatch(req.app.get('io'), m.id);
   const [matches, players] = await Promise.all([
     prisma.matchPoll.findMany({
       where: { planId: plan.id }, orderBy: { createdAt: 'asc' },
@@ -114,9 +118,13 @@ router.get('/:id/matches', async (req: AuthRequest, res) => {
       deadline: m.deadline,
       closed,
       chosenOptionId: m.chosenOptionId,
+      tieDraw: m.tieDraw,
       createdBy: m.createdBy,
       canDelete: m.createdById === me || plan.creatorId === me,
-      canChoose: plan.creatorId === me && !closed,
+      // Plus de choix libre : les anciennes apps ne voient plus le bouton « Choisir »
+      canChoose: false,
+      canClose: plan.creatorId === me && !closed,
+      canApply: plan.creatorId === me && closed && !!m.chosenOptionId,
       isPlayer,
       playerCount: playerIds.length,
       finishedCount: finished,
@@ -203,6 +211,7 @@ router.post('/matches/options/:optionId/swipe', async (req: AuthRequest, res) =>
   });
   res.json({ ok: true });
   if (like) await checkMatches(req, plan, option.matchId);
+  await finalizeMatch(req.app.get('io'), option.matchId);
 });
 
 // DELETE /matches/options/:optionId/swipe — annuler sa dernière réponse (la carte revient)
@@ -214,32 +223,53 @@ router.delete('/matches/options/:optionId/swipe', async (req: AuthRequest, res) 
   res.json({ ok: true });
 });
 
-// POST /matches/:matchId/choose { optionId, setLocation?, addToInfo? } — créateur du Plan : c'est décidé.
-// Met à jour le lieu et / ou les informations importantes (historique), prévient les participants.
-router.post('/matches/:matchId/choose', async (req: AuthRequest, res) => {
+// POST /matches/:matchId/close — le créateur du Plan clôt le match maintenant (quelqu'un n'a pas joué) : le gagnant
+// est la proposition qui a le plus de oui à ce moment-là
+router.post('/matches/:matchId/close', async (req: AuthRequest, res) => {
+  const match = await prisma.matchPoll.findUnique({ where: { id: req.params.matchId } });
+  const plan = await loadPlan(req, res, match?.planId); if (!plan || !match || !writable(plan, res)) return;
+  if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du Plan' }); return; }
+  if (match.closedAt) { res.status(400).json({ error: 'Ce match est terminé' }); return; }
+  await finalizeMatch(req.app.get('io'), match.id, true);
+  res.json({ ok: true });
+});
+
+// Ajouter le gagnant aux informations importantes du Plan (historique). Le match sert à toutes sortes de votes : pas de
+// report dans le lieu. Une seule fois (la ligne n'est pas ajoutée deux fois).
+async function applyWinner(req: AuthRequest, res: any, plan: PlanLite, match: { question: string; chosenOptionId: string | null; options: { id: string; label: string }[] }) {
+  const option = match.options.find(o => o.id === match.chosenOptionId);
+  if (!option) { res.status(400).json({ error: 'Pas encore de gagnant' }); return; }
+  const full = await prisma.plan.findUnique({ where: { id: plan.id }, select: { importantInfo: true } });
+  const line = `✅ ${match.question} → ${option.label}`;
+  if (!(full?.importantInfo ?? '').split('\n').includes(line)) {
+    const next = [full?.importantInfo, line].filter(Boolean).join('\n');
+    if (next.length > IMPORTANT_INFO_MAX) { res.status(400).json({ error: 'Les informations importantes sont déjà trop longues pour y ajouter le choix' }); return; }
+    await prisma.$transaction([
+      prisma.plan.update({ where: { id: plan.id }, data: { importantInfo: next } }),
+      prisma.planChangeLog.create({ data: { planId: plan.id, field: 'importantInfo', oldValue: full?.importantInfo ?? null, newValue: next, changedById: req.userId! } }),
+    ]);
+  }
+  res.json({ ok: true });
+}
+
+// POST /matches/:matchId/apply — créateur du Plan, match clos : le gagnant dans les informations importantes
+router.post('/matches/:matchId/apply', async (req: AuthRequest, res) => {
   const match = await prisma.matchPoll.findUnique({ where: { id: req.params.matchId }, include: { options: true } });
   const plan = await loadPlan(req, res, match?.planId); if (!plan || !match || !writable(plan, res)) return;
   if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du Plan' }); return; }
-  const option = match.options.find(o => o.id === req.body?.optionId);
-  if (!option) { res.status(404).json({ error: 'Proposition introuvable' }); return; }
-  const full = await prisma.plan.findUnique({ where: { id: plan.id }, select: { location: true, importantInfo: true } });
-  const ops: any[] = [prisma.matchPoll.update({ where: { id: match.id }, data: { chosenOptionId: option.id, closedAt: new Date() } })];
-  if (req.body?.setLocation === true && full?.location !== option.label) {
-    ops.push(prisma.plan.update({ where: { id: plan.id }, data: { location: option.label } }));
-    ops.push(prisma.planChangeLog.create({ data: { planId: plan.id, field: 'location', oldValue: full?.location ?? null, newValue: option.label, changedById: req.userId! } }));
-  }
-  if (req.body?.addToInfo === true) {
-    const line = `✅ ${match.question} → ${option.label}`;
-    const next = [full?.importantInfo, line].filter(Boolean).join('\n');
-    if (next.length > IMPORTANT_INFO_MAX) { res.status(400).json({ error: 'Les informations importantes sont déjà trop longues pour y ajouter le choix' }); return; }
-    ops.push(prisma.plan.update({ where: { id: plan.id }, data: { importantInfo: next } }));
-    ops.push(prisma.planChangeLog.create({ data: { planId: plan.id, field: 'importantInfo', oldValue: full?.importantInfo ?? null, newValue: next, changedById: req.userId! } }));
-  }
-  await prisma.$transaction(ops);
-  res.json({ ok: true });
-  for (const p of await matchPlayers(plan.id)) {
-    if (p.userId !== req.userId) notify(req, plan, p.userId, `✅ C’est décidé : ${option.label}`, req.userId!);
-  }
+  if (!match.closedAt) { res.status(400).json({ error: 'Le match n’est pas terminé' }); return; }
+  await applyWinner(req, res, plan, match);
+});
+
+// POST /matches/:matchId/choose — ancienne route des apps ≤ 1.0.42 (« Choisir ») : seul le gagnant est accepté
+router.post('/matches/:matchId/choose', async (req: AuthRequest, res) => {
+  await finalizeMatch(req.app.get('io'), String(req.params.matchId));
+  const match = await prisma.matchPoll.findUnique({ where: { id: req.params.matchId }, include: { options: true } });
+  const plan = await loadPlan(req, res, match?.planId); if (!plan || !match || !writable(plan, res)) return;
+  if (plan.creatorId !== req.userId) { res.status(403).json({ error: 'Réservé au créateur du Plan' }); return; }
+  if (!match.closedAt) { res.status(400).json({ error: 'Le gagnant est la proposition qui a le plus de oui : il sera annoncé quand tout le monde aura joué' }); return; }
+  if (req.body?.optionId !== match.chosenOptionId) { res.status(400).json({ error: 'Le gagnant est la proposition qui a le plus de oui' }); return; }
+  await applyWinner(req, res, plan, match);
 });
 
 // DELETE /matches/:matchId — supprimer un match (son créateur ou le créateur du Plan), photos comprises

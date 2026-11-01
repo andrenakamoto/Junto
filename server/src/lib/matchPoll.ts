@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import prisma from './prisma';
 import { notifyUser } from './push';
 
@@ -70,6 +71,53 @@ export async function matchPlayers(planId: string) {
     where: { planId, rsvp: { not: 'out' }, user: { isLight: false } },
     select: { userId: true, user: { select: { id: true, pseudo: true, firstName: true } } },
   });
+}
+
+// Gagnant : toujours la proposition qui a le plus de « oui » (au moins un). Plusieurs ex aequo : tirage au sort
+// (fait une seule fois, à la clôture). Aucun « oui » : pas de gagnant.
+export function topOptionIds(ranked: { id: string; yes: number }[]): string[] {
+  const max = Math.max(0, ...ranked.map(o => o.yes));
+  return max > 0 ? ranked.filter(o => o.yes === max).map(o => o.id) : [];
+}
+
+// Clore un match et désigner le gagnant : quand tous les joueurs ont fini, à l'échéance, ou sur demande du
+// créateur du Plan (`force`). Corrige aussi un match déjà clos dont le choix ne serait pas le plus voté (avant
+// le 2026-11-01, le créateur du Plan pouvait choisir n'importe quelle proposition). Renvoie vrai si le match a changé.
+export async function finalizeMatch(io: any, matchId: string, force = false): Promise<boolean> {
+  const m = await prisma.matchPoll.findUnique({ where: { id: matchId }, include: { options: true, plan: { select: { id: true, title: true, circleId: true } } } });
+  if (!m || !m.options.length) return false;
+  const players = await matchPlayers(m.planId);
+  const ids = players.map(p => p.userId);
+  const swipes = await prisma.matchSwipe.findMany({ where: { matchId }, select: { optionId: true, userId: true, like: true } });
+  const top = topOptionIds(rankOptions(m.options, swipes));
+  if (m.closedAt) {
+    if (m.chosenOptionId ? top.includes(m.chosenOptionId) : !top.length) return false;
+  } else {
+    const done = ids.length > 0 && finishedCount(m.options.map(o => o.id), ids, swipes) === ids.length;
+    const due = !!m.deadline && m.deadline.getTime() <= Date.now();
+    if (!force && !done && !due) return false;
+  }
+  const winner = top.length ? top[top.length === 1 ? 0 : randomInt(top.length)] : null;
+  const claimed = await prisma.matchPoll.updateMany({
+    where: { id: m.id, closedAt: m.closedAt, chosenOptionId: m.chosenOptionId },
+    data: { closedAt: m.closedAt ?? new Date(), chosenOptionId: winner, tieDraw: top.length > 1 },
+  });
+  if (!claimed.count) return false;
+  const label = m.options.find(o => o.id === winner)?.label;
+  const preview = !label ? `🏁 Match « ${m.question} » terminé : aucune proposition n’a eu de oui`
+    : top.length > 1 ? `🏆 Résultat du match « ${m.question} » : ${label} (égalité, tiré au sort)` : `🏆 Résultat du match « ${m.question} » : ${label}`;
+  for (const p of players) notifyUser(io, p.userId, { type: 'match', planId: m.plan.id, planTitle: m.plan.title, circleId: m.plan.circleId, preview });
+  return true;
+}
+
+// Matchs dont l'échéance est passée : clos et gagnant annoncé (toutes les heures avec les autres tâches)
+export async function finalizeDueMatches(io: any) {
+  try {
+    const due = await prisma.matchPoll.findMany({ where: { closedAt: null, deadline: { lte: new Date() } }, select: { id: true } });
+    for (const m of due) await finalizeMatch(io, m.id);
+  } catch (e) {
+    console.error('[match finalize]', e);
+  }
 }
 
 // Rappel la veille de l'échéance à ceux qui n'ont pas fini (toutes les heures avec les autres tâches)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deckOrder, finishedCount, isUnanimous, parseMatchUrl, rankOptions, remainingFor, Swipe } from './matchPoll';
+import { deckOrder, finishedCount, isUnanimous, parseMatchUrl, rankOptions, remainingFor, Swipe, topOptionIds } from './matchPoll';
 
 const options = [{ id: 'o1' }, { id: 'o2' }, { id: 'o3' }, { id: 'o4' }];
 const s = (optionId: string, userId: string, like: boolean): Swipe => ({ optionId, userId, like });
@@ -40,5 +40,18 @@ describe('match de groupe', () => {
     expect(parseMatchUrl('https://damario.ch')).toBe('https://damario.ch');
     expect(parseMatchUrl('')).toBeNull();
     expect(parseMatchUrl('javascript:alert(1)')).toBeUndefined();
+  });
+});
+
+describe('topOptionIds', () => {
+  it('garde la proposition qui a le plus de oui', () => {
+    expect(topOptionIds([{ id: 'c5', yes: 4 }, { id: 'h', yes: 3 }, { id: 'c1', yes: 2 }])).toEqual(['c5']);
+  });
+  it('renvoie tous les ex aequo (tirage au sort ensuite)', () => {
+    expect(topOptionIds([{ id: 'c5', yes: 4 }, { id: 'd', yes: 4 }, { id: 'c1', yes: 2 }])).toEqual(['c5', 'd']);
+  });
+  it('aucun oui : pas de gagnant', () => {
+    expect(topOptionIds([{ id: 'a', yes: 0 }, { id: 'b', yes: 0 }])).toEqual([]);
+    expect(topOptionIds([])).toEqual([]);
   });
 });

@@ -107,6 +107,9 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   // Match de groupe, roue
   '❤️ C’est un match : {0} !': ['❤️ Es ist ein Match: {0}!', '❤️ È un match: {0}!', '❤️ It’s a match: {0}!'],
   '❤️ Nouveau match : {0} À toi de jouer !': ['❤️ Neues Match: {0} Du bist dran!', '❤️ Nuovo match: {0} Tocca a te!', '❤️ New match: {0} Your turn!'],
+  '🏆 Résultat du match « {0} » : {1} (égalité, tiré au sort)': ['🏆 Ergebnis des Matchs „{0}“: {1} (Gleichstand, ausgelost)', '🏆 Risultato del match «{0}»: {1} (parità, sorteggiato)', '🏆 Result of the match “{0}”: {1} (tie, drawn by lot)'],
+  '🏆 Résultat du match « {0} » : {1}': ['🏆 Ergebnis des Matchs „{0}“: {1}', '🏆 Risultato del match «{0}»: {1}', '🏆 Result of the match “{0}”: {1}'],
+  '🏁 Match « {0} » terminé : aucune proposition n’a eu de oui': ['🏁 Match „{0}“ beendet: Kein Vorschlag hat ein Ja bekommen', '🏁 Match «{0}» terminato: nessuna proposta ha ricevuto un sì', '🏁 Match “{0}” over: no proposal got a yes'],
   '✅ C’est décidé : {0}': ['✅ Entschieden: {0}', '✅ È deciso: {0}', '✅ It’s decided: {0}'],
   '❤️ Il ne manque plus que toi pour le match « {0} »': ['❤️ Beim Match «{0}» fehlst nur noch du', '❤️ Manchi solo tu per il match «{0}»', '❤️ Only you are missing for the match “{0}”'],
   '🎡 {0} La roue a choisi : {1} !': ['🎡 {0} Das Rad hat gewählt: {1}!', '🎡 {0} La ruota ha scelto: {1}!', '🎡 {0} The wheel picked: {1}!'],

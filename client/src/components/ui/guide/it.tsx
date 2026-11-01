@@ -240,8 +240,10 @@ const groups: Group[] = [
           <L items={[
             <><strong>Sondaggio</strong>: una domanda, una scelta. Anonimo o no; se non lo è, ognuno vede chi ha votato cosa.</>,
             <><strong>Match</strong> ❤️: ognuno dice sì o no a ogni proposta (carte da scorrere, foto facoltativa). Le
-              risposte degli altri restano nascoste finché non hai finito. «È un match» quando tutti hanno detto sì. Il
-              creatore del Plan sceglie e può riportare la scelta nel luogo o nelle informazioni importanti.</>,
+              risposte degli altri restano nascoste finché non hai finito. «È un match» quando tutti hanno detto sì. Quando
+              tutti hanno giocato (o alla scadenza), <strong>vince la proposta con più sì</strong>, sorteggiata in caso di parità: nessuno
+              può scegliere altro. Chi ha creato il Plan può chiudere il match se qualcuno non ha giocato, e aggiungere il vincitore alle
+              informazioni importanti. Il match va bene per ogni tipo di voto: un luogo, un menù, la zucca più bella…</>,
             <><strong>A chi tocca?</strong> 🎡: una ruota estrae a sorte una persona del Plan («Ci sono» e «Forse»). Togli
               la spunta a chi vuoi escludere: i loro nomi appaiono con il risultato. La ruota gira contemporaneamente su
               tutti i telefoni che guardano il Plan. Opzione «Mai due volte la stessa persona».</>,

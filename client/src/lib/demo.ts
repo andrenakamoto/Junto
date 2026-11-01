@@ -629,6 +629,11 @@ function revealDemoMatch(planId: string, match: any, full: any) {
   for (const r of match.results.filter((x: any) => match.matchedIds.includes(x.id))) {
     fire('notification', { id: newId('n'), type: 'match', planId, planTitle: plan(planId).title, circleId: plan(planId).circleId, preview: tr('ui.demoApi.match', { label: r.label }) });
   }
+  // Tout le monde a joué : le gagnant est la proposition qui a le plus de oui (tirage au sort entre ex aequo)
+  const top = Math.max(0, ...match.results.map((r: any) => r.yes));
+  const tied = top > 0 ? match.results.filter((r: any) => r.yes === top) : [];
+  match.closed = true; match.chosenOptionId = tied.length ? tied[Math.floor(Math.random() * tied.length)].id : null; match.tieDraw = tied.length > 1;
+  match.canApply = !!match.chosenOptionId && (match.canChoose || plan(planId).creatorId === me.id); match.canClose = false; match.canChoose = false;
 }
 
 // Assemblée : retrouver un point de l'ordre du jour enregistré
@@ -959,7 +964,7 @@ function route(method: string, path: string, body: any): any {
   if (path.match(/^\/plans\/[^/]+\/killer/) && method !== 'GET') throw new DemoError(403, NOT_IN_DEMO);
 
   // Match de groupe (apéro au bord du lac) : les copains ont joué ; quand Alex a fini ses cartes, les
-  // résultats s'affichent (oui au Grand Bain = c'est un match). Choisir applique au Plan.
+  // résultats s'affichent (oui au Grand Bain = c'est un match) et le gagnant (le plus de oui) est désigné ; il peut être ajouté aux informations importantes.
   if ((m = path.match(/^\/plans\/matches\/options\/([^/]+)\/swipe$/))) {
     const found = findDemoMatch(m[1]);
     if (!found) throw new DemoError(403, NOT_IN_DEMO);
@@ -974,20 +979,20 @@ function route(method: string, path: string, body: any): any {
       if (card && !match.deck.some((c: any) => c.id === optionId)) match.deck.unshift({ id: card.id, label: card.label, note: card.note, url: card.url, attachmentId: card.attachmentId, createdBy: card.createdBy });
       match.myLikes = match.myLikes.filter((id: string) => id !== optionId);
       match.results = null; match.matchedIds = []; match.finishedCount = full.finishedCount; match.allFinished = false;
+      match.closed = false; match.chosenOptionId = null; match.tieDraw = false; match.canApply = false;
     }
     changed(planId);
     return { ok: true };
   }
-  if ((m = path.match(/^\/plans\/matches\/([^/]+)\/choose$/))) {
+  if ((m = path.match(/^\/plans\/matches\/([^/]+)\/(apply|choose)$/))) {
     const found = findDemoMatch(undefined, m[1]);
-    if (!found || !found.match.canChoose) throw new DemoError(403, NOT_IN_DEMO);
+    if (!found || !found.match.canApply) throw new DemoError(403, NOT_IN_DEMO);
     const { planId, match } = found;
-    const option = match.results?.find((r: any) => r.id === body.optionId);
+    const option = match.results?.find((r: any) => r.id === match.chosenOptionId);
     if (!option) throw new DemoError(400, tr('ui.demoApi.playFirst'));
-    match.closed = true; match.canChoose = false; match.chosenOptionId = option.id; match.deck = [];
+    const line = `✅ ${match.question} → ${option.label}`;
     for (const t of [plan(planId), ...planCopies(planId)]) {
-      if (body.setLocation) t.location = option.label;
-      if (body.addToInfo) t.importantInfo = [t.importantInfo, `✅ ${match.question} → ${option.label}`].filter(Boolean).join('\n');
+      if (!(t.importantInfo ?? '').split('\n').includes(line)) t.importantInfo = [t.importantInfo, line].filter(Boolean).join('\n');
     }
     changed(planId, plan(planId).circleId);
     return { ok: true };

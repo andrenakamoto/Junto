@@ -244,8 +244,10 @@ const groups: Group[] = [
           <L items={[
             <><strong>Umfrage</strong>: eine Frage, eine Wahl. Anonym oder nicht; wenn nicht, sehen alle, wer was gewählt hat.</>,
             <><strong>Match</strong> ❤️: Alle sagen Ja oder Nein zu jedem Vorschlag (Karten zum Wischen, Foto freiwillig). Die
-              Antworten der anderen bleiben verborgen, bis du fertig bist. «Es ist ein Match», wenn alle Ja gesagt haben. Der
-              Ersteller des Plans wählt und kann die Wahl als Ort oder in die wichtigen Infos übernehmen.</>,
+              Antworten der anderen bleiben verborgen, bis du fertig bist. «Es ist ein Match», wenn alle Ja gesagt haben. Haben
+              alle gespielt (oder ist die Frist vorbei), <strong>gewinnt der Vorschlag mit den meisten Ja</strong>, bei Gleichstand ausgelost:
+              Niemand kann etwas anderes wählen. Wer den Plan erstellt hat, kann das Match beenden, wenn jemand nicht gespielt hat, und den
+              Gewinner zu den wichtigen Infos hinzufügen. Das Match eignet sich für jede Abstimmung: ein Ort, ein Menü, der schönste Kürbis…</>,
             <><strong>Wer ist dran?</strong> 🎡: Ein Rad lost eine Person des Plans aus («Ich bin dabei» und «Vielleicht»).
               Wähle die Personen ab, die du herausnehmen willst: Ihre Namen erscheinen mit dem Ergebnis. Das Rad dreht sich
               gleichzeitig auf allen Handys, die den Plan anschauen. Option «Nicht zweimal dieselbe Person».</>,

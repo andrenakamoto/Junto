@@ -1396,6 +1396,8 @@ model MatchPoll {
   deadline       DateTime?
   reminderSentAt DateTime?
   chosenOptionId String?
+  // Gagnant tiré au sort parmi des ex aequo (le gagnant est toujours la proposition qui a le plus de oui)
+  tieDraw        Boolean       @default(false)
   closedAt       DateTime?
   createdAt      DateTime      @default(now())
   options        MatchOption[]
