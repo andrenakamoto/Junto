@@ -509,6 +509,8 @@ Conséquences pratiques :
     **Version 1.0.41** (2026-11-01) : Android `versionCode` 43 (`evly-1.0.41-(43).aab`), iOS build 45 envoyé — Assemblée : pointage par
     code et QR code, liste de présence, vote dans l'ordre du jour, point en grand, vote sans téléphone (isoloir, papier), aide, description et
     notes du PV mises en forme ; visionneuse des photos des chats (défiler, zoomer) ; démo (exemples sur la page principale, assemblée jouable).
+    **Version 1.0.42** (2026-11-01) : Android `versionCode` 44 (`evly-1.0.42-(44).aab`), iOS build 46 envoyé — rubrique Membres par groupe
+    avec « Pas encore répondu » et relance, assemblée « Réservé à… », session rechargée entre onglets.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
