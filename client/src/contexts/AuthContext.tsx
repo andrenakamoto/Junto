@@ -63,6 +63,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { stopped = true; window.clearTimeout(retry); window.removeEventListener('evly-online', onOnline); };
   }, []);
 
+  // Plusieurs onglets partagent le même jeton (localStorage) : se connecter avec un autre compte (ou se déconnecter)
+  // dans un onglet change la session de tous. L'onglet resté ouvert affichait encore l'ancien compte tout en appelant le
+  // serveur avec le nouveau jeton ; on le recharge donc dès que le jeton change ailleurs (événement `storage`), et au
+  // retour sur l'onglet par sécurité (un événement manqué pendant la mise en veille).
+  useEffect(() => {
+    if (isDemo()) return;
+    const check = () => {
+      const stored = localStorage.getItem('estelle_token');
+      if (stored !== token && (stored || token)) window.location.reload();
+    };
+    const onStorage = (e: StorageEvent) => { if (e.key === 'estelle_token' || e.key === null) check(); };
+    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+    window.addEventListener('storage', onStorage);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.removeEventListener('storage', onStorage); document.removeEventListener('visibilitychange', onVisible); };
+  }, [token]);
+
   // Langue : celle du compte s'applique ; un compte sans langue reçoit celle de l'appareil
   const accountLocale = user?.locale;
   useEffect(() => {
