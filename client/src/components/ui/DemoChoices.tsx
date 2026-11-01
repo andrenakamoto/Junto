@@ -5,7 +5,7 @@ import { t } from '../../i18n';
 // « Que veux-tu découvrir ? » : un exemple par type de Plan (pages/DemoPage.tsx, fenêtre de AuthPage). Chaque tuile ouvre
 // la démo resserrée sur cet exemple (/demo?voir=…, clés de DEMO_SHOWCASE dans public/demo/data.json) ; « Tout voir » ouvre
 // la démo complète. Liens classiques : la démo démarre sur une page rechargée.
-export const DEMO_CHOICES = ['amis', 'surprise', 'pere-noel', 'jeux', 'voyage', 'cours', 'annonce', 'organisation', 'assemblee'] as const;
+export const DEMO_CHOICES = ['amis', 'surprise', 'assemblee', 'organisation', 'pere-noel', 'annonce', 'cours', 'jeux', 'voyage'] as const;
 export type DemoChoice = typeof DEMO_CHOICES[number];
 
 const kindOf = (c: DemoChoice): PlanKind | null => c === 'amis' ? null : c === 'pere-noel' ? 'pere_noel' : c;
