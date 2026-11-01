@@ -344,6 +344,12 @@ Conséquences pratiques :
     fenêtre `evly_night`). Bouton retour Android : `NativeChrome` émet
     `evly-back`, DashboardPage remonte Plan → Plans → Cercles (ou ferme le
     Plan sur écran large), sinon page précédente ou arrière-plan.
+  - **Zoom automatique d'iOS** (2026-11-01, `main.tsx`) : sur iPhone / iPad (site et app), toucher un champ de moins de 16 px
+    zoomait toute la page, qui restait zoomée. Le `viewport` reçoit `maximum-scale=1.0` **sur iOS seulement** (Safari laisse quand même
+    pincer ; sur Android, cela empêcherait de zoomer). La visionneuse des photos gère son propre zoom.
+  - **Suppression du compte** (règle Apple 5.1.1(v), refus du build 46 le 2026-11-01 : l'examinateur ne l'a pas trouvée) : menu ☰ **et**
+    bas de « Mon profil » (`ProfileModal`), qui ouvre `DeleteAccountModal`. Apple demande une vidéo sur un vrai téléphone (connexion →
+    option → suppression complète) dans la réponse et dans les notes pour l'examen.
   - **« Agenda » d'un Plan** (2026-10-10, `lib/calendar.ts`) : dans les apps, ouvre l'écran natif
     « Nouvel événement » de l'agenda, pré-rempli (`@ebarooni/capacitor-calendar` 8.7.0,
     `createEventWithPrompt` ; Android : intention d'insertion, sans autorisation ; iPhone :
