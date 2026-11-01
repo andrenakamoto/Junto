@@ -154,8 +154,9 @@ export function parseProInterest(b: any): { error: string } | { data: { name: st
 // range sous aucun jour précis.
 export const CONTINUOUS_CATEGORIES: readonly string[] = ['expo', 'festival'];
 // Sources dont une ligne « sur plusieurs jours » regroupe des représentations (pièce de théâtre jouée plusieurs soirs…) : Eventfrog,
-// et l'agenda de Genève (OpenAgenda) depuis le 2026-10-29
-const SESSION_SOURCES = ['eventfrog', 'openagenda'];
+// et l'agenda de Genève (OpenAgenda) depuis le 2026-10-29, DATAtourisme depuis le 2026-11-01 (marchés hebdomadaires, cours réguliers saisis
+// comme une période du 1er janvier au 31 décembre)
+const SESSION_SOURCES = ['eventfrog', 'openagenda', 'datatourisme'];
 export function isSessionSeries(e: { multiDay: boolean; category: string }, sourceType: string | undefined): boolean {
   return e.multiDay && SESSION_SOURCES.includes(sourceType ?? '') && !CONTINUOUS_CATEGORIES.includes(e.category);
 }
