@@ -155,6 +155,18 @@ router.delete('/:id', async (req: AuthRequest, res) => {
 });
 
 // GET /api/capsules/circle/:circleId — capsules du Cercle que je verrai (colonne du Cercle)
+// GET /api/capsules/mine — toutes mes capsules, quel que soit le Cercle (« Tous mes plans ») : elles restent accessibles à un
+// invité extérieur au Cercle ou à une personne qui l'a quitté
+router.get('/mine', async (req: AuthRequest, res) => {
+  const me = req.userId!;
+  const myPlans = await prisma.planMember.findMany({ where: { userId: me, rsvp: { not: 'out' } }, select: { planId: true } });
+  const list = await prisma.timeCapsule.findMany({
+    where: { OR: [{ audienceIds: { has: me } }, { sealedAt: null, planId: { in: myPlans.map(p => p.planId) } }] },
+    include: { _count: { select: { deposits: true } } }, orderBy: { openAt: 'asc' },
+  });
+  res.json(list.map(c => ({ id: c.id, title: c.title, openAt: c.openAt, depositUntil: c.depositUntil, stage: capsuleStage(c), depositCount: c._count.deposits, planId: c.planId, expiresAt: capsuleExpiresAt(c) })));
+});
+
 router.get('/circle/:circleId', async (req: AuthRequest, res) => {
   const me = req.userId!;
   const list = await prisma.timeCapsule.findMany({ where: { circleId: req.params.circleId }, include: { plan: { select: { id: true, creatorId: true, circleId: true, endDate: true } }, _count: { select: { deposits: true } } }, orderBy: { openAt: 'asc' } });

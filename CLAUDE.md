@@ -1795,7 +1795,10 @@ message vocal converti en MP3 par ffmpeg, 2 min ; 10 par personne, 200 Mo par ca
 colonne du Cercle), rappel « Dernier jour pour déposer » aux personnes sans dépôt (`depositReminderSentAt`), scellage **automatique** à
 la fin des dépôts ou plus tôt par « Sceller maintenant » du créateur (POST `/capsules/:id/seal`, `sealCapsule`, fige `audienceIds`), rappel 7 jours avant, ouverture, **effacement 30 jours
 après l'ouverture** (fichiers puis lignes). Notifications type `capsule` (app + push) → `/dashboard?circleId=…&capsule=<id>`. Fichiers
-par GET `/capsules/files/:depositId?t=` (jeton `purpose: 'capsule'`, avant l'ouverture seulement pour son auteur). Client : rubrique
+par GET `/capsules/files/:depositId?t=` (jeton `purpose: 'capsule'`, avant l'ouverture seulement pour son auteur). **Qui la voit** : les participants du Plan (sauf « Je passe »), la personne qui l'a créée et celles qui ont déposé — pas tout le
+Cercle ; liste figée au scellage, et gardée même après un départ du Cercle. GET `/capsules/mine` (toutes mes capsules) → section en tête
+de « Tous mes plans » (`MyCapsules`), pour un invité extérieur au Cercle ou une personne qui l'a quitté ; notification → `/dashboard?capsule=<id>`
+(fenêtre `CapsuleModal` de DashboardPage, type `capsule` connu de `NotificationToast`). Client : rubrique
 « Capsule » du Plan et section « Capsules temporelles » de la colonne du Cercle (`CircleCapsules` dans `PlanList`, fenêtre, ouverture
 en diaporama plein écran — portail sur `body` —, « On se retrouve ? » → `CreatePlanModal` avec `suggestedTitle`). Suppression du compte :
 fichiers des dépôts effacés (`removeDepositFiles`) ; du Cercle : `purgeCircleFiles`. Démo : rien (lecture vide). Guide (fiche « Capsule

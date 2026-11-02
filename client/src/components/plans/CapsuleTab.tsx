@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ImagePlus, Lock, Mic, Square, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
@@ -287,33 +286,31 @@ export function CapsuleTab({ planId }: { planId: string }) {
   );
 }
 
-// Capsules d'un Cercle (colonne du Cercle) : elles survivent aux Plans
-export function CircleCapsules({ circleId, onReunion }: { circleId: string; onReunion: (title: string) => void }) {
-  const [list, setList] = useState<CapsuleSummary[]>([]);
-  const [openId, setOpenId] = useState<string | null>(null);
+// Fenêtre d'une capsule, ouverte depuis la colonne du Cercle, « Tous mes plans » ou une notification (/dashboard?capsule=<id>,
+// DashboardPage) : elle marche aussi pour un invité extérieur au Cercle ou une personne qui l'a quitté. « On se retrouve ? »
+// seulement si l'on peut créer un Plan dans son Cercle (`onReunion` reçoit le Cercle et le titre proposé).
+export function CapsuleModal({ id, onClose, onReunion, canReunion, onChanged }: { id: string; onClose: () => void; onReunion?: (circleId: string, title: string) => void; canReunion?: (circleId: string) => boolean; onChanged?: () => void }) {
   const [capsule, setCapsule] = useState<Capsule | null>(null);
-  const [params, setParams] = useSearchParams();
-  useEffect(() => {
-    let alive = true;
-    api.get(`/capsules/circle/${circleId}`).then(r => { if (alive) setList(r.data); }).catch(() => {});
-    return () => { alive = false; };
-  }, [circleId]);
-  // Lien d'une notification : /dashboard?circleId=…&capsule=<id> (DashboardPage ouvre le Cercle, on ouvre la capsule)
-  useEffect(() => {
-    const q = params.get('capsule');
-    if (!q) return;
-    setOpenId(q);
-    setParams(prev => { prev.delete('capsule'); return prev; }, { replace: true });
-  }, [params]);
-  useResync(() => api.get(`/capsules/circle/${circleId}`).then(r => setList(r.data)).catch(() => {}));
-  const loadOne = (id: string) => api.get(`/capsules/${id}`).then(r => setCapsule(r.data)).catch(() => setOpenId(null));
-  useEffect(() => { if (openId) loadOne(openId); else setCapsule(null); }, [openId]);
-  if (!list.length && !openId) return null;
+  const load = () => api.get(`/capsules/${id}`).then(r => setCapsule(r.data)).catch(() => onClose());
+  useEffect(() => { load(); }, [id]);
+  useResync(load);
+  if (!capsule) return null;
+  return (
+    <Modal title={t('capsule.title')} onClose={onClose} wide>
+      <CapsuleView capsule={capsule} onChanged={() => { load(); onChanged?.(); }}
+        onReunion={onReunion && (!canReunion || canReunion(capsule.circleId)) ? title => { onClose(); onReunion(capsule.circleId, title); } : undefined} />
+    </Modal>
+  );
+}
+
+// Liste de capsules (une carte par capsule)
+export function CapsuleList({ list, onOpen }: { list: CapsuleSummary[]; onOpen: (id: string) => void }) {
+  if (!list.length) return null;
   return (
     <div className="space-y-2">
-      {list.length > 0 && <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">⏳ {t('capsule.circle.section')}</p>}
+      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">⏳ {t('capsule.circle.section')}</p>
       {list.map(c => (
-        <button key={c.id} onClick={() => setOpenId(c.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl border shadow-sm text-left ${c.stage === 'opened' ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'}`}>
+        <button key={c.id} onClick={() => onOpen(c.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl border shadow-sm text-left ${c.stage === 'opened' ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'}`}>
           <Box open={c.stage === 'opened'} size={40} />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-slate-800 truncate">{c.title}</span>
@@ -323,12 +320,30 @@ export function CircleCapsules({ circleId, onReunion }: { circleId: string; onRe
           </span>
         </button>
       ))}
-      {openId && capsule && (
-        <Modal title={t('capsule.title')} onClose={() => setOpenId(null)} wide>
-          <CapsuleView capsule={capsule} onChanged={() => { loadOne(capsule.id); api.get(`/capsules/circle/${circleId}`).then(r => setList(r.data)).catch(() => {}); }}
-            onReunion={title => { setOpenId(null); onReunion(title); }} />
-        </Modal>
-      )}
     </div>
+  );
+}
+
+// Mes capsules de tous les Cercles (« Tous mes plans ») : GET /capsules/mine
+export function MyCapsules({ onOpen, refreshKey }: { onOpen: (id: string) => void; refreshKey?: unknown }) {
+  const [list, setList] = useState<CapsuleSummary[]>([]);
+  const load = () => api.get('/capsules/mine').then(r => setList(r.data)).catch(() => {});
+  useEffect(() => { load(); }, [refreshKey]);
+  useResync(load);
+  return <CapsuleList list={list} onOpen={onOpen} />;
+}
+
+// Capsules d'un Cercle (colonne du Cercle) : elles survivent aux Plans
+export function CircleCapsules({ circleId, onReunion }: { circleId: string; onReunion: (title: string) => void }) {
+  const [list, setList] = useState<CapsuleSummary[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const load = () => api.get(`/capsules/circle/${circleId}`).then(r => setList(r.data)).catch(() => {});
+  useEffect(() => { load(); }, [circleId]);
+  useResync(load);
+  return (
+    <>
+      <CapsuleList list={list} onOpen={setOpenId} />
+      {openId && <CapsuleModal id={openId} onClose={() => setOpenId(null)} onChanged={load} onReunion={(_, title) => onReunion(title)} />}
+    </>
   );
 }

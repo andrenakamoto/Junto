@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { t } from '../../i18n';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark, Brain, Bus } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark, Brain, Bus, Hourglass } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
   type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting' | 'availability'
-    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder';
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder' | 'capsule';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -18,6 +18,8 @@ export interface AppNotification {
   preview?: string;
   /** Rubrique du Plan à ouvrir (plan_activity des Tâches…) */
   tab?: string;
+  /** Capsule temporelle (type capsule) */
+  capsuleId?: string;
   at: number;
 }
 
@@ -111,6 +113,7 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
   waitlist: { icon: PartyPopper, iconClass: 'text-emerald-300', bgClass: 'bg-emerald-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? t('notif.waitlistBody') },
   transit: { icon: Bus, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   transit_reminder: { icon: Bus, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
+  capsule: { icon: Hourglass, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   shift: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   shift_reminder: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   words: { icon: Speech, iconClass: 'text-violet-300', bgClass: 'bg-violet-600/30', title: n => t('notif.wordsTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },

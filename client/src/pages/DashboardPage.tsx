@@ -14,6 +14,7 @@ import { PlanDetail } from '../components/plans/PlanDetail';
 import { PollDetail } from '../components/circles/PollDetail';
 import { CircleChat } from '../components/circles/CircleChat';
 import { AllPlansView } from '../components/plans/AllPlansView';
+import { CapsuleModal } from '../components/plans/CapsuleTab';
 import { CalendarView } from '../components/plans/CalendarView';
 import { ContactsView } from '../components/circles/ContactsView';
 import { DiscoverView } from '../components/discover/DiscoverView';
@@ -65,6 +66,9 @@ export function DashboardPage() {
   const [discoverActive, setDiscoverActive] = useState(false);
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
+  // Capsule temporelle ouverte (notification, « Tous mes plans ») et titre proposé par « On se retrouve ? »
+  const [openCapsuleId, setOpenCapsuleId] = useState<string | null>(null);
+  const [reunionTitle, setReunionTitle] = useState<string | null>(null);
   // Plan spécifique demandé par une page publique (/pere-noel) : choix du Cercle, puis création
   const [createKind, setCreateKind] = useState<PlanKind | null>(null);
   const [chooseKindCircle, setChooseKindCircle] = useState(false);
@@ -118,6 +122,13 @@ export function DashboardPage() {
     if (searchParams.get('invitations') !== '1') return;
     setShowNotifCenter(true);
     setSearchParams(prev => { prev.delete('invitations'); return prev; }, { replace: true });
+  }, [searchParams]);
+  // Lien d'une notification de capsule : /dashboard?capsule=<id> (même sans être membre du Cercle)
+  useEffect(() => {
+    const id = searchParams.get('capsule');
+    if (!id) return;
+    setOpenCapsuleId(id);
+    setSearchParams(prev => { prev.delete('capsule'); return prev; }, { replace: true });
   }, [searchParams]);
   // Apps : à l'ouverture (et à chaque retour dans l'app), les notifications du volet du
   // téléphone disparaissent
@@ -433,6 +444,8 @@ export function DashboardPage() {
   function openNotification(n: AppNotification) {
     if (n.type === 'circle_invite') {
       setShowNotifCenter(true);
+    } else if (n.type === 'capsule' && n.capsuleId) {
+      setOpenCapsuleId(n.capsuleId);
     } else if (n.type === 'suggestion_update') {
       // Ouvre « Proposer une amélioration » sur le suivi (CircleSidebar lit ce paramètre)
       setSearchParams(prev => { prev.set('suggestions', '1'); return prev; }, { replace: true });
@@ -785,6 +798,7 @@ export function DashboardPage() {
             selectedPlanId={selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
             refreshSignal={plansRefreshSignal}
+            onOpenCapsule={setOpenCapsuleId}
           />
         </div>
       ) : selectedCircle ? (
@@ -866,9 +880,15 @@ export function DashboardPage() {
         circleId={createPlanIn}
         circleMembers={circles.find(c => c.id === createPlanIn)!.members}
         kind={createKind}
-        onClose={() => { setCreatePlanIn(null); setCreateKind(null); }}
-        onCreated={(plan, tab) => { setCreatePlanIn(null); setCreateKind(null); handlePlanCreated(plan, tab); }}
+        suggestedTitle={reunionTitle ?? undefined}
+        onClose={() => { setCreatePlanIn(null); setCreateKind(null); setReunionTitle(null); }}
+        onCreated={(plan, tab) => { setCreatePlanIn(null); setCreateKind(null); setReunionTitle(null); handlePlanCreated(plan, tab); }}
       />
+    )}
+    {openCapsuleId && (
+      <CapsuleModal id={openCapsuleId} onClose={() => setOpenCapsuleId(null)} onChanged={() => setPlansRefreshSignal(s => s + 1)}
+        canReunion={circleId => circles.some(c => c.id === circleId)}
+        onReunion={(circleId, title) => { setReunionTitle(title); setCreateKind(null); setCreatePlanIn(circleId); }} />
     )}
     </PhotosProvider>
     </MuteProvider>

@@ -1,3 +1,4 @@
+import { MyCapsules } from './CapsuleTab';
 import { useEffect, useState } from 'react';
 import { endedLast, isPlanEnded } from '../../lib/planEnd';
 import { Calendar, Users, MessageSquare, ChevronLeft } from 'lucide-react';
@@ -16,6 +17,8 @@ interface Props {
   selectedPlanId: string | null;
   onBack: () => void;
   refreshSignal?: number;
+  /** Capsules temporelles : ouvertes par DashboardPage (CapsuleModal) */
+  onOpenCapsule?: (id: string) => void;
 }
 
 const rsvpBadge = {
@@ -25,7 +28,7 @@ const rsvpBadge = {
 };
 const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 
-export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
+export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal, onOpenCapsule }: Props) {
   const { user } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,8 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 short:flex-none short:overflow-visible">
+        {/* Capsules temporelles de tous mes Cercles (aussi celles d'un Plan où j'étais invité de l'extérieur) */}
+        {onOpenCapsule && <MyCapsules onOpen={onOpenCapsule} refreshKey={refreshSignal} />}
         {loading ? (
           <div className="text-center py-8 text-slate-500 text-sm">{t('common.loading')}</div>
         ) : plans.length === 0 ? (

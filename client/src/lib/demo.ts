@@ -898,6 +898,7 @@ function route(method: string, path: string, body: any): any {
     if ((m = path.match(/^\/contacts\/([^/]+)$/))) return demoPerson(m[1]);
     // Capsule temporelle : pas dans la démo (la rubrique explique la fonction, sans création)
     if (path.startsWith('/capsules/circle/')) return [];
+    if (path === '/capsules/mine') return [];
     if (path.startsWith('/capsules/plan/')) return { capsule: null, canCreate: false };
     // Plan mystère : pas dans la démo
     if (path.match(/^\/plans\/[^/]+\/mystery$/)) return { mystery: null, canManage: false };
