@@ -363,6 +363,14 @@ const groups: Group[] = [
           gelöscht ist). 30 Tage nach dem Öffnen wird sie gelöscht: Speichere deine Lieblingsfotos. «Sehen wir uns wieder?» schlägt einen neuen Plan vor.</P>,
       },
       {
+        id: 'mystere', emoji: '🔍', title: 'Mystery-Plan', summary: 'Ein geheimes Ziel, nach und nach enthüllt',
+        body: <P>«Erstellen › Spezieller Plan › Mystery-Plan». Die Gäste sehen nur den öffentlichen Titel («Samstag gehen wir aus. Punkt.»), die
+          Uhrzeit und den Treffpunkt; der echte Titel und der echte Ort bleiben geheim. In der Rubrik Mystery bereitet die Organisation
+          Hinweise vor, die sich zu ihrer Zeit mit einer Benachrichtigung von selbst enthüllen, und wählt Komplizen, die alles sehen. Die
+          Gäste wetten auf das Ziel. Zur Enthüllung (spätestens beim Beginn des Plans) erscheinen der echte Titel und Ort für alle, mit den
+          Wetten aller. «Jetzt alles enthüllen» zieht den Moment vor, zum Beispiel bei Regen.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Wichteln', summary: 'Auslosung und anonyme Geschenke',
         body: <P>Das Datum des Plans ist der Tag des Geschenkaustauschs. Alle notieren ihre Wünsche (oder «kein besonderer
           Wunsch»), der Organisator startet die Auslosung. Du kennst nur die Person, die du beschenkst; zwei anonyme Chats

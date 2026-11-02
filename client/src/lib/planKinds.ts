@@ -6,7 +6,7 @@ import { Recurrence } from './recurrence';
 // « Créer › Plan spécifique » : chaque type pré-règle la fenêtre de création (fonctions, règles, dates, infos importantes).
 // Rien n'est figé : tout reste modifiable dans « Plus d'options », puis dans « Modifier ». Le serveur garde seulement le
 // type (Plan.kind) pour les statistiques (server/src/lib/planKinds.ts).
-export type PlanKind = 'surprise' | 'pere_noel' | 'assemblee' | 'organisation' | 'annonce' | 'cours' | 'jeux' | 'voyage';
+export type PlanKind = 'surprise' | 'pere_noel' | 'assemblee' | 'organisation' | 'annonce' | 'cours' | 'jeux' | 'voyage' | 'mystere';
 
 export const PLAN_KINDS: { kind: PlanKind; emoji: string; managersOnly?: boolean }[] = [
   { kind: 'surprise', emoji: '🎂' },
@@ -17,6 +17,7 @@ export const PLAN_KINDS: { kind: PlanKind; emoji: string; managersOnly?: boolean
   { kind: 'cours', emoji: '🔁' },
   { kind: 'jeux', emoji: '🎲' },
   { kind: 'voyage', emoji: '🧳' },
+  { kind: 'mystere', emoji: '🔍' },
 ];
 
 // Jeux proposés par « Soirée jeux » (au moins un)
@@ -24,6 +25,8 @@ export const KIND_GAMES: OptionalFeature[] = ['quiz', 'killer', 'mot_piege', 'eq
 
 export interface KindPreset {
   title?: string;
+  /** Lieu proposé (Plan mystère : le lieu public) */
+  location?: string;
   start?: string; end?: string;
   /** Durée proposée quand on choisit le début (3 h sinon) */
   durationMs?: number;
@@ -68,5 +71,7 @@ export function kindPreset(kind: PlanKind): KindPreset {
       return {};
     case 'voyage':
       return { durationMs: 2 * 864e5, importantInfo: t('plan.kinds.voyage.info') };
+    case 'mystere':
+      return { title: t('plan.kinds.mystere.title'), location: t('plan.kinds.mystere.place'), enabled: ['mystere'], tab: 'mystere' };
   }
 }

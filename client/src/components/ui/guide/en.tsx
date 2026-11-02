@@ -348,6 +348,14 @@ const groups: Group[] = [
           photos. "Shall we meet again?" suggests a new Plan.</P>,
       },
       {
+        id: 'mystere', emoji: '🔍', title: 'Mystery Plan', summary: 'A secret destination, revealed bit by bit',
+        body: <P>"Create › Special Plan › Mystery Plan". Guests only see the public title ("Saturday, we go out. Full stop."), the time and the
+          meeting point; the real title and place stay secret. In the Mystery section, the organiser prepares clues that reveal themselves at
+          their time, with a notification, and picks accomplices who see everything. Guests bet on the destination. At the reveal (at the
+          latest when the Plan starts), the real title and place appear for everyone, along with everyone's bets. "Reveal everything now"
+          brings the moment forward, if it rains for example.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Secret Santa', summary: 'Random draw and anonymous gifts',
         body: <P>The Plan’s date is the day of the gift exchange. Everyone writes their wishes (or “no particular wish”), the
           organiser runs the draw. You only know the person you’re spoiling; two anonymous chats let you ask questions.

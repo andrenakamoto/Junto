@@ -899,6 +899,8 @@ function route(method: string, path: string, body: any): any {
     // Capsule temporelle : pas dans la démo (la rubrique explique la fonction, sans création)
     if (path.startsWith('/capsules/circle/')) return [];
     if (path.startsWith('/capsules/plan/')) return { capsule: null, canCreate: false };
+    // Plan mystère : pas dans la démo
+    if (path.match(/^\/plans\/[^/]+\/mystery$/)) return { mystery: null, canManage: false };
     // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
     if (path === '/circles') return (fixtures![key] as any[]).map(c => {
       const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());

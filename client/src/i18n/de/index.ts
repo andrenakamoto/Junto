@@ -17,6 +17,7 @@ import program from './program';
 import ideas from './ideas';
 import noel from './noel';
 import capsule from './capsule';
+import mystery from './mystery';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas, noel, capsule };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas, noel, capsule, mystery };
 export default dict;

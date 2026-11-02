@@ -52,7 +52,10 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || preset?.start || '');
   const [endDate, setEndDate] = useState(preset?.end ? preset.end : fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
   const [endTouched, setEndTouched] = useState(!!fromEvent || !!preset?.end);
-  const [location, setLocation] = useState(fromEvent?.location ?? '');
+  const [location, setLocation] = useState(fromEvent?.location ?? preset?.location ?? '');
+  // Plan mystère : vrai titre et vrai lieu, envoyés à part (PUT /plans/:id/mystery) et jamais dans le Plan avant le dévoilement
+  const [realTitle, setRealTitle] = useState('');
+  const [realPlace, setRealPlace] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('creator');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(preset?.disabled ?? []);
@@ -102,6 +105,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     // Plan spécifique : ce qui fait le type doit être rempli
     if (kind === 'surprise' && (vis.mode !== 'hidden' || vis.excluded.length === 0)) { setError(t('plan.kinds.surprise.required')); return; }
     if (kind === 'jeux' && !KIND_GAMES.some(g => enabledFeatures.includes(g))) { setError(t('plan.kinds.jeux.required')); return; }
+    if (kind === 'mystere' && (!realTitle.trim() || !realPlace.trim())) { setError(t('plan.kinds.mystere.required')); return; }
     if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
     setLoading(true);
     setError('');
@@ -134,6 +138,8 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
       const { data } = fromPoll
         ? await api.post(`/circles/polls/${fromPoll.pollId}/convert`, { ...payload, optionId: fromPoll.optionId })
         : await api.post(`/circles/${circleId}/plans`, payload);
+      // Plan mystère : le secret est enregistré tout de suite après (s'il échoue, la rubrique Mystère permet de le refaire)
+      if (kind === 'mystere') await api.put(`/plans/${data.id}/mystery`, { realTitle: realTitle.trim(), realLocation: realPlace.trim() }).catch(() => {});
       onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : undefined));
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
@@ -148,7 +154,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
         <p className="flex items-center gap-2 text-sm text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 mb-4"><Megaphone size={15} className="flex-shrink-0 text-indigo-500" />{t('plan.goWith.note', { title: fromEvent.title })}</p>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label={t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />
+        <Input label={kind === 'mystere' ? t('plan.kinds.mystere.titleLabel') : t('plan.form.title')} value={title} onChange={e => setTitle(e.target.value)} placeholder={t('plan.form.titlePlaceholder')} required autoFocus />
         {kind && (
           <div className="text-sm text-indigo-900 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
             <p className="font-semibold">{PLAN_KINDS.find(k => k.kind === kind)?.emoji} {t(`plan.kinds.${kind}.name`)}</p>
@@ -178,7 +184,13 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
             </div>
           </div>
         )}
-        <Input label={t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
+        <Input label={kind === 'mystere' ? t('plan.kinds.mystere.placeLabel') : t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
+        {kind === 'mystere' && (
+          <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
+            <Input label={`🤫 ${t('plan.kinds.mystere.realTitle')}`} value={realTitle} onChange={e => setRealTitle(e.target.value)} placeholder={t('plan.kinds.mystere.realTitlePlaceholder')} maxLength={100} />
+            <Input label={`🤫 ${t('plan.kinds.mystere.realPlace')}`} value={realPlace} onChange={e => setRealPlace(e.target.value)} placeholder={t('plan.kinds.mystere.realPlacePlaceholder')} maxLength={200} />
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-slate-700">{t('plan.form.description')}</label>
           <RichTextArea value={description} onChange={setDescription} max={DESCRIPTION_MAX} rows={2} placeholder={t('plan.form.descriptionPlaceholder')} />

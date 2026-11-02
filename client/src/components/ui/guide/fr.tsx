@@ -353,6 +353,14 @@ const groups: Group[] = [
           effacée 30 jours après l'ouverture : enregistre tes photos préférées. « On se retrouve ? » propose un nouveau Plan.</P>,
       },
       {
+        id: 'mystere', emoji: '🔍', title: 'Plan mystère', summary: 'Une destination secrète, dévoilée petit à petit',
+        body: <P>« Créer › Plan spécifique › Plan mystère ». Les invités ne voient que le titre public (« Samedi, on sort. Point. »), l'heure et
+          le point de rendez-vous ; le vrai titre et le vrai lieu restent secrets. Dans la rubrique Mystère, l'organisateur prépare des
+          indices qui se dévoilent tout seuls à leur heure, avec une notification, et choisit des complices qui voient tout. Les invités
+          parient sur la destination. À l'heure du dévoilement (au plus tard au début du Plan), le vrai titre et le vrai lieu apparaissent
+          pour tous, avec les paris de chacun. « Tout dévoiler maintenant » avance le moment, s'il pleut par exemple.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Père Noël secret', summary: 'Tirage au sort et cadeaux anonymes',
         body: <P>La date du Plan est celle de l'échange des cadeaux. Chacun note ses envies (ou « pas d'envie particulière »),
           l'organisateur lance le tirage. Tu ne connais que la personne que tu gâtes ; deux conversations anonymes permettent

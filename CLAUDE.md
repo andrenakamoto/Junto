@@ -1766,6 +1766,22 @@ pinçant / double toucher / double clic / molette puis déplacement dans la phot
 photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
 
+**Plan mystère** (2026-11-02, `lib/mystery.ts` testé, `routes/mystery.ts` monté dans le routeur des Plans, `components/plans/MysteryTab.tsx`,
+dictionnaire `i18n/<langue>/mystery.ts`, migration `20261113100000_plan_mystery`) : fonction à activer (`mystere`, Fêter et offrir) et type
+**« Plan mystère »** de « Créer › Plan spécifique » (titre « Samedi, on sort. Point. », lieu « Lieu mystère », champs du vrai titre et du vrai
+lieu envoyés par PUT `/plans/:id/mystery` juste après la création ; ouvre la rubrique Mystère). **Principe anti-fuite : tant que le mystère
+dure, `Plan.title` et `Plan.location` sont les valeurs PUBLIQUES** (cartes, notifications, .ics, « En bref », récapitulatif, Découvrir n'ont
+rien à cacher) ; le vrai titre et le vrai lieu sont dans **PlanMystery** (`realTitle`, `realLocation`, `revealAt` ≤ début du Plan, défaut
+1 h avant, `accompliceIds`, `revealedAt`), renvoyés seulement par GET `/plans/:id/mystery` à l'organisation (créateur du Plan, gestionnaires
+du Cercle) et aux complices (`mysteryView` : jamais le texte d'un indice à venir ni les paris des autres avant le dévoilement). **Ne jamais
+mettre le vrai titre ou le vrai lieu dans le Plan avant `revealMystery`**, qui les recopie dans le Plan (`publicTitle` / `publicLocation`
+gardés), dévoile les indices restants, notifie et rafraîchit Découvrir. **PlanMysteryClue** (8 au plus, dévoilés à l'heure par
+`mysteryTick`, toutes les 5 min, gated ; « Dévoiler maintenant ») ; **PlanMysteryGuess** (un pari par participant hors confidence, PUT /
+DELETE `/plans/:id/mystery/guess`, montrés à tous au dévoilement). « Tout dévoiler maintenant » : POST `/plans/:id/mystery/reveal` ;
+« Renoncer au mystère » : DELETE. Notifications `plan_activity` avec `tab: 'mystere'` (nouvel indice, mystère levé, complice ajouté) aux
+participants sauf « Je passe ». Écran plein « Vous allez à… » une fois par appareil (`evly_mystery_seen_<planId>`). Pas dans la démo. Fiche
+« Plan mystère » du guide.
+
 **Capsule temporelle** (2026-11-02, `lib/capsule.ts` testé, `routes/capsules.ts` sur **`/api/capsules`** — hors du routeur des Plans,
 pour rester utilisable une fois le Plan terminé ou supprimé —, migration `20261112100000_time_capsule`, `components/plans/CapsuleTab.tsx`,
 dictionnaire `i18n/<langue>/capsule.ts`) : fonction **à activer** (`capsule`, catégorie Fêter et offrir). Le créateur du Plan (ou un

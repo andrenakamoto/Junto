@@ -43,6 +43,7 @@ import volunteerRoutes from './volunteers';
 import taskRoutes from './tasks';
 import programRoutes from './program';
 import ideaRoutes from './ideas';
+import mysteryRoutes from './mystery';
 import { canInviteGuests, GUEST_ORDER } from '../lib/planInvites';
 import { canPublishPlan, publishBlocker, publishPlan, refreshPlanDiscover, unpublishPlan } from '../lib/discover/planPublish';
 import transitRoutes from './transit';
@@ -71,6 +72,7 @@ router.use(volunteerRoutes);
 router.use(taskRoutes);
 router.use(programRoutes);
 router.use(ideaRoutes);
+router.use(mysteryRoutes);
 router.use(transitRoutes);
 // Père Noël secret (/:id/santa…), Killer (/:id/killer…), équipes (/:id/teams…), cagnotte (/:id/pot…)
 router.use(secretSantaRoutes);

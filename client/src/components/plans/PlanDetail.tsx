@@ -3,7 +3,7 @@ import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
 import { PublishDiscoverModal } from './PublishDiscoverModal';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb, HelpCircle } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -31,6 +31,7 @@ import { TasksTab } from './TasksTab';
 import { ProgramTab } from './ProgramTab';
 import { IdeasTab } from './IdeasTab';
 import { CapsuleTab } from './CapsuleTab';
+import { MysteryTab } from './MysteryTab';
 import { PlanTabBar } from './PlanTabBar';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
@@ -67,7 +68,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'taches' | 'deroule' | 'idees' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee' | 'capsule';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'taches' | 'deroule' | 'idees' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee' | 'capsule' | 'mystere';
 
 const rsvpConfig = {
   // Réponses non choisies : blanches, bordées de la couleur de la réponse (elles avaient l'air désactivées en gris)
@@ -95,8 +96,9 @@ const tabs = [
   { key: 'equipes' as Tab,    Icon: Trophy,           label: t('plan.detail.tabs.equipes') },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: t('plan.detail.tabs.cagnotte') },
   { key: 'capsule' as Tab,    Icon: Hourglass,        label: t('plan.detail.tabs.capsule') },
+  { key: 'mystere' as Tab,    Icon: HelpCircle,       label: t('plan.detail.tabs.mystere') },
 ];
-const OPTIONAL_TABS: Tab[] = ['taches', 'deroule', 'idees', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'capsule'];
+const OPTIONAL_TABS: Tab[] = ['taches', 'deroule', 'idees', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'capsule', 'mystere'];
 
 interface Props {
   plan: Plan;
@@ -1158,6 +1160,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'deroule' && <ProgramTab plan={plan} userId={user.id} />}
           {activeTab === 'idees' && <IdeasTab plan={plan} userId={user.id} />}
           {activeTab === 'capsule' && <CapsuleTab planId={plan.id} />}
+          {activeTab === 'mystere' && <MysteryTab plan={plan} userId={user.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

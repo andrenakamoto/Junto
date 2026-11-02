@@ -356,6 +356,14 @@ const groups: Group[] = [
           cancellata 30 giorni dopo l'apertura: salva le tue foto preferite. «Ci ritroviamo?» propone un nuovo Plan.</P>,
       },
       {
+        id: 'mystere', emoji: '🔍', title: 'Plan misterioso', summary: 'Una destinazione segreta, svelata a poco a poco',
+        body: <P>«Crea › Plan specifico › Plan misterioso». Gli invitati vedono solo il titolo pubblico («Sabato si esce. Punto.»), l'ora e il
+          punto di ritrovo; il vero titolo e il vero luogo restano segreti. Nella sezione Mistero chi organizza prepara indizi che si svelano
+          da soli alla loro ora, con una notifica, e sceglie dei complici che vedono tutto. Gli invitati scommettono sulla destinazione.
+          All'ora della rivelazione (al più tardi all'inizio del Plan) il vero titolo e il vero luogo appaiono per tutti, con le scommesse di
+          ciascuno. «Svela tutto ora» anticipa il momento, per esempio se piove.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Babbo Natale segreto', summary: 'Sorteggio e regali anonimi',
         body: <P>La data del Plan è quella dello scambio dei regali. Ognuno scrive i suoi desideri (o «nessun desiderio
           particolare»), l’organizzatore lancia il sorteggio. Conosci solo la persona che vizi; due conversazioni anonime

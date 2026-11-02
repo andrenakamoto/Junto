@@ -178,6 +178,8 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
   if (a === 'messages' || b === 'guest-link' || b === 'seen') return null;
   // Père Noël secret : rechargement seulement — pas de pastille ni d'activité (tout y est privé)
   if (b === 'santa') return planTarget(a, false);
+  // Plan mystère : rechargement (le dévoilement change le titre : liste du Cercle comprise) ; notifications envoyées par lib/mystery.ts
+  if (b === 'mystery') return planTarget(a, true);
   // Killer, équipes, cagnotte : rechargement seulement (leurs notifications sont envoyées par les routes)
   if (b === 'quiz') return null;
   if (b === 'killer' || b === 'teams' || b === 'pot' || b === 'words' || b === 'assembly') return planTarget(a, false);

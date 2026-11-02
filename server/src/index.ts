@@ -42,6 +42,7 @@ import { endDueWordGames } from './lib/wordGame';
 import { sendShiftReminders } from './lib/volunteers';
 import { sendTaskReminders } from './lib/tasks';
 import { sendProgramReminders } from './lib/program';
+import { mysteryTick } from './lib/mystery';
 import { sendTransitReminders } from './lib/transit';
 import { finalizeDueMatches, sendMatchReminders } from './lib/matchPoll';
 import { spawnRecurringPlans } from './lib/recurrence';
@@ -176,6 +177,9 @@ if (cronEnabled) {
   setInterval(() => sendTaskReminders(io), 60 * 60 * 1000);
   // Déroulé : rappel aux responsables 10 minutes avant leur moment
   setInterval(() => sendProgramReminders(io), 5 * 60 * 1000);
+  // Plan mystère : indices et dévoilement à l'heure prévue
+  mysteryTick(io);
+  setInterval(() => mysteryTick(io), 5 * 60 * 1000);
   // Transports publics : rappel 30 minutes avant un voyage partagé
   setInterval(() => sendTransitReminders(io), 5 * 60 * 1000);
   // Le mot piège : fin des parties à l'heure choisie

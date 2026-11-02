@@ -123,6 +123,7 @@ model User {
   // Découvrir : peut publier ses Plans en Mode annonce (accordé à la main dans le panneau admin)
   canPublishDiscover     Boolean                     @default(false)
   capsuleDeposits        CapsuleDeposit[]
+  mysteryGuesses         PlanMysteryGuess[]
 
   @@index([lastActiveAt])
 }
@@ -434,6 +435,9 @@ model Plan {
   guestLink         PlanGuestLink?
   discoverEvent     DiscoverEvent?
   capsule           TimeCapsule?
+  mystery           PlanMystery?
+  mysteryClues      PlanMysteryClue[]
+  mysteryGuesses    PlanMysteryGuess[]
 
   @@index([sourcePlanId])
 }
@@ -1895,4 +1899,50 @@ model CapsuleDeposit {
   createdAt DateTime    @default(now())
 
   @@index([capsuleId])
+}
+
+// Plan mystère (lib/mystery.ts, 2026-11-02) : les invités ne connaissent que le titre et le lieu publics (Plan.title et
+// Plan.location tant que le mystère dure) ; le vrai titre et le vrai lieu sont ici, pour l'organisation et les complices.
+// Au dévoilement, ils remplacent le titre et le lieu du Plan.
+model PlanMystery {
+  planId         String    @id
+  plan           Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  realTitle      String
+  realLocation   String
+  publicTitle    String?
+  publicLocation String?
+  revealAt       DateTime
+  revealedAt     DateTime?
+  accompliceIds  String[]  @default([])
+  createdAt      DateTime  @default(now())
+
+  @@index([revealAt])
+}
+
+// Indices dévoilés un par un à l'heure prévue
+model PlanMysteryClue {
+  id         String    @id @default(cuid())
+  planId     String
+  plan       Plan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  text       String
+  revealAt   DateTime
+  revealedAt DateTime?
+  position   Int       @default(0)
+
+  @@index([planId])
+  @@index([revealAt])
+}
+
+// « Tes paris » : ce que chaque invité devine, montré à tous au dévoilement
+model PlanMysteryGuess {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, userId])
 }
