@@ -347,6 +347,15 @@ const groups: Group[] = [
           Nessun denaro passa da EvLY. Ricordati di nascondere il Plan alla persona festeggiata («Nascondi a…», «È una sorpresa»).</P>,
       },
       {
+        id: 'capsule', emoji: '⏳', title: 'Capsula del tempo', summary: 'Ricordi da riaprire tra un anno',
+        body: <P>Da attivare nelle funzioni del Plan (Festeggiare e regalare). Chi ha creato il Plan sceglie la data di apertura (tra 1 anno,
+          o un'altra data entro l'anno). Durante il Plan e fino a 7 giorni dopo la sua fine, ognuno deposita un messaggio, una foto o un
+          messaggio vocale: nessuno vede quelli degli altri. Tutti vengono avvisati alla creazione e il giorno prima della fine dei depositi; poi la capsula si sigilla da sola (chi l'ha
+          creata può anche «Sigillare ora»). Compare nella colonna del Cerchio, sotto «Capsule del tempo». Il giorno stabilito tutto il gruppo viene
+          avvisato e la apre insieme, ricordo dopo ricordo, dal Cerchio (la capsula resta anche quando il Plan è eliminato). Viene
+          cancellata 30 giorni dopo l'apertura: salva le tue foto preferite. «Ci ritroviamo?» propone un nuovo Plan.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Babbo Natale segreto', summary: 'Sorteggio e regali anonimi',
         body: <P>La data del Plan è quella dello scambio dei regali. Ognuno scrive i suoi desideri (o «nessun desiderio
           particolare»), l’organizzatore lancia il sorteggio. Conosci solo la persona che vizi; due conversazioni anonime

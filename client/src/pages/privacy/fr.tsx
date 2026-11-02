@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 1er novembre 2026',
+  version: 'Version du 2 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -154,6 +154,7 @@ const fr: PrivacyText = {
         <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur
           conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
           proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
+        <li><strong>Capsules temporelles</strong> (fonction à activer dans un Plan) : les mots, photos et messages vocaux déposés sont gardés jusqu'à la date d'ouverture choisie par le créateur du Plan (un an au plus après le Plan), même après la suppression du Plan, puis effacés automatiquement 30 jours après l'ouverture. Les textes sont chiffrés, les photos refaites sans leurs métadonnées (position GPS comprise). Avant l'ouverture, chacun ne voit que ses propres dépôts et peut les retirer jusqu'au scellage ; supprimer son compte efface ses dépôts.</li>
         <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
         <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
         <li><strong>Sauvegardes</strong> : une copie de la base de données est faite chaque nuit, gardée 14 jours sur le serveur et 30 jours sur Swiss Backup (Infomaniak, Suisse), avec une copie des photos et fichiers. Elles servent uniquement à restaurer EvLY en cas de panne ; un Plan supprimé peut y subsister jusqu’à 30 jours.</li>

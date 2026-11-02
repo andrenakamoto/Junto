@@ -82,6 +82,7 @@ const settings: Dict['settings'] = {
     mot_piege: 'The trap word (game)',
     equipes: 'Team draw and tournament',
     cagnotte: 'Gift pot',
+    capsule: 'Time capsule',
     assemblee: 'Assembly (agenda, votes, minutes)',
   },
   groups: {
@@ -102,6 +103,7 @@ const settings: Dict['settings'] = {
     idees: { label: 'Ideas', hint: 'An ideas board to project during a session: themes, show-of-hands votes, kept ideas turned into tasks' },
     assemblee: { label: 'Assembly', hint: 'Agenda, proxies, votes, minutes' },
     cagnotte: { label: 'Gift pot', hint: 'A shared gift, ideas and votes' },
+    capsule: { label: 'Time capsule', hint: 'Sealed memories, opened in 1, 5 or 10 years' },
     pere_noel: { label: 'Secret Santa', hint: 'Draw and anonymous gifts' },
     quiz: { label: 'Quiz', hint: 'Live questions, leaderboard' },
     killer: { label: 'Killer', hint: 'A target, an object, a place' },

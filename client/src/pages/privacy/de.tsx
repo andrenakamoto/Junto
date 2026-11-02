@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 1. November 2026',
+  version: 'Fassung vom 2. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -148,6 +148,7 @@ const de: PrivacyText = {
         <li><strong>Terminumfragen</strong>: gelöscht, sobald daraus ein Plan wird (ihr Chat wird in den Plan
           übernommen), sonst automatisch am Tag nach dem letzten vorgeschlagenen Termin und spätestens 30 Tage nach ihrer
           Erstellung, mit ihren Stimmen und ihrem Chat.</li>
+        <li><strong>Zeitkapseln</strong> (in einem Plan einschaltbare Funktion): Die hineingelegten Nachrichten, Fotos und Sprachnachrichten werden bis zum Öffnungsdatum aufbewahrt, das die Person wählt, die den Plan erstellt hat (höchstens ein Jahr nach dem Plan), auch nach dem Löschen des Plans, und 30 Tage nach dem Öffnen automatisch gelöscht. Texte werden verschlüsselt, Fotos ohne ihre Metadaten (GPS-Position inbegriffen) neu erstellt. Vor dem Öffnen sieht jede Person nur ihre eigenen Beiträge und kann sie bis zur Versiegelung zurückziehen; wer sein Konto löscht, löscht auch seine Beiträge.</li>
         <li><strong>Konto</strong>: aufbewahrt, bis du es löschst.</li>
         <li><strong>Serverprotokolle</strong>: 7 Tage, danach automatisch gelöscht.</li>
         <li><strong>Sicherungskopien</strong>: Jede Nacht wird eine Kopie der Datenbank erstellt und 14 Tage auf dem Server sowie 30 Tage bei Swiss Backup (Infomaniak, Schweiz) aufbewahrt, zusammen mit einer Kopie der Fotos und Dateien. Sie dienen nur dazu, EvLY nach einem Ausfall wiederherzustellen; ein gelöschter Plan kann darin bis zu 30 Tage erhalten bleiben.</li>

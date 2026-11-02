@@ -344,6 +344,15 @@ const groups: Group[] = [
           Aucun argent ne passe par EvLY. Pense à cacher le Plan à la personne fêtée (« Cacher à… », « C'est une surprise »).</P>,
       },
       {
+        id: 'capsule', emoji: '⏳', title: 'Capsule temporelle', summary: 'Des souvenirs à rouvrir dans un an',
+        body: <P>À activer dans les fonctions du Plan (Fêter et offrir). Le créateur du Plan choisit la date d'ouverture (dans 1 an, ou une
+          autre date dans l'année). Pendant le Plan et jusqu'à 7 jours après sa fin, chacun dépose un mot, une photo ou un
+          message vocal : personne ne voit ceux des autres. Les participants sont prévenus à la création et la veille de la fin des dépôts ; la capsule se scelle alors toute seule (le
+          créateur peut aussi la « Sceller maintenant »). Elle apparaît dans la colonne du Cercle, sous « Capsules temporelles ». Le jour venu, tout le groupe est prévenu et
+          l'ouvre ensemble, souvenir après souvenir, depuis le Cercle (la capsule reste même quand le Plan est supprimé). Elle est
+          effacée 30 jours après l'ouverture : enregistre tes photos préférées. « On se retrouve ? » propose un nouveau Plan.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Père Noël secret', summary: 'Tirage au sort et cadeaux anonymes',
         body: <P>La date du Plan est celle de l'échange des cadeaux. Chacun note ses envies (ou « pas d'envie particulière »),
           l'organisateur lance le tirage. Tu ne connais que la personne que tu gâtes ; deux conversations anonymes permettent

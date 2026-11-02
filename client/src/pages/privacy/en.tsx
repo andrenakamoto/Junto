@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 1 November 2026',
+  version: 'Version of 2 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -138,6 +138,7 @@ const en: PrivacyText = {
         <li><strong>Date polls</strong>: deleted as soon as they become a Plan (their chat carries over to the Plan),
           otherwise automatically the day after the last suggested date, and at the latest 30 days after they were
           created, with their votes and chat.</li>
+        <li><strong>Time capsules</strong> (a feature to turn on in a Plan): the notes, photos and voice messages dropped in are kept until the opening date chosen by the Plan's creator (at most one year after the Plan), even after the Plan is deleted, then erased automatically 30 days after opening. Texts are encrypted, photos are remade without their metadata (GPS position included). Before opening, everyone sees only their own items and can remove them until the capsule is sealed; deleting your account erases your items.</li>
         <li><strong>Account</strong>: kept until you delete it.</li>
         <li><strong>Server logs</strong>: 7 days, then erased automatically.</li>
         <li><strong>Backups</strong>: a copy of the database is made every night and kept 14 days on the server and 30 days on Swiss Backup (Infomaniak, Switzerland), together with a copy of photos and files. They are used only to restore EvLY after an outage; a deleted Plan may remain in them for up to 30 days.</li>

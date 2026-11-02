@@ -122,6 +122,7 @@ model User {
   proInterests           ProInterest[]
   // Découvrir : peut publier ses Plans en Mode annonce (accordé à la main dans le panneau admin)
   canPublishDiscover     Boolean                     @default(false)
+  capsuleDeposits        CapsuleDeposit[]
 
   @@index([lastActiveAt])
 }
@@ -179,6 +180,7 @@ model Circle {
   notificationMutes NotificationMute[]
   messages          CircleMessage[]
   availabilities    Availability[]
+  capsules          TimeCapsule[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -431,6 +433,7 @@ model Plan {
   extraCircles      PlanCircle[]
   guestLink         PlanGuestLink?
   discoverEvent     DiscoverEvent?
+  capsule           TimeCapsule?
 
   @@index([sourcePlanId])
 }
@@ -1850,4 +1853,46 @@ model ProInterest {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// Capsule temporelle (2026-11-02) : chacun dépose un souvenir (mot, photo, message vocal) pendant ou après un Plan ; la capsule
+// est scellée à la fin des dépôts et s'ouvre pour tout le groupe à une date choisie (au plus 10 ans). Elle survit au Plan
+// (rattachée au Cercle, titre recopié) et est effacée 30 jours après son ouverture (lib/capsule.ts).
+model TimeCapsule {
+  id             String           @id @default(cuid())
+  circleId       String
+  circle         Circle           @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  planId         String?          @unique
+  plan           Plan?            @relation(fields: [planId], references: [id], onDelete: SetNull)
+  title          String
+  openAt         DateTime
+  depositUntil   DateTime
+  // Personnes qui verront l'ouverture : participants du Plan et personnes qui ont déposé (figé au scellage)
+  audienceIds    String[]
+  createdById    String?
+  sealedAt       DateTime?
+  reminderSentAt DateTime?
+  depositReminderSentAt DateTime?
+  openedAt       DateTime?
+  createdAt      DateTime         @default(now())
+  deposits       CapsuleDeposit[]
+
+  @@index([circleId])
+  @@index([openAt])
+}
+
+model CapsuleDeposit {
+  id        String      @id @default(cuid())
+  capsuleId String
+  capsule   TimeCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // text | photo | voice
+  text      String? // chiffré comme les messages
+  fileKey   String? // STORAGE_DIR/capsules/<capsuleId>/<uuid>.jpg|.mp3
+  size      Int         @default(0)
+  seconds   Int?
+  createdAt DateTime    @default(now())
+
+  @@index([capsuleId])
 }

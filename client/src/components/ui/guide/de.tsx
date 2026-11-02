@@ -354,6 +354,15 @@ const groups: Group[] = [
           («Verstecken vor…», «Es ist eine Überraschung»).</P>,
       },
       {
+        id: 'capsule', emoji: '⏳', title: 'Zeitkapsel', summary: 'Erinnerungen, die sich in einem Jahr öffnen',
+        body: <P>In den Funktionen des Plans einschalten (Feiern und schenken). Wer den Plan erstellt hat, wählt das Öffnungsdatum (in 1 Jahr
+          oder ein anderes Datum im folgenden Jahr). Während des Plans und bis 7 Tage nach seinem Ende legt jede Person eine Nachricht, ein
+          Foto oder eine Sprachnachricht hinein: Niemand sieht die der anderen. Alle werden bei der Erstellung und am Vortag des Einsendeschlusses benachrichtigt; dann versiegelt sich die Kapsel von selbst
+          (wer sie erstellt hat, kann sie auch «Jetzt versiegeln»). Sie erscheint in der Spalte des Kreises unter «Zeitkapseln». Am grossen Tag wird die
+          ganze Gruppe benachrichtigt und öffnet sie gemeinsam, Erinnerung für Erinnerung, im Kreis (die Kapsel bleibt, auch wenn der Plan
+          gelöscht ist). 30 Tage nach dem Öffnen wird sie gelöscht: Speichere deine Lieblingsfotos. «Sehen wir uns wieder?» schlägt einen neuen Plan vor.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Wichteln', summary: 'Auslosung und anonyme Geschenke',
         body: <P>Das Datum des Plans ist der Tag des Geschenkaustauschs. Alle notieren ihre Wünsche (oder «kein besonderer
           Wunsch»), der Organisator startet die Auslosung. Du kennst nur die Person, die du beschenkst; zwei anonyme Chats

@@ -31,6 +31,8 @@ export type AppNotification = {
   /** Suggestion dont le statut a changé (type suggestion_update) */
   suggestionId?: string;
   status?: string;
+  /** Capsule temporelle (type capsule) : ouverte depuis son Cercle */
+  capsuleId?: string;
 };
 
 let messaging: Messaging | null | undefined;
@@ -135,6 +137,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.circleName ?? 'EvLY', body: fill(T.invite), url: '/dashboard?invitations=1', group: `invite:${n.circleName}` };
     case 'join_accepted':
       return { title: n.circleName ?? 'EvLY', body: T.joinAccepted, url: circleUrl, group: `join:${n.circleId}` };
+    case 'capsule':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `${circleUrl}&capsule=${n.capsuleId}`, group: `capsule:${n.capsuleId}` };
     case 'suggestion_update':
       return {
         title: 'EvLY',

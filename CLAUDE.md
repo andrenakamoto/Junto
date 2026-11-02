@@ -1766,6 +1766,25 @@ pinçant / double toucher / double clic / molette puis déplacement dans la phot
 photos du téléphone dans les apps (`saveImage`, comme la story), téléchargement sur le site.
 Fiche du guide « Discussion du Cercle », politique de confidentialité (version du 15 octobre 2026).
 
+**Capsule temporelle** (2026-11-02, `lib/capsule.ts` testé, `routes/capsules.ts` sur **`/api/capsules`** — hors du routeur des Plans,
+pour rester utilisable une fois le Plan terminé ou supprimé —, migration `20261112100000_time_capsule`, `components/plans/CapsuleTab.tsx`,
+dictionnaire `i18n/<langue>/capsule.ts`) : fonction **à activer** (`capsule`, catégorie Fêter et offrir). Le créateur du Plan (ou un
+gestionnaire du Cercle) crée **une capsule par Plan** et choisit l'ouverture (**« Dans 1 an » = un an après le début du Plan, `oneYearAfter`, ou une date dans l'année** —
+au moins un jour après la fin des dépôts, au plus un an après, `parseOpenAt` ; demande de l'utilisateur : pas plus d'un an). Dépôts (mot 1 000 caractères **chiffré**, photo refaite par sharp 1600 px sans métadonnées,
+message vocal converti en MP3 par ffmpeg, 2 min ; 10 par personne, 200 Mo par capsule) **pendant le Plan et jusqu'à 7 jours après sa fin**
+(`depositDeadline`) par les participants (sauf « Je passe », comptes seulement) ; chacun ne voit et ne retire que les siens. Tables
+**TimeCapsule** (`circleId` Cascade, `planId` SetNull = **survit au Plan**, titre recopié, `audienceIds`, `sealedAt`, `reminderSentAt`,
+`openedAt`) et **CapsuleDeposit** (fichiers dans `STORAGE_DIR/capsules/<capsuleId>/`). Participants prévenus à la création (`notifyCreated`). Tâche horaire `capsuleTick` (gated) :
+`audienceIds` recalculé tant que le Plan existe (il disparaît 24 h après sa fin, les dépôts durent 7 jours : on entre alors par la
+colonne du Cercle), rappel « Dernier jour pour déposer » aux personnes sans dépôt (`depositReminderSentAt`), scellage **automatique** à
+la fin des dépôts ou plus tôt par « Sceller maintenant » du créateur (POST `/capsules/:id/seal`, `sealCapsule`, fige `audienceIds`), rappel 7 jours avant, ouverture, **effacement 30 jours
+après l'ouverture** (fichiers puis lignes). Notifications type `capsule` (app + push) → `/dashboard?circleId=…&capsule=<id>`. Fichiers
+par GET `/capsules/files/:depositId?t=` (jeton `purpose: 'capsule'`, avant l'ouverture seulement pour son auteur). Client : rubrique
+« Capsule » du Plan et section « Capsules temporelles » de la colonne du Cercle (`CircleCapsules` dans `PlanList`, fenêtre, ouverture
+en diaporama plein écran — portail sur `body` —, « On se retrouve ? » → `CreatePlanModal` avec `suggestedTitle`). Suppression du compte :
+fichiers des dépôts effacés (`removeDepositFiles`) ; du Cercle : `purgeCircleFiles`. Démo : rien (lecture vide). Guide (fiche « Capsule
+temporelle ») et politique de confidentialité (2 novembre 2026 : conservation jusqu'à l'ouverture, un an au plus après le Plan).
+
 **« Je suis dispo »** (2026-10-21, `lib/availability.ts` testé, `routes/availability.ts` sur `/api/availability`, migration
 `20261024100000_availability`) : table **Availability** (une ligne par personne et par Cercle, remplacée à chaque déclaration :
 `slot` `now` = 3 h / `tonight` = jusqu'au prochain 4 h heure suisse, `tags` parmi apero, manger, cine, sport, jeux, balade — 3 au plus —,

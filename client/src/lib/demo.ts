@@ -896,6 +896,9 @@ function route(method: string, path: string, body: any): any {
     // « Mes contacts » : les membres des Cercles d'Alex (comme server/src/routes/contacts.ts)
     if (path === '/contacts') return demoContacts(body?.circleId);
     if ((m = path.match(/^\/contacts\/([^/]+)$/))) return demoPerson(m[1]);
+    // Capsule temporelle : pas dans la démo (la rubrique explique la fonction, sans création)
+    if (path.startsWith('/capsules/circle/')) return [];
+    if (path.startsWith('/capsules/plan/')) return { capsule: null, canCreate: false };
     // Cercles : sondages de dates ouverts et ceux qui attendent la réponse d'Alex (comme GET /circles du serveur)
     if (path === '/circles') return (fixtures![key] as any[]).map(c => {
       const polls = ((fixtures![`GET /circles/${c.id}/polls`] ?? []) as any[]).filter(p => !p.expiresAt || new Date(p.expiresAt).getTime() > Date.now());

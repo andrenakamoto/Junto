@@ -339,6 +339,15 @@ const groups: Group[] = [
           goes through EvLY. Remember to hide the Plan from the person being celebrated (“Hide from…”, “It’s a surprise”).</P>,
       },
       {
+        id: 'capsule', emoji: '⏳', title: 'Time capsule', summary: 'Memories to reopen in a year',
+        body: <P>Turn it on in the Plan's features (Celebrate and give). The Plan's creator picks the opening date (in 1 year,
+          or another date within the year). During the Plan and up to 7 days after it ends, everyone drops in a note, a photo or a voice message: nobody
+          sees the others'. Everyone is notified when it is created and the day before deposits close; the capsule then seals itself (its creator can
+          also "Seal now"). It shows in the Circle's column, under "Time capsules". On the day, the whole group is notified and opens it together, memory by memory,
+          from the Circle (the capsule stays even once the Plan is deleted). It is erased 30 days after opening: save your favourite
+          photos. "Shall we meet again?" suggests a new Plan.</P>,
+      },
+      {
         id: 'pere-noel', emoji: '🎅', title: 'Secret Santa', summary: 'Random draw and anonymous gifts',
         body: <P>The Plan’s date is the day of the gift exchange. Everyone writes their wishes (or “no particular wish”), the
           organiser runs the draw. You only know the person you’re spoiling; two anonymous chats let you ask questions.

@@ -25,6 +25,8 @@ import quizScreenRoutes from './routes/quizScreen';
 import muteRoutes from './routes/mutes';
 import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
+import capsuleRoutes from './routes/capsules';
+import { capsuleTick } from './lib/capsule';
 import contactRoutes from './routes/contacts';
 import availabilityRoutes from './routes/availability';
 import discoverRoutes from './routes/discover';
@@ -123,6 +125,7 @@ app.use('/api/express', expressPlanRoutes);
 app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
+app.use('/api/capsules', capsuleRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/discover', discoverRoutes);
@@ -163,6 +166,9 @@ if (cronEnabled) {
   // Match de groupe : à l'échéance, le gagnant (le plus de oui) est annoncé
   finalizeDueMatches(io);
   setInterval(() => finalizeDueMatches(io), 15 * 60 * 1000);
+  // Capsules temporelles : scellage, rappel une semaine avant, ouverture, effacement 30 jours après
+  capsuleTick(io);
+  setInterval(() => capsuleTick(io), 60 * 60 * 1000);
   // Bénévoles : rappel une heure avant la prise de poste
   sendShiftReminders(io);
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);

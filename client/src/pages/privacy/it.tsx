@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 1° novembre 2026',
+  version: 'Versione del 2 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -140,6 +140,7 @@ const it: PrivacyText = {
         <li><strong>Sondaggi sulle date</strong>: eliminati appena diventano un Plan (la loro conversazione è ripresa nel
           Plan), altrimenti automaticamente il giorno dopo l’ultima data proposta, e al più tardi 30 giorni dopo la loro
           creazione, con i loro voti e la loro chat.</li>
+        <li><strong>Capsule del tempo</strong> (funzione da attivare in un Plan): i messaggi, le foto e i messaggi vocali depositati sono conservati fino alla data di apertura scelta da chi ha creato il Plan (al massimo un anno dopo il Plan), anche dopo l’eliminazione del Plan, poi cancellati automaticamente 30 giorni dopo l’apertura. I testi sono cifrati, le foto rifatte senza i loro metadati (posizione GPS compresa). Prima dell’apertura ognuno vede solo i propri contributi e può ritirarli fino alla sigillatura; eliminare il proprio account cancella i propri contributi.</li>
         <li><strong>Account</strong>: conservato finché non lo elimini.</li>
         <li><strong>Log del server</strong>: 7 giorni, poi cancellati automaticamente.</li>
         <li><strong>Copie di sicurezza</strong>: ogni notte viene fatta una copia della banca dati, conservata 14 giorni sul server e 30 giorni su Swiss Backup (Infomaniak, Svizzera), insieme a una copia di foto e file. Servono solo a ripristinare EvLY in caso di guasto; un Plan eliminato può restarvi fino a 30 giorni.</li>

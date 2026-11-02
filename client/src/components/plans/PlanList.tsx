@@ -13,6 +13,7 @@ import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
 import { PlanSummarySheet } from './PlanSummarySheet';
 import { CreatePlanModal } from './CreatePlanModal';
+import { CircleCapsules } from './CapsuleTab';
 import { PLAN_KINDS, PlanKind } from '../../lib/planKinds';
 import { AvailabilityPanel } from '../circles/AvailabilityPanel';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
@@ -61,6 +62,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const { isCircleMuted, setCircleMuted } = useMutes();
   const circleMuted = isCircleMuted(circle.id);
   const [showCreate, setShowCreate] = useState(false);
+  const [reunionTitle, setReunionTitle] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -285,6 +287,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           </div>
         )}
 
+        {/* Capsules temporelles du Cercle (elles survivent aux Plans) : seulement s'il y en a */}
+        <CircleCapsules key={circle.id} circleId={circle.id} onReunion={title => { setCreateKind(null); setReunionTitle(title); setShowCreate(true); }} />
+
         {/* Sondages de dates : seulement s'il y en a ; « Proposer des dates » est dans « Créer » */}
         {polls.length > 0 && (
           <div className="mb-1">
@@ -401,8 +406,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           circleMembers={circle.members}
           otherCircles={user && isCircleManager(circle, user.id) ? otherManagedCircles : []}
           kind={createKind}
-          onClose={() => setShowCreate(false)}
-          onCreated={(plan, tab) => { onPlanCreated(plan, tab); setShowCreate(false); }}
+          suggestedTitle={reunionTitle ?? undefined}
+          onClose={() => { setShowCreate(false); setReunionTitle(null); }}
+          onCreated={(plan, tab) => { onPlanCreated(plan, tab); setShowCreate(false); setReunionTitle(null); }}
         />
       )}
 

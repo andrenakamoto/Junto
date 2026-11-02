@@ -147,6 +147,10 @@ export async function purgePlanFiles(planIds: string[]) {
 export async function purgeCircleFiles(circleId: string) {
   const plans = await prisma.plan.findMany({ where: { circleId }, select: { id: true } });
   await purgePlanFiles(plans.map(p => p.id));
+  // Capsules temporelles du Cercle (lib/capsule.ts) : STORAGE_DIR/capsules/<id>
+  for (const c of await prisma.timeCapsule.findMany({ where: { circleId }, select: { id: true } })) {
+    await fs.rm(path.join(STORAGE_DIR, 'capsules', c.id.replace(/[^a-z0-9]/gi, '')), { recursive: true, force: true }).catch(() => {});
+  }
   // Photo du Cercle et photos de sa discussion (lib/photos.ts) : même dossier STORAGE_DIR/photos
   const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { photoKey: true } });
   const chat = await prisma.circleMessage.findMany({ where: { circleId, imageKey: { not: null } }, select: { imageKey: true } });

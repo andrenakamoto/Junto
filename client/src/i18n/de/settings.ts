@@ -82,6 +82,7 @@ const settings: Dict['settings'] = {
     mot_piege: 'Das Fallenwort (Spiel)',
     equipes: 'Teamauslosung und Turnier',
     cagnotte: 'Geschenkkasse',
+    capsule: 'Zeitkapsel',
     assemblee: 'Versammlung (Traktanden, Abstimmungen, Protokoll)',
   },
   groups: {
@@ -102,6 +103,7 @@ const settings: Dict['settings'] = {
     idees: { label: 'Ideen', hint: 'Eine Ideenwand zum Projizieren in der Sitzung: Themen, Stimmen per Handzeichen, ausgewählte Ideen werden zu Aufgaben' },
     assemblee: { label: 'Versammlung', hint: 'Traktanden, Vollmachten, Abstimmungen, Protokoll' },
     cagnotte: { label: 'Geschenkkasse', hint: 'Ein gemeinsames Geschenk, Ideen und Abstimmungen' },
+    capsule: { label: 'Zeitkapsel', hint: 'Versiegelte Erinnerungen, geöffnet in 1, 5 oder 10 Jahren' },
     pere_noel: { label: 'Wichteln', hint: 'Auslosung und anonyme Geschenke' },
     quiz: { label: 'Quiz', hint: 'Live-Fragen, Rangliste' },
     killer: { label: 'Killer', hint: 'Ein Ziel, ein Gegenstand, ein Ort' },

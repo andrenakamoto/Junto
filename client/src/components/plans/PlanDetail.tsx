@@ -30,6 +30,7 @@ import { VolunteersTab } from './VolunteersTab';
 import { TasksTab } from './TasksTab';
 import { ProgramTab } from './ProgramTab';
 import { IdeasTab } from './IdeasTab';
+import { CapsuleTab } from './CapsuleTab';
 import { PlanTabBar } from './PlanTabBar';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
@@ -66,7 +67,7 @@ function useIsPhone() {
   return phone;
 }
 
-type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'taches' | 'deroule' | 'idees' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee';
+type Tab = 'chat' | 'infos' | 'trajets' | 'membres' | 'votes' | 'depenses' | 'taches' | 'deroule' | 'idees' | 'benevoles' | 'pere_noel' | 'killer' | 'quiz' | 'mot_piege' | 'equipes' | 'cagnotte' | 'assemblee' | 'capsule';
 
 const rsvpConfig = {
   // Réponses non choisies : blanches, bordées de la couleur de la réponse (elles avaient l'air désactivées en gris)
@@ -93,8 +94,9 @@ const tabs = [
   { key: 'mot_piege' as Tab,  Icon: Speech,           label: t('plan.detail.tabs.mot_piege') },
   { key: 'equipes' as Tab,    Icon: Trophy,           label: t('plan.detail.tabs.equipes') },
   { key: 'cagnotte' as Tab,   Icon: PiggyBank,        label: t('plan.detail.tabs.cagnotte') },
+  { key: 'capsule' as Tab,    Icon: Hourglass,        label: t('plan.detail.tabs.capsule') },
 ];
-const OPTIONAL_TABS: Tab[] = ['taches', 'deroule', 'idees', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee'];
+const OPTIONAL_TABS: Tab[] = ['taches', 'deroule', 'idees', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'capsule'];
 
 interface Props {
   plan: Plan;
@@ -1155,6 +1157,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'taches' && <TasksTab plan={plan} userId={user.id} />}
           {activeTab === 'deroule' && <ProgramTab plan={plan} userId={user.id} />}
           {activeTab === 'idees' && <IdeasTab plan={plan} userId={user.id} />}
+          {activeTab === 'capsule' && <CapsuleTab planId={plan.id} />}
           {activeTab === 'benevoles' && <VolunteersTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'depenses' && <DepensesTab planId={plan.id} members={plan.members} userId={user.id} plan={plan} pseudo={user.pseudo} onPlanUpdated={onPlanUpdated} />}
           {activeTab === 'trajets' && (

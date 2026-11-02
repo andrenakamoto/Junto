@@ -1,3 +1,4 @@
+import { removeDepositFiles } from './capsule';
 import prisma from './prisma';
 import { nextCircleCreator } from './circleRoles';
 import { purgePlanFiles, purgeCircleFiles } from './storage';
@@ -52,6 +53,9 @@ export async function deleteUserAccount(userId: string) {
   }
 
   // Photo de profil
+  // Souvenirs déposés dans des capsules temporelles : fichiers effacés (les lignes partent en cascade)
+  const deposits = await prisma.capsuleDeposit.findMany({ where: { userId }, select: { fileKey: true } });
+  await removeDepositFiles(deposits.map(d => d.fileKey));
   const me = await prisma.user.findUnique({ where: { id: userId }, select: { avatarKey: true } });
   await deletePhoto(me?.avatarKey).catch(() => {});
   // Photos de ses messages dans les discussions de Cercle (les messages partent en cascade)

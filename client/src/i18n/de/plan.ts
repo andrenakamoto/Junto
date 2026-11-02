@@ -420,7 +420,7 @@ const plan: Dict['plan'] = {
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Fahrten', membres: 'Mitglieder', votes: 'Abstimmen', depenses: 'Ausgaben',
       benevoles: 'Einsatzplan', taches: 'Aufgaben', deroule: 'Ablauf', idees: 'Ideen', assemblee: 'Versammlung', pere_noel: 'Wichteln', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Fallenwort',
-      equipes: 'Teams', cagnotte: 'Geschenkkasse',
+      equipes: 'Teams', cagnotte: 'Geschenkkasse', capsule: 'Kapsel',
     },
     skipConfirm: 'Diesen Plan dieses Mal absagen? Er wird gelöscht und der nächste sofort erstellt.',
     stopConfirm: 'Wiederholung beenden? Dieser Plan bleibt, aber es wird kein weiterer Plan erstellt.',

@@ -419,7 +419,7 @@ export default {
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
       benevoles: 'Planning', taches: 'Tâches', deroule: 'Déroulé', idees: 'Idées', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
-      equipes: 'Équipes', cagnotte: 'Cagnotte',
+      equipes: 'Équipes', cagnotte: 'Cagnotte', capsule: 'Capsule',
     },
     skipConfirm: 'Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.',
     stopConfirm: 'Arrêter la répétition ? Ce Plan reste, mais aucun Plan suivant ne sera créé.',
