@@ -83,6 +83,7 @@ const settings: Dict['settings'] = {
     equipes: 'Team draw and tournament',
     cagnotte: 'Gift pot',
     capsule: 'Time capsule',
+    mystere: "Mystery Plan",
     assemblee: 'Assembly (agenda, votes, minutes)',
   },
   groups: {
@@ -103,7 +104,8 @@ const settings: Dict['settings'] = {
     idees: { label: 'Ideas', hint: 'An ideas board to project during a session: themes, show-of-hands votes, kept ideas turned into tasks' },
     assemblee: { label: 'Assembly', hint: 'Agenda, proxies, votes, minutes' },
     cagnotte: { label: 'Gift pot', hint: 'A shared gift, ideas and votes' },
-    capsule: { label: 'Time capsule', hint: 'Sealed memories, opened in 1, 5 or 10 years' },
+    capsule: { label: 'Time capsule', hint: 'Sealed memories, opened up to a year later' },
+    mystere: { label: "Mystery Plan", hint: "Secret destination, one clue at a time" },
     pere_noel: { label: 'Secret Santa', hint: 'Draw and anonymous gifts' },
     quiz: { label: 'Quiz', hint: 'Live questions, leaderboard' },
     killer: { label: 'Killer', hint: 'A target, an object, a place' },

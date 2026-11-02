@@ -82,6 +82,7 @@ export default {
     equipes: 'Tirage des équipes et tournoi',
     cagnotte: 'Cagnotte cadeau',
     capsule: 'Capsule temporelle',
+    mystere: "Plan mystère",
     assemblee: 'Assemblée (ordre du jour, votes, PV)',
   },
   groups: {
@@ -102,7 +103,8 @@ export default {
     idees: { label: 'Idées', hint: 'Un tableau d’idées à projeter en séance : thèmes, votes à main levée, idées retenues transformées en tâches' },
     assemblee: { label: 'Assemblée', hint: 'Ordre du jour, procurations, votes, procès-verbal' },
     cagnotte: { label: 'Cagnotte cadeau', hint: 'Un cadeau commun, idées et votes' },
-    capsule: { label: 'Capsule temporelle', hint: 'Souvenirs scellés, ouverts dans 1, 5 ou 10 ans' },
+    capsule: { label: 'Capsule temporelle', hint: 'Souvenirs scellés, ouverts jusqu’à un an plus tard' },
+    mystere: { label: "Plan mystère", hint: "Destination secrète, indices au compte-gouttes" },
     pere_noel: { label: 'Père Noël secret', hint: 'Tirage au sort et cadeaux anonymes' },
     quiz: { label: 'Quiz', hint: 'Questions en direct, classement' },
     killer: { label: 'Killer', hint: 'Une cible, un objet, un lieu' },

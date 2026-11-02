@@ -83,6 +83,7 @@ const settings: Dict['settings'] = {
     equipes: 'Sorteggio squadre e torneo',
     cagnotte: 'Colletta regalo',
     capsule: 'Capsula del tempo',
+    mystere: "Plan misterioso",
     assemblee: 'Assemblea (ordine del giorno, voti, verbale)',
   },
   groups: {
@@ -103,7 +104,8 @@ const settings: Dict['settings'] = {
     idees: { label: 'Idee', hint: 'Una bacheca di idee da proiettare in riunione: temi, voti per alzata di mano, idee scelte trasformate in compiti' },
     assemblee: { label: 'Assemblea', hint: 'Ordine del giorno, deleghe, voti, verbale' },
     cagnotte: { label: 'Colletta regalo', hint: 'Un regalo comune, idee e voti' },
-    capsule: { label: 'Capsula del tempo', hint: 'Ricordi sigillati, aperti tra 1, 5 o 10 anni' },
+    capsule: { label: 'Capsula del tempo', hint: 'Ricordi sigillati, aperti fino a un anno dopo' },
+    mystere: { label: "Plan misterioso", hint: "Destinazione segreta, un indizio alla volta" },
     pere_noel: { label: 'Babbo Natale segreto', hint: 'Sorteggio e regali anonimi' },
     quiz: { label: 'Quiz', hint: 'Domande in diretta, classifica' },
     killer: { label: 'Killer', hint: 'Un bersaglio, un oggetto, un luogo' },
