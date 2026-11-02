@@ -519,6 +519,9 @@ Conséquences pratiques :
     avec « Pas encore répondu » et relance, assemblée « Réservé à… », session rechargée entre onglets.
     **2026-11-01 : build 46 refusé par Apple** (5.1.1(v), suppression du compte introuvable) → **iOS build 47** (même version 1.0.42) :
     « Supprimer mon compte » aussi dans « Mon profil », plus de zoom automatique d'iOS sur les champs.
+    **Version 1.0.43** (2026-11-02) : Android `versionCode` 45 (`evly-1.0.43-(45).aab`), iOS build 48 envoyé — capsule temporelle,
+    Plan mystère, gagnant du match au plus de oui, France voisine dans Découvrir. (Profil App Store : `~/Library/Developer/Xcode/UserData/
+    Provisioning Profiles/<uuid>.mobileprovision`, nommé « iOS Team Store Provisioning Profile: ch.evly.app », lu avec `security cms -D`.)
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
