@@ -2,10 +2,13 @@ import axios from 'axios';
 import { demoAdapter, isDemo } from '../lib/demo';
 import { currentLang } from '../i18n';
 import { markOffline, markOnline } from '../lib/connection';
+import { endPending, isTracked, startPending } from '../lib/pending';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api' });
 
 api.interceptors.request.use((config) => {
+  // Action déclenchée par la personne : barre « en cours » (ActivityBar), démo comprise
+  if (isTracked(config.method, config.url)) { startPending(); (config as any)._tracked = true; }
   // Démo sans compte : rien ne part au serveur (lib/demo.ts)
   if (isDemo()) { config.adapter = demoAdapter; return config; }
   // Langue des réponses du serveur (messages d'erreur…) pour les personnes sans compte ; avec un compte,
@@ -19,8 +22,9 @@ api.interceptors.request.use((config) => {
 // Connexion : une réponse, même une erreur, prouve que le serveur répond ; aucune réponse = hors ligne
 // (lib/connection.ts, bandeau OfflineBanner)
 api.interceptors.response.use(
-  (res) => { if (!isDemo()) markOnline(); return res; },
+  (res) => { if ((res.config as any)?._tracked) endPending(); if (!isDemo()) markOnline(); return res; },
   (err) => {
+    if (err?.config?._tracked) endPending();
     if (!isDemo() && !axios.isCancel(err)) {
       if (err?.response) markOnline(); else markOffline();
     }

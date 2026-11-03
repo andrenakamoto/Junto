@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { UpdateBanner } from './components/ui/UpdateBanner';
 import { OfflineBanner } from './components/ui/OfflineBanner';
+import { ActivityBar } from './components/ui/ActivityBar';
 import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
 import { captureSource } from './lib/source';
@@ -15,6 +16,8 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platfor
 if (isIOS) document.querySelector('meta[name=viewport]')?.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover');
 
 captureSource();
+// iPhone : sans écouteur touchstart, :active (retour visuel au toucher, index.css) ne s'affiche pas
+document.addEventListener('touchstart', () => {}, { passive: true });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -22,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <App />
       <UpdateBanner />
       <OfflineBanner />
+      <ActivityBar />
     </AuthProvider>
   </React.StrictMode>
 );

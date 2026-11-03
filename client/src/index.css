@@ -34,3 +34,20 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.5); }
+
+/* Retour visuel au toucher (2026-11-03) : sur écran tactile, pas de survol — tout ce qui se touche se tasse et
+   s'assombrit un instant sous le doigt. Propriété `scale` (et non `transform`) pour ne pas écraser les translate de
+   Tailwind. `.no-press` l'enlève à un élément. Sur iPhone, :active ne marche qu'avec un écouteur touchstart (main.tsx). */
+@media (hover: none) {
+  html { -webkit-tap-highlight-color: transparent; }
+  button, a[href], [role="button"], summary, label[for], select {
+    transition: scale 90ms ease-out, filter 90ms ease-out;
+  }
+  :is(button, a[href], [role="button"], summary, label[for]):not(:disabled):not([aria-disabled="true"]):not(.no-press):active {
+    scale: 0.97;
+    filter: brightness(0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) and (hover: none) {
+  :is(button, a[href], [role="button"], summary, label[for]):not(:disabled):not(.no-press):active { scale: none; }
+}
