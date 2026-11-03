@@ -3,7 +3,7 @@ import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
 import { PublishDiscoverModal } from './PublishDiscoverModal';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Sparkles, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb, HelpCircle } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb, HelpCircle, Loader2 } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -32,6 +32,7 @@ import { ProgramTab } from './ProgramTab';
 import { IdeasTab } from './IdeasTab';
 import { CapsuleTab } from './CapsuleTab';
 import { MysteryTab } from './MysteryTab';
+import { DayPlanTab } from './DayPlanTab';
 import { PlanTabBar } from './PlanTabBar';
 import { SecretSantaTab } from './SecretSantaTab';
 import { KillerTab } from './KillerTab';
@@ -48,7 +49,6 @@ import { EditPlanModal } from './EditPlanModal';
 import { getSocket } from '../../lib/socket';
 import { WheelSpinHost, openWheelSpin } from './WheelSection';
 import { QuizLiveHost, QuizTab } from './QuizTab';
-import { PlanSummarySheet } from './PlanSummarySheet';
 import api from '../../services/api';
 import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
@@ -84,9 +84,10 @@ const tabs = [
   { key: 'membres' as Tab,    Icon: Users,         label: t('plan.detail.tabs.membres') },
   { key: 'votes' as Tab,      Icon: BarChart2,     label: t('plan.detail.tabs.votes') },
   { key: 'depenses' as Tab,   Icon: Receipt,          label: t('plan.detail.tabs.depenses') },
+  // Organisation, dans l'ordre du travail : les idées, puis les tâches, puis le jour J (Déroulé et Planning)
+  { key: 'idees' as Tab,      Icon: Lightbulb,        label: t('plan.detail.tabs.idees') },
   { key: 'taches' as Tab,     Icon: ListChecks,       label: t('plan.detail.tabs.taches') },
   { key: 'deroule' as Tab,    Icon: ListOrdered,      label: t('plan.detail.tabs.deroule') },
-  { key: 'idees' as Tab,      Icon: Lightbulb,        label: t('plan.detail.tabs.idees') },
   { key: 'benevoles' as Tab,  Icon: HandHeart,        label: t('plan.detail.tabs.benevoles') },
   { key: 'assemblee' as Tab,  Icon: Landmark,         label: t('plan.detail.tabs.assemblee') },
   { key: 'pere_noel' as Tab,  Icon: Gift,             label: t('plan.detail.tabs.pere_noel') },
@@ -136,11 +137,12 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   // Message lié aux places (Plan complet, liste d'attente)
   const [placesError, setPlacesError] = useState('');
   const [updatingRsvp, setUpdatingRsvp] = useState(false);
+  // Réponse touchée, colorée tout de suite pendant l'aller-retour avec le serveur
+  const [pendingRsvp, setPendingRsvp] = useState<'in' | 'maybe' | 'out' | null>(null);
   const [showInvite, setShowInvite] = useState(false);
   const [showStory, setShowStory] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [showGoWith, setShowGoWith] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -169,7 +171,6 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   const myMember = plan.members.find(m => m.userId === user.id);
   const isMember = !!myMember;
   // « En bref » : participants « Je suis in » et « Peut-être »
-  const canSummary = isMember && myMember!.rsvp !== 'out';
 
   // Chat « collé en bas » : tant que la personne est au bas de la conversation, chaque
   // chargement, nouveau message ou redimensionnement (clavier, ouverture depuis une
@@ -272,7 +273,18 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   // Onglets masqués par les paramètres avancés du Plan (Infos et Membres toujours présents)
   // Bénévoles : fonction à activer (absente par défaut)
   // Liste des participants réservée (Mode annonce) : pas de rubrique Membres pour les participants
-  const visibleTabs = tabs.filter(t => t.key === 'infos' || (t.key === 'membres' ? !plan.membersHidden : OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)));
+  // Déroulé et Planning ensemble : un seul onglet « Jour J » (DayPlanTab), sous la clé 'deroule'
+  const dayMerged = hasFeature(plan, 'deroule') && hasFeature(plan, 'benevoles');
+  const visibleTabs = tabs
+    .filter(t => t.key === 'infos' || (t.key === 'membres' ? !plan.membersHidden : OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)))
+    .filter(x => !(dayMerged && x.key === 'benevoles'))
+    .map(x => dayMerged && x.key === 'deroule' ? { ...x, label: t('plan.detail.tabs.dayPlan') } : x);
+  // Onglet à ouvrir : avec l'onglet combiné, le Planning s'ouvre dans « Jour J »
+  const [dayFocus, setDayFocus] = useState<{ section: 'deroule' | 'benevoles'; n: number } | null>(null);
+  const resolveTab = (key: string): Tab => {
+    if (dayMerged && (key === 'benevoles' || key === 'deroule')) { setDayFocus({ section: key, n: Date.now() }); return 'deroule'; }
+    return key as Tab;
+  };
   const defaultTab: Tab = isEnabled(plan, 'chat') ? 'chat' : 'infos';
   const showHub = isPhone && isMember && hub;
   const phoneSection = isPhone && isMember && !hub;
@@ -283,7 +295,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
 
   // Onglet par défaut à l'ouverture d'un Plan, ou celui demandé par la cloche
   useEffect(() => {
-    const wanted = openTab?.tab as Tab | undefined;
+    const wanted = openTab?.tab ? resolveTab(openTab.tab) : undefined;
     const valid = !!wanted && visibleTabs.some(t => t.key === wanted);
     setTab(valid ? wanted! : defaultTab);
     setHub(!valid);
@@ -345,6 +357,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   useEffect(() => {
     if (!activeTab) return; // page principale : rien n'est « vu »
     if (activeTab === 'chat') setChatUnseen(false);
+    if (dayMerged && activeTab === 'deroule') return; // chaque rubrique est marquée vue à son ouverture (DayPlanTab)
     if (!isMember || !(plan.unseen ?? []).includes(activeTab)) return;
     api.post(`/plans/${plan.id}/seen`, { section: activeTab }).catch(() => {});
     onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== activeTab) });
@@ -384,7 +397,13 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       if (t.clientX - start.x > 70 && Math.abs(t.clientY - start.y) < 60) backToHub();
     },
   };
-  const hasNews = (key: Tab) => (plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen);
+  const hasNews = (key: Tab) => (plan.unseen ?? []).includes(key) || (key === 'chat' && chatUnseen) || (dayMerged && key === 'deroule' && (plan.unseen ?? []).includes('benevoles'));
+  // Rubrique de l'onglet combiné ouverte : marquée vue
+  const markSectionSeen = (section: string) => {
+    if (!isMember) return;
+    api.post(`/plans/${plan.id}/seen`, { section }).catch(() => {});
+    onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== section) });
+  };
 
   // Si le créateur masque l'onglet affiché, revenir sur un onglet visible
   useEffect(() => {
@@ -429,6 +448,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   async function handleRsvp(rsvp: 'in' | 'maybe' | 'out') {
     if (updatingRsvp || myMember?.rsvp === rsvp) return;
     setUpdatingRsvp(true);
+    setPendingRsvp(rsvp);
     setPlacesError('');
     try {
       await api.put(`/plans/${plan.id}/rsvp`, { rsvp });
@@ -439,6 +459,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       setPlacesError(err?.response?.data?.error || t('common.retryError'));
     } finally {
       setUpdatingRsvp(false);
+      setPendingRsvp(null);
     }
   }
 
@@ -710,15 +731,6 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           <div className="hidden xl:flex gap-1 flex-shrink-0">
             {isMember && (
               <>
-                {canSummary && (
-                  <button
-                    onClick={() => setShowSummary(true)}
-                    title={t('plan.summary.button')}
-                    className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                  >
-                    <Sparkles size={16} />
-                  </button>
-                )}
                 <button
                   onClick={() => setShowInvite(true)}
                   title={t('plan.detail.invite')}
@@ -1022,10 +1034,11 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                 key={rsvp}
                 onClick={() => handleRsvp(rsvp)}
                 disabled={updatingRsvp}
-                className={`px-3.5 py-2 md:px-3 md:py-1.5 rounded-lg border-2 md:border text-sm md:text-xs font-semibold shadow-sm transition-colors ${
-                  myMember?.rsvp === rsvp ? rsvpConfig[rsvp].active : rsvpConfig[rsvp].inactive
+                className={`flex items-center justify-center gap-1.5 px-3.5 py-2 md:px-3 md:py-1.5 rounded-lg border-2 md:border text-sm md:text-xs font-semibold shadow-sm transition-colors ${
+                  (pendingRsvp ?? myMember?.rsvp) === rsvp ? rsvpConfig[rsvp].active : rsvpConfig[rsvp].inactive
                 }`}
               >
+                {pendingRsvp === rsvp && <Loader2 size={13} className="animate-spin flex-shrink-0" />}
                 {rsvpConfig[rsvp].label}
               </button>
             ))}
@@ -1062,14 +1075,6 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         <>
           <div className="flex-1 overflow-y-auto bg-slate-100 short:flex-none short:overflow-visible">
             {header}
-            {canSummary && (
-              <div className="px-4 pt-4 -mb-1">
-                <button onClick={() => setShowSummary(true)} className="w-full flex items-center gap-3 p-4 rounded-2xl bg-indigo-600 text-white shadow-sm text-left active:bg-indigo-700">
-                  <span className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0"><Sparkles size={20} /></span>
-                  <span className="font-semibold">{t('plan.summary.button')}</span>
-                </button>
-              </div>
-            )}
             {hubCards}
           </div>
           {actionBar}
@@ -1157,7 +1162,9 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
           {activeTab === 'assemblee' && <AssemblyTab plan={plan} userId={user.id} />}
           {activeTab === 'taches' && <TasksTab plan={plan} userId={user.id} />}
-          {activeTab === 'deroule' && <ProgramTab plan={plan} userId={user.id} />}
+          {activeTab === 'deroule' && (dayMerged
+            ? <DayPlanTab plan={plan} userId={user.id} onPlanUpdated={onPlanUpdated} unseen={plan.unseen ?? []} onSeen={markSectionSeen} focus={dayFocus} onFocusUsed={() => setDayFocus(null)} />
+            : <ProgramTab plan={plan} userId={user.id} />)}
           {activeTab === 'idees' && <IdeasTab plan={plan} userId={user.id} />}
           {activeTab === 'capsule' && <CapsuleTab planId={plan.id} />}
           {activeTab === 'mystere' && <MysteryTab plan={plan} userId={user.id} />}
@@ -1232,16 +1239,6 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         />
       )}
 
-      {showSummary && (
-        <PlanSummarySheet
-          planId={plan.id}
-          onClose={() => setShowSummary(false)}
-          onOpenTab={key => {
-            setShowSummary(false);
-            if (visibleTabs.some(v => v.key === key)) { setTab(key as Tab); setHub(false); }
-          }}
-        />
-      )}
       {showGoWith && <GoWithCircleModal plan={plan} onClose={() => setShowGoWith(false)} />}
       {showStory && (
         <StoryModal plan={plan} onClose={() => setShowStory(false)} />

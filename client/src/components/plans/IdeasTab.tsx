@@ -202,8 +202,27 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
   const [taskFor, setTaskFor] = useState<Idea | null>(null);
   const [newColumn, setNewColumn] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  // Projection : le thème choisi en bas est mis en évidence et ramené à l'écran ; l'idée ajoutée aussi (2026-11-03)
+  const colRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [lastAdded, setLastAdded] = useState<{ col: string; before: Set<string> } | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   useEffect(() => { if (active !== NONE && !columns.some(c => c.id === active)) setActive(columns[0]?.id ?? NONE); }, [columns, active]);
+  useEffect(() => {
+    if (big) colRefs.current[active]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }, [active, big]);
+  // Après un ajout : dès que l'idée arrive (rechargement), elle défile dans sa colonne et clignote un instant
+  useEffect(() => {
+    if (!lastAdded) return;
+    const fresh = ideas.find(i => (i.columnId ?? NONE) === lastAdded.col && !lastAdded.before.has(i.id));
+    if (!fresh) return;
+    setLastAdded(null);
+    setFlash(fresh.id);
+    // Cherchée dans la colonne de ce tableau : la page derrière la projection a les mêmes idées
+    requestAnimationFrame(() => colRefs.current[lastAdded.col]?.querySelector(`[data-idea="${fresh.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }));
+    const id = window.setTimeout(() => setFlash(null), 2000);
+    return () => window.clearTimeout(id);
+  }, [ideas, lastAdded]);
 
   const hasLoose = ideas.some(i => !i.columnId);
   const cols: (Column & { loose?: boolean })[] = [...columns, ...(hasLoose || columns.length === 0 ? [{ id: NONE, title: t('ideas.noColumn'), loose: true }] : [])];
@@ -220,7 +239,10 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
 
   async function add(colId: string, text: string) {
     if (!text.trim()) return false;
-    return run(() => api.post(`/plans/${plan.id}/ideas`, { text, columnId: colId === NONE ? null : colId }));
+    const before = new Set(ideas.map(i => i.id));
+    const ok = await run(() => api.post(`/plans/${plan.id}/ideas`, { text, columnId: colId === NONE ? null : colId }));
+    if (ok) setLastAdded({ col: colId, before });
+    return ok;
   }
   const put = (i: Idea, body: object) => run(() => api.put(`/plans/ideas/${i.id}`, body));
 
@@ -258,10 +280,11 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
         {cols.map((c, k) => {
           const list = listFor(c.id);
           return (
-            <section key={c.id}
+            <section key={c.id} ref={el => { colRefs.current[c.id] = el; }}
               onDragOver={e => { e.preventDefault(); setDragOver(c.id); }} onDragLeave={() => setDragOver(null)}
               onDrop={e => { e.preventDefault(); setDragOver(null); const id = e.dataTransfer.getData('text/idea'); const i = ideas.find(x => x.id === id); if (i && (i.columnId ?? NONE) !== c.id) put(i, { columnId: c.id === NONE ? null : c.id }); }}
-              className={`flex flex-col rounded-2xl border p-2.5 ${big ? 'w-80 flex-shrink-0 min-h-0' : 'md:w-72 md:flex-shrink-0'} ${dragOver === c.id ? 'bg-indigo-50 border-indigo-300' : active === c.id && big ? 'bg-white border-indigo-300 ring-2 ring-indigo-200' : 'bg-slate-100/80 border-slate-200'}`}>
+              className={`flex flex-col rounded-2xl border p-2.5 ${big ? 'w-80 flex-shrink-0 min-h-0' : 'md:w-72 md:flex-shrink-0'} ${dragOver === c.id ? 'bg-indigo-50 border-indigo-300' : active === c.id && big ? 'bg-white border-indigo-500 ring-4 ring-indigo-200 shadow-lg' : 'bg-slate-100/80 border-slate-200'}`}>
+              {big && active === c.id && <p className="flex items-center gap-1 -mt-0.5 mb-1.5 text-xs font-semibold text-indigo-600"><Pencil size={12} />{t('ideas.writingHere')}</p>}
               <ColumnHeader big={big} column={c} count={list.length} first={k === 0} last={k === columns.length - 1}
                 onPick={() => { setActive(c.id); input.current?.focus(); }}
                 onRename={title => run(() => api.put(`/plans/idea-columns/${c.id}`, { title }))}
@@ -269,7 +292,8 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
                 onDelete={() => run(() => api.delete(`/plans/idea-columns/${c.id}`))} />
               <div className={`space-y-2 mt-2 ${big ? 'flex-1 min-h-0 overflow-y-auto pr-1' : ''}`}>
                 {list.map(i => (
-                  <IdeaCard key={i.id} idea={i} big={big} selected={selected === i.id} mergeTarget={!!merging && merging.id !== i.id} tasksOn={tasksOn}
+                  <div key={i.id} data-idea={i.id} className={`rounded-xl transition-shadow ${flash === i.id ? 'ring-4 ring-indigo-400' : ''}`}>
+                  <IdeaCard idea={i} big={big} selected={selected === i.id} mergeTarget={!!merging && merging.id !== i.id} tasksOn={tasksOn}
                     onClick={() => clickIdea(i)}
                     onStatus={s => put(i, { status: i.status === s ? 'new' : s })}
                     onVote={d => run(() => api.post(`/plans/ideas/${i.id}/vote`, { delta: d }))}
@@ -278,6 +302,7 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
                     onMerge={() => { setMerging(i); setSelected(null); }}
                     onTask={() => setTaskFor(i)}
                     onDelete={() => run(() => api.delete(`/plans/ideas/${i.id}`))} />
+                  </div>
                 ))}
               </div>
               {!big && <QuickAdd onAdd={text => add(c.id, text)} />}

@@ -1,5 +1,6 @@
 // Bandeaux, pages d'attente, petits éléments d'interface
 export default {
+  fullscreen: { open: 'Grand écran', exit: 'Fermer le grand écran' },
   demo: {
     banner: 'Mode démo : explore librement, rien n’est enregistré.',
     createAccount: 'Créer mon compte',

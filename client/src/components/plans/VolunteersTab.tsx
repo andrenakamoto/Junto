@@ -41,7 +41,7 @@ const toTimeInput = (iso: string | null | undefined) => {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; userId: string; onPlanUpdated: (plan: Plan) => void }) {
+export function VolunteersTab({ plan, userId, onPlanUpdated, embedded }: { plan: Plan; userId: string; onPlanUpdated: (plan: Plan) => void; embedded?: boolean }) {
   const [shifts, setShifts] = useState<VolunteerShift[] | null>(null);
   const [canManage, setCanManage] = useState(false);
   const [mineOnly, setMineOnly] = useState(false);
@@ -95,7 +95,7 @@ export function VolunteersTab({ plan, userId, onPlanUpdated }: { plan: Plan; use
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
+    <div className={embedded ? 'space-y-4' : 'flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible'}>
       {/* Résumé */}
       {toFill.length > 0 && (
         missing > 0 ? (

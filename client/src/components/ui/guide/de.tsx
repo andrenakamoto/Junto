@@ -210,7 +210,7 @@ const groups: Group[] = [
       {
         id: 'en-bref', emoji: '✨', title: 'Kurz & bündig', summary: 'Deine Übersicht des Plans auf einen Blick',
         body: <>
-          <P>Der Knopf <strong>Kurz & bündig</strong> (auf der Karte des Plans und oben auf der Planseite) fasst den Plan
+          <P>Der Knopf <strong>Kurz & bündig</strong> (auf der Karte des Plans in der Liste der Pläne) fasst den Plan, ohne ihn zu öffnen,
             <strong>für dich</strong> zusammen: Datum, Ort, wer kommt, wichtige Informationen, deine Fahrt, was du mitbringst,
             was du schuldest oder was man dir schuldet, deine Sammelkasse, deine Einsätze und was auf deine Antwort
             wartet. Tippe auf eine Zeile, um den Bereich zu öffnen.</P>
@@ -288,8 +288,8 @@ const groups: Group[] = [
           eine <strong>Frist</strong> fest: Sie erhalten zwei Tage vorher eine Erinnerung. Unter «Beginnen nach» gibst du an, welche Aufgaben
           vorher erledigt sein müssen: Solange sie es nicht sind, ist die Aufgabe <strong>blockiert</strong> 🔒, und sobald die letzte erledigt
           ist, erfahren die Verantwortlichen, dass sie loslegen können. Die Ansicht <strong>«Nach Status»</strong> zeigt, was in Arbeit,
-          bereit, blockiert oder erledigt ist; «Meine Aufgaben» und «Überfällig» filtern die Liste. Hake den Kreis einer Aufgabe ab, um sie zu
-          erledigen; tippe sie an, um sie zu kommentieren, zu übernehmen («Ich kümmere mich darum») oder zu bearbeiten. Alle fügen Aufgaben
+          bereit, blockiert oder erledigt ist; «Meine Aufgaben» und «Überfällig» filtern die Liste. Jede Aufgabe hat eine Nummer, damit man sie
+          wiederfindet; tippe sie (oder ihren Pfeil) an, um sie aufzuklappen: beginnen, erledigen, kommentieren, übernehmen («Ich kümmere mich darum») oder bearbeiten. Alle fügen Aufgaben
           hinzu und bringen sie voran; löschen können sie die Person, die sie erstellt hat, und das Organisationsteam. Für die Einsätze am Tag
           selbst nimmst du besser den Einsatzplan.</P>,
       },
@@ -365,7 +365,7 @@ const groups: Group[] = [
       {
         id: 'mystere', emoji: '🔍', title: 'Mystery-Plan', summary: 'Ein geheimes Ziel, nach und nach enthüllt',
         body: <P>«Erstellen › Spezieller Plan › Mystery-Plan». Die Gäste sehen nur den öffentlichen Titel («Samstag gehen wir aus. Punkt.»), die
-          Uhrzeit und den Treffpunkt; der echte Titel und der echte Ort bleiben geheim. In der Rubrik Mystery bereitet die Organisation
+          Uhrzeit und den Treffpunkt; der echte Titel und der echte Ort bleiben geheim. In der Rubrik Mystery bereitet die Person, die den Plan erstellt hat (nur sie),
           Hinweise vor, die sich zu ihrer Zeit mit einer Benachrichtigung von selbst enthüllen, und wählt Komplizen, die alles sehen. Die
           Gäste wetten auf das Ziel. Zur Enthüllung (spätestens beim Beginn des Plans) erscheinen der echte Titel und Ort für alle, mit den
           Wetten aller. «Jetzt alles enthüllen» zieht den Moment vor, zum Beispiel bei Regen.</P>,

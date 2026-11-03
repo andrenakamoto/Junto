@@ -23,7 +23,7 @@ const hm = (iso: string | null) => (iso ? timeFmt.format(new Date(iso)) : '—')
 const personName = (p: Person) => displayName(p) || `@${p.pseudo}`;
 const pad = (n: number) => String(n).padStart(2, '0');
 
-export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
+export function ProgramTab({ plan, userId, embedded }: { plan: Plan; userId: string; embedded?: boolean }) {
   const [data, setData] = useState<Data | null>(null);
   const [shifts, setShifts] = useState<VolunteerShift[]>([]);
   const [canShifts, setCanShifts] = useState(false);
@@ -125,7 +125,7 @@ export function ProgramTab({ plan, userId }: { plan: Plan; userId: string }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
+    <div className={embedded ? 'space-y-4' : 'flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible'}>
       {/* En ce moment (le soir même) */}
       {(live.current || soon) && (
         <div className="p-3.5 rounded-xl bg-indigo-600 text-white shadow-md">

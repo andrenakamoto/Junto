@@ -201,7 +201,7 @@ const groups: Group[] = [
       {
         id: 'en-bref', emoji: '✨', title: 'At a glance', summary: 'Your summary of the Plan in one look',
         body: <>
-          <P>The <strong>At a glance</strong> button (on the Plan card and at the top of the Plan page) sums up the Plan
+          <P>The <strong>At a glance</strong> button (on the Plan card, in the list of Plans) sums up the Plan, without opening it,
             <strong>for you</strong>: date, place, who’s coming, important info, your ride, what you’re bringing, what you owe
             or are owed, your group gift, your shifts and what’s waiting for your answer. Tap a line to open that
             section.</P>
@@ -279,8 +279,8 @@ const groups: Group[] = [
           “Start with typical areas”), give each one to one or more <strong>people in charge</strong> and set a <strong>due date</strong>: they
           get a reminder two days before. In “Start after”, list the tasks that must be done first: until they are, the task is
           <strong> blocked</strong> 🔒, and when the last one is done, the people in charge are told they can start. The <strong>“By
-          status”</strong> view shows what is in progress, ready, blocked or done; “My tasks” and “Overdue” filter the list. Tick a task’s
-          circle to mark it as done; tap it to comment, take it on (“I’ll take it”) or edit it. Everyone adds tasks and moves them forward;
+          status”</strong> view shows what is in progress, ready, blocked or done; “My tasks” and “Overdue” filter the list. Each task has a
+          number so you can find it; tap it (or its arrow) to open it: start it, finish it, comment, take it on (“I’ll take it”) or edit it. Everyone adds tasks and moves them forward;
           the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead.</P>,
       },
       {
@@ -350,7 +350,7 @@ const groups: Group[] = [
       {
         id: 'mystere', emoji: '🔍', title: 'Mystery Plan', summary: 'A secret destination, revealed bit by bit',
         body: <P>"Create › Special Plan › Mystery Plan". Guests only see the public title ("Saturday, we go out. Full stop."), the time and the
-          meeting point; the real title and place stay secret. In the Mystery section, the organiser prepares clues that reveal themselves at
+          meeting point; the real title and place stay secret. In the Mystery section, the Plan’s creator (and only them) prepares clues that reveal themselves at
           their time, with a notification, and picks accomplices who see everything. Guests bet on the destination. At the reveal (at the
           latest when the Plan starts), the real title and place appear for everyone, along with everyone's bets. "Reveal everything now"
           brings the moment forward, if it rains for example.</P>,

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Circle, Lock, MessageSquare, Pencil, Play, Plus,
+  CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Lock, MessageSquare, Pencil, Play, Plus,
   RotateCcw, Search, Send, Trash2, Unlock, UserPlus, UserMinus,
 } from 'lucide-react';
 import { Plan, PlanTask, PlanTaskGroup } from '../../types';
+import { FullscreenButton, FullscreenFrame } from '../ui/FullscreenFrame';
 import api from '../../services/api';
 import { isDemo } from '../../lib/demo';
 import { displayName } from '../../lib/names';
@@ -56,6 +57,7 @@ const personName = (p: Person) => displayName(p) || `@${p.pseudo}`;
 
 export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [data, setData] = useState<Data | null>(null);
+  const [full, setFull] = useState(false);
   const [view, setView] = useState<'groups' | 'states'>(() => {
     try { return localStorage.getItem(VIEW_KEY) === 'states' ? 'states' : 'groups'; } catch { return 'groups'; }
   });
@@ -66,6 +68,9 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const toggleGroup = (key: string) => setOpenGroups(o => { const n = new Set(o); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   const openGroup = (key: string) => setOpenGroups(o => { const n = new Set(o); if (isDemo()) n.delete(key); else n.add(key); return n; });
+  // Avec « Mes tâches » / « En retard », les lots sont dépliés ; on peut quand même en replier (remis à zéro au changement de filtre)
+  const [foldedFiltered, setFoldedFiltered] = useState<Set<string>>(new Set());
+  useEffect(() => { setFoldedFiltered(new Set()); }, [filter]);
   const [error, setError] = useState('');
 
   async function load() {
@@ -107,12 +112,14 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
     const waiting = new Map<string, PlanTask[]>();
     for (const x of data.tasks) for (const id of x.dependsOn) waiting.set(id, [...(waiting.get(id) ?? []), x]);
     const late = (x: PlanTask) => x.status !== 'done' && !!x.dueDate && x.dueDate < today;
-    return { statusOf, byId, state, waiting, late };
+    // Numéro de chaque tâche, dans l'ordre de création (le même dans toutes les vues)
+    const numbers = new Map([...data.tasks].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)).map((x, i) => [x.id, i + 1]));
+    return { statusOf, byId, state, waiting, late, numbers };
   }, [data, today]);
 
   if (!data || !derived) return <div className="flex-1 bg-slate-50" />;
   const { tasks, groups, people, canManage } = data;
-  const { byId, state, waiting, late } = derived;
+  const { byId, state, waiting, late, numbers } = derived;
 
   const mine = tasks.filter(x => x.assignees.some(a => a.userId === userId));
   const lateTasks = tasks.filter(late);
@@ -123,14 +130,14 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
 
   const card = (x: PlanTask, showGroup: boolean) => (
     <TaskCard
-      key={x.id} task={x} userId={userId} isMember={isMember} today={today}
+      key={x.id} task={x} num={numbers.get(x.id) ?? 0} numOf={id => numbers.get(id)} userId={userId} isMember={isMember} today={today}
       state={state.get(x.id)!} late={late(x)}
       waitsFor={x.dependsOn.map(id => byId.get(id)).filter((d): d is PlanTask => !!d && d.status !== 'done')}
       unlocks={(waiting.get(x.id) ?? []).filter(w => w.status !== 'done')}
       groupTitle={showGroup ? groups.find(g => g.id === x.groupId)?.title : undefined}
       canDelete={x.createdById === userId || canManage}
       open={openId === x.id} onToggle={() => setOpenId(openId === x.id ? null : x.id)}
-      onJump={id => { setFilter('all'); setOpenId(id); setTimeout(() => document.getElementById(`task-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); }}
+      onJump={id => { setFilter('all'); setOpenId(id); openGroup(byId.get(id)?.groupId ?? 'none'); setTimeout(() => document.getElementById(`task-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); }}
       onStatus={status => run(() => api.post(`/plans/tasks/${x.id}/status`, { status }))}
       onTake={take => run(() => take ? api.post(`/plans/tasks/${x.id}/me`) : api.delete(`/plans/tasks/${x.id}/me`))}
       onEdit={() => setForm({ task: x })}
@@ -144,7 +151,9 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
   const empty = tasks.length === 0 && groups.length === 0;
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
+    <FullscreenFrame full={full} onClose={() => setFull(false)} title={`${t('plan.detail.tabs.taches')} · ${plan.title}`}>
+    <div className={`flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 ${full ? '' : 'short:flex-none short:overflow-visible'}`}>
+      {!full && <div className="flex justify-end"><FullscreenButton onClick={() => setFull(true)} /></div>}
       {/* Avancement */}
       {tasks.length > 0 && (
         <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
@@ -205,11 +214,17 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
             if (filter !== 'all' && list.length === 0) return null;
             const all = tasks.filter(x => x.groupId === (g?.id ?? null));
             const key = g?.id ?? 'none';
-            // Avec « Mes tâches » / « En retard », ou quand une tâche y est ouverte (lien « Attend »), le lot est déplié
-            // Démo : lots dépliés d'emblée (toucher un lot le replie), pour montrer les tâches
-            const unfolded = filter !== 'all' || (isDemo() ? !openGroups.has(key) : openGroups.has(key)) || list.some(x => x.id === openId);
+            // Avec « Mes tâches » / « En retard », le lot est déplié (sauf si on le replie) ; ouvrir une tâche par un lien « Attend »
+            // déplie son lot (`onJump`). Démo : lots dépliés d'emblée (toucher un lot le replie), pour montrer les tâches
+            const unfolded = filter !== 'all' ? !foldedFiltered.has(key) : isDemo() ? !openGroups.has(key) : openGroups.has(key);
+            const onToggleGroup = () => {
+              // Replier un lot referme la tâche ouverte dedans
+              if (unfolded && list.some(x => x.id === openId)) setOpenId(null);
+              if (filter !== 'all') setFoldedFiltered(f => { const n = new Set(f); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+              else toggleGroup(key);
+            };
             return (
-              <GroupBlock key={key} group={g} folded={!unfolded} onToggle={() => toggleGroup(key)} total={all.length} done={all.filter(x => x.status === 'done').length}
+              <GroupBlock key={key} group={g} folded={!unfolded} onToggle={onToggleGroup} total={all.length} done={all.filter(x => x.status === 'done').length}
                 canDelete={!!g && (g.createdById === userId || canManage)}
                 onAdd={() => { openGroup(key); setForm({ groupId: g?.id ?? null }); }}
                 onRename={title => run(() => api.put(`/plans/task-groups/${g!.id}`, { title }))}
@@ -248,6 +263,7 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
         />
       )}
     </div>
+    </FullscreenFrame>
   );
 }
 
@@ -328,8 +344,8 @@ function dueLabel(due: string, today: string) {
   return { text: date, cls: d <= 2 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600' };
 }
 
-function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unlocks, groupTitle, canDelete, open, onToggle, onJump, onStatus, onTake, onEdit, onDelete, onComment, onDeleteComment, canDeleteComment }: {
-  task: PlanTask; userId: string; isMember: boolean; today: string; state: State; late: boolean;
+function TaskCard({ task: x, num, numOf, userId, isMember, today, state, late, waitsFor, unlocks, groupTitle, canDelete, open, onToggle, onJump, onStatus, onTake, onEdit, onDelete, onComment, onDeleteComment, canDeleteComment }: {
+  task: PlanTask; num: number; numOf: (id: string) => number | undefined; userId: string; isMember: boolean; today: string; state: State; late: boolean;
   waitsFor: PlanTask[]; unlocks: PlanTask[]; groupTitle?: string; canDelete: boolean; open: boolean;
   onToggle: () => void; onJump: (id: string) => void; onStatus: (s: PlanTask['status']) => Promise<boolean>; onTake: (take: boolean) => void;
   onEdit: () => void; onDelete: () => void; onComment: (content: string) => Promise<boolean>; onDeleteComment: (id: string) => void;
@@ -349,15 +365,14 @@ function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unl
   const border = done ? 'border-emerald-200 bg-emerald-50/50' : late ? 'border-red-200 bg-white' : state === 'doing' ? 'border-amber-200 bg-white' : state === 'blocked' ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-white';
   return (
     <div id={`task-${x.id}`} className={`rounded-xl border shadow-sm ${border}`}>
-      <div className="flex items-start gap-2.5 p-3">
-        {/* Cocher = terminer, décocher = rouvrir */}
-        <button onClick={() => onStatus(done ? 'todo' : 'done')} aria-label={done ? t('tasks.reopen') : t('tasks.finish')} title={done ? t('tasks.reopen') : t('tasks.finish')}
-          className={`flex-shrink-0 mt-0.5 ${done ? 'text-emerald-600' : 'text-slate-300 hover:text-emerald-500'}`}>
-          {done ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-        </button>
-        <button onClick={onToggle} className="flex-1 min-w-0 text-left">
-          <p className={`text-sm font-semibold break-words ${done ? 'text-slate-500 line-through decoration-slate-300' : 'text-slate-800'}`}>{x.title}</p>
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+      {/* Toute la ligne déplie la tâche (flèche à droite) ; le numéro sert à la repérer (ordre de création) */}
+      <button onClick={onToggle} aria-expanded={open} className="w-full flex items-start gap-2.5 p-3 text-left">
+        <span className={`flex-shrink-0 min-w-[26px] h-[26px] px-1 rounded-full text-xs font-bold flex items-center justify-center ${done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+          {num}
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className={`block text-sm font-semibold break-words ${done ? 'text-slate-500 line-through decoration-slate-300' : 'text-slate-800'}`}>{x.title}</span>
+          <span className="flex flex-wrap items-center gap-1.5 mt-1.5">
             <span className={`flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${STATE_STYLE[state]}`}>
               {state === 'blocked' && <Lock size={10} />}{t(`tasks.states.${state}`)}
             </span>
@@ -369,16 +384,19 @@ function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unl
                 <span key={a.userId} className={`text-[11px] px-1.5 py-0.5 rounded-full ${a.userId === userId ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}`}>{personName(a.user)}</span>
               ))}
             {x.comments.length > 0 && <span className="flex items-center gap-0.5 text-[11px] text-slate-400"><MessageSquare size={11} />{x.comments.length}</span>}
-          </div>
+          </span>
           {!open && !done && waitsFor.length > 0 && (
-            <p className="flex items-start gap-1 text-xs text-slate-600 mt-1.5"><Lock size={12} className="flex-shrink-0 mt-0.5 text-slate-400" />
-              <span>{t('tasks.waitsFor', { titles: waitsFor.map(w => w.title).join(', ') })}</span></p>
+            <span className="flex items-start gap-1 text-xs text-slate-600 mt-1.5"><Lock size={12} className="flex-shrink-0 mt-0.5 text-slate-400" />
+              <span>{t('tasks.waitsFor', { titles: waitsFor.map(w => `${numOf(w.id) ?? ''}. ${w.title}`).join(', ') })}</span></span>
           )}
           {!open && !done && unlocks.length > 0 && (
-            <p className="flex items-center gap-1 text-xs text-slate-400 mt-1"><Unlock size={12} />{t('tasks.unlocks', { count: unlocks.length })}</p>
+            <span className="flex items-center gap-1 text-xs text-slate-400 mt-1"><Unlock size={12} />{t('tasks.unlocks', { count: unlocks.length })}</span>
           )}
-        </button>
-      </div>
+        </span>
+        <span className={`flex-shrink-0 mt-0.5 w-7 h-7 rounded-full flex items-center justify-center ${open ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400'}`} aria-hidden>
+          <ChevronDown size={16} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
 
       {open && (
         <div className="px-3 pb-3 pt-0 space-y-2.5 border-t border-slate-100">
@@ -388,7 +406,7 @@ function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unl
             <div className="pt-2 flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mr-0.5">{t('tasks.waitsLabel')}</span>
               {waitsFor.map(w => (
-                <button key={w.id} onClick={() => onJump(w.id)} className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"><Lock size={11} />{w.title}</button>
+                <button key={w.id} onClick={() => onJump(w.id)} className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"><Lock size={11} /><b>{numOf(w.id)}.</b> {w.title}</button>
               ))}
             </div>
           )}
@@ -396,7 +414,7 @@ function TaskCard({ task: x, userId, isMember, today, state, late, waitsFor, unl
             <div className={`${waitsFor.length ? '' : 'pt-2 '}flex flex-wrap items-center gap-1.5`}>
               <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mr-0.5">{t('tasks.unlocksLabel')}</span>
               {unlocks.map(w => (
-                <button key={w.id} onClick={() => onJump(w.id)} className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100"><Unlock size={11} />{w.title}</button>
+                <button key={w.id} onClick={() => onJump(w.id)} className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100"><Unlock size={11} /><b>{numOf(w.id)}.</b> {w.title}</button>
               ))}
             </div>
           )}

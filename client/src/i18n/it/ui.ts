@@ -1,6 +1,7 @@
 import type { Dict } from '../fr';
 
 const ui: Dict['ui'] = {
+  fullscreen: { open: 'Vista grande', exit: 'Chiudi la vista grande' },
   demo: {
     banner: 'Modalità demo: esplora liberamente, non viene salvato nulla.',
     createAccount: 'Crea il mio account',

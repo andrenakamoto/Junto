@@ -27,6 +27,7 @@ const ideas: Dict['ideas'] = {
   moveRight: "Sposta a destra",
   addPlaceholder: "Un’idea… (Invio per aggiungerla)",
   addTo: "In:",
+  writingHere: "Le idee si aggiungono qui",
   quickAdd: "Aggiungi un’idea",
   sortCreated: "Ordine di arrivo",
   sortVotes: "Per voti",

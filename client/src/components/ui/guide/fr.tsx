@@ -203,7 +203,7 @@ const groups: Group[] = [
       {
         id: 'en-bref', emoji: '✨', title: 'En bref', summary: 'Ta synthèse du Plan en un coup d’œil',
         body: <>
-          <P>Le bouton <strong>En bref</strong> (sur la carte du Plan, et en tête de la fiche) résume le Plan <strong>pour
+          <P>Le bouton <strong>En bref</strong> (sur la carte du Plan, dans la liste des Plans) résume le Plan, sans avoir à l’ouvrir, <strong>pour
             toi</strong> : date, lieu, qui vient, informations importantes, ton trajet, ce que tu apportes, ce que tu dois ou ce
             qu’on te doit, ta cagnotte, tes postes du planning et ce qui attend ta réponse. Touche une ligne pour ouvrir la
             rubrique.</P>
@@ -282,8 +282,8 @@ const groups: Group[] = [
           ils reçoivent un rappel deux jours avant. Dans « Commencer après », indique les tâches qui doivent être terminées avant :
           tant qu'elles ne le sont pas, la tâche est <strong>bloquée</strong> 🔒, et quand la dernière se termine, ses responsables sont
           prévenus qu'ils peuvent commencer. La vue <strong>« Par état »</strong> montre ce qui est en cours, prêt, bloqué ou terminé ;
-          « Mes tâches » et « En retard » filtrent la liste. Coche le rond d'une tâche pour la terminer, touche-la pour la commenter, la
-          prendre (« Je m'en occupe ») ou la modifier. Tout le monde ajoute et fait avancer les tâches ; les supprimer : la personne qui
+          « Mes tâches » et « En retard » filtrent la liste. Chaque tâche a un numéro pour la repérer. Touche-la (ou sa flèche) pour la
+          déplier : la commencer, la terminer, la commenter, la prendre (« Je m'en occupe ») ou la modifier. Tout le monde ajoute et fait avancer les tâches ; les supprimer : la personne qui
           les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning.</P>,
       },
       {
@@ -355,7 +355,7 @@ const groups: Group[] = [
       {
         id: 'mystere', emoji: '🔍', title: 'Plan mystère', summary: 'Une destination secrète, dévoilée petit à petit',
         body: <P>« Créer › Plan spécifique › Plan mystère ». Les invités ne voient que le titre public (« Samedi, on sort. Point. »), l'heure et
-          le point de rendez-vous ; le vrai titre et le vrai lieu restent secrets. Dans la rubrique Mystère, l'organisateur prépare des
+          le point de rendez-vous ; le vrai titre et le vrai lieu restent secrets. Dans la rubrique Mystère, le créateur du Plan (lui seul) prépare des
           indices qui se dévoilent tout seuls à leur heure, avec une notification, et choisit des complices qui voient tout. Les invités
           parient sur la destination. À l'heure du dévoilement (au plus tard au début du Plan), le vrai titre et le vrai lieu apparaissent
           pour tous, avec les paris de chacun. « Tout dévoiler maintenant » avance le moment, s'il pleut par exemple.</P>,

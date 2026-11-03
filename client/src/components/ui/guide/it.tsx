@@ -206,7 +206,7 @@ const groups: Group[] = [
       {
         id: 'en-bref', emoji: '✨', title: 'In breve', summary: 'Il riepilogo del Plan a colpo d’occhio',
         body: <>
-          <P>Il pulsante <strong>In breve</strong> (sulla scheda del Plan e in cima alla pagina del Plan) riassume il Plan
+          <P>Il pulsante <strong>In breve</strong> (sulla scheda del Plan, nell’elenco dei Plan) riassume il Plan, senza doverlo aprire,
             <strong>per te</strong>: data, luogo, chi viene, informazioni importanti, il tuo passaggio, cosa porti, quanto
             devi o ti devono, la tua colletta, i tuoi turni e cosa aspetta la tua risposta. Tocca una riga per
             aprire la sezione.</P>
@@ -284,8 +284,8 @@ const groups: Group[] = [
           <strong> scadenza</strong>: ricevono un promemoria due giorni prima. In «Iniziare dopo» indica i compiti da completare prima: finché
           non lo sono, il compito è <strong>bloccato</strong> 🔒, e quando l'ultimo è completato i responsabili vengono avvisati che possono
           iniziare. La vista <strong>«Per stato»</strong> mostra cosa è in corso, pronto, bloccato o completato; «I miei compiti» e «In
-          ritardo» filtrano l'elenco. Spunta il cerchio di un compito per completarlo; toccalo per commentarlo, prenderlo («Me ne occupo io»)
-          o modificarlo. Tutti aggiungono e portano avanti i compiti; possono eliminarli chi li ha creati e gli organizzatori. Per i turni del
+          ritardo» filtrano l'elenco. Ogni compito ha un numero per ritrovarlo; toccalo (o la sua freccia) per aprirlo: iniziarlo, completarlo, commentarlo,
+          prenderlo («Me ne occupo io») o modificarlo. Tutti aggiungono e portano avanti i compiti; possono eliminarli chi li ha creati e gli organizzatori. Per i turni del
           giorno stesso usa piuttosto i Turni.</P>,
       },
       {
@@ -358,7 +358,7 @@ const groups: Group[] = [
       {
         id: 'mystere', emoji: '🔍', title: 'Plan misterioso', summary: 'Una destinazione segreta, svelata a poco a poco',
         body: <P>«Crea › Plan specifico › Plan misterioso». Gli invitati vedono solo il titolo pubblico («Sabato si esce. Punto.»), l'ora e il
-          punto di ritrovo; il vero titolo e il vero luogo restano segreti. Nella sezione Mistero chi organizza prepara indizi che si svelano
+          punto di ritrovo; il vero titolo e il vero luogo restano segreti. Nella sezione Mistero chi ha creato il Plan (solo lui o lei) prepara indizi che si svelano
           da soli alla loro ora, con una notifica, e sceglie dei complici che vedono tutto. Gli invitati scommettono sulla destinazione.
           All'ora della rivelazione (al più tardi all'inizio del Plan) il vero titolo e il vero luogo appaiono per tutti, con le scommesse di
           ciascuno. «Svela tutto ora» anticipa il momento, per esempio se piove.</P>,

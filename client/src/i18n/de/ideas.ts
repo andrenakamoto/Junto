@@ -27,6 +27,7 @@ const ideas: Dict['ideas'] = {
   moveRight: "Nach rechts",
   addPlaceholder: "Eine Idee… (Enter zum Hinzufügen)",
   addTo: "In:",
+  writingHere: "Neue Ideen kommen hierhin",
   quickAdd: "Idee hinzufügen",
   sortCreated: "Eingangsreihenfolge",
   sortVotes: "Nach Stimmen",

@@ -957,7 +957,10 @@ Junto/
   **Tout le monde qui voit le Plan** ajoute, modifie, confie et fait avancer les tâches et les lots ; supprimer : la personne qui l'a créé,
   le créateur du Plan ou un gestionnaire du Cercle. « Bloquée » se calcule (`taskState`, miroir client). Vues « Par lot » (lots **repliés à l'ouverture** depuis le 2026-10-29, `openGroups` ; dépliés avec « Mes tâches » /
   « En retard », quand on y ajoute une tâche ou qu'une de ses tâches est ouverte) / « Par état »
-  (mémorisée, `evly_tasks_view`), filtres « Mes tâches » / « En retard », « Commencer avec des lots types » (liste `tasks.starterList`).
+  (mémorisée, `evly_tasks_view`), **carte d'une tâche** (2026-11-03, demande de l'utilisateur) : plus de rond à cocher (peu clair) mais un
+  **numéro** (ordre de création, `numbers` de `TasksTab`, repris dans « Attend » / « Débloque »), vert quand elle est terminée, et une **flèche**
+  à droite : toute la ligne déplie la tâche (Commencer, Terminer, commentaires…), un lot se replie même si une de ses tâches est ouverte (elle se referme), et
+  avec « Mes tâches » / « En retard » aussi (`foldedFiltered`) ; un lien « Attend » déplie le lot de la tâche visée, filtres « Mes tâches » / « En retard », « Commencer avec des lots types » (liste `tasks.starterList`).
   Notifications (app + push, jamais d'email) : tâche confiée, commentaire, tâche terminée (à la personne qui l'a créée), **« Tu peux
   commencer »** aux responsables des tâches pas encore commencées que la tâche terminée débloque (`newlyUnblocked`), rappel **2 jours avant
   l'échéance** dès 9 h (`sendTaskReminders`, horaire, gated). **Envoyées en `plan_activity` avec `tab: 'taches'`** (`notifyTask`) : les apps
@@ -980,6 +983,17 @@ Junto/
   pour qui gère les postes) : `ShiftForm` exporté de `VolunteersTab`, pré-rempli (nom, horaire calculé, une place par responsable, lieu
   et matériel en remarque), « Poste créé » quand un poste du même nom commence à la même heure ; les responsables ne sont pas inscrits. Rappel aux responsables **10 minutes
   avant** (`sendProgramReminders`, toutes les 5 min, gated ; renvoyé si l'heure du moment change), en `plan_activity` avec `tab: 'deroule'`.
+  **Ordre des onglets d'organisation** (2026-11-03, demande de l'utilisateur) : Idées, puis Tâches, puis Jour J (ou Déroulé / Planning seuls),
+  même ordre dans la liste des fonctions (`FEATURE_GROUPS` › Organiser).
+  **Onglet « Jour J »** (de « Tag X », it « Giorno X », en « On the day ») (2026-11-03, `DayPlanTab`, demande de l'utilisateur : trop d'onglets) : quand un Plan a le Déroulé
+  **et** le Planning, un seul onglet (clé `deroule`, libellé `plan.detail.tabs.dayPlan`) les réunit, Déroulé puis Planning, chacun repliable et
+  **replié à l'ouverture** (`ProgramTab` / `VolunteersTab` en `embedded`) ; une rubrique ouverte est marquée vue (`markSectionSeen`), la pastille
+  de l'onglet compte les deux ; un lien vers `benevoles` ou `deroule` (notification, « En bref ») ouvre la rubrique demandée une fois
+  (`resolveTab`, `dayFocus`). Un Plan avec une seule des deux fonctions garde son onglet habituel.
+  **« Grand écran »** (même date, `components/ui/FullscreenFrame.tsx`) : bouton en tête des **Tâches** et du **Jour J** ; le cadre ne fait que
+  changer de classes (`contents` ↔ `fixed inset-0 z-[70]`), le contenu n'est pas recréé (filtres, rubriques ouvertes gardés) ; « Fermer le grand
+  écran », Échap ou retour Android (`useBackClose`) ; plein écran du navigateur sur ordinateur seulement. Nommé « Grand écran » pour ne pas
+  le confondre avec « Plein écran (masquer les listes) » de l'en-tête du Plan.
   « Copier le programme » (heures et titres, pour le Plan d'annonce) ; **feuille de route PDF** (GET `/plans/:id/program/pdf`, tout le monde
   qui voit le Plan, textes `programPdf` de `i18n/emails`). « Commencer avec un déroulé type » (`program.starterList`). Pas dans la démo. Fiche
   « Déroulé » du guide.
@@ -990,7 +1004,9 @@ Junto/
   **Idea** (`columnId?` SetNull = « sans thème », `status` `new|kept|dropped|explore`, `votes` = votes à main levée notés avec + / −,
   `color` parmi 5, `taskId` = tâche créée, sans relation). Tout le monde qui voit le Plan modifie le tableau ; **aucune notification**.
   **« Projeter en plein écran »** (`Projection` : API plein écran du navigateur, Échap → `closeTopOverlay`, `useBackClose`) : colonnes en
-  grand, saisie en bas (choisir le thème, taper, Entrée), glisser une idée vers un autre thème (drag & drop HTML5), **minuteur** 5 / 10 /
+  grand, saisie en bas (choisir le thème, taper, Entrée ; depuis le 2026-11-03, la colonne du thème choisi est encadrée en corail, « Les idées
+  s'ajoutent ici », et défile à l'écran ; l'idée ajoutée défile dans sa colonne et s'entoure 2 s — `colRefs`, `data-idea`, la page derrière la
+  projection ayant les mêmes idées), glisser une idée vers un autre thème (drag & drop HTML5), **minuteur** 5 / 10 /
   15 min (côté client seulement). Toucher une idée : +1 / −1, ⭐ Retenue / ❓ À creuser / ✖ Écartée (re-toucher = « nouvelle »), couleur,
   modifier (double-clic), **fusionner** (`mergeIdeas` : textes réunis, votes additionnés, statut le plus avancé), **transformer en tâche**
   (si `taches` actif : même formulaire que les Tâches, `TaskForm` exporté de `TasksTab` — lot ou « + Nouveau lot… », responsables,
@@ -1095,8 +1111,8 @@ Junto/
   masquées / à activer : réponses (+ liste d'attente), première ligne des informations importantes, **son trajet** (conducteur,
   passager, en recherche, ou places proposées), « qui apporte quoi » (ce qu'elle apporte — `claimedBy` contient le **pseudo** —,
   ce qui manque), **ses comptes** (virements suggérés qui la concernent), sa cagnotte, ses postes de bénévole, ses tâches pas terminées (`tasks`), votes et matchs qui
-  l'attendent, nombre de photos (comme le ZIP). Pas de table. Ouverte par le bouton « En bref » de `PlanCard` (prop `onSummary`,
-  `PlanList`), la carte en tête de la page principale du Plan sur téléphone et une icône de l'en-tête sur grand écran ; chaque ligne
+  l'attendent, nombre de photos (comme le ZIP). Pas de table. Ouverte **seulement** par le bouton « En bref » de `PlanCard` (prop `onSummary`,
+  `PlanList`) — depuis le 2026-11-03, plus de carte ni d'icône dans la fiche du Plan (demande de l'utilisateur : En bref sert à ne pas ouvrir le Plan) ; chaque ligne
   ouvre sa rubrique. **« Copier le résumé »** : texte sans rien de personnel (date, lieu, qui vient, infos importantes, places
   libres, ce qui manque) + lien `/invitation?token=…` (réponse sans compte). Démo : calculée dans `lib/demo.ts` (`demoSummary`) à
   partir des données en mémoire. Fiche « En bref » dans le guide.
@@ -1775,8 +1791,8 @@ dictionnaire `i18n/<langue>/mystery.ts`, migration `20261113100000_plan_mystery`
 lieu envoyés par PUT `/plans/:id/mystery` juste après la création ; ouvre la rubrique Mystère). **Principe anti-fuite : tant que le mystère
 dure, `Plan.title` et `Plan.location` sont les valeurs PUBLIQUES** (cartes, notifications, .ics, « En bref », récapitulatif, Découvrir n'ont
 rien à cacher) ; le vrai titre et le vrai lieu sont dans **PlanMystery** (`realTitle`, `realLocation`, `revealAt` ≤ début du Plan, défaut
-1 h avant, `accompliceIds`, `revealedAt`), renvoyés seulement par GET `/plans/:id/mystery` à l'organisation (créateur du Plan, gestionnaires
-du Cercle) et aux complices (`mysteryView` : jamais le texte d'un indice à venir ni les paris des autres avant le dévoilement). **Ne jamais
+1 h avant, `accompliceIds`, `revealedAt`), renvoyés seulement par GET `/plans/:id/mystery` au **créateur du Plan** et aux complices qu'il choisit
+(depuis le 2026-11-03, plus aux organisateurs du Cercle, demande de l'utilisateur ; lui seul prépare, modifie et dévoile le mystère) (`mysteryView` : jamais le texte d'un indice à venir ni les paris des autres avant le dévoilement). **Ne jamais
 mettre le vrai titre ou le vrai lieu dans le Plan avant `revealMystery`**, qui les recopie dans le Plan (`publicTitle` / `publicLocation`
 gardés), dévoile les indices restants, notifie et rafraîchit Découvrir. **PlanMysteryClue** (8 au plus, dévoilés à l'heure par
 `mysteryTick`, toutes les 5 min, gated ; « Dévoiler maintenant ») ; **PlanMysteryGuess** (un pari par participant hors confidence, PUT /
@@ -1790,7 +1806,9 @@ pour rester utilisable une fois le Plan terminé ou supprimé —, migration `20
 dictionnaire `i18n/<langue>/capsule.ts`) : fonction **à activer** (`capsule`, catégorie Fêter et offrir). Le créateur du Plan (ou un
 gestionnaire du Cercle) crée **une capsule par Plan** et choisit l'ouverture (**« Dans 1 an » = un an après le début du Plan, `oneYearAfter`, ou une date dans l'année** —
 au moins un jour après la fin des dépôts, au plus un an après, `parseOpenAt` ; demande de l'utilisateur : pas plus d'un an). Dépôts (mot 1 000 caractères **chiffré**, photo refaite par sharp 1600 px sans métadonnées,
-message vocal converti en MP3 par ffmpeg, 2 min ; 10 par personne, 200 Mo par capsule) **pendant le Plan et jusqu'à 7 jours après sa fin**
+message vocal converti en MP3 par ffmpeg, 2 min ; 10 par personne ; **limites contre les abus** du 2026-11-03 : 100 Mo par capsule, 15 Mo par personne, **5 capsules en cours par Cercle** et **10 par
+créateur** (une capsule effacée libère sa place), 20 dépôts par heure et par personne, plus de photo ni de vocal si le disque dépasse 85 % —
+`diskTooFull` ; place restante et « 3 / 5 capsules en cours dans ce Cercle » affichées ; panneau admin « Stockage » : taille et nombre de capsules) **pendant le Plan et jusqu'à 7 jours après sa fin**
 (`depositDeadline`) par les participants (sauf « Je passe », comptes seulement) ; chacun ne voit et ne retire que les siens. Tables
 **TimeCapsule** (`circleId` Cascade, `planId` SetNull = **survit au Plan**, titre recopié, `audienceIds`, `sealedAt`, `reminderSentAt`,
 `openedAt`) et **CapsuleDeposit** (fichiers dans `STORAGE_DIR/capsules/<capsuleId>/`). Participants prévenus à la création (`notifyCreated`). Tâche horaire `capsuleTick` (gated) :

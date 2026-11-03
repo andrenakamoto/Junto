@@ -26,6 +26,7 @@ const ideas = {
   moveRight: 'Déplacer à droite',
   addPlaceholder: 'Une idée… (Entrée pour l’ajouter)',
   addTo: 'Dans :',
+  writingHere: "Les idées s’ajoutent ici",
   quickAdd: 'Ajouter une idée',
   sortCreated: 'Ordre d’arrivée',
   sortVotes: 'Par votes',
