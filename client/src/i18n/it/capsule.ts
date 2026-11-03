@@ -16,6 +16,7 @@ const capsule: Dict['capsule'] = {
     onlyCreator: "Chi ha creato il Plan può creare la capsula.",
     notInvited: "Questa capsula è riservata ai partecipanti del Plan.",
     dateRequired: "Scegli una data di apertura.",
+    circleUsage: "{{count}} / {{max}} capsule in corso in questo Cerchio",
   },
   status: {
     open: "Depositi aperti fino al {{date}}",
@@ -27,6 +28,7 @@ const capsule: Dict['capsule'] = {
   contributors_one: "di {{count}} persona",
   contributors_other: "di {{count}} persone",
   opensOn: "Apertura il {{date}}",
+  space: "Spazio libero: {{free}} MB nella capsula, {{mine}} MB per te",
   sealAuto: "La capsula si sigilla da sola alla fine dei depositi. Dopo, nessuno può più aggiungere o ritirare nulla.",
   deposit: {
     title: "Deposita un ricordo",

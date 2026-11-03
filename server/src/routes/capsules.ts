@@ -13,7 +13,7 @@ import { getPlanAccess } from '../lib/planAccess';
 import { isCircleManager } from '../lib/circleRoles';
 import { decryptMessage, encryptMessage } from '../lib/messageCrypto';
 import {
-  CAPSULE_DEPOSITS_PER_PERSON, CAPSULE_MAX_BYTES, CAPSULE_PHOTO_MAX_BYTES, CAPSULE_TEXT_MAX, CAPSULE_VOICE_MAX_BYTES, CAPSULE_VOICE_MAX_SECONDS,
+  CAPSULE_DEPOSITS_PER_HOUR, CAPSULE_DEPOSITS_PER_PERSON, CAPSULE_MAX_BYTES, CAPSULE_PERSON_MAX_BYTES, CAPSULES_PER_CIRCLE, CAPSULES_PER_CREATOR, diskTooFull, CAPSULE_PHOTO_MAX_BYTES, CAPSULE_TEXT_MAX, CAPSULE_VOICE_MAX_BYTES, CAPSULE_VOICE_MAX_SECONDS,
   capsuleDir, capsuleExpiresAt, capsuleFile, capsuleStage, depositDeadline, notifyCreated, oneYearAfter, parseOpenAt, sealCapsule, removeCapsuleFiles, removeDepositFiles,
 } from '../lib/capsule';
 
@@ -74,6 +74,9 @@ async function view(userId: string, c: Loaded) {
     expiresAt: capsuleExpiresAt(c),
     depositCount: deposits.length,
     contributorCount: new Set(deposits.map(d => d.userId)).size,
+    // Place : la capsule entière et la part de la personne (photos et vocaux ; un mot ne compte pas)
+    bytesUsed: deposits.reduce((n, d) => n + d.size, 0), maxBytes: CAPSULE_MAX_BYTES,
+    myBytes: deposits.filter(d => d.userId === userId).reduce((n, d) => n + d.size, 0), myMaxBytes: CAPSULE_PERSON_MAX_BYTES,
     canManage: await canManage(userId, c),
     canDeposit: stage === 'open_for_deposits',
     // Avant l'ouverture : seulement ses propres dépôts ; après : tous
@@ -81,6 +84,8 @@ async function view(userId: string, c: Loaded) {
     mediaToken: mintToken(c.id, userId),
   };
 }
+
+const circleCount = (circleId: string) => prisma.timeCapsule.count({ where: { circleId } });
 
 // GET /api/capsules/plan/:planId — la capsule du Plan (rubrique « Capsule »)
 router.get('/plan/:planId', async (req: AuthRequest, res) => {
@@ -93,7 +98,8 @@ router.get('/plan/:planId', async (req: AuthRequest, res) => {
   const manager = plan.creatorId === me || await isCircleManager(me, plan.circleId);
   if (!c) {
     const depositUntil = depositDeadline(plan.endDate);
-    res.json({ capsule: null, canCreate: manager && plan.enabledFeatures.includes('capsule'), depositUntil, oneYear: oneYearAfter(plan.eventDate ?? plan.endDate, depositUntil) });
+    res.json({ capsule: null, canCreate: manager && plan.enabledFeatures.includes('capsule'), depositUntil, oneYear: oneYearAfter(plan.eventDate ?? plan.endDate, depositUntil),
+      circleUsage: { count: await circleCount(plan.circleId), max: CAPSULES_PER_CIRCLE } });
     return;
   }
   if (!(await canSee(me, c))) { res.json({ capsule: null, canCreate: false, notInvited: true }); return; }
@@ -113,6 +119,8 @@ router.post('/plan/:planId', async (req: AuthRequest, res) => {
   const openAt = parseOpenAt(req.body?.openAt, depositUntil);
   if (!openAt) { res.status(400).json({ error: 'Date d’ouverture invalide (après la fin des dépôts, dans l’année au plus)' }); return; }
   if (await prisma.timeCapsule.findUnique({ where: { planId: plan.id }, select: { id: true } })) { res.status(409).json({ error: 'Ce Plan a déjà une capsule' }); return; }
+  if (await circleCount(plan.circleId) >= CAPSULES_PER_CIRCLE) { res.status(409).json({ error: 'Ce Cercle a déjà 5 capsules en cours : attends qu’une capsule soit ouverte et effacée' }); return; }
+  if (await prisma.timeCapsule.count({ where: { createdById: me } }) >= CAPSULES_PER_CREATOR) { res.status(409).json({ error: 'Tu as déjà 10 capsules en cours' }); return; }
   const members = await prisma.planMember.findMany({ where: { planId: plan.id, rsvp: { not: 'out' }, user: { isLight: false } }, select: { userId: true } });
   const c = await prisma.timeCapsule.create({
     data: { circleId: plan.circleId, planId: plan.id, title: plan.title, openAt, depositUntil, createdById: me, audienceIds: [...new Set([me, ...members.map(m => m.userId)])] },
@@ -207,6 +215,10 @@ router.post('/:id/deposits', upload.single('file'), async (req: AuthRequest, res
   if (!['text', 'photo', 'voice'].includes(kind)) { res.status(400).json({ error: 'Type de souvenir invalide' }); return; }
   const mine = await prisma.capsuleDeposit.count({ where: { capsuleId: c.id, userId: me } });
   if (mine >= CAPSULE_DEPOSITS_PER_PERSON) { res.status(400).json({ error: `${CAPSULE_DEPOSITS_PER_PERSON} souvenirs par personne au maximum` }); return; }
+  // Rythme : 20 dépôts par heure et par personne, toutes capsules confondues
+  const lastHour = await prisma.capsuleDeposit.count({ where: { userId: me, createdAt: { gt: new Date(Date.now() - 3600e3) } } });
+  if (lastHour >= CAPSULE_DEPOSITS_PER_HOUR) { res.status(429).json({ error: 'Trop de souvenirs déposés en peu de temps : réessaie dans une heure' }); return; }
+  if (kind !== 'text' && await diskTooFull()) { res.status(507).json({ error: 'Capsule momentanément pleine : dépose plutôt un mot' }); return; }
   const rawText = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
   if (rawText.length > CAPSULE_TEXT_MAX) { res.status(400).json({ error: `${CAPSULE_TEXT_MAX} caractères au maximum` }); return; }
   if (kind === 'text' && !rawText) { res.status(400).json({ error: 'Écris un petit mot' }); return; }
@@ -229,8 +241,12 @@ router.post('/:id/deposits', upload.single('file'), async (req: AuthRequest, res
       return;
     }
   }
-  const used = await prisma.capsuleDeposit.aggregate({ where: { capsuleId: c.id }, _sum: { size: true } });
+  const [used, usedByMe] = await Promise.all([
+    prisma.capsuleDeposit.aggregate({ where: { capsuleId: c.id }, _sum: { size: true } }),
+    prisma.capsuleDeposit.aggregate({ where: { capsuleId: c.id, userId: me }, _sum: { size: true } }),
+  ]);
   if ((used._sum.size ?? 0) + (file?.length ?? 0) > CAPSULE_MAX_BYTES) { res.status(400).json({ error: 'La capsule est pleine' }); return; }
+  if ((usedByMe._sum.size ?? 0) + (file?.length ?? 0) > CAPSULE_PERSON_MAX_BYTES) { res.status(400).json({ error: 'Tu as utilisé toute ta place dans la capsule (15 Mo) : dépose plutôt un mot' }); return; }
   let fileKey: string | null = null;
   if (file) {
     fileKey = `${path.basename(capsuleDir(c.id))}/${crypto.randomUUID()}${kind === 'voice' ? '.mp3' : '.jpg'}`;

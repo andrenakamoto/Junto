@@ -11,7 +11,14 @@ import { STORAGE_DIR } from './storage';
 
 export const CAPSULE_TEXT_MAX = 1000;
 export const CAPSULE_DEPOSITS_PER_PERSON = 10;
-export const CAPSULE_MAX_BYTES = 200 * 1024 * 1024;
+// Limites contre les abus (2026-11-03) : place d'une capsule et de chaque personne, capsules en cours par Cercle et par
+// créateur, rythme des dépôts ; plus de photo ni de vocal quand le disque du serveur est plein à 85 %
+export const CAPSULE_MAX_BYTES = 100 * 1024 * 1024;
+export const CAPSULE_PERSON_MAX_BYTES = 15 * 1024 * 1024;
+export const CAPSULES_PER_CIRCLE = 5;
+export const CAPSULES_PER_CREATOR = 10;
+export const CAPSULE_DEPOSITS_PER_HOUR = 20;
+export const CAPSULE_DISK_MAX_RATIO = 0.85;
 export const CAPSULE_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
 export const CAPSULE_VOICE_MAX_BYTES = 6 * 1024 * 1024;
 export const CAPSULE_VOICE_MAX_SECONDS = 120;
@@ -60,6 +67,17 @@ export function capsuleFile(fileKey: string): string {
   if (!p.startsWith(path.join(STORAGE_DIR, 'capsules') + path.sep)) throw new Error('Chemin de fichier invalide');
   return p;
 }
+// Disque du serveur trop plein pour de nouveaux fichiers ? (lu au plus toutes les 5 minutes)
+let diskCheck = { at: 0, full: false };
+export async function diskTooFull(): Promise<boolean> {
+  if (Date.now() - diskCheck.at < 5 * 60e3) return diskCheck.full;
+  try {
+    const s = await fs.statfs(STORAGE_DIR);
+    diskCheck = { at: Date.now(), full: 1 - s.bavail / s.blocks > CAPSULE_DISK_MAX_RATIO };
+  } catch { diskCheck = { at: Date.now(), full: false }; }
+  return diskCheck.full;
+}
+
 export async function removeCapsuleFiles(capsuleIds: string[]) {
   for (const id of capsuleIds) await fs.rm(capsuleDir(id), { recursive: true, force: true }).catch(e => console.error('[capsule fichiers]', id, e.message));
 }

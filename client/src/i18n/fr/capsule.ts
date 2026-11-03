@@ -14,6 +14,7 @@ const capsule = {
     onlyCreator: "Le créateur du Plan peut créer la capsule.",
     notInvited: "Cette capsule est réservée aux participants du Plan.",
     dateRequired: "Choisis une date d’ouverture.",
+    circleUsage: "{{count}} / {{max}} capsules en cours dans ce Cercle",
   },
   status: {
     open: "Dépôts ouverts jusqu’au {{date}}",
@@ -25,6 +26,7 @@ const capsule = {
   contributors_one: "déposé par {{count}} personne",
   contributors_other: "déposés par {{count}} personnes",
   opensOn: "Ouverture le {{date}}",
+  space: "Place restante : {{free}} Mo dans la capsule, {{mine}} Mo pour toi",
   sealAuto: "La capsule se scelle toute seule à la fin des dépôts. Ensuite, plus personne ne peut rien ajouter ni retirer.",
   deposit: {
     title: "Déposer un souvenir",

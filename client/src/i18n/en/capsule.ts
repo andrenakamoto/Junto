@@ -16,6 +16,7 @@ const capsule: Dict['capsule'] = {
     onlyCreator: "The Plan’s creator can create the capsule.",
     notInvited: "This capsule is for the Plan’s participants.",
     dateRequired: "Choose an opening date.",
+    circleUsage: "{{count}} / {{max}} capsules in progress in this Circle",
   },
   status: {
     open: "Open for memories until {{date}}",
@@ -27,6 +28,7 @@ const capsule: Dict['capsule'] = {
   contributors_one: "from {{count}} person",
   contributors_other: "from {{count}} people",
   opensOn: "Opens on {{date}}",
+  space: "Space left: {{free}} MB in the capsule, {{mine}} MB for you",
   sealAuto: "The capsule seals itself when deposits close. After that, nobody can add or remove anything.",
   deposit: {
     title: "Add a memory",

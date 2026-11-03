@@ -16,6 +16,7 @@ const capsule: Dict['capsule'] = {
     onlyCreator: "Wer den Plan erstellt hat, kann die Kapsel erstellen.",
     notInvited: "Diese Kapsel ist den Teilnehmenden des Plans vorbehalten.",
     dateRequired: "Wähle ein Öffnungsdatum.",
+    circleUsage: "{{count}} / {{max}} laufende Kapseln in diesem Kreis",
   },
   status: {
     open: "Erinnerungen bis zum {{date}} möglich",
@@ -27,6 +28,7 @@ const capsule: Dict['capsule'] = {
   contributors_one: "von {{count}} Person",
   contributors_other: "von {{count}} Personen",
   opensOn: "Öffnung am {{date}}",
+  space: "Freier Platz: {{free}} MB in der Kapsel, {{mine}} MB für dich",
   sealAuto: "Die Kapsel versiegelt sich am Ende der Einreichungen von selbst. Danach kann niemand mehr etwas hinzufügen oder entfernen.",
   deposit: {
     title: "Erinnerung hineinlegen",

@@ -9,6 +9,7 @@ interface Storage {
   backups: number;
   disk: { total: number; free: number } | null;
   attachments: { count: number; size: number };
+  capsules?: { count: number; size: number };
   at: string;
 }
 
@@ -51,11 +52,13 @@ export function StoragePanel() {
               <div className="mt-1.5 h-2.5 rounded-full bg-slate-100 overflow-hidden"><div className={`h-full ${bar}`} style={{ width: `${pct}%` }} /></div>
             </div>
           )}
-          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          <dl className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
             <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Base de données</dt><dd className="font-semibold text-slate-800">{size(data.database)}</dd></div>
-            <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Fichiers des Plans</dt><dd className="font-semibold text-slate-800">{size(Math.max(0, data.files - data.photos))}</dd>
+            <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Fichiers des Plans</dt><dd className="font-semibold text-slate-800">{size(Math.max(0, data.files - data.photos - (data.capsules?.size ?? 0)))}</dd>
               <dd className="text-[11px] text-slate-400">{data.attachments.count} fichier{data.attachments.count > 1 ? 's' : ''}</dd></div>
             <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Photos de profil, de Cercle et de discussion</dt><dd className="font-semibold text-slate-800">{size(data.photos)}</dd></div>
+            {data.capsules && <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Capsules temporelles</dt><dd className="font-semibold text-slate-800">{size(data.capsules.size)}</dd>
+              <dd className="text-[11px] text-slate-400">{data.capsules.count} capsule{data.capsules.count > 1 ? 's' : ''} en cours</dd></div>}
             <div className="p-3 rounded-lg bg-slate-50"><dt className="text-xs text-slate-500">Sauvegardes sur le serveur</dt><dd className="font-semibold text-slate-800">{size(data.backups)}</dd></div>
           </dl>
           <p className="text-[11px] text-slate-400">Mesuré le {new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(data.at))}. Les fichiers comprennent les miniatures et les messages vocaux convertis.</p>

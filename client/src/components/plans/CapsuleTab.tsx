@@ -20,12 +20,15 @@ type Deposit = { id: string; kind: 'text' | 'photo' | 'voice'; text: string | nu
 export interface Capsule {
   id: string; title: string; circleId: string; planId: string | null; openAt: string; depositUntil: string; expiresAt: string;
   stage: 'open_for_deposits' | 'sealed' | 'opened'; depositCount: number; contributorCount: number; canManage: boolean; canDeposit: boolean;
+  bytesUsed?: number; maxBytes?: number; myBytes?: number; myMaxBytes?: number;
   deposits: Deposit[]; mediaToken: string;
 }
 export interface CapsuleSummary { id: string; title: string; openAt: string; depositUntil: string; stage: Capsule['stage']; depositCount: number; expiresAt: string }
 
 const fmt = (iso: string) => new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Zurich' }).format(new Date(iso));
 const fileUrl = (c: Capsule, d: Deposit) => `${API_BASE}/capsules/files/${d.id}?t=${encodeURIComponent(c.mediaToken)}`;
+// Place en mégaoctets (« 62 Mo »), arrondie vers le bas
+const mb = (bytes: number) => `${Math.floor(bytes / 1048576)}`;
 const errorOf = (e: any) => e?.response?.data?.error || t('common.retryError');
 const addYear = (iso: string) => { const d = new Date(iso); d.setFullYear(d.getFullYear() + 1); return d.toISOString(); };
 
@@ -206,6 +209,9 @@ export function CapsuleView({ capsule, onChanged, onReunion }: { capsule: Capsul
       </div>
       {capsule.stage === 'open_for_deposits' && <p className="text-xs text-slate-500 px-1">{t('capsule.sealAuto')}</p>}
       {capsule.stage === 'opened' && <button onClick={() => setOpening(true)} className="w-full py-3.5 rounded-xl bg-indigo-600 text-white font-bold text-lg">🎁 {t('capsule.open.button')}</button>}
+      {capsule.canDeposit && capsule.maxBytes != null && (
+        <p className="text-xs text-slate-500 px-1">{t('capsule.space', { free: mb(Math.max(0, capsule.maxBytes - (capsule.bytesUsed ?? 0))), mine: mb(Math.max(0, (capsule.myMaxBytes ?? 0) - (capsule.myBytes ?? 0))) })}</p>
+      )}
       {capsule.canDeposit && <DepositForm capsule={capsule} onDone={onChanged} />}
       {capsule.stage !== 'opened' && capsule.deposits.length > 0 && (
         <div className="space-y-2">
@@ -233,7 +239,7 @@ export function CapsuleView({ capsule, onChanged, onReunion }: { capsule: Capsul
 
 // Rubrique « Capsule » d'un Plan
 export function CapsuleTab({ planId }: { planId: string }) {
-  const [data, setData] = useState<{ capsule: Capsule | null; canCreate: boolean; depositUntil?: string; oneYear?: string; notInvited?: boolean } | null>(null);
+  const [data, setData] = useState<{ capsule: Capsule | null; canCreate: boolean; depositUntil?: string; oneYear?: string; notInvited?: boolean; circleUsage?: { count: number; max: number } } | null>(null);
   const [choice, setChoice] = useState<'year' | 'date'>('year');
   const [date, setDate] = useState('');
   const [error, setError] = useState('');
@@ -275,6 +281,7 @@ export function CapsuleTab({ planId }: { planId: string }) {
                   {data.depositUntil && <p className="text-xs text-slate-500">{t('capsule.create.dateHint', { date: fmt(addYear(data.depositUntil)) })}</p>}
                 </>}
                 {data.depositUntil && <p className="text-xs text-slate-500">{t('capsule.create.depositsUntil', { date: fmt(data.depositUntil) })}</p>}
+                {data.circleUsage && <p className={`text-xs ${data.circleUsage.count >= data.circleUsage.max ? 'text-red-600 font-semibold' : 'text-slate-500'}`}>{t('capsule.create.circleUsage', { count: data.circleUsage.count, max: data.circleUsage.max })}</p>}
                 {error && <p className="text-xs text-red-600">{error}</p>}
                 <button onClick={create} disabled={busy} className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold disabled:opacity-50">{t('capsule.create.button')}</button>
               </div>

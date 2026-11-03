@@ -19,13 +19,15 @@ function folderSize(dir: string): Promise<number> {
 }
 
 export async function storageStats() {
-  const [db, files, photos, backups, disk, attachments] = await Promise.all([
+  const [db, files, photos, backups, disk, attachments, capsules, capsuleCount] = await Promise.all([
     prisma.$queryRaw<{ size: bigint }[]>`SELECT pg_database_size(current_database()) AS size`.then(r => Number(r[0]?.size ?? 0)).catch(() => 0),
     folderSize(STORAGE_DIR),
     folderSize(path.join(STORAGE_DIR, 'photos')),
     folderSize(BACKUP_DIR),
     fs.statfs(STORAGE_DIR).then(s => ({ total: s.blocks * s.bsize, free: s.bavail * s.bsize })).catch(() => null),
     prisma.attachment.aggregate({ _count: true, _sum: { size: true } }),
+    folderSize(path.join(STORAGE_DIR, 'capsules')),
+    prisma.timeCapsule.count(),
   ]);
   return {
     database: db,
@@ -34,6 +36,8 @@ export async function storageStats() {
     backups,
     disk,
     attachments: { count: attachments._count, size: attachments._sum.size ?? 0 },
+    // Capsules temporelles : gardées jusqu'à un an, à surveiller
+    capsules: { count: capsuleCount, size: capsules },
     at: new Date().toISOString(),
   };
 }
