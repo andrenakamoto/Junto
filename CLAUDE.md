@@ -522,6 +522,9 @@ Conséquences pratiques :
     **Version 1.0.43** (2026-11-02) : Android `versionCode` 45 (`evly-1.0.43-(45).aab`), iOS build 48 envoyé — capsule temporelle,
     Plan mystère, gagnant du match au plus de oui, France voisine dans Découvrir. (Profil App Store : `~/Library/Developer/Xcode/UserData/
     Provisioning Profiles/<uuid>.mobileprovision`, nommé « iOS Team Store Provisioning Profile: ch.evly.app », lu avec `security cms -D`.)
+    **Version 1.0.44** (2026-11-03) : Android `versionCode` 46 (`evly-1.0.44-(46).aab`), iOS build 49 envoyé — retour visuel au toucher et
+    barre « en cours », onglet Jour J (Déroulé + Planning), grand écran des Tâches et du Jour J, tâches numérotées, ordre Idées / Tâches / Jour J,
+    thème mis en évidence dans la projection des Idées, « En bref » seulement sur la carte du Plan, mes capsules dans « Tous mes plans ».
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
