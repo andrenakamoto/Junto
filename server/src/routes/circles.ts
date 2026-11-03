@@ -755,6 +755,8 @@ async function canCreatePolls(userId: string, circleId: string): Promise<boolean
 // Début, fin et lieu d'un Plan créé depuis la fenêtre « Créer un Plan »
 function missingPlanBasics(body: any): string | null {
   if (!body?.eventDate || !body?.endDate) return 'Indique la date de début et la date de fin';
+  // Lieu « À définir » (2026-11-03) : case cochée à la création, le Plan est enregistré sans lieu et l'affiche ainsi
+  if (body.locationTbd === true) return null;
   if (typeof body.location !== 'string' || !body.location.trim()) return 'Indique le lieu';
   return null;
 }

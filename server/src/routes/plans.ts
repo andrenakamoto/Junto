@@ -243,6 +243,8 @@ router.get('/:id', async (req: AuthRequest, res) => {
     mediaToken: mintMediaToken(plan.id, req.userId!),
     // Récapitulatif PDF : créateur du Plan et gestionnaires du Cercle
     canRecap: await canDownloadRecap(req.userId!, plan),
+    // Rubriques qui ont du contenu : l'app range les rubriques vides sous « + Ajouter » (2026-11-03)
+    content: await planContent(plan.id),
     canDeletePolls: await canDeletePolls(req.userId!, plan),
     // « Y aller avec un Cercle » : possible depuis un événement en Mode annonce (pas pour un invité externe)
     canGoWithCircle: !access.isGuest && canProposeToCircles(plan),
@@ -345,10 +347,14 @@ router.post('/:id/guest-link', async (req: AuthRequest, res) => {
     if (!access.isPlanMember && !(await isCircleManager(req.userId!, access.plan.circleId))) { res.status(403).json({ error: 'Rejoins ce Plan pour pouvoir inviter' }); return; }
     const rules = await prisma.plan.findUnique({ where: { id: access.plan.id }, select: { creatorId: true, circleId: true, guestInviteMode: true, visibility: true } });
     if (!rules || !(await canInviteGuests(req.userId!, rules))) { res.status(403).json({ error: GUESTS_RESERVED_ERROR }); return; }
+    // Deux demandes en même temps (fenêtre « Inviter » ouverte juste après la création) : la seconde relit le lien créé
     const link = await prisma.planGuestLink.upsert({
       where: { planId: req.params.id },
       create: { planId: req.params.id, token: newGuestToken() },
       update: {},
+    }).catch(async e => {
+      if ((e as { code?: string }).code !== 'P2002') throw e;
+      return prisma.planGuestLink.findUniqueOrThrow({ where: { planId: req.params.id } });
     });
     res.json({ token: link.token });
   } catch (e) {
@@ -668,11 +674,14 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
     res.status(409).json({ error: 'Tu es déjà dans ce Plan' });
     return;
   }
-  if (!(await hasFreeSpot(plan, req.userId!))) {
+  // Réponse donnée en rejoignant (2026-11-03, « Tu viens ? ») ; sans rien, « Je suis in » comme avant (anciennes apps).
+  // « Je passe » n'occupe pas de place et ne prévient personne.
+  const rsvp = req.body?.rsvp === 'maybe' || req.body?.rsvp === 'out' ? req.body.rsvp as 'maybe' | 'out' : 'in';
+  if (rsvp !== 'out' && !(await hasFreeSpot(plan, req.userId!))) {
     res.status(409).json({ error: 'Ce Plan est complet', full: true });
     return;
   }
-  await prisma.planMember.create({ data: { userId: req.userId!, planId: req.params.id, rsvp: 'in' } });
+  await prisma.planMember.create({ data: { userId: req.userId!, planId: req.params.id, rsvp } });
   await prisma.planWaitlist.deleteMany({ where: { planId: req.params.id, userId: req.userId! } });
   // Ce qui existait avant l'arrivée n'est pas « nouveau » pour le nouveau participant
   await markAllSeen(req.params.id, req.userId!);
@@ -689,6 +698,7 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
   const joined = anonymizePlanPolls(updatedPlan, req.userId!);
   res.json(hideReservedList(updatedPlan && !(await canSeeMembers(updatedPlan, req.userId!)) ? maskMembers(joined, req.userId!) : joined, req.userId!));
 
+  if (rsvp === 'out') return;
   // Les participants sont prévenus de chaque arrivée (dans l'app + push)
   notifyMembershipChange(req.app.get('io'), req.params.id, { id: req.userId!, pseudo: req.pseudo! }, 'join')
     .catch(e => console.error('[join notify]', e));
@@ -1203,3 +1213,14 @@ router.get('/:id/ical', async (req: AuthRequest, res) => {
 });
 
 export default router;
+
+// Trajets, votes et dépenses : y a-t-il quelque chose ? (le reste de la fiche est toujours affiché)
+async function planContent(planId: string) {
+  const w = { where: { planId } };
+  const [rides, requests, transit, polls, matches, wheels, expenses, reimbursements, items] = await Promise.all([
+    prisma.ride.count(w), prisma.rideRequest.count(w), prisma.transitGroup.count(w),
+    prisma.poll.count(w), prisma.matchPoll.count(w), prisma.wheel.count(w),
+    prisma.expense.count(w), prisma.reimbursement.count(w), prisma.bringItem.count(w),
+  ]);
+  return { trajets: rides + requests + transit > 0, votes: polls + matches + wheels > 0, depenses: expenses + reimbursements + items > 0 };
+}
