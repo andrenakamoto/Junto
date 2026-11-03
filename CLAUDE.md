@@ -530,6 +530,9 @@ Conséquences pratiques :
     **Version 1.0.45** (2026-11-03) : Android `versionCode` 47 (`evly-1.0.45-(47).aab`), iOS build 50 envoyé — parcours simplifié : premier
     lancement « Que veux-tu faire ? », « + Nouveau Plan » avec « Avec qui ? » et « Inviter » après la création, lieu « À définir », Trajets / Votes /
     Dépenses rangés sous « + Ajouter » tant qu'ils sont vides, « Tu viens ? » ; limites des capsules, Plan mystère réservé au créateur.
+    **Version 1.0.46** (2026-11-03) : Android `versionCode` 48 (`evly-1.0.46-(48).aab`), iOS **build 52** envoyé (le 51 n'avait pas la correction
+    du menu ☰) — moins de boutons (« + Créer » unique, calendrier dans « Tous mes plans », Contacts dans le menu ☰, en-tête du Plan « Inviter » /
+    « Modifier » / ⋯), menu ☰ allégé (en-tête « Mon profil », mot de passe et suppression du compte dans « Mon profil »).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
