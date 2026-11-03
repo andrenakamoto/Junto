@@ -1,6 +1,21 @@
 // Bandeaux, pages d'attente, petits éléments d'interface
 export default {
   fullscreen: { open: 'Grand écran', exit: 'Fermer le grand écran' },
+  welcome: {
+    hello: "Salut {{name}} ! Que veux-tu faire ?",
+    helloAnon: "Bienvenue ! Que veux-tu faire ?",
+    organize: "Organiser une sortie",
+    organizeText: "Un apéro, un resto, une rando… Tu crées le Plan, tu envoies le lien, tes amis répondent (même sans l’app).",
+    join: "Rejoindre mes amis",
+    joinText: "Tu as reçu un code ou un lien ? Colle-le ici.",
+    group: "Créer mon groupe",
+    groupText: "Pour un groupe qui se retrouve souvent : amis, famille, club, collègues.",
+    joinPlaceholder: "Code (ex. ABC123) ou lien reçu",
+    joinButton: "Continuer",
+    joinInvalid: "Ce code ou ce lien n’est pas reconnu. Vérifie ce que tu as reçu.",
+    later: "Plus tard",
+    demo: "Voir un exemple",
+  },
   demo: {
     banner: 'Mode démo : explore librement, rien n’est enregistré.',
     createAccount: 'Créer mon compte',

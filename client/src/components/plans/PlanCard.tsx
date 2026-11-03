@@ -94,7 +94,9 @@ export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummar
             <Layers size={10} />{t('plan.multi.badge', { count: plan.circles.length })}
           </span>
         )}
-        {myMember && plan.location && <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>}
+        {myMember && (plan.location
+          ? <span className="flex items-center gap-1 truncate max-w-full"><MapPin size={10} />{plan.location}</span>
+          : <span className="flex items-center gap-1 italic text-slate-400"><MapPin size={10} />{t('plan.form.placeTbdShown')}</span>)}
         {myMember && !plan.membersHidden && (
           <span className="flex items-center gap-1">
             <Users size={10} />

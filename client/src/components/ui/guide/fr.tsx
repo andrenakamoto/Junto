@@ -84,6 +84,11 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Créer et modifier un Plan', summary: 'Titre, date, lieu, limite, fonctions',
         body: <>
+          <P>Le plus rapide : <strong>« + Nouveau Plan »</strong> tout en haut de la liste des Cercles. Tu remplis le Plan, puis tu
+            choisis <strong>avec qui</strong> : un de tes Cercles, ou <strong>« Juste un lien »</strong> (tu invites qui tu veux, même sans
+            l'app). Lieu pas encore choisi ? Coche <strong>« À définir »</strong> et ajoute-le plus tard. Une fois le Plan créé, la fenêtre
+            « Inviter » s'ouvre d'elle-même. Dans le Plan, Trajets, Votes et Dépenses n'apparaissent que s'ils servent : sinon, touche
+            <strong>« + Ajouter »</strong>.</P>
           <P><strong>« Créer un Plan »</strong> en bas de la liste des Plans : titre, description, date, lieu, limite de participants,{' '}
             <strong>informations importantes</strong> (encadré bien visible). La <strong>date de fin est obligatoire</strong> : le
             Plan passe alors en lecture seule, puis il est supprimé 24 h plus tard (3 semaines au plus après son début). Les membres du Cercle sont prévenus.</P>

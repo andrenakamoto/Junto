@@ -7,9 +7,9 @@ import api from '../../services/api';
 import { Plan, Circle, CircleMember, DeletionMode, EditMode, OptionalFeature, PlanFeature } from '../../types';
 import { CirclePlansField, DeletionModeField, EditModeField, FeaturesField, ImportantInfoModeField, MembersVisibilityField, FilesModeField, GuestInviteField } from '../ui/AdvancedSettings';
 import { FilesMode, GuestInviteMode, MembersVisibility } from '../../lib/settings';
-import { OptionRow, OptionsBox, WhenField, addDefaultDuration, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
+import { OptionRow, OptionsBox, PlaceField, WhenField, addDefaultDuration, featuresSummary, ANNONCE_DISABLED, isAnnonce, isoToLocal, localToISO, participantsSummary, rulesAreDefault } from './PlanFormParts';
 import { recurrenceLabel } from '../../lib/recurrence';
-import { AlertTriangle, Layers, Lock, Megaphone, Puzzle, Repeat, Users } from 'lucide-react';
+import { AlertTriangle, Layers, Link2, Lock, Megaphone, Puzzle, Repeat, Users } from 'lucide-react';
 import { DESCRIPTION_MAX, IMPORTANT_INFO_MAX, RichTextArea, stripFormatting, visibleLength } from '../../lib/richText';
 import { RecurrenceField, untilToISO } from './RecurrenceField';
 import { Recurrence } from '../../lib/recurrence';
@@ -39,20 +39,35 @@ interface Props {
   fromAvailability?: { start: string };
   /** Plan spécifique choisi dans « Créer » (lib/planKinds.ts) */
   kind?: PlanKind | null;
+  /** « + Nouveau Plan » (2026-11-03) : Cercles proposés dans « Avec qui ? », plus « Juste un lien » (Cercle personnel).
+   *  `circleId` vide = « Juste un lien » choisi d'avance */
+  targets?: Circle[];
 }
 
-export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability, kind }: Props) {
+const LINK = 'link';
+
+export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedMembers = [], otherCircles: fixedOthers = [], onClose, onCreated, fromPoll, suggestedTitle, fromEvent, fromAvailability, kind, targets }: Props) {
   const { user } = useAuth();
+  // « Avec qui ? » : le Cercle se choisit dans la fenêtre ; LINK = « Juste un lien » (Cercle personnel « Mes Plans »)
+  const [target, setTarget] = useState<string>(() => fixedCircleId || (targets ? LINK : ''));
+  const targetCircle = targets?.find(c => c.id === target);
+  const circleId = targets ? (target === LINK ? '' : target) : fixedCircleId;
+  const circleMembers = targets ? targetCircle?.members ?? [] : fixedMembers;
+  const otherCircles = targets ? [] : fixedOthers;
   // Plan spécifique (Créer › Plan spécifique) : réglages de départ selon le type, tous modifiables
   const [preset] = useState(() => kind ? kindPreset(kind) : null);
   // Qui voit ce Plan : un sondage caché garde les mêmes personnes (et sa surprise) ; une Surprise commence en « Cacher à… »
   const [vis, setVis] = useState(() => preset?.surprise ? { mode: 'hidden' as const, excluded: [], allowed: [], surprise: true } : emptyVisibility(fromPoll?.excludedUserIds ?? [], fromPoll?.surprise !== false));
+  // Autre Cercle choisi dans « Avec qui ? » : les personnes cachées ou réservées ne sont plus les mêmes
+  const resetVis = () => setVis(preset?.surprise ? { mode: 'hidden' as const, excluded: [], allowed: [], surprise: true } : emptyVisibility([], true));
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : preset?.title ?? ''));
   const [description, setDescription] = useState(fromEvent?.url ? t('plan.goWith.moreInfo', { url: fromEvent.url }) : '');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || preset?.start || '');
   const [endDate, setEndDate] = useState(preset?.end ? preset.end : fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
   const [endTouched, setEndTouched] = useState(!!fromEvent || !!preset?.end);
   const [location, setLocation] = useState(fromEvent?.location ?? preset?.location ?? '');
+  // Lieu « À définir » : le Plan est créé sans lieu (le serveur l'accepte avec `locationTbd`)
+  const [placeTbd, setPlaceTbd] = useState(false);
   // Plan mystère : vrai titre et vrai lieu, envoyés à part (PUT /plans/:id/mystery) et jamais dans le Plan avant le dévoilement
   const [realTitle, setRealTitle] = useState('');
   const [realPlace, setRealPlace] = useState('');
@@ -79,6 +94,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   const [guestInviteMode, setGuestInviteMode] = useState<GuestInviteMode>(preset?.guestInviteMode ?? 'all');
   const guestTouched = useRef(!!preset?.guestInviteMode);
   useEffect(() => {
+    if (!circleId) return;
     api.get(`/circles/${circleId}`).then(({ data }) => { if (!guestTouched.current) setGuestInviteMode(data?.admissionMode === 'open' ? 'all' : 'managers'); }).catch(() => {});
   }, [circleId]);
   // Mode annonce : les membres peuvent y aller avec un de leurs Cercles
@@ -100,7 +116,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!eventDate || !endDate) { setError(t('plan.form.datesRequired')); return; }
-    if (!location.trim()) { setError(t('plan.form.locationRequired')); return; }
+    if (!placeTbd && !location.trim()) { setError(t('plan.form.locationRequired')); return; }
     if (visibleLength(description) > DESCRIPTION_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.description'), max: DESCRIPTION_MAX })); return; }
     // Plan spécifique : ce qui fait le type doit être rempli
     if (kind === 'surprise' && (vis.mode !== 'hidden' || vis.excluded.length === 0)) { setError(t('plan.kinds.surprise.required')); return; }
@@ -109,12 +125,19 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
     setLoading(true);
     setError('');
+    // « Juste un lien » : le Plan va dans le Cercle personnel (créé au besoin)
+    let createIn = circleId;
+    if (!createIn) {
+      try { createIn = (await api.post('/circles/personal')).data.id; }
+      catch (err: any) { setError(err.response?.data?.error || t('common.error')); setLoading(false); return; }
+    }
     const payload = {
       title,
       description,
       eventDate: eventDate ? localToISO(eventDate) : null,
       endDate: endDate ? localToISO(endDate) : null,
-      location: location || null,
+      location: placeTbd ? null : location || null,
+      locationTbd: placeTbd || undefined,
       maxParticipants: maxParticipants || null,
       ...visibilityPayload(vis),
       deletionMode,
@@ -137,10 +160,11 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
     try {
       const { data } = fromPoll
         ? await api.post(`/circles/polls/${fromPoll.pollId}/convert`, { ...payload, optionId: fromPoll.optionId })
-        : await api.post(`/circles/${circleId}/plans`, payload);
+        : await api.post(`/circles/${createIn}/plans`, payload);
       // Plan mystère : le secret est enregistré tout de suite après (s'il échoue, la rubrique Mystère permet de le refaire)
       if (kind === 'mystere') await api.put(`/plans/${data.id}/mystery`, { realTitle: realTitle.trim(), realLocation: realPlace.trim() }).catch(() => {});
-      onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : undefined));
+      // Plan standard : on invite tout de suite (un Plan sans invités ne sert à rien) ; Plan spécifique : sa rubrique
+      onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : !kind && !fromPoll ? 'invite' : undefined));
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
     } finally {
@@ -184,7 +208,7 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
             </div>
           </div>
         )}
-        <Input label={kind === 'mystere' ? t('plan.kinds.mystere.placeLabel') : t('plan.form.place')} value={location} onChange={e => setLocation(e.target.value)} placeholder={t('plan.form.locationPlaceholder')} required />
+        <PlaceField label={kind === 'mystere' ? t('plan.kinds.mystere.placeLabel') : t('plan.form.place')} value={location} onChange={setLocation} tbd={placeTbd} onTbd={setPlaceTbd} allowTbd={kind !== 'mystere'} />
         {kind === 'mystere' && (
           <div className="space-y-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
             <Input label={`🤫 ${t('plan.kinds.mystere.realTitle')}`} value={realTitle} onChange={e => setRealTitle(e.target.value)} placeholder={t('plan.kinds.mystere.realTitlePlaceholder')} maxLength={100} />
@@ -264,6 +288,24 @@ export function CreatePlanModal({ circleId, circleMembers = [], otherCircles = [
             <DeletionModeField subject="Plan" value={deletionMode} onChange={setDeletionMode} />
           </OptionRow>
         </OptionsBox>
+        {targets && (
+          <div>
+            <p className="text-sm font-medium text-slate-700 mb-1.5">{t('plan.form.withWho')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {targets.map(c => (
+                <button key={c.id} type="button" onClick={() => { setTarget(c.id); resetVis(); }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${target === c.id ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300'}`}>
+                  {c.name}
+                </button>
+              ))}
+              <button type="button" onClick={() => { setTarget(LINK); resetVis(); }}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${target === LINK ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-dashed border-indigo-300 text-indigo-700 hover:bg-indigo-50'}`}>
+                <Link2 size={14} />{t('plan.form.justLink')}
+              </button>
+            </div>
+            {target === LINK && <p className="text-xs text-slate-500 mt-1">{t('plan.form.justLinkHint')}</p>}
+          </div>
+        )}
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>

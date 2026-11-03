@@ -86,6 +86,11 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Einen Plan erstellen und bearbeiten', summary: 'Titel, Datum, Ort, Grenze, Funktionen',
         body: <>
+          <P>Am schnellsten: <strong>«+ Neuer Plan»</strong> ganz oben in der Liste der Kreise. Du füllst den Plan aus und wählst dann,
+            <strong>mit wem</strong>: einen deiner Kreise oder <strong>«Nur ein Link»</strong> (du lädst ein, wen du willst, auch ohne App).
+            Ort noch nicht gewählt? Kreuz <strong>«Noch offen»</strong> an und ergänze ihn später. Ist der Plan erstellt, öffnet sich
+            «Einladen» von selbst. Im Plan erscheinen «Fahrten», «Abstimmen» und «Ausgaben» nur, wenn sie gebraucht werden: sonst tippe auf
+            <strong>«+ Hinzufügen»</strong>.</P>
           <P><strong>«Plan erstellen»</strong> unten in der Liste der Pläne: Titel, Beschreibung, Datum, Ort, maximale
             Teilnehmerzahl, <strong>wichtige Infos</strong> (gut sichtbarer Kasten). Das <strong>Enddatum ist
             Pflicht</strong>: An diesem Tag wird der Plan gelöscht (höchstens 3 Wochen nach Beginn). Die Mitglieder des

@@ -334,6 +334,7 @@ const circle: Dict['circle'] = {
     allPlans: 'Alle meine Pläne',
     calendar: 'Kalender',
     myCircles: 'Meine Kreise',
+    newPlan: 'Neuer Plan',
     create: 'Kreis erstellen',
     join: 'Einem Kreis beitreten',
     noCircle: 'Noch kein Kreis',

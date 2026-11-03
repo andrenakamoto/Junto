@@ -276,6 +276,12 @@ export default {
     place: 'Lieu',
     datesRequired: 'Indique la date de début et la date de fin.',
     locationRequired: 'Indique le lieu.',
+    placeTbd: 'À définir',
+    withWho: 'Avec qui ?',
+    justLink: 'Juste un lien',
+    justLinkHint: 'Le Plan n’est dans aucun groupe : tu invites qui tu veux avec le lien, même sans l’app.',
+    placeTbdShown: 'Lieu à définir',
+    addPlace: 'Ajouter le lieu',
     moreOptions: 'Plus d’options',
     rows: { recurrence: 'Répétition', participants: 'Participants', important: 'Infos importantes', features: 'Fonctions', rules: 'Règles' },
     sum: {
@@ -428,6 +434,7 @@ export default {
     recapFile: 'récapitulatif',
   },
   detail: {
+    add: { button: "Ajouter", short: "Ajouter", title: "Ajouter une rubrique", trajets: "Covoiturage et transports publics", votes: "Sondage, match ou « Qui s’y colle ? »", depenses: "Qui apporte quoi et partage des frais" },
     fullscreen: 'Plein écran (masquer les listes)',
     exitFullscreen: 'Quitter le plein écran',
     tabs: {
@@ -478,6 +485,7 @@ export default {
     guest: 'Tu es <b>invité(e)</b> à ce Plan : tu y as accès, sans faire partie du Cercle.',
     myRsvp: 'Mon RSVP :',
     tempted: 'Ce Plan te tente ? Rejoins-le pour accéder au chat et aux infos.',
+    answerFirst: 'Tu viens ?',
     joining: 'Rejoindre...',
     joinPlan: '→ Rejoindre ce Plan',
     noMessage: 'Aucun message encore. Lance la conversation !',

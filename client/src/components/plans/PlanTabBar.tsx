@@ -5,11 +5,13 @@ import { t } from '../../i18n';
 // Onglets d'un Plan sur grand écran : une seule ligne, noms en entier ; quand ils ne tiennent pas tous, la barre
 // défile (molette, glisser, flèches ‹ › aux bords) et l'onglet ouvert reste visible. Quand il y a de la place, les
 // onglets se partagent la largeur.
-export function PlanTabBar<K extends string>({ tabs, active, onSelect, hasNews }: {
+export function PlanTabBar<K extends string>({ tabs, active, onSelect, hasNews, trailing }: {
   tabs: { key: K; Icon: LucideIcon; label: string }[];
   active: K | null;
   onSelect: (key: K) => void;
   hasNews: (key: K) => boolean;
+  /** Bouton en bout de barre (« + » des rubriques vides, PlanDetail) */
+  trailing?: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false });
@@ -63,6 +65,7 @@ export function PlanTabBar<K extends string>({ tabs, active, onSelect, hasNews }
             {label}
           </button>
         ))}
+        {trailing}
       </div>
       {edges.right && arrow(1)}
     </div>

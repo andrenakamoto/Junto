@@ -1958,6 +1958,25 @@ la licence** = auteur de la donnée (`hasBeenCreatedBy`, souvent l'office de tou
 acceptée par `parsePoint` : latitude 45,4–48, longitude 4,6–10,6. Politique de confidentialité (1er novembre 2026) et guide mis à jour ; les
 conditions d'utilisation parlaient déjà d'« agendas publiés sous licence ouverte » (pas de nouvelle acceptation).
 
+**Parcours simplifié** (2026-11-03, demande de l'utilisateur : « le parcours usager est un peu complexe ») :
+- **Premier lancement** (`components/ui/WelcomeScreen.tsx`) : un compte sans Cercle ni Plan (GET `/plans` vide, conditions acceptées, pas
+  d'intention Père Noël en cours — `kindIntentRef`) voit « Salut … ! Que veux-tu faire ? » : Organiser une sortie (→ « + Nouveau Plan »),
+  Rejoindre mes amis (code ou lien collé, `joinTarget` → `/rejoindre?code=` ou `/invitation?token=`), Créer mon groupe (`CreateCircleModal`) ;
+  « Plus tard » (`evly_welcome_later_<userId>`, sur l'appareil) et « Voir un exemple » (`/demo`). Plus jamais dès qu'il y a un Cercle.
+- **« + Nouveau Plan »** en tête de `CircleSidebar` (`onNewPlan`) → `CreatePlanModal` avec `targets` (= `kindCircles`, Cercles où l'on peut créer
+  un Plan) : ligne **« Avec qui ? »** (un Cercle ou **« Juste un lien »** = Cercle personnel par POST `/circles/personal`), « Qui voit ce Plan ? »
+  remis à zéro au changement de Cercle ; `handleQuickCreated` ouvre le Plan dans son Cercle (`keepPlanRef` : le chargement des Plans du Cercle ne le
+  ferme pas). **Après la création d'un Plan standard, la fenêtre « Inviter » s'ouvre** (`onCreated(plan, 'invite')` → `openTab` `invite` de
+  `PlanDetail`). POST `/plans/:id/guest-link` tolère deux demandes simultanées (P2002 → relecture).
+- **Lieu « À définir »** (`PlaceField` de `PlanFormParts`, création et modification) : `locationTbd: true` accepté par `missingPlanBasics`, Plan
+  sans lieu ; fiche : « Ajouter le lieu » (qui peut modifier) sinon « Lieu à définir », idem sur `PlanCard`. Fin calculée comme avant (début + 3 h).
+- **Fiche du Plan** : Trajets, Votes et Dépenses **cachés tant qu'ils sont vides** (GET `/plans/:id` renvoie `content`, `planContent` : trajets /
+  demandes / voyages, sondages / matchs / roues, dépenses / remboursements / « qui apporte quoi »), aussi pour le créateur ; rangés sous
+  **« + Ajouter »** (carte sur téléphone, bouton au bout de `PlanTabBar` via `trailing`) qui les ouvre (`revealed`) ; un lien direct (notification)
+  vers une rubrique vide l'affiche. **« Tu viens ? »** : un membre du Cercle qui n'a pas encore répondu voit les trois réponses en grand ; POST
+  `/plans/:id/join` accepte `rsvp` (`maybe`, `out` ; sans rien = `in` pour les anciennes apps), « Absent(e) » n'occupe pas de place et ne prévient
+  personne. Fiche « Créer et modifier un Plan » du guide.
+
 **Colonne d'un Cercle simplifiée** (`PlanList`, 2026-10-23, demande de l'utilisateur : « simple pour ceux qui n'utilisent pas tout ») :
 en-tête = nom, description sur une ligne (dépliable), boutons **« Membres (N) »** et **« Inviter »**, cloche barrée seulement si le Cercle
 est en silence, et un menu **⋯** (silence, paramètres, copier le code, supprimer / voter, quitter) ; le code est aussi dans « Inviter ».

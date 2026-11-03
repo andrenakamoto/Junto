@@ -27,6 +27,8 @@ import { NotificationToast, AppNotification } from '../components/ui/Notificatio
 import { getSocket } from '../lib/socket';
 import { useUnread } from '../hooks/useUnread';
 import { TermsModal } from '../components/ui/TermsModal';
+import { WelcomeScreen, joinTarget } from '../components/ui/WelcomeScreen';
+import { CreateCircleModal } from '../components/circles/CreateCircleModal';
 import { EmailMigrationBanner } from '../components/ui/EmailMigrationBanner';
 import { ProfileNameBanner } from '../components/ui/ProfileNameBanner';
 import { LogoIcon } from '../components/ui/Logo';
@@ -66,6 +68,12 @@ export function DashboardPage() {
   const [discoverActive, setDiscoverActive] = useState(false);
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
+  const [quickCreate, setQuickCreate] = useState(false);
+  // Premier lancement : ni Cercle ni Plan → écran « Que veux-tu faire ? » (WelcomeScreen) ; « Plus tard » vaut pour cet appareil
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showCreateCircle, setShowCreateCircle] = useState(false);
+  const kindIntentRef = useRef(false);
+  const keepPlanRef = useRef<string | null>(null);
   // Capsule temporelle ouverte (notification, « Tous mes plans ») et titre proposé par « On se retrouve ? »
   const [openCapsuleId, setOpenCapsuleId] = useState<string | null>(null);
   const [reunionTitle, setReunionTitle] = useState<string | null>(null);
@@ -286,6 +294,16 @@ export function DashboardPage() {
     if (pending) navigate(`/invitation?token=${pending}`, { replace: true });
   }, [navigate]);
 
+  const welcomeKey = `evly_welcome_later_${user?.id}`;
+  useEffect(() => {
+    if (!circlesLoaded || !user?.termsAccepted || isDemo() || circles.length > 0) { if (circles.length > 0) setShowWelcome(false); return; }
+    if (createKind || createPlanIn || chooseKindCircle) return; // Père Noël secret : sa propre création passe d'abord
+    try { if (localStorage.getItem(welcomeKey)) return; } catch { /* stockage indisponible */ }
+    // Un invité extérieur a déjà des Plans sans avoir de Cercle : pas pour lui
+    api.get('/plans').then(({ data }) => { if (Array.isArray(data) && data.length === 0 && !kindIntentRef.current) setShowWelcome(true); }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [circlesLoaded, circles.length, user?.id, user?.termsAccepted]);
+
   // Page /pere-noel : une fois les Cercles chargés, ouvrir la création du Plan (lib/newPlanIntent.ts)
   const kindCircles = circles.filter(c => !c.isPersonal && (c.planCreationMode !== 'creator' || isCircleManager(c, user?.id)));
   useEffect(() => {
@@ -293,6 +311,7 @@ export function DashboardPage() {
     if (!circlesLoaded || !user || !user.termsAccepted || isDemo()) return;
     const kind = takeNewPlanIntent();
     if (!kind) return;
+    kindIntentRef.current = true;
     setCreateKind(kind);
     if (kindCircles.length > 0) setChooseKindCircle(true);
     else createInPersonalCircle();
@@ -392,7 +411,9 @@ export function DashboardPage() {
   useEffect(() => {
     if (!selectedCircleId) { setPlans([]); return; }
     setLoadingPlans(true);
-    setSelectedPlan(null);
+    // Plan créé avec « + Nouveau Plan » dans un autre Cercle : il reste ouvert pendant que la liste de son Cercle se charge
+    if (keepPlanRef.current !== selectedCircleId) setSelectedPlan(null);
+    keepPlanRef.current = null;
     api.get(`/circles/${selectedCircleId}/plans`)
       .then(res => setPlans(res.data))
       .finally(() => setLoadingPlans(false));
@@ -430,6 +451,24 @@ export function DashboardPage() {
   }
 
   // tab : rubrique à ouvrir d'emblée (Plan spécifique : le tirage du Père Noël, l'Assemblée…)
+  function handleCircleCreated(c: Circle) {
+    setCircles(prev => [...prev, c]);
+    setSelectedCircleId(c.id);
+    setAllPlansActive(false);
+    setCalendarActive(false);
+    setContactsActive(false);
+    setDiscoverActive(false);
+    setMobileView('plans');
+  }
+
+  // « + Nouveau Plan » : le Plan peut aller dans un autre Cercle que celui ouvert, ou dans « Mes Plans » (« Juste un lien »)
+  async function handleQuickCreated(plan: Plan, tab?: string) {
+    setQuickCreate(false);
+    if (!circles.some(c => c.id === plan.circleId)) setCircles((await api.get('/circles')).data);
+    if (plan.circleId !== selectedCircleIdRef.current) { keepPlanRef.current = plan.circleId; handleSelectCircle(plan.circleId); }
+    handlePlanCreated(plan, tab);
+  }
+
   function handlePlanCreated(plan: Plan, tab?: string) {
     // Le sondage ou la discussion restés ouverts (après « retour » sur téléphone) passeraient avant le nouveau Plan
     setSelectedPollId(null);
@@ -743,15 +782,8 @@ export function DashboardPage() {
           circles={sortedCircles}
           selectedId={allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
-          onCreated={c => {
-            setCircles(prev => [...prev, c]);
-            setSelectedCircleId(c.id);
-            setAllPlansActive(false);
-            setCalendarActive(false);
-    setContactsActive(false);
-    setDiscoverActive(false);
-            setMobileView('plans');
-          }}
+          onCreated={handleCircleCreated}
+          onNewPlan={() => setQuickCreate(true)}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
           onCalendar={handleCalendar}
@@ -883,6 +915,25 @@ export function DashboardPage() {
         suggestedTitle={reunionTitle ?? undefined}
         onClose={() => { setCreatePlanIn(null); setCreateKind(null); setReunionTitle(null); }}
         onCreated={(plan, tab) => { setCreatePlanIn(null); setCreateKind(null); setReunionTitle(null); handlePlanCreated(plan, tab); }}
+      />
+    )}
+    {showWelcome && !quickCreate && !showCreateCircle && (
+      <WelcomeScreen firstName={user?.firstName}
+        onOrganize={() => { setShowWelcome(false); setQuickCreate(true); }}
+        onCreateGroup={() => { setShowWelcome(false); setShowCreateCircle(true); }}
+        onJoin={value => { const to = joinTarget(value); if (!to) return t('ui.welcome.joinInvalid'); navigate(to); return null; }}
+        onDemo={() => navigate('/demo')}
+        onLater={() => { try { localStorage.setItem(welcomeKey, '1'); } catch { /* stockage indisponible */ } setShowWelcome(false); }} />
+    )}
+    {showCreateCircle && (
+      <CreateCircleModal onClose={() => setShowCreateCircle(false)} onCreated={c => { setShowCreateCircle(false); handleCircleCreated(c); }} />
+    )}
+    {quickCreate && (
+      <CreatePlanModal
+        circleId={selectedCircleId && kindCircles.some(c => c.id === selectedCircleId) ? selectedCircleId : ''}
+        targets={kindCircles}
+        onClose={() => setQuickCreate(false)}
+        onCreated={handleQuickCreated}
       />
     )}
     {openCapsuleId && (

@@ -3,7 +3,7 @@ import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
 import { PublishDiscoverModal } from './PublishDiscoverModal';
-import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb, HelpCircle, Loader2 } from 'lucide-react';
+import { Calendar, CalendarPlus, MapPin, LogOut, Users, CheckSquare, BarChart2, MessageSquare, UserPlus, Trash2, ChevronLeft, Pencil, History, Receipt, ImageDown, MoreVertical, Car, Gift, Lock, SlidersHorizontal, Repeat, CalendarX, Repeat1, HandHeart, Images, FileDown, Crosshair, Trophy, PiggyBank, Speech, Landmark, Brain, Layers, Maximize2, Minimize2, Hourglass, Compass, ListChecks, ListOrdered, Lightbulb, HelpCircle, Loader2, Plus } from 'lucide-react';
 import { recurrenceLabel } from '../../lib/recurrence';
 import { Plan, Message, User, CircleMember, OptionalFeature, PlanFeature } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -99,6 +99,8 @@ const tabs = [
   { key: 'capsule' as Tab,    Icon: Hourglass,        label: t('plan.detail.tabs.capsule') },
   { key: 'mystere' as Tab,    Icon: HelpCircle,       label: t('plan.detail.tabs.mystere') },
 ];
+// Rubriques rangées sous « + Ajouter » tant qu'elles sont vides
+const EMPTYABLE: string[] = ['trajets', 'votes', 'depenses'];
 const OPTIONAL_TABS: Tab[] = ['taches', 'deroule', 'idees', 'benevoles', 'pere_noel', 'quiz', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'capsule', 'mystere'];
 
 interface Props {
@@ -279,6 +281,18 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
     .filter(t => t.key === 'infos' || (t.key === 'membres' ? !plan.membersHidden : OPTIONAL_TABS.includes(t.key) ? hasFeature(plan, t.key as OptionalFeature) : isEnabled(plan, t.key as PlanFeature)))
     .filter(x => !(dayMerged && x.key === 'benevoles'))
     .map(x => dayMerged && x.key === 'deroule' ? { ...x, label: t('plan.detail.tabs.dayPlan') } : x);
+  // Rubriques vides rangées sous « + Ajouter » (2026-11-03) : Trajets, Votes et Dépenses n'apparaissent que si elles ont du
+  // contenu (`plan.content`, GET /plans/:id) ou si on vient de les ouvrir. Les réponses sans `content` (PUT…) gardent le dernier connu.
+  const contentRef = useRef<{ id: string; content?: Plan['content'] }>({ id: plan.id });
+  if (plan.content || contentRef.current.id !== plan.id) contentRef.current = { id: plan.id, content: plan.content };
+  const content = contentRef.current.content;
+  const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  useEffect(() => { setRevealed(new Set()); }, [plan.id]);
+  const isEmptySection = (key: string) => EMPTYABLE.includes(key) && content?.[key as keyof NonNullable<Plan['content']>] === false && !revealed.has(key);
+  const shownTabs = visibleTabs.filter(x => !isEmptySection(x.key));
+  const addableTabs = visibleTabs.filter(x => isEmptySection(x.key));
+  const [showAddSection, setShowAddSection] = useState(false);
+  const reveal = (key: string) => { if (EMPTYABLE.includes(key)) setRevealed(r => new Set(r).add(key)); };
   // Onglet à ouvrir : avec l'onglet combiné, le Planning s'ouvre dans « Jour J »
   const [dayFocus, setDayFocus] = useState<{ section: 'deroule' | 'benevoles'; n: number } | null>(null);
   const resolveTab = (key: string): Tab => {
@@ -295,8 +309,11 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
 
   // Onglet par défaut à l'ouverture d'un Plan, ou celui demandé par la cloche
   useEffect(() => {
+    // Plan qu'on vient de créer : la fenêtre « Inviter » s'ouvre d'elle-même, sur la page principale du Plan
+    if (openTab?.tab === 'invite') { setShowInvite(true); setTab(defaultTab); setHub(true); return; }
     const wanted = openTab?.tab ? resolveTab(openTab.tab) : undefined;
     const valid = !!wanted && visibleTabs.some(t => t.key === wanted);
+    if (valid) reveal(wanted!); // une notification vers une rubrique encore vide l'affiche
     setTab(valid ? wanted! : defaultTab);
     setHub(!valid);
     setReplyTo(null);
@@ -429,12 +446,14 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
     else action();
   }
 
-  async function handleJoin() {
+  // Rejoindre en donnant sa réponse (« Je passe » n'occupe pas de place et ne prévient personne)
+  async function handleJoin(rsvp: 'in' | 'maybe' | 'out' = 'in') {
     setJoining(true);
+    setPendingRsvp(rsvp);
     setPlacesError('');
     try {
-      const { data } = await api.post(`/plans/${plan.id}/join`);
-      onPlanUpdated(data);
+      await api.post(`/plans/${plan.id}/join`, { rsvp });
+      onPlanUpdated((await api.get(`/plans/${plan.id}`)).data);
     } catch (err: any) {
       // Complet entre-temps : la fiche rechargée propose la liste d'attente
       setPlacesError(err?.response?.data?.error || t('common.retryError'));
@@ -442,6 +461,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       onPlanUpdated(data);
     } finally {
       setJoining(false);
+      setPendingRsvp(null);
     }
   }
 
@@ -617,7 +637,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
   // Téléphone, page principale : une carte par rubrique (le Chat en premier, sur toute la largeur)
   const hubCards = (
     <div className="grid grid-cols-2 gap-3 p-4">
-      {visibleTabs.map(({ key, Icon, label }) => (
+      {shownTabs.map(({ key, Icon, label }) => (
         <button
           key={key}
           onClick={() => { setTab(key); setHub(false); }}
@@ -630,6 +650,13 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           {hasNews(key) && <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-orange-500" aria-label={t('plan.detail.new')} />}
         </button>
       ))}
+      {addableTabs.length > 0 && (
+        <button onClick={() => setShowAddSection(true)}
+          className="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-indigo-200 bg-white/60 text-left text-indigo-700">
+          <span className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0"><Plus size={20} /></span>
+          <span className="font-semibold text-sm">{t('plan.detail.add.button')}</span>
+        </button>
+      )}
     </div>
   );
   // Téléphone, page principale : actions rapides dans une barre fixe en bas, bien séparée des
@@ -970,9 +997,18 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         {/* Infos membres */}
         {isMember && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-            {plan.location && (
+            {plan.location ? (
               <span className="flex items-center gap-1.5 text-sm md:text-xs text-slate-500">
                 <MapPin size={14} className="text-indigo-400" />{plan.location}
+              </span>
+            ) : canEdit && !ended ? (
+              // Lieu « À définir » : la personne qui peut modifier le Plan le complète d'un toucher
+              <button onClick={() => setShowEditPlan(true)} className="flex items-center gap-1.5 text-sm md:text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-2.5 py-0.5">
+                <MapPin size={14} />{t('plan.form.addPlace')}
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5 text-sm md:text-xs text-slate-400 italic">
+                <MapPin size={14} className="text-slate-300" />{t('plan.form.placeTbdShown')}
               </span>
             )}
             <span className="text-sm md:text-xs text-slate-400">
@@ -1047,13 +1083,18 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
         ) : isFull || myWaitPos ? (
           waitlistCard
         ) : (
+          // Pas encore répondu : les trois réponses en grand, avant tout le reste (2026-11-03)
           <div className="mt-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-            <p className="text-sm text-slate-600 mb-3">
-              {t('plan.detail.tempted')}
-            </p>
-            <Button onClick={() => withMultiWarning(handleJoin)} disabled={joining} size="sm">
-              {joining ? t('plan.detail.joining') : t('plan.detail.joinPlan')}
-            </Button>
+            <p className="text-base font-semibold text-slate-800 mb-3">{t('plan.detail.answerFirst')}</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['in', 'maybe', 'out'] as const).map(rsvp => (
+                <button key={rsvp} onClick={() => withMultiWarning(() => handleJoin(rsvp))} disabled={joining}
+                  className={`flex items-center justify-center gap-1.5 px-2 py-3 rounded-xl border-2 text-sm font-semibold shadow-sm transition-colors disabled:opacity-60 ${pendingRsvp === rsvp ? rsvpConfig[rsvp].active : rsvpConfig[rsvp].inactive}`}>
+                  {pendingRsvp === rsvp && <Loader2 size={13} className="animate-spin flex-shrink-0" />}
+                  {rsvpConfig[rsvp].label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {/* Événement en Mode annonce : créer un Plan dans un de mes Cercles pour y aller avec mes amis */}
@@ -1085,7 +1126,13 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       {isMember && !showHub && (
         <>
           <div className="hidden md:block border-b border-slate-200 flex-shrink-0 bg-white short:sticky short:top-0 short:z-10">
-            <PlanTabBar tabs={visibleTabs} active={tab} onSelect={setTab} hasNews={hasNews} />
+            <PlanTabBar tabs={shownTabs} active={tab} onSelect={setTab} hasNews={hasNews}
+              trailing={addableTabs.length > 0 && (
+                <button onClick={() => setShowAddSection(true)} title={t('plan.detail.add.button')} aria-label={t('plan.detail.add.button')}
+                  className="flex-shrink-0 flex items-center gap-1 px-3 py-3 text-sm font-medium text-indigo-600 border-b-2 border-transparent hover:text-indigo-700 whitespace-nowrap">
+                  <Plus size={15} />{t('plan.detail.add.short')}
+                </button>
+              )} />
           </div>
 
           {activeTab === 'chat' && isEnabled(plan, 'chat') && (
@@ -1251,6 +1298,22 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
       {isMember && <WheelSpinHost plan={plan} />}
       {isMember && hasFeature(plan, 'quiz') && <QuizLiveHost plan={plan} />}
 
+      {showAddSection && (
+        <Modal title={t('plan.detail.add.title')} onClose={() => setShowAddSection(false)}>
+          <div className="space-y-2">
+            {addableTabs.map(({ key, Icon, label }) => (
+              <button key={key} onClick={() => { reveal(key); setTab(key); setHub(false); setShowAddSection(false); }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 text-left">
+                <span className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0"><Icon size={20} /></span>
+                <span className="flex-1 min-w-0">
+                  <span className="block font-semibold text-slate-800">{label}</span>
+                  <span className="block text-xs text-slate-500">{t(`plan.detail.add.${key}` as any)}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
       {showEditPlan && (
         <EditPlanModal
           plan={plan}

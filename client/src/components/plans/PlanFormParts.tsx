@@ -110,3 +110,26 @@ export const ANNONCE_DISABLED: PlanFeature[] = ['chat', 'trajets', 'votes', 'dep
 export function isAnnonce(disabled: PlanFeature[], enabled: OptionalFeature[], membersVisibility: string) {
   return ANNONCE_DISABLED.every(f => disabled.includes(f)) && enabled.length === 0 && membersVisibility === 'managers';
 }
+
+// Lieu du Plan, avec la case « À définir » (2026-11-03) : cochée, le champ se grise et le Plan est enregistré sans lieu
+// (affiché « Lieu à définir »). Le Plan mystère n'a pas cette case : son lieu public est le point de rendez-vous.
+export function PlaceField({ label, value, onChange, tbd, onTbd, allowTbd = true }: {
+  label: string; value: string; onChange: (v: string) => void; tbd: boolean; onTbd: (v: boolean) => void; allowTbd?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-2">
+        <label className="text-sm font-medium text-slate-700">{label}</label>
+        {allowTbd && (
+          <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer select-none">
+            <input type="checkbox" checked={tbd} onChange={e => onTbd(e.target.checked)} className="w-4 h-4 rounded border-slate-300 accent-indigo-600" />
+            {t('plan.form.placeTbd')}
+          </label>
+        )}
+      </div>
+      <input type="text" value={tbd ? '' : value} disabled={tbd} onChange={e => onChange(e.target.value)} maxLength={200}
+        placeholder={tbd ? t('plan.form.placeTbdShown') : t('plan.form.locationPlaceholder')}
+        className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 bg-white disabled:bg-slate-100 disabled:text-slate-400" />
+    </div>
+  );
+}

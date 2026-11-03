@@ -277,6 +277,12 @@ const plan: Dict['plan'] = {
     place: 'Luogo',
     datesRequired: 'Indica la data di inizio e quella di fine.',
     locationRequired: 'Indica il luogo.',
+    placeTbd: 'Da definire',
+    withWho: 'Con chi?',
+    justLink: 'Solo un link',
+    justLinkHint: 'Il Plan non è in nessun gruppo: inviti chi vuoi con il link, anche senza l’app.',
+    placeTbdShown: 'Luogo da definire',
+    addPlace: 'Aggiungi il luogo',
     moreOptions: 'Altre opzioni',
     rows: { recurrence: 'Ripetizione', participants: 'Partecipanti', important: 'Info importanti', features: 'Funzioni', rules: 'Regole' },
     sum: {
@@ -429,6 +435,7 @@ const plan: Dict['plan'] = {
     recapFile: 'riepilogo',
   },
   detail: {
+    add: { button: "Aggiungi", short: "Aggiungi", title: "Aggiungi una sezione", trajets: "Car pooling e trasporti pubblici", votes: "Sondaggio, match o «Chi ci pensa?»", depenses: "Chi porta cosa e divisione delle spese" },
     fullscreen: 'Schermo intero (nascondi gli elenchi)',
     exitFullscreen: 'Esci dallo schermo intero',
     tabs: {
@@ -479,6 +486,7 @@ const plan: Dict['plan'] = {
     guest: 'Sei <b>invitato/a</b> a questo Plan: ci hai accesso senza far parte del Cerchio.',
     myRsvp: 'La mia risposta:',
     tempted: 'Ti tenta questo Plan? Unisciti per accedere alla chat e alle info.',
+    answerFirst: 'Vieni?',
     joining: 'Partecipa…',
     joinPlan: '→ Unisciti a questo Plan',
     noMessage: 'Ancora nessun messaggio. Inizia la conversazione!',

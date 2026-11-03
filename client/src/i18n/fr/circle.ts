@@ -334,6 +334,7 @@ export default {
     allPlans: 'Tous mes plans',
     calendar: 'Calendrier',
     myCircles: 'Mes Cercles',
+    newPlan: 'Nouveau Plan',
     create: 'Créer un Cercle',
     join: 'Rejoindre un Cercle',
     noCircle: 'Aucun Cercle pour l’instant',

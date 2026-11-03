@@ -2,6 +2,21 @@ import type { Dict } from '../fr';
 
 const ui: Dict['ui'] = {
   fullscreen: { open: 'Großansicht', exit: 'Großansicht schließen' },
+  welcome: {
+    hello: "Hallo {{name}}! Was möchtest du tun?",
+    helloAnon: "Willkommen! Was möchtest du tun?",
+    organize: "Einen Ausflug organisieren",
+    organizeText: "Apéro, Restaurant, Wanderung… Du erstellst den Plan, schickst den Link, deine Freunde antworten (auch ohne App).",
+    join: "Zu meinen Freunden",
+    joinText: "Du hast einen Code oder Link bekommen? Füg ihn hier ein.",
+    group: "Meine Gruppe erstellen",
+    groupText: "Für eine Gruppe, die sich oft trifft: Freunde, Familie, Verein, Kollegen.",
+    joinPlaceholder: "Code (z. B. ABC123) oder erhaltener Link",
+    joinButton: "Weiter",
+    joinInvalid: "Dieser Code oder Link wurde nicht erkannt. Prüf, was du bekommen hast.",
+    later: "Später",
+    demo: "Ein Beispiel ansehen",
+  },
   demo: {
     banner: 'Demo-Modus: Schau dich in Ruhe um, nichts wird gespeichert.',
     createAccount: 'Konto erstellen',

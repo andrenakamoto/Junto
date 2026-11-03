@@ -184,6 +184,8 @@ export interface Plan {
   title: string;
   /** Onglets avec du nouveau depuis ma dernière visite (chat, infos, trajets, membres, votes, depenses) */
   unseen?: string[];
+  /** Trajets, votes, dépenses : ont-ils du contenu ? (GET /plans/:id ; vide → rangé sous « + Ajouter ») */
+  content?: { trajets: boolean; votes: boolean; depenses: boolean };
   /** Date de la dernière activité non vue (cloche) */
   unseenAt?: string | null;
   description: string;

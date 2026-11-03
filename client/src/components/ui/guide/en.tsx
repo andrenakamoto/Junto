@@ -83,6 +83,11 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Create and edit a Plan', summary: 'Title, date, place, limit, features',
         body: <>
+          <P>The quickest way: <strong>"+ New Plan"</strong> at the very top of the Circle list. Fill in the Plan, then choose
+            <strong>who with</strong>: one of your Circles, or <strong>"Just a link"</strong> (invite anyone you like, even without the
+            app). Place not chosen yet? Tick <strong>"To be decided"</strong> and add it later. Once the Plan is created, the "Invite"
+            window opens by itself. In the Plan, Rides, Votes and Expenses only show up when they're used: otherwise, tap
+            <strong>"+ Add"</strong>.</P>
           <P><strong>“Create a Plan”</strong> at the bottom of the Plan list: title, description, date, place, participant
             limit, <strong>important information</strong> (a box that stands out). The <strong>end date is
             required</strong>: the Plan is deleted that day (3 weeks at most after it starts). The Circle’s members are

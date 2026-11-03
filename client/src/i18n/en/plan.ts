@@ -277,6 +277,12 @@ const plan: Dict['plan'] = {
     place: 'Place',
     datesRequired: 'Enter the start and end dates.',
     locationRequired: 'Enter the place.',
+    placeTbd: 'To be decided',
+    withWho: 'Who with?',
+    justLink: 'Just a link',
+    justLinkHint: 'The Plan isn’t in any group: invite anyone you like with the link, even without the app.',
+    placeTbdShown: 'Place to be decided',
+    addPlace: 'Add the place',
     moreOptions: 'More options',
     rows: { recurrence: 'Repeat', participants: 'Participants', important: 'Important info', features: 'Features', rules: 'Rules' },
     sum: {
@@ -429,6 +435,7 @@ const plan: Dict['plan'] = {
     recapFile: 'summary',
   },
   detail: {
+    add: { button: "Add", short: "Add", title: "Add a section", trajets: "Carpooling and public transport", votes: "Poll, match or “Who’s up?”", depenses: "Who brings what and splitting costs" },
     fullscreen: 'Full screen (hide the lists)',
     exitFullscreen: 'Exit full screen',
     tabs: {
@@ -479,6 +486,7 @@ const plan: Dict['plan'] = {
     guest: 'You’re a <b>guest</b> on this Plan: you have access without being part of the Circle.',
     myRsvp: 'My reply:',
     tempted: 'Fancy this Plan? Join it to see the chat and the info.',
+    answerFirst: 'Are you coming?',
     joining: 'Joining…',
     joinPlan: '→ Join this Plan',
     noMessage: 'No messages yet. Start the conversation!',

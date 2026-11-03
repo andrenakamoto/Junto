@@ -38,6 +38,8 @@ interface Props {
   onSelect: (id: string) => void;
   onCreated: (circle: Circle) => void;
   onAllPlans: () => void;
+  /** « + Nouveau Plan » (2026-11-03) : créer un Plan sans d'abord ouvrir un Cercle */
+  onNewPlan?: () => void;
   allPlansActive: boolean;
   onCalendar: () => void;
   calendarActive: boolean;
@@ -56,7 +58,7 @@ interface Props {
   onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewPlan, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -147,6 +149,12 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onAllP
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
+        {onNewPlan && (
+          <button onClick={onNewPlan}
+            className="w-full flex items-center justify-center gap-2 mb-2 px-3 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-colors">
+            <Plus size={18} />{t('circle.sidebar.newPlan')}
+          </button>
+        )}
         {/* Téléphone : deux lignes de deux boutons (icône au-dessus) ; grand écran : l'un sous l'autre */}
         <div className="grid grid-cols-2 md:grid-cols-1 gap-1.5 mb-2">
         {([

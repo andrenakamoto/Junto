@@ -84,6 +84,10 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Creare e modificare un Plan', summary: 'Titolo, data, luogo, limite, funzioni',
         body: <>
+          <P>Il modo più veloce: <strong>«+ Nuovo Plan»</strong> in cima all'elenco dei Cerchi. Compili il Plan, poi scegli
+            <strong>con chi</strong>: uno dei tuoi Cerchi, o <strong>«Solo un link»</strong> (inviti chi vuoi, anche senza l'app). Luogo
+            non ancora scelto? Spunta <strong>«Da definire»</strong> e aggiungilo più tardi. Una volta creato il Plan, la finestra «Invita»
+            si apre da sola. Nel Plan, Passaggi, Voti e Spese compaiono solo se servono: altrimenti tocca <strong>«+ Aggiungi»</strong>.</P>
           <P><strong>«Crea un Plan»</strong> in fondo alla lista dei Plan: titolo, descrizione, data, luogo, limite di
             partecipanti, <strong>informazioni importanti</strong> (riquadro ben visibile). La <strong>data di fine è
             obbligatoria</strong>: quel giorno il Plan viene eliminato (al massimo 3 settimane dopo l’inizio). I membri del
