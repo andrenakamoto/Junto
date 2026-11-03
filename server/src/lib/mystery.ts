@@ -4,8 +4,8 @@ import { refreshPlanDiscover } from './discover/planPublish';
 
 // Plan mystère (2026-11-02). Les invités ne connaissent que le titre et le lieu publics, qui sont Plan.title et Plan.location
 // tant que le mystère dure : cartes, notifications, agenda, « En bref », récapitulatif et Découvrir n'ont donc rien à cacher.
-// Le vrai titre et le vrai lieu sont dans PlanMystery, renvoyés seulement à l'organisation (créateur du Plan, gestionnaires
-// du Cercle) et aux complices. Des indices se dévoilent à l'heure prévue ; au dévoilement final, le vrai titre et le vrai lieu
+// Le vrai titre et le vrai lieu sont dans PlanMystery, renvoyés seulement au créateur du Plan et aux complices qu'il a
+// choisis (pas aux organisateurs du Cercle). Des indices se dévoilent à l'heure prévue ; au dévoilement final, le vrai titre et le vrai lieu
 // remplacent ceux du Plan, qui redevient un Plan ordinaire. Les invités parient sur la destination (« Tes paris »).
 
 export const MYSTERY_FEATURE = 'mystere';
@@ -61,7 +61,7 @@ export function parseClues(v: unknown, revealAt: Date): ClueInput[] | null {
   return out.sort((a, b) => a.revealAt.getTime() - b.revealAt.getTime());
 }
 
-// Qui est dans la confidence : le créateur du Plan, les gestionnaires du Cercle et les complices
+// Qui est dans la confidence : le créateur du Plan et les complices qu'il a choisis
 export const isInsider = (userId: string, m: { accompliceIds: string[] }, manager: boolean) => manager || m.accompliceIds.includes(userId);
 
 type Clue = { id: string; text: string; revealAt: Date; revealedAt: Date | null; position: number };

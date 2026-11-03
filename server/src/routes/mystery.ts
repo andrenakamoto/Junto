@@ -2,7 +2,6 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { getPlanAccess } from '../lib/planAccess';
-import { isCircleManager } from '../lib/circleRoles';
 import { notifyUser } from '../lib/push';
 import {
   defaultRevealAt, MYSTERY_DISABLED_ERROR, MYSTERY_FEATURE, MYSTERY_MAX_ACCOMPLICES, mysteryEnabled, mysteryView, parseClues, parseGuess,
@@ -19,7 +18,8 @@ async function loadPlan(req: AuthRequest, res: any) {
   const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, location: true, creatorId: true, circleId: true, eventDate: true, endDate: true, enabledFeatures: true } });
   if (!plan || !(await getPlanAccess(req.userId!, plan.id))?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return null; }
   if (!mysteryEnabled(plan)) { res.status(403).json({ error: MYSTERY_DISABLED_ERROR }); return null; }
-  const manager = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
+  // Seul le créateur du Plan prépare et connaît le mystère (2026-11-03 : plus les organisateurs du Cercle), avec ses complices
+  const manager = plan.creatorId === req.userId;
   return { plan, manager };
 }
 
