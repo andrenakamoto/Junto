@@ -525,6 +525,9 @@ Conséquences pratiques :
     **Version 1.0.44** (2026-11-03) : Android `versionCode` 46 (`evly-1.0.44-(46).aab`), iOS build 49 envoyé — retour visuel au toucher et
     barre « en cours », onglet Jour J (Déroulé + Planning), grand écran des Tâches et du Jour J, tâches numérotées, ordre Idées / Tâches / Jour J,
     thème mis en évidence dans la projection des Idées, « En bref » seulement sur la carte du Plan, mes capsules dans « Tous mes plans ».
+    **Version 1.0.45** (2026-11-03) : Android `versionCode` 47 (`evly-1.0.45-(47).aab`), iOS build 50 envoyé — parcours simplifié : premier
+    lancement « Que veux-tu faire ? », « + Nouveau Plan » avec « Avec qui ? » et « Inviter » après la création, lieu « À définir », Trajets / Votes /
+    Dépenses rangés sous « + Ajouter » tant qu'ils sont vides, « Tu viens ? » ; limites des capsules, Plan mystère réservé au créateur.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
