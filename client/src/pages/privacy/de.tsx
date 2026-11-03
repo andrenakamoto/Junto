@@ -162,7 +162,7 @@ const de: PrivacyText = {
         <li><strong>Auskunft</strong>: eine Kopie deiner Daten erhalten, indem du an info@evly.ch schreibst — Antwort
           innert 30 Tagen.</li>
         <li><strong>Berichtigung</strong>: Vor- und Nachnamen unter «Mein Profil» ändern.</li>
-        <li><strong>Löschung</strong>: dein Konto jederzeit über das Menü löschen («Mein Konto löschen»). Deine
+        <li><strong>Löschung</strong>: dein Konto jederzeit über «Mein Profil» löschen («Mein Konto löschen»). Deine
           Personendaten werden dann gelöscht; die Kreise und Pläne, die du erstellt hast, gehen an andere Mitglieder, und
           die Fotos, die du dort geteilt hast, bleiben für sie bis zum Ende des Plans sichtbar.</li>
         <li><strong>Benachrichtigungen</strong>: unter «Benachrichtigungen» wählen, ob du sie per Push, per E-Mail oder

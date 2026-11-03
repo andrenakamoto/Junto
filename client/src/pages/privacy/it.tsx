@@ -154,7 +154,7 @@ const it: PrivacyText = {
         <li><strong>Accesso</strong>: ottenere una copia dei tuoi dati scrivendo a info@evly.ch — risposta entro 30
           giorni.</li>
         <li><strong>Rettifica</strong>: modificare nome e cognome in «Il mio profilo».</li>
-        <li><strong>Cancellazione</strong>: eliminare il tuo account in qualsiasi momento dal menu («Elimina il mio
+        <li><strong>Cancellazione</strong>: eliminare il tuo account in qualsiasi momento da «Il mio profilo» («Elimina il mio
           account»). I tuoi dati personali sono allora cancellati; i Cerchi e i Plan che hai creato passano ad altri
           membri, e le foto che vi hai condiviso restano loro visibili fino alla fine del Plan.</li>
         <li><strong>Notifiche</strong>: scegliere in «Notifiche» se riceverle via push, per email o entrambi, e

@@ -151,7 +151,7 @@ const en: PrivacyText = {
       <ul className="list-disc pl-5 space-y-1.5">
         <li><strong>Access</strong>: get a copy of your data by writing to info@evly.ch — reply within 30 days.</li>
         <li><strong>Correction</strong>: change your first and last name in “My profile”.</li>
-        <li><strong>Deletion</strong>: delete your account at any time from the menu (“Delete my account”). Your personal
+        <li><strong>Deletion</strong>: delete your account at any time from “My profile” (“Delete my account”). Your personal
           data is then erased; the Circles and Plans you created are handed over to other members, and the photos you
           shared there remain visible to them until the end of the Plan.</li>
         <li><strong>Notifications</strong>: choose in “Notifications” whether to receive them by push, email or both, and

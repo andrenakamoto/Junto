@@ -335,6 +335,8 @@ const circle: Dict['circle'] = {
     calendar: 'Kalender',
     myCircles: 'Meine Kreise',
     newPlan: 'Neuer Plan',
+    termsShort: 'Bedingungen',
+    privacyShort: 'Datenschutz',
     createAny: 'Erstellen',
     createHint: 'Eine Gruppe, die sich oft trifft',
     joinHint: 'Mit einem erhaltenen Code oder Link',

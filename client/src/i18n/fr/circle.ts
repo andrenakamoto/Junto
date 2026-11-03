@@ -335,6 +335,8 @@ export default {
     calendar: 'Calendrier',
     myCircles: 'Mes Cercles',
     newPlan: 'Nouveau Plan',
+    termsShort: 'Conditions',
+    privacyShort: 'Confidentialité',
     createAny: 'Créer',
     createHint: 'Un groupe pour se retrouver souvent',
     joinHint: 'Avec un code ou un lien reçu',

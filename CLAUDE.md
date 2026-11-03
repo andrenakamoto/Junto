@@ -347,8 +347,10 @@ Conséquences pratiques :
   - **Zoom automatique d'iOS** (2026-11-01, `main.tsx`) : sur iPhone / iPad (site et app), toucher un champ de moins de 16 px
     zoomait toute la page, qui restait zoomée. Le `viewport` reçoit `maximum-scale=1.0` **sur iOS seulement** (Safari laisse quand même
     pincer ; sur Android, cela empêcherait de zoomer). La visionneuse des photos gère son propre zoom.
-  - **Suppression du compte** (règle Apple 5.1.1(v), refus du build 46 le 2026-11-01 : l'examinateur ne l'a pas trouvée) : menu ☰ **et**
-    bas de « Mon profil » (`ProfileModal`), qui ouvre `DeleteAccountModal`. Apple demande une vidéo sur un vrai téléphone (connexion →
+  - **Suppression du compte** (règle Apple 5.1.1(v), refus du build 46 le 2026-11-01 : l'examinateur ne l'a pas trouvée) : bas de « Mon profil »
+    (`ProfileModal`), qui ouvre `DeleteAccountModal` ; depuis le 2026-11-03, **plus dans le menu ☰** (refait : en-tête « Mon profil » avec la photo,
+    Contacts / Notifications / Guide, Amélioration / Événement public, Panneau admin, puis Conditions · Confidentialité et info@evly.ch en petit) ;
+    « Changer mon mot de passe » aussi dans « Mon profil ». Page publique `/supprimer-mon-compte` et politique de confidentialité mises à jour. Apple demande une vidéo sur un vrai téléphone (connexion →
     option → suppression complète) dans la réponse et dans les notes pour l'examen.
   - **« Agenda » d'un Plan** (2026-10-10, `lib/calendar.ts`) : dans les apps, ouvre l'écran natif
     « Nouvel événement » de l'agenda, pré-rempli (`@ebarooni/capacitor-calendar` 8.7.0,

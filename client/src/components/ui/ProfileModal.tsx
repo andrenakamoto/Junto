@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Mail, Trash2 } from 'lucide-react';
+import { KeyRound, Mail, Trash2 } from 'lucide-react';
 import { DeleteAccountModal } from './DeleteAccountModal';
+import { ChangePasswordModal } from './ChangePasswordModal';
 import { Modal } from './Modal';
 import { Input } from './Input';
 import { Button } from './Button';
@@ -19,6 +20,8 @@ interface Props {
 
 export function ProfileModal({ onClose }: Props) {
   const { user, setUser } = useAuth();
+  // Changer le mot de passe (déplacé du menu ☰ le 2026-11-03) : la fenêtre remplace celle du profil
+  const [changingPassword, setChangingPassword] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
   const [saving, setSaving] = useState(false);
@@ -43,6 +46,7 @@ export function ProfileModal({ onClose }: Props) {
 
   // La fenêtre de suppression remplace celle du profil (une seule fenêtre à la fois)
   if (deleting) return <DeleteAccountModal onClose={() => setDeleting(false)} />;
+  if (changingPassword) return <ChangePasswordModal onClose={() => setChangingPassword(false)} />;
   return (
     <Modal title={t('account.profile.title')} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,6 +62,12 @@ export function ProfileModal({ onClose }: Props) {
           <span className="text-xs text-slate-400">{t('account.profile.languageHint')}</span>
         </div>
         <EmailSection />
+        {user?.hasPassword !== false && (
+          <button type="button" onClick={() => setChangingPassword(true)}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <KeyRound size={16} className="text-slate-400" />{t('circle.sidebar.password')}
+          </button>
+        )}
         <BlockedSection />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">

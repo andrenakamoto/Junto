@@ -10,8 +10,6 @@ import { useBackClose } from '../../lib/backClose';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
 import { ProfileModal } from '../ui/ProfileModal';
-import { DeleteAccountModal } from '../ui/DeleteAccountModal';
-import { ChangePasswordModal } from '../ui/ChangePasswordModal';
 import { NotificationSettingsModal } from '../ui/NotificationSettingsModal';
 import { SuggestionModal } from '../ui/SuggestionModal';
 import { ProSoonModal } from '../discover/ProSoonModal';
@@ -72,8 +70,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
   const [showTerms, setShowTerms] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showPostEvent, setShowPostEvent] = useState(false);
@@ -114,6 +110,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
     return () => document.removeEventListener('mousedown', h);
   }, [showCreateMenu]);
   useBackClose(() => setShowCreateMenu(false), showCreateMenu);
+  const menuItem = 'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors';
   const managesACircle = circles.some(c => !c.isPersonal && isCircleManager(c, user?.id));
   const createItem = (Icon: typeof Plus, label: string, hint: string, run: () => void, keepOpen = false) => (
     <button onClick={() => { if (!keepOpen) setShowCreateMenu(false); run(); }} className="w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-slate-50">
@@ -426,98 +423,52 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
           <Menu size={18} />
         </button>
 
+        {/* Menu ☰ (refait le 2026-11-03) : en-tête « Mon profil », trois groupes, liens légaux en bas. Mot de passe et suppression
+            du compte sont dans « Mon profil » (la suppression y est depuis la demande d'Apple, règle 5.1.1(v)) */}
         {showMenu && (
-          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-64 max-h-[75dvh] overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
-            {user?.isAdmin && (
-              <button
-                onClick={() => { setShowMenu(false); navigate('/admin'); }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-indigo-600 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
-              >
-                <ShieldCheck size={15} />
-                {t('circle.sidebar.admin')}
+          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-72 max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-20">
+            <button onClick={() => { setShowMenu(false); setShowProfile(true); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
+              <Avatar pseudo={user?.pseudo ?? ''} size="lg" />
+              <span className="flex-1 min-w-0">
+                <span className="block font-semibold text-slate-900 truncate">{user?.firstName || `@${user?.pseudo}`}</span>
+                <span className="block text-xs text-slate-500 truncate">@{user?.pseudo} · {t('circle.sidebar.profile')}</span>
+              </span>
+              <ChevronRight size={16} className="text-slate-400 flex-shrink-0" />
+            </button>
+            <div className="my-1 border-t border-slate-100" />
+              <button onClick={() => { setShowMenu(false); onContacts(); }} className={menuItem}>
+                <ContactIcon size={16} className="text-slate-400" />{t('circle.contacts.button')}
               </button>
-            )}
-            <button
-              onClick={() => { setShowMenu(false); onContacts(); }}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${contactsActive ? 'text-indigo-700 bg-indigo-50' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
-            >
-              <ContactIcon size={15} />
-              {t('circle.contacts.button')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowProfile(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <UserRound size={15} />
-              {t('circle.sidebar.profile')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowChangePassword(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <KeyRound size={15} />
-              {t('circle.sidebar.password')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowNotifSettings(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <Bell size={15} />
-              {t('circle.sidebar.notifications')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowSuggestions(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <Lightbulb size={15} />
-              {t('circle.sidebar.suggest')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowPostEvent(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <Megaphone size={15} />
-              {t('discover.post.button')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowGuide(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <BookOpen size={15} />
-              {t('circle.sidebar.guide')}
-            </button>
-            <button
-              onClick={() => { setShowMenu(false); setShowTerms(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <ScrollText size={15} />
-              {t('circle.sidebar.terms')}
-            </button>
-            <a
-              href={siteUrl('/confidentialite')}
-              target="_blank"
-              rel="noopener"
-              onClick={() => setShowMenu(false)}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-indigo-700 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <ShieldCheck size={15} />
-              {t('circle.sidebar.privacy')}
-            </a>
-            <button
-              onClick={() => { setShowMenu(false); setShowDeleteAccount(true); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-slate-100 transition-colors text-sm"
-            >
-              <UserX size={15} />
-              {t('circle.sidebar.deleteAccount')}
-            </button>
-            <p className="text-center text-xs text-slate-500 pt-2 mt-1 border-t border-slate-200">info@evly.ch</p>
+              <button onClick={() => { setShowMenu(false); setShowNotifSettings(true); }} className={menuItem}>
+                <Bell size={16} className="text-slate-400" />{t('circle.sidebar.notifications')}
+              </button>
+              <button onClick={() => { setShowMenu(false); setShowGuide(true); }} className={menuItem}>
+                <BookOpen size={16} className="text-slate-400" />{t('circle.sidebar.guide')}
+              </button>
+            <div className="my-1 border-t border-slate-100" />
+              <button onClick={() => { setShowMenu(false); setShowSuggestions(true); }} className={menuItem}>
+                <Lightbulb size={16} className="text-slate-400" />{t('circle.sidebar.suggest')}
+              </button>
+              <button onClick={() => { setShowMenu(false); setShowPostEvent(true); }} className={menuItem}>
+                <Megaphone size={16} className="text-slate-400" />{t('discover.post.button')}
+              </button>
+            {user?.isAdmin && (<>
+              <div className="my-1 border-t border-slate-100" />
+              <button onClick={() => { setShowMenu(false); navigate('/admin'); }} className={`${menuItem} text-indigo-600`}>
+                <ShieldCheck size={16} />{t('circle.sidebar.admin')}
+              </button>
+            </>)}
+            <div className="mt-1 pt-2 px-3 pb-1 border-t border-slate-100 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-slate-400">
+              <button onClick={() => { setShowMenu(false); setShowTerms(true); }} className="hover:text-indigo-700">{t('circle.sidebar.termsShort')}</button>
+              <span aria-hidden>·</span>
+              <a href={siteUrl('/confidentialite')} target="_blank" rel="noopener" onClick={() => setShowMenu(false)} className="hover:text-indigo-700">{t('circle.sidebar.privacyShort')}</a>
+              <a href="mailto:info@evly.ch" className="basis-full text-center hover:text-indigo-700">info@evly.ch</a>
+            </div>
           </div>
         )}
       </div>
 
-      {showChangePassword && (
-        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
-      )}
       {showNotifSettings && (
         <NotificationSettingsModal onClose={() => setShowNotifSettings(false)} />
       )}
@@ -533,9 +484,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
       )}
       {showProfile && (
         <ProfileModal onClose={() => setShowProfile(false)} />
-      )}
-      {showDeleteAccount && (
-        <DeleteAccountModal onClose={() => setShowDeleteAccount(false)} />
       )}
       {membersPopover && (() => {
         const c = circles.find(x => x.id === membersPopover);

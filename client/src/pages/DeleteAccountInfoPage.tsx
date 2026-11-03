@@ -22,7 +22,7 @@ const CONTENT: Record<Lang, ReactNode> = {
         <h2 className="text-base font-bold text-slate-900">Depuis l'application</h2>
         <ol className="list-decimal pl-5 space-y-1.5">
           <li>Connecte-toi à EvLY.</li>
-          <li>Ouvre le menu <strong>☰</strong> en bas de la liste des Cercles.</li>
+          <li>Ouvre le menu <strong>☰</strong> en bas de la liste des Cercles, puis touche ton nom tout en haut (<strong>« Mon profil »</strong>).</li>
           <li>Choisis <strong>« Supprimer mon compte »</strong>.</li>
           <li>Confirme avec ton mot de passe (ou en écrivant « SUPPRIMER » pour un compte Google).</li>
         </ol>
@@ -74,7 +74,7 @@ const CONTENT: Record<Lang, ReactNode> = {
         <h2 className="text-base font-bold text-slate-900">In der App</h2>
         <ol className="list-decimal pl-5 space-y-1.5">
           <li>Melde dich bei EvLY an.</li>
-          <li>Öffne das Menü <strong>☰</strong> unten in der Liste der Kreise.</li>
+          <li>Öffne das Menü <strong>☰</strong> unten in der Liste der Kreise und tippe ganz oben auf deinen Namen (<strong>«Mein Profil»</strong>).</li>
           <li>Wähle <strong>«Mein Konto löschen»</strong>.</li>
           <li>Bestätige mit deinem Passwort (oder mit dem verlangten Wort bei einem Google-Konto).</li>
         </ol>
@@ -121,7 +121,7 @@ const CONTENT: Record<Lang, ReactNode> = {
         <h2 className="text-base font-bold text-slate-900">Dall’app</h2>
         <ol className="list-decimal pl-5 space-y-1.5">
           <li>Accedi a EvLY.</li>
-          <li>Apri il menu <strong>☰</strong> in fondo alla lista dei Cerchi.</li>
+          <li>Apri il menu <strong>☰</strong> in fondo alla lista dei Cerchi, poi tocca il tuo nome in alto (<strong>«Il mio profilo»</strong>).</li>
           <li>Scegli <strong>«Elimina il mio account»</strong>.</li>
           <li>Conferma con la tua password (o scrivendo la parola richiesta per un account Google).</li>
         </ol>
@@ -168,7 +168,7 @@ const CONTENT: Record<Lang, ReactNode> = {
         <h2 className="text-base font-bold text-slate-900">From the app</h2>
         <ol className="list-decimal pl-5 space-y-1.5">
           <li>Log in to EvLY.</li>
-          <li>Open the <strong>☰</strong> menu at the bottom of the Circle list.</li>
+          <li>Open the <strong>☰</strong> menu at the bottom of the Circle list, then tap your name at the top (<strong>“My profile”</strong>).</li>
           <li>Choose <strong>“Delete my account”</strong>.</li>
           <li>Confirm with your password (or by typing the requested word for a Google account).</li>
         </ol>

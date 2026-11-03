@@ -168,7 +168,7 @@ const fr: PrivacyText = {
         <li><strong>Accès</strong> : obtenir une copie de tes données, en écrivant à info@evly.ch —
           réponse sous 30 jours.</li>
         <li><strong>Rectification</strong> : modifier ton prénom et ton nom dans « Mon profil ».</li>
-        <li><strong>Suppression</strong> : supprimer ton compte à tout moment depuis le menu
+        <li><strong>Suppression</strong> : supprimer ton compte à tout moment depuis « Mon profil »
           (« Supprimer mon compte »). Tes données personnelles sont alors effacées ; les Cercles et Plans
           que tu as créés sont confiés à d'autres membres, et les photos que tu y as partagées restent
           visibles pour eux jusqu'à la fin du Plan.</li>
