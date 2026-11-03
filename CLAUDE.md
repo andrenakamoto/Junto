@@ -1980,8 +1980,8 @@ conditions d'utilisation parlaient déjà d'« agendas publiés sous licence ouv
   Plan standard, Plan spécifique → liste des types `PLAN_KINDS`, « Proposer des dates » du Cercle ouvert si permis — `onProposeDates`,
   `CreateCirclePollModal` de DashboardPage —, Créer un Cercle, Rejoindre un Cercle) ; puis **deux boutons** « Tous mes plans » et « Découvrir » ;
   « Mes Cercles » avec le tri sur la même ligne, recherche en dessous. **Calendrier** = sélecteur « Liste | Calendrier » en tête de « Tous mes plans »
-  (`PlansViewToggle`, props `onCalendar` / `onList`). **Contacts** dans le menu ☰. Bouton « Créer » du bas de `PlanList` **sur téléphone seulement**
-  (`md:hidden`). **En-tête du Plan** : « Inviter » et « Modifier » écrits (grand écran), tout le reste dans le menu ⋯ (plein écran, agenda, story,
+  (`PlansViewToggle`, props `onCalendar` / `onList`). **Contacts** dans le menu ☰. Bouton « Créer » du bas de `PlanList` **sur tous les écrans**
+  (retiré du grand écran puis remis le jour même : trop difficile à trouver). **En-tête du Plan** : « Inviter » et « Modifier » écrits (grand écran), tout le reste dans le menu ⋯ (plein écran, agenda, story,
   photos, récap, historique, réglages, répétition, supprimer, quitter) ; crayon à côté du titre sur téléphone seulement.
 - **Lieu « À définir »** (`PlaceField` de `PlanFormParts`, création et modification) : `locationTbd: true` accepté par `missingPlanBasics`, Plan
   sans lieu ; fiche : « Ajouter le lieu » (qui peut modifier) sinon « Lieu à définir », idem sur `PlanCard`. Fin calculée comme avant (début + 3 h).

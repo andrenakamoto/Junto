@@ -335,9 +335,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         )}
       </div>
 
-      {/* Un seul bouton « Créer » : Plan standard, Plan spécifique (liste des types), sondage de dates. Téléphone seulement
-          (2026-11-03) : sur grand écran, le menu « + Créer » de la colonne des Cercles est toujours visible */}
-      <div className="relative px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50 md:hidden">
+      {/* Un seul bouton « Créer » : Plan standard, Plan spécifique (liste des types), sondage de dates. Sur tous les écrans :
+          retiré du grand écran le 2026-11-03 puis remis le même jour (demande de l'utilisateur : trop difficile à trouver) */}
+      <div className="relative px-2 py-3 border-t border-slate-200 short:sticky short:bottom-0 short:z-10 short:bg-slate-50">
         {createOptions.length === 0 ? (
           <p className="px-3 py-2 text-xs text-slate-400">{t('circle.planList.reserved')}</p>
         ) : (
