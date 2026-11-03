@@ -426,7 +426,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
         {/* Menu ☰ (refait le 2026-11-03) : en-tête « Mon profil », trois groupes, liens légaux en bas. Mot de passe et suppression
             du compte sont dans « Mon profil » (la suppression y est depuis la demande d'Apple, règle 5.1.1(v)) */}
         {showMenu && (
-          <div ref={menuRef} className="absolute bottom-full right-3 mb-1.5 w-72 max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-20">
+          <div ref={menuRef} className="absolute bottom-full left-2 right-2 mb-1.5 max-h-[80dvh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl py-1.5 z-20">
             <button onClick={() => { setShowMenu(false); setShowProfile(true); }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50">
               <Avatar pseudo={user?.pseudo ?? ''} size="lg" />
