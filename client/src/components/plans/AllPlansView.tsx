@@ -1,4 +1,5 @@
 import { MyCapsules } from './CapsuleTab';
+import { PlansViewToggle } from './PlansViewToggle';
 import { useEffect, useState } from 'react';
 import { endedLast, isPlanEnded } from '../../lib/planEnd';
 import { Calendar, Users, MessageSquare, ChevronLeft } from 'lucide-react';
@@ -19,6 +20,8 @@ interface Props {
   refreshSignal?: number;
   /** Capsules temporelles : ouvertes par DashboardPage (CapsuleModal) */
   onOpenCapsule?: (id: string) => void;
+  /** Passer au calendrier */
+  onCalendar?: () => void;
 }
 
 const rsvpBadge = {
@@ -28,7 +31,7 @@ const rsvpBadge = {
 };
 const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 
-export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal, onOpenCapsule }: Props) {
+export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSignal, onOpenCapsule, onCalendar }: Props) {
   const { user } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         <h2 className="font-bold text-slate-900 text-sm flex-1">{t('plan.allPlans.title')}</h2>
         {plans.length > 1 && <PlanSortToggle value={planSort} onChange={setPlanSort} />}
       </div>
+      {onCalendar && <PlansViewToggle value="list" onChange={onCalendar} />}
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 short:flex-none short:overflow-visible">
         {/* Capsules temporelles de tous mes Cercles (aussi celles d'un Plan où j'étais invité de l'extérieur) */}

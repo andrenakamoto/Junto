@@ -3,12 +3,15 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
+import { PlansViewToggle } from './PlansViewToggle';
 
 interface Props {
   onSelectPlan: (plan: Plan) => void;
   selectedPlanId: string | null;
   onBack: () => void;
   refreshSignal?: number;
+  /** Retour à la liste de « Tous mes plans » */
+  onList?: () => void;
 }
 
 // Initiales des jours (lundi → dimanche) et nom du mois, dans la langue de l'app
@@ -29,7 +32,7 @@ const DEFAULT_COLOR = '#ea5a2b';
 const MAX_LANES = 2;
 const MAX_DOTS = 3;
 
-export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSignal }: Props) {
+export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSignal, onList }: Props) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState(() => new Date());
@@ -87,8 +90,9 @@ export function CalendarView({ onSelectPlan, selectedPlanId, onBack, refreshSign
         <button onClick={onBack} className="md:hidden p-1 -ml-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
           <ChevronLeft size={18} />
         </button>
-        <h2 className="font-bold text-slate-900 text-sm">{t('plan.calendar.title')}</h2>
+        <h2 className="font-bold text-slate-900 text-sm">{t('plan.allPlans.title')}</h2>
       </div>
+      {onList && <PlansViewToggle value="calendar" onChange={onList} />}
 
       <div className="px-3 py-3 flex items-center justify-between">
         <button

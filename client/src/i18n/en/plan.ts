@@ -216,6 +216,7 @@ const plan: Dict['plan'] = {
     removeAria: 'Remove “{{label}}”',
   },
   calendar: {
+    list: 'List',
     title: 'Calendar',
     pickDay: 'Select a day to see the Plans',
     legendDay: "One dot per Plan",
@@ -467,6 +468,7 @@ const plan: Dict['plan'] = {
     recap: 'Summary',
     backToPlan: 'Back to the Plan',
     editPlan: 'Edit the plan',
+    editShort: 'Edit',
     exportIcs: 'Export to my calendar (.ics)',
     exportCalendar: 'Export to my calendar',
     downloadStory: 'Download the story',

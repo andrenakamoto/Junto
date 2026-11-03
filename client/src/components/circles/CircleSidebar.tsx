@@ -2,8 +2,11 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone, CalendarPlus, CalendarRange, Sparkles, ChevronLeft } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
+import { PLAN_KINDS, type PlanKind } from '../../lib/planKinds';
+import { isCircleManager } from '../../lib/settings';
+import { useBackClose } from '../../lib/backClose';
 import { TermsModal } from '../ui/TermsModal';
 import { GuideModal } from '../ui/GuideModal';
 import { ProfileModal } from '../ui/ProfileModal';
@@ -38,8 +41,10 @@ interface Props {
   onSelect: (id: string) => void;
   onCreated: (circle: Circle) => void;
   onAllPlans: () => void;
-  /** « + Nouveau Plan » (2026-11-03) : créer un Plan sans d'abord ouvrir un Cercle */
-  onNewPlan?: () => void;
+  /** Menu « + Créer » (2026-11-03) : Plan (standard ou spécifique) sans d'abord ouvrir un Cercle */
+  onNewPlan?: (kind?: PlanKind) => void;
+  /** « Proposer des dates » dans le Cercle ouvert (absent si aucun Cercle ouvert ou si c'est réservé aux organisateurs) */
+  onProposeDates?: () => void;
   allPlansActive: boolean;
   onCalendar: () => void;
   calendarActive: boolean;
@@ -58,7 +63,7 @@ interface Props {
   onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewPlan, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewPlan, onProposeDates, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -98,6 +103,28 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
   const [showMenu, setShowMenu] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  // Menu « + Créer »
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [createLevel, setCreateLevel] = useState<'main' | 'kinds'>('main');
+  const createRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showCreateMenu) return;
+    const h = (e: MouseEvent) => { if (createRef.current && !createRef.current.contains(e.target as Node)) setShowCreateMenu(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [showCreateMenu]);
+  useBackClose(() => setShowCreateMenu(false), showCreateMenu);
+  const managesACircle = circles.some(c => !c.isPersonal && isCircleManager(c, user?.id));
+  const createItem = (Icon: typeof Plus, label: string, hint: string, run: () => void, keepOpen = false) => (
+    <button onClick={() => { if (!keepOpen) setShowCreateMenu(false); run(); }} className="w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-slate-50">
+      <Icon size={17} className="text-indigo-500 mt-0.5 flex-shrink-0" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-slate-800">{label}</span>
+        <span className="block text-xs text-slate-500">{hint}</span>
+      </span>
+      {keepOpen && <ChevronRight size={15} className="text-slate-400 mt-0.5" />}
+    </button>
+  );
 
 
   // Nommer / retirer un organisateur (créateur du Cercle uniquement)
@@ -149,24 +176,48 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
 
       {/* Circle list */}
       <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
-        {onNewPlan && (
-          <button onClick={onNewPlan}
-            className="w-full flex items-center justify-center gap-2 mb-2 px-3 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-colors">
-            <Plus size={18} />{t('circle.sidebar.newPlan')}
+        {/* Un seul « + Créer » (2026-11-03) : Plan, Plan spécifique, sondage de dates du Cercle ouvert, Cercle, rejoindre */}
+        <div className="relative mb-2" ref={createRef}>
+          <button onClick={() => { setCreateLevel('main'); setShowCreateMenu(v => !v); }} aria-expanded={showCreateMenu}
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-colors">
+            <Plus size={18} />{t('circle.sidebar.createAny')}
           </button>
-        )}
-        {/* Téléphone : deux lignes de deux boutons (icône au-dessus) ; grand écran : l'un sous l'autre */}
-        <div className="grid grid-cols-2 md:grid-cols-1 gap-1.5 mb-2">
+          {showCreateMenu && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-30">
+              {createLevel === 'main' ? (<>
+                {onNewPlan && createItem(CalendarPlus, t('plan.kinds.menu.standard'), t('plan.kinds.menu.standardHint'), () => onNewPlan())}
+                {onNewPlan && createItem(Sparkles, t('plan.kinds.menu.specific'), t('plan.kinds.menu.specificHint'), () => setCreateLevel('kinds'), true)}
+                {onProposeDates && createItem(CalendarRange, t('circle.planList.proposeDates'), t('circle.planList.pollHint'), onProposeDates)}
+                <div className="my-1 border-t border-slate-100" />
+                {createItem(Users, t('circle.sidebar.create'), t('circle.sidebar.createHint'), () => setShowCreate(true))}
+                {createItem(KeyRound, t('circle.sidebar.join'), t('circle.sidebar.joinHint'), () => setShowJoin(true))}
+              </>) : (<>
+                <button onClick={() => setCreateLevel('main')} className="w-full flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
+                  <ChevronLeft size={14} />{t('plan.kinds.menu.specific')}
+                </button>
+                {PLAN_KINDS.filter(k => !k.managersOnly || managesACircle).map(k => (
+                  <button key={k.kind} onClick={() => { setShowCreateMenu(false); onNewPlan?.(k.kind); }}
+                    className="w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-slate-50">
+                    <span className="text-lg leading-none mt-0.5">{k.emoji}</span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-slate-800">{t(`plan.kinds.${k.kind}.name`)}</span>
+                      <span className="block text-xs text-slate-500">{t(`plan.kinds.${k.kind}.hint`)}</span>
+                    </span>
+                  </button>
+                ))}
+              </>)}
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 mb-2">
         {([
-          [onAllPlans, allPlansActive, Calendar, t('circle.sidebar.allPlans')],
-          [onCalendar, calendarActive, CalendarDays, t('circle.sidebar.calendar')],
-          [onContacts, contactsActive, ContactIcon, t('circle.contacts.button')],
+          [onAllPlans, allPlansActive || calendarActive, Calendar, t('circle.sidebar.allPlans')],
           [onDiscover, discoverActive, Compass, t('discover.button')],
         ] as const).map(([onClick, active, Icon, label]) => (
           <button
             key={label}
             onClick={onClick}
-            className={`w-full flex flex-col md:flex-row items-center gap-1 md:gap-2 px-1.5 md:px-2.5 py-2 rounded-xl text-center md:text-left transition-all border text-[12px] md:text-sm leading-tight font-semibold ${
+            className={`w-full flex flex-col items-center gap-1 px-1.5 py-2 rounded-xl text-center transition-all border text-[12px] md:text-[13px] leading-tight font-semibold ${
               active
                 ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
                 : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
@@ -179,29 +230,15 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
           </button>
         ))}
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 pl-2 md:pl-0 pt-1">
-          <p className="flex-1 md:basis-full md:pl-2 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>
-          <button
-            onClick={() => setShowCreate(true)}
-            title={t('circle.sidebar.create')}
-            className="flex-shrink-0 md:flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold shadow-sm hover:bg-indigo-700 transition-colors"
-          >
-            <Plus size={13} />
-            {t('circle.sidebar.createShort')}
-          </button>
-          <button
-            onClick={() => setShowJoin(true)}
-            title={t('circle.sidebar.join')}
-            className="flex-shrink-0 md:flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-semibold shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors"
-          >
-            <Users size={12} />
-            {t('circle.sidebar.joinShort')}
-          </button>
+        {/* « Mes Cercles » et le tri sur la même ligne ; la recherche en dessous, en pleine largeur */}
+        <div className="flex items-center gap-2 pl-2 pt-1">
+          <p className="flex-1 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>
+          {circles.length > 1 && <div className="flex-shrink-0"><PlanSortToggle value={circleSort} onChange={setCircleSort} /></div>}
         </div>
-        {circles.length > 1 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 pb-1.5">
-            {circles.length >= SEARCH_FROM && (
-              <div className="relative flex-1 md:basis-full min-w-0">
+        {circles.length >= SEARCH_FROM && (
+          <div className="pt-1 pb-1.5">
+            {(
+              <div className="relative">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="search" value={query} onChange={e => setQuery(e.target.value)}
@@ -214,7 +251,6 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
                 )}
               </div>
             )}
-            <div className="ml-auto flex-shrink-0"><PlanSortToggle value={circleSort} onChange={setCircleSort} /></div>
           </div>
         )}
         {circles.length === 0 && (
@@ -401,6 +437,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
                 {t('circle.sidebar.admin')}
               </button>
             )}
+            <button
+              onClick={() => { setShowMenu(false); onContacts(); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${contactsActive ? 'text-indigo-700 bg-indigo-50' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'}`}
+            >
+              <ContactIcon size={15} />
+              {t('circle.contacts.button')}
+            </button>
             <button
               onClick={() => { setShowMenu(false); setShowProfile(true); }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors text-sm"

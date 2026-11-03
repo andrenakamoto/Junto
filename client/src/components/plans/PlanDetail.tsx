@@ -735,7 +735,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                   <button
                     onClick={() => setShowEditPlan(true)}
                     title={t('plan.detail.editPlan')}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex-shrink-0 mt-0.5"
+                    className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex-shrink-0 mt-0.5"
                   >
                     <Pencil size={14} />
                   </button>
@@ -743,116 +743,20 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
               </div>
             </div>
           </div>
-          {/* Plein écran (ordinateur, tablette) : masque les listes des Cercles et des Plans, pour projeter le Plan */}
-          {onToggleExpand && (
-            <button
-              onClick={onToggleExpand}
-              title={expanded ? t('plan.detail.exitFullscreen') : t('plan.detail.fullscreen')}
-              aria-pressed={expanded}
-              className={`hidden md:inline-flex p-2 rounded-lg transition-colors flex-shrink-0 ${expanded ? 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
-            >
-              {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          {/* Actions (2026-11-03) : « Inviter » et « Modifier » écrits, tout le reste dans le menu ⋯ (téléphone : barre en bas) */}
+          {!isPhone && isMember && !ended && (
+            <button onClick={() => setShowInvite(true)}
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 flex-shrink-0">
+              <UserPlus size={15} />{t('plan.detail.invite')}
             </button>
           )}
-          {/* Actions — icônes en ligne sur grand écran, menu compact sinon (colonne étroite) */}
-          <div className="hidden xl:flex gap-1 flex-shrink-0">
-            {isMember && (
-              <>
-                <button
-                  onClick={() => setShowInvite(true)}
-                  title={t('plan.detail.invite')}
-                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                >
-                  <UserPlus size={16} />
-                </button>
-                <button
-                  onClick={handleExportIcal}
-                  title={t('plan.detail.exportIcs')}
-                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                >
-                  <CalendarPlus size={16} />
-                </button>
-                <button
-                  onClick={() => setShowStory(true)}
-                  title={t('plan.detail.downloadStory')}
-                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                >
-                  <ImageDown size={16} />
-                </button>
-                {plan.canRecap && (
-                  <button
-                    onClick={downloadRecap}
-                    disabled={recapBusy}
-                    title={t('plan.detail.recapPdf')}
-                    className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
-                  >
-                    <FileDown size={16} />
-                  </button>
-                )}
-                {plan.canPublishDiscover && (
-                  <button
-                    onClick={() => setShowPublish(true)}
-                    title={plan.discover ? t('discover.publish.menuOn') : t('discover.publish.menu')}
-                    className={`p-2 rounded-lg transition-colors hover:bg-indigo-50 ${plan.discover ? 'text-emerald-600' : 'text-slate-400 hover:text-indigo-600'}`}
-                  >
-                    <Compass size={16} />
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowHistory(true)}
-                  title={t('plan.detail.history')}
-                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                >
-                  <History size={16} />
-                </button>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  title={t('plan.detail.settings')}
-                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                >
-                  <SlidersHorizontal size={16} />
-                </button>
-                {canManageSeries && (
-                  <>
-                    <button
-                      onClick={skipThisTime}
-                      title={t('plan.detail.skip')}
-                      className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                    >
-                      <CalendarX size={16} />
-                    </button>
-                    <button
-                      onClick={stopRepeating}
-                      title={t('plan.detail.stop')}
-                      className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                    >
-                      <Repeat1 size={16} />
-                    </button>
-                  </>
-                )}
-                {canDelete && <button
-                  onClick={() => setShowDeletePlan(true)}
-                  title={deleteLabel}
-                  className={`p-2 rounded-lg transition-colors ${
-                    (plan.deleteVotes ?? []).some(v => v.userId === user.id)
-                      ? 'text-red-500 bg-red-50 hover:bg-red-100'
-                      : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                  }`}
-                >
-                  <Trash2 size={16} />
-                </button>}
-              </>
-            )}
-            <button
-              onClick={onLogout}
-              title={t('plan.detail.logout')}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              <LogOut size={16} />
+          {!isPhone && canEdit && (
+            <button onClick={() => setShowEditPlan(true)}
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex-shrink-0">
+              <Pencil size={14} />{t('plan.detail.editShort')}
             </button>
-          </div>
-
-          <div className="relative xl:hidden flex-shrink-0" ref={actionsMenuRef}>
+          )}
+          <div className="relative flex-shrink-0" ref={actionsMenuRef}>
             <button
               onClick={() => setShowActionsMenu(v => !v)}
               title={t('plan.detail.menu')}
@@ -862,6 +766,16 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
             </button>
             {showActionsMenu && (
               <div className="absolute top-full right-0 mt-1.5 w-60 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 space-y-0.5 z-20">
+                {/* Plein écran (ordinateur, tablette) : masque les listes des Cercles et des Plans, pour projeter le Plan */}
+                {onToggleExpand && !isPhone && (
+                  <button
+                    onClick={() => { setShowActionsMenu(false); onToggleExpand(); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                  >
+                    {expanded ? <Minimize2 size={15} className="text-slate-400" /> : <Maximize2 size={15} className="text-slate-400" />}
+                    {expanded ? t('plan.detail.exitFullscreen') : t('plan.detail.fullscreen')}
+                  </button>
+                )}
                 {plan.canPublishDiscover && (
                   <button
                     onClick={() => { setShowActionsMenu(false); setShowPublish(true); }}
@@ -876,13 +790,15 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
                     {/* Téléphone : Inviter, Agenda et Story sont dans la barre d'actions en bas */}
                     {!isPhone && (
                       <>
-                      <button
-                        onClick={() => { setShowActionsMenu(false); setShowInvite(true); }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
-                      >
-                        <UserPlus size={15} className="text-slate-400" />
-                        {t('plan.detail.invite')}
-                      </button>
+                      {photoCount > 0 && (
+                        <button
+                          onClick={() => { setShowActionsMenu(false); downloadPhotos(); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"
+                        >
+                          <Images size={15} className="text-slate-400" />
+                          {t('plan.detail.photos')}
+                        </button>
+                      )}
                       <button
                         onClick={() => { setShowActionsMenu(false); handleExportIcal(); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors text-sm"

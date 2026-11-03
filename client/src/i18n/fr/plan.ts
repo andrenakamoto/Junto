@@ -215,6 +215,7 @@ export default {
     removeAria: 'Retirer « {{label}} »',
   },
   calendar: {
+    list: 'Liste',
     title: 'Calendrier',
     pickDay: 'Sélectionne un jour pour voir les Plans',
     legendDay: "Un point par Plan",
@@ -466,6 +467,7 @@ export default {
     recap: 'Récap',
     backToPlan: 'Retour au Plan',
     editPlan: 'Modifier le plan',
+    editShort: 'Modifier',
     exportIcs: 'Exporter vers mon calendrier (.ics)',
     exportCalendar: 'Exporter vers mon calendrier',
     downloadStory: 'Télécharger la story',

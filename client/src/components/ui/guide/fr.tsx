@@ -24,8 +24,9 @@ const groups: Group[] = [
           <P>Un <strong>Cercle</strong> est ton groupe : amis, famille, collègues, club, association. Un <strong>Plan</strong> est
             un événement précis dans un Cercle (« Resto vendredi ? », « Loto annuel »). Chaque Plan a son propre{' '}
             <strong>Chat</strong> et ses rubriques : un anniversaire et un apéro ne se mélangent jamais.</P>
-          <P>À gauche, tes Cercles, puis <strong>« Tous mes plans »</strong> (par date, le plus proche d'abord) et le{' '}
-            <strong>Calendrier</strong>. Cercles et Plans d'un Cercle sont triés par dernière activité.</P>
+          <P>À gauche : <strong>« + Créer »</strong> (un Plan, un sondage de dates, un Cercle, ou rejoindre un Cercle), puis{' '}
+            <strong>« Tous mes plans »</strong> (par date, en liste ou en <strong>calendrier</strong>), « Découvrir » et tes Cercles.
+            Cercles et Plans d'un Cercle sont triés par dernière activité.</P>
         </>,
       },
       {
@@ -43,7 +44,7 @@ const groups: Group[] = [
       {
         id: 'contacts', emoji: '📇', title: 'Mes contacts', summary: 'Toutes les personnes de tes Cercles, au même endroit',
         body: <>
-          <P>Le bouton <strong>« Contacts »</strong> (à côté de « Tous mes plans » et « Calendrier ») réunit toutes les personnes
+          <P>Le bouton <strong>« Contacts »</strong> (dans le menu ☰ en bas de la liste des Cercles) réunit toutes les personnes
             avec qui tu partages un Cercle, avec leurs Cercles en commun. Recherche par prénom ou pseudo ; toucher un Cercle l'ouvre.</P>
           <P>Toucher une personne ouvre sa <strong>fiche</strong> : Cercles et Plans à venir en commun, <strong>« Faire un Plan »</strong>{' '}
             dans un Cercle en commun, et <strong>« Inviter »</strong> dans un de tes autres Cercles. La même fiche s'ouvre en touchant
@@ -56,7 +57,7 @@ const groups: Group[] = [
       {
         id: 'decouvrir', emoji: '🧭', title: 'Découvrir', summary: 'Les sorties près de chez toi, et y aller à plusieurs',
         body: <>
-          <P>Le bouton <strong>« Découvrir »</strong> (à côté de « Contacts ») montre les événements des 14 prochains jours et des
+          <P>Le bouton <strong>« Découvrir »</strong> (à côté de « Tous mes plans ») montre les événements des 14 prochains jours et des
             <strong> idées de sorties</strong> (escape games, bowling, musées…) partout en <strong>Suisse</strong> et en <strong>France voisine</strong> (Ain, Haute-Savoie).
             Choisis le lieu (une ville, un village ou « Autour de moi ») et le rayon (10, 25 ou 50 km), filtre par jour ou par catégorie, ou cherche un mot (« salsa », « concert »…).</P>
           <P>Sur un événement, <strong>« Y aller avec un Cercle »</strong> ouvre un Plan déjà rempli (titre, date, lieu, lien) dans le
@@ -84,7 +85,7 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Créer et modifier un Plan', summary: 'Titre, date, lieu, limite, fonctions',
         body: <>
-          <P>Le plus rapide : <strong>« + Nouveau Plan »</strong> tout en haut de la liste des Cercles. Tu remplis le Plan, puis tu
+          <P>Le plus rapide : <strong>« + Créer » › Plan standard</strong>, tout en haut de la liste des Cercles. Tu remplis le Plan, puis tu
             choisis <strong>avec qui</strong> : un de tes Cercles, ou <strong>« Juste un lien »</strong> (tu invites qui tu veux, même sans
             l'app). Lieu pas encore choisi ? Coche <strong>« À définir »</strong> et ajoute-le plus tard. Une fois le Plan créé, la fenêtre
             « Inviter » s'ouvre d'elle-même. Dans le Plan, Trajets, Votes et Dépenses n'apparaissent que s'ils servent : sinon, touche

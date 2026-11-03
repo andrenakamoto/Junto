@@ -1971,6 +1971,13 @@ conditions d'utilisation parlaient déjà d'« agendas publiés sous licence ouv
   remis à zéro au changement de Cercle ; `handleQuickCreated` ouvre le Plan dans son Cercle (`keepPlanRef` : le chargement des Plans du Cercle ne le
   ferme pas). **Après la création d'un Plan standard, la fenêtre « Inviter » s'ouvre** (`onCreated(plan, 'invite')` → `openTab` `invite` de
   `PlanDetail`). POST `/plans/:id/guest-link` tolère deux demandes simultanées (P2002 → relecture).
+- **Moins de boutons** (même date, demande de l'utilisateur après « + Nouveau Plan ») : en tête de `CircleSidebar`, **un seul « + Créer »** (menu :
+  Plan standard, Plan spécifique → liste des types `PLAN_KINDS`, « Proposer des dates » du Cercle ouvert si permis — `onProposeDates`,
+  `CreateCirclePollModal` de DashboardPage —, Créer un Cercle, Rejoindre un Cercle) ; puis **deux boutons** « Tous mes plans » et « Découvrir » ;
+  « Mes Cercles » avec le tri sur la même ligne, recherche en dessous. **Calendrier** = sélecteur « Liste | Calendrier » en tête de « Tous mes plans »
+  (`PlansViewToggle`, props `onCalendar` / `onList`). **Contacts** dans le menu ☰. Bouton « Créer » du bas de `PlanList` **sur téléphone seulement**
+  (`md:hidden`). **En-tête du Plan** : « Inviter » et « Modifier » écrits (grand écran), tout le reste dans le menu ⋯ (plein écran, agenda, story,
+  photos, récap, historique, réglages, répétition, supprimer, quitter) ; crayon à côté du titre sur téléphone seulement.
 - **Lieu « À définir »** (`PlaceField` de `PlanFormParts`, création et modification) : `locationTbd: true` accepté par `missingPlanBasics`, Plan
   sans lieu ; fiche : « Ajouter le lieu » (qui peut modifier) sinon « Lieu à définir », idem sur `PlanCard`. Fin calculée comme avant (début + 3 h).
 - **Fiche du Plan** : Trajets, Votes et Dépenses **cachés tant qu'ils sont vides** (GET `/plans/:id` renvoie `content`, `planContent` : trajets /

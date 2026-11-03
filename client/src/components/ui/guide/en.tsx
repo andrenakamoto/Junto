@@ -23,8 +23,9 @@ const groups: Group[] = [
           <P>A <strong>Circle</strong> is your group: friends, family, colleagues, club, association. A <strong>Plan</strong>{' '}
             is a specific event in a Circle (“Pizza on Friday?”, “Annual bingo”). Each Plan has its own{' '}
             <strong>Chat</strong> and sections: a birthday and a drinks evening never get mixed up.</P>
-          <P>On the left, your Circles, then <strong>“All my plans”</strong> (by date, soonest first) and the{' '}
-            <strong>Calendar</strong>. Circles and a Circle’s Plans are sorted by latest activity.</P>
+          <P>On the left: <strong>“+ Create”</strong> (a Plan, a date poll, a Circle, or join a Circle), then{' '}
+            <strong>“All my plans”</strong> (by date, as a list or a <strong>calendar</strong>), “Discover” and your Circles.
+            Circles and a Circle’s Plans are sorted by latest activity.</P>
         </>,
       },
       {
@@ -42,7 +43,7 @@ const groups: Group[] = [
       {
         id: 'contacts', emoji: '📇', title: 'My contacts', summary: 'Everyone from your Circles, in one place',
         body: <>
-          <P>The <strong>“Contacts”</strong> button (next to “All my plans” and “Calendar”) lists everyone you share a Circle with,
+          <P>The <strong>“Contacts”</strong> button (in the ☰ menu at the bottom of the Circle list) lists everyone you share a Circle with,
             with your Circles in common. Search by first name or username; tap a Circle to open it.</P>
           <P>Tap a person to open their <strong>card</strong>: Circles and upcoming Plans in common, <strong>“Make a Plan”</strong>{' '}
             in a shared Circle, and <strong>“Invite”</strong> to one of your other Circles. The same card opens when you tap an
@@ -55,7 +56,7 @@ const groups: Group[] = [
       {
         id: 'decouvrir', emoji: '🧭', title: 'Discover', summary: 'Outings near you, and going together',
         body: <>
-          <P>The <strong>“Discover”</strong> button (next to “Contacts”) shows events for the next 14 days and
+          <P>The <strong>“Discover”</strong> button (next to “All my plans”) shows events for the next 14 days and
             <strong> outing ideas</strong> (escape rooms, bowling, museums…) all over <strong>Switzerland</strong> and in <strong>nearby France</strong> (Ain, Haute-Savoie).
             Choose the place (a town, a village or “Near me”) and the radius (10, 25 or 50 km), filter by day or category, or search for a word (“salsa”, “concert”…).</P>
           <P>On an event, <strong>“Go with a Circle”</strong> opens a ready-filled Plan (title, date, place, link) in the
@@ -83,7 +84,7 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Create and edit a Plan', summary: 'Title, date, place, limit, features',
         body: <>
-          <P>The quickest way: <strong>"+ New Plan"</strong> at the very top of the Circle list. Fill in the Plan, then choose
+          <P>The quickest way: <strong>"+ Create" › Standard Plan</strong>, at the very top of the Circle list. Fill in the Plan, then choose
             <strong>who with</strong>: one of your Circles, or <strong>"Just a link"</strong> (invite anyone you like, even without the
             app). Place not chosen yet? Tick <strong>"To be decided"</strong> and add it later. Once the Plan is created, the "Invite"
             window opens by itself. In the Plan, Rides, Votes and Expenses only show up when they're used: otherwise, tap

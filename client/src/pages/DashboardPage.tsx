@@ -29,6 +29,7 @@ import { useUnread } from '../hooks/useUnread';
 import { TermsModal } from '../components/ui/TermsModal';
 import { WelcomeScreen, joinTarget } from '../components/ui/WelcomeScreen';
 import { CreateCircleModal } from '../components/circles/CreateCircleModal';
+import { CreateCirclePollModal } from '../components/circles/CreateCirclePollModal';
 import { EmailMigrationBanner } from '../components/ui/EmailMigrationBanner';
 import { ProfileNameBanner } from '../components/ui/ProfileNameBanner';
 import { LogoIcon } from '../components/ui/Logo';
@@ -69,6 +70,9 @@ export function DashboardPage() {
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
   const [quickCreate, setQuickCreate] = useState(false);
+  const [quickKind, setQuickKind] = useState<PlanKind | null>(null);
+  // « Proposer des dates » du menu « + Créer », dans le Cercle ouvert
+  const [showCreatePoll, setShowCreatePoll] = useState(false);
   // Premier lancement : ni Cercle ni Plan → écran « Que veux-tu faire ? » (WelcomeScreen) ; « Plus tard » vaut pour cet appareil
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCreateCircle, setShowCreateCircle] = useState(false);
@@ -464,6 +468,7 @@ export function DashboardPage() {
   // « + Nouveau Plan » : le Plan peut aller dans un autre Cercle que celui ouvert, ou dans « Mes Plans » (« Juste un lien »)
   async function handleQuickCreated(plan: Plan, tab?: string) {
     setQuickCreate(false);
+    setQuickKind(null);
     if (!circles.some(c => c.id === plan.circleId)) setCircles((await api.get('/circles')).data);
     if (plan.circleId !== selectedCircleIdRef.current) { keepPlanRef.current = plan.circleId; handleSelectCircle(plan.circleId); }
     handlePlanCreated(plan, tab);
@@ -783,7 +788,9 @@ export function DashboardPage() {
           selectedId={allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={handleCircleCreated}
-          onNewPlan={() => setQuickCreate(true)}
+          onNewPlan={kind => { setQuickKind(kind ?? null); setQuickCreate(true); }}
+          onProposeDates={selectedCircle && !selectedCircle.isPersonal && (selectedCircle.pollCreationMode !== 'creator' || isCircleManager(selectedCircle, user?.id)) && !allPlansActive && !calendarActive && !contactsActive && !discoverActive
+            ? () => setShowCreatePoll(true) : undefined}
           onAllPlans={handleAllPlans}
           allPlansActive={allPlansActive}
           onCalendar={handleCalendar}
@@ -821,6 +828,7 @@ export function DashboardPage() {
             selectedPlanId={selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
             refreshSignal={plansRefreshSignal}
+            onList={handleAllPlans}
           />
         </div>
       ) : allPlansActive ? (
@@ -831,6 +839,7 @@ export function DashboardPage() {
             onBack={() => setMobileView('circles')}
             refreshSignal={plansRefreshSignal}
             onOpenCapsule={setOpenCapsuleId}
+            onCalendar={handleCalendar}
           />
         </div>
       ) : selectedCircle ? (
@@ -928,11 +937,17 @@ export function DashboardPage() {
     {showCreateCircle && (
       <CreateCircleModal onClose={() => setShowCreateCircle(false)} onCreated={c => { setShowCreateCircle(false); handleCircleCreated(c); }} />
     )}
+    {showCreatePoll && selectedCircle && (
+      <CreateCirclePollModal circleId={selectedCircle.id} circleMembers={selectedCircle.members}
+        onClose={() => setShowCreatePoll(false)}
+        onCreated={poll => { setShowCreatePoll(false); openPoll(poll.id); }} />
+    )}
     {quickCreate && (
       <CreatePlanModal
         circleId={selectedCircleId && kindCircles.some(c => c.id === selectedCircleId) ? selectedCircleId : ''}
         targets={kindCircles}
-        onClose={() => setQuickCreate(false)}
+        kind={quickKind}
+        onClose={() => { setQuickCreate(false); setQuickKind(null); }}
         onCreated={handleQuickCreated}
       />
     )}

@@ -24,8 +24,9 @@ const groups: Group[] = [
           <P>Un <strong>Cerchio</strong> è il tuo gruppo: amici, famiglia, colleghi, club, associazione. Un{' '}
             <strong>Plan</strong> è un evento preciso in un Cerchio («Pizza venerdì?», «Tombola annuale»). Ogni Plan ha la
             sua <strong>Chat</strong> e le sue sezioni: un compleanno e un aperitivo non si mescolano mai.</P>
-          <P>A sinistra i tuoi Cerchi, poi <strong>«Tutti i miei plan»</strong> (per data, il più vicino prima) e il{' '}
-            <strong>Calendario</strong>. Cerchi e Plan di un Cerchio sono ordinati per ultima attività.</P>
+          <P>A sinistra: <strong>«+ Crea»</strong> (un Plan, un sondaggio di date, un Cerchio o unirsi a un Cerchio), poi{' '}
+            <strong>«Tutti i miei plan»</strong> (per data, in elenco o in <strong>calendario</strong>), «Scopri» e i tuoi Cerchi.
+            Cerchi e Plan di un Cerchio sono ordinati per ultima attività.</P>
         </>,
       },
       {
@@ -43,7 +44,7 @@ const groups: Group[] = [
       {
         id: 'contacts', emoji: '📇', title: 'I miei contatti', summary: 'Tutte le persone dei tuoi Cerchi, in un solo posto',
         body: <>
-          <P>Il pulsante <strong>«Contatti»</strong> (accanto a «Tutti i miei plan» e «Calendario») riunisce tutte le persone con cui
+          <P>Il pulsante <strong>«Contatti»</strong> (nel menu ☰ in fondo all'elenco dei Cerchi) riunisce tutte le persone con cui
             condividi un Cerchio, con i Cerchi in comune. Cerca per nome o pseudo; toccando un Cerchio lo apri.</P>
           <P>Toccando una persona si apre la sua <strong>scheda</strong>: Cerchi e Plan in arrivo in comune, <strong>«Fare un Plan»</strong>{' '}
             in un Cerchio in comune e <strong>«Invita»</strong> in uno dei tuoi altri Cerchi. La stessa scheda si apre toccando un avatar
@@ -56,7 +57,7 @@ const groups: Group[] = [
       {
         id: 'decouvrir', emoji: '🧭', title: 'Scopri', summary: 'Le uscite vicino a te, e andarci insieme',
         body: <>
-          <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Contatti») mostra gli eventi dei prossimi 14 giorni e delle
+          <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Tutti i miei plan») mostra gli eventi dei prossimi 14 giorni e delle
             <strong> idee per uscire</strong> (escape game, bowling, musei…) in tutta la <strong>Svizzera</strong> e nella <strong>Francia vicina</strong> (Ain, Alta Savoia).
             Scegli il luogo (una città, un paese o «Vicino a me») e il raggio (10, 25 o 50 km), filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…).</P>
           <P>Su un evento, <strong>«Andarci con un Cerchio»</strong> apre un Plan già compilato (titolo, data, luogo, link) nel
@@ -84,7 +85,7 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Creare e modificare un Plan', summary: 'Titolo, data, luogo, limite, funzioni',
         body: <>
-          <P>Il modo più veloce: <strong>«+ Nuovo Plan»</strong> in cima all'elenco dei Cerchi. Compili il Plan, poi scegli
+          <P>Il modo più veloce: <strong>«+ Crea» › Plan standard</strong>, in cima all'elenco dei Cerchi. Compili il Plan, poi scegli
             <strong>con chi</strong>: uno dei tuoi Cerchi, o <strong>«Solo un link»</strong> (inviti chi vuoi, anche senza l'app). Luogo
             non ancora scelto? Spunta <strong>«Da definire»</strong> e aggiungilo più tardi. Una volta creato il Plan, la finestra «Invita»
             si apre da sola. Nel Plan, Passaggi, Voti e Spese compaiono solo se servono: altrimenti tocca <strong>«+ Aggiungi»</strong>.</P>

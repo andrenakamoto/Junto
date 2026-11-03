@@ -25,8 +25,9 @@ const groups: Group[] = [
           <P>Ein <strong>Kreis</strong> ist deine Gruppe: Freunde, Familie, Arbeitskollegen, Club, Verein. Ein{' '}
             <strong>Plan</strong> ist ein bestimmter Anlass in einem Kreis («Pizza am Freitag?», «Jahreslotto»). Jeder Plan
             hat seinen eigenen <strong>Chat</strong> und seine Bereiche: Ein Geburtstag und ein Apéro vermischen sich nie.</P>
-          <P>Links deine Kreise, dann <strong>«Alle meine Pläne»</strong> (nach Datum, der nächste zuerst) und der{' '}
-            <strong>Kalender</strong>. Kreise und die Pläne eines Kreises sind nach letzter Aktivität sortiert.</P>
+          <P>Links: <strong>«+ Erstellen»</strong> (ein Plan, eine Datumsumfrage, ein Kreis oder einem Kreis beitreten), dann{' '}
+            <strong>«Alle meine Pläne»</strong> (nach Datum, als Liste oder <strong>Kalender</strong>), «Entdecken» und deine Kreise.
+            Kreise und die Pläne eines Kreises sind nach letzter Aktivität sortiert.</P>
         </>,
       },
       {
@@ -44,7 +45,7 @@ const groups: Group[] = [
       {
         id: 'contacts', emoji: '📇', title: 'Meine Kontakte', summary: 'Alle Personen deiner Kreise an einem Ort',
         body: <>
-          <P>Der Knopf <strong>„Kontakte“</strong> (neben „Alle meine Pläne“ und „Kalender“) zeigt alle Personen, mit denen du einen
+          <P>Der Knopf <strong>„Kontakte“</strong> (im Menü ☰ unten in der Liste der Kreise) zeigt alle Personen, mit denen du einen
             Kreis teilst, mit euren gemeinsamen Kreisen. Suche nach Vorname oder Pseudo; ein Kreis öffnet sich beim Antippen.</P>
           <P>Eine Person antippen öffnet ihre <strong>Karte</strong>: gemeinsame Kreise und kommende Pläne, <strong>„Plan machen“</strong>{' '}
             in einem gemeinsamen Kreis und <strong>„Einladen“</strong> in einen deiner anderen Kreise. Dieselbe Karte öffnet sich beim
@@ -57,7 +58,7 @@ const groups: Group[] = [
       {
         id: 'decouvrir', emoji: '🧭', title: 'Entdecken', summary: 'Ausgehen in deiner Nähe – und gemeinsam hingehen',
         body: <>
-          <P>Der Button <strong>„Entdecken“</strong> (neben „Kontakte“) zeigt die Events der nächsten 14 Tage und
+          <P>Der Button <strong>„Entdecken“</strong> (neben „Alle meine Pläne“) zeigt die Events der nächsten 14 Tage und
             <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in der ganzen <strong>Schweiz</strong> und im <strong>angrenzenden Frankreich</strong> (Ain, Hochsavoyen).
             Wähle den Ort (eine Stadt, ein Dorf oder „In meiner Nähe“) und den Umkreis (10, 25 oder 50 km), filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …).</P>
           <P>Bei einem Event öffnet <strong>„Mit einem Kreis hingehen“</strong> einen fertig ausgefüllten Plan (Titel, Datum, Ort, Link)
@@ -86,7 +87,7 @@ const groups: Group[] = [
       {
         id: 'plan', emoji: '📅', title: 'Einen Plan erstellen und bearbeiten', summary: 'Titel, Datum, Ort, Grenze, Funktionen',
         body: <>
-          <P>Am schnellsten: <strong>«+ Neuer Plan»</strong> ganz oben in der Liste der Kreise. Du füllst den Plan aus und wählst dann,
+          <P>Am schnellsten: <strong>«+ Erstellen» › Standard-Plan</strong>, ganz oben in der Liste der Kreise. Du füllst den Plan aus und wählst dann,
             <strong>mit wem</strong>: einen deiner Kreise oder <strong>«Nur ein Link»</strong> (du lädst ein, wen du willst, auch ohne App).
             Ort noch nicht gewählt? Kreuz <strong>«Noch offen»</strong> an und ergänze ihn später. Ist der Plan erstellt, öffnet sich
             «Einladen» von selbst. Im Plan erscheinen «Fahrten», «Abstimmen» und «Ausgaben» nur, wenn sie gebraucht werden: sonst tippe auf
