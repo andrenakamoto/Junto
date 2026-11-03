@@ -892,6 +892,7 @@ export function DashboardPage() {
             plan={selectedPlan}
             circleName={selectedCircle?.name ?? ''}
             circleCode={selectedCircle?.code ?? ''}
+            circlePersonal={!!selectedCircle?.isPersonal}
             circleId={selectedCircle?.id}
             onPlanUpdated={handlePlanUpdated}
             onPlanDeleted={handlePlanDeleted}

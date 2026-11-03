@@ -2073,7 +2073,7 @@ lien d'invitation (`/invitation?token=…`, réponses sans compte comme d'habitu
 sur la page de connexion (`AuthPage`), boutons « Organiser une sortie » de `decouvrir.html`, adresse
 `/organiser` pour les publicités. Le Plan va dans le **Cercle personnel « Mes Plans »** de
 l'organisateur (`Circle.isPersonal`, un par personne, `getOrCreatePersonalCircle`, admission
-`creator`), date de fin = date de la sortie + 24 h. Sans compte, l'organisateur est un **invité
+`creator`), date de fin = date de la sortie + 24 h. On n'invite **jamais dans ce Cercle** (2026-11-03) : pas d'onglet « Par le Cercle » dans « Inviter » d'un de ses Plans (`circlePersonal` de `PlanDetail`), pas de bouton « Inviter » dans son en-tête (`PlanList`). Sans compte, l'organisateur est un **invité
 léger** (`isLight`, même jeton `evly_light_token`) : il ne peut que créer ses sorties (POST
 /api/express, 3 par jour et par connexion, `skipFailedRequests`) et en suivre les réponses
 (GET /api/express/mine, rafraîchi toutes les 15 s). Avec un compte (jeton normal), POST /api/express

@@ -187,10 +187,11 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
             <Users size={14} className="text-indigo-600" />{t('circle.planList.members', { count: circle.members.length })}
           </button>
-          <button onClick={() => setShowInvite(true)}
+          {/* « Mes Plans » (Cercle personnel) : on invite à chaque Plan, pas dans le Cercle */}
+          {!circle.isPersonal && <button onClick={() => setShowInvite(true)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
             <UserPlus size={14} className="text-indigo-600" />{t('circle.planList.invite')}
-          </button>
+          </button>}
           {circleMuted && (
             <button onClick={() => setCircleMuted(circle, false)} title={t('circle.planList.mutedTap')} aria-label={t('circle.planList.mutedTap')}
               className="p-1.5 rounded-lg text-slate-600 bg-slate-200 hover:bg-slate-300 transition-colors">

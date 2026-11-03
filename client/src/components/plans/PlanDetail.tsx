@@ -107,6 +107,8 @@ interface Props {
   plan: Plan;
   circleName: string;
   circleCode: string;
+  /** Cercle personnel « Mes Plans » : on n'invite qu'au Plan, jamais dans ce Cercle */
+  circlePersonal?: boolean;
   // Cercle depuis lequel le Plan est ouvert (un Plan peut appartenir à plusieurs Cercles)
   circleId?: string;
   onPlanUpdated: (plan: Plan) => void;
@@ -124,7 +126,7 @@ interface Props {
   onToggleExpand?: () => void;
 }
 
-export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab, expanded = false, onToggleExpand }: Props) {
+export function PlanDetail({ plan, circleName, circleCode, circlePersonal = false, circleId, onPlanUpdated, onPlanDeleted, onLogout, onBack, user, onlineUserIds, circleMembers = [], openTab, expanded = false, onToggleExpand }: Props) {
   const { token, user: me } = useAuth();
   const [tab, setTab] = useState<Tab>('chat');
   // Téléphone : page principale du Plan (en-tête + une carte par rubrique), puis une rubrique
@@ -1150,7 +1152,7 @@ export function PlanDetail({ plan, circleName, circleCode, circleId, onPlanUpdat
           planTitle={plan.title}
           planId={plan.id}
           allowGuest
-          canInviteToCircle={!plan.viewerIsGuest}
+          canInviteToCircle={!plan.viewerIsGuest && !circlePersonal}
           isPlanCreator={isCreator}
           canInviteGuests={plan.canInviteGuests !== false}
           onClose={() => setShowInvite(false)}
