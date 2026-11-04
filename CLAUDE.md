@@ -959,6 +959,8 @@ Junto/
   (`client/src/lib/calendar.ts`) — dans les apps, écran natif « Nouvel événement » pré-rempli comme pour un Plan ; sur le site, .ics
   par GET `/plans/shifts/:id/ical` (`routes/volunteers.ts`). Horaire du poste, sinon celui du Plan (`shiftEventTimes` de `lib/ical.ts`,
   fin absente = 2 h), titre « poste – Plan », lieu du Plan, lien `?planId=…&tab=benevoles`.
+  **Boutons d'un poste** (2026-11-04, trop proches sur téléphone) : Agenda, Modifier et Supprimer en boutons de 36 px espacés, corbeille
+  rouge séparée par un trait, sur leur propre ligne en bas de la carte (dans la ligne pour une ligne de programme) ; suppression confirmée.
 - **Tâches** (2026-10-27, `lib/tasks.ts` testé, `routes/tasks.ts` monté dans le routeur des Plans, `components/plans/TasksTab.tsx`,
   dictionnaire `i18n/<langue>/tasks.ts`, migration `20261104100000_plan_tasks`) : fonction **à activer** (`taches`, catégorie Organiser,
   avant le Planning), pensée pour un Plan réservé à une équipe d'organisation (fête d'entreprise…) ; le type « Organisation » des Plans
@@ -1133,7 +1135,7 @@ Junto/
   est caché, liste d'attente et réponses sans compte ; jamais à un invité externe ni si la liste est réservée ; pas pour un Plan terminé).
   **Relance** : POST `/plans/:id/nudge`, créateur du Plan et organisateurs du Cercle, une fois par 24 h (`Plan.lastNudgeAt`, réservation
   atomique, `canNudge` / `nextNudgeAt`), notification `plan_activity` « ⏰ @x attend ta réponse » (mode silencieux respecté). « · N sans
-  réponse » dans l'en-tête du Plan. Démo : `demoPlanWithPending`. Fiche « Répondre et liste d'attente » du guide.
+  réponse » dans l'en-tête du Plan. Bouton **« Inviter »** en tête de la rubrique (2026-11-04, `onInvite`, membres du Plan, Plan pas terminé). Démo : `demoPlanWithPending`. Fiche « Répondre et liste d'attente » du guide.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), joinedAt, seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet). Depuis le 2026-10-14, les participants sont
   toujours renvoyés **dans l'ordre d'arrivée** (`orderBy: { joinedAt: 'asc' }` sur tous les includes `members`) et la
@@ -1437,6 +1439,9 @@ Junto/
   bord gauche. Un Plan s'ouvre toujours sur sa page principale, sauf rubrique demandée (`openTab` :
   cloche, notification de message ou de mention → chat, push `?planId=…&tab=chat`). Rien n'est
   marqué « vu » sur la page principale (`activeTab` null). Grand écran : onglets inchangés.
+  **Sélection** (2026-11-04) : sur téléphone (`narrow` de DashboardPage, < 768 px), aucune carte de Cercle, de Plan, de sondage ni la
+  Discussion n'est affichée « sélectionnée » (le contour restait après le retour) ; sur grand écran, toucher à nouveau le Plan ouvert dans
+  une liste le referme (`togglePlanFromList`).
   **Plein écran** (2026-10-15, grand écran et tablette) : bouton ⤢ de l'en-tête du Plan (`expanded` / `onToggleExpand`) qui
   masque les colonnes des Cercles et des Plans (`planExpanded` dans DashboardPage, pour projeter un Plan) ; refermé avec le Plan.
   **Barre d'actions** (même date) fixée en bas de la page principale uniquement (pas dans une
@@ -2041,7 +2046,8 @@ sur 401 / 403 / 404 de `/auth/me`, sinon il réessaie au retour du réseau.
 **Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
 fenêtre dans une pile ; `NativeChrome` ferme d'abord celle du dessus (`closeTopOverlay`) avant `evly-back`. Branché dans
 `Modal` (toutes les fenêtres standard), `GuideModal`, `PersonSheet`, la visionneuse photo du chat, le menu photo du chat,
-la roue plein écran, les cartes du Match et « Choisir ». **Toute nouvelle fenêtre plein écran hors `Modal` doit
+la roue plein écran, les cartes du Match et « Choisir », et depuis le 2026-11-04 les menus « Créer » et ⋯ de `PlanList`, le menu ☰ de
+`CircleSidebar` et le menu ⋯ de `PlanDetail` (le menu « Créer » restait ouvert après un retour). **Toute nouvelle fenêtre plein écran hors `Modal` doit
 l'appeler.** (Conditions d'utilisation exclues : à accepter.)
 
 **Signaler / masquer** (2026-10-02, exigence Apple 1.2 et Google pour le contenu
