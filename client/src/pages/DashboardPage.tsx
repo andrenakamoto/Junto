@@ -63,6 +63,14 @@ export function DashboardPage() {
   useEffect(() => { selectedPollIdRef.current = selectedPollId; }, [selectedPollId]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
+  // Téléphone : une seule colonne à la fois, donc pas de carte « sélectionnée » (le contour restait après le retour)
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [allPlansActive, setAllPlansActive] = useState(false);
   const [calendarActive, setCalendarActive] = useState(false);
   const [contactsActive, setContactsActive] = useState(false);
@@ -601,6 +609,12 @@ export function DashboardPage() {
     setMobileView('plans');
   }
 
+  // Listes (grand écran) : toucher à nouveau le Plan ouvert le referme (désélection)
+  function togglePlanFromList(plan: Plan, tab?: string) {
+    if (!tab && !narrow && selectedPlan?.id === plan.id && !selectedPollId && !chatCircleId) { setSelectedPlan(null); return; }
+    handleSelectPlan(plan, tab);
+  }
+
   function handleSelectPlan(plan: Plan, tab?: string) {
     setOpenTab(tab ? { tab, n: Date.now() } : null);
     setSelectedPollId(null);
@@ -785,7 +799,7 @@ export function DashboardPage() {
       <div className={`${showCircles ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-64 flex-shrink-0 h-full`}>
         <CircleSidebar
           circles={sortedCircles}
-          selectedId={allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
+          selectedId={narrow || allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
           onSelect={handleSelectCircle}
           onCreated={handleCircleCreated}
           onNewPlan={kind => { setQuickKind(kind ?? null); setQuickCreate(true); }}
@@ -824,8 +838,8 @@ export function DashboardPage() {
       ) : calendarActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <CalendarView
-            onSelectPlan={handleSelectPlan}
-            selectedPlanId={selectedPlan?.id ?? null}
+            onSelectPlan={togglePlanFromList}
+            selectedPlanId={narrow ? null : selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
             refreshSignal={plansRefreshSignal}
             onList={handleAllPlans}
@@ -834,8 +848,8 @@ export function DashboardPage() {
       ) : allPlansActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} ${hideLists ? 'md:hidden' : 'md:flex'} flex-col w-full md:w-72 flex-shrink-0 h-full`}>
           <AllPlansView
-            onSelectPlan={handleSelectPlan}
-            selectedPlanId={selectedPlan?.id ?? null}
+            onSelectPlan={togglePlanFromList}
+            selectedPlanId={narrow ? null : selectedPlan?.id ?? null}
             onBack={() => setMobileView('circles')}
             refreshSignal={plansRefreshSignal}
             onOpenCapsule={setOpenCapsuleId}
@@ -848,15 +862,15 @@ export function DashboardPage() {
             circle={selectedCircle}
             plans={sortedPlans}
             loading={loadingPlans}
-            selectedPlanId={selectedPlan?.id ?? null}
-            onSelectPlan={handleSelectPlan}
+            selectedPlanId={narrow ? null : selectedPlan?.id ?? null}
+            onSelectPlan={togglePlanFromList}
             onPlanCreated={handlePlanCreated}
             onCircleDeleted={handleCircleDeleted}
             onCircleUpdated={handleCircleUpdated}
             onBack={() => setMobileView('circles')}
             unreadPlans={unreadPlans}
-            selectedPollId={selectedPollId}
-            chatActive={chatCircleId === selectedCircle.id}
+            selectedPollId={narrow ? null : selectedPollId}
+            chatActive={!narrow && chatCircleId === selectedCircle.id}
             onOpenChat={() => openCircleChat(selectedCircle.id)}
             onSelectPoll={openPoll}
             onlineUserIds={onlineUserIds}
