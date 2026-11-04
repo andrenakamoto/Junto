@@ -21,7 +21,7 @@ import { t, currentLang } from '../i18n';
 // De novembre au 25 décembre (et dès fin octobre, pour lancer la campagne)
 // Campagne de Noël sur la page de connexion : du 15 novembre au 25 décembre (retirée le 1er novembre 2026 jusqu'au lancement
 // de la promotion à la mi-novembre)
-const santaSeason = (d = new Date()) => (d.getMonth() === 10 && d.getDate() >= 15) || (d.getMonth() === 11 && d.getDate() <= 25);
+const santaSeason = (d = new Date()) => (d.getMonth() === 10 && d.getDate() >= 6) || (d.getMonth() === 11 && d.getDate() <= 25);
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6818454100';
 const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=ch.evly.app';
