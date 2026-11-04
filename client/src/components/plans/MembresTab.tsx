@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { BellRing, UserMinus } from 'lucide-react';
+import { BellRing, UserMinus, UserPlus } from 'lucide-react';
 import { Plan, PlanMember } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
@@ -20,13 +20,15 @@ const GROUP_STYLE: Record<Group, { dot: string; chip: string; on: string }> = {
 };
 const PENDING_FOLDED = 6;
 
-export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creatorId, canRemove = false, onRemove, onNudge }: {
+export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creatorId, canRemove = false, onRemove, onNudge, onInvite }: {
   plan?: Plan;
   members: PlanMember[]; onlineUserIds?: Set<string>; waitlist?: NonNullable<Plan['waitlist']>;
   /** Créateur du Plan et organisateurs du Cercle : retirer quelqu'un du Plan (DELETE /plans/:id/members/:userId) */
   creatorId?: string; canRemove?: boolean; onRemove?: (userId: string) => Promise<void>;
   /** Relancer les membres sans réponse ; renvoie le nombre de personnes prévenues */
   onNudge?: () => Promise<number>;
+  /** Ouvre la fenêtre « Inviter » du Plan (membres du Plan, Plan pas terminé) */
+  onInvite?: () => void;
 }) {
   const { t } = useTranslation();
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -101,6 +103,12 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
   const shownPending = showAllPending || filter === 'pending' ? pending : pending.slice(0, PENDING_FOLDED);
   return (
     <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50 space-y-5 short:flex-none short:overflow-visible">
+      {onInvite && (
+        <button onClick={onInvite}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors">
+          <UserPlus size={16} />{t('plan.detail.invite')}
+        </button>
+      )}
       {/* Résumé : toucher un groupe n'affiche que lui */}
       <div className="flex flex-wrap gap-1.5">
         <button onClick={() => setFilter(null)} className={`text-xs px-3 py-1.5 rounded-full border font-medium ${!filter ? 'bg-slate-800 text-white border-slate-800' : 'bg-white border-slate-200 text-slate-600'}`}>

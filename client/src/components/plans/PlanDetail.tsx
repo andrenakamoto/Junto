@@ -54,6 +54,7 @@ import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
 import { RichText } from '../../lib/richText';
+import { useBackClose } from '../../lib/backClose';
 
 // Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
 function useIsPhone() {
@@ -150,6 +151,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  useBackClose(() => setShowActionsMenu(false), showActionsMenu);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
@@ -1117,7 +1119,8 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
           )}
           {activeTab === 'membres' && <MembresTab plan={plan} members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} creatorId={plan.creatorId} canRemove={!!plan.canManageFiles && !plan.viewerIsGuest}
             onRemove={async userId => { await api.delete(`/plans/${plan.id}/members/${userId}`); const { data } = await api.get(`/plans/${plan.id}`); onPlanUpdated(data); }}
-            onNudge={async () => { const { data } = await api.post(`/plans/${plan.id}/nudge`); api.get(`/plans/${plan.id}`).then(r => onPlanUpdated(r.data)).catch(() => {}); return data.count; }} />}
+            onNudge={async () => { const { data } = await api.post(`/plans/${plan.id}/nudge`); api.get(`/plans/${plan.id}`).then(r => onPlanUpdated(r.data)).catch(() => {}); return data.count; }}
+            onInvite={isMember && !ended ? () => setShowInvite(true) : undefined} />}
           {activeTab === 'votes' && <VotesTab plan={plan} onPlanUpdated={onPlanUpdated} userId={user.id} />}
           {activeTab === 'pere_noel' && <SecretSantaTab plan={plan} userId={user.id} />}
           {activeTab === 'quiz' && <QuizTab plan={plan} userId={user.id} />}
