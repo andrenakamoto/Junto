@@ -541,6 +541,19 @@ export function DashboardPage() {
     setCircles(prev => prev.map(c => (c.id === id && c.chatUnseen ? { ...c, chatUnseen: false } : c)));
   }
 
+  // Liste des Cercles (grand écran) : toucher à nouveau le Cercle ouvert le referme, avec ce qui était ouvert à droite
+  function toggleCircleFromList(id: string) {
+    const listView = allPlansActive || calendarActive || contactsActive || discoverActive;
+    if (!narrow && !listView && selectedCircleIdRef.current === id) {
+      setSelectedCircleId(null);
+      setSelectedPlan(null);
+      setSelectedPollId(null);
+      setChatCircleId(null);
+      return;
+    }
+    handleSelectCircle(id);
+  }
+
   function handleSelectCircle(id: string) {
     setSelectedPollId(null);
     if (id !== selectedCircleIdRef.current) setChatCircleId(null);
@@ -800,7 +813,7 @@ export function DashboardPage() {
         <CircleSidebar
           circles={sortedCircles}
           selectedId={narrow || allPlansActive || contactsActive || discoverActive ? null : selectedCircleId}
-          onSelect={handleSelectCircle}
+          onSelect={toggleCircleFromList}
           onCreated={handleCircleCreated}
           onNewPlan={kind => { setQuickKind(kind ?? null); setQuickCreate(true); }}
           onProposeDates={selectedCircle && !selectedCircle.isPersonal && (selectedCircle.pollCreationMode !== 'creator' || isCircleManager(selectedCircle, user?.id)) && !allPlansActive && !calendarActive && !contactsActive && !discoverActive

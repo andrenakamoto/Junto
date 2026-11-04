@@ -1444,7 +1444,8 @@ Junto/
   marqué « vu » sur la page principale (`activeTab` null). Grand écran : onglets inchangés.
   **Sélection** (2026-11-04) : sur téléphone (`narrow` de DashboardPage, < 768 px), aucune carte de Cercle, de Plan, de sondage ni la
   Discussion n'est affichée « sélectionnée » (le contour restait après le retour) ; sur grand écran, toucher à nouveau le Plan ouvert dans
-  une liste le referme (`togglePlanFromList`).
+  une liste le referme (`togglePlanFromList`), de même pour le Cercle ouvert dans la liste des Cercles (`toggleCircleFromList`, ferme aussi
+  le Plan, le sondage ou la Discussion ouverts).
   **Plein écran** (2026-10-15, grand écran et tablette) : bouton ⤢ de l'en-tête du Plan (`expanded` / `onToggleExpand`) qui
   masque les colonnes des Cercles et des Plans (`planExpanded` dans DashboardPage, pour projeter un Plan) ; refermé avec le Plan.
   **Barre d'actions** (même date) fixée en bas de la page principale uniquement (pas dans une
