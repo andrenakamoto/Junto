@@ -87,6 +87,8 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
   // Cacher à… / Réservé à… : parmi les membres de tous les Cercles choisis
   const surpriseMembers = [...circleMembers, ...otherCircles.filter(c => chosenExtra.includes(c.id)).flatMap(c => c.members)]
     .filter((m, i, all) => all.findIndex(x => x.userId === m.userId) === i);
+  // Surprise : quelqu'un d'autre que moi à qui cacher le Plan ? Sinon (« Juste un lien »), pas de « Cacher à… » obligatoire
+  const canHide = !!user && surpriseMembers.some(m => m.userId !== user.id);
   const [membersVisibility, setMembersVisibility] = useState<MembersVisibility>(preset?.membersVisibility ?? 'all');
   // Qui ajoute des photos et fichiers (Mode annonce : le créateur et les organisateurs)
   const [filesMode, setFilesMode] = useState<FilesMode>(preset?.filesMode ?? 'all');
@@ -119,7 +121,7 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
     if (!placeTbd && !location.trim()) { setError(t('plan.form.locationRequired')); return; }
     if (visibleLength(description) > DESCRIPTION_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.description'), max: DESCRIPTION_MAX })); return; }
     // Plan spécifique : ce qui fait le type doit être rempli
-    if (kind === 'surprise' && (vis.mode !== 'hidden' || vis.excluded.length === 0)) { setError(t('plan.kinds.surprise.required')); return; }
+    if (kind === 'surprise' && canHide && (vis.mode !== 'hidden' || vis.excluded.length === 0)) { setError(t('plan.kinds.surprise.required')); return; }
     if (kind === 'jeux' && !KIND_GAMES.some(g => enabledFeatures.includes(g))) { setError(t('plan.kinds.jeux.required')); return; }
     if (kind === 'mystere' && (!realTitle.trim() || !realPlace.trim())) { setError(t('plan.kinds.mystere.required')); return; }
     if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
@@ -190,12 +192,15 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
           startLabel={enabledFeatures.includes('pere_noel') && kind !== 'pere_noel' ? t('plan.form.santaDate') : undefined} />
         {enabledFeatures.includes('pere_noel') && kind !== 'pere_noel' && <SantaDatesNote />}
         {/* Surprise : pour qui (le Plan lui est caché) ; Soirée jeux : quels jeux */}
-        {kind === 'surprise' && user && (
+        {kind === 'surprise' && user && (canHide ? (
           <div>
             <p className="text-sm font-medium text-slate-700 mb-1">{t('plan.kinds.surprise.forWho')}</p>
             <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
           </div>
-        )}
+        ) : (
+          // « Juste un lien » (ou Cercle sans autres membres) : personne à qui cacher le Plan, la surprise tient au lien
+          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{t('plan.kinds.surprise.linkNote')}</p>
+        ))}
         {kind === 'jeux' && (
           <div>
             <p className="text-sm font-medium text-slate-700 mb-1.5">{t('plan.kinds.jeux.games')}</p>

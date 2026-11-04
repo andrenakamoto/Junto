@@ -71,6 +71,7 @@ const plan: Dict['plan'] = {
       info: '🤫 It’s a surprise: don’t tell the guest of honour!',
       forWho: 'Who is it for? (the Plan will be hidden from them)',
       required: 'Choose the person or people the Plan is hidden from.',
+      linkNote: 'With a link, the surprise is up to you: send the link to everyone except the person being celebrated.',
     },
     pere_noel: {
       name: 'Secret Santa',

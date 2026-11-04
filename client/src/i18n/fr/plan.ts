@@ -70,6 +70,7 @@ export default {
       info: '🤫 C’est une surprise : n’en parle pas à la personne fêtée !',
       forWho: 'Pour qui ? (le Plan lui sera caché)',
       required: 'Choisis la ou les personnes à qui le Plan est caché.',
+      linkNote: 'Avec un lien, la surprise tient à toi : envoie le lien à tout le monde, sauf à la personne fêtée.',
     },
     pere_noel: {
       name: 'Père Noël secret',

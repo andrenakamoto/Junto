@@ -2005,7 +2005,7 @@ défaut à la création (choix de l'utilisateur).
 `20261030100000_plan_kind`) : « Créer › Plan spécifique » ouvre la liste des types — `surprise`, `pere_noel`, `assemblee` (créateur et
 organisateurs du Cercle seulement), `organisation`, `annonce`, `cours`, `jeux`, `voyage`. `kindPreset` pré-règle `CreatePlanModal`
 (titre, dates, durée proposée, fonctions, règles, répétition, infos importantes, encadré du type) ; **tout reste modifiable**. Surprise :
-« Pour qui ? » (`VisibilityField` en haut, Cacher à… obligatoire) ; Soirée jeux : au moins un jeu (quiz, killer, mot piège, équipes) ;
+« Pour qui ? » (`VisibilityField` en haut, Cacher à… obligatoire — sauf s'il n'y a personne à qui le cacher, « Juste un lien » : simple conseil `surprise.linkNote`, `canHide`) ; Soirée jeux : au moins un jeu (quiz, killer, mot piège, équipes) ;
 Assemblée : textes au vouvoiement, sans Plan pour plusieurs Cercles. Après la création, le Plan s'ouvre sur la rubrique du type
 (`onCreated(plan, tab)` → `handlePlanCreated` → `openTab`). `Plan.kind` (null = standard, recopié par les répétitions) sert aux
 statistiques : compteur anonyme `plankind_<type>` (PageVisit, `countPlanKind`) et Plans en cours, panneau admin « Types de Plans »
