@@ -192,12 +192,15 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
   const full = s.signups.length >= s.needed;
   const hours = shiftHours(s);
   // Agenda : pour tout le monde ; modifier / supprimer : créateur du Plan et organisateurs
+  // Boutons espacés et assez grands pour le doigt (36 px), corbeille à l'écart : on touchait le mauvais (2026-11-04)
+  const btn = 'w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white';
   const actions = (
-    <span className="flex-shrink-0 flex -mr-1">
-      <button onClick={onCalendar} title={t('games.volunteers.addToCalendar')} aria-label={t('games.volunteers.addToCalendar')} className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"><CalendarPlus size={14} /></button>
+    <span className="flex-shrink-0 flex items-center gap-2 ml-2">
+      <button onClick={onCalendar} title={t('games.volunteers.addToCalendar')} aria-label={t('games.volunteers.addToCalendar')} className={`${btn} text-slate-500 hover:text-indigo-600 hover:bg-indigo-50`}><CalendarPlus size={17} /></button>
       {canManage && <>
-      <button onClick={onEdit} title={t('games.volunteers.editShift')} className="p-1 rounded-md text-slate-300 hover:text-indigo-600 hover:bg-indigo-50"><Pencil size={14} /></button>
-      <button onClick={onDelete} title={t('games.volunteers.deleteShift')} className="p-1 rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
+      <button onClick={onEdit} title={t('games.volunteers.editShift')} aria-label={t('games.volunteers.editShift')} className={`${btn} text-slate-500 hover:text-indigo-600 hover:bg-indigo-50`}><Pencil size={16} /></button>
+      <span className="w-px h-6 bg-slate-200 mx-1" aria-hidden />
+      <button onClick={onDelete} title={t('games.volunteers.deleteShift')} aria-label={t('games.volunteers.deleteShift')} className={`${btn} text-red-400 hover:text-red-600 hover:bg-red-50`}><Trash2 size={16} /></button>
       </>}
     </span>
   );
@@ -230,9 +233,10 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
             {s.signups.length}/{s.needed}
           </span>
         )}
-        {actions}
       </div>
       {s.note && <p className="text-xs text-slate-500 mt-1.5 whitespace-pre-wrap break-words">{s.note}</p>}
+      {/* Agenda / Modifier / Supprimer sur leur propre ligne : le titre garde toute la largeur */}
+      <div className="flex justify-end mt-2">{actions}</div>
 
       {s.signups.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2.5">
@@ -259,7 +263,7 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
                 <span className="text-slate-400"> · {dayTime.format(new Date(c.createdAt))}</span><br />{c.content}
               </p>
               {(c.author.id === userId || canManage) && (
-                <button onClick={() => onDeleteComment(c.id)} title={t('games.volunteers.deleteComment')} className="flex-shrink-0 p-0.5 rounded text-slate-300 hover:text-red-500"><Trash2 size={12} /></button>
+                <button onClick={() => onDeleteComment(c.id)} title={t('games.volunteers.deleteComment')} className="flex-shrink-0 w-8 h-8 -my-1.5 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50"><Trash2 size={14} /></button>
               )}
             </div>
           ))}
