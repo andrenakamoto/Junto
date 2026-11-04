@@ -110,6 +110,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
     return () => document.removeEventListener('mousedown', h);
   }, [showCreateMenu]);
   useBackClose(() => setShowCreateMenu(false), showCreateMenu);
+  useBackClose(() => setShowMenu(false), showMenu);
   const menuItem = 'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors';
   const managesACircle = circles.some(c => !c.isPersonal && isCircleManager(c, user?.id));
   const createItem = (Icon: typeof Plus, label: string, hint: string, run: () => void, keepOpen = false) => (

@@ -28,6 +28,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { JoinRequestList } from '../circles/JoinRequestList';
 import { intlLocale, t } from '../../i18n';
 import { Trans } from 'react-i18next';
+import { useBackClose } from '../../lib/backClose';
 
 interface Props {
   circle: Circle;
@@ -151,6 +152,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   // L'Assemblée : créateur et organisateurs du Cercle seulement (pas de Cercle personnel)
   const kinds = PLAN_KINDS.filter(k => !k.managersOnly || (!circle.isPersonal && isCircleManager(circle, user?.id)));
   const closeMenu = () => { setShowCreateMenu(false); setMenuLevel('main'); };
+  // Bouton retour du téléphone : ferme le menu « Créer » et le menu ⋯ avant de quitter le Cercle
+  useBackClose(closeMenu, showCreateMenu);
+  useBackClose(() => setShowMore(false), showMore);
   const menuItem = 'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left';
 
   return (
