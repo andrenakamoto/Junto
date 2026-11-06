@@ -536,6 +536,9 @@ Conséquences pratiques :
     **Version 1.0.47** (2026-11-04) : Android `versionCode` 49 (`evly-1.0.47-(49).aab`), iOS build 53 envoyé — bouton « Créer » remis en
     bas de la liste des Plans, « Mes Plans » sans invitation dans le Cercle, Plan surprise avec « Juste un lien », plus de carte « sélectionnée »
     sur téléphone, bouton retour qui ferme les menus, « Inviter » dans Membres, boutons des postes du Planning espacés.
+    **Version 1.0.48** (2026-11-06) : Android `versionCode` 50 (`evly-1.0.48-(50).aab`), iOS build 54 envoyé — Fournisseurs (frise des étapes,
+    carnet du Cercle, montants et documents pour les organisateurs), fonctions rangées par usage (Pratique, Préparer en équipe, Association et
+    public), « Père Noël secret (Secret Santa) », carte de Noël de la page de connexion dès le 6 novembre, Cercle refermé d'un second clic.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
