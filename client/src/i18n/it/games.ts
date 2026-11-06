@@ -181,7 +181,7 @@ const games: Dict['games'] = {
     toPlay: 'da giocare',
   },
   santa: {
-    title: 'Babbo Natale segreto',
+    title: 'Babbo Natale segreto (Secret Santa)',
     intro: 'Ognuno fa un regalo a una sola persona, estratta a sorte, senza che nessuno sappia chi regala a chi.',
     exchange: 'Scambio: {{date}}',
     ready_one: '{{count}} regalo pronto su {{total}}',

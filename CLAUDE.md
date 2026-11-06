@@ -807,7 +807,7 @@ Junto/
   - **Groupes de fonctions** (2026-11-06, demande de l'utilisateur, `FEATURE_GROUPS`) : 💬 Échanger (chat, sondages, photos) et 🎒 Pratique
     (trajets, dépenses) toujours ouverts ; 🛠️ **Préparer en équipe** (idées, tâches, déroulé, planning, fournisseurs ; bouton « Tout activer »,
     `kit`), 📣 **Association et public** (assemblée + Mode annonce), 🎁 Fêter et offrir, 🎲 Jouer repliés tant que rien n'y est coché ; replié,
-    un groupe affiche les noms cochés. L'ancien groupe « Organiser » n'existe plus.
+    un groupe affiche les noms cochés. L'ancien groupe « Organiser » n'existe plus. `fieldset` en `min-w-0` (sinon la liste des noms cochés élargissait la fenêtre : barre horizontale).
   - **Liste des fonctions** (`FeaturesField`, refaite le 2026-10-09) : rangée par catégorie selon
     `FEATURE_GROUPS` (`client/src/lib/settings.ts`) — Échanger (chat, sondages, photos), Organiser (trajets,
     dépenses, bénévoles), Fêter et offrir (cagnotte, Père Noël secret) et Jouer (Killer, mot piège, équipes),
@@ -1038,7 +1038,9 @@ Junto/
   fonction **à activer** (`fournisseurs`, groupe « Préparer en équipe », activée aussi par le type « Organisation »). **Carnet du Cercle**
   (**CircleSupplier** : nom, catégorie parmi `SUPPLIER_CATEGORIES`, contact, téléphone, email, site, adresse, notes ; `archivedAt`) gardé d'un
   événement à l'autre, et dans chaque Plan un **engagement** (**PlanSupplier** : `status` `todo → quote_requested → quote_received → confirmed →
-  paid` ou `dropped`, `steps` = date et pseudo de chaque étape, responsable parmi les participants, lot des Tâches, notes, montants devis /
+  paid`, choisi en touchant l'étape sur une **frise** (`Stepper`, en avant comme en arrière ; aller à « Payé » ou en revenir : organisateurs),
+  `onHold` = **« Mis de côté »** qui garde l'étape (« Reprendre » y ramène ; remplace l'ancien « abandonné », migration
+  `20261115100000_supplier_hold`), `history` = journal réel des changements (replié « Historique (N) », 50 au plus), `steps` = arrivée à chaque étape, responsable parmi les participants, lot des Tâches, notes, montants devis /
   acompte / solde avec échéances et « payé », devise CHF / EUR), **PlanSupplierComment** (chiffré), **SupplierDocument** (PDF ou photos, 10 Mo,
   10 par fournisseur, 30 Mo par Plan, dans `STORAGE_DIR/suppliers/<planId>/`, effacés par `purgePlanFiles`) et **SupplierUse** (historique
   « Déjà utilisé pour… », `planId` SetNull : survit au Plan). **Pas d'appréciation** (choix de l'utilisateur). **Montants, documents et « Payé » :
@@ -1053,7 +1055,8 @@ Junto/
   des confirmés. Fiche « Fournisseurs » du guide ; politique de confidentialité (6 novembre 2026). Pas dans la démo. Pas encore fait : « Contacts du
   jour », lien vers les Dépenses au paiement.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
-  routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
+  routeur des Plans, onglet `SecretSantaTab.tsx` ; **« Secret Santa » ajouté entre parenthèses** depuis le 2026-11-06 en français et en
+  italien — nom de la fonction, type de Plan, rubrique, page `/pere-noel`, bandeau, guide — car tout le monde ne connaît pas le terme français) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
   obligatoire, et la fin du Plan vient après (`santaDateError`, création et PUT /plans/:id). Tables
   **SecretSanta** (budget, drawnAt, revealedAt, weekReminderSentAt), **SecretSantaWish** (liste

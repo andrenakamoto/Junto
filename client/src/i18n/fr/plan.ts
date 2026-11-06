@@ -61,7 +61,7 @@ export default {
       standard: 'Plan standard',
       standardHint: 'Une sortie, un événement',
       specific: 'Plan spécifique',
-      specificHint: 'Surprise, Père Noël secret, assemblée… déjà réglé',
+      specificHint: 'Surprise, Père Noël secret (Secret Santa), assemblée… déjà réglé',
     },
     surprise: {
       name: 'Surprise',
@@ -73,7 +73,7 @@ export default {
       linkNote: 'Avec un lien, la surprise tient à toi : envoie le lien à tout le monde, sauf à la personne fêtée.',
     },
     pere_noel: {
-      name: 'Père Noël secret',
+      name: 'Père Noël secret (Secret Santa)',
       hint: 'Tirage au sort et cadeaux anonymes',
       title: 'Père Noël secret 🎅',
       note: 'Dates proposées : du 24 au 31 décembre. Après l’échange, la révélation termine le Plan le soir même.',

@@ -1,10 +1,10 @@
 // Page de campagne « Père Noël secret » (pages/SantaPage.tsx, /pere-noel) et suites : choix du Cercle sur le tableau de
 // bord, message de la page d'invitation
 const noel = {
-  pageTitle: 'Père Noël secret – EvLY',
+  pageTitle: 'Père Noël secret (Secret Santa) – EvLY',
   badge: 'Gratuit · sans pub · hébergé en Suisse',
   title: 'Ton Père Noël secret, organisé en 2 minutes',
-  subtitle: 'Tirage au sort automatique, listes d’envies et messages anonymes. Fini les petits papiers et le groupe WhatsApp où tout le monde se trahit.',
+  subtitle: 'Aussi appelé Secret Santa. Tirage au sort automatique, listes d’envies et messages anonymes. Fini les petits papiers et le groupe WhatsApp où tout le monde se trahit.',
   cta: 'Organiser mon Père Noël secret',
   ctaLogged: 'Créer mon Père Noël secret',
   demo: 'Voir un exemple',
@@ -51,7 +51,7 @@ const noel = {
   chooseLinkHint: 'Sans Cercle : tu invites qui tu veux',
   // Page d'invitation d'un Père Noël secret
   inviteNote: 'Pour participer au tirage, crée ton compte EvLY (gratuit, une minute) : c’est ainsi que tu découvriras en secret la personne que tu gâtes.',
-  authBanner: 'Ton Père Noël secret, organisé en 2 minutes',
+  authBanner: 'Ton Père Noël secret (Secret Santa), organisé en 2 minutes',
   authBannerSub: 'Tirage au sort, listes d’envies, messages anonymes',
   authBannerCta: 'Découvrir',
   inviteCta: 'Créer mon compte et participer',

@@ -74,7 +74,7 @@ const plan: Dict['plan'] = {
       linkNote: 'Con un link, la sorpresa dipende da te: invia il link a tutti, tranne alla persona festeggiata.',
     },
     pere_noel: {
-      name: 'Babbo Natale segreto',
+      name: 'Babbo Natale segreto (Secret Santa)',
       hint: 'Sorteggio e regali anonimi',
       title: 'Babbo Natale segreto 🎅',
       note: 'Date proposte: dal 24 al 31 dicembre. Dopo lo scambio, la rivelazione chiude il Plan la sera stessa.',

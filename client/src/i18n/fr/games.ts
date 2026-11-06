@@ -180,7 +180,7 @@ export default {
     toPlay: 'à jouer',
   },
   santa: {
-    title: 'Père Noël secret',
+    title: 'Père Noël secret (Secret Santa)',
     intro: 'Chacun offre un cadeau à une seule personne, tirée au sort, sans que personne ne sache qui offre à qui.',
     exchange: 'Échange : {{date}}',
     ready_one: '{{count}} cadeau prêt sur {{total}}',
