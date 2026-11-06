@@ -1056,7 +1056,7 @@ Junto/
   jour », lien vers les Dépenses au paiement.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx` ; **« Secret Santa » ajouté entre parenthèses** depuis le 2026-11-06 en français et en
-  italien — nom de la fonction, type de Plan, rubrique, page `/pere-noel`, bandeau, guide — car tout le monde ne connaît pas le terme français) : 2e fonction **à activer** (`enabledFeatures`
+  italien — nom de la fonction, type de Plan, rubrique, page `/pere-noel` (titre), bandeau et panneau de la page de connexion, guide — car tout le monde ne connaît pas le terme français) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
   obligatoire, et la fin du Plan vient après (`santaDateError`, création et PUT /plans/:id). Tables
   **SecretSanta** (budget, drawnAt, revealedAt, weekReminderSentAt), **SecretSantaWish** (liste

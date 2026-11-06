@@ -3,8 +3,8 @@ import type { Dict } from '../fr';
 const noel: Dict['noel'] = {
   pageTitle: 'Babbo Natale segreto (Secret Santa) – EvLY',
   badge: 'Gratis · senza pubblicità · ospitato in Svizzera',
-  title: 'Il tuo Babbo Natale segreto, organizzato in 2 minuti',
-  subtitle: 'Chiamato anche Secret Santa. Estrazione automatica, liste dei desideri e messaggi anonimi. Basta bigliettini e gruppi WhatsApp dove tutti si tradiscono.',
+  title: 'Il tuo Babbo Natale segreto (Secret Santa), organizzato in 2 minuti',
+  subtitle: 'Estrazione automatica, liste dei desideri e messaggi anonimi. Basta bigliettini e gruppi WhatsApp dove tutti si tradiscono.',
   cta: 'Organizza il mio Babbo Natale segreto',
   ctaLogged: 'Crea il mio Babbo Natale segreto',
   demo: 'Vedi un esempio',

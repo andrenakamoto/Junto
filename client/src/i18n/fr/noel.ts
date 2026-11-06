@@ -3,8 +3,8 @@
 const noel = {
   pageTitle: 'Père Noël secret (Secret Santa) – EvLY',
   badge: 'Gratuit · sans pub · hébergé en Suisse',
-  title: 'Ton Père Noël secret, organisé en 2 minutes',
-  subtitle: 'Aussi appelé Secret Santa. Tirage au sort automatique, listes d’envies et messages anonymes. Fini les petits papiers et le groupe WhatsApp où tout le monde se trahit.',
+  title: 'Ton Père Noël secret (Secret Santa), organisé en 2 minutes',
+  subtitle: 'Tirage au sort automatique, listes d’envies et messages anonymes. Fini les petits papiers et le groupe WhatsApp où tout le monde se trahit.',
   cta: 'Organiser mon Père Noël secret',
   ctaLogged: 'Créer mon Père Noël secret',
   demo: 'Voir un exemple',
