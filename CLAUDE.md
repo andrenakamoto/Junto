@@ -804,6 +804,10 @@ Junto/
   - `Circle.deletionMode` / `Plan.deletionMode` : `vote` (défaut en base) ou
     `creator` (**défaut à la création d'un Cercle comme d'un Plan depuis le 2026-10-22**, `createPlanInCircle` compris) (vote-delete supprime immédiatement si c'est le créateur, 403
     sinon ; passer en `creator` efface les votes en cours).
+  - **Groupes de fonctions** (2026-11-06, demande de l'utilisateur, `FEATURE_GROUPS`) : 💬 Échanger (chat, sondages, photos) et 🎒 Pratique
+    (trajets, dépenses) toujours ouverts ; 🛠️ **Préparer en équipe** (idées, tâches, déroulé, planning, fournisseurs ; bouton « Tout activer »,
+    `kit`), 📣 **Association et public** (assemblée + Mode annonce), 🎁 Fêter et offrir, 🎲 Jouer repliés tant que rien n'y est coché ; replié,
+    un groupe affiche les noms cochés. L'ancien groupe « Organiser » n'existe plus.
   - **Liste des fonctions** (`FeaturesField`, refaite le 2026-10-09) : rangée par catégorie selon
     `FEATURE_GROUPS` (`client/src/lib/settings.ts`) — Échanger (chat, sondages, photos), Organiser (trajets,
     dépenses, bénévoles), Fêter et offrir (cagnotte, Père Noël secret) et Jouer (Killer, mot piège, équipes),
@@ -1029,6 +1033,25 @@ Junto/
   échéance, dépendances, remarque —, POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). Tri ordre d'arrivée / votes,
   filtre « Retenues », « Commencer avec des thèmes types » (`ideas.starterList`), **« Copier le compte rendu »** (texte par thème : retenues,
   à creuser, autres). Pas dans la démo. Fiche « Idées » du guide.
+- **Fournisseurs** (2026-11-06, `lib/suppliers.ts` testé, `routes/suppliers.ts` monté dans le routeur des Plans, `routes/supplierBook.ts` sur
+  **`/api/suppliers`**, `components/plans/SuppliersTab.tsx`, dictionnaire `i18n/<langue>/suppliers.ts`, migration `20261114100000_plan_suppliers`) :
+  fonction **à activer** (`fournisseurs`, groupe « Préparer en équipe », activée aussi par le type « Organisation »). **Carnet du Cercle**
+  (**CircleSupplier** : nom, catégorie parmi `SUPPLIER_CATEGORIES`, contact, téléphone, email, site, adresse, notes ; `archivedAt`) gardé d'un
+  événement à l'autre, et dans chaque Plan un **engagement** (**PlanSupplier** : `status` `todo → quote_requested → quote_received → confirmed →
+  paid` ou `dropped`, `steps` = date et pseudo de chaque étape, responsable parmi les participants, lot des Tâches, notes, montants devis /
+  acompte / solde avec échéances et « payé », devise CHF / EUR), **PlanSupplierComment** (chiffré), **SupplierDocument** (PDF ou photos, 10 Mo,
+  10 par fournisseur, 30 Mo par Plan, dans `STORAGE_DIR/suppliers/<planId>/`, effacés par `purgePlanFiles`) et **SupplierUse** (historique
+  « Déjà utilisé pour… », `planId` SetNull : survit au Plan). **Pas d'appréciation** (choix de l'utilisateur). **Montants, documents et « Payé » :
+  organisateurs seulement** (créateur du Plan, créateur et organisateurs du Cercle, `canManageMoney`) — `maskEntry` retire montants et documents
+  pour les autres (`documentCount` seulement) ; documents servis par GET `/api/suppliers/files/:id?t=` (jeton `purpose: 'supplier-docs'` 12 h,
+  droits revérifiés). Ajouter un fournisseur (du carnet ou nouveau, créé aussi dans le carnet) : membres du Cercle ; faire avancer, responsable,
+  lot, notes, commentaires : tout le monde qui voit le Plan ; retirer du Plan : la personne qui l'a ajouté ou un organisateur. Carnet complet :
+  menu ⋯ de la colonne du Cercle (`SupplierBookModal` : modifier, archiver, supprimer si plus utilisé ; totaux pour les gestionnaires du Cercle).
+  Notifications `plan_activity` avec `tab: 'fournisseurs'` (responsable confié, commentaire, confirmé à l'équipe sans montant) ; rappels
+  (`sendSupplierReminders`, horaire, gated, dès 9 h) : acompte ou solde à payer dans les 3 jours (responsable + organisateurs, sans somme),
+  relance d'un devis demandé depuis 7 jours. Section `fournisseurs` des pastilles « nouveau ». Récapitulatif PDF : liste, état, montants et total
+  des confirmés. Fiche « Fournisseurs » du guide ; politique de confidentialité (6 novembre 2026). Pas dans la démo. Pas encore fait : « Contacts du
+  jour », lien vers les Dépenses au paiement.
 - **Père Noël secret** (2026-10-07, `lib/secretSanta.ts` testé, `routes/secretSanta.ts` monté dans le
   routeur des Plans, onglet `SecretSantaTab.tsx`) : 2e fonction **à activer** (`enabledFeatures`
   « pere_noel », case « Père Noël secret »). **La date du Plan = jour de l'échange des cadeaux**,
