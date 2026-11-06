@@ -303,8 +303,8 @@ const groups: Group[] = [
         id: 'fournisseurs', emoji: '🤝', title: 'Lieferanten', summary: 'Caterer, Saal, Tontechnik: Offerten, Zahlungen und Kontakte an einem Ort',
         body: <P>Um die Dienstleister eines Anlasses zu verfolgen. «Lieferanten hinzufügen» nimmt ihn aus dem <strong>Adressbuch des Kreises</strong>
           (mit «Schon verwendet für …» der früheren Anlässe) oder erfasst einen neuen, der für das nächste Mal im Adressbuch bleibt.
-          Jeder Lieferant kommt mit einem Tipp weiter: <strong>zu kontaktieren → Offerte angefragt → Offerte erhalten → bestätigt → bezahlt</strong>
-          (oder verworfen), mit Datum und Person jedes Schritts. Wähle eine <strong>verantwortliche Person</strong>, ordne ihn einem Bereich der
+          Eine Leiste zeigt, wo er steht: <strong>zu kontaktieren → Offerte angefragt → Offerte erhalten → bestätigt → bezahlt</strong>.
+          Tippe auf den Schritt, bei dem ihr seid, vorwärts wie rückwärts; «Zurückstellen» graut ihn aus, ohne den Schritt zu verlieren, und der Verlauf hält jede Änderung fest. Wähle eine <strong>verantwortliche Person</strong>, ordne ihn einem Bereich der
           Aufgaben zu, notiere, was für diesen Anlass wichtig ist, und kommentiert gemeinsam; tippe auf die Telefonnummer, um anzurufen. Die
           <strong> Beträge</strong> (Offerte, Anzahlung, Restbetrag, Fristen) und die <strong>Dokumente</strong> (Offerte, Vertrag, Rechnung) sieht
           nur das Organisationsteam (wer den Plan erstellt hat, wer den Kreis erstellt hat und dessen Organisatoren); nur es markiert «bezahlt».

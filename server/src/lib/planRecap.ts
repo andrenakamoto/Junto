@@ -262,20 +262,21 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
 
   // Fournisseurs (le récapitulatif est réservé aux organisateurs : montants compris, jamais les commentaires ni les documents)
   if (suppliers.length > 0) {
-    const okCount = suppliers.filter(x => x.status === 'confirmed' || x.status === 'paid').length;
+    const okCount = suppliers.filter(x => !x.onHold && (x.status === 'confirmed' || x.status === 'paid')).length;
     section(m.s('recapPdf.suppliers'), m.s('recapPdf.suppliersSub', { done: okCount, total: suppliers.length }));
     const STATUS: Record<string, string> = {
       todo: m.s('recapPdf.supTodo'), quote_requested: m.s('recapPdf.supQuoteRequested'), quote_received: m.s('recapPdf.supQuoteReceived'),
-      confirmed: m.s('recapPdf.supConfirmed'), paid: m.s('recapPdf.supPaid'), dropped: m.s('recapPdf.supDropped'),
+      confirmed: m.s('recapPdf.supConfirmed'), paid: m.s('recapPdf.supPaid'),
     };
     const dayFmt = zurich(m, { day: 'numeric', month: 'long' });
     const people = new Map((await prisma.user.findMany({ where: { id: { in: suppliers.map(x => x.responsibleId).filter((x): x is string => !!x) } }, select: { id: true, ...PERSON } })).map(u => [u.id, u]));
-    const RANK: Record<string, number> = { confirmed: 0, paid: 1, quote_received: 2, quote_requested: 3, todo: 4, dropped: 5 };
-    for (const x of [...suppliers].sort((a, b) => (RANK[a.status] ?? 4) - (RANK[b.status] ?? 4))) {
+    const RANK: Record<string, number> = { confirmed: 0, paid: 1, quote_received: 2, quote_requested: 3, todo: 4 };
+    const rank = (x: { status: string; onHold: boolean }) => (x.onHold ? 5 : RANK[x.status] ?? 4);
+    for (const x of [...suppliers].sort((a, b) => rank(a) - rank(b))) {
       if (doc.y > doc.page.height - 90) doc.addPage();
       const amt = (n: number) => formatAmount(n, x.currency, m.intl);
-      doc.font('regular').fontSize(10).fillColor(x.status === 'dropped' ? DIM : INK).text(`•  ${x.supplier.name}`, { continued: true })
-        .font('semibold').fillColor(x.status === 'paid' || x.status === 'confirmed' ? '#059669' : DIM).text(`  ·  ${STATUS[x.status] ?? x.status}`);
+      doc.font('regular').fontSize(10).fillColor(x.onHold ? DIM : INK).text(`•  ${x.supplier.name}`, { continued: true })
+        .font('semibold').fillColor(!x.onHold && (x.status === 'paid' || x.status === 'confirmed') ? '#059669' : DIM).text(`  ·  ${STATUS[x.status] ?? x.status}${x.onHold ? `  ·  ${m.s('recapPdf.supDropped')}` : ''}`);
       const pay = (label: 'recapPdf.supDeposit' | 'recapPdf.supBalance', n: number | null, due: string | null, paid: Date | null) => n == null ? ''
         : `${m.s(label, { amount: amt(n) })} (${paid ? m.s('recapPdf.supPaidMark') : due ? m.s('recapPdf.supDue', { date: dayFmt.format(new Date(`${due}T12:00:00Z`)) }) : '—'})`;
       const resp = x.responsibleId ? people.get(x.responsibleId) : null;
@@ -294,7 +295,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     // Total des fournisseurs confirmés ou payés, par devise (sans conversion)
     const sums = new Map<string, number>();
     for (const x of suppliers) {
-      if (x.status !== 'confirmed' && x.status !== 'paid') continue;
+      if (x.onHold || (x.status !== 'confirmed' && x.status !== 'paid')) continue;
       const total = entryTotal(x);
       if (total != null) sums.set(x.currency, (sums.get(x.currency) ?? 0) + total);
     }

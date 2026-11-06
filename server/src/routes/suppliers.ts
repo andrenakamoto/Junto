@@ -12,7 +12,7 @@ import { assignablePeople } from '../lib/tasks';
 import { fixUploadedFileName } from '../lib/fileName';
 import {
   canManageMoney, maskEntry, MONEY_STATUSES, notifySupplier, parseComment, parseEntryNotes, parseMoneyInput, parseStatus,
-  parseSupplierInput, recordStep, supplierDir, supplierFile, SUPPLIER_LIMITS, SUPPLIERS_DISABLED_ERROR, suppliersEnabled, syncUse,
+  parseSupplierInput, pushHistory, recordStep, supplierDir, supplierFile, SUPPLIER_LIMITS, SUPPLIERS_DISABLED_ERROR, suppliersEnabled, syncUse,
 } from '../lib/suppliers';
 
 // Fournisseurs d'un Plan (lib/suppliers.ts), montés dans le routeur des Plans (/api/plans) : même authentification,
@@ -72,7 +72,7 @@ router.get('/:id/suppliers', async (req: AuthRequest, res) => {
   ]);
   res.json({
     entries: entries.map(e => maskEntry({
-      id: e.id, status: e.status, steps: e.steps, responsibleId: e.responsibleId, groupId: e.groupId, notes: e.notes,
+      id: e.id, status: e.status, steps: e.steps, onHold: e.onHold, history: e.history, responsibleId: e.responsibleId, groupId: e.groupId, notes: e.notes,
       createdById: e.createdById, createdAt: e.createdAt,
       currency: e.currency, quoteAmount: e.quoteAmount, depositAmount: e.depositAmount, depositDue: e.depositDue, depositPaidAt: e.depositPaidAt,
       balanceAmount: e.balanceAmount, balanceDue: e.balanceDue, balancePaidAt: e.balancePaidAt,
@@ -129,12 +129,14 @@ router.post('/:id/suppliers', async (req: AuthRequest, res) => {
   const exists = await prisma.planSupplier.findUnique({ where: { planId_supplierId: { planId: plan.id, supplierId } }, select: { id: true } });
   if (exists) { res.json({ id: exists.id }); return; }
   const entry = await prisma.planSupplier.create({
-    data: { planId: plan.id, supplierId, createdById: req.userId!, responsibleId: req.userId!, steps: recordStep({}, 'todo', req.pseudo!) },
+    data: { planId: plan.id, supplierId, createdById: req.userId!, responsibleId: req.userId!, steps: recordStep({}, 'todo', req.pseudo!), history: pushHistory([], { by: req.pseudo!, to: 'todo' }) },
   });
   await prisma.circleSupplier.update({ where: { id: supplierId }, data: { archivedAt: null } });
   await syncUse(entry.id);
   res.json({ id: entry.id });
 });
+
+const FLOW_INDEX: Record<string, number> = { todo: 0, quote_requested: 1, quote_received: 2, confirmed: 3, paid: 4 };
 
 // PUT /suppliers/:entryId — suivi (état, responsable, lot, notes : toute l'équipe) et montants (organisateurs)
 router.put('/suppliers/:entryId', async (req: AuthRequest, res) => {
@@ -147,8 +149,20 @@ router.put('/suppliers/:entryId', async (req: AuthRequest, res) => {
   if (body.status !== undefined) {
     const s = parseStatus(body.status);
     if (!s) { res.status(400).json({ error: 'Statut invalide' }); return; }
-    if (MONEY_STATUSES.includes(s) && !money && s !== entry.status) { res.status(403).json({ error: 'Seuls les organisateurs peuvent marquer un fournisseur comme payé' }); return; }
-    if (s !== entry.status) { data.status = s; data.steps = recordStep(entry.steps, s, req.pseudo!); }
+    // « Payé » : y aller ou en revenir est réservé aux organisateurs
+    if ((MONEY_STATUSES.includes(s) || MONEY_STATUSES.includes(entry.status as any)) && !money && s !== entry.status) { res.status(403).json({ error: 'Seuls les organisateurs peuvent marquer un fournisseur comme payé' }); return; }
+    if (s !== entry.status) {
+      data.status = s;
+      data.steps = recordStep(entry.steps, s, req.pseudo!);
+      data.history = pushHistory(entry.history, { by: req.pseudo!, from: entry.status as any, to: s });
+    }
+  }
+  if (body.onHold !== undefined) {
+    if (typeof body.onHold !== 'boolean') { res.status(400).json({ error: 'Statut invalide' }); return; }
+    if (body.onHold !== entry.onHold) {
+      data.onHold = body.onHold;
+      data.history = pushHistory(data.history ?? entry.history, { by: req.pseudo!, hold: body.onHold });
+    }
   }
   if (body.responsibleId !== undefined) {
     if (body.responsibleId === null || body.responsibleId === '') data.responsibleId = null;
@@ -190,7 +204,7 @@ router.put('/suppliers/:entryId', async (req: AuthRequest, res) => {
     notifySupplier(io, data.responsibleId, entry.plan, `@${req.pseudo} t’a confié le suivi du fournisseur « ${entry.supplier.name} »`, actor(req));
   }
   // Fournisseur confirmé : l'équipe est prévenue (sans montant)
-  if (data.status === 'confirmed') {
+  if (data.status === 'confirmed' && FLOW_INDEX[entry.status] < FLOW_INDEX.confirmed) {
     for (const p of await assignablePeople(entry.planId)) notifySupplier(io, p.id, entry.plan, `✅ @${req.pseudo} a confirmé le fournisseur « ${entry.supplier.name} »`, actor(req));
   }
 });

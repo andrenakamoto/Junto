@@ -222,7 +222,7 @@ const en: EmailDict = {
     supQuoteReceived: 'Quote received',
     supConfirmed: 'Confirmed',
     supPaid: 'Paid',
-    supDropped: 'Dropped',
+    supDropped: 'On hold',
     supQuote: 'quote {amount}',
     supDeposit: 'deposit {amount}',
     supBalance: 'balance {amount}',

@@ -1983,10 +1983,14 @@ model PlanSupplier {
   plan                  Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
   supplierId            String
   supplier              CircleSupplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  // todo | quote_requested | quote_received | confirmed | paid | dropped
+  // todo | quote_requested | quote_received | confirmed | paid
   status                String                @default("todo")
-  // Date et auteur (pseudo) de chaque étape franchie : { quote_requested: { at, by } … }
+  // Date et auteur (pseudo) de l'arrivée à chaque étape : { quote_requested: { at, by } … }
   steps                 Json                  @default("{}")
+  // Mis de côté (2026-11-06) : garde son étape, « Reprendre » l'y ramène
+  onHold                Boolean               @default(false)
+  // Ce qui s'est passé, dans l'ordre : [{ at, by, from, to }] ou [{ at, by, hold: true|false }]
+  history               Json                  @default("[]")
   responsibleId         String?
   groupId               String?
   group                 PlanTaskGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)

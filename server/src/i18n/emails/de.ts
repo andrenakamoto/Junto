@@ -222,7 +222,7 @@ const de: EmailDict = {
     supQuoteReceived: 'Offerte erhalten',
     supConfirmed: 'Bestätigt',
     supPaid: 'Bezahlt',
-    supDropped: 'Verworfen',
+    supDropped: 'Zurückgestellt',
     supQuote: 'Offerte {amount}',
     supDeposit: 'Anzahlung {amount}',
     supBalance: 'Restbetrag {amount}',

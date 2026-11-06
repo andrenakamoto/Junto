@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, ChevronDown, FileText, Globe, Mail, Paperclip, Pencil, Phone, Plus, RotateCcw, Search, Send, Trash2, X } from 'lucide-react';
+import { Archive, Check, ChevronDown, FileText, Globe, History as HistoryIcon, Lock, Mail, Pause, Paperclip, Pencil, Phone, Play, Plus, RotateCcw, Search, Send, Trash2, X } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
@@ -17,9 +17,9 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') a
 
 export const SUPPLIER_CATEGORIES = ['repas', 'boissons', 'salle', 'technique', 'location', 'animation', 'impression', 'transport', 'securite', 'autre'] as const;
 type Category = typeof SUPPLIER_CATEGORIES[number];
-const STATUSES = ['todo', 'quote_requested', 'quote_received', 'confirmed', 'paid', 'dropped'] as const;
+const STATUSES = ['todo', 'quote_requested', 'quote_received', 'confirmed', 'paid'] as const;
 type Status = typeof STATUSES[number];
-const FLOW: Status[] = ['todo', 'quote_requested', 'quote_received', 'confirmed', 'paid'];
+const FLOW: Status[] = [...STATUSES];
 
 export const CATEGORY_EMOJI: Record<string, string> = {
   repas: '🍽️', boissons: '🍷', salle: '🏛️', technique: '🔊', location: '📦', animation: '🎤', impression: '🖨️', transport: '🚌', securite: '🛡️', autre: '📇',
@@ -30,8 +30,8 @@ const STATUS_STYLE: Record<Status, string> = {
   quote_received: 'bg-violet-100 text-violet-700',
   confirmed: 'bg-emerald-100 text-emerald-700',
   paid: 'bg-emerald-600 text-white',
-  dropped: 'bg-slate-200 text-slate-500 line-through',
 };
+const HOLD_STYLE = 'bg-slate-200 text-slate-500';
 
 type Person = { id: string; pseudo: string; firstName?: string | null };
 export type SupplierFields = {
@@ -40,8 +40,9 @@ export type SupplierFields = {
 };
 type Supplier = SupplierFields & { id: string; createdById?: string | null };
 type Doc = { id: string; name: string; mimeType: string; size: number; createdAt: string };
+type HistoryItem = { at: string; by: string; from?: Status; to?: Status; hold?: boolean };
 type Entry = {
-  id: string; status: Status; steps: Partial<Record<Status, { at: string; by: string }>>; responsibleId: string | null; groupId: string | null;
+  id: string; status: Status; steps: Partial<Record<Status, { at: string; by: string }>>; onHold: boolean; history: HistoryItem[]; responsibleId: string | null; groupId: string | null;
   notes: string | null; createdById: string | null; supplier: Supplier;
   comments: { id: string; content: string; createdAt: string; author: Person }[];
   documents?: Doc[]; documentCount?: number;
@@ -64,12 +65,12 @@ const errOf = (e: any) => e?.response?.data?.error || t('common.retryError');
 // Paiement à faire dans les 3 jours (pas encore payé)
 function paymentSoon(e: Entry, today: string) {
   const soon = (amount?: number | null, due?: string | null, paid?: string | null) => amount != null && !!due && !paid && daysUntil(due, today) <= 3;
-  return e.status !== 'dropped' && (soon(e.depositAmount, e.depositDue, e.depositPaidAt) || soon(e.balanceAmount, e.balanceDue, e.balancePaidAt));
+  return !e.onHold && (soon(e.depositAmount, e.depositDue, e.depositPaidAt) || soon(e.balanceAmount, e.balanceDue, e.balancePaidAt));
 }
 
 export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [data, setData] = useState<Data | null>(null);
-  const [filter, setFilter] = useState<Status | 'all'>('all');
+  const [filter, setFilter] = useState<Status | 'all' | 'on_hold'>('all');
   const [openId, setOpenId] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState('');
@@ -91,10 +92,10 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
   const today = localDay();
   if (!data) return <div className="flex-1 bg-slate-50" />;
   const { entries, canManageMoney } = data;
-  const shown = filter === 'all' ? entries : entries.filter(e => e.status === filter);
-  const pendingQuotes = entries.filter(e => e.status === 'quote_requested').length;
+  const shown = filter === 'all' ? entries : filter === 'on_hold' ? entries.filter(e => e.onHold) : entries.filter(e => !e.onHold && e.status === filter);
+  const pendingQuotes = entries.filter(e => !e.onHold && e.status === 'quote_requested').length;
   const soon = canManageMoney ? entries.filter(e => paymentSoon(e, today)).length : 0;
-  const counts = new Map<Status, number>(STATUSES.map(s => [s, entries.filter(e => e.status === s).length]));
+  const counts = new Map<string, number>([...STATUSES.map(s => [s, entries.filter(e => !e.onHold && e.status === s).length] as [string, number]), ['on_hold', entries.filter(e => e.onHold).length]]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
@@ -115,10 +116,10 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
 
       {entries.length > 2 && (
         <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] -mx-1 px-1">
-          {(['all', ...STATUSES] as const).filter(s => s === 'all' || counts.get(s)).map(s => (
+          {(['all', ...STATUSES, 'on_hold'] as const).filter(s => s === 'all' || counts.get(s)).map(s => (
             <button key={s} onClick={() => setFilter(s)}
               className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border font-medium ${filter === s ? 'bg-slate-800 text-white border-slate-800' : 'bg-white border-slate-200 text-slate-600'}`}>
-              {s === 'all' ? t('suppliers.all') : `${t(`suppliers.statuses.${s}`)} · ${counts.get(s)}`}
+              {s === 'all' ? t('suppliers.all') : `${s === 'on_hold' ? t('suppliers.onHold') : t(`suppliers.statuses.${s}`)} · ${counts.get(s)}`}
             </button>
           ))}
         </div>
@@ -152,26 +153,24 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
   const { canManageMoney, people, groups } = data;
   const s = e.supplier;
   const responsible = people.find(p => p.id === e.responsibleId);
-  const flowIndex = FLOW.indexOf(e.status);
-  const next = flowIndex >= 0 && flowIndex < FLOW.length - 1 ? FLOW[flowIndex + 1] : null;
-  const canAdvance = next && (next !== 'paid' || canManageMoney);
-  const prev = flowIndex > 0 ? FLOW[flowIndex - 1] : null;
   const canRemove = e.createdById === userId || canManageMoney;
   const total = e.quoteAmount ?? (e.depositAmount != null || e.balanceAmount != null ? (e.depositAmount ?? 0) + (e.balanceAmount ?? 0) : null);
-  const setStatus = (status: Status) => run(() => api.put(`/plans/suppliers/${e.id}`, { status }));
+  const setStatus = (status: Status) => { if (status !== e.status) run(() => api.put(`/plans/suppliers/${e.id}`, { status })); };
 
   return (
-    <div id={`supplier-${e.id}`} className={`rounded-xl border bg-white shadow-sm ${e.status === 'dropped' ? 'opacity-70 border-slate-200' : 'border-slate-200'}`}>
+    <div id={`supplier-${e.id}`} className={`rounded-xl border bg-white shadow-sm border-slate-200 ${e.onHold ? 'opacity-75' : ''}`}>
       <button onClick={onToggle} className="w-full flex items-start gap-3 p-3.5 text-left">
         <span className="text-2xl leading-none mt-0.5" aria-hidden>{CATEGORY_EMOJI[s.category] ?? '📇'}</span>
         <span className="flex-1 min-w-0">
           <span className="block font-semibold text-sm text-slate-800 break-words">{s.name}</span>
           <span className="flex flex-wrap items-center gap-1.5 mt-1">
-            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLE[e.status]}`}>{t(`suppliers.statuses.${e.status}`)}</span>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${e.onHold ? HOLD_STYLE : STATUS_STYLE[e.status]}`}>{e.onHold ? t('suppliers.onHold') : t(`suppliers.statuses.${e.status}`)}</span>
             <span className="text-xs text-slate-500">{t(`suppliers.categories.${s.category}`)}</span>
             {canManageMoney && total != null && <span className="text-xs font-medium text-slate-700">· {money(total, e.currency)}</span>}
             {canManageMoney && paymentSoon(e, today) && <span className="text-xs font-medium text-amber-700">· 💶</span>}
           </span>
+          {/* Mini-frise : l'avancement sans déplier la carte */}
+          <MiniSteps status={e.status} onHold={e.onHold} />
           {responsible && <span className="block text-xs text-slate-500 mt-1">{t('suppliers.fields.responsible')} : {personName(responsible)}</span>}
         </span>
         <ChevronDown size={18} className={`flex-shrink-0 mt-1 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -182,31 +181,9 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
           {/* Coordonnées */}
           <ContactLinks s={s} />
 
-          {/* État : étape suivante en un geste */}
-          <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {canAdvance && e.status !== 'dropped' && (
-                <button onClick={() => setStatus(next!)} className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
-                  {t(`suppliers.next.${e.status}` as any)}
-                </button>
-              )}
-              {e.status !== 'dropped' && e.status !== 'paid' && (
-                <button onClick={() => setStatus('dropped')} className="px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">{t('suppliers.drop')}</button>
-              )}
-              {e.status === 'dropped' && (
-                <button onClick={() => setStatus('todo')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50"><RotateCcw size={14} />{t('suppliers.reopen')}</button>
-              )}
-              {prev && e.status !== 'dropped' && (e.status !== 'paid' || canManageMoney) && (
-                <button onClick={() => setStatus(prev)} className="px-3 py-2 rounded-lg text-xs text-slate-500 hover:bg-slate-50">{t('suppliers.back', { status: t(`suppliers.statuses.${prev}`) })}</button>
-              )}
-            </div>
-            {/* Frise : qui a franchi chaque étape, et quand */}
-            <ul className="text-xs text-slate-500 space-y-0.5">
-              {STATUSES.filter(st => e.steps?.[st]).map(st => (
-                <li key={st}>{t('suppliers.steps', { status: t(`suppliers.statuses.${st}`), date: fmtDate(e.steps[st]!.at), who: e.steps[st]!.by })}</li>
-              ))}
-            </ul>
-          </div>
+          {/* Où en est-on ? Toucher l'étape où l'on en est, en avant comme en arrière */}
+          <Stepper entry={e} canPaid={canManageMoney} onPick={setStatus}
+            onHold={hold => run(() => api.put(`/plans/suppliers/${e.id}`, { onHold: hold }))} />
 
           {/* Responsable et lot */}
           <div className="grid sm:grid-cols-2 gap-3">
@@ -247,6 +224,85 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
           {canRemove && (
             <button onClick={() => { if (confirm(t('suppliers.removeConfirm', { name: s.name }))) run(() => api.delete(`/plans/suppliers/${e.id}`)); }}
               className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700"><Trash2 size={13} />{t('suppliers.remove')}</button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const stepIndex = (s: Status) => FLOW.indexOf(s);
+
+function MiniSteps({ status, onHold }: { status: Status; onHold: boolean }) {
+  const cur = stepIndex(status);
+  return (
+    <span className="flex items-center gap-1 mt-1.5" aria-hidden>
+      {FLOW.map((st, i) => (
+        <span key={st} className={`h-1.5 w-5 rounded-full ${onHold ? (i <= cur ? 'bg-slate-400' : 'bg-slate-200') : i < cur || (i === cur && status === 'paid') ? 'bg-emerald-500' : i === cur ? 'bg-indigo-600' : 'bg-slate-200'}`} />
+      ))}
+    </span>
+  );
+}
+
+// Frise des étapes : passées cochées en vert, actuelle en corail ; « Payé » réservé aux organisateurs. « Mettre de côté »
+// garde l'étape, « Reprendre » y ramène. Historique replié.
+function Stepper({ entry: e, canPaid, onPick, onHold }: { entry: Entry; canPaid: boolean; onPick: (s: Status) => void; onHold: (hold: boolean) => void }) {
+  const [showHistory, setShowHistory] = useState(false);
+  const cur = stepIndex(e.status);
+  const lockPaid = !canPaid;
+  const cameAt = [...(e.history ?? [])].reverse().find(h => h.to === e.status) ?? (e.steps?.[e.status] ? { ...e.steps[e.status]!, to: e.status } : null);
+  const label = (st?: Status) => (st ? t(`suppliers.statuses.${st}`) : '');
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{t('suppliers.where')}</p>
+      <ol className={`grid grid-cols-5 gap-1 ${e.onHold ? 'opacity-60' : ''}`}>
+        {FLOW.map((st, i) => {
+          // Payé = terminé : la dernière étape est cochée en vert
+          const finished = e.status === 'paid';
+          const done = i < cur || (finished && i === cur), current = i === cur && !finished;
+          const locked = lockPaid && (st === 'paid' || e.status === 'paid');
+          return (
+            <li key={st} className="min-w-0">
+              <button type="button" disabled={locked || e.onHold} onClick={() => onPick(st)} aria-current={current ? 'step' : undefined}
+                title={locked ? t('suppliers.paidLocked') : undefined}
+                className="w-full flex flex-col items-center gap-1 py-1 rounded-lg hover:bg-slate-50 disabled:hover:bg-transparent disabled:cursor-default">
+                <span className="relative w-full flex items-center justify-center">
+                  {i > 0 && <span className={`absolute right-1/2 left-[-50%] top-1/2 -translate-y-1/2 h-0.5 ${i <= cur ? 'bg-emerald-400' : 'bg-slate-200'}`} />}
+                  <span className={`relative z-10 w-7 h-7 rounded-full flex items-center justify-center border-2 ${current ? 'bg-indigo-600 border-indigo-600 text-white' : done ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-300 text-slate-400'}`}>
+                    {done ? <Check size={14} strokeWidth={3} /> : locked && !current ? <Lock size={12} /> : <span className="text-[11px] font-bold">{i + 1}</span>}
+                  </span>
+                </span>
+                <span className={`text-[11px] leading-tight text-center break-words ${current ? 'font-semibold text-indigo-700' : done ? `text-emerald-700 ${finished && i === cur ? 'font-semibold' : ''}` : 'text-slate-500'}`}>{label(st)}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-slate-500">
+          {e.onHold ? <b className="text-slate-600">{t('suppliers.onHold')} · </b> : null}
+          {cameAt ? t('suppliers.current', { status: label(e.status), date: fmtDate(cameAt.at), who: cameAt.by }) : label(e.status)}
+        </p>
+        {e.status !== 'paid' && <button type="button" onClick={() => onHold(!e.onHold)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50">
+          {e.onHold ? <Play size={13} /> : <Pause size={13} />}{e.onHold ? t('suppliers.resume') : t('suppliers.hold')}
+        </button>}
+      </div>
+      {(e.history?.length ?? 0) > 1 && (
+        <div>
+          <button type="button" onClick={() => setShowHistory(v => !v)} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
+            <HistoryIcon size={12} />{t('suppliers.historyTitle', { count: e.history.length })}
+            <ChevronDown size={12} className={`transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+          </button>
+          {showHistory && (
+            <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
+              {[...e.history].reverse().map((h, i) => (
+                <li key={i}>{h.hold !== undefined
+                  ? t(h.hold ? 'suppliers.historyHold' : 'suppliers.historyResume', { date: fmtDate(h.at), who: h.by })
+                  : h.from ? t('suppliers.historyMove', { date: fmtDate(h.at), who: h.by, from: label(h.from), to: label(h.to) })
+                  : t('suppliers.historyStart', { date: fmtDate(h.at), who: h.by })}</li>
+              ))}
+            </ul>
           )}
         </div>
       )}
@@ -606,7 +662,7 @@ export function SupplierBookModal({ circleId, onClose }: { circleId: string; onC
                         {s.uses.length === 0 ? <p className="text-xs text-slate-400">{t('suppliers.book.noHistory')}</p> : (
                           <ul className="text-xs text-slate-600 space-y-0.5">
                             {s.uses.map((u, i) => (
-                              <li key={i}>{u.planTitle}{u.eventDate ? ` · ${fmtDate(u.eventDate)}` : ''} · {t(`suppliers.statuses.${u.status as Status}`)}{u.total != null ? ` · ${money(u.total, u.currency)}` : ''}</li>
+                              <li key={i}>{u.planTitle}{u.eventDate ? ` · ${fmtDate(u.eventDate)}` : ''} · {u.status === 'on_hold' ? t('suppliers.onHold') : t(`suppliers.statuses.${u.status as Status}`)}{u.total != null ? ` · ${money(u.total, u.currency)}` : ''}</li>
                             ))}
                           </ul>
                         )}

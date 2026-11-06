@@ -222,7 +222,7 @@ const fr = {
     supQuoteReceived: 'Devis reçu',
     supConfirmed: 'Confirmé',
     supPaid: 'Payé',
-    supDropped: 'Abandonné',
+    supDropped: 'Mis de côté',
     supQuote: 'devis {amount}',
     supDeposit: 'acompte {amount}',
     supBalance: 'solde {amount}',

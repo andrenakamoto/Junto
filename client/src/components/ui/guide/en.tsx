@@ -292,8 +292,9 @@ const groups: Group[] = [
       {
         id: 'fournisseurs', emoji: '🤝', title: 'Suppliers', summary: 'Caterer, venue, sound: quotes, payments and contacts in one place',
         body: <P>To keep track of an event's suppliers. “Add a supplier” takes one from the <strong>Circle's supplier book</strong> (with “Already used
-          for…” from earlier events) or creates a new one, kept in the book for next time. Each supplier moves on with one tap:
-          <strong>to contact → quote requested → quote received → confirmed → paid</strong> (or dropped), with the date and person of each step.
+          for…” from earlier events) or creates a new one, kept in the book for next time. A bar shows where it stands:
+          <strong>to contact → quote requested → quote received → confirmed → paid</strong>. Tap the step you have reached, forwards or backwards;
+          “Put on hold” greys it out without losing its step, and the history keeps every change.
           Choose who is <strong>in charge</strong>, link it to a Tasks group, note what matters for this event and comment together; tap the phone
           number to call. The <strong>amounts</strong> (quote, deposit, balance, due dates) and the <strong>documents</strong> (quote, contract,
           invoice) are only visible to the organisers (whoever created the Plan, whoever created the Circle and its organisers), who alone can mark

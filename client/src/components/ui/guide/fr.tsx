@@ -105,7 +105,7 @@ const groups: Group[] = [
         body: <>
           <P>Dans un Cercle, <strong>« Créer »</strong> propose <strong>Plan standard</strong> (une sortie, un événement),
             <strong> Plan spécifique</strong> et <strong>Proposer des dates</strong>. Un Plan spécifique arrive déjà réglé pour son usage :</P>
-          <P>🎂 <strong>Surprise</strong> (tu choisis pour qui : le Plan lui est caché, cagnotte activée) · 🎅 <strong>Père Noël secret</strong>
+          <P>🎂 <strong>Surprise</strong> (tu choisis pour qui : le Plan lui est caché, cagnotte activée) · 🎅 <strong>Père Noël secret (Secret Santa)</strong>
             (du 24 au 31 décembre ; une fois les cadeaux échangés, la révélation termine le Plan le soir même) · 🗳️ <strong>Assemblée</strong>
             (créateur et organisateurs du Cercle) · 📋 <strong>Organisation à plusieurs</strong> (planning des tâches) · 📣 <strong>Annonce</strong>
             (Mode annonce) · 🔁 <strong>Cours</strong> (chaque semaine, 1 h 30) · 🎲 <strong>Soirée jeux</strong> (tu choisis les jeux) ·
@@ -296,8 +296,8 @@ const groups: Group[] = [
         id: 'fournisseurs', emoji: '🤝', title: 'Fournisseurs', summary: 'Traiteur, salle, sono : devis, paiements et contacts au même endroit',
         body: <P>Pour suivre les prestataires d'un événement. « Ajouter un fournisseur » le prend dans le <strong>carnet du Cercle</strong>
           (avec « Déjà utilisé pour… » des événements précédents) ou en crée un nouveau, gardé dans le carnet pour la prochaine fois.
-          Chaque fournisseur avance d'un geste : <strong>à contacter → devis demandé → devis reçu → confirmé → payé</strong> (ou abandonné),
-          avec la date et la personne de chaque étape. Choisis un <strong>responsable</strong>, rattache-le à un lot des Tâches, note ce qui
+          Une frise montre où il en est : <strong>à contacter → devis demandé → devis reçu → confirmé → payé</strong>. Touche l'étape où
+          vous en êtes, en avant comme en arrière ; « Mettre de côté » le grise sans perdre son étape, et l'historique garde chaque changement. Choisis un <strong>responsable</strong>, rattache-le à un lot des Tâches, note ce qui
           compte pour cet événement et commentez à plusieurs ; touche son téléphone pour l'appeler. Les <strong>montants</strong> (devis,
           acompte, solde, échéances) et les <strong>documents</strong> (devis, contrat, facture) ne sont visibles que par les organisateurs
           (créateur du Plan, créateur et organisateurs du Cercle), qui seuls marquent « payé ». Rappels : 3 jours avant un acompte ou un solde,
@@ -378,7 +378,7 @@ const groups: Group[] = [
           pour tous, avec les paris de chacun. « Tout dévoiler maintenant » avance le moment, s'il pleut par exemple.</P>,
       },
       {
-        id: 'pere-noel', emoji: '🎅', title: 'Père Noël secret', summary: 'Tirage au sort et cadeaux anonymes',
+        id: 'pere-noel', emoji: '🎅', title: 'Père Noël secret (Secret Santa)', summary: 'Tirage au sort et cadeaux anonymes',
         body: <P>La date du Plan est celle de l'échange des cadeaux. Chacun note ses envies (ou « pas d'envie particulière »),
           l'organisateur lance le tirage. Tu ne connais que la personne que tu gâtes ; deux conversations anonymes permettent
           de poser des questions. Révélation à partir du jour de l'échange.</P>,

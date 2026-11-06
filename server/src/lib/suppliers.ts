@@ -8,8 +8,9 @@ import { daysUntil, parseDueDate, zurichDay } from './tasks';
 
 // Fournisseurs d'un Plan (fonction à activer « fournisseurs », catégorie « Préparer en équipe », 2026-11-06) :
 // - le carnet du Cercle (CircleSupplier) garde les coordonnées d'un fournisseur d'un événement à l'autre ;
-// - dans chaque Plan, un engagement (PlanSupplier) suit l'état (à contacter → devis demandé → devis reçu → confirmé →
-//   payé, ou abandonné), le responsable, le lot, les notes et les commentaires ;
+// - dans chaque Plan, un engagement (PlanSupplier) suit l'étape (à contacter → devis demandé → devis reçu → confirmé →
+//   payé, choisie directement sur une frise, en avant comme en arrière), « mis de côté » (garde son étape), le responsable,
+//   le lot, les notes et les commentaires ; `history` raconte les changements dans l'ordre ;
 // - montants et documents (devis, contrat, facture) : créateur du Plan et organisateurs du Cercle seulement. Le serveur ne
 //   les envoie jamais aux autres (maskEntry) ; « Payé » est aussi réservé aux organisateurs.
 // - SupplierUse garde l'historique (« Déjà utilisé pour… ») après la suppression du Plan.
@@ -20,7 +21,7 @@ export const SUPPLIERS_DISABLED_ERROR = 'Les fournisseurs ne sont pas activés p
 export const SUPPLIER_CATEGORIES = ['repas', 'boissons', 'salle', 'technique', 'location', 'animation', 'impression', 'transport', 'securite', 'autre'] as const;
 export type SupplierCategory = typeof SUPPLIER_CATEGORIES[number];
 
-export const SUPPLIER_STATUSES = ['todo', 'quote_requested', 'quote_received', 'confirmed', 'paid', 'dropped'] as const;
+export const SUPPLIER_STATUSES = ['todo', 'quote_requested', 'quote_received', 'confirmed', 'paid'] as const;
 export type SupplierStatus = typeof SUPPLIER_STATUSES[number];
 // États que seuls les organisateurs peuvent donner (ils touchent à l'argent)
 export const MONEY_STATUSES: readonly SupplierStatus[] = ['paid'];
@@ -163,18 +164,29 @@ export function maskEntry<T extends Record<string, any>>(entry: T, canMoney: boo
   return copy as T;
 }
 
+// Historique : un changement d'étape ou une mise de côté / reprise, avec sa date et le pseudo de la personne
+export type HistoryItem = { at: string; by: string; from?: SupplierStatus; to?: SupplierStatus; hold?: boolean };
+export const HISTORY_MAX = 50;
+export function pushHistory(history: unknown, item: Omit<HistoryItem, 'at'>, at = new Date()): HistoryItem[] {
+  const list: HistoryItem[] = Array.isArray(history) ? (history as HistoryItem[]) : [];
+  return [...list, { at: at.toISOString(), ...item }].slice(-HISTORY_MAX);
+}
+
+// État court pour l'historique du carnet (SupplierUse) : l'étape, ou « on_hold » si mis de côté
+export const useStatus = (e: { status: string; onHold: boolean }) => (e.onHold ? 'on_hold' : e.status);
+
 export type ReminderKind = 'deposit' | 'balance' | 'followUp';
 
 // Rappels dus aujourd'hui pour un engagement : acompte ou solde à payer dans les 3 jours (pas encore payé), devis
 // demandé depuis 7 jours sans réponse. Une échéance passée ne déclenche plus rien.
 export function dueReminders(e: {
-  status: string; steps: unknown;
+  status: string; steps: unknown; onHold?: boolean;
   depositAmount: number | null; depositDue: string | null; depositPaidAt: Date | null; depositReminderSentAt: Date | null;
   balanceAmount: number | null; balanceDue: string | null; balancePaidAt: Date | null; balanceReminderSentAt: Date | null;
   followUpSentAt: Date | null;
 }, today: string, now = new Date()): ReminderKind[] {
   const out: ReminderKind[] = [];
-  if (e.status === 'dropped' || e.status === 'paid') return out;
+  if (e.onHold || e.status === 'paid') return out;
   const soon = (due: string | null) => !!due && daysUntil(due, today) >= 0 && daysUntil(due, today) <= PAYMENT_REMINDER_DAYS;
   if (e.depositAmount != null && !e.depositPaidAt && !e.depositReminderSentAt && soon(e.depositDue)) out.push('deposit');
   if (e.balanceAmount != null && !e.balancePaidAt && !e.balanceReminderSentAt && soon(e.balanceDue)) out.push('balance');
@@ -202,7 +214,7 @@ export async function moneyPeople(plan: { creatorId: string; circleId: string })
 export async function syncUse(entryId: string) {
   const e = await prisma.planSupplier.findUnique({ where: { id: entryId }, include: { plan: { select: { id: true, title: true, eventDate: true } } } });
   if (!e) return;
-  const data = { supplierId: e.supplierId, planId: e.planId, planTitle: e.plan.title, eventDate: e.plan.eventDate, status: e.status, total: entryTotal(e), currency: e.currency };
+  const data = { supplierId: e.supplierId, planId: e.planId, planTitle: e.plan.title, eventDate: e.plan.eventDate, status: useStatus(e), total: entryTotal(e), currency: e.currency };
   await prisma.supplierUse.upsert({ where: { entryId }, create: { entryId, ...data }, update: data });
 }
 
@@ -224,7 +236,7 @@ export async function sendSupplierReminders(io: any) {
     if (hour < 9) return;
     const today = zurichDay();
     const entries = await prisma.planSupplier.findMany({
-      where: { status: { notIn: ['paid', 'dropped'] }, plan: { archived: false, enabledFeatures: { has: SUPPLIERS_FEATURE } } },
+      where: { status: { not: 'paid' }, onHold: false, plan: { archived: false, enabledFeatures: { has: SUPPLIERS_FEATURE } } },
       include: { supplier: { select: { name: true } }, plan: { select: { id: true, title: true, circleId: true, creatorId: true } } },
     });
     for (const e of entries) {

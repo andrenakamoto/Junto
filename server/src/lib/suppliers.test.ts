@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dueReminders, entryTotal, maskEntry, parseMoneyInput, parseStatus, parseSupplierInput, recordStep } from './suppliers';
+import { dueReminders, entryTotal, HISTORY_MAX, maskEntry, parseMoneyInput, parseStatus, parseSupplierInput, pushHistory, recordStep, useStatus } from './suppliers';
 
 describe('parseSupplierInput', () => {
   it('accepte une fiche complète et nettoie email et site', () => {
@@ -34,6 +34,7 @@ describe('statuts et étapes', () => {
   it('reconnaît les statuts', () => {
     expect(parseStatus('confirmed')).toBe('confirmed');
     expect(parseStatus('approved')).toBeNull();
+    expect(parseStatus('dropped')).toBeNull();
   });
   it('garde la date et la personne de chaque étape', () => {
     const at = new Date('2026-11-06T10:00:00Z');
@@ -72,9 +73,9 @@ describe('dueReminders', () => {
     expect(dueReminders({ ...base, depositAmount: 1000, depositDue: '2026-11-07', depositPaidAt: new Date() }, '2026-11-06')).toEqual([]);
     expect(dueReminders({ ...base, depositAmount: 1000, depositDue: '2026-11-05' }, '2026-11-06')).toEqual([]);
   });
-  it('pas de rappel de paiement sans montant, ni pour un fournisseur abandonné', () => {
+  it('pas de rappel de paiement sans montant, ni pour un fournisseur mis de côté', () => {
     expect(dueReminders({ ...base, depositDue: '2026-11-07' }, '2026-11-06')).toEqual([]);
-    expect(dueReminders({ ...base, status: 'dropped', balanceAmount: 5, balanceDue: '2026-11-07' }, '2026-11-06')).toEqual([]);
+    expect(dueReminders({ ...base, onHold: true, balanceAmount: 5, balanceDue: '2026-11-07' }, '2026-11-06')).toEqual([]);
   });
   it('relance 7 jours après la demande de devis', () => {
     const now = new Date('2026-11-13T10:00:00Z');
@@ -82,5 +83,27 @@ describe('dueReminders', () => {
     expect(dueReminders({ ...base, status: 'quote_requested', steps: asked }, '2026-11-13', now)).toEqual(['followUp']);
     expect(dueReminders({ ...base, status: 'quote_requested', steps: asked }, '2026-11-12', new Date('2026-11-12T10:00:00Z'))).toEqual([]);
     expect(dueReminders({ ...base, status: 'quote_requested', steps: asked, followUpSentAt: now }, '2026-11-13', now)).toEqual([]);
+  });
+});
+
+describe('historique et mise de côté', () => {
+  it('garde les changements dans l’ordre, retours en arrière compris', () => {
+    const at = new Date('2026-11-06T10:00:00Z');
+    let h = pushHistory([], { by: 'andre', to: 'todo' }, at);
+    h = pushHistory(h, { by: 'andre', from: 'todo', to: 'quote_received' }, at);
+    h = pushHistory(h, { by: 'marie', from: 'quote_received', to: 'quote_requested' }, at);
+    h = pushHistory(h, { by: 'marie', hold: true }, at);
+    expect(h.map(x => x.to ?? (x.hold ? 'hold' : 'resume'))).toEqual(['todo', 'quote_received', 'quote_requested', 'hold']);
+    expect(h[2]).toEqual({ at: at.toISOString(), by: 'marie', from: 'quote_received', to: 'quote_requested' });
+  });
+  it('ne garde que les derniers changements', () => {
+    let h: any[] = [];
+    for (let i = 0; i < HISTORY_MAX + 10; i++) h = pushHistory(h, { by: `p${i}`, hold: i % 2 === 0 });
+    expect(h).toHaveLength(HISTORY_MAX);
+    expect(h[h.length - 1].by).toBe(`p${HISTORY_MAX + 9}`);
+  });
+  it('état du carnet : « on_hold » si mis de côté, sinon l’étape', () => {
+    expect(useStatus({ status: 'quote_received', onHold: true })).toBe('on_hold');
+    expect(useStatus({ status: 'confirmed', onHold: false })).toBe('confirmed');
   });
 });

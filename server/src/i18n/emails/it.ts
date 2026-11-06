@@ -222,7 +222,7 @@ const it: EmailDict = {
     supQuoteReceived: 'Preventivo ricevuto',
     supConfirmed: 'Confermato',
     supPaid: 'Pagato',
-    supDropped: 'Abbandonato',
+    supDropped: 'Messo da parte',
     supQuote: 'preventivo {amount}',
     supDeposit: 'acconto {amount}',
     supBalance: 'saldo {amount}',
