@@ -154,8 +154,13 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
   annonce?: { active: boolean; onChange: (on: boolean) => void };
 }) {
   const isOn = (f: FeatureItem) => (f.kind === 'base' ? !disabled.includes(f.value) : enabled.includes(f.value));
-  // Catégories repliables (fêtes, jeux) : ouvertes d'office si une de leurs fonctions est cochée
-  const [open, setOpen] = useState<Set<string>>(() => new Set(FEATURE_GROUPS.filter(g => !g.collapsible || g.items.some(isOn)).map(g => g.key)));
+  // Noms cochés d'une catégorie (le Mode annonce compte dans « Association et public »)
+  const onNames = (g: (typeof FEATURE_GROUPS)[number]) => [
+    ...g.items.filter(isOn).map(f => f.label),
+    ...(g.key === 'public' && annonce?.active ? [t('settings.annonce.title')] : []),
+  ];
+  // Catégories repliables (équipe, association, fêtes, jeux) : ouvertes d'office si une de leurs fonctions est cochée
+  const [open, setOpen] = useState<Set<string>>(() => new Set(FEATURE_GROUPS.filter(g => !g.collapsible || onNames(g).length > 0).map(g => g.key)));
   function toggle(f: FeatureItem) {
     if (f.kind === 'base') onChange(disabled.includes(f.value) ? disabled.filter(x => x !== f.value) : [...disabled, f.value]);
     else onEnabledChange?.(enabled.includes(f.value) ? enabled.filter(x => x !== f.value) : [...enabled, f.value]);
@@ -167,21 +172,30 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
       <div className="space-y-2.5">
         {FEATURE_GROUPS.map(g => {
           const isOpen = open.has(g.key);
-          const count = g.items.filter(isOn).length;
+          const names = onNames(g);
+          const kitEditable = g.kit && !readOnly && !!onEnabledChange;
+          const allOn = g.items.every(isOn);
           return (
             <div key={g.key}>
               {g.collapsible ? (
                 <button type="button" onClick={() => setOpen(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}
                   className="w-full flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1">
-                  <span aria-hidden>{g.icon}</span>{g.title}
-                  {count > 0 && <span className="normal-case font-medium text-indigo-600">{t('settings.enabled', { count })}</span>}
-                  <ChevronDown size={14} className={`ml-auto text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <span aria-hidden>{g.icon}</span><span className="flex-shrink-0 whitespace-nowrap">{g.title}</span>
+                  {/* Replié : ce qui est coché, en clair (« · Tâches, Planning ») */}
+                  {names.length > 0 && <span className="min-w-0 truncate normal-case font-medium text-indigo-600">· {names.join(', ')}</span>}
+                  <ChevronDown size={14} className={`ml-auto flex-shrink-0 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
                 <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1"><span aria-hidden>{g.icon}</span>{g.title}</p>
               )}
               {isOpen && (
                 <div className="space-y-1 mt-0.5">
+                  {kitEditable && !allOn && (
+                    <button type="button" onClick={() => onEnabledChange!([...new Set([...enabled, ...g.items.filter(f => f.kind === 'optional').map(f => f.value as OptionalFeature)])])}
+                      className="ml-2 mb-1 px-2.5 py-1 rounded-full border border-indigo-200 bg-indigo-50 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
+                      {t('settings.enableAll')}
+                    </button>
+                  )}
                   {g.items.map(f => (
                     <div key={f.value}>
                       <label className={`flex items-start gap-2.5 px-2 py-1.5 rounded-lg ${readOnly ? '' : 'cursor-pointer hover:bg-slate-50'}`}>
