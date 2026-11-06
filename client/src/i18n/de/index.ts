@@ -13,11 +13,12 @@ import games from './games';
 import photos from './photos';
 import discover from './discover';
 import tasks from './tasks';
+import suppliers from './suppliers';
 import program from './program';
 import ideas from './ideas';
 import noel from './noel';
 import capsule from './capsule';
 import mystery from './mystery';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, program, ideas, noel, capsule, mystery };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery };
 export default dict;

@@ -293,6 +293,17 @@ const groups: Group[] = [
           les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning.</P>,
       },
       {
+        id: 'fournisseurs', emoji: '🤝', title: 'Fournisseurs', summary: 'Traiteur, salle, sono : devis, paiements et contacts au même endroit',
+        body: <P>Pour suivre les prestataires d'un événement. « Ajouter un fournisseur » le prend dans le <strong>carnet du Cercle</strong>
+          (avec « Déjà utilisé pour… » des événements précédents) ou en crée un nouveau, gardé dans le carnet pour la prochaine fois.
+          Chaque fournisseur avance d'un geste : <strong>à contacter → devis demandé → devis reçu → confirmé → payé</strong> (ou abandonné),
+          avec la date et la personne de chaque étape. Choisis un <strong>responsable</strong>, rattache-le à un lot des Tâches, note ce qui
+          compte pour cet événement et commentez à plusieurs ; touche son téléphone pour l'appeler. Les <strong>montants</strong> (devis,
+          acompte, solde, échéances) et les <strong>documents</strong> (devis, contrat, facture) ne sont visibles que par les organisateurs
+          (créateur du Plan, créateur et organisateurs du Cercle), qui seuls marquent « payé ». Rappels : 3 jours avant un acompte ou un solde,
+          et une relance si un devis demandé n'est pas arrivé après 7 jours. Le carnet complet s'ouvre depuis le menu ⋯ du Cercle.</P>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Déroulé', summary: 'Le programme de la soirée, minute par minute',
         body: <P>Ajoute les moments dans l'ordre (accueil, discours, repas…) avec leur <strong>durée</strong> : chacun commence à la fin
           du précédent, le premier au début du Plan, et les heures se recalculent toutes seules. Un moment peut aussi commencer à une

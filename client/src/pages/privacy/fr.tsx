@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 2 novembre 2026',
+  version: 'Version du 6 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -82,6 +82,7 @@ const fr: PrivacyText = {
           indique le <strong>prénom et le nom</strong> des présents, des personnes représentées et des
           candidats ; il est téléchargé par l'organisateur ou le ou la secrétaire, et envoyé par email au
           créateur du Plan à la clôture de l'assemblée.</li>
+        <li><strong>Fournisseurs</strong> (fonction à activer dans un Plan) : les coordonnées des fournisseurs ajoutés par l'équipe (nom, personne de contact, téléphone, email, site, adresse, notes) sont gardées dans le carnet du Cercle tant que le Cercle existe, ou jusqu'à ce qu'un organisateur les supprime du carnet. Le suivi propre à un Plan (état, montants, notes, commentaires chiffrés, documents comme les devis et contrats) est effacé avec le Plan ; seule une ligne d'historique (nom de l'événement, date, état final et total) reste dans le carnet. Les montants et les documents ne sont visibles que par les organisateurs.</li>
         <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
           connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
           l'heure près, pour compter les membres actifs), la date à laquelle tu as consulté chaque
@@ -155,6 +156,7 @@ const fr: PrivacyText = {
           conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
           proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
         <li><strong>Capsules temporelles</strong> (fonction à activer dans un Plan) : les mots, photos et messages vocaux déposés sont gardés jusqu'à la date d'ouverture choisie par le créateur du Plan (un an au plus après le Plan), même après la suppression du Plan, puis effacés automatiquement 30 jours après l'ouverture. Les textes sont chiffrés, les photos refaites sans leurs métadonnées (position GPS comprise). Avant l'ouverture, chacun ne voit que ses propres dépôts et peut les retirer jusqu'au scellage ; supprimer son compte efface ses dépôts.</li>
+        <li><strong>Fournisseurs</strong> : carnet du Cercle gardé tant que le Cercle existe (ou jusqu'à sa suppression du carnet) ; suivi, montants et documents d'un Plan effacés avec le Plan.</li>
         <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>
         <li><strong>Journaux du serveur</strong> : 7 jours, puis effacés automatiquement.</li>
         <li><strong>Sauvegardes</strong> : une copie de la base de données est faite chaque nuit, gardée 14 jours sur le serveur et 30 jours sur Swiss Backup (Infomaniak, Suisse), avec une copie des photos et fichiers. Elles servent uniquement à restaurer EvLY en cas de panne ; un Plan supprimé peut y subsister jusqu’à 30 jours.</li>

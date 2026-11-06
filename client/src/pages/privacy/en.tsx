@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 2 November 2026',
+  version: 'Version of 6 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -72,6 +72,7 @@ const en: PrivacyText = {
           minutes. The <strong>minutes</strong> (PDF) show the <strong>first and last names</strong> of those present,
           people represented and candidates; they are downloaded by the organiser or the secretary and emailed to the
           Plan’s creator when the assembly closes.</li>
+        <li><strong>Suppliers</strong> (a feature turned on in a Plan): the contact details of suppliers added by the team (name, contact person, phone, email, website, address, notes) are kept in the Circle's supplier book for as long as the Circle exists, or until an organiser deletes them from the book. What belongs to a single Plan (status, amounts, notes, encrypted comments, documents such as quotes and contracts) is deleted with the Plan; only a history line (event name, date, final status and total) stays in the book. Amounts and documents are only visible to the organisers.</li>
         <li><strong>Technical data</strong>: your online status in your Circles, your login session (kept in your
           browser), the date you last used EvLY (to the hour, to count active members), the date you viewed each tab of a
           Plan (to flag what’s new, erased with the Plan) and the IP address recorded in the server logs for
@@ -139,6 +140,7 @@ const en: PrivacyText = {
           otherwise automatically the day after the last suggested date, and at the latest 30 days after they were
           created, with their votes and chat.</li>
         <li><strong>Time capsules</strong> (a feature to turn on in a Plan): the notes, photos and voice messages dropped in are kept until the opening date chosen by the Plan's creator (at most one year after the Plan), even after the Plan is deleted, then erased automatically 30 days after opening. Texts are encrypted, photos are remade without their metadata (GPS position included). Before opening, everyone sees only their own items and can remove them until the capsule is sealed; deleting your account erases your items.</li>
+        <li><strong>Suppliers</strong>: the Circle's supplier book is kept while the Circle exists (or until deleted from the book); a Plan's tracking, amounts and documents are deleted with the Plan.</li>
         <li><strong>Account</strong>: kept until you delete it.</li>
         <li><strong>Server logs</strong>: 7 days, then erased automatically.</li>
         <li><strong>Backups</strong>: a copy of the database is made every night and kept 14 days on the server and 30 days on Swiss Backup (Infomaniak, Switzerland), together with a copy of photos and files. They are used only to restore EvLY after an outage; a deleted Plan may remain in them for up to 30 days.</li>

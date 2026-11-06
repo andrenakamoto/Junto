@@ -7,7 +7,7 @@ import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight, Store } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -29,6 +29,7 @@ import { JoinRequestList } from '../circles/JoinRequestList';
 import { intlLocale, t } from '../../i18n';
 import { Trans } from 'react-i18next';
 import { useBackClose } from '../../lib/backClose';
+import { SupplierBookModal } from './SuppliersTab';
 
 interface Props {
   circle: Circle;
@@ -71,6 +72,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [summaryPlan, setSummaryPlan] = useState<Plan | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showSupplierBook, setShowSupplierBook] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
   // Menu « Créer » : premier niveau, ou liste des Plans spécifiques
@@ -217,6 +219,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   </button>
                   <button className={menuItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
                     <SlidersHorizontal size={15} className="text-slate-400" />{t('circle.planList.settings')}
+                  </button>
+                  <button className={menuItem} onClick={() => { setShowMore(false); setShowSupplierBook(true); }}>
+                    <Store size={15} className="text-slate-400" />{t('suppliers.book.menu')}
                   </button>
                   <button className={menuItem} onClick={() => { setShowMore(false); copyCode(); }}>
                     <Copy size={15} className="text-slate-400" />{t('circle.planList.copyCode', { code: circle.code })}
@@ -391,6 +396,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           </>
         )}
       </div>
+
+      {showSupplierBook && <SupplierBookModal circleId={circle.id} onClose={() => setShowSupplierBook(false)} />}
 
       {showInvite && (
         <InviteModal

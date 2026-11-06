@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 2 novembre 2026',
+  version: 'Versione del 6 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -75,6 +75,7 @@ const it: PrivacyText = {
           <strong>verbale</strong> (PDF) indica <strong>nome e cognome</strong> dei presenti, delle persone rappresentate e
           dei candidati; è scaricato dall’organizzatore o dal segretario o dalla segretaria e inviato per email al
           creatore del Plan alla chiusura dell’assemblea.</li>
+        <li><strong>Fornitori</strong> (funzione da attivare in un Plan): i contatti dei fornitori aggiunti dalla squadra (nome, persona di contatto, telefono, email, sito, indirizzo, note) restano nella rubrica del Cerchio finché il Cerchio esiste, o finché un organizzatore non li elimina dalla rubrica. Il seguito proprio di un Plan (stato, importi, note, commenti cifrati, documenti come preventivi e contratti) viene cancellato con il Plan; nella rubrica resta solo una riga di cronologia (nome dell'evento, data, stato finale e totale). Importi e documenti sono visibili solo agli organizzatori.</li>
         <li><strong>Dati tecnici</strong>: il tuo stato online nei tuoi Cerchi, la tua sessione di accesso (conservata nel
           browser), la data del tuo ultimo utilizzo di EvLY (all’ora, per contare i membri attivi), la data in cui hai
           consultato ogni scheda di un Plan (per segnalare le novità, cancellata con il Plan) e l’indirizzo IP registrato
@@ -141,6 +142,7 @@ const it: PrivacyText = {
           Plan), altrimenti automaticamente il giorno dopo l’ultima data proposta, e al più tardi 30 giorni dopo la loro
           creazione, con i loro voti e la loro chat.</li>
         <li><strong>Capsule del tempo</strong> (funzione da attivare in un Plan): i messaggi, le foto e i messaggi vocali depositati sono conservati fino alla data di apertura scelta da chi ha creato il Plan (al massimo un anno dopo il Plan), anche dopo l’eliminazione del Plan, poi cancellati automaticamente 30 giorni dopo l’apertura. I testi sono cifrati, le foto rifatte senza i loro metadati (posizione GPS compresa). Prima dell’apertura ognuno vede solo i propri contributi e può ritirarli fino alla sigillatura; eliminare il proprio account cancella i propri contributi.</li>
+        <li><strong>Fornitori</strong>: rubrica del Cerchio conservata finché il Cerchio esiste (o fino all'eliminazione dalla rubrica); seguito, importi e documenti di un Plan cancellati con il Plan.</li>
         <li><strong>Account</strong>: conservato finché non lo elimini.</li>
         <li><strong>Log del server</strong>: 7 giorni, poi cancellati automaticamente.</li>
         <li><strong>Copie di sicurezza</strong>: ogni notte viene fatta una copia della banca dati, conservata 14 giorni sul server e 30 giorni su Swiss Backup (Infomaniak, Svizzera), insieme a una copia di foto e file. Servono solo a ripristinare EvLY in caso di guasto; un Plan eliminato può restarvi fino a 30 giorni.</li>

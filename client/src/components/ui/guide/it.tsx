@@ -294,6 +294,17 @@ const groups: Group[] = [
           giorno stesso usa piuttosto i Turni.</P>,
       },
       {
+        id: 'fournisseurs', emoji: '🤝', title: 'Fornitori', summary: 'Catering, sala, audio: preventivi, pagamenti e contatti nello stesso posto',
+        body: <P>Per seguire i fornitori di un evento. «Aggiungi un fornitore» lo prende dalla <strong>rubrica del Cerchio</strong> (con «Già usato per…»
+          degli eventi precedenti) o ne crea uno nuovo, conservato nella rubrica per la prossima volta. Ogni fornitore avanza con un tocco:
+          <strong>da contattare → preventivo chiesto → preventivo ricevuto → confermato → pagato</strong> (o abbandonato), con la data e la persona di
+          ogni passo. Scegli un <strong>responsabile</strong>, collegalo a un gruppo dei Compiti, annota ciò che conta per questo evento e commentate
+          insieme; tocca il suo telefono per chiamarlo. Gli <strong>importi</strong> (preventivo, acconto, saldo, scadenze) e i <strong>documenti</strong>
+          (preventivo, contratto, fattura) sono visibili solo agli organizzatori (chi ha creato il Plan, chi ha creato il Cerchio e i suoi
+          organizzatori), che sono gli unici a segnare «pagato». Promemoria: 3 giorni prima di un acconto o di un saldo, e un sollecito se un
+          preventivo chiesto non è arrivato dopo 7 giorni. La rubrica completa si apre dal menu ⋯ del Cerchio.</P>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Scaletta', summary: 'Il programma della serata, minuto per minuto',
         body: <P>Aggiungi i momenti in ordine (accoglienza, discorso, cena…) con la loro <strong>durata</strong>: ognuno inizia alla fine del
           precedente, il primo all'inizio del Plan, e gli orari si ricalcolano da soli. Un momento può anche iniziare a un'<strong>ora

@@ -442,7 +442,7 @@ const plan: Dict['plan'] = {
     exitFullscreen: 'Esci dallo schermo intero',
     tabs: {
       chat: 'Chat', infos: 'Info', trajets: 'Passaggi', membres: 'Membri', votes: 'Voti', depenses: 'Spese',
-      benevoles: 'Turni', taches: 'Compiti', deroule: 'Scaletta', dayPlan: 'Giorno X', idees: 'Idee', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Parola trappola',
+      benevoles: 'Turni', taches: 'Compiti', fournisseurs: 'Fornitori', deroule: 'Scaletta', dayPlan: 'Giorno X', idees: 'Idee', assemblee: 'Assemblea', pere_noel: 'Babbo Natale', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Parola trappola',
       equipes: 'Squadre', cagnotte: 'Colletta', capsule: 'Capsula', mystere: "Mistero",
     },
     skipConfirm: 'Annullare questo Plan per questa volta? Verrà eliminato e il successivo creato subito.',

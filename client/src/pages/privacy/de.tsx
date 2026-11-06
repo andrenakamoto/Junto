@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 2. November 2026',
+  version: 'Fassung vom 6. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -79,6 +79,7 @@ const de: PrivacyText = {
           (PDF) nennt <strong>Vor- und Nachnamen</strong> der Anwesenden, der vertretenen Personen und der
           Kandidierenden; es wird vom Organisator oder vom Aktuar / von der Aktuarin heruntergeladen und bei Schluss der
           Versammlung per E-Mail an den Ersteller des Plans gesendet.</li>
+        <li><strong>Lieferanten</strong> (Funktion, die in einem Plan aktiviert wird): Die Kontaktdaten der vom Team erfassten Lieferanten (Name, Kontaktperson, Telefon, E-Mail, Website, Adresse, Notizen) bleiben im Adressbuch des Kreises, solange der Kreis besteht oder bis das Organisationsteam sie daraus löscht. Die Angaben zu einem Plan (Stand, Beträge, Notizen, verschlüsselte Kommentare, Dokumente wie Offerten und Verträge) werden mit dem Plan gelöscht; im Adressbuch bleibt nur eine Verlaufszeile (Name des Anlasses, Datum, letzter Stand und Total). Beträge und Dokumente sieht nur das Organisationsteam.</li>
         <li><strong>Technische Daten</strong>: dein Online-Status in deinen Kreisen, deine Anmeldesitzung (im Browser
           gespeichert), das Datum deiner letzten Nutzung von EvLY (auf die Stunde genau, um aktive Mitglieder zu zählen),
           das Datum, an dem du jeden Bereich eines Plans angesehen hast (um Neues zu markieren, gelöscht mit dem Plan),
@@ -149,6 +150,7 @@ const de: PrivacyText = {
           übernommen), sonst automatisch am Tag nach dem letzten vorgeschlagenen Termin und spätestens 30 Tage nach ihrer
           Erstellung, mit ihren Stimmen und ihrem Chat.</li>
         <li><strong>Zeitkapseln</strong> (in einem Plan einschaltbare Funktion): Die hineingelegten Nachrichten, Fotos und Sprachnachrichten werden bis zum Öffnungsdatum aufbewahrt, das die Person wählt, die den Plan erstellt hat (höchstens ein Jahr nach dem Plan), auch nach dem Löschen des Plans, und 30 Tage nach dem Öffnen automatisch gelöscht. Texte werden verschlüsselt, Fotos ohne ihre Metadaten (GPS-Position inbegriffen) neu erstellt. Vor dem Öffnen sieht jede Person nur ihre eigenen Beiträge und kann sie bis zur Versiegelung zurückziehen; wer sein Konto löscht, löscht auch seine Beiträge.</li>
+        <li><strong>Lieferanten</strong>: Adressbuch des Kreises, solange der Kreis besteht (oder bis zur Löschung aus dem Adressbuch); Angaben, Beträge und Dokumente eines Plans werden mit dem Plan gelöscht.</li>
         <li><strong>Konto</strong>: aufbewahrt, bis du es löschst.</li>
         <li><strong>Serverprotokolle</strong>: 7 Tage, danach automatisch gelöscht.</li>
         <li><strong>Sicherungskopien</strong>: Jede Nacht wird eine Kopie der Datenbank erstellt und 14 Tage auf dem Server sowie 30 Tage bei Swiss Backup (Infomaniak, Schweiz) aufbewahrt, zusammen mit einer Kopie der Fotos und Dateien. Sie dienen nur dazu, EvLY nach einem Ausfall wiederherzustellen; ein gelöschter Plan kann darin bis zu 30 Tage erhalten bleiben.</li>

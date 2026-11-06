@@ -290,6 +290,17 @@ const groups: Group[] = [
           the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead.</P>,
       },
       {
+        id: 'fournisseurs', emoji: '🤝', title: 'Suppliers', summary: 'Caterer, venue, sound: quotes, payments and contacts in one place',
+        body: <P>To keep track of an event's suppliers. “Add a supplier” takes one from the <strong>Circle's supplier book</strong> (with “Already used
+          for…” from earlier events) or creates a new one, kept in the book for next time. Each supplier moves on with one tap:
+          <strong>to contact → quote requested → quote received → confirmed → paid</strong> (or dropped), with the date and person of each step.
+          Choose who is <strong>in charge</strong>, link it to a Tasks group, note what matters for this event and comment together; tap the phone
+          number to call. The <strong>amounts</strong> (quote, deposit, balance, due dates) and the <strong>documents</strong> (quote, contract,
+          invoice) are only visible to the organisers (whoever created the Plan, whoever created the Circle and its organisers), who alone can mark
+          “paid”. Reminders: 3 days before a deposit or balance is due, and a follow-up if a requested quote hasn't arrived after 7 days. The full
+          supplier book opens from the Circle's ⋯ menu.</P>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Run of show', summary: 'The evening’s programme, minute by minute',
         body: <P>Add the items in order (guests arrive, speech, dinner…) with their <strong>duration</strong>: each one starts when the
           previous one ends, the first when the Plan starts, and the times are worked out for you. An item can also start at a <strong>fixed
