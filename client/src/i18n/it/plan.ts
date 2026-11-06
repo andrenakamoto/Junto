@@ -91,7 +91,7 @@ const plan: Dict['plan'] = {
       name: 'Organizzazione in gruppo',
       hint: 'Festa, torneo, tombola… con i compiti e i turni',
       note: 'Compiti, Scaletta, Idee e Turni sono attivati: le cose da fare, il programma della serata, il brainstorming e i turni del giorno stesso.',
-      info: 'Le cose da fare sono in Compiti, i turni del giorno stesso in Turni. Grazie a tutti per l’aiuto!',
+      info: "Benvenuti nella squadra! Dove trovare cosa:\n- **Idee**: qui si propone e si vota durante le riunioni\n- **Compiti**: cosa resta da fare, e chi se ne occupa\n- **Giorno X**: il programma dell’evento e i turni di ognuno\n- **Fornitori**: catering, sala, audio… e a che punto è ciascuno\n\nGrazie a tutti per l’aiuto!",
     },
     annonce: {
       name: 'Annuncio',

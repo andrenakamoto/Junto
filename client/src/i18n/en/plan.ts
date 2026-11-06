@@ -91,7 +91,7 @@ const plan: Dict['plan'] = {
       name: 'Organising together',
       hint: 'Party, tournament, raffle… with tasks and a schedule',
       note: 'Tasks, Run of show, Ideas and Schedule are turned on: what needs doing, the evening’s programme, brainstorming and the shifts on the day.',
-      info: 'What needs doing is in Tasks, the shifts on the day in the Schedule. Thanks, everyone, for your help!',
+      info: "Welcome to the team! Where to find what:\n- **Ideas**: where we suggest and vote during meetings\n- **Tasks**: what is left to do, and who is on it\n- **On the day**: the event programme and everyone’s shifts\n- **Suppliers**: caterer, venue, sound… and where each one stands\n\nThanks, everyone, for your help!",
     },
     annonce: {
       name: 'Announcement',

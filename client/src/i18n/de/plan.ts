@@ -91,7 +91,7 @@ const plan: Dict['plan'] = {
       name: 'Gemeinsam organisieren',
       hint: 'Fest, Turnier, Lotto… mit Aufgaben und Einsatzplan',
       note: 'Aufgaben, Ablauf, Ideen und Einsatzplan sind aktiviert: was zu tun ist, das Programm des Abends, das Brainstorming und die Einsätze am Tag selbst.',
-      info: 'Was zu tun ist, steht unter Aufgaben, die Einsätze am Tag selbst im Einsatzplan. Danke allen für eure Hilfe!',
+      info: "Willkommen im Team! Wo du was findest:\n- **Ideen**: hier schlagen wir in den Sitzungen vor und stimmen ab\n- **Aufgaben**: was noch zu tun ist, und wer sich darum kümmert\n- **Tag X**: das Programm des Anlasses und die Einsätze aller\n- **Lieferanten**: Caterer, Saal, Tontechnik … und wo jeder steht\n\nDanke allen für eure Hilfe!",
     },
     annonce: {
       name: 'Ankündigung',

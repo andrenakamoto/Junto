@@ -90,7 +90,7 @@ export default {
       name: 'Organisation à plusieurs',
       hint: 'Fête, tournoi, loto… avec les tâches à mener et le planning',
       note: 'Tâches, Déroulé, Idées et Planning sont activés : les actions à mener, le programme de la soirée, le brainstorming et les postes du jour J.',
-      info: 'Les actions à mener sont dans Tâches, les postes du jour J dans le Planning. Merci à tous pour votre aide !',
+      info: "Bienvenue dans l’équipe ! Où trouver quoi :\n- **Idées** : on y propose et on y vote pendant les réunions\n- **Tâches** : ce qu’il reste à faire, et qui s’en occupe\n- **Jour J** : le programme de l’événement et les postes de chacun\n- **Fournisseurs** : traiteur, salle, sono… et où en est chacun\n\nMerci à tous pour votre aide !",
     },
     annonce: {
       name: 'Annonce',
