@@ -34,7 +34,7 @@ function Choice<T extends string>({ label, options, value, onChange, readOnly }:
   readOnly?: boolean;
 }) {
   return (
-    <fieldset>
+    <fieldset className="min-w-0">
       <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{label}</legend>
       <div className="space-y-1.5">
         {options.map(o => (
@@ -166,7 +166,8 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
     else onEnabledChange?.(enabled.includes(f.value) ? enabled.filter(x => x !== f.value) : [...enabled, f.value]);
   }
   return (
-    <fieldset>
+    // min-w-0 : un fieldset prend sinon la largeur de son contenu (la liste des noms cochés poussait la fenêtre en largeur)
+    <fieldset className="min-w-0">
       <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-0.5">{t('settings.featuresField')}</legend>
       <p className="text-xs text-slate-400 mb-2">{t('settings.featuresHint')}</p>
       <div className="space-y-2.5">
@@ -179,7 +180,7 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
             <div key={g.key}>
               {g.collapsible ? (
                 <button type="button" onClick={() => setOpen(prev => { const n = new Set(prev); if (n.has(g.key)) n.delete(g.key); else n.add(g.key); return n; })}
-                  className="w-full flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1">
+                  className="w-full min-w-0 overflow-hidden flex items-center gap-1.5 text-xs font-semibold text-slate-600 uppercase tracking-wide py-1">
                   <span aria-hidden>{g.icon}</span><span className="flex-shrink-0 whitespace-nowrap">{g.title}</span>
                   {/* Replié : ce qui est coché, en clair (« · Tâches, Planning ») */}
                   {names.length > 0 && <span className="min-w-0 truncate normal-case font-medium text-indigo-600">· {names.join(', ')}</span>}
