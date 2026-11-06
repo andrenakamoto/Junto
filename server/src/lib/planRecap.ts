@@ -16,6 +16,7 @@ import { ranking as wordRanking } from './wordGame';
 import { potTotals } from './giftPot';
 import { scheduleItems } from './program';
 import { zurichDay } from './tasks';
+import { entryTotal } from './suppliers';
 
 // Récapitulatif PDF d'un Plan (à garder avant sa suppression automatique) : infos, répétition,
 // participants, liste d'attente, planning, « qui apporte quoi », dépenses et remboursements, votes,
@@ -80,7 +81,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   const m = mail(locale);
   const who = whoIn(m);
   const has = (f: string) => plan.enabledFeatures.includes(f);
-  const [assembly, quiz, teamDraw, killer, words, santa, pot, programItems, taskGroups, tasks, ideaColumns, ideas] = await Promise.all([
+  const [assembly, quiz, teamDraw, killer, words, santa, pot, programItems, taskGroups, tasks, ideaColumns, ideas, suppliers] = await Promise.all([
     has('assemblee') ? prisma.assembly.findUnique({ where: { planId }, include: { items: { orderBy: { position: 'asc' }, include: { candidates: true, ballots: true } } } }) : null,
     has('quiz') ? prisma.quiz.findUnique({ where: { planId }, include: { questions: { select: { id: true } } } }) : null,
     has('equipes') ? prisma.teamDraw.findUnique({ where: { planId }, include: { teams: { orderBy: { position: 'asc' }, include: { members: { include: { user: { select: PERSON } } } } }, matches: { orderBy: [{ round: 'asc' }, { position: 'asc' }] } } }) : null,
@@ -93,6 +94,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     has('taches') ? prisma.planTask.findMany({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { assignees: { include: { user: { select: PERSON } } }, dependsOn: { select: { dependsOnId: true } } } }) : [],
     has('idees') ? prisma.ideaColumn.findMany({ where: { planId }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }], select: { id: true, title: true } }) : [],
     has('idees') ? prisma.idea.findMany({ where: { planId }, orderBy: { createdAt: 'asc' } }) : [],
+    has('fournisseurs') ? prisma.planSupplier.findMany({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { supplier: { select: { name: true, category: true, contactName: true, phone: true } } } }) : [],
   ]);
   // Quiz : seulement une fois la partie terminée
   const quizAnswers = quiz?.endedAt ? await prisma.quizAnswer.findMany({ where: { planId }, select: { userId: true, points: true } }) : [];
@@ -256,6 +258,47 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
         doc.x = left;
       }
     }
+  }
+
+  // Fournisseurs (le récapitulatif est réservé aux organisateurs : montants compris, jamais les commentaires ni les documents)
+  if (suppliers.length > 0) {
+    const okCount = suppliers.filter(x => x.status === 'confirmed' || x.status === 'paid').length;
+    section(m.s('recapPdf.suppliers'), m.s('recapPdf.suppliersSub', { done: okCount, total: suppliers.length }));
+    const STATUS: Record<string, string> = {
+      todo: m.s('recapPdf.supTodo'), quote_requested: m.s('recapPdf.supQuoteRequested'), quote_received: m.s('recapPdf.supQuoteReceived'),
+      confirmed: m.s('recapPdf.supConfirmed'), paid: m.s('recapPdf.supPaid'), dropped: m.s('recapPdf.supDropped'),
+    };
+    const dayFmt = zurich(m, { day: 'numeric', month: 'long' });
+    const people = new Map((await prisma.user.findMany({ where: { id: { in: suppliers.map(x => x.responsibleId).filter((x): x is string => !!x) } }, select: { id: true, ...PERSON } })).map(u => [u.id, u]));
+    const RANK: Record<string, number> = { confirmed: 0, paid: 1, quote_received: 2, quote_requested: 3, todo: 4, dropped: 5 };
+    for (const x of [...suppliers].sort((a, b) => (RANK[a.status] ?? 4) - (RANK[b.status] ?? 4))) {
+      if (doc.y > doc.page.height - 90) doc.addPage();
+      const amt = (n: number) => formatAmount(n, x.currency, m.intl);
+      doc.font('regular').fontSize(10).fillColor(x.status === 'dropped' ? DIM : INK).text(`•  ${x.supplier.name}`, { continued: true })
+        .font('semibold').fillColor(x.status === 'paid' || x.status === 'confirmed' ? '#059669' : DIM).text(`  ·  ${STATUS[x.status] ?? x.status}`);
+      const pay = (label: 'recapPdf.supDeposit' | 'recapPdf.supBalance', n: number | null, due: string | null, paid: Date | null) => n == null ? ''
+        : `${m.s(label, { amount: amt(n) })} (${paid ? m.s('recapPdf.supPaidMark') : due ? m.s('recapPdf.supDue', { date: dayFmt.format(new Date(`${due}T12:00:00Z`)) }) : '—'})`;
+      const resp = x.responsibleId ? people.get(x.responsibleId) : null;
+      const details = [
+        [x.supplier.contactName, x.supplier.phone].filter(Boolean).join(' '),
+        resp ? m.s('recapPdf.supResponsible', { who: who(resp) }) : '',
+        x.quoteAmount != null ? m.s('recapPdf.supQuote', { amount: amt(x.quoteAmount) }) : '',
+        pay('recapPdf.supDeposit', x.depositAmount, x.depositDue, x.depositPaidAt),
+        pay('recapPdf.supBalance', x.balanceAmount, x.balanceDue, x.balancePaidAt),
+      ].filter(Boolean);
+      doc.x = left + 12;
+      if (details.length) doc.font('regular').fontSize(9).fillColor(DIM).text(details.join('  ·  '), left + 12, doc.y, { width: width - 12 });
+      if (x.notes) doc.font('regular').fontSize(9).fillColor(DIM).text(x.notes, left + 12, doc.y, { width: width - 12 });
+      doc.x = left;
+    }
+    // Total des fournisseurs confirmés ou payés, par devise (sans conversion)
+    const sums = new Map<string, number>();
+    for (const x of suppliers) {
+      if (x.status !== 'confirmed' && x.status !== 'paid') continue;
+      const total = entryTotal(x);
+      if (total != null) sums.set(x.currency, (sums.get(x.currency) ?? 0) + total);
+    }
+    if (sums.size) para(m.s('recapPdf.supTotal', { amounts: [...sums].map(([c, n]) => formatAmount(n, c, m.intl)).join(' + ') }));
   }
 
   // Idées, par thème : retenues, à creuser, autres, écartées ; votes notés en séance

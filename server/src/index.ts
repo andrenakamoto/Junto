@@ -26,6 +26,8 @@ import muteRoutes from './routes/mutes';
 import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import capsuleRoutes from './routes/capsules';
+import supplierBookRoutes from './routes/supplierBook';
+import { sendSupplierReminders } from './lib/suppliers';
 import { capsuleTick } from './lib/capsule';
 import contactRoutes from './routes/contacts';
 import availabilityRoutes from './routes/availability';
@@ -127,6 +129,7 @@ app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/capsules', capsuleRoutes);
+app.use('/api/suppliers', supplierBookRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/discover', discoverRoutes);
@@ -175,6 +178,8 @@ if (cronEnabled) {
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);
   // Tâches : rappel deux jours avant l'échéance (à partir de 9 h)
   setInterval(() => sendTaskReminders(io), 60 * 60 * 1000);
+  // Fournisseurs : acompte ou solde à payer dans les 3 jours, devis à relancer après 7 jours (à partir de 9 h)
+  setInterval(() => sendSupplierReminders(io), 60 * 60 * 1000);
   // Déroulé : rappel aux responsables 10 minutes avant leur moment
   setInterval(() => sendProgramReminders(io), 5 * 60 * 1000);
   // Plan mystère : indices et dévoilement à l'heure prévue

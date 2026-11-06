@@ -79,6 +79,7 @@ model User {
   shiftsDone             VolunteerShift[]            @relation("ShiftDoneBy")
   taskAssignments        PlanTaskAssignee[]
   taskComments           PlanTaskComment[]
+  supplierComments       PlanSupplierComment[]
   tasksDone              PlanTask[]                  @relation("TaskDoneBy")
   programAssignments     PlanProgramAssignee[]
   notificationMutes      NotificationMute[]
@@ -182,6 +183,7 @@ model Circle {
   messages          CircleMessage[]
   availabilities    Availability[]
   capsules          TimeCapsule[]
+  suppliers         CircleSupplier[]
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -412,6 +414,8 @@ model Plan {
   volunteerShifts   VolunteerShift[]
   volunteerSignups  VolunteerSignup[]
   taskGroups        PlanTaskGroup[]
+  suppliers         PlanSupplier[]
+  supplierUses      SupplierUse[]
   tasks             PlanTask[]
   programItems      PlanProgramItem[]
   ideaColumns       IdeaColumn[]
@@ -921,13 +925,14 @@ model VolunteerSignup {
 // Tâches de préparation d'un Plan (lib/tasks.ts, fonction à activer « taches ») : rangées par lot,
 // avec responsables, échéance, statut et dépendances (« commencer après… »).
 model PlanTaskGroup {
-  id          String     @id @default(cuid())
+  id          String         @id @default(cuid())
   planId      String
-  plan        Plan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  plan        Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
   title       String
   createdById String?
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime       @default(now())
   tasks       PlanTask[]
+  suppliers   PlanSupplier[]
 
   @@index([planId])
 }
@@ -1863,23 +1868,23 @@ model ProInterest {
 // est scellée à la fin des dépôts et s'ouvre pour tout le groupe à une date choisie (au plus 10 ans). Elle survit au Plan
 // (rattachée au Cercle, titre recopié) et est effacée 30 jours après son ouverture (lib/capsule.ts).
 model TimeCapsule {
-  id             String           @id @default(cuid())
-  circleId       String
-  circle         Circle           @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  planId         String?          @unique
-  plan           Plan?            @relation(fields: [planId], references: [id], onDelete: SetNull)
-  title          String
-  openAt         DateTime
-  depositUntil   DateTime
+  id                    String           @id @default(cuid())
+  circleId              String
+  circle                Circle           @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  planId                String?          @unique
+  plan                  Plan?            @relation(fields: [planId], references: [id], onDelete: SetNull)
+  title                 String
+  openAt                DateTime
+  depositUntil          DateTime
   // Personnes qui verront l'ouverture : participants du Plan et personnes qui ont déposé (figé au scellage)
-  audienceIds    String[]
-  createdById    String?
-  sealedAt       DateTime?
-  reminderSentAt DateTime?
+  audienceIds           String[]
+  createdById           String?
+  sealedAt              DateTime?
+  reminderSentAt        DateTime?
   depositReminderSentAt DateTime?
-  openedAt       DateTime?
-  createdAt      DateTime         @default(now())
-  deposits       CapsuleDeposit[]
+  openedAt              DateTime?
+  createdAt             DateTime         @default(now())
+  deposits              CapsuleDeposit[]
 
   @@index([circleId])
   @@index([openAt])
@@ -1945,4 +1950,111 @@ model PlanMysteryGuess {
   updatedAt DateTime @updatedAt
 
   @@unique([planId, userId])
+}
+
+// Fournisseurs (2026-11-06, lib/suppliers.ts) : carnet du Cercle (coordonnées, gardées tant que le Cercle existe) et,
+// dans chaque Plan qui active « Fournisseurs », un engagement par fournisseur (état, montants, documents, commentaires).
+// Montants et documents : créateur du Plan et organisateurs du Cercle seulement (filtré par le serveur).
+model CircleSupplier {
+  id          String         @id @default(cuid())
+  circleId    String
+  circle      Circle         @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  contactName String?
+  phone       String?
+  email       String?
+  website     String?
+  address     String?
+  notes       String?
+  createdById String?
+  archivedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  entries     PlanSupplier[]
+  uses        SupplierUse[]
+
+  @@index([circleId])
+}
+
+model PlanSupplier {
+  id                    String                @id @default(cuid())
+  planId                String
+  plan                  Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  supplierId            String
+  supplier              CircleSupplier        @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  // todo | quote_requested | quote_received | confirmed | paid | dropped
+  status                String                @default("todo")
+  // Date et auteur (pseudo) de chaque étape franchie : { quote_requested: { at, by } … }
+  steps                 Json                  @default("{}")
+  responsibleId         String?
+  groupId               String?
+  group                 PlanTaskGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  notes                 String?
+  currency              String                @default("CHF")
+  quoteAmount           Float?
+  depositAmount         Float?
+  depositDue            String?
+  depositPaidAt         DateTime?
+  balanceAmount         Float?
+  balanceDue            String?
+  balancePaidAt         DateTime?
+  depositReminderSentAt DateTime?
+  balanceReminderSentAt DateTime?
+  followUpSentAt        DateTime?
+  createdById           String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  comments              PlanSupplierComment[]
+  documents             SupplierDocument[]
+
+  @@unique([planId, supplierId])
+  @@index([planId])
+}
+
+model PlanSupplierComment {
+  id        String       @id @default(cuid())
+  entryId   String
+  entry     PlanSupplier @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  planId    String
+  authorId  String
+  author    User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime     @default(now())
+
+  @@index([entryId])
+}
+
+// Devis, contrat, facture : STORAGE_DIR/suppliers/<planId>/<fichier>, effacés avec le Plan (purgePlanFiles)
+model SupplierDocument {
+  id           String       @id @default(cuid())
+  entryId      String
+  entry        PlanSupplier @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  planId       String
+  name         String
+  mimeType     String
+  size         Int
+  fileKey      String
+  uploadedById String?
+  createdAt    DateTime     @default(now())
+
+  @@index([entryId])
+}
+
+// Historique d'un fournisseur (« Déjà utilisé pour… ») : survit à la suppression du Plan (planId remis à null)
+model SupplierUse {
+  id         String         @id @default(cuid())
+  supplierId String
+  supplier   CircleSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  planId     String?
+  plan       Plan?          @relation(fields: [planId], references: [id], onDelete: SetNull)
+  entryId    String?        @unique
+  planTitle  String
+  eventDate  DateTime?
+  status     String
+  total      Float?
+  currency   String         @default("CHF")
+  updatedAt  DateTime       @updatedAt
+
+  @@index([supplierId])
 }

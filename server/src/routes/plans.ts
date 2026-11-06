@@ -41,6 +41,7 @@ import { parseRecurrenceInput, skipOccurrence } from '../lib/recurrence';
 import { createPlanInCircle } from './circles';
 import volunteerRoutes from './volunteers';
 import taskRoutes from './tasks';
+import supplierRoutes from './suppliers';
 import programRoutes from './program';
 import ideaRoutes from './ideas';
 import mysteryRoutes from './mystery';
@@ -70,6 +71,7 @@ router.use(broadcastWrites(resolvePlanWrite));
 // Planning des bénévoles (/:id/shifts, /shifts/…)
 router.use(volunteerRoutes);
 router.use(taskRoutes);
+router.use(supplierRoutes);
 router.use(programRoutes);
 router.use(ideaRoutes);
 router.use(mysteryRoutes);

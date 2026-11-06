@@ -142,6 +142,8 @@ export async function purgePlanFiles(planIds: string[]) {
     select: { id: true, url: true, publicId: true, resourceType: true },
   });
   await destroyFiles(files);
+  // Documents des fournisseurs (lib/suppliers.ts) : STORAGE_DIR/suppliers/<planId>
+  for (const id of planIds) await fs.rm(path.join(STORAGE_DIR, 'suppliers', id.replace(/[^a-z0-9]/gi, '')), { recursive: true, force: true }).catch(() => {});
 }
 
 export async function purgeCircleFiles(circleId: string) {

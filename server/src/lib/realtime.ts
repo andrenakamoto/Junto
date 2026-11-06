@@ -72,7 +72,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres',
-  shifts: 'benevoles', tasks: 'taches', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
+  shifts: 'benevoles', tasks: 'taches', suppliers: 'fournisseurs', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -150,6 +150,19 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     }
     const task = await prisma.planTask.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(task?.planId, false, 'taches');
+  }
+  // Fournisseurs : /suppliers/:entryId/…, /suppliers/comments/:id, /suppliers/documents/:id
+  if (a === 'suppliers') {
+    if (b === 'comments') {
+      const comment = await prisma.planSupplierComment.findUnique({ where: { id: c }, select: { planId: true } });
+      return planTarget(comment?.planId, false, 'fournisseurs');
+    }
+    if (b === 'documents') {
+      const doc = await prisma.supplierDocument.findUnique({ where: { id: c }, select: { planId: true } });
+      return planTarget(doc?.planId, false, 'fournisseurs');
+    }
+    const entry = await prisma.planSupplier.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(entry?.planId, false, 'fournisseurs');
   }
   // Idées : /ideas/:ideaId/…, /idea-columns/:columnId/…
   if (a === 'ideas') {
