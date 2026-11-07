@@ -63,6 +63,7 @@ export default {
     santaWishes: 'Un bon roman policier et du chocolat noir|Des chaussettes de Noël bien kitsch|Un jeu de société pour nos soirées|Une plante pour mon balcon|Un bonnet tout doux',
     santaMin: 'Il faut au moins 3 participants pour le tirage : attends que tes amis répondent « Je suis in ».',
     santaHello: 'Ho ho ho ! 🎅 J’ai bien lu ta liste d’envies. Une couleur préférée ?',
+    personalCircle: 'Mes Plans',
     playFirst: 'Joue d’abord tes cartes pour voir les résultats',
     voteNotOpen: 'Le vote n’est pas ouvert',
     otherVoteOpen: 'Un autre vote est en cours : clos-le d’abord',

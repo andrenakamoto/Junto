@@ -63,6 +63,7 @@ const ui: Dict['ui'] = {
     santaWishes: 'Un bel giallo e del cioccolato fondente|Calzini di Natale super kitsch|Un gioco da tavolo per le nostre serate|Una pianta per il mio balcone|Un berretto morbidissimo',
     santaMin: 'Per l’estrazione servono almeno 3 partecipanti: aspetta che i tuoi amici rispondano «Ci sono».',
     santaHello: 'Oh oh oh! 🎅 Ho letto la tua lista dei desideri. Hai un colore preferito?',
+    personalCircle: 'I miei Plan',
     playFirst: 'Gioca prima le tue carte per vedere i risultati',
     voteNotOpen: 'La votazione non è aperta',
     otherVoteOpen: 'È in corso un’altra votazione: chiudila prima',

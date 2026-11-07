@@ -63,6 +63,7 @@ const ui: Dict['ui'] = {
     santaWishes: 'A good crime novel and dark chocolate|Really kitsch Christmas socks|A board game for our evenings|A plant for my balcony|A super soft beanie',
     santaMin: 'The draw needs at least 3 participants: wait for your friends to reply “I’m in”.',
     santaHello: 'Ho ho ho! 🎅 I’ve read your wish list. Do you have a favourite colour?',
+    personalCircle: 'My Plans',
     playFirst: 'Play your cards first to see the results',
     voteNotOpen: 'The vote isn’t open',
     otherVoteOpen: 'Another vote is open: close it first',

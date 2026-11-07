@@ -469,7 +469,9 @@ function syncPollLists(poll: any) {
 }
 
 function createPlan(circleId: string, body: any) {
-  const template = (fixtures![`GET /circles/${circleId}/plans`] as any[])?.[0];
+  // Cercle personnel (« Juste un lien ») encore vide : modèle pris dans un autre Cercle
+  const template = (fixtures![`GET /circles/${circleId}/plans`] as any[])?.[0]
+    ?? (fixtures!['GET /circles'] as any[]).map(c => (fixtures![`GET /circles/${c.id}/plans`] as any[])?.[0]).find(Boolean);
   const detailTemplate = template ? plan(template.id) : null;
   const id = newId('plan');
   const member = { userId: me.id, planId: id, rsvp: 'in', joinedAt: now(), seen: {}, user: { ...meRef(), firstName: me.firstName }, isGuest: false };
@@ -533,20 +535,25 @@ function startDemoSanta(planId: string, circleId: string, p: any) {
     myWish: '', myNoWish: false, exclusions: [], me: null, santa: null, readyCount: 0, pairCount: 0, unpaired: [], reveal: null,
     _wishes: {} as Record<string, string>,
   };
-  const others = () => ((fixtures!['GET /circles'] as any[]).find(c => c.id === circleId)?.members ?? [])
+  // « Juste un lien » (Cercle personnel) : les amis arrivent par le lien d'invitation du Plan, une fois qu'Alex l'a demandé
+  const personal = !!(fixtures!['GET /circles'] as any[]).find(c => c.id === circleId)?.isPersonal;
+  const others = () => personal ? demoFriends() : ((fixtures!['GET /circles'] as any[]).find(c => c.id === circleId)?.members ?? [])
     .filter((m: any) => m.userId !== me.id).slice(0, 5).map((m: any) => m.user);
-  // Les amis arrivent un par un (y compris ceux qui rejoignent le Cercle juste après sa création)
-  [0, 1, 2, 3, 4].forEach(i => window.setTimeout(() => {
+  const arrive = (first: number, step: number) => [0, 1, 2, 3, 4].forEach(i => window.setTimeout(() => {
     const st = fixtures![key]; const detail = fixtures![`GET /plans/${planId}`];
     const u = others()[i];
     if (!u || !st || !detail || st.drawn || st.participants.some((x: any) => x.id === u.id)) return;
     const wish = i === 2 ? '' : santaWishes()[i % santaWishes().length];
     st._wishes[u.id] = wish;
     st.participants.push({ id: u.id, pseudo: u.pseudo, firstName: u.firstName, wishStatus: wish ? 'wish' : 'none' });
-    detail.members.push({ userId: u.id, planId, rsvp: 'in', joinedAt: now(), seen: {}, user: u, isGuest: false });
+    detail.members.push({ userId: u.id, planId, rsvp: 'in', joinedAt: now(), seen: {}, user: u, isGuest: personal });
     changed(planId, circleId);
-  }, 6000 + i * 1500));
+  }, first + i * step));
+  if (personal) santaByLink.set(planId, () => arrive(3000, 1300));
+  else arrive(6000, 1500);
 }
+// Plans « Juste un lien » de la démo dont les amis attendent le lien d'invitation
+const santaByLink = new Map<string, () => void>();
 function drawDemoSanta(planId: string) {
   const st = fixtures![`GET /plans/${planId}/santa`];
   if (st.participants.length < 3) throw new DemoError(400, tr('ui.demoApi.santaMin'));
@@ -1611,6 +1618,33 @@ function route(method: string, path: string, body: any): any {
     const msg = { id: newId('pm'), content: String(body.content ?? '').trim(), createdAt: now(), editedAt: null, deletedAt: null, pollId: m[1], authorId: me.id, author: meRef() };
     (fixtures![`GET /circles/polls/${m[1]}/messages`] ??= []).push(msg);
     return msg;
+  }
+
+  // « Juste un lien » : le Cercle personnel « Mes Plans » d'Alex (créé au besoin)
+  if (path === '/circles/personal' && method === 'POST') {
+    let circle = (fixtures!['GET /circles'] as any[]).find(c => c.isPersonal && c.creatorId === me.id);
+    if (!circle) {
+      const id = newId('circle');
+      circle = {
+        id, name: tr('ui.demoApi.personalCircle'), code: Math.random().toString(36).slice(2, 8).toUpperCase(), description: null,
+        color: null, createdAt: now(), isPersonal: true, deletionMode: 'creator', admissionMode: 'creator',
+        planCreationMode: 'creator', pollCreationMode: 'creator', creatorId: me.id, creator: meRef(), deleteVotes: [], joinRequests: [],
+        _count: { plans: 0 }, plans: [], hasUnseen: false,
+        members: [{ userId: me.id, circleId: id, role: 'admin', joinedAt: now(), user: { ...meRef(), firstName: me.firstName } }],
+      };
+      fixtures!['GET /circles'].push(circle);
+      fixtures![`GET /circles/${id}/plans`] = [];
+      fixtures![`GET /circles/${id}/polls`] = [];
+      fixtures![`GET /circles/${id}/history`] = [];
+    }
+    return { id: circle.id };
+  }
+
+  // Lien d'invitation d'un Plan (pour l'afficher et le partager ; personne ne s'inscrit vraiment)
+  if ((m = path.match(/^\/plans\/([^/]+)\/guest-link$/)) && method === 'POST') {
+    const join = santaByLink.get(m[1]);
+    if (join) { santaByLink.delete(m[1]); join(); }
+    return { token: `demo-${m[1].slice(-8)}` };
   }
 
   // Créer un Cercle (vide, Alex seul membre)

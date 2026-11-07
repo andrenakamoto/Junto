@@ -2185,6 +2185,9 @@ par `demoAdapter` (GET /circles, `DEMO_CIRCLE_PHOTOS`). Nouvelles personnes : av
 (`startDemoSanta` / `drawDemoSanta`) : les membres du Cercle répondent « Je suis in » avec leurs envies (`ui.demoApi.santaWishes`), le
 tirage marche en mémoire (la personne tirée a des envies), le Père Noël d'Alex écrit 5 s après (`santaHello`). Les autres fonctions à
 activer d'un Plan créé (quiz, Killer, assemblée…) renvoient le message « pas disponible dans la démo ». Parcours filmé dans la vidéo 48.
+**« Juste un lien » dans la démo** (2026-11-06) : POST `/circles/personal` crée le Cercle « Mes Plans » d'Alex (`ui.demoApi.personalCircle`) et POST
+`/plans/:id/guest-link` renvoie un lien fictif ; les amis d'un Secret Santa de ce Cercle arrivent en invités quand le lien est demandé
+(`santaByLink`). Parcours filmé dans la vidéo 48 refaite.
 
 **Campagne « Père Noël secret »** (2026-10-29, page publique **`/pere-noel`** = `pages/SantaPage.tsx`, textes `i18n/<langue>/noel.ts`) :
 explique la fonction (étapes, fonctions, pour qui, FAQ), en décor de Noël (`components/noel/ChristmasDecor.tsx` : neige qui tombe,
