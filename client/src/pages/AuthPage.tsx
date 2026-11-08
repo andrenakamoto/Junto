@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { lightTokenField } from '../lib/lightGuest';
 import { sourceField } from '../lib/source';
-import { MiniGarland, Snowfall, TreeScene } from '../components/noel/ChristmasDecor';
+import { MiniGarland, Snowfall, SantaScene } from '../components/noel/ChristmasDecor';
 import { requestNewPlan } from '../lib/newPlanIntent';
 import { Modal } from '../components/ui/Modal';
 import { DemoChoices } from '../components/ui/DemoChoices';
@@ -400,7 +400,7 @@ export function AuthPage() {
           {/* Campagne de Noël (/pere-noel), téléphone et tablette : une carte sous le formulaire (sur grand écran : panneau à droite) */}
           {santaSeason() && (
             <Link to="/pere-noel" className="lg:hidden mt-3 flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl border border-rose-400/30 bg-gradient-to-br from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] hover:border-rose-300/60 transition-colors">
-              <TreeScene className="w-16 flex-shrink-0" />
+              <SantaScene className="w-16 flex-shrink-0" />
               <span className="flex-1 min-w-0">
                 <span className="block text-white font-semibold text-sm leading-snug">{t('noel.authBanner')}</span>
                 <span className="block text-rose-100/80 text-xs mt-0.5">{t('noel.authBannerSub')}</span>
@@ -458,9 +458,10 @@ function SantaPanel({ onOrganize }: { onOrganize: () => void }) {
       <Snowfall count={16} />
       <MiniGarland count={15} />
       <div className="relative px-8 pt-4 pb-8">
-        <TreeScene className="w-40 mx-auto drop-shadow-2xl" />
+        <SantaScene className="w-44 mx-auto drop-shadow-2xl" />
         <p className="mt-4 inline-block text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-rose-100">{t('noel.badge')}</p>
-        <h2 className="mt-3 text-3xl font-bold leading-tight" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.title')}</h2>
+        <h2 className="mt-3 text-5xl font-bold leading-none" style={{ fontFamily: 'Fraunces, serif' }}>{t('noel.panelTitle')}</h2>
+        <p className="mt-2 text-lg font-semibold text-rose-100">{t('noel.panelSub')}</p>
         <ul className="mt-4 space-y-2.5">
           {(['draw', 'wishes', 'messages'] as const).map(k => (
             <li key={k} className="flex gap-2.5 text-sm">

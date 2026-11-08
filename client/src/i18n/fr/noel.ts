@@ -16,7 +16,7 @@ const noel = {
   },
   featuresTitle: 'Tout est prévu',
   features: {
-    draw: { title: 'Tirage juste', text: 'Automatique, en un toucher. Tu peux éviter que deux personnes (un couple…) se tirent.' },
+    draw: { title: 'Tirage', text: 'Automatique, en un toucher. Tu peux éviter que deux personnes (un couple…) se tirent.' },
     wishes: { title: 'Listes d’envies', text: 'Chacun note ses idées de cadeaux : plus de cadeau à côté de la plaque.' },
     messages: { title: 'Messages anonymes', text: 'Pose une question à la personne que tu gâtes sans te trahir. Elle te répond sans savoir qui tu es.' },
     budget: { title: 'Budget et date', text: 'Tout le monde connaît le montant et le jour de l’échange.' },
@@ -51,7 +51,10 @@ const noel = {
   chooseLinkHint: 'Sans Cercle : tu invites qui tu veux',
   // Page d'invitation d'un Père Noël secret
   inviteNote: 'Pour participer au tirage, crée ton compte EvLY (gratuit, une minute) : c’est ainsi que tu découvriras en secret la personne que tu gâtes.',
-  authBanner: 'Ton Père Noël secret (Secret Santa), organisé en 2 minutes',
+  // Carte de la page de connexion (grand écran)
+  panelTitle: 'Secret Santa',
+  panelSub: 'Ton Père Noël secret, organisé en 2 minutes',
+  authBanner: 'Secret Santa : ton Père Noël secret, organisé en 2 minutes',
   authBannerSub: 'Tirage au sort, listes d’envies, messages anonymes',
   authBannerCta: 'Découvrir',
   inviteCta: 'Créer mon compte et participer',

@@ -16,7 +16,7 @@ const noel: Dict['noel'] = {
   },
   featuresTitle: 'È tutto previsto',
   features: {
-    draw: { title: 'Estrazione giusta', text: 'Automatica, con un tocco. Puoi evitare che due persone (una coppia…) si estraggano.' },
+    draw: { title: 'Estrazione', text: 'Automatica, con un tocco. Puoi evitare che due persone (una coppia…) si estraggano.' },
     wishes: { title: 'Liste dei desideri', text: 'Ognuno annota le sue idee regalo: niente più regali sbagliati.' },
     messages: { title: 'Messaggi anonimi', text: 'Fai una domanda alla persona che vizi senza tradirti. Ti risponde senza sapere chi sei.' },
     budget: { title: 'Budget e data', text: 'Tutti conoscono l’importo e il giorno dello scambio.' },
@@ -49,7 +49,10 @@ const noel: Dict['noel'] = {
   chooseLink: 'Con un link d’invito',
   chooseLinkHint: 'Senza Cerchio: inviti chi vuoi',
   inviteNote: 'Per partecipare all’estrazione, crea il tuo account EvLY (gratis, un minuto): così scoprirai in segreto chi devi viziare.',
-  authBanner: 'Il tuo Babbo Natale segreto (Secret Santa), organizzato in 2 minuti',
+  // Carte de la page de connexion (grand écran)
+  panelTitle: 'Secret Santa',
+  panelSub: 'Il tuo Babbo Natale segreto, organizzato in 2 minuti',
+  authBanner: 'Secret Santa: il tuo Babbo Natale segreto, organizzato in 2 minuti',
   authBannerSub: 'Estrazione, liste dei desideri, messaggi anonimi',
   authBannerCta: 'Scopri',
   inviteCta: 'Crea il mio account e partecipa',

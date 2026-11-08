@@ -16,7 +16,7 @@ const noel: Dict['noel'] = {
   },
   featuresTitle: 'An alles gedacht',
   features: {
-    draw: { title: 'Faire Auslosung', text: 'Automatisch, mit einem Tipp. Du kannst verhindern, dass sich zwei Personen (ein Paar …) ziehen.' },
+    draw: { title: 'Auslosung', text: 'Automatisch, mit einem Tipp. Du kannst verhindern, dass sich zwei Personen (ein Paar …) ziehen.' },
     wishes: { title: 'Wunschlisten', text: 'Alle notieren ihre Geschenkideen: kein Geschenk mehr daneben.' },
     messages: { title: 'Anonyme Nachrichten', text: 'Frag die Person, die du beschenkst, ohne dich zu verraten. Sie antwortet, ohne zu wissen, wer du bist.' },
     budget: { title: 'Budget und Datum', text: 'Alle kennen den Betrag und den Tag der Bescherung.' },
@@ -49,6 +49,9 @@ const noel: Dict['noel'] = {
   chooseLink: 'Mit einem Einladungslink',
   chooseLinkHint: 'Ohne Kreis: Du lädst ein, wen du willst',
   inviteNote: 'Um bei der Auslosung mitzumachen, erstelle dein EvLY-Konto (gratis, eine Minute): So erfährst du geheim, wen du beschenkst.',
+  // Carte de la page de connexion (grand écran)
+  panelTitle: 'Wichteln',
+  panelSub: 'Dein Wichteln, organisiert in 2 Minuten',
   authBanner: 'Dein Wichteln, organisiert in 2 Minuten',
   authBannerSub: 'Auslosung, Wunschlisten, anonyme Nachrichten',
   authBannerCta: 'Entdecken',

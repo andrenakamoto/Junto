@@ -16,7 +16,7 @@ const noel: Dict['noel'] = {
   },
   featuresTitle: 'Everything’s covered',
   features: {
-    draw: { title: 'A fair draw', text: 'Automatic, in one tap. You can keep two people (a couple…) from drawing each other.' },
+    draw: { title: 'The draw', text: 'Automatic, in one tap. You can keep two people (a couple…) from drawing each other.' },
     wishes: { title: 'Wish lists', text: 'Everyone notes their gift ideas: no more off-the-mark presents.' },
     messages: { title: 'Anonymous messages', text: 'Ask the person you’re buying for a question without giving yourself away. They reply without knowing who you are.' },
     budget: { title: 'Budget and date', text: 'Everyone knows the amount and the day of the exchange.' },
@@ -49,6 +49,9 @@ const noel: Dict['noel'] = {
   chooseLink: 'With an invitation link',
   chooseLinkHint: 'No Circle: invite whoever you like',
   inviteNote: 'To join the draw, create your EvLY account (free, one minute): that’s how you’ll secretly find out who you’re buying for.',
+  // Carte de la page de connexion (grand écran)
+  panelTitle: 'Secret Santa',
+  panelSub: 'Organised in 2 minutes',
   authBanner: 'Your Secret Santa, set up in 2 minutes',
   authBannerSub: 'Draw, wish lists, anonymous messages',
   authBannerCta: 'Discover',

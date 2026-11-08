@@ -53,6 +53,38 @@ export function Garland() {
   );
 }
 
+// Père Noël (carte de la page de connexion), dans le même style que le sapin
+export function SantaScene({ className = '' }: { className?: string }) {
+  const id = useId().replace(/:/g, '');
+  return (
+    <svg aria-hidden viewBox="0 0 320 320" className={className}>
+      <defs><radialGradient id={`${id}-glow`}><stop offset="0" stopColor="#fde68a" stopOpacity=".4" /><stop offset="1" stopColor="#fde68a" stopOpacity="0" /></radialGradient></defs>
+      <circle cx="160" cy="140" r="140" fill={`url(#${id}-glow)`} />
+      {/* Manteau */}
+      <path d="M52 312 Q58 216 160 208 Q262 216 268 312 Z" fill="#dc2626" />
+      <rect x="146" y="240" width="28" height="72" fill="#fff" />
+      <rect x="56" y="282" width="208" height="22" fill="#1f2937" />
+      <rect x="140" y="276" width="40" height="34" rx="6" fill="#facc15" /><rect x="150" y="285" width="20" height="16" rx="3" fill="#1f2937" />
+      {/* Visage */}
+      <circle cx="160" cy="132" r="56" fill="#fcd9b6" />
+      <circle cx="122" cy="142" r="13" fill="#fda4af" opacity=".7" /><circle cx="198" cy="142" r="13" fill="#fda4af" opacity=".7" />
+      {/* Barbe */}
+      <path d="M100 136 C92 168 104 196 122 212 C132 232 150 246 160 248 C170 246 188 232 198 212 C216 196 228 168 220 136 C208 158 190 164 160 164 C130 164 112 158 100 136 Z" fill="#fff" />
+      <circle cx="112" cy="186" r="15" fill="#fff" /><circle cx="208" cy="186" r="15" fill="#fff" /><circle cx="132" cy="220" r="16" fill="#fff" /><circle cx="188" cy="220" r="16" fill="#fff" />
+      {/* Bouche, moustache, nez, yeux */}
+      <path d="M146 176 Q160 192 174 176 Z" fill="#b91c1c" />
+      <path d="M160 160 C148 150 124 154 116 172 C134 178 152 176 160 166 C168 176 186 178 204 172 C196 154 172 150 160 160 Z" fill="#fff" stroke="#e2e8f0" strokeWidth="1.5" />
+      <circle cx="160" cy="146" r="11" fill="#f9a58b" />
+      <circle cx="138" cy="122" r="6.5" fill="#1f2937" /><circle cx="182" cy="122" r="6.5" fill="#1f2937" />
+      <path d="M126 106 Q138 98 150 106 M170 106 Q182 98 194 106" stroke="#fff" strokeWidth="8" fill="none" strokeLinecap="round" />
+      {/* Bonnet */}
+      <path d="M104 92 C112 28 180 8 228 40 C252 56 262 84 266 112 L244 110 C236 86 224 74 212 70 C218 78 218 86 216 92 Z" fill="#dc2626" />
+      <rect x="94" y="78" width="132" height="32" rx="16" fill="#fff" />
+      <circle cx="258" cy="122" r="19" fill="#fff" />
+    </svg>
+  );
+}
+
 // Sapin décoré, étoile et cadeaux au pied
 export function TreeScene({ className = '' }: { className?: string }) {
   // Identifiants propres à chaque sapin : la page en a deux (grand écran, téléphone) et un dégradé d'un SVG masqué ne
