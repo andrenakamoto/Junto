@@ -456,6 +456,41 @@ const groups: Group[] = [
     ],
   },
   {
+    title: 'Organizzazioni (associazioni)',
+    topics: [
+      {
+        id: 'org-creer', emoji: '🏛️', title: 'Creare un’Organizzazione', summary: 'Riunire tutti i gruppi di un’associazione',
+        body: <><P>Per le associazioni a più livelli (scout, società, cori…). Un’Organizzazione riunisce più Cerchi, con ruoli e diritti. Se non fai parte di un’Organizzazione, per te non cambia nulla.</P>
+          <P>La creazione è su autorizzazione: scrivi a info@evly.ch. Poi <strong>«+ Crea» › «Crea un’Organizzazione»</strong>: il nome, un modello (Gioventù, Società sportiva, Coro, Associazione con comitato o Vuoto), poi ruoli, unità e squadre, tutti modificabili. EvLY crea tutti i Cerchi in una volta.</P>
+          <P>Per far entrare i membri, dai a ciascuno il <strong>codice della sua squadra</strong>, visibile con la rotellina del blocco. I responsabili convalidano le richieste e la persona riceve il ruolo previsto per quella squadra.</P></>,
+      },
+      {
+        id: 'org-cercles', emoji: '🧩', title: 'Unità, squadre e gruppi automatici', summary: 'Come sono ordinati i Cerchi',
+        body: <><L items={[<><strong>Unità</strong>: i gruppi di lavoro della direzione (tesoreria, materiale…).</>, <><strong>Squadre</strong>: i gruppi di membri, con il ruolo all’ingresso (genitore, giovane, giocatore…).</>, <><strong>Gruppi automatici</strong>: Cerchi normali di cui EvLY tiene l’elenco. Chi viene nominato responsabile entra da solo ed esce quando non ha più quel ruolo.</>]} />
+          <P>In «I miei Cerchi», i Cerchi di un’Organizzazione sono riuniti in un <strong>blocco espandibile</strong>. L’opzione «Mantieni sempre lo stesso ordine» (rotellina, scheda Cerchi) li tiene nell’ordine scelto per tutti; gli amministratori lo cambiano con le frecce ↑ ↓.</P></>,
+      },
+      {
+        id: 'org-roles', emoji: '🔑', title: 'Ruoli e diritti', summary: 'Chi può creare, scrivere, invitare',
+        body: <><P>Nella rotellina, la scheda <strong>Diritti</strong> indica che cosa può fare ogni ruolo: creare un Plan o un sondaggio, scrivere nella chat di un Plan, aggiungere file, gestire i Turni, invitare persone esterne, vedere gli importi, inviare un annuncio, gestire i membri, entrare in tutti i Cerchi. La vedono solo gli amministratori dell’Organizzazione.</P>
+          <P>Il ruolo dipende dal Cerchio: si può essere Capo nei Blu e Genitore nei Verdi. Per nominare qualcuno, apri la rotellina, espandi il Cerchio e scegli il ruolo. La scheda <strong>Persone</strong> serve a comporre la direzione.</P>
+          <P><strong>Direzione</strong>: il pulsante «Entra» permette di entrare in qualsiasi Cerchio senza codice. Si arriva in silenzio, si appare come membro e non si vota alle Assemblee di quel Cerchio.</P>
+          <P><strong>Discussione</strong>: nelle impostazioni di ogni Cerchio, spunta i ruoli che possono scrivere. I responsabili e la direzione scrivono sempre.</P></>,
+      },
+      {
+        id: 'org-pourqui', emoji: '🎯', title: '«Per chi?»', summary: 'Un Plan o un sondaggio per più gruppi',
+        body: <><P>Creando un Plan o un sondaggio di date, le persone autorizzate vedono la riga <strong>«Per chi?»</strong>: tutta l’Organizzazione, o alcune squadre, unità e gruppi. Si possono anche scegliere ruoli nelle squadre, per esempio «Arancione + Capo»: i genitori allora non vedono nulla. EvLY indica quante persone saranno coinvolte.</P>
+          <P>Chi è in più Cerchi scelti vede il Plan una sola volta e vota una sola volta. Chi arriva più tardi, o cambia ruolo, vede ciò che lo riguarda. Con più Cerchi, l’elenco dei partecipanti è riservato all’organizzazione per impostazione predefinita (modificabile in Regole).</P>
+          <P>La direzione può scegliere tutti i Cerchi, un responsabile le sue squadre.</P></>,
+      },
+      {
+        id: 'org-annonce', emoji: '📣', title: 'Annunci', summary: 'Un messaggio in più Discussioni',
+        body: <><P>Il <strong>megafono</strong> del blocco invia lo stesso messaggio nella Discussione di ogni Cerchio scelto, anche dove i membri possono solo leggere. Appare incorniciato, con il nome dell’Organizzazione.</P>
+          <P>Ognuno riceve una sola notifica e la modalità silenziosa è rispettata. Come ogni messaggio di Discussione, l’annuncio scompare dopo 7 giorni: per un’informazione duratura, meglio un Plan. Una Discussione disattivata non lo riceve, e vedi quale. Non si possono scegliere ruoli, perché tutto il Cerchio legge la Discussione.</P>
+          <P>La stessa finestra elenca i tuoi annunci recenti, per modificarli o eliminarli ovunque.</P></>,
+      },
+    ],
+  },
+  {
     title: 'Conservare i ricordi',
     topics: [
       {

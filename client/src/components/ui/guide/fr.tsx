@@ -453,6 +453,41 @@ const groups: Group[] = [
     ],
   },
   {
+    title: 'Organisations (associations)',
+    topics: [
+      {
+        id: 'org-creer', emoji: '🏛️', title: 'Créer une Organisation', summary: 'Réunir tous les groupes d’une association',
+        body: <><P>Pour les associations à plusieurs niveaux (scouts, clubs, chorales…). Une Organisation réunit plusieurs Cercles, avec des rôles et des droits. Si tu ne fais pas partie d’une Organisation, rien ne change pour toi.</P>
+          <P>La création se fait sur autorisation : écris à info@evly.ch. Ensuite, <strong>« + Créer » › « Créer une Organisation »</strong> : le nom, un modèle (Jeunesse, Club sportif, Chorale, Association avec comité ou Vierge), puis les rôles, unités et équipes, tous modifiables. EvLY crée tous les Cercles d’un coup.</P>
+          <P>Pour faire entrer les membres, donne à chacun le <strong>code de son équipe</strong>, visible avec la roue dentée du bloc. Les responsables valident les demandes, et la personne reçoit le rôle prévu pour cette équipe.</P></>,
+      },
+      {
+        id: 'org-cercles', emoji: '🧩', title: 'Unités, équipes et groupes automatiques', summary: 'Comment les Cercles sont rangés',
+        body: <><L items={[<><strong>Unités</strong> : les groupes de travail de la direction (trésorerie, matériel…).</>, <><strong>Équipes</strong> : les groupes de membres, avec leur rôle à l’entrée (parent, jeune, joueur…).</>, <><strong>Groupes automatiques</strong> : des Cercles normaux dont EvLY tient la liste. Une personne nommée responsable y entre seule, et en sort quand elle n’a plus ce rôle.</>]} />
+          <P>Dans « Mes Cercles », les Cercles d’une Organisation sont réunis dans un <strong>bloc dépliable</strong>. L’option « Garder toujours le même ordre » (roue dentée, onglet Cercles) les garde dans l’ordre choisi pour tout le monde ; les administrateurs le changent avec les flèches ↑ ↓.</P></>,
+      },
+      {
+        id: 'org-roles', emoji: '🔑', title: 'Rôles et droits', summary: 'Qui peut créer, écrire, inviter',
+        body: <><P>Dans la roue dentée, l’onglet <strong>Droits</strong> indique ce que chaque rôle peut faire : créer un Plan ou un sondage, écrire dans le chat d’un Plan, ajouter des fichiers, gérer le Planning, inviter des personnes extérieures, voir les montants, envoyer une annonce, gérer les membres, intégrer tous les Cercles. Seuls les administrateurs de l’Organisation le voient.</P>
+          <P>Le rôle dépend du Cercle : on peut être Chef chez les Bleu et Parent chez les Vert. Pour nommer quelqu’un, ouvre la roue dentée, déplie le Cercle et choisis son rôle. L’onglet <strong>Personnes</strong> sert à composer la direction.</P>
+          <P><strong>Direction</strong> : le bouton « Intégrer » permet d’entrer dans n’importe quel Cercle sans code. On y arrive en silence, on apparaît comme membre et on ne vote pas aux Assemblées de ce Cercle.</P>
+          <P><strong>Discussion</strong> : dans les paramètres de chaque Cercle, coche les rôles qui peuvent y écrire. Les responsables et la direction écrivent toujours.</P></>,
+      },
+      {
+        id: 'org-pourqui', emoji: '🎯', title: '« Pour qui ? »', summary: 'Un Plan ou un sondage pour plusieurs groupes',
+        body: <><P>En créant un Plan ou un sondage de dates, les personnes autorisées voient la ligne <strong>« Pour qui ? »</strong> : toute l’Organisation, ou certaines équipes, unités et certains groupes. On peut aussi viser des rôles dans les équipes, par exemple « Orange + Chef » : les parents ne voient alors rien. EvLY indique combien de personnes seront concernées.</P>
+          <P>Une personne dans plusieurs Cercles choisis ne voit le Plan qu’une fois et ne vote qu’une fois. Une personne qui arrive plus tard, ou qui change de rôle, voit ce qui la concerne. Quand plusieurs Cercles sont visés, la liste des participants est réservée à l’organisation par défaut (modifiable dans Règles).</P>
+          <P>La direction peut viser tous les Cercles ; un responsable, ses équipes.</P></>,
+      },
+      {
+        id: 'org-annonce', emoji: '📣', title: 'Annonces', summary: 'Un message dans plusieurs Discussions',
+        body: <><P>Le <strong>mégaphone</strong> du bloc envoie un même message dans la Discussion de chaque Cercle choisi, même là où les membres ne font que lire. Il y apparaît encadré, avec le nom de l’Organisation.</P>
+          <P>Chacun ne reçoit qu’une notification, et le mode silencieux est respecté. Comme tout message de Discussion, l’annonce disparaît après 7 jours : pour une information durable, préfère un Plan. Une Discussion désactivée ne la reçoit pas, et tu vois laquelle. On ne peut pas choisir des rôles, car tout le Cercle lit la Discussion.</P>
+          <P>La même fenêtre liste tes annonces récentes pour les modifier ou les supprimer partout.</P></>,
+      },
+    ],
+  },
+  {
     title: 'Garder une trace',
     topics: [
       {

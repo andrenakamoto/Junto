@@ -449,6 +449,41 @@ const groups: Group[] = [
     ],
   },
   {
+    title: 'Organisations (associations)',
+    topics: [
+      {
+        id: 'org-creer', emoji: '🏛️', title: 'Create an Organisation', summary: 'Bring together all of an association’s groups',
+        body: <><P>For associations with several levels (scouts, clubs, choirs…). An Organisation brings several Circles together, with roles and rights. If you aren’t part of an Organisation, nothing changes for you.</P>
+          <P>Creating one requires authorisation: write to info@evly.ch. Then <strong>“+ Create” › “Create an Organisation”</strong>: the name, a template (Youth, Sports club, Choir, Association with a committee or Blank), then roles, units and teams, all editable. EvLY creates all the Circles at once.</P>
+          <P>To bring members in, give each one their <strong>team’s code</strong>, shown under the block’s gear icon. Coordinators approve requests, and the person receives the role set for that team.</P></>,
+      },
+      {
+        id: 'org-cercles', emoji: '🧩', title: 'Units, teams and automatic groups', summary: 'How the Circles are organised',
+        body: <><L items={[<><strong>Units</strong>: the leadership’s working groups (treasury, equipment…).</>, <><strong>Teams</strong>: the groups of members, with their role on joining (parent, young person, player…).</>, <><strong>Automatic groups</strong>: normal Circles whose list EvLY keeps. Someone appointed coordinator joins automatically, and leaves when they no longer have that role.</>]} />
+          <P>In “My Circles”, an Organisation’s Circles are gathered in an <strong>expandable block</strong>. The “Always keep the same order” option (gear icon, Circles tab) keeps them in the chosen order for everyone; administrators change it with the ↑ ↓ arrows.</P></>,
+      },
+      {
+        id: 'org-roles', emoji: '🔑', title: 'Roles and rights', summary: 'Who can create, write, invite',
+        body: <><P>Under the gear icon, the <strong>Rights</strong> tab shows what each role can do: create a Plan or poll, write in a Plan’s chat, add files, manage the Schedule, invite outside people, see amounts, send an announcement, manage members, join all Circles. Only the Organisation’s administrators see it.</P>
+          <P>A role depends on the Circle: you can be a team leader in Blue and a parent in Green. To appoint someone, open the gear icon, expand the Circle and choose their role. The <strong>People</strong> tab is for choosing the leadership.</P>
+          <P><strong>Leadership</strong>: the “Join” button lets you enter any Circle without a code. You arrive muted, appear as a member and don’t vote in that Circle’s Assemblies.</P>
+          <P><strong>Discussion</strong>: in each Circle’s settings, tick the roles that can write. Coordinators and the leadership can always write.</P></>,
+      },
+      {
+        id: 'org-pourqui', emoji: '🎯', title: '“Who is it for?”', summary: 'A Plan or poll for several groups',
+        body: <><P>When creating a Plan or date poll, authorised people see the <strong>“Who is it for?”</strong> line: the whole Organisation, or certain teams, units and groups. You can also target roles in the teams, for example “Orange + Team leader”: parents then see nothing. EvLY shows how many people are concerned.</P>
+          <P>Someone in several chosen Circles sees the Plan once and votes once. Someone who arrives later, or changes role, sees what concerns them. With several Circles, the participant list is reserved for the organisation by default (can be changed in Rules).</P>
+          <P>The leadership can target all Circles; a coordinator, their own teams.</P></>,
+      },
+      {
+        id: 'org-annonce', emoji: '📣', title: 'Announcements', summary: 'One message in several Discussions',
+        body: <><P>The block’s <strong>megaphone</strong> sends the same message to the Discussion of each chosen Circle, even where members can only read. It appears framed, with the Organisation’s name.</P>
+          <P>Everyone gets just one notification, and mute settings are respected. Like any Discussion message, the announcement disappears after 7 days: for lasting information, use a Plan instead. A switched-off Discussion doesn’t receive it, and you see which one. Roles can’t be chosen, because the whole Circle reads the Discussion.</P>
+          <P>The same window lists your recent announcements so you can edit or delete them everywhere.</P></>,
+      },
+    ],
+  },
+  {
     title: 'Keeping a record',
     topics: [
       {

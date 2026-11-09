@@ -465,6 +465,41 @@ const groups: Group[] = [
     ],
   },
   {
+    title: 'Organisationen (Vereine)',
+    topics: [
+      {
+        id: 'org-creer', emoji: '🏛️', title: 'Organisation erstellen', summary: 'Alle Gruppen eines Vereins zusammenbringen',
+        body: <><P>Für Vereine mit mehreren Ebenen (Pfadi, Clubs, Chöre…). Eine Organisation vereint mehrere Kreise mit Rollen und Rechten. Wenn du zu keiner Organisation gehörst, ändert sich für dich nichts.</P>
+          <P>Das Erstellen ist nur nach Freischaltung möglich: Schreib an info@evly.ch. Danach <strong>«+ Erstellen» › «Organisation erstellen»</strong>: der Name, eine Vorlage (Jugend, Sportverein, Chor, Verein mit Vorstand oder Leer), dann Rollen, Einheiten und Teams, alles änderbar. EvLY erstellt alle Kreise auf einmal.</P>
+          <P>Damit Mitglieder beitreten, gib jedem den <strong>Code seines Teams</strong>, sichtbar über das Zahnrad des Blocks. Die Verantwortlichen bestätigen die Anfragen, und die Person erhält die für dieses Team vorgesehene Rolle.</P></>,
+      },
+      {
+        id: 'org-cercles', emoji: '🧩', title: 'Einheiten, Teams und automatische Gruppen', summary: 'Wie die Kreise geordnet sind',
+        body: <><L items={[<><strong>Einheiten</strong>: die Arbeitsgruppen der Leitung (Finanzen, Material…).</>, <><strong>Teams</strong>: die Mitgliedergruppen mit ihrer Rolle beim Eintritt (Elternteil, Jugendliche, Spieler…).</>, <><strong>Automatische Gruppen</strong>: normale Kreise, deren Liste EvLY führt. Wer zur verantwortlichen Person ernannt wird, kommt von selbst hinein und geht wieder, wenn die Rolle endet.</>]} />
+          <P>Unter «Meine Kreise» sind die Kreise einer Organisation in einem <strong>aufklappbaren Block</strong> vereint. Die Option «Immer dieselbe Reihenfolge» (Zahnrad, Tab Kreise) behält für alle die gewählte Reihenfolge; Administratoren ändern sie mit den Pfeilen ↑ ↓.</P></>,
+      },
+      {
+        id: 'org-roles', emoji: '🔑', title: 'Rollen und Rechte', summary: 'Wer erstellen, schreiben, einladen darf',
+        body: <><P>Im Zahnrad zeigt der Tab <strong>Rechte</strong>, was jede Rolle darf: Plan oder Umfrage erstellen, im Chat eines Plans schreiben, Dateien hinzufügen, den Einsatzplan verwalten, Externe einladen, Beträge sehen, Ankündigungen senden, Mitglieder verwalten, allen Kreisen beitreten. Nur die Administratoren der Organisation sehen ihn.</P>
+          <P>Die Rolle hängt vom Kreis ab: Man kann bei den Blauen Gruppenleiter und bei den Grünen Elternteil sein. Um jemanden zu ernennen, öffne das Zahnrad, klappe den Kreis auf und wähle die Rolle. Im Tab <strong>Personen</strong> stellst du die Leitung zusammen.</P>
+          <P><strong>Leitung</strong>: Mit «Beitreten» kommt man ohne Code in jeden Kreis. Man ist dort stummgeschaltet, erscheint als Mitglied und stimmt an Versammlungen dieses Kreises nicht ab.</P>
+          <P><strong>Diskussion</strong>: In den Einstellungen jedes Kreises wählst du die Rollen, die schreiben dürfen. Verantwortliche und Leitung schreiben immer.</P></>,
+      },
+      {
+        id: 'org-pourqui', emoji: '🎯', title: '«Für wen?»', summary: 'Ein Plan oder eine Umfrage für mehrere Gruppen',
+        body: <><P>Beim Erstellen eines Plans oder einer Terminumfrage sehen berechtigte Personen die Zeile <strong>«Für wen?»</strong>: die ganze Organisation oder bestimmte Teams, Einheiten und Gruppen. Man kann auch Rollen in den Teams wählen, zum Beispiel «Orange + Gruppenleiter»: Die Eltern sehen dann nichts. EvLY zeigt, wie viele Personen betroffen sind.</P>
+          <P>Wer in mehreren gewählten Kreisen ist, sieht den Plan nur einmal und stimmt nur einmal ab. Wer später dazukommt oder die Rolle wechselt, sieht, was ihn betrifft. Bei mehreren Kreisen ist die Teilnehmerliste standardmässig der Organisation vorbehalten (änderbar unter Regeln).</P>
+          <P>Die Leitung kann alle Kreise wählen, Verantwortliche ihre Teams.</P></>,
+      },
+      {
+        id: 'org-annonce', emoji: '📣', title: 'Ankündigungen', summary: 'Eine Nachricht in mehreren Diskussionen',
+        body: <><P>Das <strong>Megafon</strong> des Blocks sendet dieselbe Nachricht in die Diskussion jedes gewählten Kreises, auch dort, wo Mitglieder nur lesen. Sie erscheint eingerahmt, mit dem Namen der Organisation.</P>
+          <P>Alle erhalten nur eine Benachrichtigung, und die Stummschaltung wird respektiert. Wie jede Diskussionsnachricht verschwindet die Ankündigung nach 7 Tagen: Für dauerhafte Infos nimm besser einen Plan. Eine deaktivierte Diskussion erhält sie nicht, und du siehst welche. Rollen lassen sich nicht wählen, denn der ganze Kreis liest die Diskussion.</P>
+          <P>Im selben Fenster findest du deine letzten Ankündigungen, um sie überall zu bearbeiten oder zu löschen.</P></>,
+      },
+    ],
+  },
+  {
     title: 'Erinnerungen festhalten',
     topics: [
       {
