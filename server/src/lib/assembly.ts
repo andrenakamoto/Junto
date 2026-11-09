@@ -147,8 +147,10 @@ export async function loadAssemblyPlan(planId: string) {
 export async function circleVoters(plan: { id: string; circleId: string }, nonVoterIds: string[]) {
   const members = await prisma.circleMember.findMany({
     where: { circleId: plan.circleId, user: { isLight: false, planExclusions: { none: { planId: plan.id } } } },
-    select: { user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
+    select: { orgIntegrated: true, user: { select: { id: true, pseudo: true, firstName: true, lastName: true } } },
   });
   const all = members.map(m => m.user).sort((a, b) => (a.firstName ?? a.pseudo).localeCompare(b.firstName ?? b.pseudo, 'fr'));
-  return { members: all, voterIds: all.filter(u => !nonVoterIds.includes(u.id)).map(u => u.id) };
+  // Organisation : la direction entrée par « Intégrer » suit l'assemblée sans voter
+  const observers = new Set(members.filter(m => m.orgIntegrated).map(m => m.user.id));
+  return { members: all, voterIds: all.filter(u => !nonVoterIds.includes(u.id) && !observers.has(u.id)).map(u => u.id) };
 }

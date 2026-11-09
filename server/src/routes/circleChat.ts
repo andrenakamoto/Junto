@@ -10,6 +10,7 @@ import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { countMessageSent } from '../lib/activity';
 import { notifyUser } from '../lib/push';
 import { deletePhoto, isPhotoKey, PHOTO_MAX_BYTES, savePhoto } from '../lib/photos';
+import { canWriteOrgDiscussion } from '../lib/organisations';
 import { CIRCLE_CHAT_MAX, canWriteChat, chatSince, circleMessageInclude, mentionedIn, plainCircleMessage } from '../lib/circleChat';
 
 // Discussion d'un Cercle — voir lib/circleChat.ts. Réservée aux membres du Cercle.
@@ -27,12 +28,16 @@ const photoLimiter = rateLimit({
 // Membre du Cercle, mode du chat et droit d'écrire
 async function context(userId: string, circleId: string) {
   const [circle, member] = await Promise.all([
-    prisma.circle.findUnique({ where: { id: circleId }, select: { id: true, name: true, chatMode: true } }),
+    prisma.circle.findUnique({ where: { id: circleId }, select: { id: true, name: true, chatMode: true, organisationId: true, orgDiscussionRoleIds: true } }),
     prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId } } }),
   ]);
   if (!circle || !member) return null;
   const manager = await isCircleManager(userId, circleId);
-  return { circle, manager, canWrite: canWriteChat(circle.chatMode, manager) };
+  // Cercle d'une Organisation : la Discussion se règle rôle par rôle
+  const canWrite = circle.organisationId
+    ? canWriteOrgDiscussion(circle.chatMode, manager, member.orgRoleId, circle.orgDiscussionRoleIds)
+    : canWriteChat(circle.chatMode, manager);
+  return { circle, manager, canWrite };
 }
 
 const emitUpdated = (req: AuthRequest, circleId: string, message: unknown) =>

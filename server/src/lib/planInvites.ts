@@ -1,4 +1,5 @@
 import { isCircleManager } from './circleRoles';
+import { orgPlanAllows } from './orgPermissions';
 
 // « Qui invite des personnes extérieures » (lien /invitation d'un Plan). Un Plan « Réservé à… » n'est ouvert à l'extérieur
 // que par le créateur et les organisateurs, même si la règle dit « tous ». Le Mode annonce et Découvrir créent leur lien
@@ -11,6 +12,9 @@ export function effectiveGuestMode(plan: { guestInviteMode?: string | null; visi
 export async function canInviteGuests(userId: string, plan: { creatorId: string; circleId: string; guestInviteMode?: string | null; visibility?: string | null }): Promise<boolean> {
   const mode = effectiveGuestMode(plan);
   if (mode === 'none') return false;
+  // Cercle d'une Organisation : le droit du rôle décide, quelle que soit la règle du Plan
+  const org = await orgPlanAllows(userId, plan.circleId, 'invite_guests');
+  if (org !== null) return org || plan.creatorId === userId;
   if (mode === 'all') return true;
   return plan.creatorId === userId || await isCircleManager(userId, plan.circleId);
 }

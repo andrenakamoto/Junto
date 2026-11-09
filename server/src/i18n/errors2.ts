@@ -1,5 +1,18 @@
 // Messages d'erreur de l'API (2/2) : français → [allemand, italien, anglais].
 export const ERRORS_2: Record<string, [string, string, string]> = {
+  "Nom de l'Organisation requis ({0} caractères maximum)": ['Name der Organisation erforderlich (höchstens {0} Zeichen)', "Nome dell'Organizzazione obbligatorio (al massimo {0} caratteri)", 'Organisation name required ({0} characters max)'],
+  'Structure de l’Organisation invalide': ['Ungültige Struktur der Organisation', 'Struttura dell’Organizzazione non valida', 'Invalid organisation structure'],
+  'Trop de rôles ou de Cercles dans cette Organisation': ['Zu viele Rollen oder Kreise in dieser Organisation', 'Troppi ruoli o Cerchi in questa Organizzazione', 'Too many roles or Circles in this organisation'],
+  'Une Organisation a exactement un rôle de direction': ['Eine Organisation hat genau eine Leitungsrolle', 'Un’Organizzazione ha esattamente un ruolo di direzione', 'An organisation has exactly one leadership role'],
+  'Chaque équipe doit indiquer le rôle de ses membres': ['Jedes Team muss die Rolle seiner Mitglieder angeben', 'Ogni squadra deve indicare il ruolo dei suoi membri', 'Each team must state its members’ role'],
+  'Création d’une Organisation non autorisée pour ce compte': ['Dieses Konto darf keine Organisation erstellen', 'Questo account non può creare un’Organizzazione', 'This account is not allowed to create an organisation'],
+  'Réservé à la direction de l’Organisation': ['Nur für die Leitung der Organisation', 'Riservato alla direzione dell’Organizzazione', 'For the organisation’s leadership only'],
+  'Réservé aux administrateurs de l’Organisation': ['Nur für die Administratoren der Organisation', 'Riservato agli amministratori dell’Organizzazione', 'For the organisation’s administrators only'],
+  'Choisis au moins un Cercle': ['Wähle mindestens einen Kreis', 'Scegli almeno un Cerchio', 'Choose at least one Circle'],
+  'Tu ne peux pas publier pour tous ces Cercles': ['Du kannst nicht für alle diese Kreise veröffentlichen', 'Non puoi pubblicare per tutti questi Cerchi', 'You can’t publish for all these Circles'],
+  'Tu dois être membre d’au moins un des Cercles choisis': ['Du musst Mitglied mindestens eines der gewählten Kreise sein', 'Devi essere membro di almeno uno dei Cerchi scelti', 'You must be a member of at least one of the chosen Circles'],
+  'Organisation introuvable': ['Organisation nicht gefunden', 'Organizzazione non trovata', 'Organisation not found'],
+  'Valeur invalide': ['Ungültiger Wert', 'Valore non valido', 'Invalid value'],
   'Lien invalide (il doit commencer par https://)': ['Ungültiger Link (er muss mit https:// beginnen)', 'Link non valido (deve iniziare con https://)', 'Invalid link (it must start with https://)'],
   'Lien invalide ou expiré': ['Ungültiger oder abgelaufener Link', 'Link non valido o scaduto', 'Invalid or expired link'],
   'Lien invalide ou expiré. Recommence le changement depuis « Mon profil ».': ['Ungültiger oder abgelaufener Link. Starte die Änderung erneut unter «Mein Profil».', 'Link non valido o scaduto. Ricomincia il cambio da «Il mio profilo».', 'Invalid or expired link. Start the change again from “My profile”.'],

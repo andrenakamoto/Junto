@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { orgPlanAllows } from '../lib/orgPermissions';
 import { DESCRIPTION_MAX, parseRichInput, stripFormatting } from '../lib/richText';
 import { canProposeToCircles, parseAllowCirclePlans, sourceCardFor } from '../lib/planSource';
 import { visibleSince } from '../lib/planLifecycle';
@@ -225,8 +226,12 @@ router.get('/:id', async (req: AuthRequest, res) => {
   const polled = anonymizePlanPolls(withGuests, req.userId!);
   const manages = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
   const ended = plan.endDate < new Date();
+  // Cercle d'une Organisation : écrire dans le chat et ajouter des fichiers dépendent du rôle (null = règles habituelles)
+  const [orgChat, orgFiles] = await Promise.all([orgPlanAllows(req.userId!, plan.circleId, 'write_plan_chat'), orgPlanAllows(req.userId!, plan.circleId, 'add_files')]);
   res.json({
     ...hideReservedList(showMembers ? polled : maskMembers(polled, req.userId!), req.userId!),
+    canWriteChat: orgChat !== false || plan.creatorId === req.userId,
+    ...(orgFiles !== null && { filesMode: orgFiles || plan.creatorId === req.userId ? 'all' : 'managers' }),
     // Photos et fichiers : le créateur et les organisateurs en ajoutent même si la fonction est décochée (affiche)
     canManageFiles: manages,
     // Rubrique Membres : membres des Cercles qui n'ont pas encore répondu (lib/planPending.ts) — pas pour un invité externe,
@@ -531,7 +536,8 @@ router.put('/:id', async (req: AuthRequest, res) => {
     // `excludedUserIds` : le mode du Plan est alors gardé.
     let exclusions: string[] | null = null;
     let visibility: 'hidden' | 'reserved' = plan.visibility === 'reserved' ? 'reserved' : 'hidden';
-    if (isCreator && (req.body.excludedUserIds !== undefined || req.body.allowedUserIds !== undefined || req.body.visibility !== undefined)) {
+    // Organisation, rôles visés avec « Pour qui ? » : la liste suit les rôles (lib/orgSync.ts), « Modifier » n'y touche pas
+    if (isCreator && !plan.orgRoleIds.length && (req.body.excludedUserIds !== undefined || req.body.allowedUserIds !== undefined || req.body.visibility !== undefined)) {
       const v = await exclusionsFor(await planCircleIds(plan), plan.creatorId, { visibility: req.body.visibility ?? plan.visibility, allowedUserIds: req.body.allowedUserIds, excludedUserIds: req.body.excludedUserIds });
       if ('error' in v) { res.status(400).json({ error: v.error }); return; }
       exclusions = v.ids;

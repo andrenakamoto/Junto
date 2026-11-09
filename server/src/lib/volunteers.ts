@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { orgPlanAllows } from './orgPermissions';
 import { isCircleManager } from './circleRoles';
 import { notifyUser } from './push';
 
@@ -17,7 +18,9 @@ export function volunteersEnabled(plan: { enabledFeatures: string[] }): boolean 
 }
 
 export async function canManageShifts(userId: string, plan: { creatorId: string; circleId: string }): Promise<boolean> {
-  return plan.creatorId === userId || isCircleManager(userId, plan.circleId);
+  if (plan.creatorId === userId) return true;
+  const org = await orgPlanAllows(userId, plan.circleId, 'manage_shifts');
+  return org ?? isCircleManager(userId, plan.circleId);
 }
 
 // Commentaires d'un poste (« il manque du matériel ») et poste « terminé » : réservés aux inscrits

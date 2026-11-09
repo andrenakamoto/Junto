@@ -134,7 +134,7 @@ export async function exclusionsFor(
 export async function hideReservedPlans(userId: string, circleId: string) {
   const plans = await prisma.plan.findMany({
     where: {
-      visibility: 'reserved', creatorId: { not: userId }, endDate: { gt: new Date(Date.now() - 2 * 24 * 3600e3) },
+      visibility: 'reserved', orgRoleIds: { isEmpty: true }, creatorId: { not: userId }, endDate: { gt: new Date(Date.now() - 2 * 24 * 3600e3) },
       OR: [{ circleId }, { extraCircles: { some: { circleId } } }],
       members: { none: { userId } },
     },

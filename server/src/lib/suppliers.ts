@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { orgPlanAllows } from './orgPermissions';
 import path from 'path';
 import prisma from './prisma';
 import { isCircleManager } from './circleRoles';
@@ -40,7 +41,9 @@ export function suppliersEnabled(plan: { enabledFeatures: string[] }): boolean {
 
 // Organisateurs = créateur du Plan + créateur et organisateurs du Cercle (comme le récapitulatif PDF)
 export async function canManageMoney(userId: string, plan: { creatorId: string; circleId: string }): Promise<boolean> {
-  return plan.creatorId === userId || isCircleManager(userId, plan.circleId);
+  if (plan.creatorId === userId) return true;
+  const org = await orgPlanAllows(userId, plan.circleId, 'see_money');
+  return org ?? isCircleManager(userId, plan.circleId);
 }
 
 const text = (v: unknown, max: number, label: string): string | null | { error: string } => {

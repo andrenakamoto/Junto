@@ -31,10 +31,10 @@ export async function findReportTarget(kind: unknown, messageId: unknown, userId
   if (kind === 'poll') {
     const m = await prisma.circlePollMessage.findUnique({
       where: { id: messageId },
-      select: { id: true, authorId: true, content: true, deletedAt: true, poll: { select: { id: true, circleId: true, exclusions: { where: { userId }, select: { userId: true } } } } },
+      select: { id: true, authorId: true, content: true, deletedAt: true, poll: { select: { id: true, circleId: true, extraCircles: { select: { circleId: true } }, exclusions: { where: { userId }, select: { userId: true } } } } },
     });
     if (!m || m.authorId === userId || m.poll.exclusions.length > 0) return null;
-    const member = await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId: m.poll.circleId } } });
+    const member = await prisma.circleMember.findFirst({ where: { userId, circleId: { in: [m.poll.circleId, ...m.poll.extraCircles.map(e => e.circleId)] } } });
     return member ? { kind, messageId: m.id, planId: null, pollId: m.poll.id, authorId: m.authorId, content: m.content, deletedAt: m.deletedAt } : null;
   }
   // Discussion d'un Cercle (lib/circleChat.ts) : membre du Cercle

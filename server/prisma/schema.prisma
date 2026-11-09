@@ -123,6 +123,10 @@ model User {
   proInterests           ProInterest[]
   // Découvrir : peut publier ses Plans en Mode annonce (accordé à la main dans le panneau admin)
   canPublishDiscover     Boolean                     @default(false)
+  // Organisations : peut en créer une (accordé à la main dans le panneau admin)
+  canCreateOrganisation  Boolean                     @default(false)
+  createdOrganisations   Organisation[]
+  organisationMemberships OrganisationMember[]
   capsuleDeposits        CapsuleDeposit[]
   mysteryGuesses         PlanMysteryGuess[]
 
@@ -174,6 +178,7 @@ model Circle {
   plans             Plan[]
   // Plans pour plusieurs Cercles créés dans un autre Cercle et partagés avec celui-ci
   sharedPlans       PlanCircle[]
+  sharedPolls       CirclePollCircle[]
   deleteVotes       CircleDeleteVote[]
   joinRequests      CircleJoinRequest[]
   polls             CirclePoll[]
@@ -184,6 +189,69 @@ model Circle {
   availabilities    Availability[]
   capsules          TimeCapsule[]
   suppliers         CircleSupplier[]
+
+  // Organisation (lib/organisations.ts) : null pour un Cercle ordinaire, qui garde toutes ses règles
+  organisationId      String?
+  organisation        Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  // unit (groupe de travail de la direction), team (groupe de membres), auto (liste de membres calculée)
+  orgKind             String?
+  // Équipe : rôle donné à l'entrée
+  orgDefaultRoleId    String?
+  // Unité : droits ajoutés à ses membres dans toute l'Organisation
+  orgExtraPermissions String[] @default([])
+  // Rôles qui écrivent dans la Discussion du Cercle (responsables et direction écrivent toujours)
+  orgDiscussionRoleIds String[] @default([])
+  // Cercle automatique : qui en fait partie
+  orgAutoDirection    Boolean  @default(false)
+  orgAutoRoleIds      String[] @default([])
+  orgAutoCircleIds    String[] @default([])
+
+  @@index([organisationId])
+}
+
+// Association à plusieurs niveaux : regroupe des Cercles, avec ses propres rôles (lib/organisations.ts)
+model Organisation {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  creatorId String?
+  creator   User?    @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  // Noms choisis pour « Unités » et « Équipes » (null = mots par défaut)
+  unitLabel String?
+  teamLabel String?
+
+  roles   OrganisationRole[]
+  members OrganisationMember[]
+  circles Circle[]
+}
+
+model OrganisationRole {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  name           String
+  // direction (un seul, valable partout), responsible, member
+  kind           String
+  position       Int          @default(0)
+  permissions    String[]     @default([])
+
+  circleMembers CircleMember[]
+
+  @@index([organisationId])
+}
+
+model OrganisationMember {
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Règle les rôles, les droits et la structure
+  isAdmin        Boolean      @default(false)
+  isDirection    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@id([organisationId, userId])
+  @@index([userId])
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.
@@ -212,6 +280,19 @@ model CirclePoll {
   exclusions CirclePollExclusion[]
   declines   CirclePollDecline[]
   messages   CirclePollMessage[]
+  // Organisation, « Pour qui ? » : autres Cercles et rôles visés
+  extraCircles CirclePollCircle[]
+  orgRoleIds   String[] @default([])
+}
+
+model CirclePollCircle {
+  pollId   String
+  poll     CirclePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  circleId String
+  circle   Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@id([pollId, circleId])
+  @@index([circleId])
 }
 
 // Sondage surprise : membres du Cercle pour qui le sondage n'existe pas
@@ -328,6 +409,10 @@ model CircleMember {
   joinedAt   DateTime  @default(now())
   // Dernière lecture de la discussion du Cercle (pastille « nouveau »)
   chatSeenAt DateTime?
+  // Organisation : rôle dans ce Cercle, et entrée par « Intégrer » (direction : hors des Cercles automatiques calculés)
+  orgRoleId     String?
+  orgRole       OrganisationRole? @relation(fields: [orgRoleId], references: [id], onDelete: SetNull)
+  orgIntegrated Boolean           @default(false)
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
@@ -436,6 +521,8 @@ model Plan {
   exclusions        PlanExclusion[]
   // Plan pour plusieurs Cercles : Cercles en plus de circleId (choisis à la création seulement)
   extraCircles      PlanCircle[]
+  // Organisation, « Pour qui ? » : rôles visés dans les équipes (vide = tout le monde dans les Cercles choisis)
+  orgRoleIds        String[]          @default([])
   guestLink         PlanGuestLink?
   discoverEvent     DiscoverEvent?
   capsule           TimeCapsule?

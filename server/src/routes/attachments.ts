@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { orgPlanAllows } from '../lib/orgPermissions';
 import { lockEndedPlans } from '../lib/planLifecycle';
 import multer from 'multer';
 import { fixUploadedFileName } from '../lib/fileName';
@@ -60,7 +61,9 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const viaPoster = req.query.via === 'affiche';
     // « Qui ajoute des photos et fichiers » = créateur et organisateurs (Mode annonce) : les participants voient, n'ajoutent pas
     // (photos et messages vocaux du chat compris ; les photos du match, du quiz et de l'assemblée ont leurs propres règles)
-    if (plan.filesMode === 'managers' && !organizer && !viaMatch && !viaQuiz && !viaAssembly) { res.status(403).json({ error: FILES_RESERVED_ERROR }); return; }
+    const orgFiles = await orgPlanAllows(req.userId!, plan.circleId, 'add_files');
+    const filesReserved = orgFiles === null ? plan.filesMode === 'managers' && !organizer : !orgFiles && plan.creatorId !== req.userId;
+    if (filesReserved && !viaMatch && !viaQuiz && !viaAssembly) { res.status(403).json({ error: FILES_RESERVED_ERROR }); return; }
     if (viaPoster && !organizer) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
     if (viaPoster && !req.file.mimetype.startsWith('image/')) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
     if (!viaMatch && !viaQuiz && !viaAssembly && !viaPoster && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }

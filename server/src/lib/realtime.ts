@@ -220,11 +220,11 @@ export async function resolveCircleWrite(req: Request): Promise<WriteTarget> {
     // Chat du sondage (envoi, modification, suppression) : diffusé à part (poll-message*)
     if (c === 'messages' || b === 'messages') return null;
     if (b === 'options') {
-      const option = await prisma.circlePollOption.findUnique({ where: { id: c }, select: { poll: { select: { circleId: true } } } });
-      return option ? { circleId: option.poll.circleId } : null;
+      const option = await prisma.circlePollOption.findUnique({ where: { id: c }, select: { poll: { select: { circleId: true, extraCircles: { select: { circleId: true } } } } } });
+      return option ? { circleId: option.poll.circleId, extraCircleIds: option.poll.extraCircles.map(e => e.circleId) } : null;
     }
-    const poll = await prisma.circlePoll.findUnique({ where: { id: b }, select: { circleId: true } });
-    return poll ? { circleId: poll.circleId } : null;
+    const poll = await prisma.circlePoll.findUnique({ where: { id: b }, select: { circleId: true, extraCircles: { select: { circleId: true } } } });
+    return poll ? { circleId: poll.circleId, extraCircleIds: poll.extraCircles.map(e => e.circleId) } : null;
   }
   return { circleId: a };
 }

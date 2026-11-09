@@ -77,7 +77,7 @@ export function nextOccurrence(date: Date, recurrence: Recurrence): Date {
   return fromZurich(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate(), p.h, p.mi, p.s);
 }
 
-type CreatePlan = (app: any, circleId: string, creatorId: string, input: any) => Promise<{ plan: { id: string } } | { error: string }>;
+type CreatePlan = (app: any, circleId: string, creatorId: string, input: any, org?: { extraIds: string[]; roleIds: string[]; excludedIds: string[] }) => Promise<{ plan: { id: string } } | { error: string }>;
 
 // Crée le Plan suivant de la série (une seule fois par Plan : nextOccurrenceId fait foi).
 // Renvoie l'id du nouveau Plan, ou null si la série s'arrête là.
@@ -94,7 +94,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
   const claimed = await prisma.plan.updateMany({ where: { id: planId, nextOccurrenceId: null, recurrence: { not: null } }, data: { nextOccurrenceId: 'pending' } });
   if (claimed.count === 0) return null;
   const end = async () => { await prisma.plan.update({ where: { id: planId }, data: { nextOccurrenceId: ENDED, recurrence: null } }); return null; };
-  const plan = await prisma.plan.findUnique({ where: { id: planId }, include: { items: true, exclusions: true, extraCircles: { select: { circleId: true } } } });
+  const plan = await prisma.plan.findUnique({ where: { id: planId }, include: { items: true, exclusions: true, extraCircles: { select: { circleId: true } }, circle: { select: { organisationId: true } } } });
   if (!plan?.recurrence || !plan.eventDate) return end();
   const recurrence = parseRecurrence(plan.recurrence);
   if (!recurrence) return end();
@@ -118,7 +118,10 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode, membersVisibility: plan.membersVisibility, allowCirclePlans: plan.allowCirclePlans,
     visibility: plan.visibility, surprise: plan.surprise, filesMode: plan.filesMode, guestInviteMode: plan.guestInviteMode, kind: plan.kind,
-  });
+  }, plan.circle.organisationId && (plan.extraCircles.length || plan.orgRoleIds.length)
+    // Organisation : mêmes destinataires, choisis avec « Pour qui ? »
+    ? { extraIds: plan.extraCircles.map(e => e.circleId), roleIds: plan.orgRoleIds, excludedIds: plan.exclusions.filter(e => !e.removed).map(e => e.userId) }
+    : undefined);
   if ('error' in result) { console.error('[recurrence]', plan.id, result.error); return end(); }
   const next = result.plan;
   await prisma.$transaction([
