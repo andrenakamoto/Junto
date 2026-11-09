@@ -3,6 +3,8 @@ export interface User {
   pseudo: string;
   // Découvrir : peut publier ses Plans en Mode annonce (accordé dans le panneau admin)
   canPublishDiscover?: boolean;
+  // Organisations : peut en créer une (accordé dans le panneau admin)
+  canCreateOrganisation?: boolean;
   firstName?: string | null;
   lastName?: string | null;
   /** Faux pour un compte créé avec Google (pas de mot de passe) */
@@ -91,6 +93,9 @@ export interface Circle {
   members: CircleMember[];
   /** Cercle personnel « Mes Plans » (Plan express) */
   isPersonal?: boolean;
+  /** Cercle d'une Organisation (null pour un Cercle ordinaire) */
+  organisation?: { id: string; name: string } | null;
+  orgKind?: 'unit' | 'team' | 'auto' | null;
   deleteVotes?: CircleDeleteVote[];
   joinRequests?: CircleJoinRequest[];
   /** Un de mes Plans dans ce Cercle a du nouveau depuis ma dernière visite */
@@ -241,6 +246,8 @@ export interface Plan {
   guestInviteMode?: 'all' | 'managers' | 'none';
   /** La personne qui regarde peut créer ou partager le lien des personnes extérieures */
   canInviteGuests?: boolean;
+  /** Cercle d'une Organisation : le rôle peut interdire d'écrire dans le chat */
+  canWriteChat?: boolean;
   /** Liste « Tous mes plans » : Plan où je suis invité externe (nom du Cercle masqué) */
   isGuest?: boolean;
   /** Détail d'un Plan : l'utilisateur courant y est invité externe */

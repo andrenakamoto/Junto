@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone, CalendarPlus, CalendarRange, Sparkles, ChevronLeft } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone, CalendarPlus, CalendarRange, Sparkles, ChevronLeft, ChevronDown, Network, Settings } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { PLAN_KINDS, type PlanKind } from '../../lib/planKinds';
 import { isCircleManager } from '../../lib/settings';
@@ -27,11 +27,19 @@ import { intlLocale, t } from '../../i18n';
 import { useCircleSort } from '../../lib/planSort';
 import { sortCircles } from '../../lib/order';
 import { PlanSortToggle } from '../plans/PlanSortToggle';
+import { CreateOrganisationModal } from '../organisations/CreateOrganisationModal';
+import { OrganisationModal } from '../organisations/OrganisationModal';
 
 // Recherche d'un Cercle : sans accents ni majuscules (« montvert » trouve « Jeunesse de Montvert »)
 const fold = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 // Barre de recherche à partir de ce nombre de Cercles
 const SEARCH_FROM = 5;
+// Bloc d'une Organisation : déplié d'office jusqu'à ce nombre de Cercles, choix gardé sur l'appareil
+const ORG_OPEN_UP_TO = 3;
+const ORG_OPEN_KEY = 'evly_org_open';
+interface MyOrg { id: string; name: string; isAdmin: boolean; isDirection: boolean }
+interface OrgBlock { id: string; name: string; circles: Circle[] }
+type ListEntry = { circle?: Circle; org?: OrgBlock };
 
 interface Props {
   circles: Circle[];
@@ -101,6 +109,13 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
   const menuRef = useRef<HTMLDivElement>(null);
   // Menu « + Créer »
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  // Organisations
+  const [myOrgs, setMyOrgs] = useState<MyOrg[]>([]);
+  const [showCreateOrg, setShowCreateOrg] = useState(false);
+  const [managedOrg, setManagedOrg] = useState<string | null>(null);
+  const [orgOpen, setOrgOpen] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem(ORG_OPEN_KEY) ?? '{}'); } catch { return {}; }
+  });
   const [createLevel, setCreateLevel] = useState<'main' | 'kinds'>('main');
   const createRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -147,117 +162,56 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showMenu]);
 
-  function handleLogout() {
-    disconnectSocket();
-    logout();
-    navigate('/auth');
+  // Organisations : les Cercles d'une même Organisation sont réunis dans un bloc dépliable (dès 2 Cercles, ou pour la direction).
+  // La recherche revient à une liste simple.
+  const orgKey = circles.filter(c => c.organisation).map(c => c.id).join(',');
+  useEffect(() => {
+    if (!orgKey) { setMyOrgs([]); return; }
+    api.get('/organisations/mine').then(r => setMyOrgs(r.data)).catch(() => {});
+  }, [orgKey]);
+  const listEntries = useMemo((): ListEntry[] => {
+    if (query.trim()) return shownCircles.map(circle => ({ circle }));
+    const seen = new Set<string>();
+    return shownCircles.flatMap((circle): ListEntry[] => {
+      const organisation = circle.organisation;
+      const list = organisation ? shownCircles.filter(c => c.organisation?.id === organisation.id) : [];
+      const mine = myOrgs.find(o => o.id === organisation?.id);
+      if (!organisation || (list.length < 2 && !mine?.isDirection && !mine?.isAdmin)) return [{ circle }];
+      if (seen.has(organisation.id)) return [];
+      seen.add(organisation.id);
+      return [{ org: { id: organisation.id, name: organisation.name, circles: list } }];
+    });
+  }, [shownCircles, query, myOrgs]);
+  const isOrgOpen = (org: OrgBlock) => orgOpen[org.id] ?? (org.circles.length <= ORG_OPEN_UP_TO || org.circles.some(c => c.id === selectedId));
+  function toggleOrg(org: OrgBlock) {
+    const next = { ...orgOpen, [org.id]: !isOrgOpen(org) };
+    setOrgOpen(next);
+    try { localStorage.setItem(ORG_OPEN_KEY, JSON.stringify(next)); } catch { /* préférence de confort */ }
   }
-
-  return (
-    <div className="w-full bg-slate-100 flex flex-col h-full flex-shrink-0 short:overflow-y-auto">
-      {/* Logo */}
-      <div className="px-4 py-4 border-b border-slate-200 flex items-center gap-2.5">
-        <LogoFull iconSize={32} light />
-        <div className="w-px self-stretch bg-slate-200" />
-        <p className="text-indigo-600 text-[10px] font-semibold uppercase tracking-wide leading-tight">
-          Events<br />Linked to You
-        </p>
-        <button
-          onClick={handleLogout}
-          title={t('circle.sidebar.logout')}
-          aria-label={t('circle.sidebar.logout')}
-          className="ml-auto p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-        >
-          <LogOut size={17} />
-        </button>
-      </div>
-
-      {/* Circle list */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
-        {/* Un seul « + Créer » (2026-11-03) : Plan, Plan spécifique, sondage de dates du Cercle ouvert, Cercle, rejoindre */}
-        <div className="relative mb-2" ref={createRef}>
-          <button onClick={() => { setCreateLevel('main'); setShowCreateMenu(v => !v); }} aria-expanded={showCreateMenu}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-colors">
-            <Plus size={18} />{t('circle.sidebar.createAny')}
+  function renderOrgBlock(org: OrgBlock) {
+    const open = isOrgOpen(org);
+    const hasNews = org.circles.some(c => unreadCircles.has(c.id));
+    const mine = myOrgs.find(o => o.id === org.id);
+    return (
+      <div key={org.id} className="pt-2.5">
+        <div className="flex items-center gap-1 rounded-xl bg-white border border-slate-200 shadow-sm">
+          <button onClick={() => toggleOrg(org)} aria-expanded={open} title={open ? t('org.block.collapse') : t('org.block.expand')} className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2.5 text-left">
+            {open ? <ChevronDown size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-slate-400 flex-shrink-0" />}
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-slate-800 truncate">{org.name}</span>
+              <span className="block text-xs text-slate-500">{t('org.block.count', { count: org.circles.length })}</span>
+            </span>
+            {hasNews && !open && <span className="w-2.5 h-2.5 bg-orange-500 rounded-full flex-shrink-0" />}
           </button>
-          {showCreateMenu && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-30">
-              {createLevel === 'main' ? (<>
-                {onNewPlan && createItem(CalendarPlus, t('plan.kinds.menu.standard'), t('plan.kinds.menu.standardHint'), () => onNewPlan())}
-                {onNewPlan && createItem(Sparkles, t('plan.kinds.menu.specific'), t('plan.kinds.menu.specificHint'), () => setCreateLevel('kinds'), true)}
-                {onProposeDates && createItem(CalendarRange, t('circle.planList.proposeDates'), t('circle.planList.pollHint'), onProposeDates)}
-                <div className="my-1 border-t border-slate-100" />
-                {createItem(Users, t('circle.sidebar.create'), t('circle.sidebar.createHint'), () => setShowCreate(true))}
-                {createItem(KeyRound, t('circle.sidebar.join'), t('circle.sidebar.joinHint'), () => setShowJoin(true))}
-              </>) : (<>
-                <button onClick={() => setCreateLevel('main')} className="w-full flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
-                  <ChevronLeft size={14} />{t('plan.kinds.menu.specific')}
-                </button>
-                {PLAN_KINDS.filter(k => !k.managersOnly || managesACircle).map(k => (
-                  <button key={k.kind} onClick={() => { setShowCreateMenu(false); onNewPlan?.(k.kind); }}
-                    className="w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-slate-50">
-                    <span className="text-lg leading-none mt-0.5">{k.emoji}</span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-slate-800">{t(`plan.kinds.${k.kind}.name`)}</span>
-                      <span className="block text-xs text-slate-500">{t(`plan.kinds.${k.kind}.hint`)}</span>
-                    </span>
-                  </button>
-                ))}
-              </>)}
-            </div>
+          {(mine?.isDirection || mine?.isAdmin) && (
+            <button onClick={() => setManagedOrg(org.id)} title={t('org.block.manage')} aria-label={t('org.block.manage')} className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-700"><Settings size={16} /></button>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-1.5 mb-2">
-        {([
-          [onAllPlans, allPlansActive || calendarActive, Calendar, t('circle.sidebar.allPlans')],
-          [onDiscover, discoverActive, Compass, t('discover.button')],
-        ] as const).map(([onClick, active, Icon, label]) => (
-          <button
-            key={label}
-            onClick={onClick}
-            className={`w-full flex flex-col items-center gap-1 px-1.5 py-2 rounded-xl text-center transition-all border text-[12px] md:text-[13px] leading-tight font-semibold ${
-              active
-                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
-            }`}
-          >
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-indigo-500' : 'bg-slate-100'}`}>
-              <Icon size={14} />
-            </div>
-            {label}
-          </button>
-        ))}
-        </div>
-        {/* « Mes Cercles » et le tri sur la même ligne ; la recherche en dessous, en pleine largeur */}
-        <div className="flex items-center gap-2 pl-2 pt-1">
-          <p className="flex-1 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>
-          {circles.length > 1 && <div className="flex-shrink-0"><PlanSortToggle value={circleSort} onChange={setCircleSort} /></div>}
-        </div>
-        {circles.length >= SEARCH_FROM && (
-          <div className="pt-1 pb-1.5">
-            {(
-              <div className="relative">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
-                  type="search" value={query} onChange={e => setQuery(e.target.value)}
-                  placeholder={t('circle.sidebar.search')} aria-label={t('circle.sidebar.search')}
-                  className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 [&::-webkit-search-cancel-button]:hidden"
-                />
-                {query && (
-                  <button type="button" onClick={() => setQuery('')} title={t('circle.sidebar.clearSearch')} aria-label={t('circle.sidebar.clearSearch')}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700"><X size={14} /></button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-        {circles.length === 0 && (
-          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noCircle')}</p>
-        )}
-        {circles.length > 0 && shownCircles.length === 0 && (
-          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noMatch')}</p>
-        )}
-        {shownCircles.map((circle) => {
+        {open && <div className="pl-2 border-l-2 border-slate-200 ml-2">{org.circles.map(renderCircle)}</div>}
+      </div>
+    );
+  }
+  function renderCircle(circle: Circle) {
           const selected = selectedId === circle.id;
           const nextPlan = circle.plans?.[0];
           const hasUnread = unreadCircles.has(circle.id);
@@ -390,7 +344,120 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
               )}
             </div>
           );
-        })}
+  }
+
+  function handleLogout() {
+    disconnectSocket();
+    logout();
+    navigate('/auth');
+  }
+
+  return (
+    <div className="w-full bg-slate-100 flex flex-col h-full flex-shrink-0 short:overflow-y-auto">
+      {/* Logo */}
+      <div className="px-4 py-4 border-b border-slate-200 flex items-center gap-2.5">
+        <LogoFull iconSize={32} light />
+        <div className="w-px self-stretch bg-slate-200" />
+        <p className="text-indigo-600 text-[10px] font-semibold uppercase tracking-wide leading-tight">
+          Events<br />Linked to You
+        </p>
+        <button
+          onClick={handleLogout}
+          title={t('circle.sidebar.logout')}
+          aria-label={t('circle.sidebar.logout')}
+          className="ml-auto p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+        >
+          <LogOut size={17} />
+        </button>
+      </div>
+
+      {/* Circle list */}
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-1.5 short:flex-none short:overflow-visible">
+        {/* Un seul « + Créer » (2026-11-03) : Plan, Plan spécifique, sondage de dates du Cercle ouvert, Cercle, rejoindre */}
+        <div className="relative mb-2" ref={createRef}>
+          <button onClick={() => { setCreateLevel('main'); setShowCreateMenu(v => !v); }} aria-expanded={showCreateMenu}
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-md shadow-indigo-500/20 hover:bg-indigo-700 transition-colors">
+            <Plus size={18} />{t('circle.sidebar.createAny')}
+          </button>
+          {showCreateMenu && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-30">
+              {createLevel === 'main' ? (<>
+                {onNewPlan && createItem(CalendarPlus, t('plan.kinds.menu.standard'), t('plan.kinds.menu.standardHint'), () => onNewPlan())}
+                {onNewPlan && createItem(Sparkles, t('plan.kinds.menu.specific'), t('plan.kinds.menu.specificHint'), () => setCreateLevel('kinds'), true)}
+                {onProposeDates && createItem(CalendarRange, t('circle.planList.proposeDates'), t('circle.planList.pollHint'), onProposeDates)}
+                <div className="my-1 border-t border-slate-100" />
+                {createItem(Users, t('circle.sidebar.create'), t('circle.sidebar.createHint'), () => setShowCreate(true))}
+                {createItem(KeyRound, t('circle.sidebar.join'), t('circle.sidebar.joinHint'), () => setShowJoin(true))}
+                {user?.canCreateOrganisation && createItem(Network, t('org.menu.create'), t('org.menu.createHint'), () => setShowCreateOrg(true))}
+              </>) : (<>
+                <button onClick={() => setCreateLevel('main')} className="w-full flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
+                  <ChevronLeft size={14} />{t('plan.kinds.menu.specific')}
+                </button>
+                {PLAN_KINDS.filter(k => !k.managersOnly || managesACircle).map(k => (
+                  <button key={k.kind} onClick={() => { setShowCreateMenu(false); onNewPlan?.(k.kind); }}
+                    className="w-full flex items-start gap-2.5 px-3 py-2 text-left hover:bg-slate-50">
+                    <span className="text-lg leading-none mt-0.5">{k.emoji}</span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-slate-800">{t(`plan.kinds.${k.kind}.name`)}</span>
+                      <span className="block text-xs text-slate-500">{t(`plan.kinds.${k.kind}.hint`)}</span>
+                    </span>
+                  </button>
+                ))}
+              </>)}
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-1.5 mb-2">
+        {([
+          [onAllPlans, allPlansActive || calendarActive, Calendar, t('circle.sidebar.allPlans')],
+          [onDiscover, discoverActive, Compass, t('discover.button')],
+        ] as const).map(([onClick, active, Icon, label]) => (
+          <button
+            key={label}
+            onClick={onClick}
+            className={`w-full flex flex-col items-center gap-1 px-1.5 py-2 rounded-xl text-center transition-all border text-[12px] md:text-[13px] leading-tight font-semibold ${
+              active
+                ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300'
+            }`}
+          >
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-indigo-500' : 'bg-slate-100'}`}>
+              <Icon size={14} />
+            </div>
+            {label}
+          </button>
+        ))}
+        </div>
+        {/* « Mes Cercles » et le tri sur la même ligne ; la recherche en dessous, en pleine largeur */}
+        <div className="flex items-center gap-2 pl-2 pt-1">
+          <p className="flex-1 min-w-0 text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">{t('circle.sidebar.myCircles')}</p>
+          {circles.length > 1 && <div className="flex-shrink-0"><PlanSortToggle value={circleSort} onChange={setCircleSort} /></div>}
+        </div>
+        {circles.length >= SEARCH_FROM && (
+          <div className="pt-1 pb-1.5">
+            {(
+              <div className="relative">
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="search" value={query} onChange={e => setQuery(e.target.value)}
+                  placeholder={t('circle.sidebar.search')} aria-label={t('circle.sidebar.search')}
+                  className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 [&::-webkit-search-cancel-button]:hidden"
+                />
+                {query && (
+                  <button type="button" onClick={() => setQuery('')} title={t('circle.sidebar.clearSearch')} aria-label={t('circle.sidebar.clearSearch')}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700"><X size={14} /></button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {circles.length === 0 && (
+          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noCircle')}</p>
+        )}
+        {circles.length > 0 && shownCircles.length === 0 && (
+          <p className="px-3 py-2 text-sm text-slate-400 italic">{t('circle.sidebar.noMatch')}</p>
+        )}
+        {listEntries.map(entry => entry.circle ? renderCircle(entry.circle) : renderOrgBlock(entry.org!))}
       </div>
 
       {/* Utilisateur + menu */}
@@ -490,6 +557,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
         const c = circles.find(x => x.id === membersPopover);
         return c ? <CircleMembersSheet circle={c} onlineUserIds={onlineUserIds} onClose={() => setMembersPopover(null)} onCircleUpdated={onCircleUpdated} /> : null;
       })()}
+      {showCreateOrg && <CreateOrganisationModal onClose={() => setShowCreateOrg(false)} onCreated={id => { setShowCreateOrg(false); setManagedOrg(id); }} />}
+      {managedOrg && <OrganisationModal organisationId={managedOrg} onClose={() => setManagedOrg(null)} />}
       {showCreate && (
         <CreateCircleModal
           onClose={() => setShowCreate(false)}

@@ -1105,6 +1105,8 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
               </div>
               {ended ? (
                 <p className="px-4 py-3 text-sm text-slate-500 bg-white border-t border-slate-200 text-center short:sticky short:bottom-0">{t('plan.expiry.chatClosed')}</p>
+              ) : plan.canWriteChat === false ? (
+                <p className="px-4 py-3 text-sm text-slate-500 bg-white border-t border-slate-200 text-center short:sticky short:bottom-0">{t('org.plan.readOnlyChat')}</p>
               ) : <ChatInput
                 onSend={handleSend}
                 onSendPhoto={isEnabled(plan, 'fichiers') && (plan.filesMode !== 'managers' || plan.canManageFiles) ? handleSendPhoto : undefined}

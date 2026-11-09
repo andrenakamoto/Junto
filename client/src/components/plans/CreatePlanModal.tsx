@@ -16,6 +16,7 @@ import { Recurrence } from '../../lib/recurrence';
 import { useAuth } from '../../contexts/AuthContext';
 import { VisibilityField, emptyVisibility, visibilityPayload, visibilityCount } from './VisibilityField';
 import { t } from '../../i18n';
+import { AudienceField, audienceIsWide, type AudienceValue } from '../organisations/AudienceField';
 import { KIND_GAMES, PLAN_KINDS, PlanKind, kindPreset } from '../../lib/planKinds';
 import { OPTIONAL_FEATURES } from '../../lib/settings';
 
@@ -112,6 +113,12 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
     if (on) { setGuestInviteMode('all'); guestTouched.current = true; }
     if (on) setImportantInfoMode('creator');
   }
+  // Organisation : « Pour qui ? » (null hors Organisation, ou sans le droit de publier)
+  const [audience, setAudience] = useState<AudienceValue | null>(null);
+  const wide = audienceIsWide(audience, circleId);
+  const manyCircles = wide && audience!.circleIds.length > 1;
+  const listTouched = useRef(false);
+  const showAudience = !!circleId && !fromPoll && !fromEvent && !fromAvailability && kind !== 'assemblee' && kind !== 'surprise';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -125,6 +132,7 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
     if (kind === 'jeux' && !KIND_GAMES.some(g => enabledFeatures.includes(g))) { setError(t('plan.kinds.jeux.required')); return; }
     if (kind === 'mystere' && (!realTitle.trim() || !realPlace.trim())) { setError(t('plan.kinds.mystere.required')); return; }
     if (visibleLength(importantInfo) > IMPORTANT_INFO_MAX) { setError(t('plan.format.tooLong', { field: t('plan.form.rows.important'), max: IMPORTANT_INFO_MAX })); return; }
+    if (showAudience && audience && !audience.circleIds.length) { setError(t('org.audience.none')); return; }
     setLoading(true);
     setError('');
     // « Juste un lien » : le Plan va dans le Cercle personnel (créé au besoin)
@@ -162,7 +170,9 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
     try {
       const { data } = fromPoll
         ? await api.post(`/circles/polls/${fromPoll.pollId}/convert`, { ...payload, optionId: fromPoll.optionId })
-        : await api.post(`/circles/${createIn}/plans`, payload);
+        : showAudience && wide
+          ? await api.post(`/organisations/${audience!.organisationId}/plans`, { ...payload, audience: { circleIds: audience!.circleIds, roleIds: audience!.roleIds }, ...(manyCircles && !listTouched.current ? { membersVisibility: 'managers', allowCirclePlans: false } : {}) })
+          : await api.post(`/circles/${createIn}/plans`, payload);
       // Plan mystère : le secret est enregistré tout de suite après (s'il échoue, la rubrique Mystère permet de le refaire)
       if (kind === 'mystere') await api.put(`/plans/${data.id}/mystery`, { realTitle: realTitle.trim(), realLocation: realPlace.trim() }).catch(() => {});
       // Plan standard : on invite tout de suite (un Plan sans invités ne sert à rien) ; Plan spécifique : sa rubrique
@@ -225,6 +235,8 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
           <RichTextArea value={description} onChange={setDescription} max={DESCRIPTION_MAX} rows={2} placeholder={t('plan.form.descriptionPlaceholder')} />
         </div>
 
+        {showAudience && <AudienceField key={circleId} circleId={circleId} value={audience} onChange={setAudience} kind="plan" />}
+        {showAudience && manyCircles && !listTouched.current && <p className="text-xs text-slate-500 -mt-2">{t('org.audience.multiNote')}</p>}
         <OptionsBox>
           <OptionRow icon={<AlertTriangle size={16} />} label={t('plan.form.rows.important')} modified={!!importantInfo.trim()}
             summary={importantInfo.trim() ? stripFormatting(importantInfo.trim()).split('\n')[0] : t('plan.form.sum.none')}>
@@ -247,7 +259,7 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
           )}
           <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0} defaultOpen={kind === 'cours' || kind === 'annonce'}
             summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1 + chosenExtra.length, visibilityCount(vis).reserved)}>
-            {!fromPoll && !fromEvent && kind !== 'assemblee' && otherCircles.length > 0 && (
+            {!wide && !fromPoll && !fromEvent && kind !== 'assemblee' && otherCircles.length > 0 && (
               <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input type="checkbox" checked={multi} onChange={e => setMulti(e.target.checked)} className="accent-indigo-600" />
@@ -279,14 +291,14 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
               placeholder={t('plan.form.maxPlaceholder')}
             />
             {user && (
-              kind !== 'surprise' && <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
+              kind !== 'surprise' && !wide && <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
             )}
           </OptionRow>
           <OptionRow icon={<Lock size={16} />} label={t('plan.form.rows.rules')} modified={!rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility, filesMode) || !allowCirclePlans}
             summary={rulesAreDefault(editMode, importantInfoMode, deletionMode, membersVisibility, filesMode) && allowCirclePlans ? t('plan.form.sum.defaults') : t('plan.form.sum.custom')}>
             <EditModeField value={editMode} onChange={setEditMode} />
             <ImportantInfoModeField value={importantInfoMode} onChange={setImportantInfoMode} />
-            <MembersVisibilityField value={membersVisibility} onChange={setMembersVisibility} />
+            <MembersVisibilityField value={membersVisibility} onChange={v => { listTouched.current = true; setMembersVisibility(v); }} />
               <FilesModeField value={filesMode} onChange={setFilesMode} />
               <GuestInviteField value={guestInviteMode} onChange={v => { guestTouched.current = true; setGuestInviteMode(v); }} />
             {membersVisibility === 'managers' && <CirclePlansField value={allowCirclePlans} onChange={setAllowCirclePlans} />}

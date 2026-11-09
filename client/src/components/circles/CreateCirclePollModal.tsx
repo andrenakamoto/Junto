@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DateTimeField } from '../ui/DateTimeField';
 import { t } from '../../i18n';
 import { shortDateTime } from '../../lib/dates';
+import { AudienceField, audienceIsWide, type AudienceValue } from '../organisations/AudienceField';
 
 export function localDateTimeToISO(str: string): string {
   const [datePart, timePart] = str.split('T');
@@ -39,17 +40,23 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
   const [dates, setDates] = useState(['', '']);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  // Organisation : « Pour qui ? » (null hors Organisation, ou sans le droit de publier)
+  const [audience, setAudience] = useState<AudienceValue | null>(null);
+  const wide = audienceIsWide(audience, circleId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const validDates = dates.filter(d => d.trim());
     if (!question.trim()) { setError(t('common.required.question')); return; }
     if (validDates.length < 2) { setError(t('common.required.twoDates')); return; }
+    if (audience && !audience.circleIds.length) { setError(t('org.audience.none')); return; }
     setCreating(true);
     setError('');
     try {
       const options = validDates.map(d => ({ label: formatOptionLabel(d), eventDate: localDateTimeToISO(d) }));
-      const { data } = await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds, surprise });
+      const { data } = wide
+        ? await api.post(`/organisations/${audience!.organisationId}/polls`, { question: question.trim(), options, audience: { circleIds: audience!.circleIds, roleIds: audience!.roleIds } })
+        : await api.post(`/circles/${circleId}/polls`, { question: question.trim(), options, excludedUserIds, surprise });
       onCreated(data);
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
@@ -95,7 +102,8 @@ export function CreateCirclePollModal({ circleId, circleMembers = [], onClose, o
           )}
         </div>
 
-        {user && (
+        <AudienceField circleId={circleId} value={audience} onChange={setAudience} kind="poll" />
+        {user && !wide && (
           <SurpriseSelector
             members={circleMembers}
             currentUserId={user.id}

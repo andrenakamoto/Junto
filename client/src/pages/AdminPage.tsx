@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight, Network } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -28,6 +28,7 @@ interface AdminUser {
   emailVerified: boolean;
   pendingEmail?: string | null;
   canPublishDiscover?: boolean;
+  canCreateOrganisation?: boolean;
   _count: { createdCircles: number };
 }
 
@@ -140,6 +141,12 @@ export function AdminPage() {
   // Découvrir : autoriser un compte à publier ses Plans (en Mode annonce)
   async function toggleDiscover(u: AdminUser) {
     await api.put(`/admin/users/${u.id}/discover`, { allowed: !u.canPublishDiscover });
+    fetchData();
+  }
+
+  // Organisations : autoriser un compte à en créer une
+  async function toggleOrganisation(u: AdminUser) {
+    await api.put(`/admin/users/${u.id}/organisation`, { allowed: !u.canCreateOrganisation });
     fetchData();
   }
 
@@ -446,6 +453,13 @@ export function AdminPage() {
                         title={u.canPublishDiscover ? 'Retirer l’autorisation : ses annonces publiées depuis ses Plans disparaissent de Découvrir' : 'Autoriser ce compte à publier ses Plans (en Mode annonce) dans Découvrir'}
                         className={`${btn} border ${u.canPublishDiscover ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}>
                         <Compass size={13} />{u.canPublishDiscover ? 'Publie dans Découvrir ✓' : 'Autoriser Découvrir'}
+                      </button>
+                    )}
+                    {u.status === 'approved' && (
+                      <button onClick={() => toggleOrganisation(u)}
+                        title={u.canCreateOrganisation ? 'Retirer l’autorisation de créer une Organisation (celles déjà créées restent)' : 'Autoriser ce compte à créer une Organisation'}
+                        className={`${btn} border ${u.canCreateOrganisation ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}>
+                        <Network size={13} />{u.canCreateOrganisation ? 'Crée des Organisations ✓' : 'Autoriser Organisation'}
                       </button>
                     )}
                     {u.status === 'rejected' && (

@@ -1,0 +1,41 @@
+// Organisations : associations à plusieurs niveaux (components/organisations)
+const org = {
+  words: { units: "Unités", teams: "Équipes", auto: "Groupes automatiques" },
+  menu: { create: "Créer une Organisation", createHint: "Une association avec plusieurs groupes" },
+  block: { expand: "Déplier", collapse: "Replier", manage: "Gérer l’Organisation", count_one: "{{count}} Cercle", count_other: "{{count}} Cercles" },
+  models: {
+    youth: { name: "Jeunesse", hint: "Scouts, mouvement de jeunesse", direction: "Dirigeant", responsible: "Chef", members: "Parent|Jeune", units: "Secrétaire responsable|Trésorerie|Spirituel|Matériel|Communication", teams: "Vert|Orange|Bleu|Rouge|Vert foncé", responsibleGroup: "Chefs", directionGroup: "Dirigeants" },
+    sport: { name: "Club sportif", hint: "Équipes, entraîneurs, parents", direction: "Comité", responsible: "Entraîneur", members: "Parent|Joueur", units: "Finances|Buvette|Tournois", teams: "U9|U11|Seniors", responsibleGroup: "Entraîneurs", directionGroup: "Comité" },
+    choir: { name: "Chorale ou musique", hint: "Pupitres, comité", direction: "Comité", responsible: "Chef de pupitre", members: "Choriste", units: "Concerts|Trésorerie", teams: "Sopranos|Altos|Ténors|Basses", responsibleGroup: "Chefs de pupitre", directionGroup: "Comité" },
+    committee: { name: "Association avec comité", hint: "Un comité et ses membres", direction: "Comité", responsible: "Responsable", members: "Membre", units: "Trésorerie|Événements|Communication", teams: "Membres", responsibleGroup: "Responsables", directionGroup: "Comité" },
+    blank: { name: "Vierge", hint: "Tout écrire soi-même", direction: "Direction", responsible: "Responsable", members: "Membre", units: "", teams: "", responsibleGroup: "Responsables", directionGroup: "Direction" },
+  },
+  create: {
+    title: "Créer une Organisation", stepOf: "Étape {{step}} sur {{total}}",
+    nameLabel: "Nom de l’Organisation", namePlaceholder: "Ex. Scouts de Carouge", chooseModel: "Quel modèle vous ressemble le plus ?", modelNote: "Tout reste modifiable à l’étape suivante.",
+    rolesTitle: "Les rôles", directionLabel: "Rôle de la direction", responsibleLabel: "Rôle des responsables d’équipe", memberRolesLabel: "Rôles des membres",
+    addRole: "Ajouter un rôle", unitsHelp: "Les groupes de travail de la direction.", teamsHelp: "Les groupes de membres, avec le rôle donné à l’entrée.", labelOf: "Comment les appelez-vous ?",
+    addUnit: "Ajouter", addTeam: "Ajouter", newItem: "Nom", remove: "Retirer",
+    autoTitle: "Groupes automatiques", autoHelp: "Des Cercles normaux, dont EvLY tient la liste : une personne nommée y entre seule, et en sort quand elle n’a plus ce rôle.",
+    autoResponsibles: "Un Cercle pour tous les responsables", autoDirection: "Un Cercle pour toute la direction", groupName: "Nom du Cercle", alsoUnits: "Avec aussi les membres de :",
+    summary_one: "EvLY va créer {{count}} Cercle. Vous y serez tous membres, en silence dans les équipes.", summary_other: "EvLY va créer {{count}} Cercles. Vous y serez membre, en silence dans les équipes.",
+    back: "Retour", next: "Continuer", submit: "Créer l’Organisation", creating: "Création…",
+    needName: "Indique le nom de l’Organisation", needRoles: "Indique le nom des rôles", needMemberRole: "Indique au moins un rôle de membre", needCircle: "Ajoute au moins une unité ou une équipe",
+  },
+  manage: {
+    title: "Organisation", tabCircles: "Cercles", tabRights: "Droits", tabPeople: "Personnes",
+    members_one: "{{count}} membre", members_other: "{{count}} membres", integrate: "Intégrer", integrated: "Membre", code: "Code", copyCode: "Copier le code", copied: "Copié",
+    showMembers: "Voir les membres", hideMembers: "Masquer les membres", role: "Rôle", noMember: "Personne pour l’instant.", integratedTag: "Direction",
+    integrateNote: "Tu arrives en mode discret : le Cercle reste en silence, sauf si on te mentionne.",
+    rightsHelp: "Ce que chaque rôle peut faire. Les autres membres ne voient pas ce tableau.", rightsAction: "Action",
+    direction: "Direction", admin: "Administration", peopleHelp: "Les personnes de la direction peuvent intégrer tous les Cercles selon le tableau des droits.", makeDirection: "Mettre dans la direction", removeDirection: "Retirer de la direction",
+    actions: {
+      create_plan: "Créer un Plan", create_poll: "Créer un sondage de dates", write_plan_chat: "Écrire dans le chat d’un Plan", add_files: "Ajouter photos et fichiers",
+      manage_shifts: "Gérer les postes du Planning", invite_guests: "Inviter des personnes extérieures", see_money: "Voir les montants des fournisseurs", manage_members: "Gérer les membres et les rôles", integrate_all: "Intégrer tous les Cercles",
+    },
+  },
+  discussion: { title: "Qui écrit dans la Discussion ?", help: "Les responsables et la direction écrivent toujours." },
+  audience: {"title": "Pour qui ?", "all": "Toute l’organisation", "roles": "Dans ces équipes", "rolesHint": "Aucun rôle coché : tout le monde.", "count_one": "{{count}} personne recevra ce Plan", "count_other": "{{count}} personnes recevront ce Plan", "pollCount_one": "{{count}} personne recevra ce sondage", "pollCount_other": "{{count}} personnes recevront ce sondage", "none": "Choisis au moins un Cercle", "multiNote": "La liste des participants sera réservée à l’organisation (modifiable dans Règles)."},
+  plan: { readOnlyChat: "Ton rôle ne permet pas d’écrire dans ce chat." },
+};
+export default org;

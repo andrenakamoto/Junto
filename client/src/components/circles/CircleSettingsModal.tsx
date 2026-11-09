@@ -10,6 +10,7 @@ import { ADMISSION_OPTIONS, CHAT_MODE_OPTIONS, ChatMode, DELETION_OPTIONS, isCir
 import { intlLocale, t } from '../../i18n';
 import { CirclePhotoField, PendingPhoto, applyCirclePhoto } from './CirclePhotoField';
 import { CIRCLE_COLORS } from './CreateCircleModal';
+import { DiscussionRolesField } from '../organisations/OrganisationModal';
 import { photoUrl } from '../../lib/photos';
 import { Flag } from 'lucide-react';
 
@@ -124,9 +125,11 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
             {t('circle.settings.willAccept', { count: pendingCount })}
           </p>
         )}
-        <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} readOnly={!canEdit} />
-        <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} readOnly={!canEdit} />
+        {/* Cercle d'une Organisation : qui crée dépend du rôle (tableau des droits) */}
+        {!circle.organisation && <PlanCreationModeField value={planCreationMode} onChange={setPlanCreationMode} readOnly={!canEdit} />}
+        {!circle.organisation && <PollCreationModeField value={pollCreationMode} onChange={setPollCreationMode} readOnly={!canEdit} />}
         <ChatModeField value={chatMode} onChange={setChatMode} readOnly={!canEdit} />
+        {circle.organisation && <DiscussionRolesField organisationId={circle.organisation.id} circleId={circle.id} readOnly={!canEdit} />}
         <AvailabilityField enabled={availabilityEnabled} onEnabledChange={setAvailabilityEnabled} threshold={availabilityThreshold} onThresholdChange={setAvailabilityThreshold} readOnly={!canEdit} />
         <DeletionModeField subject="Cercle" value={deletionMode} onChange={setDeletionMode} readOnly={!isCreator} />
         <CircleHistory circleId={circle.id} />
