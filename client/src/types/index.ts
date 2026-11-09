@@ -94,8 +94,10 @@ export interface Circle {
   /** Cercle personnel « Mes Plans » (Plan express) */
   isPersonal?: boolean;
   /** Cercle d'une Organisation (null pour un Cercle ordinaire) */
-  organisation?: { id: string; name: string } | null;
+  organisation?: { id: string; name: string; fixedOrder?: boolean } | null;
   orgKind?: 'unit' | 'team' | 'auto' | null;
+  orgPosition?: number;
+  createdAt?: string;
   deleteVotes?: CircleDeleteVote[];
   joinRequests?: CircleJoinRequest[];
   /** Un de mes Plans dans ce Cercle a du nouveau depuis ma dernière visite */

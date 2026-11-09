@@ -47,9 +47,10 @@ router.post('/', async (req: AuthRequest, res) => {
     const directionId = roleIds.get(input.roles.find(r => r.kind === 'direction')!.ref)!;
     const refs = (list: string[], map: Map<string, string>) => list.map(ref => map.get(ref)).filter((id): id is string => !!id);
     const circleIds = new Map<string, string>();
-    for (const c of input.circles) {
+    for (const [index, c] of input.circles.entries()) {
       const circle = await tx.circle.create({
         data: {
+          orgPosition: index + 1,
           name: c.name, code: codes.get(c.ref)!, color: c.color, creatorId: userId, organisationId: organisation.id, orgKind: c.kind,
           orgDefaultRoleId: c.defaultRoleRef ? roleIds.get(c.defaultRoleRef) : null, orgExtraPermissions: c.extraPermissions,
           orgDiscussionRoleIds: refs(c.discussionRoleRefs, roleIds), orgAutoDirection: c.autoDirection, orgAutoRoleIds: refs(c.autoRoleRefs, roleIds),
@@ -95,7 +96,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
     prisma.organisation.findUnique({ where: { id: req.params.id }, include: { roles: { orderBy: { position: 'asc' } } } }),
     prisma.circle.findMany({
       where: { organisationId: req.params.id }, orderBy: { createdAt: 'asc' },
-      select: { id: true, name: true, code: true, color: true, orgKind: true, orgDiscussionRoleIds: true, orgDefaultRoleId: true, _count: { select: { members: true } } },
+      select: { id: true, name: true, code: true, color: true, orgKind: true, orgPosition: true, createdAt: true, orgDiscussionRoleIds: true, orgDefaultRoleId: true, _count: { select: { members: true } } },
     }),
     prisma.circleMember.findMany({ where: { userId: req.userId!, circle: { organisationId: req.params.id } }, select: { circleId: true } }),
   ]);
@@ -228,13 +229,41 @@ router.put('/:id/circles/:circleId/discussion', async (req: AuthRequest, res) =>
   res.json({ ok: true });
 });
 
+// Après un changement d'ordre, les listes de Cercles se rechargent
+async function refreshCircleLists(app: any, organisationId: string) {
+  const circles = await prisma.circle.findMany({ where: { organisationId }, select: { id: true } });
+  for (const { id } of circles) app.get('io')?.to(`circle:${id}`).emit('circle-updated', { circleId: id });
+}
+
+// PUT /:id/order { fixedOrder } — garder les Cercles dans l'ordre choisi : administrateurs seulement
+router.put('/:id/order', async (req: AuthRequest, res) => {
+  if (!(await membership(req.params.id, req.userId!))?.isAdmin) { res.status(403).json({ error: 'Réservé aux administrateurs de l’Organisation' }); return; }
+  if (typeof req.body?.fixedOrder !== 'boolean') { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  await prisma.organisation.update({ where: { id: req.params.id }, data: { fixedOrder: req.body.fixedOrder } });
+  await refreshCircleLists(req.app, req.params.id);
+  res.json({ ok: true });
+});
+
+// PUT /:id/circles-order { circleIds } — tous les Cercles de l'Organisation, dans le nouvel ordre : administrateurs seulement
+router.put('/:id/circles-order', async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  if (!(await membership(id, req.userId!))?.isAdmin) { res.status(403).json({ error: 'Réservé aux administrateurs de l’Organisation' }); return; }
+  const raw = req.body?.circleIds;
+  const circles = await prisma.circle.findMany({ where: { organisationId: id }, select: { id: true } });
+  const known = new Set(circles.map(c => c.id));
+  if (!Array.isArray(raw) || raw.length !== known.size || new Set(raw).size !== known.size || raw.some((x: unknown) => typeof x !== 'string' || !known.has(x))) { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  await prisma.$transaction((raw as string[]).map((circleId, index) => prisma.circle.update({ where: { id: circleId }, data: { orgPosition: index + 1 } })));
+  await refreshCircleLists(req.app, id);
+  res.json({ ok: true });
+});
+
 // GET /:id/audience — ce que la personne peut viser avec « Pour qui ? » (vide : la ligne n'apparaît pas)
 router.get('/:id/audience', async (req: AuthRequest, res) => {
   const { id } = req.params;
   if (!(await membership(id, req.userId!))) { res.status(403).json({ error: 'Accès refusé' }); return; }
   const [organisation, circles, roles] = await Promise.all([
     prisma.organisation.findUnique({ where: { id }, select: { unitLabel: true, teamLabel: true } }),
-    prisma.circle.findMany({ where: { organisationId: id }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, color: true, orgKind: true } }),
+    prisma.circle.findMany({ where: { organisationId: id }, orderBy: [{ orgPosition: 'asc' }, { createdAt: 'asc' }], select: { id: true, name: true, color: true, orgKind: true } }),
     prisma.organisationRole.findMany({ where: { organisationId: id, kind: { not: 'direction' } }, orderBy: { position: 'asc' }, select: { id: true, name: true } }),
   ]);
   const allowed = [];

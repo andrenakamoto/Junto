@@ -29,6 +29,7 @@ const org: Dict['org'] = {
     members_one: "{{count}} membro", members_other: "{{count}} membri", integrate: "Entra", integrated: "Membro", code: "Codice", copyCode: "Copia il codice", copied: "Copiato",
     showMembers: "Mostra i membri", hideMembers: "Nascondi i membri", role: "Ruolo", noMember: "Ancora nessuno.", integratedTag: "Direzione",
     integrateNote: "Entri in modalità discreta: il Cerchio resta in silenzio, a meno che qualcuno ti menzioni.",
+    fixedOrder: "Mantieni sempre lo stesso ordine", fixedOrderHint: "I Cerchi restano in quest’ordine per tutti i membri, qualunque sia l’ordinamento scelto.", moveUp: "Sposta su", moveDown: "Sposta giù",
     rightsHelp: "Che cosa può fare ogni ruolo. Gli altri membri non vedono questa tabella.", rightsAction: "Azione",
     direction: "Direzione", admin: "Amministrazione", peopleHelp: "Le persone della direzione possono entrare in tutti i Cerchi secondo la tabella dei diritti.", makeDirection: "Aggiungi alla direzione", removeDirection: "Togli dalla direzione",
     actions: {

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Copy, LogIn } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, Copy, LogIn } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { t } from '../../i18n';
-import { ORG_MATRIX_ACTIONS } from '../../lib/organisations';
+import { compareOrgCircles, ORG_MATRIX_ACTIONS } from '../../lib/organisations';
 
 interface OrgRole { id: string; name: string; kind: 'direction' | 'responsible' | 'member'; permissions: string[] }
-interface OrgCircle { id: string; name: string; code: string; color: string | null; orgKind: 'unit' | 'team' | 'auto'; isMember: boolean; _count: { members: number } }
-interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; isAdmin: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
+interface OrgCircle { id: string; name: string; code: string; color: string | null; orgKind: 'unit' | 'team' | 'auto'; orgPosition: number; createdAt: string; isMember: boolean; _count: { members: number } }
+interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; fixedOrder: boolean; isAdmin: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
 interface CircleMemberRow { userId: string; orgRoleId: string | null; orgIntegrated: boolean; user: { pseudo: string; firstName: string | null } }
 interface PersonRow { userId: string; isAdmin: boolean; isDirection: boolean; user: { pseudo: string; firstName: string | null } }
 
@@ -28,10 +28,24 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
     await api.put(`/organisations/${organisationId}/roles/${role.id}`, { permissions }).catch(e => { fail(e); load(); });
   }
 
+  const ordered = view ? [...view.circles].sort(compareOrgCircles) : [];
+  const kindLabel = (kind: OrgCircle['orgKind']) => (kind === 'unit' ? view?.unitLabel || t('org.words.units') : kind === 'team' ? view?.teamLabel || t('org.words.teams') : t('org.words.auto'));
+
+  async function setFixedOrder(fixedOrder: boolean) {
+    setView(v => v && { ...v, fixedOrder });
+    await api.put(`/organisations/${organisationId}/order`, { fixedOrder }).catch(e => { fail(e); load(); });
+  }
+  async function move(index: number, delta: number) {
+    const ids = ordered.map(c => c.id);
+    [ids[index], ids[index + delta]] = [ids[index + delta], ids[index]];
+    setView(v => v && { ...v, circles: v.circles.map(c => ({ ...c, orgPosition: ids.indexOf(c.id) + 1 })) });
+    await api.put(`/organisations/${organisationId}/circles-order`, { circleIds: ids }).catch(e => { fail(e); load(); });
+  }
+
   const tabs = view?.isAdmin ? (['circles', 'rights', 'people'] as const) : (['circles'] as const);
   const tabLabel = { circles: t('org.manage.tabCircles'), rights: t('org.manage.tabRights'), people: t('org.manage.tabPeople') };
   const sections = view ? ([
-    ['unit', view.unitLabel || t('org.words.units')], ['team', view.teamLabel || t('org.words.teams')], ['auto', t('org.words.auto')],
+    ['unit', view.unitLabel || t('org.words.units')], ['auto', t('org.words.auto')], ['team', view.teamLabel || t('org.words.teams')],
   ] as const) : [];
 
   return (
@@ -47,7 +61,21 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
       {view && tab === 'circles' && (
         <div className="space-y-4">
           {view.canIntegrate && <p className="text-xs text-slate-500">{t('org.manage.integrateNote')}</p>}
-          {sections.map(([kind, label]) => {
+          {view.isAdmin && (
+            <label className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
+              <input type="checkbox" checked={view.fixedOrder} onChange={e => setFixedOrder(e.target.checked)} className="mt-0.5 w-4 h-4 accent-indigo-600" />
+              <span><span className="block text-sm font-medium text-slate-800">{t('org.manage.fixedOrder')}</span><span className="block text-xs text-slate-500">{t('org.manage.fixedOrderHint')}</span></span>
+            </label>
+          )}
+          {view.fixedOrder && (
+            <div className="space-y-1.5">
+              {ordered.map((c, i) => (
+                <CircleRow key={c.id} org={view} circle={c} onChanged={load} onError={fail} kindLabel={kindLabel(c.orgKind)}
+                  onUp={view.isAdmin && i > 0 ? () => move(i, -1) : undefined} onDown={view.isAdmin && i < ordered.length - 1 ? () => move(i, 1) : undefined} canMove={view.isAdmin} />
+              ))}
+            </div>
+          )}
+          {!view.fixedOrder && sections.map(([kind, label]) => {
             const list = view.circles.filter(c => c.orgKind === kind);
             if (!list.length) return null;
             return (
@@ -89,7 +117,7 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
   );
 }
 
-function CircleRow({ org, circle, onChanged, onError }: { org: OrgView; circle: OrgCircle; onChanged: () => void; onError: (e: any) => void }) {
+function CircleRow({ org, circle, onChanged, onError, kindLabel, onUp, onDown, canMove }: { org: OrgView; circle: OrgCircle; onChanged: () => void; onError: (e: any) => void; kindLabel?: string; onUp?: () => void; onDown?: () => void; canMove?: boolean }) {
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<CircleMemberRow[] | null>(null);
   const [copied, setCopied] = useState(false);
@@ -110,10 +138,16 @@ function CircleRow({ org, circle, onChanged, onError }: { org: OrgView; circle: 
   return (
     <div className="rounded-xl border border-slate-200">
       <div className="flex items-center gap-2 p-2.5">
+        {canMove && (
+          <span className="flex flex-col flex-shrink-0">
+            <button onClick={onUp} disabled={!onUp} title={t('org.manage.moveUp')} aria-label={`${t('org.manage.moveUp')} : ${circle.name}`} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-25"><ArrowUp size={14} /></button>
+            <button onClick={onDown} disabled={!onDown} title={t('org.manage.moveDown')} aria-label={`${t('org.manage.moveDown')} : ${circle.name}`} className="p-1 rounded text-slate-500 hover:bg-slate-100 disabled:opacity-25"><ArrowDown size={14} /></button>
+          </span>
+        )}
         <button onClick={() => setOpen(v => !v)} aria-expanded={open} title={open ? t('org.manage.hideMembers') : t('org.manage.showMembers')} className="flex items-center gap-2 flex-1 min-w-0 text-left">
           {open ? <ChevronDown size={15} className="text-slate-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-slate-400 flex-shrink-0" />}
           <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: circle.color ?? '#94a3b8' }} />
-          <span className="min-w-0"><span className="block text-sm font-medium text-slate-800 truncate">{circle.name}</span><span className="block text-xs text-slate-500">{t('org.manage.members', { count: circle._count.members })}</span></span>
+          <span className="min-w-0"><span className="block text-sm font-medium text-slate-800 truncate">{circle.name}</span><span className="block text-xs text-slate-500">{kindLabel ? `${kindLabel} · ` : ''}{t('org.manage.members', { count: circle._count.members })}</span></span>
         </button>
         {circle.orgKind !== 'auto' && (
           <button onClick={copy} title={t('org.manage.copyCode')} className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-mono text-slate-600 hover:bg-slate-100">

@@ -195,6 +195,8 @@ model Circle {
   organisation        Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
   // unit (groupe de travail de la direction), team (groupe de membres), auto (liste de membres calculée)
   orgKind             String?
+  // Place dans l'Organisation (0 = pas encore classé : unités, groupes automatiques, équipes)
+  orgPosition         Int      @default(0)
   // Équipe : rôle donné à l'entrée
   orgDefaultRoleId    String?
   // Unité : droits ajoutés à ses membres dans toute l'Organisation
@@ -219,6 +221,8 @@ model Organisation {
   // Noms choisis pour « Unités » et « Équipes » (null = mots par défaut)
   unitLabel String?
   teamLabel String?
+  // Les Cercles restent dans l'ordre choisi (Circle.orgPosition), quel que soit le tri de la liste
+  fixedOrder Boolean @default(true)
 
   roles   OrganisationRole[]
   members OrganisationMember[]

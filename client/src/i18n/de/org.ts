@@ -29,6 +29,7 @@ const org: Dict['org'] = {
     members_one: "{{count}} Mitglied", members_other: "{{count}} Mitglieder", integrate: "Beitreten", integrated: "Mitglied", code: "Code", copyCode: "Code kopieren", copied: "Kopiert",
     showMembers: "Mitglieder anzeigen", hideMembers: "Mitglieder ausblenden", role: "Rolle", noMember: "Noch niemand.", integratedTag: "Leitung",
     integrateNote: "Du kommst im diskreten Modus: Der Kreis bleibt stumm, ausser jemand erwähnt dich.",
+    fixedOrder: "Immer dieselbe Reihenfolge", fixedOrderHint: "Die Kreise bleiben für alle Mitglieder in dieser Reihenfolge, unabhängig von der gewählten Sortierung.", moveUp: "Nach oben", moveDown: "Nach unten",
     rightsHelp: "Was jede Rolle darf. Die anderen Mitglieder sehen diese Tabelle nicht.", rightsAction: "Aktion",
     direction: "Leitung", admin: "Administration", peopleHelp: "Personen der Leitung können laut Rechtetabelle allen Kreisen beitreten.", makeDirection: "Zur Leitung hinzufügen", removeDirection: "Aus der Leitung entfernen",
     actions: {

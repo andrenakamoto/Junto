@@ -3,6 +3,14 @@ import { t } from '../i18n';
 // Organisations (associations à plusieurs niveaux), miroir de server/src/lib/organisations.ts.
 // Un modèle pré-remplit l'assistant ; tous les noms restent modifiables et sont gardés dans la langue de la personne qui crée.
 
+// Ordre fixe d'une Organisation : la place choisie ; sans place (0), unités, groupes automatiques, équipes
+const KIND_RANK: Record<string, number> = { unit: 0, auto: 1, team: 2 };
+export function compareOrgCircles(a: { orgPosition?: number; orgKind?: string | null; createdAt?: string }, b: { orgPosition?: number; orgKind?: string | null; createdAt?: string }): number {
+  return (a.orgPosition ?? 0) - (b.orgPosition ?? 0)
+    || (KIND_RANK[a.orgKind ?? ''] ?? 3) - (KIND_RANK[b.orgKind ?? ''] ?? 3)
+    || (a.createdAt ?? '').localeCompare(b.createdAt ?? '');
+}
+
 export type OrgModelKey = 'youth' | 'sport' | 'choir' | 'committee' | 'blank';
 export const ORG_MODELS: { key: OrgModelKey; emoji: string; teamRoles: number[]; teamColors?: string[]; unitPerms?: Record<number, string[]> }[] = [
   { key: 'youth', emoji: '🏕️', teamRoles: [0, 0, 0, 1, 1], teamColors: ['#22c55e', '#f97316', '#3b82f6', '#ef4444', '#166534'], unitPerms: { 0: ['manage_members'], 1: ['see_money'], 4: ['publish_multi'] } },
@@ -83,5 +91,5 @@ export function draftPayload(d: OrgDraft) {
     ...(d.autoResponsibles ? [{ ref: 'autoResponsibles', name: d.autoResponsiblesName.trim() || d.responsibleName.trim(), kind: 'auto', autoRoleRefs: ['responsible'], autoCircleRefs: d.autoResponsibleUnits.map(i => `unit${i}`).filter(r => unitRefs.has(r)) }] : []),
     ...(d.autoDirection ? [{ ref: 'autoDirection', name: d.autoDirectionName.trim() || d.directionName.trim(), kind: 'auto', autoDirection: true }] : []),
   ];
-  return { name: d.name.trim(), unitLabel: d.unitLabel.trim() || null, teamLabel: d.teamLabel.trim() || null, roles, circles: [...units, ...teams, ...autos] };
+  return { name: d.name.trim(), unitLabel: d.unitLabel.trim() || null, teamLabel: d.teamLabel.trim() || null, roles, circles: [...units, ...autos, ...teams] };
 }

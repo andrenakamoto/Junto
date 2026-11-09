@@ -29,6 +29,7 @@ const org: Dict['org'] = {
     members_one: "{{count}} member", members_other: "{{count}} members", integrate: "Join", integrated: "Member", code: "Code", copyCode: "Copy code", copied: "Copied",
     showMembers: "Show members", hideMembers: "Hide members", role: "Role", noMember: "Nobody yet.", integratedTag: "Leadership",
     integrateNote: "You join in discreet mode: the Circle stays muted unless someone mentions you.",
+    fixedOrder: "Always keep the same order", fixedOrderHint: "Circles stay in this order for all members, whatever sorting is chosen.", moveUp: "Move up", moveDown: "Move down",
     rightsHelp: "What each role can do. Other members don’t see this table.", rightsAction: "Action",
     direction: "Leadership", admin: "Administration", peopleHelp: "People in the leadership can join all Circles, according to the rights table.", makeDirection: "Add to the leadership", removeDirection: "Remove from the leadership",
     actions: {

@@ -27,6 +27,7 @@ const org = {
     members_one: "{{count}} membre", members_other: "{{count}} membres", integrate: "Intégrer", integrated: "Membre", code: "Code", copyCode: "Copier le code", copied: "Copié",
     showMembers: "Voir les membres", hideMembers: "Masquer les membres", role: "Rôle", noMember: "Personne pour l’instant.", integratedTag: "Direction",
     integrateNote: "Tu arrives en mode discret : le Cercle reste en silence, sauf si on te mentionne.",
+    fixedOrder: "Garder toujours le même ordre", fixedOrderHint: "Les Cercles restent dans cet ordre pour tous les membres, quel que soit le tri choisi.", moveUp: "Monter", moveDown: "Descendre",
     rightsHelp: "Ce que chaque rôle peut faire. Les autres membres ne voient pas ce tableau.", rightsAction: "Action",
     direction: "Direction", admin: "Administration", peopleHelp: "Les personnes de la direction peuvent intégrer tous les Cercles selon le tableau des droits.", makeDirection: "Mettre dans la direction", removeDirection: "Retirer de la direction",
     actions: {

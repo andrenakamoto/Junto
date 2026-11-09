@@ -52,7 +52,7 @@ const circleInclude = {
   // Les autres membres voient le pseudo et le prénom, jamais le nom de famille
   members: { include: { user: { select: { id: true, pseudo: true, firstName: true } } }, orderBy: { joinedAt: 'asc' as const } },
   creator: { select: { id: true, pseudo: true } },
-  organisation: { select: { id: true, name: true } },
+  organisation: { select: { id: true, name: true, fixedOrder: true } },
   deleteVotes: { include: { user: { select: { id: true, pseudo: true } } } },
   joinRequests: {
     include: {

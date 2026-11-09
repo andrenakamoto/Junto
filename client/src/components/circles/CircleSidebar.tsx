@@ -28,6 +28,7 @@ import { useCircleSort } from '../../lib/planSort';
 import { sortCircles } from '../../lib/order';
 import { PlanSortToggle } from '../plans/PlanSortToggle';
 import { CreateOrganisationModal } from '../organisations/CreateOrganisationModal';
+import { compareOrgCircles } from '../../lib/organisations';
 import { OrganisationModal } from '../organisations/OrganisationModal';
 
 // Recherche d'un Cercle : sans accents ni majuscules (« montvert » trouve « Jeunesse de Montvert »)
@@ -179,7 +180,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
       if (!organisation || (list.length < 2 && !mine?.isDirection && !mine?.isAdmin)) return [{ circle }];
       if (seen.has(organisation.id)) return [];
       seen.add(organisation.id);
-      return [{ org: { id: organisation.id, name: organisation.name, circles: list } }];
+      // Ordre choisi par l'Organisation, quel que soit le tri de la liste
+      return [{ org: { id: organisation.id, name: organisation.name, circles: organisation.fixedOrder ? [...list].sort(compareOrgCircles) : list } }];
     });
   }, [shownCircles, query, myOrgs]);
   const isOrgOpen = (org: OrgBlock) => orgOpen[org.id] ?? (org.circles.length <= ORG_OPEN_UP_TO || org.circles.some(c => c.id === selectedId));
