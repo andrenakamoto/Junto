@@ -34,7 +34,7 @@ interface Props {
 // organisateurs écrivent.
 export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
   const { user } = useAuth();
-  const [data, setData] = useState<{ mode: string; canWrite: boolean; canModerate: boolean; messages: CircleMessage[] } | null>(null);
+  const [data, setData] = useState<{ mode: string; canWrite: boolean; canModerate: boolean; hasMore?: boolean; messages: CircleMessage[] } | null>(null);
   const [reporting, setReporting] = useState<CircleMessage | null>(null);
   const [planFrom, setPlanFrom] = useState<string | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
@@ -42,9 +42,36 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
   const blocked = new Set(user?.blockedUserIds ?? []);
 
   const markSeen = () => { api.post(`/circle-chat/${circle.id}/seen`).catch(() => {}); onSeen(circle.id); };
-  const load = () => api.get(`/circle-chat/${circle.id}`).then(r => setData(r.data)).catch(() => {});
+  const listRef = useRef<HTMLDivElement>(null);
+  // Page précédente : hauteur restante sous le haut de la liste, pour ne pas faire sauter l'écran
+  const keepScroll = useRef<number | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  // Un rechargement (retour dans l'app, reconnexion) garde les pages déjà ouvertes
+  const load = () => api.get(`/circle-chat/${circle.id}`).then(r => setData(d => {
+    const fresh = r.data as { hasMore?: boolean; messages: CircleMessage[] };
+    const first = fresh.messages[0]?.createdAt;
+    const older = d && first ? d.messages.filter(m => m.createdAt < first) : [];
+    return { ...r.data, hasMore: older.length ? d!.hasMore : fresh.hasMore, messages: [...older, ...fresh.messages] };
+  })).catch(() => {});
+  async function loadOlder() {
+    const first = data?.messages[0]?.createdAt;
+    if (!first || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const { data: page } = await api.get(`/circle-chat/${circle.id}`, { params: { before: first } });
+      keepScroll.current = listRef.current ? listRef.current.scrollHeight - listRef.current.scrollTop : null;
+      setData(d => d && { ...d, hasMore: page.hasMore, messages: [...page.messages, ...d.messages] });
+    } catch { /* le bouton reste disponible */ } finally { setLoadingOlder(false); }
+  }
   useEffect(() => { setData(null); load(); markSeen(); }, [circle.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [data?.messages.length]);
+  useEffect(() => {
+    if (keepScroll.current !== null && listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight - keepScroll.current;
+      keepScroll.current = null;
+      return;
+    }
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [data?.messages.length]);
 
   const replace = (m: CircleMessage) => setData(d => d && { ...d, messages: d.messages.map(x => x.id === m.id ? m : x) });
   useSocketEvent<{ circleId: string; message: CircleMessage }>('circle-message', p => {
@@ -93,10 +120,17 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
         </div>
       </div>
       <p className="px-4 md:px-6 py-1.5 text-[11px] text-slate-400 flex items-center gap-1 bg-slate-50 border-b border-slate-100 flex-shrink-0">
-        <Clock size={11} />{t('circle.chat.ttl')}
+        <Clock size={11} />{circle.organisation ? t('org.chat.ttl') : t('circle.chat.ttl')}
       </p>
 
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
+      <div ref={listRef} className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3 bg-slate-50 short:flex-none short:overflow-visible">
+        {data?.hasMore && (
+          <div className="text-center">
+            <button type="button" onClick={loadOlder} disabled={loadingOlder} className="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60">
+              {loadingOlder ? t('common.loading') : t('org.chat.older')}
+            </button>
+          </div>
+        )}
         {!data ? (
           <p className="text-center text-slate-400 text-sm pt-12">{t('common.loading')}</p>
         ) : messages.length === 0 ? (
@@ -191,6 +225,7 @@ function CircleChatMessage({ message: m, orgName, isMe, userId, canModerate, can
           <MessageEditor initial={m.content} onCancel={() => setEditing(false)} onSave={text => { setEditing(false); onEdit(text); }} />
         ) : (
           <>
+            {m.photoExpired && <p className="px-3 py-2 rounded-2xl text-xs italic text-slate-500 bg-slate-100 border border-slate-200">{t('org.chat.photoExpired')}</p>}
             {m.imageKey && (
               <button type="button" {...photoPress.handlers} onClick={() => { if (!photoPress.consumed()) onViewPhoto(m.imageKey!); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 select-none">
                 <img src={photoUrl(m.imageKey, true)} alt="" loading="lazy" draggable={false} className="max-w-[240px] max-h-[320px] object-cover block" />

@@ -11,7 +11,11 @@ import { deletePhoto } from './photos';
 export const CIRCLE_CHAT_TTL_MS = 7 * 24 * 3600 * 1000;
 export const CIRCLE_CHAT_MAX = 2000;
 
-export const chatSince = () => new Date(Date.now() - CIRCLE_CHAT_TTL_MS);
+// Cercles d'une Organisation : messages gardés 3 mois, photos 1 mois
+export const ORG_CHAT_TTL_MS = 90 * 24 * 3600 * 1000;
+export const ORG_CHAT_PHOTO_TTL_MS = 30 * 24 * 3600 * 1000;
+
+export const chatSince = (organisationId?: string | null) => new Date(Date.now() - (organisationId ? ORG_CHAT_TTL_MS : CIRCLE_CHAT_TTL_MS));
 
 export const circleMessageInclude = {
   author: { select: { id: true, pseudo: true, firstName: true } },
@@ -31,13 +35,20 @@ export function chatPreview(m: { content: string; imageKey: string | null; delet
 }
 
 // Dernier message de chaque Cercle (7 derniers jours) et Cercles avec du nouveau pour la personne
-export async function chatStateFor(userId: string, circles: { id: string; chatMode: string }[]) {
-  const ids = circles.filter(c => c.chatMode !== 'off').map(c => c.id);
+export async function chatStateFor(userId: string, circles: { id: string; chatMode: string; organisationId?: string | null }[]) {
+  const active = circles.filter(c => c.chatMode !== 'off');
+  const ids = active.map(c => c.id);
   const result = new Map<string, { last: { author: string; text: string; at: Date } | null; unseen: boolean }>();
   if (ids.length === 0) return result;
   const [lasts, members] = await Promise.all([
     prisma.circleMessage.findMany({
-      where: { circleId: { in: ids }, createdAt: { gt: chatSince() }, deletedAt: null },
+      where: {
+        deletedAt: null,
+        OR: [
+          { circleId: { in: active.filter(c => !c.organisationId).map(c => c.id) }, createdAt: { gt: chatSince() } },
+          { circleId: { in: active.filter(c => c.organisationId).map(c => c.id) }, createdAt: { gt: chatSince('org') } },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       distinct: ['circleId'],
       select: { circleId: true, authorId: true, content: true, imageKey: true, deletedAt: true, createdAt: true, author: { select: { pseudo: true } } },
@@ -67,7 +78,22 @@ export function mentionedIn(text: string, members: { userId: string; pseudo: str
 
 // Tâche horaire (gated comme les autres crons) : messages de plus de 7 jours effacés, photos comprises
 export async function deleteExpiredCircleMessages() {
-  const old = await prisma.circleMessage.findMany({ where: { createdAt: { lt: chatSince() } }, select: { id: true, imageKey: true } });
+  // Organisation : la photo part après 1 mois, le message reste jusqu'à 3 mois
+  const expiredPhotos = await prisma.circleMessage.findMany({
+    where: { imageKey: { not: null }, createdAt: { lt: new Date(Date.now() - ORG_CHAT_PHOTO_TTL_MS) }, circle: { organisationId: { not: null } } },
+    select: { id: true, imageKey: true },
+  });
+  for (const m of expiredPhotos) {
+    await deletePhoto(m.imageKey).catch(() => {});
+    await prisma.circleMessage.update({ where: { id: m.id }, data: { imageKey: null, photoExpired: true } });
+  }
+  const old = await prisma.circleMessage.findMany({
+    where: { OR: [
+      { createdAt: { lt: chatSince() }, circle: { organisationId: null } },
+      { createdAt: { lt: chatSince('org') }, circle: { organisationId: { not: null } } },
+    ] },
+    select: { id: true, imageKey: true },
+  });
   if (old.length === 0) return 0;
   for (const m of old) if (m.imageKey) await deletePhoto(m.imageKey).catch(() => {});
   await prisma.circleMessage.deleteMany({ where: { id: { in: old.map(m => m.id) } } });

@@ -362,7 +362,7 @@ router.post('/:id/announcements', announcementLimiter, async (req: AuthRequest, 
 router.get('/:id/announcements', async (req: AuthRequest, res) => {
   if (!(await membership(req.params.id, req.userId!))) { res.status(403).json({ error: 'Accès refusé' }); return; }
   const rows = await prisma.circleMessage.findMany({
-    where: { authorId: req.userId!, announcementId: { not: null }, deletedAt: null, createdAt: { gt: chatSince() }, circle: { organisationId: req.params.id } },
+    where: { authorId: req.userId!, announcementId: { not: null }, deletedAt: null, createdAt: { gt: chatSince('org') }, circle: { organisationId: req.params.id } },
     orderBy: { createdAt: 'desc' }, select: { announcementId: true, content: true, createdAt: true, circle: { select: { name: true } } },
   });
   const groups = new Map<string, { announcementId: string; content: string; createdAt: Date; circles: string[] }>();

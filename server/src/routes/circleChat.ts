@@ -48,13 +48,17 @@ router.get('/:circleId', async (req: AuthRequest, res) => {
   const ctx = await context(req.userId!, req.params.circleId);
   if (!ctx) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
   if (ctx.circle.chatMode === 'off') { res.json({ mode: 'off', canWrite: false, canModerate: ctx.manager, messages: [] }); return; }
-  const messages = await prisma.circleMessage.findMany({
-    where: { circleId: ctx.circle.id, createdAt: { gt: chatSince() } },
+  // Les plus récents d'abord ; ?before=<date> pour la page précédente (les Organisations gardent 3 mois de messages)
+  const before = typeof req.query.before === 'string' && !isNaN(Date.parse(req.query.before)) ? new Date(req.query.before) : null;
+  const pageSize = before ? 200 : 500;
+  const rows = await prisma.circleMessage.findMany({
+    where: { circleId: ctx.circle.id, createdAt: { gt: chatSince(ctx.circle.organisationId), ...(before && { lt: before }) } },
     include: circleMessageInclude,
-    orderBy: { createdAt: 'asc' },
-    take: 500,
+    orderBy: { createdAt: 'desc' },
+    take: pageSize + 1,
   });
-  res.json({ mode: ctx.circle.chatMode, canWrite: ctx.canWrite, canModerate: ctx.manager, messages: messages.map(plainCircleMessage) });
+  const messages = rows.slice(0, pageSize).reverse();
+  res.json({ mode: ctx.circle.chatMode, canWrite: ctx.canWrite, canModerate: ctx.manager, hasMore: rows.length > pageSize, messages: messages.map(plainCircleMessage) });
 });
 
 // POST /api/circle-chat/:circleId/seen — tout est lu

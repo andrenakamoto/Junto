@@ -9,7 +9,7 @@ const groups: Group[] = [
         id: 'discussion', emoji: '💬', title: 'Discussion du Cercle', summary: 'Parler entre deux sorties, sans tout mélanger',
         body: <>
           <P>Chaque Cercle peut avoir sa <strong>Discussion</strong> : la carte « 💬 Discussion » en haut de la liste des Plans. On y parle de
-            tout ce qui n'est pas encore une sortie (« Quelqu'un dispo samedi ? »). Les messages <strong>disparaissent au bout de 7 jours</strong> :
+            tout ce qui n'est pas encore une sortie (« Quelqu'un dispo samedi ? »). Les messages <strong>disparaissent au bout de 7 jours</strong> (dans une Organisation : 3 mois, et 1 mois pour les photos) :
             ce qui compte va dans un Plan.</P>
           <P><strong>Faire un Plan</strong> sous un message ouvre « Créer un Plan » avec ce message en titre. Réactions, photos et mentions
             @pseudo comme dans le chat d'un Plan.</P>
@@ -482,7 +482,7 @@ const groups: Group[] = [
       {
         id: 'org-annonce', emoji: '📣', title: 'Annonces', summary: 'Un message dans plusieurs Discussions',
         body: <><P>Le <strong>mégaphone</strong> du bloc envoie un même message dans la Discussion de chaque Cercle choisi, même là où les membres ne font que lire. Il y apparaît encadré, avec le nom de l’Organisation.</P>
-          <P>Chacun ne reçoit qu’une notification, et le mode silencieux est respecté. Comme tout message de Discussion, l’annonce disparaît après 7 jours : pour une information durable, préfère un Plan. Une Discussion désactivée ne la reçoit pas, et tu vois laquelle. On ne peut pas choisir des rôles, car tout le Cercle lit la Discussion.</P>
+          <P>Chacun ne reçoit qu’une notification, et le mode silencieux est respecté. Comme tout message de Discussion, l’annonce disparaît après 3 mois : pour une information durable, préfère un Plan. Une Discussion désactivée ne la reçoit pas, et tu vois laquelle. On ne peut pas choisir des rôles, car tout le Cercle lit la Discussion.</P>
           <P>La même fenêtre liste tes annonces récentes pour les modifier ou les supprimer partout.</P></>,
       },
     ],

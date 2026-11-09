@@ -9,7 +9,7 @@ const groups: Group[] = [
         id: 'discussion', emoji: '💬', title: 'Discussione del Cerchio', summary: "Parlare tra un'uscita e l'altra, senza mescolare tutto",
         body: <>
           <P>Ogni Cerchio può avere la sua <strong>Discussione</strong>: la scheda «💬 Discussione» in cima all'elenco dei Plan. Lì si parla di
-            tutto ciò che non è ancora un'uscita («Qualcuno è libero sabato?»). I messaggi <strong>scompaiono dopo 7 giorni</strong>:
+            tutto ciò che non è ancora un'uscita («Qualcuno è libero sabato?»). I messaggi <strong>scompaiono dopo 7 giorni</strong> (in un’Organizzazione dopo 3 mesi, le foto dopo 1 mese):
             ciò che conta va in un Plan.</P>
           <P><strong>Fare un Plan</strong> sotto un messaggio apre «Crea un Plan» con quel messaggio come titolo. Reazioni, foto e menzioni
             @pseudo come nella chat di un Plan.</P>
@@ -485,7 +485,7 @@ const groups: Group[] = [
       {
         id: 'org-annonce', emoji: '📣', title: 'Annunci', summary: 'Un messaggio in più Discussioni',
         body: <><P>Il <strong>megafono</strong> del blocco invia lo stesso messaggio nella Discussione di ogni Cerchio scelto, anche dove i membri possono solo leggere. Appare incorniciato, con il nome dell’Organizzazione.</P>
-          <P>Ognuno riceve una sola notifica e la modalità silenziosa è rispettata. Come ogni messaggio di Discussione, l’annuncio scompare dopo 7 giorni: per un’informazione duratura, meglio un Plan. Una Discussione disattivata non lo riceve, e vedi quale. Non si possono scegliere ruoli, perché tutto il Cerchio legge la Discussione.</P>
+          <P>Ognuno riceve una sola notifica e la modalità silenziosa è rispettata. Come ogni messaggio di Discussione, l’annuncio scompare dopo 3 mesi: per un’informazione duratura, meglio un Plan. Una Discussione disattivata non lo riceve, e vedi quale. Non si possono scegliere ruoli, perché tutto il Cerchio legge la Discussione.</P>
           <P>La stessa finestra elenca i tuoi annunci recenti, per modificarli o eliminarli ovunque.</P></>,
       },
     ],

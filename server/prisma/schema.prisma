@@ -1816,6 +1816,8 @@ model CircleMessage {
   reactions CircleMessageReaction[]
   // Annonce d'une Organisation : même identifiant sur la copie de chaque Cercle
   announcementId String?
+  // Organisation : photo effacée après 1 mois, le message reste
+  photoExpired Boolean @default(false)
 
   @@index([circleId, createdAt])
   @@index([announcementId])

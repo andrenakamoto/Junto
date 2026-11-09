@@ -9,7 +9,7 @@ const groups: Group[] = [
         id: 'discussion', emoji: '💬', title: 'Circle discussion', summary: 'Talk between outings, without mixing everything up',
         body: <>
           <P>Each Circle can have its <strong>Discussion</strong>: the “💬 Discussion” card at the top of the list of Plans. It's for anything
-            that isn't an outing yet (“Anyone free on Saturday?”). Messages <strong>disappear after 7 days</strong>: what matters goes into a Plan.</P>
+            that isn't an outing yet (“Anyone free on Saturday?”). Messages <strong>disappear after 7 days</strong> (in an Organisation: 3 months, and 1 month for photos): what matters goes into a Plan.</P>
           <P><strong>Make a Plan</strong> under a message opens “Create a Plan” with that message as the title. Reactions, photos and
             @username mentions, like in a Plan's chat.</P>
           <P>The creator and organisers choose in the Circle settings: <strong>Open</strong> (everyone writes),{' '}
@@ -478,7 +478,7 @@ const groups: Group[] = [
       {
         id: 'org-annonce', emoji: '📣', title: 'Announcements', summary: 'One message in several Discussions',
         body: <><P>The block’s <strong>megaphone</strong> sends the same message to the Discussion of each chosen Circle, even where members can only read. It appears framed, with the Organisation’s name.</P>
-          <P>Everyone gets just one notification, and mute settings are respected. Like any Discussion message, the announcement disappears after 7 days: for lasting information, use a Plan instead. A switched-off Discussion doesn’t receive it, and you see which one. Roles can’t be chosen, because the whole Circle reads the Discussion.</P>
+          <P>Everyone gets just one notification, and mute settings are respected. Like any Discussion message, the announcement disappears after 3 months: for lasting information, use a Plan instead. A switched-off Discussion doesn’t receive it, and you see which one. Roles can’t be chosen, because the whole Circle reads the Discussion.</P>
           <P>The same window lists your recent announcements so you can edit or delete them everywhere.</P></>,
       },
     ],

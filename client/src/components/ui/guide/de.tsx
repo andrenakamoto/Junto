@@ -9,7 +9,7 @@ const groups: Group[] = [
         id: 'discussion', emoji: '💬', title: 'Diskussion des Kreises', summary: 'Zwischen zwei Treffen reden, ohne alles zu vermischen',
         body: <>
           <P>Jeder Kreis kann seine <strong>Diskussion</strong> haben: die Karte «💬 Diskussion» oben in der Liste der Pläne. Dort redet man über
-            alles, was noch kein Treffen ist («Hat jemand am Samstag Zeit?»). Die Nachrichten <strong>verschwinden nach 7 Tagen</strong>:
+            alles, was noch kein Treffen ist («Hat jemand am Samstag Zeit?»). Die Nachrichten <strong>verschwinden nach 7 Tagen</strong> (in einer Organisation nach 3 Monaten, Fotos nach 1 Monat):
             was zählt, gehört in einen Plan.</P>
           <P><strong>Einen Plan machen</strong> unter einer Nachricht öffnet «Plan erstellen» mit dieser Nachricht als Titel. Reaktionen,
             Fotos und Erwähnungen @pseudo wie im Chat eines Plans.</P>
@@ -494,7 +494,7 @@ const groups: Group[] = [
       {
         id: 'org-annonce', emoji: '📣', title: 'Ankündigungen', summary: 'Eine Nachricht in mehreren Diskussionen',
         body: <><P>Das <strong>Megafon</strong> des Blocks sendet dieselbe Nachricht in die Diskussion jedes gewählten Kreises, auch dort, wo Mitglieder nur lesen. Sie erscheint eingerahmt, mit dem Namen der Organisation.</P>
-          <P>Alle erhalten nur eine Benachrichtigung, und die Stummschaltung wird respektiert. Wie jede Diskussionsnachricht verschwindet die Ankündigung nach 7 Tagen: Für dauerhafte Infos nimm besser einen Plan. Eine deaktivierte Diskussion erhält sie nicht, und du siehst welche. Rollen lassen sich nicht wählen, denn der ganze Kreis liest die Diskussion.</P>
+          <P>Alle erhalten nur eine Benachrichtigung, und die Stummschaltung wird respektiert. Wie jede Diskussionsnachricht verschwindet die Ankündigung nach 3 Monaten: Für dauerhafte Infos nimm besser einen Plan. Eine deaktivierte Diskussion erhält sie nicht, und du siehst welche. Rollen lassen sich nicht wählen, denn der ganze Kreis liest die Diskussion.</P>
           <P>Im selben Fenster findest du deine letzten Ankündigungen, um sie überall zu bearbeiten oder zu löschen.</P></>,
       },
     ],

@@ -481,6 +481,8 @@ export interface CircleMessage {
   reactions: { emoji: string; userId: string }[];
   /** Annonce d'une Organisation (même identifiant dans chaque Cercle) */
   announcementId?: string | null;
+  /** Organisation : photo effacée après 1 mois */
+  photoExpired?: boolean;
 }
 
 // « Mes contacts » (GET /api/contacts, server/src/lib/contacts.ts)
