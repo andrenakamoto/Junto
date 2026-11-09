@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 6 November 2026',
+  version: 'Version of 9 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -52,7 +52,8 @@ const en: PrivacyText = {
           someone reports a photo, the EvLY administrator sees it with the reason given, if any, and can remove it.</li>
         <li><strong>Circle discussions</strong> (if the Circle has turned them on): your messages, photos and reactions, visible to the
           Circle's members. They are encrypted in the database like Plan messages and <strong>automatically deleted after 7 days</strong>,
-          photos included.</li>
+          photos included. In an <strong>Organisation</strong>’s Circles, messages are kept for <strong>3 months</strong> and photos for <strong>1 month</strong>.</li>
+        <li><strong>Organisations</strong> (associations with several levels): the Circles you belong to in the Organisation and your role in each. The Organisation’s administrators and leadership see members and their roles, and someone in the leadership can join any Circle; they then appear among its members and can read its Discussion. Your role determines what you can do and what you receive. This information is deleted when you leave the Circle, or with your account.</li>
         <li><strong>“I’m free”</strong> (if the Circle has turned it on): the time you choose (now or tonight), the activity tags and the
           optional short note, visible to members of the Circles where you say you’re free. No location is stored. This information is
           <strong>automatically deleted</strong> at the end of the chosen time (3 hours, or 4 am for “tonight”).</li>
