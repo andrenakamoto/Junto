@@ -539,6 +539,8 @@ Conséquences pratiques :
     **Version 1.0.48** (2026-11-06) : Android `versionCode` 50 (`evly-1.0.48-(50).aab`), iOS build 54 envoyé — Fournisseurs (frise des étapes,
     carnet du Cercle, montants et documents pour les organisateurs), fonctions rangées par usage (Pratique, Préparer en équipe, Association et
     public), « Père Noël secret (Secret Santa) », carte de Noël de la page de connexion dès le 6 novembre, Cercle refermé d'un second clic.
+    **Version 1.0.49** (2026-11-09) : Android `versionCode` 51 (`evly-1.0.49-(51).aab`), iOS build 55 envoyé — Organisations (rôles, droits, « Pour qui ? »,
+    sondages pour plusieurs Cercles, annonces, Discussion gardée 3 mois et photos 1 mois).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
