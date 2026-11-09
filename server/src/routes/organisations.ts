@@ -1,10 +1,18 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
+import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
+import { applyToAnnouncement, chatSince, CIRCLE_CHAT_MAX, circleMessageInclude, plainCircleMessage } from '../lib/circleChat';
+import { decryptMessage, encryptMessage } from '../lib/messageCrypto';
+import { cleanContent } from '../lib/messageEdit';
+import { countMessageSent } from '../lib/activity';
+import { mutedAmong } from '../lib/mutes';
+import { notifyUser } from '../lib/push';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { detachFromCircle } from '../lib/circleDetach';
 import { isCircleManager } from '../lib/circleRoles';
 import { joinCircleRoom } from '../lib/realtime';
-import { cleanOrgName, isManagerKind, parseActions, parseOrganisationInput } from '../lib/organisations';
+import { cleanOrgName, isManagerKind, parseActions, parseAudience, parseOrganisationInput } from '../lib/organisations';
 import { orgPermissions } from '../lib/orgPermissions';
 import { audienceCount, integrateCircle, refreshOrgAudience, resolveAudience, syncOrganisation } from '../lib/orgSync';
 import { createCirclePoll, createPlanInCircle, generateCode, missingPlanBasics } from './circles';
@@ -266,8 +274,9 @@ router.get('/:id/audience', async (req: AuthRequest, res) => {
     prisma.circle.findMany({ where: { organisationId: id }, orderBy: [{ orgPosition: 'asc' }, { createdAt: 'asc' }], select: { id: true, name: true, color: true, orgKind: true } }),
     prisma.organisationRole.findMany({ where: { organisationId: id, kind: { not: 'direction' } }, orderBy: { position: 'asc' }, select: { id: true, name: true } }),
   ]);
+  const action = req.query.action === 'send_announcement' ? 'send_announcement' : 'publish_multi';
   const allowed = [];
-  for (const c of circles) if ((await orgPermissions(req.userId!, id, c.id)).has('publish_multi')) allowed.push(c);
+  for (const c of circles) if ((await orgPermissions(req.userId!, id, c.id)).has(action)) allowed.push(c);
   res.json({ ...organisation, circles: allowed, roles, total: circles.length });
 });
 
@@ -295,6 +304,93 @@ router.post('/:id/polls', async (req: AuthRequest, res) => {
   const target = await resolveAudience(req.app, req.userId!, req.params.id, req.body?.audience, 'create_poll');
   if ('error' in target) { res.status(target.status).json({ error: target.error }); return; }
   await createCirclePoll(req, res, target.primaryId, target);
+});
+
+const announcementLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false,
+  keyGenerator: (req: any) => req.userId ?? 'anonyme',
+  message: { error: 'Trop d’annonces envoyées, réessaie plus tard.' },
+});
+
+// POST /:id/announcements { content, circleIds } — un message dans la Discussion de chaque Cercle choisi
+router.post('/:id/announcements', announcementLimiter, async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const userId = req.userId!;
+  if (!(await membership(id, userId))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const text = cleanContent(req.body?.content, CIRCLE_CHAT_MAX);
+  if (!text) { res.status(400).json({ error: 'Message vide ou trop long (2000 caractères max)' }); return; }
+  const parsed = parseAudience({ circleIds: req.body?.circleIds });
+  if (!parsed) { res.status(400).json({ error: 'Choisis au moins un Cercle' }); return; }
+  const circles = await prisma.circle.findMany({ where: { id: { in: parsed.circleIds }, organisationId: id }, select: { id: true, name: true, chatMode: true } });
+  if (circles.length !== parsed.circleIds.length) { res.status(400).json({ error: 'Choisis au moins un Cercle' }); return; }
+  for (const c of circles) {
+    if (!(await orgPermissions(userId, id, c.id)).has('send_announcement')) { res.status(403).json({ error: 'Tu ne peux pas envoyer d’annonce à tous ces Cercles' }); return; }
+  }
+  const targets = circles.filter(c => c.chatMode !== 'off');
+  const skipped = circles.filter(c => c.chatMode === 'off').map(c => c.name);
+  if (!targets.length) { res.status(400).json({ error: 'Aucun de ces Cercles n’a sa Discussion activée' }); return; }
+
+  const announcementId = randomUUID();
+  const io = req.app.get('io');
+  const content = encryptMessage(text);
+  for (const c of targets) {
+    const message = plainCircleMessage(await prisma.circleMessage.create({ data: { circleId: c.id, authorId: userId, content, announcementId }, include: circleMessageInclude }));
+    io?.to(`circle:${c.id}`).emit('circle-message', { circleId: c.id, message });
+    io?.to(`circle:${c.id}`).emit('circle-updated', { circleId: c.id });
+  }
+  await prisma.circleMember.updateMany({ where: { userId, circleId: { in: targets.map(c => c.id) } }, data: { chatSeenAt: new Date() } });
+  countMessageSent();
+  res.json({ announcementId, sent: targets.length, skipped });
+
+  // Une seule notification par personne, depuis le premier de ses Cercles qui n'est pas en silence
+  try {
+    const members = await prisma.circleMember.findMany({ where: { circleId: { in: targets.map(c => c.id) }, userId: { not: userId } }, select: { userId: true, circleId: true } });
+    const done = new Set<string>();
+    for (const c of targets) {
+      const here = members.filter(m => m.circleId === c.id && !done.has(m.userId)).map(m => m.userId);
+      const muted = await mutedAmong({ circleId: c.id }, here);
+      for (const memberId of here) {
+        if (muted.has(memberId)) continue;
+        done.add(memberId);
+        notifyUser(io, memberId, { type: 'circle_message', circleId: c.id, circleName: c.name, from: req.pseudo, actorId: userId, preview: `📣 ${text.slice(0, 78)}` });
+      }
+    }
+  } catch (e) { console.error('[annonce notify]', e); }
+});
+
+// GET /:id/announcements — mes annonces encore visibles
+router.get('/:id/announcements', async (req: AuthRequest, res) => {
+  if (!(await membership(req.params.id, req.userId!))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const rows = await prisma.circleMessage.findMany({
+    where: { authorId: req.userId!, announcementId: { not: null }, deletedAt: null, createdAt: { gt: chatSince() }, circle: { organisationId: req.params.id } },
+    orderBy: { createdAt: 'desc' }, select: { announcementId: true, content: true, createdAt: true, circle: { select: { name: true } } },
+  });
+  const groups = new Map<string, { announcementId: string; content: string; createdAt: Date; circles: string[] }>();
+  for (const r of rows) {
+    const group = groups.get(r.announcementId!) ?? { announcementId: r.announcementId!, content: decryptMessage(r.content), createdAt: r.createdAt, circles: [] };
+    group.circles.push(r.circle.name);
+    groups.set(r.announcementId!, group);
+  }
+  res.json([...groups.values()]);
+});
+
+// L'annonce appartient-elle à cette personne, dans cette Organisation ?
+const ownsAnnouncement = async (organisationId: string, announcementId: string, userId: string) =>
+  !!(await prisma.circleMessage.findFirst({ where: { announcementId, authorId: userId, circle: { organisationId } }, select: { id: true } }));
+
+// PUT /:id/announcements/:announcementId { content } et DELETE : l'auteur, pour tous les Cercles
+router.put('/:id/announcements/:announcementId', async (req: AuthRequest, res) => {
+  if (!(await ownsAnnouncement(req.params.id, req.params.announcementId, req.userId!))) { res.status(404).json({ error: 'Message introuvable' }); return; }
+  const text = cleanContent(req.body?.content, CIRCLE_CHAT_MAX);
+  if (!text) { res.status(400).json({ error: 'Message vide ou trop long (2000 caractères max)' }); return; }
+  await applyToAnnouncement(req.app.get('io'), req.params.announcementId, { content: text });
+  res.json({ ok: true });
+});
+
+router.delete('/:id/announcements/:announcementId', async (req: AuthRequest, res) => {
+  if (!(await ownsAnnouncement(req.params.id, req.params.announcementId, req.userId!))) { res.status(404).json({ error: 'Message introuvable' }); return; }
+  await applyToAnnouncement(req.app.get('io'), req.params.announcementId, { deleted: true });
+  res.json({ ok: true });
 });
 
 export default router;

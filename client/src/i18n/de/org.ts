@@ -34,11 +34,13 @@ const org: Dict['org'] = {
     direction: "Leitung", admin: "Administration", peopleHelp: "Personen der Leitung können laut Rechtetabelle allen Kreisen beitreten.", makeDirection: "Zur Leitung hinzufügen", removeDirection: "Aus der Leitung entfernen",
     actions: {
       create_plan: "Einen Plan erstellen", create_poll: "Eine Terminumfrage erstellen", write_plan_chat: "Im Chat eines Plans schreiben", add_files: "Fotos und Dateien hinzufügen",
+      send_announcement: "Ankündigung senden",
       manage_shifts: "Einsätze im Einsatzplan verwalten", invite_guests: "Externe Personen einladen", see_money: "Beträge der Lieferanten sehen", manage_members: "Mitglieder und Rollen verwalten", integrate_all: "Allen Kreisen beitreten",
     },
   },
   discussion: { title: "Wer schreibt in der Diskussion?", help: "Verantwortliche und Leitung schreiben immer." },
   audience: {"title": "Für wen?", "all": "Ganze Organisation", "roles": "In diesen Teams", "rolesHint": "Keine Rolle gewählt: alle.", "count_one": "{{count}} Person erhält diesen Plan", "count_other": "{{count}} Personen erhalten diesen Plan", "pollCount_one": "{{count}} Person erhält diese Umfrage", "pollCount_other": "{{count}} Personen erhalten diese Umfrage", "none": "Wähle mindestens einen Kreis", "multiNote": "Die Teilnehmerliste ist der Organisation vorbehalten (änderbar unter Regeln)."},
+  announce: {"title": "Ankündigung senden", "banner": "Ankündigung", "intro": "Sie erscheint in der Diskussion jedes gewählten Kreises und bleibt 7 Tage sichtbar.", "message": "Deine Nachricht", "placeholder": "z. B. Das Lokal ist am Samstag geschlossen.", "forWho": "In welchen Kreisen?", "all": "Ganze Organisation", "count_one": "{{count}} Person erhält diese Ankündigung", "count_other": "{{count}} Personen erhalten diese Ankündigung", "empty": "Schreib deine Nachricht", "none": "Wähle mindestens einen Kreis", "send": "Ankündigung senden", "sending": "Wird gesendet…", "sent_one": "Ankündigung in {{count}} Kreis gesendet.", "sent_other": "Ankündigung in {{count}} Kreise gesendet.", "skipped": "Nicht gesendet an: {{names}} (Diskussion deaktiviert).", "recent": "Meine Ankündigungen der letzten 7 Tage", "in": "In: {{names}}", "edit": "Bearbeiten", "save": "Speichern", "remove": "Überall löschen", "confirmRemove": "Löschen bestätigen"},
   plan: { readOnlyChat: "Mit deiner Rolle kannst du in diesem Chat nicht schreiben." },
 };
 export default org;

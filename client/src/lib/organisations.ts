@@ -21,10 +21,10 @@ export const ORG_MODELS: { key: OrgModelKey; emoji: string; teamRoles: number[];
 ];
 
 // Droits proposés dans le tableau, dans l'ordre d'affichage (ceux qui ne sont pas encore appliqués n'y figurent pas)
-export const ORG_MATRIX_ACTIONS = ['create_plan', 'create_poll', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_money', 'manage_members', 'integrate_all'] as const;
+export const ORG_MATRIX_ACTIONS = ['create_plan', 'create_poll', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_money', 'send_announcement', 'manage_members', 'integrate_all'] as const;
 export type OrgMatrixAction = typeof ORG_MATRIX_ACTIONS[number];
 
-const DIRECTION_PERMS = ['integrate_all', 'publish_multi', 'create_plan', 'create_poll', 'edit_others', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_participants', 'see_money', 'manage_members'];
+const DIRECTION_PERMS = ['integrate_all', 'publish_multi', 'create_plan', 'create_poll', 'edit_others', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_participants', 'see_money', 'manage_members', 'send_announcement'];
 const RESPONSIBLE_PERMS = ['publish_multi', 'create_plan', 'create_poll', 'edit_others', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_participants'];
 const MEMBER_PERMS = ['write_plan_chat'];
 

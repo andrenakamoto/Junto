@@ -479,6 +479,8 @@ export interface CircleMessage {
   editedAt?: string | null;
   deletedAt?: string | null;
   reactions: { emoji: string; userId: string }[];
+  /** Annonce d'une Organisation (même identifiant dans chaque Cercle) */
+  announcementId?: string | null;
 }
 
 // « Mes contacts » (GET /api/contacts, server/src/lib/contacts.ts)

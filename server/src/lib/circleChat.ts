@@ -1,5 +1,5 @@
 import prisma from './prisma';
-import { decryptMessage, withPlainContent } from './messageCrypto';
+import { decryptMessage, encryptMessage, withPlainContent } from './messageCrypto';
 import { deletePhoto } from './photos';
 
 // Discussion d'un Cercle (2026-10-15) : un chat par Cercle, à côté des chats des Plans. Messages chiffrés en base
@@ -72,4 +72,17 @@ export async function deleteExpiredCircleMessages() {
   for (const m of old) if (m.imageKey) await deletePhoto(m.imageKey).catch(() => {});
   await prisma.circleMessage.deleteMany({ where: { id: { in: old.map(m => m.id) } } });
   return old.length;
+}
+
+// Annonce d'une Organisation : modifier ou supprimer s'applique à la copie de chaque Cercle
+export async function applyToAnnouncement(io: any, announcementId: string, change: { content: string } | { deleted: true }) {
+  const copies = await prisma.circleMessage.findMany({ where: { announcementId, deletedAt: null }, select: { id: true, circleId: true } });
+  const data = 'deleted' in change ? { content: '', deletedAt: new Date() } : { content: encryptMessage(change.content), editedAt: new Date() };
+  const updated = [];
+  for (const copy of copies) {
+    const message = plainCircleMessage(await prisma.circleMessage.update({ where: { id: copy.id }, data, include: circleMessageInclude }));
+    io?.to(`circle:${copy.circleId}`).emit('circle-message-updated', { circleId: copy.circleId, message });
+    updated.push(message);
+  }
+  return updated;
 }

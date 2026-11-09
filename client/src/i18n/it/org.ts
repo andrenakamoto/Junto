@@ -34,11 +34,13 @@ const org: Dict['org'] = {
     direction: "Direzione", admin: "Amministrazione", peopleHelp: "Le persone della direzione possono entrare in tutti i Cerchi secondo la tabella dei diritti.", makeDirection: "Aggiungi alla direzione", removeDirection: "Togli dalla direzione",
     actions: {
       create_plan: "Creare un Plan", create_poll: "Creare un sondaggio di date", write_plan_chat: "Scrivere nella chat di un Plan", add_files: "Aggiungere foto e file",
+      send_announcement: "Inviare un annuncio",
       manage_shifts: "Gestire i posti dei Turni", invite_guests: "Invitare persone esterne", see_money: "Vedere gli importi dei fornitori", manage_members: "Gestire membri e ruoli", integrate_all: "Entrare in tutti i Cerchi",
     },
   },
   discussion: { title: "Chi scrive nella Discussione?", help: "I responsabili e la direzione scrivono sempre." },
   audience: {"title": "Per chi?", "all": "Tutta l’organizzazione", "roles": "In queste squadre", "rolesHint": "Nessun ruolo scelto: tutti.", "count_one": "{{count}} persona riceverà questo Plan", "count_other": "{{count}} persone riceveranno questo Plan", "pollCount_one": "{{count}} persona riceverà questo sondaggio", "pollCount_other": "{{count}} persone riceveranno questo sondaggio", "none": "Scegli almeno un Cerchio", "multiNote": "L’elenco dei partecipanti sarà riservato all’organizzazione (modificabile in Regole)."},
+  announce: {"title": "Invia un annuncio", "banner": "Annuncio", "intro": "Arriva nella Discussione di ogni Cerchio scelto e resta visibile 7 giorni.", "message": "Il tuo messaggio", "placeholder": "Es. La sede è chiusa sabato.", "forWho": "In quali Cerchi?", "all": "Tutta l’organizzazione", "count_one": "{{count}} persona riceverà questo annuncio", "count_other": "{{count}} persone riceveranno questo annuncio", "empty": "Scrivi il tuo messaggio", "none": "Scegli almeno un Cerchio", "send": "Invia l’annuncio", "sending": "Invio…", "sent_one": "Annuncio inviato in {{count}} Cerchio.", "sent_other": "Annuncio inviato in {{count}} Cerchi.", "skipped": "Non inviato a: {{names}} (Discussione disattivata).", "recent": "I miei annunci degli ultimi 7 giorni", "in": "In: {{names}}", "edit": "Modifica", "save": "Salva", "remove": "Elimina ovunque", "confirmRemove": "Conferma l’eliminazione"},
   plan: { readOnlyChat: "Il tuo ruolo non permette di scrivere in questa chat." },
 };
 export default org;

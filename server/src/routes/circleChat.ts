@@ -11,7 +11,7 @@ import { countMessageSent } from '../lib/activity';
 import { notifyUser } from '../lib/push';
 import { deletePhoto, isPhotoKey, PHOTO_MAX_BYTES, savePhoto } from '../lib/photos';
 import { canWriteOrgDiscussion } from '../lib/organisations';
-import { CIRCLE_CHAT_MAX, canWriteChat, chatSince, circleMessageInclude, mentionedIn, plainCircleMessage } from '../lib/circleChat';
+import { applyToAnnouncement, CIRCLE_CHAT_MAX, canWriteChat, chatSince, circleMessageInclude, mentionedIn, plainCircleMessage } from '../lib/circleChat';
 
 // Discussion d'un Cercle — voir lib/circleChat.ts. Réservée aux membres du Cercle.
 const router = Router();
@@ -125,6 +125,12 @@ router.put('/messages/:messageId', async (req: AuthRequest, res) => {
   if (refused) { res.status(403).json({ error: refused }); return; }
   const text = cleanContent(req.body?.content, CIRCLE_CHAT_MAX);
   if (!text) { res.status(400).json({ error: 'Message vide ou trop long (2000 caractères max)' }); return; }
+  // Annonce : la modification vaut pour tous les Cercles
+  if (message.announcementId) {
+    const copies = await applyToAnnouncement(req.app.get('io'), message.announcementId, { content: text });
+    res.json(copies.find(c => c.id === message.id));
+    return;
+  }
   const updated = plainCircleMessage(await prisma.circleMessage.update({
     where: { id: message.id }, data: { content: encryptMessage(text), editedAt: new Date() }, include: circleMessageInclude,
   }));
@@ -139,6 +145,12 @@ router.delete('/messages/:messageId', async (req: AuthRequest, res) => {
   if (!ctx.manager) {
     const refused = checkMessageEdit(message, req.userId!);
     if (refused) { res.status(403).json({ error: refused }); return; }
+  }
+  // Annonce supprimée par son auteur : partout ; par un organisateur du Cercle : seulement ici
+  if (message.announcementId && message.authorId === req.userId) {
+    const copies = await applyToAnnouncement(req.app.get('io'), message.announcementId, { deleted: true });
+    res.json(copies.find(c => c.id === message.id));
+    return;
   }
   await deletePhoto(message.imageKey).catch(() => {});
   const updated = plainCircleMessage(await prisma.circleMessage.update({

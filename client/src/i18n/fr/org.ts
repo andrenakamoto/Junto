@@ -32,11 +32,13 @@ const org = {
     direction: "Direction", admin: "Administration", peopleHelp: "Les personnes de la direction peuvent intégrer tous les Cercles selon le tableau des droits.", makeDirection: "Mettre dans la direction", removeDirection: "Retirer de la direction",
     actions: {
       create_plan: "Créer un Plan", create_poll: "Créer un sondage de dates", write_plan_chat: "Écrire dans le chat d’un Plan", add_files: "Ajouter photos et fichiers",
+      send_announcement: "Envoyer une annonce",
       manage_shifts: "Gérer les postes du Planning", invite_guests: "Inviter des personnes extérieures", see_money: "Voir les montants des fournisseurs", manage_members: "Gérer les membres et les rôles", integrate_all: "Intégrer tous les Cercles",
     },
   },
   discussion: { title: "Qui écrit dans la Discussion ?", help: "Les responsables et la direction écrivent toujours." },
   audience: {"title": "Pour qui ?", "all": "Toute l’organisation", "roles": "Dans ces équipes", "rolesHint": "Aucun rôle coché : tout le monde.", "count_one": "{{count}} personne recevra ce Plan", "count_other": "{{count}} personnes recevront ce Plan", "pollCount_one": "{{count}} personne recevra ce sondage", "pollCount_other": "{{count}} personnes recevront ce sondage", "none": "Choisis au moins un Cercle", "multiNote": "La liste des participants sera réservée à l’organisation (modifiable dans Règles)."},
+  announce: {"title": "Envoyer une annonce", "banner": "Annonce", "intro": "Elle arrive dans la Discussion de chaque Cercle choisi et reste visible 7 jours.", "message": "Ton message", "placeholder": "Ex. Le local est fermé samedi.", "forWho": "Dans quels Cercles ?", "all": "Toute l’organisation", "count_one": "{{count}} personne recevra cette annonce", "count_other": "{{count}} personnes recevront cette annonce", "empty": "Écris ton message", "none": "Choisis au moins un Cercle", "send": "Envoyer l’annonce", "sending": "Envoi…", "sent_one": "Annonce envoyée dans {{count}} Cercle.", "sent_other": "Annonce envoyée dans {{count}} Cercles.", "skipped": "Non envoyée à : {{names}} (Discussion désactivée).", "recent": "Mes annonces des 7 derniers jours", "in": "Dans : {{names}}", "edit": "Modifier", "save": "Enregistrer", "remove": "Supprimer partout", "confirmRemove": "Confirmer la suppression"},
   plan: { readOnlyChat: "Ton rôle ne permet pas d’écrire dans ce chat." },
 };
 export default org;

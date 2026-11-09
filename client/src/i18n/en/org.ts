@@ -34,11 +34,13 @@ const org: Dict['org'] = {
     direction: "Leadership", admin: "Administration", peopleHelp: "People in the leadership can join all Circles, according to the rights table.", makeDirection: "Add to the leadership", removeDirection: "Remove from the leadership",
     actions: {
       create_plan: "Create a Plan", create_poll: "Create a date poll", write_plan_chat: "Write in a Plan’s chat", add_files: "Add photos and files",
+      send_announcement: "Send an announcement",
       manage_shifts: "Manage Schedule shifts", invite_guests: "Invite outside people", see_money: "See supplier amounts", manage_members: "Manage members and roles", integrate_all: "Join all Circles",
     },
   },
   discussion: { title: "Who writes in the Discussion?", help: "Coordinators and the leadership can always write." },
   audience: {"title": "Who is it for?", "all": "The whole organisation", "roles": "In these teams", "rolesHint": "No role ticked: everyone.", "count_one": "{{count}} person will receive this Plan", "count_other": "{{count}} people will receive this Plan", "pollCount_one": "{{count}} person will receive this poll", "pollCount_other": "{{count}} people will receive this poll", "none": "Choose at least one Circle", "multiNote": "The participant list will be reserved for the organisation (can be changed in Rules)."},
+  announce: {"title": "Send an announcement", "banner": "Announcement", "intro": "It appears in the Discussion of each chosen Circle and stays visible for 7 days.", "message": "Your message", "placeholder": "e.g. The clubhouse is closed on Saturday.", "forWho": "In which Circles?", "all": "The whole organisation", "count_one": "{{count}} person will receive this announcement", "count_other": "{{count}} people will receive this announcement", "empty": "Write your message", "none": "Choose at least one Circle", "send": "Send the announcement", "sending": "Sending…", "sent_one": "Announcement sent to {{count}} Circle.", "sent_other": "Announcement sent to {{count}} Circles.", "skipped": "Not sent to: {{names}} (Discussion switched off).", "recent": "My announcements from the last 7 days", "in": "In: {{names}}", "edit": "Edit", "save": "Save", "remove": "Delete everywhere", "confirmRemove": "Confirm deletion"},
   plan: { readOnlyChat: "Your role doesn’t allow you to write in this chat." },
 };
 export default org;

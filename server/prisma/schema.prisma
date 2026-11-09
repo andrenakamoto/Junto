@@ -1814,8 +1814,11 @@ model CircleMessage {
   editedAt  DateTime?
   deletedAt DateTime?
   reactions CircleMessageReaction[]
+  // Annonce d'une Organisation : même identifiant sur la copie de chaque Cercle
+  announcementId String?
 
   @@index([circleId, createdAt])
+  @@index([announcementId])
 }
 
 model CircleMessageReaction {

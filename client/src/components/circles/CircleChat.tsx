@@ -102,7 +102,7 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
         ) : messages.length === 0 ? (
           <p className="text-center text-slate-400 text-sm pt-12">{t('circle.chat.empty')}</p>
         ) : messages.map(m => (
-          <CircleChatMessage
+          <CircleChatMessage orgName={circle.organisation?.name}
             key={m.id}
             message={m}
             isMe={m.author.id === user.id}
@@ -152,8 +152,8 @@ export function CircleChat({ circle, onBack, onSeen, onPlanCreated }: Props) {
   );
 }
 
-function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePlan, onReact, onEdit, onDelete, onReport, onMakePlan, onViewPhoto }: {
-  message: CircleMessage; isMe: boolean; userId: string; canModerate: boolean; canCreatePlan: boolean;
+function CircleChatMessage({ message: m, orgName, isMe, userId, canModerate, canCreatePlan, onReact, onEdit, onDelete, onReport, onMakePlan, onViewPhoto }: {
+  message: CircleMessage; orgName?: string; isMe: boolean; userId: string; canModerate: boolean; canCreatePlan: boolean;
   onReact: (emoji: string) => void; onEdit: (content: string) => void; onDelete: () => void; onReport: () => void;
   onMakePlan: () => void; onViewPhoto: (key: string) => void;
 }) {
@@ -196,7 +196,12 @@ function CircleChatMessage({ message: m, isMe, userId, canModerate, canCreatePla
                 <img src={photoUrl(m.imageKey, true)} alt="" loading="lazy" draggable={false} className="max-w-[240px] max-h-[320px] object-cover block" />
               </button>
             )}
-            {m.content && (isEmojiOnly(m.content) ? <div className={EMOJI_ONLY_CLASS}>{m.content}</div> : (
+            {m.announcementId && m.content ? (
+              <div className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words bg-indigo-50 text-slate-800 border-2 border-indigo-300 shadow-sm">
+                <p className="text-xs font-semibold text-indigo-700 mb-1">📣 {t('org.announce.banner')}{orgName ? ` · ${orgName}` : ''}</p>
+                {renderContent(m.content, false)}
+              </div>
+            ) : m.content && (isEmojiOnly(m.content) ? <div className={EMOJI_ONLY_CLASS}>{m.content}</div> : (
               <div className={`px-4 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
                 isMe ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
               }`}>

@@ -29,6 +29,7 @@ import { sortCircles } from '../../lib/order';
 import { PlanSortToggle } from '../plans/PlanSortToggle';
 import { CreateOrganisationModal } from '../organisations/CreateOrganisationModal';
 import { compareOrgCircles } from '../../lib/organisations';
+import { AnnouncementModal } from '../organisations/AnnouncementModal';
 import { OrganisationModal } from '../organisations/OrganisationModal';
 
 // Recherche d'un Cercle : sans accents ni majuscules (« montvert » trouve « Jeunesse de Montvert »)
@@ -38,7 +39,7 @@ const SEARCH_FROM = 5;
 // Bloc d'une Organisation : déplié d'office jusqu'à ce nombre de Cercles, choix gardé sur l'appareil
 const ORG_OPEN_UP_TO = 3;
 const ORG_OPEN_KEY = 'evly_org_open';
-interface MyOrg { id: string; name: string; isAdmin: boolean; isDirection: boolean }
+interface MyOrg { id: string; name: string; isAdmin: boolean; isDirection: boolean; permissions: Record<string, string[]> }
 interface OrgBlock { id: string; name: string; circles: Circle[] }
 type ListEntry = { circle?: Circle; org?: OrgBlock };
 
@@ -114,6 +115,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
   const [myOrgs, setMyOrgs] = useState<MyOrg[]>([]);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [managedOrg, setManagedOrg] = useState<string | null>(null);
+  const [announceOrg, setAnnounceOrg] = useState<string | null>(null);
   const [orgOpen, setOrgOpen] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem(ORG_OPEN_KEY) ?? '{}'); } catch { return {}; }
   });
@@ -205,6 +207,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
             </span>
             {hasNews && !open && <span className="w-2.5 h-2.5 bg-orange-500 rounded-full flex-shrink-0" />}
           </button>
+          {mine && Object.values(mine.permissions).some(list => list.includes('send_announcement')) && (
+            <button onClick={() => setAnnounceOrg(org.id)} title={t('org.announce.title')} aria-label={t('org.announce.title')} className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-700"><Megaphone size={16} /></button>
+          )}
           {(mine?.isDirection || mine?.isAdmin) && (
             <button onClick={() => setManagedOrg(org.id)} title={t('org.block.manage')} aria-label={t('org.block.manage')} className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-700"><Settings size={16} /></button>
           )}
@@ -560,6 +565,7 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
         return c ? <CircleMembersSheet circle={c} onlineUserIds={onlineUserIds} onClose={() => setMembersPopover(null)} onCircleUpdated={onCircleUpdated} /> : null;
       })()}
       {showCreateOrg && <CreateOrganisationModal onClose={() => setShowCreateOrg(false)} onCreated={id => { setShowCreateOrg(false); setManagedOrg(id); }} />}
+      {announceOrg && <AnnouncementModal organisationId={announceOrg} onClose={() => setAnnounceOrg(null)} />}
       {managedOrg && <OrganisationModal organisationId={managedOrg} onClose={() => setManagedOrg(null)} />}
       {showCreate && (
         <CreateCircleModal
