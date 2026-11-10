@@ -465,7 +465,7 @@ const groups: Group[] = [
       {
         id: 'org-roles', emoji: '🔑', title: 'Roles and rights', summary: 'Who can create, write, invite',
         body: <><P>Under the gear icon, the <strong>Rights</strong> tab shows what each role can do: create a Plan or poll, write in a Plan’s chat, add files, manage the Schedule, invite outside people, see amounts, send an announcement, manage members, join all Circles. Only the Organisation’s administrators see it.</P>
-          <P>A role depends on the Circle: you can be a team leader in Blue and a parent in Green. To appoint someone, open the gear icon, expand the Circle and choose their role. The <strong>People</strong> tab is for choosing the leadership.</P>
+          <P>A role depends on the Circle: you can be a team leader in Blue and a parent in Green. To appoint a team leader or give another role: gear icon, <strong>People</strong> tab, tap the person and choose their role next to the Circle. They must first have joined one of the Organisation’s Circles with its code. You can also choose the role when accepting their request. The same tab is for adding them to a team, removing them and choosing the leadership.</P>
           <P><strong>Leadership</strong>: the “Join” button lets you enter any Circle without a code. You arrive muted, appear as a member and don’t vote in that Circle’s Assemblies.</P>
           <P><strong>Discussion</strong>: in each Circle’s settings, tick the roles that can write. Coordinators and the leadership can always write.</P></>,
       },

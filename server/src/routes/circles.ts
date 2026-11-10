@@ -10,7 +10,7 @@ import prisma from '../lib/prisma';
 import { santaDateError } from '../lib/secretSanta';
 import { removeFromGamesInPlans } from '../lib/planGames';
 import { promoteFromWaitlist } from '../lib/waitlist';
-import { withoutMuted } from '../lib/mutes';
+import { mutedAmong, withoutMuted } from '../lib/mutes';
 import { purgeCircleFiles } from '../lib/storage';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from '../lib/mailer';
@@ -21,7 +21,7 @@ import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { detachFromCircle } from '../lib/circleDetach';
-import { afterCircleEntry, afterCircleExit } from '../lib/orgSync';
+import { afterCircleEntry, afterCircleExit, roleForAcceptance } from '../lib/orgSync';
 import { orgAllows } from '../lib/orgPermissions';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { getOrCreatePersonalCircle } from '../lib/express';
@@ -237,10 +237,10 @@ router.put('/:id/color', async (req: AuthRequest, res) => {
 });
 
 // Accepte une demande d'adhésion : ajoute le membre, supprime la demande, prévient l'intéressé.
-async function acceptJoinRequest(app: any, request: { id: string; userId: string }, circleId: string, reason: string) {
+async function acceptJoinRequest(app: any, request: { id: string; userId: string }, circleId: string, reason: string, orgRole?: { id: string; kind: string } | null) {
   await prisma.$transaction([
     prisma.circleJoinRequest.delete({ where: { id: request.id } }),
-    prisma.circleMember.create({ data: { userId: request.userId, circleId } }),
+    prisma.circleMember.create({ data: { userId: request.userId, circleId, ...(orgRole && { orgRoleId: orgRole.id, role: orgRole.kind === 'responsible' ? ORGANIZER_ROLE : 'member' }) } }),
   ]);
   await hideReservedPlans(request.userId, circleId);
   joinCircleRoom(app.get('io'), request.userId, circleId);
@@ -456,6 +456,17 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
       where: { circleId: circle.id, ...(byCreator && { OR: [{ userId: circle.creatorId }, { role: ORGANIZER_ROLE }] }) },
       select: { userId: true, user: { select: { email: true, emailVerified: true, pseudo: true, notificationChannel: true, locale: true } } },
     })).filter(m => m.userId !== skipUserId);
+    // Organisation : la direction a ses équipes en silence. Si personne d'autre ne peut être prévenu, la demande
+    // ne doit pas rester sans réponse : les administrateurs de l'Organisation la reçoivent quand même.
+    const { organisationId } = await prisma.circle.findUniqueOrThrow({ where: { id: circle.id }, select: { organisationId: true } });
+    let forced = new Set<string>();
+    if (organisationId && members.length) {
+      const muted = await mutedAmong({ circleId: circle.id }, members.map(m => m.userId));
+      if (members.every(m => muted.has(m.userId))) {
+        const admins = await prisma.organisationMember.findMany({ where: { organisationId, isAdmin: true, userId: { in: members.map(m => m.userId) } }, select: { userId: true } });
+        forced = new Set((admins.length ? admins : members).map(m => m.userId));
+      }
+    }
     if (io) {
       for (const m of members) {
         notifyUser(io, m.userId, {
@@ -464,11 +475,12 @@ async function notifyJoinRequest(app: any, circle: { id: string; name: string; c
           circleName: circle.name,
           from: requester?.pseudo,
           actorId: requesterId,
-        });
+        }, { ignoreMute: forced.has(m.userId) });
       }
     }
     // Cercle en silence (lib/mutes.ts) : pas d'email
-    const recipients = await withoutMuted({ circleId: circle.id }, members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId)), m => m.userId);
+    const eligible = members.filter(m => m.user.email && m.user.emailVerified && wantsEmail(m.user.notificationChannel, m.userId));
+    const recipients = [...await withoutMuted({ circleId: circle.id }, eligible, m => m.userId), ...eligible.filter(m => forced.has(m.userId))];
     await Promise.all(recipients.map(r => {
       const m = mail(parseLocale(r.user.locale) ?? 'fr');
       return resend.emails.send({
@@ -663,7 +675,10 @@ router.post('/:id/join-requests/:requestId/vote', async (req: AuthRequest, res) 
       res.status(403).json({ error: 'Seuls le créateur et les organisateurs du Cercle valident les demandes' });
       return;
     }
-    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Ta demande a été validée par les organisateurs du Cercle.');
+    // Organisation : le rôle peut être choisi en acceptant
+    const orgRole = await roleForAcceptance(userId, circleId, req.body?.orgRoleId);
+    if (orgRole === 'refused') { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+    const updatedCircle = await acceptJoinRequest(req.app, request, circleId, 'Ta demande a été validée par les organisateurs du Cercle.', orgRole);
     res.json({ accepted: true, circle: updatedCircle });
     return;
   }

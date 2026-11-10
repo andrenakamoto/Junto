@@ -30,8 +30,9 @@ const org: Dict['org'] = {
     showMembers: "Mostra i membri", hideMembers: "Nascondi i membri", role: "Ruolo", noMember: "Ancora nessuno.", integratedTag: "Direzione",
     integrateNote: "Entri in modalità discreta: il Cerchio resta in silenzio, a meno che qualcuno ti menzioni.",
     fixedOrder: "Mantieni sempre lo stesso ordine", fixedOrderHint: "I Cerchi restano in quest’ordine per tutti i membri, qualunque sia l’ordinamento scelto.", moveUp: "Sposta su", moveDown: "Sposta giù",
+    acceptAs: "Accetta come:", search: "Cerca una persona", addTo: "Aggiungi a un Cerchio…", remove: "Togli", confirmRemove: "Conferma", automatic: "Automatico", circleCount_one: "{{count}} Cerchio", circleCount_other: "{{count}} Cerchi",
     rightsHelp: "Che cosa può fare ogni ruolo. Gli altri membri non vedono questa tabella.", rightsAction: "Azione",
-    direction: "Direzione", admin: "Amministrazione", peopleHelp: "Le persone della direzione possono entrare in tutti i Cerchi secondo la tabella dei diritti.", makeDirection: "Aggiungi alla direzione", removeDirection: "Togli dalla direzione",
+    direction: "Direzione", admin: "Amministrazione", peopleHelp: "Tocca una persona per vedere i suoi Cerchi, darle un ruolo (Capo…) o aggiungerla a una squadra. Deve prima essere entrata in un Cerchio dell’Organizzazione.", makeDirection: "Aggiungi alla direzione", removeDirection: "Togli dalla direzione",
     actions: {
       create_plan: "Creare un Plan", create_poll: "Creare un sondaggio di date", write_plan_chat: "Scrivere nella chat di un Plan", add_files: "Aggiungere foto e file",
       send_announcement: "Inviare un annuncio",

@@ -472,7 +472,7 @@ const groups: Group[] = [
       {
         id: 'org-roles', emoji: '🔑', title: 'Ruoli e diritti', summary: 'Chi può creare, scrivere, invitare',
         body: <><P>Nella rotellina, la scheda <strong>Diritti</strong> indica che cosa può fare ogni ruolo: creare un Plan o un sondaggio, scrivere nella chat di un Plan, aggiungere file, gestire i Turni, invitare persone esterne, vedere gli importi, inviare un annuncio, gestire i membri, entrare in tutti i Cerchi. La vedono solo gli amministratori dell’Organizzazione.</P>
-          <P>Il ruolo dipende dal Cerchio: si può essere Capo nei Blu e Genitore nei Verdi. Per nominare qualcuno, apri la rotellina, espandi il Cerchio e scegli il ruolo. La scheda <strong>Persone</strong> serve a comporre la direzione.</P>
+          <P>Il ruolo dipende dal Cerchio: si può essere Capo nei Blu e Genitore nei Verdi. Per nominare un Capo o dare un altro ruolo: rotellina, scheda <strong>Persone</strong>, tocca la persona e scegli il ruolo accanto al Cerchio. Deve prima essere entrata in un Cerchio dell’Organizzazione con il codice. Il ruolo si può scegliere anche accettando la sua richiesta. La stessa scheda serve ad aggiungerla a una squadra, a toglierla e a comporre la direzione.</P>
           <P><strong>Direzione</strong>: il pulsante «Entra» permette di entrare in qualsiasi Cerchio senza codice. Si arriva in silenzio, si appare come membro e non si vota alle Assemblee di quel Cerchio.</P>
           <P><strong>Discussione</strong>: nelle impostazioni di ogni Cerchio, spunta i ruoli che possono scrivere. I responsabili e la direzione scrivono sempre.</P></>,
       },

@@ -7,9 +7,9 @@ import { compareOrgCircles, ORG_MATRIX_ACTIONS } from '../../lib/organisations';
 
 interface OrgRole { id: string; name: string; kind: 'direction' | 'responsible' | 'member'; permissions: string[] }
 interface OrgCircle { id: string; name: string; code: string; color: string | null; orgKind: 'unit' | 'team' | 'auto'; orgPosition: number; createdAt: string; isMember: boolean; _count: { members: number } }
-interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; fixedOrder: boolean; isAdmin: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
+interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; fixedOrder: boolean; isAdmin: boolean; canManagePeople: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
 interface CircleMemberRow { userId: string; orgRoleId: string | null; orgIntegrated: boolean; user: { pseudo: string; firstName: string | null } }
-interface PersonRow { userId: string; isAdmin: boolean; isDirection: boolean; user: { pseudo: string; firstName: string | null } }
+interface PersonRow { userId: string; isAdmin: boolean; isDirection: boolean; user: { pseudo: string; firstName: string | null }; circles: { circleId: string; orgRoleId: string | null }[] }
 
 const personName = (u: { pseudo: string; firstName: string | null }) => (u.firstName ? `${u.firstName} (@${u.pseudo})` : `@${u.pseudo}`);
 
@@ -42,7 +42,7 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
     await api.put(`/organisations/${organisationId}/circles-order`, { circleIds: ids }).catch(e => { fail(e); load(); });
   }
 
-  const tabs = view?.isAdmin ? (['circles', 'rights', 'people'] as const) : (['circles'] as const);
+  const tabs = ['circles', ...(view?.isAdmin ? ['rights'] as const : []), ...(view?.canManagePeople ? ['people'] as const : [])] as const;
   const tabLabel = { circles: t('org.manage.tabCircles'), rights: t('org.manage.tabRights'), people: t('org.manage.tabPeople') };
   const sections = view ? ([
     ['unit', view.unitLabel || t('org.words.units')], ['auto', t('org.words.auto')], ['team', view.teamLabel || t('org.words.teams')],
@@ -112,7 +112,7 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
           </div>
         </div>
       )}
-      {view && tab === 'people' && <PeopleTab organisationId={organisationId} onError={fail} />}
+      {view && tab === 'people' && <PeopleTab org={view} ordered={ordered} onChanged={load} onError={fail} />}
     </Modal>
   );
 }
@@ -181,23 +181,78 @@ function CircleRow({ org, circle, onChanged, onError, kindLabel, onUp, onDown, c
   );
 }
 
-function PeopleTab({ organisationId, onError }: { organisationId: string; onError: (e: any) => void }) {
+function PeopleTab({ org, ordered, onChanged, onError }: { org: OrgView; ordered: OrgCircle[]; onChanged: () => void; onError: (e: any) => void }) {
   const [people, setPeople] = useState<PersonRow[]>([]);
-  const load = useCallback(() => api.get(`/organisations/${organisationId}/people`).then(r => setPeople(r.data)).catch(onError), [organisationId]);
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const base = `/organisations/${org.id}`;
+  const load = useCallback(() => api.get(`${base}/people`).then(r => setPeople(r.data)).catch(onError), [base]);
   useEffect(() => { load(); }, [load]);
-  const toggle = (p: PersonRow) => api.put(`/organisations/${organisationId}/members/${p.userId}/direction`, { isDirection: !p.isDirection }).then(load).catch(onError);
+  const done = () => { load(); onChanged(); };
+  const toggleDirection = (p: PersonRow) => api.put(`${base}/members/${p.userId}/direction`, { isDirection: !p.isDirection }).then(done).catch(onError);
+  const setRole = (p: PersonRow, circleId: string, roleId: string) => api.put(`${base}/circles/${circleId}/members/${p.userId}/role`, { roleId }).then(done).catch(onError);
+  const add = (p: PersonRow, circleId: string) => api.post(`${base}/people/${p.userId}/circles`, { circleId }).then(done).catch(onError);
+  const remove = (p: PersonRow, circleId: string) => api.delete(`${base}/people/${p.userId}/circles/${circleId}`).then(() => { setConfirming(null); done(); }).catch(onError);
+  const roles = org.roles.filter(r => r.kind !== 'direction');
+  const fold = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const shown = people.filter(p => fold(personName(p.user)).includes(fold(query.trim())));
   return (
     <div>
       <p className="text-xs text-slate-500 mb-3">{t('org.manage.peopleHelp')}</p>
-      <div className="space-y-1">
-        {people.map(p => (
-          <div key={p.userId} className="flex items-center gap-2 py-1.5 border-b border-slate-100">
-            <span className="flex-1 min-w-0 text-sm text-slate-800 truncate">{personName(p.user)}</span>
-            {p.isAdmin
-              ? <span className="text-xs font-medium text-slate-500">{t('org.manage.admin')}</span>
-              : <button onClick={() => toggle(p)} className={`px-2.5 py-1 rounded-lg border text-xs font-medium ${p.isDirection ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50'}`}>{p.isDirection ? t('org.manage.removeDirection') : t('org.manage.makeDirection')}</button>}
-          </div>
-        ))}
+      <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder={t('org.manage.search')} aria-label={t('org.manage.search')}
+        className="w-full mb-3 px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <div className="space-y-1.5">
+        {shown.map(p => {
+          const isOpen = open === p.userId;
+          const mine = ordered.filter(c => p.circles.some(m => m.circleId === c.id));
+          const others = ordered.filter(c => c.orgKind !== 'auto' && !p.circles.some(m => m.circleId === c.id));
+          return (
+            <div key={p.userId} className="rounded-xl border border-slate-200">
+              <button onClick={() => setOpen(isOpen ? null : p.userId)} aria-expanded={isOpen} className="w-full flex items-center gap-2 p-2.5 text-left">
+                {isOpen ? <ChevronDown size={15} className="text-slate-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-slate-400 flex-shrink-0" />}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-slate-800 truncate">{personName(p.user)}</span>
+                  <span className="block text-xs text-slate-500 truncate">{p.isDirection ? `${t('org.manage.direction')} · ` : ''}{t('org.manage.circleCount', { count: mine.length })}</span>
+                </span>
+              </button>
+              {isOpen && (
+                <div className="px-3 pb-3 pt-2 space-y-2 border-t border-slate-100">
+                  {org.isAdmin && !p.isAdmin && (
+                    <button onClick={() => toggleDirection(p)} className={`px-2.5 py-1 rounded-lg border text-xs font-medium ${p.isDirection ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50'}`}>{p.isDirection ? t('org.manage.removeDirection') : t('org.manage.makeDirection')}</button>
+                  )}
+                  {p.isAdmin && <p className="text-xs font-medium text-slate-500">{t('org.manage.admin')}</p>}
+                  {mine.map(c => {
+                    const roleId = p.circles.find(m => m.circleId === c.id)?.orgRoleId ?? '';
+                    const current = org.roles.find(r => r.id === roleId);
+                    const key = `${p.userId}:${c.id}`;
+                    return (
+                      <div key={c.id} className="flex flex-wrap items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: c.color ?? '#94a3b8' }} />
+                        <span className="flex-1 min-w-[6rem] text-sm text-slate-700 truncate">{c.name}</span>
+                        {c.orgKind === 'team' && current?.kind !== 'direction'
+                          ? <select value={roleId} aria-label={`${t('org.manage.role')} : ${c.name}`} onChange={e => setRole(p, c.id, e.target.value)} className="px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs text-slate-800">
+                              {!roleId && <option value="" />}
+                              {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                            </select>
+                          : <span className="text-xs text-slate-500">{c.orgKind === 'auto' ? t('org.manage.automatic') : current?.name ?? ''}</span>}
+                        {c.orgKind !== 'auto' && (confirming === key
+                          ? <button onClick={() => remove(p, c.id)} className="text-xs font-semibold text-red-600">{t('org.manage.confirmRemove')}</button>
+                          : <button onClick={() => setConfirming(key)} className="text-xs text-slate-500 hover:text-red-600">{t('org.manage.remove')}</button>)}
+                      </div>
+                    );
+                  })}
+                  {others.length > 0 && (
+                    <select value="" aria-label={t('org.manage.addTo')} onChange={e => { if (e.target.value) add(p, e.target.value); }} className="w-full px-2 py-1.5 rounded-lg border border-dashed border-indigo-300 bg-white text-xs text-indigo-700">
+                      <option value="">{t('org.manage.addTo')}</option>
+                      {others.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

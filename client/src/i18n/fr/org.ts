@@ -28,8 +28,9 @@ const org = {
     showMembers: "Voir les membres", hideMembers: "Masquer les membres", role: "Rôle", noMember: "Personne pour l’instant.", integratedTag: "Direction",
     integrateNote: "Tu arrives en mode discret : le Cercle reste en silence, sauf si on te mentionne.",
     fixedOrder: "Garder toujours le même ordre", fixedOrderHint: "Les Cercles restent dans cet ordre pour tous les membres, quel que soit le tri choisi.", moveUp: "Monter", moveDown: "Descendre",
+    acceptAs: "Accepter comme :", search: "Rechercher une personne", addTo: "Ajouter à un Cercle…", remove: "Retirer", confirmRemove: "Confirmer", automatic: "Automatique", circleCount_one: "{{count}} Cercle", circleCount_other: "{{count}} Cercles",
     rightsHelp: "Ce que chaque rôle peut faire. Les autres membres ne voient pas ce tableau.", rightsAction: "Action",
-    direction: "Direction", admin: "Administration", peopleHelp: "Les personnes de la direction peuvent intégrer tous les Cercles selon le tableau des droits.", makeDirection: "Mettre dans la direction", removeDirection: "Retirer de la direction",
+    direction: "Direction", admin: "Administration", peopleHelp: "Touche une personne pour voir ses Cercles, lui donner un rôle (Chef…) ou l’ajouter à une équipe. Elle doit d’abord être entrée dans un Cercle de l’Organisation.", makeDirection: "Mettre dans la direction", removeDirection: "Retirer de la direction",
     actions: {
       create_plan: "Créer un Plan", create_poll: "Créer un sondage de dates", write_plan_chat: "Écrire dans le chat d’un Plan", add_files: "Ajouter photos et fichiers",
       send_announcement: "Envoyer une annonce",

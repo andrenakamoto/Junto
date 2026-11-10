@@ -162,3 +162,15 @@ export async function audienceCount(userId: string, raw: unknown): Promise<numbe
   const excluded = new Set(audienceExcludedIds(memberships, parsed.roleIds, userId));
   return new Set(memberships.map(m => m.userId).filter(id => id !== userId && !excluded.has(id))).size;
 }
+
+// Rôle choisi en acceptant une demande. null : rôle prévu pour l'équipe. Un rôle de responsable se donne seulement avec le droit de gérer les membres.
+export async function roleForAcceptance(userId: string, circleId: string, raw: unknown): Promise<{ id: string; kind: string } | null | 'refused'> {
+  if (typeof raw !== 'string') return null;
+  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { organisationId: true, orgKind: true } });
+  if (!circle?.organisationId || circle.orgKind !== 'team') return null;
+  const role = await prisma.organisationRole.findFirst({ where: { id: raw, organisationId: circle.organisationId, kind: { not: 'direction' } }, select: { id: true, kind: true } });
+  if (!role) return 'refused';
+  if (role.kind === 'member') return role;
+  const me = await prisma.organisationMember.findUnique({ where: { organisationId_userId: { organisationId: circle.organisationId, userId } }, select: { isAdmin: true } });
+  return me?.isAdmin || await orgAllows(userId, circle.organisationId, circleId, 'manage_members') ? role : 'refused';
+}

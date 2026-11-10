@@ -30,8 +30,9 @@ const org: Dict['org'] = {
     showMembers: "Show members", hideMembers: "Hide members", role: "Role", noMember: "Nobody yet.", integratedTag: "Leadership",
     integrateNote: "You join in discreet mode: the Circle stays muted unless someone mentions you.",
     fixedOrder: "Always keep the same order", fixedOrderHint: "Circles stay in this order for all members, whatever sorting is chosen.", moveUp: "Move up", moveDown: "Move down",
+    acceptAs: "Accept as:", search: "Search for a person", addTo: "Add to a Circle…", remove: "Remove", confirmRemove: "Confirm", automatic: "Automatic", circleCount_one: "{{count}} Circle", circleCount_other: "{{count}} Circles",
     rightsHelp: "What each role can do. Other members don’t see this table.", rightsAction: "Action",
-    direction: "Leadership", admin: "Administration", peopleHelp: "People in the leadership can join all Circles, according to the rights table.", makeDirection: "Add to the leadership", removeDirection: "Remove from the leadership",
+    direction: "Leadership", admin: "Administration", peopleHelp: "Tap a person to see their Circles, give them a role (team leader…) or add them to a team. They must first have joined one of the Organisation’s Circles.", makeDirection: "Add to the leadership", removeDirection: "Remove from the leadership",
     actions: {
       create_plan: "Create a Plan", create_poll: "Create a date poll", write_plan_chat: "Write in a Plan’s chat", add_files: "Add photos and files",
       send_announcement: "Send an announcement",

@@ -195,7 +195,7 @@ export async function sendPush(userId: string, n: AppNotification, locale?: Loca
 // Notification dans l'app (temps réel) + push sur les téléphones, en arrière-plan
 // Rien si l'auteur est masqué par le destinataire (lib/moderation.ts) ou si le Plan / le Cercle
 // est en silence pour lui (lib/mutes.ts, sauf mentions et invitations)
-export function notifyUser(io: { to(room: string): { emit(ev: string, data: unknown): unknown } } | undefined, userId: string, n: AppNotification) {
+export function notifyUser(io: { to(room: string): { emit(ev: string, data: unknown): unknown } } | undefined, userId: string, n: AppNotification, opts?: { ignoreMute?: boolean }) {
   // Aperçu traduit dans la langue du destinataire (lib/i18n.ts), comme le texte du push
   const deliver = () => {
     userLocale(userId)
@@ -209,7 +209,7 @@ export function notifyUser(io: { to(room: string): { emit(ev: string, data: unkn
   };
   const checks: Promise<boolean>[] = [];
   if (n.actorId) checks.push(isBlockedBy(userId, n.actorId));
-  if (!MUTE_EXEMPT_TYPES.has(n.type) && (n.planId || n.circleId)) checks.push(isMuted(userId, { planId: n.planId, circleId: n.circleId }));
+  if (!opts?.ignoreMute && !MUTE_EXEMPT_TYPES.has(n.type) && (n.planId || n.circleId)) checks.push(isMuted(userId, { planId: n.planId, circleId: n.circleId }));
   if (checks.length === 0) { deliver(); return; }
   Promise.all(checks)
     .then(results => { if (!results.some(Boolean)) deliver(); })

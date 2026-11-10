@@ -30,8 +30,9 @@ const org: Dict['org'] = {
     showMembers: "Mitglieder anzeigen", hideMembers: "Mitglieder ausblenden", role: "Rolle", noMember: "Noch niemand.", integratedTag: "Leitung",
     integrateNote: "Du kommst im diskreten Modus: Der Kreis bleibt stumm, ausser jemand erwähnt dich.",
     fixedOrder: "Immer dieselbe Reihenfolge", fixedOrderHint: "Die Kreise bleiben für alle Mitglieder in dieser Reihenfolge, unabhängig von der gewählten Sortierung.", moveUp: "Nach oben", moveDown: "Nach unten",
+    acceptAs: "Annehmen als:", search: "Person suchen", addTo: "Zu einem Kreis hinzufügen…", remove: "Entfernen", confirmRemove: "Bestätigen", automatic: "Automatisch", circleCount_one: "{{count}} Kreis", circleCount_other: "{{count}} Kreise",
     rightsHelp: "Was jede Rolle darf. Die anderen Mitglieder sehen diese Tabelle nicht.", rightsAction: "Aktion",
-    direction: "Leitung", admin: "Administration", peopleHelp: "Personen der Leitung können laut Rechtetabelle allen Kreisen beitreten.", makeDirection: "Zur Leitung hinzufügen", removeDirection: "Aus der Leitung entfernen",
+    direction: "Leitung", admin: "Administration", peopleHelp: "Tippe auf eine Person, um ihre Kreise zu sehen, ihr eine Rolle zu geben (Gruppenleiter…) oder sie einem Team hinzuzufügen. Sie muss zuerst einem Kreis der Organisation beigetreten sein.", makeDirection: "Zur Leitung hinzufügen", removeDirection: "Aus der Leitung entfernen",
     actions: {
       create_plan: "Einen Plan erstellen", create_poll: "Eine Terminumfrage erstellen", write_plan_chat: "Im Chat eines Plans schreiben", add_files: "Fotos und Dateien hinzufügen",
       send_announcement: "Ankündigung senden",

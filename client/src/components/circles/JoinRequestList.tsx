@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
 import { Circle } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -29,7 +29,16 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
       setBusy(null);
     }
   }
-  const accept = (id: string) => act(id, () => api.post(`/circles/${circle.id}/join-requests/${id}/vote`));
+  // Cercle d'une Organisation : rôle choisi en acceptant, pré-rempli avec celui prévu pour l'équipe
+  const [assignable, setAssignable] = useState<{ roles: { id: string; name: string }[]; defaultRoleId: string | null } | null>(null);
+  const [chosenRole, setChosenRole] = useState<Record<string, string>>({});
+  const orgTeam = !!circle.organisation && circle.orgKind === 'team' && byManager && isManager && requests.length > 0;
+  useEffect(() => {
+    if (!orgTeam) return;
+    api.get(`/organisations/${circle.organisation!.id}/circles/${circle.id}/assignable`).then(r => setAssignable(r.data)).catch(() => {});
+  }, [orgTeam, circle.id]);
+  const roleOf = (id: string) => chosenRole[id] ?? assignable?.defaultRoleId ?? assignable?.roles[0]?.id ?? '';
+  const accept = (id: string) => act(id, () => api.post(`/circles/${circle.id}/join-requests/${id}/vote`, orgTeam && roleOf(id) ? { orgRoleId: roleOf(id) } : undefined));
   const refuse = (id: string) => act(id, () => api.delete(`/circles/${circle.id}/join-requests/${id}`));
 
   return (
@@ -70,6 +79,15 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
               </div>
             ) : (
               // Boutons écrits et bien séparés : Refuser à gauche, Accepter à droite
+              <>
+              {orgTeam && !!assignable?.roles.length && (
+                <label className="flex items-center gap-2 pl-9 text-xs text-slate-600">
+                  {t('org.manage.acceptAs')}
+                  <select value={roleOf(r.id)} onChange={e => setChosenRole(c => ({ ...c, [r.id]: e.target.value }))} className="px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs text-slate-800">
+                    {assignable.roles.map(role => <option key={role.id} value={role.id}>{role.name}</option>)}
+                  </select>
+                </label>
+              )}
               <div className="flex items-center justify-between gap-6 pl-9">
                 <button
                   onClick={() => setConfirming(r.id)}
@@ -86,6 +104,7 @@ export function JoinRequestList({ circle, onCircleUpdated }: { circle: Circle; o
                   <Check size={14} /> {t('circle.requests.accept')}
                 </button>
               </div>
+              </>
             )
           ) : (
             <div className="flex justify-end pl-9">

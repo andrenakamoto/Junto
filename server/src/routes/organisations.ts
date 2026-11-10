@@ -12,9 +12,10 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { detachFromCircle } from '../lib/circleDetach';
 import { isCircleManager } from '../lib/circleRoles';
 import { joinCircleRoom } from '../lib/realtime';
+import { hideReservedPlans } from '../lib/planAccess';
 import { cleanOrgName, isManagerKind, parseActions, parseAudience, parseOrganisationInput } from '../lib/organisations';
 import { orgPermissions } from '../lib/orgPermissions';
-import { audienceCount, integrateCircle, refreshOrgAudience, resolveAudience, syncOrganisation } from '../lib/orgSync';
+import { afterCircleEntry, afterCircleExit, audienceCount, integrateCircle, refreshOrgAudience, resolveAudience, syncOrganisation } from '../lib/orgSync';
 import { createCirclePoll, createPlanInCircle, generateCode, missingPlanBasics } from './circles';
 
 // Organisations — voir lib/organisations.ts. Création réservée aux comptes autorisés dans le panneau admin.
@@ -111,7 +112,8 @@ router.get('/:id', async (req: AuthRequest, res) => {
   if (!organisation) { res.status(404).json({ error: 'Organisation introuvable' }); return; }
   const inCircle = new Set(mine.map(m => m.circleId));
   const canIntegrate = (await orgPermissions(req.userId!, req.params.id)).has('integrate_all');
-  res.json({ ...organisation, isAdmin: me.isAdmin, canIntegrate, circles: circles.map(c => ({ ...c, isMember: inCircle.has(c.id) })) });
+  const perms = await orgPermissions(req.userId!, req.params.id);
+  res.json({ ...organisation, isAdmin: me.isAdmin, canManagePeople: me.isAdmin || perms.has('manage_members'), canIntegrate, circles: circles.map(c => ({ ...c, isMember: inCircle.has(c.id) })) });
 });
 
 // POST /:id/circles/:circleId/integrate — entrer dans n'importe quel Cercle, sans code, en mode discret
@@ -125,6 +127,12 @@ router.post('/:id/circles/:circleId/integrate', async (req: AuthRequest, res) =>
   await integrateCircle(req.app, id, circleId, userId);
   res.json({ ok: true });
 });
+
+// Onglet Personnes : administrateurs, ou droit « gérer les membres » valable dans toute l'Organisation (direction, unité)
+async function canManagePeople(userId: string, organisationId: string) {
+  if ((await membership(organisationId, userId))?.isAdmin) return true;
+  return (await orgPermissions(userId, organisationId)).has('manage_members');
+}
 
 // Gérer les membres : administrateurs de l'Organisation, droit « manage_members », organisateurs du Cercle
 async function canManageMembers(userId: string, organisationId: string, circleId: string) {
@@ -188,14 +196,74 @@ router.put('/:id/members/:userId/direction', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
-// GET /:id/people — personnes de l'Organisation : administrateurs seulement
+// GET /:id/people — personnes de l'Organisation, leurs Cercles et leurs rôles
 router.get('/:id/people', async (req: AuthRequest, res) => {
-  if (!(await membership(req.params.id, req.userId!))?.isAdmin) { res.status(403).json({ error: 'Réservé aux administrateurs de l’Organisation' }); return; }
-  const people = await prisma.organisationMember.findMany({
-    where: { organisationId: req.params.id }, orderBy: { createdAt: 'asc' },
-    select: { userId: true, isAdmin: true, isDirection: true, user: { select: { pseudo: true, firstName: true } } },
+  if (!(await canManagePeople(req.userId!, req.params.id))) { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+  const [people, memberships] = await Promise.all([
+    prisma.organisationMember.findMany({
+      where: { organisationId: req.params.id }, orderBy: { createdAt: 'asc' },
+      select: { userId: true, isAdmin: true, isDirection: true, user: { select: { pseudo: true, firstName: true } } },
+    }),
+    prisma.circleMember.findMany({ where: { circle: { organisationId: req.params.id } }, select: { userId: true, circleId: true, orgRoleId: true } }),
+  ]);
+  res.json(people.map(p => ({ ...p, circles: memberships.filter(m => m.userId === p.userId).map(m => ({ circleId: m.circleId, orgRoleId: m.orgRoleId })) })));
+});
+
+// POST /:id/people/:userId/circles { circleId } — ajouter une personne de l'Organisation à une équipe ou une unité
+router.post('/:id/people/:userId/circles', async (req: AuthRequest, res) => {
+  const { id, userId } = req.params;
+  if (!(await canManagePeople(req.userId!, id))) { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+  if (typeof req.body?.circleId !== 'string') { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  const circleId = req.body.circleId as string;
+  const [target, circle, existing] = await Promise.all([
+    membership(id, userId),
+    prisma.circle.findFirst({ where: { id: circleId, organisationId: id }, select: { name: true, orgKind: true } }),
+    prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId } } }),
+  ]);
+  if (!target) { res.status(404).json({ error: 'Membre introuvable' }); return; }
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.orgKind === 'auto') { res.status(400).json({ error: 'Ce groupe automatique se remplit tout seul' }); return; }
+  if (existing) { res.status(409).json({ error: 'Cette personne est déjà dans ce Cercle' }); return; }
+  await prisma.circleMember.create({ data: { userId, circleId, role: target.isDirection ? 'organizer' : 'member' } });
+  await prisma.circleJoinRequest.deleteMany({ where: { circleId, userId } });
+  await hideReservedPlans(userId, circleId);
+  const io = req.app.get('io');
+  joinCircleRoom(io, userId, circleId);
+  await afterCircleEntry(req.app, userId, circleId);
+  io?.to(`circle:${circleId}`).emit('circle-updated', { circleId });
+  notifyUser(io, userId, { type: 'join_accepted', circleId, circleName: circle.name });
+  res.json({ ok: true });
+});
+
+// DELETE /:id/people/:userId/circles/:circleId — retirer une personne d'une équipe ou d'une unité
+router.delete('/:id/people/:userId/circles/:circleId', async (req: AuthRequest, res) => {
+  const { id, userId, circleId } = req.params;
+  if (!(await canManagePeople(req.userId!, id))) { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+  const circle = await prisma.circle.findFirst({ where: { id: circleId, organisationId: id }, select: { creatorId: true, orgKind: true } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  if (circle.orgKind === 'auto') { res.status(400).json({ error: 'Ce groupe automatique se remplit tout seul' }); return; }
+  if (circle.creatorId === userId) { res.status(403).json({ error: 'Le créateur du Cercle ne peut pas être retiré' }); return; }
+  if (!(await prisma.circleMember.findUnique({ where: { userId_circleId: { userId, circleId } } }))) { res.status(404).json({ error: 'Membre introuvable' }); return; }
+  await detachFromCircle(req.app, circleId, userId);
+  await afterCircleExit(req.app, circleId);
+  const io = req.app.get('io');
+  io?.to(`user:${userId}`).emit('circle-updated', { circleId });
+  io?.to(`circle:${circleId}`).emit('circle-updated', { circleId });
+  res.json({ ok: true });
+});
+
+// GET /:id/circles/:circleId/assignable — rôles proposés en acceptant une demande
+router.get('/:id/circles/:circleId/assignable', async (req: AuthRequest, res) => {
+  const { id, circleId } = req.params;
+  const circle = await prisma.circle.findFirst({ where: { id: circleId, organisationId: id }, select: { orgKind: true, orgDefaultRoleId: true } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  const full = await canManageMembers(req.userId!, id, circleId);
+  if (!full && !(await isCircleManager(req.userId!, circleId))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  if (circle.orgKind !== 'team') { res.json({ roles: [], defaultRoleId: null }); return; }
+  const roles = await prisma.organisationRole.findMany({
+    where: { organisationId: id, kind: full ? { not: 'direction' } : 'member' }, orderBy: { position: 'asc' }, select: { id: true, name: true },
   });
-  res.json(people);
+  res.json({ roles, defaultRoleId: circle.orgDefaultRoleId });
 });
 
 // PUT /:id/roles/:roleId { name?, permissions? } — le tableau des droits : administrateurs seulement

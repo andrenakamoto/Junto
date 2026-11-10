@@ -194,7 +194,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
   }
   function renderOrgBlock(org: OrgBlock) {
     const open = isOrgOpen(org);
-    const hasNews = org.circles.some(c => unreadCircles.has(c.id));
+    // Une demande d'adhésion en attente se voit aussi bloc replié
+    const hasNews = org.circles.some(c => unreadCircles.has(c.id) || (c.joinRequests?.length ?? 0) > 0);
     const mine = myOrgs.find(o => o.id === org.id);
     return (
       <div key={org.id} className="pt-2.5">
