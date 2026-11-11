@@ -111,6 +111,7 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
               </tbody>
             </table>
           </div>
+          <RolesEditor organisationId={organisationId} roles={view.roles} onChanged={load} onError={fail} />
         </div>
       )}
       {view && tab === 'people' && <PeopleTab org={view} ordered={ordered} onChanged={load} onError={fail} />}
@@ -289,5 +290,58 @@ export function DiscussionRolesField({ organisationId, circleId, readOnly }: { o
         ))}
       </div>
     </div>
+  );
+}
+
+// Rôles de l'Organisation : ajouter (responsable ou membre), renommer, supprimer s'il n'est plus utilisé. Administrateurs seulement.
+function RolesEditor({ organisationId, roles, onChanged, onError }: { organisationId: string; roles: OrgRole[]; onChanged: () => void; onError: (e: any) => void }) {
+  const [name, setName] = useState('');
+  const [kind, setKind] = useState<'member' | 'responsible'>('member');
+  const [error, setError] = useState('');
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const field = 'px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500';
+  const kindLabel = (k: OrgRole['kind']) => t(`org.roles.kinds.${k}`);
+
+  async function add() {
+    if (!name.trim()) { setError(t('org.roles.needName')); return; }
+    setError('');
+    await api.post(`/organisations/${organisationId}/roles`, { name: name.trim(), kind }).then(() => { setName(''); onChanged(); }).catch(onError);
+  }
+  async function rename(r: OrgRole) {
+    const value = (names[r.id] ?? r.name).trim();
+    if (!value || value === r.name) return;
+    await api.put(`/organisations/${organisationId}/roles/${r.id}`, { name: value }).then(onChanged).catch(onError);
+  }
+  async function remove(r: OrgRole) {
+    setConfirming(null);
+    await api.delete(`/organisations/${organisationId}/roles/${r.id}`).then(onChanged).catch(onError);
+  }
+
+  return (
+    <section className="mt-5 pt-4 border-t border-slate-100 space-y-2">
+      <h3 className="text-sm font-semibold text-slate-800">{t('org.roles.title')}</h3>
+      <p className="text-xs text-slate-500">{t('org.roles.help')}</p>
+      {roles.map(r => (
+        <div key={r.id} className="flex flex-wrap items-center gap-2">
+          <input value={names[r.id] ?? r.name} maxLength={60} aria-label={t('org.roles.name')} onChange={e => setNames(n => ({ ...n, [r.id]: e.target.value }))} onBlur={() => rename(r)}
+            onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} className={`${field} flex-1 min-w-[8rem]`} />
+          <span className="text-xs text-slate-500 w-24">{kindLabel(r.kind)}</span>
+          {r.kind !== 'direction' && (confirming === r.id
+            ? <button onClick={() => remove(r)} className="text-xs font-semibold text-red-600">{t('org.roles.confirmDelete')}</button>
+            : <button onClick={() => setConfirming(r.id)} className="text-xs text-slate-500 hover:text-red-600">{t('org.roles.delete')}</button>)}
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <input value={name} maxLength={60} placeholder={t('org.roles.newPlaceholder')} aria-label={t('org.roles.name')} onChange={e => { setName(e.target.value); setError(''); }} className={`${field} flex-1 min-w-[8rem]`} />
+        <select value={kind} onChange={e => setKind(e.target.value as 'member' | 'responsible')} aria-label={t('org.roles.kind')} className={field}>
+          <option value="member">{kindLabel('member')}</option>
+          <option value="responsible">{kindLabel('responsible')}</option>
+        </select>
+        <button onClick={add} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">{t('org.roles.add')}</button>
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <p className="text-xs text-slate-500">{t('org.roles.afterAdd')}</p>
+    </section>
   );
 }

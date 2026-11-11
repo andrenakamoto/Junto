@@ -13,7 +13,7 @@ import { detachFromCircle } from '../lib/circleDetach';
 import { isCircleManager } from '../lib/circleRoles';
 import { joinCircleRoom } from '../lib/realtime';
 import { hideReservedPlans } from '../lib/planAccess';
-import { cleanOrgName, isManagerKind, parseActions, parseAudience, parseOrganisationInput } from '../lib/organisations';
+import { cleanOrgName, isManagerKind, ORG_ROLES_MAX, parseActions, parseAudience, parseOrganisationInput } from '../lib/organisations';
 import { orgPermissions } from '../lib/orgPermissions';
 import { afterCircleEntry, afterCircleExit, audienceCount, integrateCircle, refreshOrgAudience, resolveAudience, syncOrganisation } from '../lib/orgSync';
 import { createCirclePoll, createPlanInCircle, generateCode, missingPlanBasics } from './circles';
@@ -280,6 +280,49 @@ router.put('/:id/roles/:roleId', async (req: AuthRequest, res) => {
     data: { name, ...(req.body?.permissions !== undefined && { permissions: parseActions(req.body.permissions) }) },
   });
   res.json(updated);
+});
+
+// Droits de départ d'un rôle ajouté après la création (modifiables ensuite dans le tableau)
+const NEW_ROLE_PERMISSIONS: Record<'responsible' | 'member', string[]> = {
+  responsible: ['publish_multi', 'create_plan', 'create_poll', 'edit_others', 'write_plan_chat', 'add_files', 'manage_shifts', 'invite_guests', 'see_participants'],
+  member: ['write_plan_chat'],
+};
+
+// POST /:id/roles { name, kind } — ajouter un rôle (responsable ou membre) : administrateurs seulement
+router.post('/:id/roles', async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  if (!(await membership(id, req.userId!))?.isAdmin) { res.status(403).json({ error: 'Réservé aux administrateurs de l’Organisation' }); return; }
+  const name = cleanOrgName(req.body?.name);
+  const kind = req.body?.kind === 'responsible' || req.body?.kind === 'member' ? req.body.kind as 'responsible' | 'member' : null;
+  if (!name || !kind) { res.status(400).json({ error: 'Rôle invalide' }); return; }
+  const roles = await prisma.organisationRole.findMany({ where: { organisationId: id }, select: { name: true, position: true } });
+  if (roles.length >= ORG_ROLES_MAX) { res.status(400).json({ error: 'Trop de rôles ou de Cercles dans cette Organisation' }); return; }
+  if (roles.some(r => r.name.toLocaleLowerCase() === name.toLocaleLowerCase())) { res.status(409).json({ error: 'Ce rôle existe déjà' }); return; }
+  const role = await prisma.organisationRole.create({
+    data: { organisationId: id, name, kind, position: Math.max(0, ...roles.map(r => r.position)) + 1, permissions: NEW_ROLE_PERMISSIONS[kind] },
+  });
+  res.json(role);
+});
+
+// DELETE /:id/roles/:roleId — supprimer un rôle que personne n'a et qu'aucune équipe ne donne à l'entrée : administrateurs seulement
+router.delete('/:id/roles/:roleId', async (req: AuthRequest, res) => {
+  const { id, roleId } = req.params;
+  if (!(await membership(id, req.userId!))?.isAdmin) { res.status(403).json({ error: 'Réservé aux administrateurs de l’Organisation' }); return; }
+  const role = await prisma.organisationRole.findFirst({ where: { id: roleId, organisationId: id } });
+  if (!role) { res.status(404).json({ error: 'Rôle invalide' }); return; }
+  if (role.kind === 'direction') { res.status(400).json({ error: 'Le rôle de la direction ne peut pas être supprimé' }); return; }
+  const [holders, defaults] = await Promise.all([
+    prisma.circleMember.count({ where: { orgRoleId: roleId } }),
+    prisma.circle.count({ where: { organisationId: id, orgDefaultRoleId: roleId } }),
+  ]);
+  if (holders || defaults) { res.status(409).json({ error: 'Ce rôle est encore utilisé : change d’abord le rôle des personnes et des équipes qui l’ont' }); return; }
+  // Retiré des réglages des Cercles qui le citent (Discussion, groupes automatiques)
+  const circles = await prisma.circle.findMany({ where: { organisationId: id, OR: [{ orgDiscussionRoleIds: { has: roleId } }, { orgAutoRoleIds: { has: roleId } }] }, select: { id: true, orgDiscussionRoleIds: true, orgAutoRoleIds: true } });
+  await prisma.$transaction([
+    ...circles.map(c => prisma.circle.update({ where: { id: c.id }, data: { orgDiscussionRoleIds: c.orgDiscussionRoleIds.filter(x => x !== roleId), orgAutoRoleIds: c.orgAutoRoleIds.filter(x => x !== roleId) } })),
+    prisma.organisationRole.delete({ where: { id: roleId } }),
+  ]);
+  res.json({ ok: true });
 });
 
 // GET /:id/circles/:circleId/discussion — rôles réglables (membres) et rôles qui écrivent
