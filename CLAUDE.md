@@ -541,6 +541,9 @@ Conséquences pratiques :
     public), « Père Noël secret (Secret Santa) », carte de Noël de la page de connexion dès le 6 novembre, Cercle refermé d'un second clic.
     **Version 1.0.49** (2026-11-09) : Android `versionCode` 51 (`evly-1.0.49-(51).aab`), iOS build 55 envoyé — Organisations (rôles, droits, « Pour qui ? »,
     sondages pour plusieurs Cercles, annonces, Discussion gardée 3 mois et photos 1 mois).
+    **Version 1.0.50** (2026-11-11) : Android `versionCode` 52 (`evly-1.0.50-(52).aab`), iOS build 56 envoyé — Organisations : rôle choisi en
+    acceptant, fiche des personnes, rôles ajoutés après la création, en-tête du bloc ; nouveau code d'accès, nom de famille visible sur choix,
+    plusieurs tâches par idée, grand écran des Fournisseurs.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
