@@ -4,7 +4,7 @@ import type { Dict } from '../fr';
 const org: Dict['org'] = {
   words: { units: "Unità", teams: "Squadre", auto: "Gruppi automatici" },
   menu: { create: "Crea un’Organizzazione", createHint: "Un’associazione con più gruppi" },
-  block: { expand: "Espandi", collapse: "Comprimi", manage: "Gestisci l’Organizzazione", count_one: "{{count}} Cerchio", count_other: "{{count}} Cerchi" },
+  block: { members_one: "{{count}} membro", members_other: "{{count}} membri", announce: "Annuncio", manageShort: "Gestisci", expand: "Espandi", collapse: "Comprimi", manage: "Gestisci l’Organizzazione", count_one: "{{count}} Cerchio", count_other: "{{count}} Cerchi" },
   models: {
     youth: { name: "Gioventù", hint: "Scout, movimento giovanile", direction: "Dirigente", responsible: "Capo", members: "Genitore|Giovane", units: "Segreteria|Tesoreria|Spirituale|Materiale|Comunicazione", teams: "Verde|Arancione|Blu|Rosso|Verde scuro", responsibleGroup: "Capi", directionGroup: "Dirigenti" },
     sport: { name: "Società sportiva", hint: "Squadre, allenatori, genitori", direction: "Comitato", responsible: "Allenatore", members: "Genitore|Giocatore", units: "Finanze|Buvette|Tornei", teams: "U9|U11|Senior", responsibleGroup: "Allenatori", directionGroup: "Comitato" },

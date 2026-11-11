@@ -39,7 +39,7 @@ const SEARCH_FROM = 5;
 // Bloc d'une Organisation : déplié d'office jusqu'à ce nombre de Cercles, choix gardé sur l'appareil
 const ORG_OPEN_UP_TO = 3;
 const ORG_OPEN_KEY = 'evly_org_open';
-interface MyOrg { id: string; name: string; isAdmin: boolean; isDirection: boolean; permissions: Record<string, string[]> }
+interface MyOrg { id: string; name: string; isAdmin: boolean; isDirection: boolean; memberCount?: number; permissions: Record<string, string[]> }
 interface OrgBlock { id: string; name: string; circles: Circle[] }
 type ListEntry = { circle?: Circle; org?: OrgBlock };
 
@@ -197,22 +197,31 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
     // Une demande d'adhésion en attente se voit aussi bloc replié
     const hasNews = org.circles.some(c => unreadCircles.has(c.id) || (c.joinRequests?.length ?? 0) > 0);
     const mine = myOrgs.find(o => o.id === org.id);
+    const canAnnounce = !!mine && Object.values(mine.permissions).some(list => list.includes('send_announcement'));
+    const canManage = !!(mine?.isDirection || mine?.isAdmin);
+    const action = 'flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200';
     return (
       <div key={org.id} className="pt-2.5">
-        <div className="flex items-center gap-1 rounded-xl bg-white border border-slate-200 shadow-sm">
-          <button onClick={() => toggleOrg(org)} aria-expanded={open} title={open ? t('org.block.collapse') : t('org.block.expand')} className="flex items-center gap-2 flex-1 min-w-0 px-3 py-2.5 text-left">
-            {open ? <ChevronDown size={16} className="text-slate-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-slate-400 flex-shrink-0" />}
+        <div className="rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
+          <button onClick={() => toggleOrg(org)} aria-expanded={open} title={open ? t('org.block.collapse') : t('org.block.expand')} className="w-full flex items-start gap-3 p-3 text-left hover:bg-slate-50">
+            <span className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-['Fraunces'] italic font-light text-2xl leading-none flex-shrink-0 select-none">{org.name[0]?.toUpperCase()}</span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-slate-800 truncate">{org.name}</span>
-              <span className="block text-xs text-slate-500">{t('org.block.count', { count: org.circles.length })}</span>
+              <span className="block text-[15px] font-semibold text-slate-900 leading-snug break-words">{org.name}</span>
+              <span className="block text-xs text-slate-500 mt-0.5">
+                {t('org.block.count', { count: org.circles.length })}
+                {mine?.memberCount ? ` · ${t('org.block.members', { count: mine.memberCount })}` : ''}
+              </span>
             </span>
-            {hasNews && !open && <span className="w-2.5 h-2.5 bg-orange-500 rounded-full flex-shrink-0" />}
+            <span className="flex items-center gap-1.5 flex-shrink-0 pt-1">
+              {hasNews && !open && <span className="w-2.5 h-2.5 bg-orange-500 rounded-full" />}
+              {open ? <ChevronDown size={18} className="text-slate-400" /> : <ChevronRight size={18} className="text-slate-400" />}
+            </span>
           </button>
-          {mine && Object.values(mine.permissions).some(list => list.includes('send_announcement')) && (
-            <button onClick={() => setAnnounceOrg(org.id)} title={t('org.announce.title')} aria-label={t('org.announce.title')} className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-700"><Megaphone size={16} /></button>
-          )}
-          {(mine?.isDirection || mine?.isAdmin) && (
-            <button onClick={() => setManagedOrg(org.id)} title={t('org.block.manage')} aria-label={t('org.block.manage')} className="p-2.5 rounded-xl text-slate-500 hover:text-indigo-700"><Settings size={16} /></button>
+          {(canAnnounce || canManage) && (
+            <div className="flex gap-2 px-3 pb-3">
+              {canAnnounce && <button onClick={() => setAnnounceOrg(org.id)} className={action}><Megaphone size={14} />{t('org.block.announce')}</button>}
+              {canManage && <button onClick={() => setManagedOrg(org.id)} className={action}><Settings size={14} />{t('org.block.manageShort')}</button>}
+            </div>
           )}
         </div>
         {open && <div className="pl-2 border-l-2 border-slate-200 ml-2">{org.circles.map(renderCircle)}</div>}

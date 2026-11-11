@@ -92,7 +92,8 @@ router.get('/mine', async (req: AuthRequest, res) => {
     const circles = await prisma.circleMember.findMany({ where: { userId: req.userId!, circle: { organisationId: row.organisationId } }, select: { circleId: true } });
     const permissions: Record<string, string[]> = {};
     for (const c of circles) permissions[c.circleId] = [...await orgPermissions(req.userId!, row.organisationId, c.circleId)];
-    organisations.push({ ...row.organisation, isAdmin: row.isAdmin, isDirection: row.isDirection, permissions });
+    const memberCount = await prisma.organisationMember.count({ where: { organisationId: row.organisationId } });
+    organisations.push({ ...row.organisation, isAdmin: row.isAdmin, isDirection: row.isDirection, memberCount, permissions });
   }
   res.json(organisations);
 });

@@ -2,7 +2,7 @@
 const org = {
   words: { units: "Unités", teams: "Équipes", auto: "Groupes automatiques" },
   menu: { create: "Créer une Organisation", createHint: "Une association avec plusieurs groupes" },
-  block: { expand: "Déplier", collapse: "Replier", manage: "Gérer l’Organisation", count_one: "{{count}} Cercle", count_other: "{{count}} Cercles" },
+  block: { members_one: "{{count}} membre", members_other: "{{count}} membres", announce: "Annonce", manageShort: "Gérer", expand: "Déplier", collapse: "Replier", manage: "Gérer l’Organisation", count_one: "{{count}} Cercle", count_other: "{{count}} Cercles" },
   models: {
     youth: { name: "Jeunesse", hint: "Scouts, mouvement de jeunesse", direction: "Dirigeant", responsible: "Chef", members: "Parent|Jeune", units: "Secrétaire responsable|Trésorerie|Spirituel|Matériel|Communication", teams: "Vert|Orange|Bleu|Rouge|Vert foncé", responsibleGroup: "Chefs", directionGroup: "Dirigeants" },
     sport: { name: "Club sportif", hint: "Équipes, entraîneurs, parents", direction: "Comité", responsible: "Entraîneur", members: "Parent|Joueur", units: "Finances|Buvette|Tournois", teams: "U9|U11|Seniors", responsibleGroup: "Entraîneurs", directionGroup: "Comité" },

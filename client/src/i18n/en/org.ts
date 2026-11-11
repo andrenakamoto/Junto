@@ -4,7 +4,7 @@ import type { Dict } from '../fr';
 const org: Dict['org'] = {
   words: { units: "Units", teams: "Teams", auto: "Automatic groups" },
   menu: { create: "Create an Organisation", createHint: "An association with several groups" },
-  block: { expand: "Expand", collapse: "Collapse", manage: "Manage the Organisation", count_one: "{{count}} Circle", count_other: "{{count}} Circles" },
+  block: { members_one: "{{count}} member", members_other: "{{count}} members", announce: "Announcement", manageShort: "Manage", expand: "Expand", collapse: "Collapse", manage: "Manage the Organisation", count_one: "{{count}} Circle", count_other: "{{count}} Circles" },
   models: {
     youth: { name: "Youth", hint: "Scouts, youth movement", direction: "Leader", responsible: "Team leader", members: "Parent|Young person", units: "Secretariat|Treasury|Spiritual|Equipment|Communication", teams: "Green|Orange|Blue|Red|Dark green", responsibleGroup: "Team leaders", directionGroup: "Leaders" },
     sport: { name: "Sports club", hint: "Teams, coaches, parents", direction: "Committee", responsible: "Coach", members: "Parent|Player", units: "Finance|Refreshments|Tournaments", teams: "U9|U11|Seniors", responsibleGroup: "Coaches", directionGroup: "Committee" },
