@@ -99,6 +99,12 @@ const de: EmailDict = {
     text: '<strong>{who}</strong> hat dich im Plan <strong>«{plan}»</strong> erwähnt.',
     button: 'Nachricht ansehen',
   },
+  joinRefused: {
+    subject: "Deine Anfrage für «{circle}» wurde nicht angenommen",
+    hello: "Hallo {name},",
+    text: "Deine Anfrage, dem Kreis «{circle}» beizutreten, wurde von dessen Organisationsteam nicht angenommen.",
+    hint: "Wenn du denkst, dass es sich um einen Fehler handelt, wende dich direkt an die Person, die dir den Code gegeben hat.",
+  },
   joined: {
     subject: 'Du bist «{circle}» beigetreten!',
     title: 'Willkommen in «{circle}», {name} 🎉',

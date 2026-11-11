@@ -99,6 +99,12 @@ const fr = {
     text: '<strong>{who}</strong> t’a mentionné(e) dans le Plan <strong>« {plan} »</strong>.',
     button: 'Voir le message',
   },
+  joinRefused: {
+    subject: "Ta demande pour « {circle} » n’a pas été acceptée",
+    hello: "Bonjour {name},",
+    text: "Ta demande pour rejoindre le Cercle « {circle} » n’a pas été acceptée par ses organisateurs.",
+    hint: "Si tu penses qu’il s’agit d’une erreur, contacte directement la personne qui t’a donné le code.",
+  },
   joined: {
     subject: 'Tu as rejoint « {circle} » !',
     title: 'Bienvenue dans « {circle} », {name} 🎉',

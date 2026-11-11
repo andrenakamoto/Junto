@@ -736,6 +736,27 @@ router.delete('/:id/join-requests/:requestId', async (req: AuthRequest, res) => 
   await prisma.circleJoinRequest.delete({ where: { id: request.id } });
   const updated = await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude });
   res.json(updated);
+  // La personne est prévenue par email (elle n'est pas membre : pas de notification dans l'app), sans dire qui a refusé
+  try {
+    const refused = await prisma.user.findUnique({ where: { id: request.userId }, select: { email: true, emailVerified: true, pseudo: true, firstName: true, locale: true } });
+    if (refused?.email && refused.emailVerified) {
+      const m = mail(parseLocale(refused.locale) ?? 'fr');
+      const r = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: refused.email,
+        subject: m.s('joinRefused.subject', { circle: circle.name }),
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <p>${m.t('joinRefused.hello', { name: refused.firstName || refused.pseudo })}</p>
+            <p>${m.t('joinRefused.text', { circle: circle.name })}</p>
+            <p>${m.t('joinRefused.hint')}</p>
+          </div>`,
+      });
+      if (r.error) console.error('[join_refused email]', refused.email, r.error);
+    }
+  } catch (e) {
+    console.error('[join_refused email]', e);
+  }
 });
 
 router.get('/:id', async (req: AuthRequest, res) => {
