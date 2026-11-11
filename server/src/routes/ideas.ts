@@ -46,9 +46,11 @@ router.get('/:id/ideas', async (req: AuthRequest, res) => {
   if (!(await getPlanAccess(req.userId!, req.params.id))?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const [columns, ideas] = await Promise.all([
     prisma.ideaColumn.findMany({ where: { planId: req.params.id }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }], select: { id: true, title: true } }),
-    prisma.idea.findMany({ where: { planId: req.params.id }, orderBy: { createdAt: 'asc' }, select: { id: true, columnId: true, text: true, status: true, votes: true, color: true, taskId: true, createdAt: true } }),
+    prisma.idea.findMany({ where: { planId: req.params.id }, orderBy: { createdAt: 'asc' }, select: { id: true, columnId: true, text: true, status: true, votes: true, color: true, taskId: true, taskIds: true, createdAt: true } }),
   ]);
-  res.json({ columns, ideas });
+  // Tâches encore là (une tâche supprimée ne compte plus)
+  const alive = new Set((await prisma.planTask.findMany({ where: { planId: req.params.id }, select: { id: true } })).map(x => x.id));
+  res.json({ columns, ideas: ideas.map(i => ({ ...i, taskIds: i.taskIds.filter(id => alive.has(id)), taskId: i.taskId && alive.has(i.taskId) ? i.taskId : (i.taskIds.find(id => alive.has(id)) ?? null) })) });
 });
 
 // POST /:id/idea-columns {title | titles} — ajouter un ou plusieurs thèmes
@@ -142,7 +144,9 @@ router.put('/ideas/:ideaId', async (req: AuthRequest, res) => {
     if (typeof b.taskId !== 'string' || !(await prisma.planTask.findFirst({ where: { id: b.taskId, planId: idea.planId }, select: { id: true } }))) {
       res.status(400).json({ error: 'Tâche introuvable' }); return;
     }
-    data.taskId = b.taskId;
+    // Plusieurs tâches possibles pour une même idée ; taskId garde la première pour les anciennes apps
+    if (!idea.taskId) data.taskId = b.taskId;
+    if (!idea.taskIds.includes(b.taskId)) data.taskIds = [...idea.taskIds, b.taskId];
     data.status = 'kept';
   }
   await prisma.idea.update({ where: { id: idea.id }, data });
@@ -168,7 +172,7 @@ router.post('/ideas/:ideaId/merge', async (req: AuthRequest, res) => {
   if (!into) { res.status(400).json({ error: 'Idée introuvable' }); return; }
   const merged = mergeIdeas(into, idea);
   await prisma.$transaction([
-    prisma.idea.update({ where: { id: into.id }, data: { ...merged, taskId: into.taskId ?? idea.taskId } }),
+    prisma.idea.update({ where: { id: into.id }, data: { ...merged, taskId: into.taskId ?? idea.taskId, taskIds: [...new Set([...into.taskIds, ...idea.taskIds])] } }),
     prisma.idea.delete({ where: { id: idea.id } }),
   ]);
   res.json({ ok: true });

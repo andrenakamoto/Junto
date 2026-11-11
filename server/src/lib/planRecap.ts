@@ -314,7 +314,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
       sub(th.title);
       for (const x of list) {
         if (doc.y > doc.page.height - 80) doc.addPage();
-        const tags = [LABEL[x.status], x.votes ? m.s('recapPdf.ideaVotes', { count: x.votes }) : '', x.taskId ? m.s('recapPdf.ideaTask') : ''].filter(Boolean);
+        const tags = [LABEL[x.status], x.votes ? m.s('recapPdf.ideaVotes', { count: x.votes }) : '', (x.taskId || x.taskIds?.length) ? m.s('recapPdf.ideaTask') : ''].filter(Boolean);
         doc.font(x.status === 'kept' ? 'semibold' : 'regular').fontSize(10).fillColor(x.status === 'dropped' ? DIM : INK).text(`•  ${x.text}`, { width, continued: tags.length > 0 });
         if (tags.length) doc.font('regular').fillColor(x.status === 'kept' ? '#059669' : DIM).text(`  ·  ${tags.join('  ·  ')}`);
       }

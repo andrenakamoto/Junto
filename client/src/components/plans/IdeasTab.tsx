@@ -18,7 +18,9 @@ import { t } from '../../i18n';
 // Serveur : routes/ideas.ts. Les téléphones suivent la séance en direct (plan-updated).
 
 type Status = 'new' | 'kept' | 'dropped' | 'explore';
-type Idea = { id: string; columnId: string | null; text: string; status: Status; votes: number; color: string | null; taskId: string | null; createdAt: string };
+type Idea = { id: string; columnId: string | null; text: string; status: Status; votes: number; color: string | null; taskId: string | null; taskIds?: string[]; createdAt: string };
+// Tâches créées à partir d'une idée (plusieurs possibles ; les anciennes n'ont que taskId)
+const taskCount = (i: Idea) => i.taskIds?.length ?? (i.taskId ? 1 : 0);
 type Column = { id: string; title: string };
 type Person = { id: string; pseudo: string; firstName?: string | null };
 
@@ -73,7 +75,7 @@ export function IdeasTab({ plan }: { plan: Plan; userId: string }) {
         const items = list.filter(i => i.status === status);
         if (items.length === 0) return;
         lines.push(`${label} :`);
-        for (const i of items) lines.push(`${mark} ${i.text}${i.votes ? ` (${t('ideas.votes', { count: i.votes })})` : ''}${i.taskId ? ` → ${t('ideas.reportTask')}` : ''}`);
+        for (const i of items) lines.push(`${mark} ${i.text}${i.votes ? ` (${t('ideas.votes', { count: i.votes })})` : ''}${taskCount(i) ? ` → ${t('ideas.reportTask')}` : ''}`);
       };
       part('kept', t('ideas.reportKept'), '⭐');
       part('explore', t('ideas.reportExplore'), '❓');
@@ -421,7 +423,7 @@ function IdeaCard({ idea: i, big, selected, mergeTarget, tasksOn, onClick, onSta
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
             {i.status === 'kept' && <span className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800"><Star size={10} fill="currentColor" />{t('ideas.status.kept')}</span>}
             {i.status === 'explore' && <span className="flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-800"><CircleHelp size={10} />{t('ideas.status.explore')}</span>}
-            {i.taskId && <span className="flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700"><ListChecks size={10} />{t('ideas.taskDone')}</span>}
+            {taskCount(i) > 0 && <span className="flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700"><ListChecks size={10} />{taskCount(i) > 1 ? t('ideas.tasksDone', { count: taskCount(i) }) : t('ideas.taskDone')}</span>}
             <span className="flex-1" />
             {(i.votes > 0 || selected) && <span className={`font-bold tabular-nums ${big ? 'text-base' : 'text-xs'} text-indigo-700`}>👍 {i.votes}</span>}
           </div>
@@ -445,7 +447,7 @@ function IdeaCard({ idea: i, big, selected, mergeTarget, tasksOn, onClick, onSta
             <span className="flex-1" />
             <button onClick={() => setEditing(i.text)} title={t('ideas.edit')} aria-label={t('ideas.edit')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><Pencil size={14} /></button>
             <button onClick={onMerge} title={t('ideas.merge')} aria-label={t('ideas.merge')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><Combine size={14} /></button>
-            {tasksOn && !i.taskId && <button onClick={onTask} title={t('ideas.toTask')} aria-label={t('ideas.toTask')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><ClipboardList size={14} /></button>}
+            {tasksOn && <button onClick={onTask} title={taskCount(i) ? t('ideas.toTaskAgain') : t('ideas.toTask')} aria-label={taskCount(i) ? t('ideas.toTaskAgain') : t('ideas.toTask')} className="p-1.5 rounded-md text-slate-500 hover:bg-white"><ClipboardList size={14} /></button>}
             <ConfirmButton onConfirm={onDelete} label={t('ideas.delete')} hint={t('ideas.deleteConfirm')} size={14} />
           </div>
         </div>

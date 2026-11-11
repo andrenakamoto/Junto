@@ -1157,8 +1157,10 @@ model Idea {
   status      String      @default("new")
   votes       Int         @default(0)
   color       String?
-  // Tâche créée à partir de l'idée (lib/tasks.ts), sans lien de base : la tâche peut être supprimée
+  // Tâches créées à partir de l'idée (lib/tasks.ts), sans lien de base : une tâche peut être supprimée.
+  // taskId = la première (anciennes apps), taskIds = toutes (2026-11-11)
   taskId      String?
+  taskIds     String[]    @default([])
   createdById String?
   createdAt   DateTime    @default(now())
 
