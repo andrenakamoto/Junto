@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FullscreenButton, FullscreenFrame } from '../ui/FullscreenFrame';
 import { Archive, Check, ChevronDown, FileText, Globe, History as HistoryIcon, Lock, Mail, Pause, Paperclip, Pencil, Phone, Play, Plus, RotateCcw, Search, Send, Trash2, X } from 'lucide-react';
 import { Plan } from '../../types';
 import api from '../../services/api';
@@ -72,6 +73,8 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
   const [data, setData] = useState<Data | null>(null);
   const [filter, setFilter] = useState<Status | 'all' | 'on_hold'>('all');
   const [openId, setOpenId] = useState<string | null>(null);
+  // « Grand écran » (comme les Tâches et le Jour J)
+  const [full, setFull] = useState(false);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState('');
 
@@ -98,7 +101,9 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
   const counts = new Map<string, number>([...STATUSES.map(s => [s, entries.filter(e => !e.onHold && e.status === s).length] as [string, number]), ['on_hold', entries.filter(e => e.onHold).length]]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
+    <FullscreenFrame full={full} onClose={() => setFull(false)} title={`${t('plan.detail.tabs.fournisseurs')} · ${plan.title}`}>
+    <div className={`flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 ${full ? '' : 'short:flex-none short:overflow-visible'}`}>
+      {!full && <div className="flex justify-end"><FullscreenButton onClick={() => setFull(true)} /></div>}
       {entries.length > 0 && (
         <p className="text-sm text-slate-600">
           {t('suppliers.summary', { count: entries.length })}
@@ -143,6 +148,7 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
           onAdded={async id => { setPicking(false); await load(); setOpenId(id); }} />
       )}
     </div>
+    </FullscreenFrame>
   );
 }
 
