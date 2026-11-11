@@ -424,6 +424,7 @@ model CircleMember {
   circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
   @@id([userId, circleId])
+  @@index([circleId])
 }
 
 model Plan {
@@ -699,6 +700,7 @@ model PlanMember {
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@id([userId, planId])
+  @@index([planId])
 }
 
 // Transports publics : arrêts de départ et d'arrivée choisis par une personne pour un Plan. Table à part pour
@@ -799,6 +801,9 @@ model Message {
   attachment   Attachment? @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
 
   reactions MessageReaction[]
+
+  @@index([planId, createdAt])
+  @@index([parentId])
 }
 
 model MessageReaction {
