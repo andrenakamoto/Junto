@@ -386,13 +386,26 @@ const joinLimiter = rateLimit({
 
 // GET /api/circles/by-code/:code — aperçu d'un Cercle pour la page d'invitation (/rejoindre?code=…) :
 // nom actuel et nombre de membres, rien d'autre. Même limite de tentatives que /join.
+// GET /:id/last-names — noms de famille que la personne peut voir dans ce Cercle : ceux qui ont choisi de les montrer, et tous
+// pour les responsables et la direction d'une Organisation. Jamais envoyés ailleurs (listes, Plans…).
+router.get('/:id/last-names', async (req: AuthRequest, res) => {
+  if (!(await assertCircleMember(req.userId!, req.params.id))) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id }, select: { organisationId: true } });
+  const manager = !!circle?.organisationId && await isCircleManager(req.userId!, req.params.id);
+  const members = await prisma.circleMember.findMany({
+    where: { circleId: req.params.id, user: { lastName: { not: null }, ...(!manager && { showLastName: true }) } },
+    select: { userId: true, user: { select: { lastName: true } } },
+  });
+  res.json(Object.fromEntries(members.map(m => [m.userId, m.user.lastName])));
+});
+
 router.get('/by-code/:code', joinLimiter, async (req: AuthRequest, res) => {
   const circle = await prisma.circle.findUnique({
     where: { code: req.params.code.trim().toUpperCase() },
-    select: { name: true, color: true, _count: { select: { members: true } } },
+    select: { name: true, color: true, organisationId: true, _count: { select: { members: true } } },
   });
   if (!circle) { res.status(404).json({ error: 'Ce lien d\'invitation n\'est plus valide (code inconnu).' }); return; }
-  res.json({ name: circle.name, color: circle.color, memberCount: circle._count.members });
+  res.json({ name: circle.name, color: circle.color, memberCount: circle._count.members, organisation: !!circle.organisationId });
 });
 
 // POST /circles/personal — le Cercle personnel « Mes Plans » (lib/express.ts), créé au besoin : pour un Plan partagé
@@ -436,12 +449,12 @@ router.post('/join', joinLimiter, async (req: AuthRequest, res) => {
     where: { circleId_userId: { circleId: circle.id, userId: req.userId! } },
   });
   if (existingRequest) {
-    res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
+    res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode, organisation: !!circle.organisationId });
     return;
   }
 
   await prisma.circleJoinRequest.create({ data: { circleId: circle.id, userId: req.userId! } });
-  res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode });
+  res.json({ pending: true, circleName: circle.name, admissionMode: circle.admissionMode, organisation: !!circle.organisationId });
   await notifyJoinRequest(req.app, circle, req.userId!);
 });
 

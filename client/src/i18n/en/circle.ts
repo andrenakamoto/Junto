@@ -19,6 +19,7 @@ const circle: Dict['circle'] = {
     submit: 'Create the Circle',
   },
   join: {
+    orgNotice: "In this Organisation Circle, coordinators and the leadership see your last name.",
     sentTitle: 'Request sent',
     sent: 'Your request to join <b>“{{name}}”</b> has been sent.',
     byCreator: ' The Circle’s creator or an organiser must approve it before you can get in.',

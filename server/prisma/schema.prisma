@@ -125,6 +125,8 @@ model User {
   canPublishDiscover     Boolean                     @default(false)
   // Organisations : peut en créer une (accordé à la main dans le panneau admin)
   canCreateOrganisation  Boolean                     @default(false)
+  // Montrer son nom de famille aux membres de ses Cercles (« Mon profil », désactivé par défaut)
+  showLastName           Boolean                     @default(false)
   createdOrganisations   Organisation[]
   organisationMemberships OrganisationMember[]
   capsuleDeposits        CapsuleDeposit[]

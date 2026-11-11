@@ -5,6 +5,8 @@ export interface User {
   canPublishDiscover?: boolean;
   // Organisations : peut en créer une (accordé dans le panneau admin)
   canCreateOrganisation?: boolean;
+  /** Montrer son nom de famille aux membres de ses Cercles */
+  showLastName?: boolean;
   firstName?: string | null;
   lastName?: string | null;
   /** Faux pour un compte créé avec Google (pas de mot de passe) */

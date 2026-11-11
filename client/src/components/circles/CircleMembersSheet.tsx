@@ -4,6 +4,7 @@ import { Circle } from '../../types';
 import api from '../../services/api';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
+import { useLastNames, withLastName } from '../../lib/lastNames';
 import { useAuth } from '../../contexts/AuthContext';
 import { isCircleManager } from '../../lib/settings';
 import { InviteModal } from './InviteModal';
@@ -72,7 +73,8 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
     }
   }
 
-  const name = (m: Circle['members'][number]) => (displayName(m.user) ?? m.user.pseudo).toLocaleLowerCase();
+  const lastNames = useLastNames(`/circles/${circle.id}/last-names`, circle.members.length);
+  const name = (m: Circle['members'][number]) => (withLastName(displayName(m.user), lastNames[m.userId]) ?? m.user.pseudo).toLocaleLowerCase();
   const q = query.trim().toLocaleLowerCase();
   const matches = circle.members
     .filter(m => !q || name(m).includes(q) || m.user.pseudo.toLocaleLowerCase().includes(q))
@@ -139,7 +141,7 @@ export function CircleMembersSheet({ circle, onlineUserIds, onClose, onCircleUpd
                 {g.list.map(m => {
                   const memberIsCreator = m.userId === circle.creatorId;
                   const memberIsOrganizer = m.role === 'organizer';
-                  const first = displayName(m.user);
+                  const first = withLastName(displayName(m.user), lastNames[m.userId]);
                   return (
                     <li key={m.userId} className="py-1.5">
                     {confirmId === m.userId ? (

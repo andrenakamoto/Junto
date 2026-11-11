@@ -16,7 +16,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { t } = useTranslation();
-  const [pending, setPending] = useState<{ circleName: string; byCreator: boolean } | null>(null);
+  const [pending, setPending] = useState<{ circleName: string; byCreator: boolean; organisation?: boolean } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,7 +25,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
     try {
       const { data } = await api.post('/circles/join', { code: code.toUpperCase() });
       if (data.pending) {
-        setPending({ circleName: data.circleName, byCreator: data.admissionMode === 'creator' });
+        setPending({ circleName: data.circleName, byCreator: data.admissionMode === 'creator', organisation: !!data.organisation });
       } else {
         onJoined(data.circle);
       }
@@ -43,6 +43,7 @@ export function JoinCircleModal({ onClose, onJoined }: Props) {
           <Trans i18nKey="circle.join.sent" values={{ name: pending.circleName }} components={{ b: <strong /> }} />
           {pending.byCreator ? t('circle.join.byCreator') : t('circle.join.byVote')}
         </p>
+        {pending.organisation && <p className="text-xs text-slate-500 mb-4">{t('circle.join.orgNotice')}</p>}
         <div className="flex justify-end">
           <Button onClick={onClose}>{t('common.ok')}</Button>
         </div>

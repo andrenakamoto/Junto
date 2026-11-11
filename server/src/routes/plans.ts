@@ -201,6 +201,25 @@ router.get('/', async (req: AuthRequest, res) => {
 });
 
 // Get plan detail (full)
+// GET /:id/last-names — noms de famille visibles dans un Plan (participants et membres de ses Cercles) : ceux qui ont choisi de
+// les montrer, et tous pour les responsables et la direction d'une Organisation. Rien pour un invité extérieur ni si la liste est réservée.
+router.get('/:id/last-names', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!access || access.isExcluded) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!access.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  if (access.isGuest) { res.json({}); return; }
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, circleId: true, creatorId: true, membersVisibility: true, circle: { select: { organisationId: true } } } });
+  if (!plan || !(await canSeeMembers(plan, req.userId!))) { res.json({}); return; }
+  const manager = !!plan.circle.organisationId && await isCircleManager(req.userId!, plan.circleId);
+  const circleIds = await planCircleIds(plan);
+  const visible = { lastName: { not: null }, ...(!manager && { showLastName: true }) };
+  const users = await prisma.user.findMany({
+    where: { ...visible, OR: [{ planMemberships: { some: { planId: plan.id } } }, { memberships: { some: { circleId: { in: circleIds } } } }] },
+    select: { id: true, lastName: true },
+  });
+  res.json(Object.fromEntries(users.map(u => [u.id, u.lastName])));
+});
+
 router.get('/:id', async (req: AuthRequest, res) => {
   const access = await getPlanAccess(req.userId!, req.params.id);
   if (!access || access.isExcluded) {

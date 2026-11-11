@@ -18,6 +18,7 @@ export default {
     submit: 'Créer le Cercle',
   },
   join: {
+    orgNotice: "Dans ce Cercle d’Organisation, les responsables et la direction voient ton nom de famille.",
     sentTitle: 'Demande envoyée',
     sent: 'Ta demande pour rejoindre <b>« {{name}} »</b> a été envoyée.',
     byCreator: ' Le créateur ou un organisateur du Cercle doit l’approuver avant que tu puisses y accéder.',

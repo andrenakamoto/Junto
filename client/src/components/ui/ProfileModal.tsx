@@ -24,6 +24,7 @@ export function ProfileModal({ onClose }: Props) {
   const [changingPassword, setChangingPassword] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName ?? '');
   const [lastName, setLastName] = useState(user?.lastName ?? '');
+  const [showLastName, setShowLastName] = useState(!!user?.showLastName);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   // Supprimer le compte : aussi ici, et pas seulement dans le menu ☰ (Apple, règle 5.1.1(v) : facile à trouver)
@@ -34,7 +35,7 @@ export function ProfileModal({ onClose }: Props) {
     setSaving(true);
     setError('');
     try {
-      const { data } = await api.put('/auth/profile', { firstName, lastName });
+      const { data } = await api.put('/auth/profile', { firstName, lastName, showLastName });
       setUser(data);
       onClose();
     } catch (err: any) {
@@ -56,6 +57,12 @@ export function ProfileModal({ onClose }: Props) {
         </p>
         <Input id="profile-firstName" label={t('account.profile.firstName')} value={firstName} onChange={e => setFirstName(e.target.value)} required maxLength={50} autoComplete="given-name" autoFocus />
         <Input id="profile-lastName" label={t('account.profile.lastName')} value={lastName} onChange={e => setLastName(e.target.value)} maxLength={50} autoComplete="family-name" />
+        {lastName.trim() && (
+          <label className="flex items-start gap-2 text-sm text-slate-700 -mt-1">
+            <input type="checkbox" checked={showLastName} onChange={e => setShowLastName(e.target.checked)} className="mt-0.5 accent-indigo-600" />
+            <span>{t('account.profile.showLastName')}<span className="block text-xs text-slate-500">{t('account.profile.showLastNameHint')}</span></span>
+          </label>
+        )}
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium text-slate-700">{t('common.language')}</span>
           <div className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-900"><LanguagePicker loggedIn /></div>

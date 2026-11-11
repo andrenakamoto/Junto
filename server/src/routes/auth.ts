@@ -35,7 +35,7 @@ function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
   acceptedTermsVersion: number; email?: string | null; emailVerified?: boolean;
   weeklyDigestEnabled?: boolean; recapEmailEnabled?: boolean; circleChatPush?: boolean; availabilityPush?: boolean; firstName?: string | null; lastName?: string | null;
-  password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null; canPublishDiscover?: boolean; canCreateOrganisation?: boolean;
+  password?: string | null; pendingEmail?: string | null; notificationChannel?: string; locale?: string | null; canPublishDiscover?: boolean; canCreateOrganisation?: boolean; showLastName?: boolean;
   blocking?: { blockedId: string }[];
 }) {
   return {
@@ -45,6 +45,7 @@ function safeUser(user: {
     canPublishDiscover: user.canPublishDiscover === true || user.isAdmin,
     // Organisations : peut en créer une (accordé dans le panneau admin)
     canCreateOrganisation: user.canCreateOrganisation === true || user.isAdmin,
+    showLastName: user.showLastName === true,
     firstName: user.firstName ?? null,
     lastName: user.lastName ?? null,
     // Indique seulement si un mot de passe existe (comptes Google : non) ; le hash ne sort jamais
@@ -388,7 +389,7 @@ const meSelect = {
   id: true, pseudo: true, status: true, isAdmin: true, acceptedTermsVersion: true,
   email: true, emailVerified: true, weeklyDigestEnabled: true, recapEmailEnabled: true, circleChatPush: true, availabilityPush: true, notificationChannel: true,
   blocking: { select: { blockedId: true } },
-  firstName: true, lastName: true, password: true, pendingEmail: true, locale: true, canPublishDiscover: true, canCreateOrganisation: true,
+  firstName: true, lastName: true, password: true, pendingEmail: true, locale: true, canPublishDiscover: true, canCreateOrganisation: true, showLastName: true,
 };
 
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
@@ -404,7 +405,7 @@ router.put('/profile', requireAuth, async (req: AuthRequest, res) => {
   try {
     const user = await prisma.user.update({
       where: { id: req.userId },
-      data: { firstName: names.firstName, lastName: names.lastName },
+      data: { firstName: names.firstName, lastName: names.lastName, ...(typeof req.body?.showLastName === 'boolean' && { showLastName: req.body.showLastName }) },
       select: meSelect,
     });
     res.json(safeUser(user));

@@ -15,6 +15,8 @@ export function JoinPage() {
   const circleCode = (params.get('code') ?? '').toUpperCase();
   // Nom actuel du Cercle, demandé au serveur (les anciens liens contiennent encore un nom, peut-être
   // périmé depuis un renommage : il ne sert qu'en attendant la réponse)
+  // Cercle d'une Organisation : les responsables y voient le nom de famille
+  const [inOrganisation, setInOrganisation] = useState(false);
   const [circleName, setCircleName] = useState(params.get('name') ?? '');
   const [memberCount, setMemberCount] = useState<number | null>(null);
   const planTitle  = params.get('plan') ?? '';
@@ -35,7 +37,7 @@ export function JoinPage() {
   useEffect(() => {
     if (!user || !circleCode) return;
     api.get(`/circles/by-code/${encodeURIComponent(circleCode)}`)
-      .then(res => { setCircleName(res.data.name); setMemberCount(res.data.memberCount); })
+      .then(res => { setCircleName(res.data.name); setMemberCount(res.data.memberCount); setInOrganisation(!!res.data.organisation); })
       .catch(err => setError(err.response?.data?.error || ''));
   }, [user, circleCode]);
 
@@ -90,6 +92,7 @@ export function JoinPage() {
                 <Trans i18nKey="circle.joinPage.code" values={{ code: circleCode }} components={{ b: <span className="font-mono tracking-widest text-slate-300" /> }} />
                 {memberCount !== null && t('circle.joinPage.members', { count: memberCount })}
               </p>
+              {inOrganisation && <p className="text-slate-400 text-xs mt-1">{t('circle.join.orgNotice')}</p>}
             </div>
           </div>
 

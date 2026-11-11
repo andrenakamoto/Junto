@@ -701,7 +701,11 @@ Junto/
   **le prénom + @pseudo** (`displayName` dans `lib/names.ts`) : le **nom de famille n'est
   plus envoyé** par l'API aux autres membres (selects des membres de Plan / Cercle,
   invitations, liste des personnes masquées) — seuls la personne (/auth/me, « Mon profil »)
-  et le panneau admin (`fullName`) le voient ; le chat et les mentions restent au pseudo),
+  et le panneau admin (`fullName`) le voient ; le chat et les mentions restent au pseudo ; **depuis le 2026-11-11** : réglage
+  `User.showLastName` (« Montrer mon nom de famille aux membres de mes Cercles », `ProfileModal`, désactivé par défaut) et, dans une
+  Organisation, les responsables et la direction voient le nom de leurs membres — servi **seulement** par GET `/circles/:id/last-names`
+  et `/plans/:id/last-names` (`useLastNames`, fenêtre Membres du Cercle et rubrique Membres du Plan), jamais aux invités extérieurs
+  ni si la liste du Plan est réservée ; avis à l'entrée d'un Cercle d'Organisation ; politique de confidentialité du 11 novembre 2026),
   password?, email? (unique), emailVerified,
   googleId?, tokens de vérif/reset, status ("approved" par défaut), isAdmin,
   acceptedTermsVersion, weeklyDigestEnabled (défaut true), lastDigestSentAt,

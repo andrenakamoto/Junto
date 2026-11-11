@@ -19,6 +19,7 @@ const circle: Dict['circle'] = {
     submit: 'Crea il Cerchio',
   },
   join: {
+    orgNotice: "In questo Cerchio di un’Organizzazione, i responsabili e la direzione vedono il tuo cognome.",
     sentTitle: 'Richiesta inviata',
     sent: 'La tua richiesta per unirti a <b>«{{name}}»</b> è stata inviata.',
     byCreator: ' Il creatore o un organizzatore del Cerchio deve approvarla prima che tu possa accedervi.',
