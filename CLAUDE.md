@@ -760,6 +760,7 @@ Junto/
   Liens d'invitation : `publicOrigin()` (`lib/siteUrl.ts`) — **jamais
   `window.location.origin`**, qui vaut `https://localhost` dans les apps (le lien
   WhatsApp restait du texte).
+- **Nouveau code d'accès** (2026-11-11, POST `/circles/:id/code`, `NewCodeModal`) : « Générer un nouveau code » dans le menu ⋯ du Cercle (créateur et organisateurs) et dans la vue d'ensemble d'une Organisation (administrateurs) ; code aléatoire seulement (jamais choisi), ancien code, liens et QR codes hors d'usage, ligne `code` dans `CircleChangeLog`. Cercle personnel : refusé.
 - **CircleChangeLog** (2026-10-03) : historique des modifications d'un Cercle (nom,
   description, paramètres avancés ; auteur `changedById`, SetNull), écrit par PUT
   /:id/settings, lu par GET /:id/history (membres) dans `CircleSettingsModal`.

@@ -91,6 +91,7 @@ const circle: Dict['circle'] = {
     noHistory: 'Noch keine Änderungen.',
     deletedAccount: 'gelöschtes Konto',
     fields: {
+      code: "Zugangscode",
       availabilityEnabled: "Ich hab Zeit",
       availabilityThreshold: "Schwelle „Ich hab Zeit“",
       name: 'Name',
@@ -202,6 +203,7 @@ const circle: Dict['circle'] = {
   },
   pollSurprise: 'Überraschungsumfrage, versteckt vor {{names}}.',
   pollHidden: 'Umfrage versteckt vor {{names}}.',
+  newCode: {"button": "Neuen Code erstellen", "title": "Neuer Zugangscode", "text": "Der alte Code {{code}} sowie bereits geteilte oder gedruckte Links und QR-Codes funktionieren nicht mehr. Die jetzigen Mitglieder sind nicht betroffen.", "confirm": "Erstellen", "done": "Hier ist der neue Code. Teile ihn oder den Link aus dem Fenster «Einladen» mit den Personen, die du einladen möchtest."},
   invite: {
     linkError: 'Der Link konnte nicht erstellt werden',
     planGuestText: 'Hallo! Ich lade dich zu meinem Plan «{{plan}}» auf EvLY ein 🎉\nKlick hier, um beizutreten:\n{{link}}',

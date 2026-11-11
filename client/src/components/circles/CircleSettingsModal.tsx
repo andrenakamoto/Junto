@@ -154,7 +154,7 @@ export function CircleSettingsModal({ circle, onClose, onUpdated }: Props) {
 
 interface ChangeLog { id: string; field: string; oldValue: string | null; newValue: string | null; changedAt: string; changedBy: { pseudo: string } | null }
 
-const FIELDS = ['name', 'description', 'photo', 'admissionMode', 'planCreationMode', 'pollCreationMode', 'chatMode', 'availabilityEnabled', 'availabilityThreshold', 'deletionMode'];
+const FIELDS = ['name', 'code', 'description', 'photo', 'admissionMode', 'planCreationMode', 'pollCreationMode', 'chatMode', 'availabilityEnabled', 'availabilityThreshold', 'deletionMode'];
 const fieldLabel = (field: string) => FIELDS.includes(field) ? t(`circle.settings.fields.${field}` as any) : field;
 const VALUE_LABELS: Record<string, Record<string, string>> = {
   admissionMode: Object.fromEntries(ADMISSION_OPTIONS.map(o => [o.value, o.label])),

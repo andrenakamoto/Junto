@@ -90,6 +90,7 @@ export default {
     noHistory: 'Aucune modification pour l’instant.',
     deletedAccount: 'compte supprimé',
     fields: {
+      code: "Code d’accès",
       availabilityEnabled: "Dispo",
       availabilityThreshold: "Seuil « Dispo »",
       name: 'Nom',
@@ -201,6 +202,7 @@ export default {
   },
   pollSurprise: 'Sondage surprise, caché à {{names}}.',
   pollHidden: 'Sondage caché à {{names}}.',
+  newCode: {"button": "Générer un nouveau code", "title": "Nouveau code d’accès", "text": "L’ancien code {{code}}, les liens et les QR codes déjà partagés ou imprimés ne marcheront plus. Les membres actuels ne sont pas touchés.", "confirm": "Générer", "done": "Voici le nouveau code. Partage-le, ou le lien de la fenêtre « Inviter », avec les personnes à inviter."},
   invite: {
     linkError: 'Impossible de créer le lien',
     planGuestText: 'Salut ! Je t’invite à mon Plan « {{plan}} » sur EvLY 🎉\nClique ici pour le rejoindre :\n{{link}}',

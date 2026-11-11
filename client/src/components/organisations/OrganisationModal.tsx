@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, Copy, LogIn } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, ChevronDown, ChevronRight, Copy, LogIn, RefreshCw } from 'lucide-react';
+import { NewCodeModal } from '../circles/NewCodeModal';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { t } from '../../i18n';
@@ -121,6 +122,7 @@ function CircleRow({ org, circle, onChanged, onError, kindLabel, onUp, onDown, c
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<CircleMemberRow[] | null>(null);
   const [copied, setCopied] = useState(false);
+  const [newCode, setNewCode] = useState(false);
   const roles = org.roles.filter(r => r.kind !== 'direction');
   const load = useCallback(() => api.get(`/organisations/${org.id}/circles/${circle.id}/members`).then(r => setMembers(r.data)).catch(onError), [org.id, circle.id]);
   useEffect(() => { if (open) load(); }, [open, load]);
@@ -154,10 +156,14 @@ function CircleRow({ org, circle, onChanged, onError, kindLabel, onUp, onDown, c
             {copied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}{circle.code}
           </button>
         )}
+        {circle.orgKind !== 'auto' && org.isAdmin && (
+          <button onClick={() => setNewCode(true)} title={t('circle.newCode.button')} aria-label={`${t('circle.newCode.button')} : ${circle.name}`} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"><RefreshCw size={13} /></button>
+        )}
         {circle.isMember
           ? <span className="flex items-center gap-1 text-xs font-medium text-emerald-700 px-2"><Check size={13} />{t('org.manage.integrated')}</span>
           : org.canIntegrate && <button onClick={integrate} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700"><LogIn size={13} />{t('org.manage.integrate')}</button>}
       </div>
+      {newCode && <NewCodeModal circleId={circle.id} oldCode={circle.code} onClose={() => setNewCode(false)} onDone={() => onChanged()} />}
       {open && (
         <div className="px-3 pb-3 space-y-1.5 border-t border-slate-100 pt-2">
           {members?.length === 0 && <p className="text-sm text-slate-400 italic">{t('org.manage.noMember')}</p>}

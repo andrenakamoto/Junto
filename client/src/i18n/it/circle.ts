@@ -91,6 +91,7 @@ const circle: Dict['circle'] = {
     noHistory: 'Nessuna modifica per ora.',
     deletedAccount: 'account eliminato',
     fields: {
+      code: "Codice d’accesso",
       availabilityEnabled: "Sono libero/a",
       availabilityThreshold: "Soglia «Sono libero/a»",
       name: 'Nome',
@@ -202,6 +203,7 @@ const circle: Dict['circle'] = {
   },
   pollSurprise: 'Sondaggio a sorpresa, nascosto a {{names}}.',
   pollHidden: 'Sondaggio nascosto a {{names}}.',
+  newCode: {"button": "Genera un nuovo codice", "title": "Nuovo codice d’accesso", "text": "Il vecchio codice {{code}}, i link e i codici QR già condivisi o stampati non funzioneranno più. I membri attuali non sono toccati.", "confirm": "Genera", "done": "Ecco il nuovo codice. Condividilo, o il link della finestra «Invita», con le persone da invitare."},
   invite: {
     linkError: 'Impossibile creare il link',
     planGuestText: 'Ciao! Ti invito al mio Plan «{{plan}}» su EvLY 🎉\nClicca qui per unirti:\n{{link}}',

@@ -7,7 +7,7 @@ import { PlanSortToggle } from './PlanSortToggle';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight, Store } from 'lucide-react';
+import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight, Store, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Circle, Plan, CirclePoll } from '../../types';
 import { PlanCard } from './PlanCard';
@@ -19,6 +19,7 @@ import { AvailabilityPanel } from '../circles/AvailabilityPanel';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
 import { LeaveCircleModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
+import { NewCodeModal } from '../circles/NewCodeModal';
 import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
 import { CirclePollCard } from '../circles/CirclePollCard';
 import { CircleSettingsModal } from '../circles/CircleSettingsModal';
@@ -83,6 +84,8 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   // Cercle dont les sondages sont chargés (évite de mettre à jour la carte avec ceux d'un autre Cercle)
   const [pollsFor, setPollsFor] = useState<string | null>(null);
   const [showCreatePoll, setShowCreatePoll] = useState(false);
+
+  const [showNewCode, setShowNewCode] = useState(false);
 
   function copyCode() {
     navigator.clipboard.writeText(circle.code);
@@ -226,6 +229,11 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   <button className={menuItem} onClick={() => { setShowMore(false); copyCode(); }}>
                     <Copy size={15} className="text-slate-400" />{t('circle.planList.copyCode', { code: circle.code })}
                   </button>
+                  {!circle.isPersonal && isCircleManager(circle, user?.id) && (
+                    <button className={menuItem} onClick={() => { setShowMore(false); setShowNewCode(true); }}>
+                      <RefreshCw size={15} className="text-slate-400" />{t('circle.newCode.button')}
+                    </button>
+                  )}
                   {canDelete && (
                     <button className={`${menuItem} text-red-600`} onClick={() => { setShowMore(false); setShowDelete(true); }}>
                       <Trash2 size={15} />{creatorDeletes ? t('circle.planList.delete') : t('circle.planList.voteDelete')}
@@ -399,6 +407,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
 
       {showSupplierBook && <SupplierBookModal circleId={circle.id} onClose={() => setShowSupplierBook(false)} />}
 
+      {showNewCode && <NewCodeModal circleId={circle.id} oldCode={circle.code} onClose={() => setShowNewCode(false)} onDone={onCircleUpdated} />}
       {showInvite && (
         <InviteModal
           circleName={circle.name}

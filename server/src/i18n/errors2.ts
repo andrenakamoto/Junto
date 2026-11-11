@@ -16,6 +16,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Trop d’annonces envoyées, réessaie plus tard.': ['Zu viele Ankündigungen gesendet, versuche es später erneut.', 'Troppi annunci inviati, riprova più tardi.', 'Too many announcements sent, try again later.'],
   'Ce groupe automatique se remplit tout seul': ['Diese automatische Gruppe füllt sich von selbst', 'Questo gruppo automatico si riempie da solo', 'This automatic group fills itself'],
   'Cette personne est déjà dans ce Cercle': ['Diese Person ist bereits in diesem Kreis', 'Questa persona è già in questo Cerchio', 'This person is already in this Circle'],
+  'Ce Cercle n’a pas de code à changer': ['Dieser Kreis hat keinen Code zum Ändern', 'Questo Cerchio non ha un codice da cambiare', 'This Circle has no code to change'],
   'Organisation introuvable': ['Organisation nicht gefunden', 'Organizzazione non trovata', 'Organisation not found'],
   'Valeur invalide': ['Ungültiger Wert', 'Valore non valido', 'Invalid value'],
   'Lien invalide (il doit commencer par https://)': ['Ungültiger Link (er muss mit https:// beginnen)', 'Link non valido (deve iniziare con https://)', 'Invalid link (it must start with https://)'],

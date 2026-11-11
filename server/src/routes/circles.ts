@@ -1158,6 +1158,21 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
   freeSpots();
 });
 
+// POST /:id/code — nouveau code d'accès : l'ancien, les liens et les QR codes partagés ne marchent plus. Créateur et organisateurs
+// du Cercle, ou administrateurs de son Organisation.
+router.post('/:id/code', async (req: AuthRequest, res) => {
+  const circle = await prisma.circle.findUnique({ where: { id: req.params.id }, select: { id: true, code: true, isPersonal: true, organisationId: true } });
+  if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  const orgAdmin = !!circle.organisationId && !!(await prisma.organisationMember.findFirst({ where: { organisationId: circle.organisationId, userId: req.userId!, isAdmin: true } }));
+  if (!orgAdmin && !(await isCircleManager(req.userId!, circle.id))) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
+  if (circle.isPersonal) { res.status(400).json({ error: 'Ce Cercle n’a pas de code à changer' }); return; }
+  let code = generateCode();
+  while (await prisma.circle.findUnique({ where: { code }, select: { id: true } })) code = generateCode();
+  await prisma.circle.update({ where: { id: circle.id }, data: { code } });
+  await prisma.circleChangeLog.create({ data: { circleId: circle.id, changedById: req.userId!, field: 'code', oldValue: circle.code, newValue: code } });
+  res.json(await prisma.circle.findUnique({ where: { id: circle.id }, include: circleInclude }));
+});
+
 // DELETE /:id/members/:userId — retirer quelqu'un du Cercle : le créateur retire tout le monde, un organisateur les
 // simples membres. Comme un départ ; la personne peut redemander à entrer (selon la règle d'admission du Cercle).
 router.delete('/:id/members/:userId', async (req: AuthRequest, res) => {
