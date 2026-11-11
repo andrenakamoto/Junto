@@ -43,14 +43,28 @@ export function broadcastWrites(resolve: (req: Request) => Promise<WriteTarget>)
             : target.activity;
           notifyPlanActivity(io, target.planId, actor, kind).catch(e => console.error('[plan activity notify]', e));
         }
-        if (target.planId) io.to(`plan:${target.planId}`).emit('plan-updated', { planId: target.planId });
-        if (target.circleId && target.circleWide !== false) {
+        // section : les écrans qui ne dépendent que d'une rubrique (Idées) ne rechargent qu'elle
+        if (target.planId) io.to(`plan:${target.planId}`).emit('plan-updated', { planId: target.planId, section: target.section });
+        if (target.circleId && target.circleWide !== false && !throttledForLists(target)) {
           for (const id of [target.circleId, ...(target.extraCircleIds ?? [])]) io.to(`circle:${id}`).emit('circle-updated', { circleId: id });
         }
       });
     }
     next();
   };
+}
+
+// Rubriques à écritures très rapprochées (séance d'Idées projetée) : les listes des Cercles (ordre par
+// activité, pastilles) ne sont rafraîchies qu'une fois par minute et par Plan, comme pour le chat
+const LIST_THROTTLED_SECTIONS = new Set<PlanSection>(['idees']);
+const listRefresh = new Map<string, number>();
+function throttledForLists(target: NonNullable<WriteTarget>): boolean {
+  if (!target.planId || !target.section || !LIST_THROTTLED_SECTIONS.has(target.section)) return false;
+  const now = Date.now();
+  if (now - (listRefresh.get(target.planId) ?? 0) < 60_000) return true;
+  listRefresh.set(target.planId, now);
+  if (listRefresh.size > 5000) for (const [k, t] of listRefresh) if (now - t > 60_000) listRefresh.delete(k);
+  return false;
 }
 
 const segments = (req: Request) => req.path.split('/').filter(Boolean);

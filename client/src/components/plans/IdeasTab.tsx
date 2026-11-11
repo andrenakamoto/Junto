@@ -10,6 +10,7 @@ import { displayName } from '../../lib/names';
 import { hasFeature } from '../../lib/settings';
 import { closeTopOverlay, useBackClose } from '../../lib/backClose';
 import { useResync } from '../../hooks/useResync';
+import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Modal } from '../ui/Modal';
 import { t } from '../../i18n';
 
@@ -45,19 +46,40 @@ export function IdeasTab({ plan }: { plan: Plan; userId: string }) {
       setColumns(c => c ?? []);
     }
   }
-  useEffect(() => { load(); }, [plan]);
+  // Rechargé quand le Plan change d'identité ou que quelqu'un écrit dans le Plan (plan-updated, regroupé à 150 ms) ;
+  // pas à chaque rechargement de la fiche du Plan (2026-11-11, audit de performance : une idée = 9 requêtes)
+  useEffect(() => { load(); }, [plan.id]);
   useResync(load);
+  const pending = useRef(0);
+  const stale = useRef(false);
+  const timer = useRef<number>();
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useSocketEvent<{ planId: string }>('plan-updated', p => {
+    if (p.planId !== plan.id) return;
+    // Pendant un envoi, on attend sa fin pour ne pas effacer l'affichage immédiat
+    if (pending.current > 0) { stale.current = true; return; }
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(load, 150);
+  });
 
-  async function run(action: () => Promise<unknown>) {
+  // optimistic : l'écran change tout de suite, sans attendre le serveur (ajout, vote, statut, couleur, texte, thème) ;
+  // settle : corrige l'affichage avec la réponse (id de l'idée ajoutée). En cas d'erreur, tout est rechargé.
+  async function run<R>(action: () => Promise<R>, optimistic?: (list: Idea[]) => Idea[], settle?: (res: R) => (list: Idea[]) => Idea[]) {
     setError('');
+    if (optimistic) setIdeas(optimistic);
+    pending.current++;
     try {
-      await action();
-      await load();
+      const res = await action();
+      if (settle) setIdeas(settle(res));
+      if (!optimistic) await load();
       return true;
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.retryError'));
-      await load();
+      stale.current = true;
       return false;
+    } finally {
+      pending.current--;
+      if (pending.current === 0 && stale.current) { stale.current = false; load(); }
     }
   }
 
@@ -191,8 +213,10 @@ function CountDown() {
   );
 }
 
+type Run = <R>(action: () => Promise<R>, optimistic?: (list: Idea[]) => Idea[], settle?: (res: R) => (list: Idea[]) => Idea[]) => Promise<boolean>;
+
 function Board({ big, plan, columns, ideas, tasksOn, run }: {
-  big: boolean; plan: Plan; columns: Column[]; ideas: Idea[]; tasksOn: boolean; run: (a: () => Promise<unknown>) => Promise<boolean>;
+  big: boolean; plan: Plan; columns: Column[]; ideas: Idea[]; tasksOn: boolean; run: Run;
 }) {
   const [active, setActive] = useState<string>(columns[0]?.id ?? NONE);
   const [draft, setDraft] = useState('');
@@ -242,15 +266,28 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
   async function add(colId: string, text: string) {
     if (!text.trim()) return false;
     const before = new Set(ideas.map(i => i.id));
-    const ok = await run(() => api.post(`/plans/${plan.id}/ideas`, { text, columnId: colId === NONE ? null : colId }));
+    const columnId = colId === NONE ? null : colId;
+    // Affichée tout de suite avec un id provisoire, remplacé par le vrai à la réponse
+    const tmp = `tmp-${Date.now()}`;
+    const draft: Idea = { id: tmp, columnId, text: text.trim(), status: 'new', votes: 0, color: null, taskId: null, taskIds: [], createdAt: new Date().toISOString() };
+    const ok = await run(
+      () => api.post(`/plans/${plan.id}/ideas`, { text, columnId }),
+      list => [...list, draft],
+      res => list => list.map(i => i.id === tmp ? { ...i, id: res.data.id } : i),
+    );
     if (ok) setLastAdded({ col: colId, before });
     return ok;
   }
-  const put = (i: Idea, body: object) => run(() => api.put(`/plans/ideas/${i.id}`, body));
+  // Idée encore en route vers le serveur : rien à modifier pour l'instant
+  const ready = (i: Idea) => !i.id.startsWith('tmp-');
+  const put = async (i: Idea, body: Partial<Pick<Idea, 'text' | 'status' | 'color' | 'columnId'>>) => ready(i)
+    && run(() => api.put(`/plans/ideas/${i.id}`, body), list => list.map(x => x.id === i.id ? { ...x, ...body } : x));
+  const vote = (i: Idea, delta: 1 | -1) => ready(i)
+    && run(() => api.post(`/plans/ideas/${i.id}/vote`, { delta }), list => list.map(x => x.id === i.id ? { ...x, votes: Math.max(0, x.votes + delta) } : x));
 
   function clickIdea(i: Idea) {
     if (merging) {
-      if (merging.id !== i.id) run(() => api.post(`/plans/ideas/${merging.id}/merge`, { intoId: i.id }));
+      if (merging.id !== i.id && ready(i) && ready(merging)) run(() => api.post(`/plans/ideas/${merging.id}/merge`, { intoId: i.id }));
       setMerging(null);
       return;
     }
@@ -298,12 +335,12 @@ function Board({ big, plan, columns, ideas, tasksOn, run }: {
                   <IdeaCard idea={i} big={big} selected={selected === i.id} mergeTarget={!!merging && merging.id !== i.id} tasksOn={tasksOn}
                     onClick={() => clickIdea(i)}
                     onStatus={s => put(i, { status: i.status === s ? 'new' : s })}
-                    onVote={d => run(() => api.post(`/plans/ideas/${i.id}/vote`, { delta: d }))}
+                    onVote={d => vote(i, d)}
                     onColor={color => put(i, { color })}
                     onEdit={text => put(i, { text })}
                     onMerge={() => { setMerging(i); setSelected(null); }}
-                    onTask={() => setTaskFor(i)}
-                    onDelete={() => run(() => api.delete(`/plans/ideas/${i.id}`))} />
+                    onTask={() => { if (ready(i)) setTaskFor(i); }}
+                    onDelete={() => ready(i) && run(() => api.delete(`/plans/ideas/${i.id}`), list => list.filter(x => x.id !== i.id))} />
                   </div>
                 ))}
               </div>

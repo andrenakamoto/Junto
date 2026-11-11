@@ -1045,7 +1045,12 @@ Junto/
   15 min (côté client seulement). Toucher une idée : +1 / −1, ⭐ Retenue / ❓ À creuser / ✖ Écartée (re-toucher = « nouvelle »), couleur,
   modifier (double-clic), **fusionner** (`mergeIdeas` : textes réunis, votes additionnés, statut le plus avancé), **transformer en tâche**, **plusieurs fois** depuis le 2026-11-11 (`Idea.taskIds`, migration `20261122100000_idea_task_ids` ; `taskId` = la première pour les anciennes apps ; tâches supprimées retirées du compte à la lecture ; « Créer une autre tâche », badge « N tâches créées »)
   (si `taches` actif : même formulaire que les Tâches, `TaskForm` exporté de `TasksTab` — lot ou « + Nouveau lot… », responsables,
-  échéance, dépendances, remarque —, POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). Tri ordre d'arrivée / votes,
+  échéance, dépendances, remarque —, POST `/plans/:id/tasks` puis PUT `/plans/ideas/:id {taskId}`, l'idée passe retenue). **Affichage immédiat** (2026-11-11, audit de performance : une idée coûtait 9 requêtes chez l'auteur et ~7 par téléphone) :
+  ajout, vote, statut, couleur, texte, thème et suppression s'affichent tout de suite (`run(action, optimistic, settle)` d'`IdeasTab`, id
+  provisoire `tmp-…` remplacé par le vrai, tout rechargé en cas d'erreur) ; la rubrique se recharge seule sur `plan-updated` (qui porte
+  désormais `section`), plus à chaque rechargement de la fiche ; pour `section = 'idees'`, DashboardPage ne recharge la fiche du Plan qu'au
+  plus toutes les 20 s et le serveur n'émet `circle-updated` qu'une fois par minute et par Plan (`LIST_THROTTLED_SECTIONS` de
+  `lib/realtime.ts`). Résultat : 2 requêtes chez l'auteur, 1 par téléphone. À étendre aux autres rubriques si besoin. Tri ordre d'arrivée / votes,
   filtre « Retenues », « Commencer avec des thèmes types » (`ideas.starterList`), **« Copier le compte rendu »** (texte par thème : retenues,
   à creuser, autres). Pas dans la démo. Fiche « Idées » du guide.
 - **Fournisseurs** (2026-11-06, `lib/suppliers.ts` testé, `routes/suppliers.ts` monté dans le routeur des Plans, `routes/supplierBook.ts` sur
@@ -1180,6 +1185,8 @@ Junto/
   **Relance** : POST `/plans/:id/nudge`, créateur du Plan et organisateurs du Cercle, une fois par 24 h (`Plan.lastNudgeAt`, réservation
   atomique, `canNudge` / `nextNudgeAt`), notification `plan_activity` « ⏰ @x attend ta réponse » (mode silencieux respecté). « · N sans
   réponse » dans l'en-tête du Plan. Bouton **« Inviter »** en tête de la rubrique (2026-11-04, `onInvite`, membres du Plan, Plan pas terminé). Démo : `demoPlanWithPending`. Fiche « Répondre et liste d'attente » du guide.
+- **Index de performance** (2026-11-11, migration `20261123100000_perf_indexes`) : `Message (planId, createdAt)`, `Message (parentId)`,
+  `CircleMember (circleId)`, `PlanMember (planId)` — les clés primaires commencent par `userId` et ne servaient pas aux recherches par Cercle / Plan.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), joinedAt, seen (Json,
   2026-10-01 : date de dernière consultation de chaque onglet). Depuis le 2026-10-14, les participants sont
   toujours renvoyés **dans l'ordre d'arrivée** (`orderBy: { joinedAt: 'asc' }` sur tous les includes `members`) et la

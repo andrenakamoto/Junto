@@ -248,8 +248,21 @@ export function DashboardPage() {
     if (selectedPlanRef.current?.circleId === circleId) refreshSelectedPlan();
   });
 
-  useSocketEvent<{ planId: string }>('plan-updated', ({ planId }) => {
-    if (selectedPlanRef.current?.id === planId) refreshSelectedPlan();
+  // Idées (séance projetée, écritures très rapprochées) : la rubrique se recharge seule ; la fiche du Plan (pastilles)
+  // au plus une fois toutes les 20 s (audit de performance du 2026-11-11)
+  const ideasRefresh = useRef<number>();
+  useEffect(() => () => window.clearTimeout(ideasRefresh.current), []);
+  useSocketEvent<{ planId: string; section?: string }>('plan-updated', ({ planId, section }) => {
+    if (selectedPlanRef.current?.id !== planId) return;
+    if (section === 'idees') {
+      if (ideasRefresh.current) return;
+      ideasRefresh.current = window.setTimeout(() => {
+        ideasRefresh.current = undefined;
+        if (selectedPlanRef.current?.id === planId) refreshSelectedPlan();
+      }, 20_000);
+      return;
+    }
+    refreshSelectedPlan();
   });
 
   // Reconnexion après une coupure : des changements ont pu être manqués
