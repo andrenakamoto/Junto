@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 9. November 2026',
+  version: 'Fassung vom 11. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -104,8 +104,7 @@ const de: PrivacyText = {
 
     <Section title="4. Wer was sieht">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li>Die anderen Mitglieder sehen dein <strong>Pseudonym</strong> und deinen <strong>Vornamen</strong>; dein
-          Nachname ist nur für dich sichtbar (und für den Administrator von EvLY, für den Support).</li>
+        <li>Die anderen Mitglieder sehen dein <strong>Pseudonym</strong> und deinen <strong>Vornamen</strong>. Deinen <strong>Nachnamen</strong> sehen du und der Administrator von EvLY (für den Support); die Mitglieder deiner Kreise sehen ihn auch, wenn du das unter «Mein Profil» gewählt hast, und in einer <strong>Organisation</strong> sehen ihn deren Verantwortliche und Leitung, um die Mitglieder zu verwalten. Externen Gästen und in Entdecken wird er nie gezeigt.</li>
         <li>Die Mitglieder eines Kreises sehen dessen Pläne und Mitglieder; der Inhalt eines Plans (Chat, Fotos,
           Ausgaben…) ist den Personen vorbehalten, die ihm beigetreten sind.</li>
         <li>Eine Person, die zu einem einzigen Plan eingeladen ist, sieht nur diesen Plan, nichts vom Kreis.</li>

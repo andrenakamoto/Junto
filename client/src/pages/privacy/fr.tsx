@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 9 novembre 2026',
+  version: 'Version du 11 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -108,8 +108,7 @@ const fr: PrivacyText = {
 
     <Section title="4. Qui voit quoi">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li>Les autres membres voient ton <strong>pseudo</strong> et ton <strong>prénom</strong> ; ton nom
-          n'est visible que par toi (et par l'administrateur d'EvLY, pour l'assistance).</li>
+        <li>Les autres membres voient ton <strong>pseudo</strong> et ton <strong>prénom</strong>. Ton <strong>nom de famille</strong> est visible par toi et par l'administrateur d'EvLY (pour l'assistance) ; les membres de tes Cercles le voient aussi si tu l'as choisi dans « Mon profil », et, dans une <strong>Organisation</strong>, ses responsables et sa direction le voient pour gérer les membres. Il n'est jamais montré aux invités extérieurs ni dans Découvrir.</li>
         <li>Les membres d'un Cercle voient ses Plans et ses membres ; le contenu d'un Plan (chat,
           photos, dépenses…) est réservé aux personnes qui l'ont rejoint.</li>
         <li>Une personne invitée à un seul Plan ne voit que ce Plan, rien du Cercle.</li>

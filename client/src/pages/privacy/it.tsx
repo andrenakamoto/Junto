@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 9 novembre 2026',
+  version: 'Versione dell’11 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -99,8 +99,7 @@ const it: PrivacyText = {
 
     <Section title="4. Chi vede cosa">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li>Gli altri membri vedono il tuo <strong>pseudonimo</strong> e il tuo <strong>nome</strong>; il tuo cognome è
-          visibile solo a te (e all’amministratore di EvLY, per l’assistenza).</li>
+        <li>Gli altri membri vedono il tuo <strong>pseudonimo</strong> e il tuo <strong>nome</strong>. Il tuo <strong>cognome</strong> è visibile a te e all’amministratore di EvLY (per l’assistenza); i membri dei tuoi Cerchi lo vedono anche se l’hai scelto in «Il mio profilo» e, in un’<strong>Organizzazione</strong>, lo vedono i suoi responsabili e la sua direzione per gestire i membri. Non è mai mostrato agli invitati esterni né in Scopri.</li>
         <li>I membri di un Cerchio vedono i suoi Plan e i suoi membri; il contenuto di un Plan (chat, foto, spese…) è
           riservato alle persone che vi si sono unite.</li>
         <li>Una persona invitata a un solo Plan vede solo quel Plan, niente del Cerchio.</li>

@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 9 November 2026',
+  version: 'Version of 11 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -96,8 +96,7 @@ const en: PrivacyText = {
 
     <Section title="4. Who sees what">
       <ul className="list-disc pl-5 space-y-1.5">
-        <li>Other members see your <strong>username</strong> and <strong>first name</strong>; your last name is only
-          visible to you (and to the EvLY administrator, for support).</li>
+        <li>Other members see your <strong>username</strong> and <strong>first name</strong>. Your <strong>last name</strong> is visible to you and to the EvLY administrator (for support); members of your Circles also see it if you chose this in “My profile”, and in an <strong>Organisation</strong> its coordinators and leadership see it to manage members. It is never shown to outside guests or in Discover.</li>
         <li>Members of a Circle see its Plans and members; the content of a Plan (chat, photos, expenses…) is reserved
           for the people who have joined it.</li>
         <li>Someone invited to a single Plan only sees that Plan, nothing of the Circle.</li>
