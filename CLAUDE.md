@@ -544,6 +544,9 @@ Conséquences pratiques :
     **Version 1.0.50** (2026-11-11) : Android `versionCode` 52 (`evly-1.0.50-(52).aab`), iOS build 56 envoyé — Organisations : rôle choisi en
     acceptant, fiche des personnes, rôles ajoutés après la création, en-tête du bloc ; nouveau code d'accès, nom de famille visible sur choix,
     plusieurs tâches par idée, grand écran des Fournisseurs.
+    **Version 1.0.51** (2026-11-13) : Android `versionCode` 53 (`evly-1.0.51-(53).aab`), iOS build 57 envoyé — réponses visibles dans le chat
+    avec citation (et réponse à une réponse), accompagnants, date et heure dans la cloche, plus de fenêtre « Inviter » après la création,
+    Idées plus rapides, cockpit des Organisations, Matériel (inventaire, réservations, sortie et retour).
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
