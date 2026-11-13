@@ -3,7 +3,7 @@ import { isPlanEnded } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { Plan } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
-import { isPlanFull, occupiedPlaces, placesLeft as placesLeftOf, waitlistPosition } from '../../lib/places';
+import { comingCount, isPlanFull, occupiedPlaces, placesLeft as placesLeftOf, waitlistPosition } from '../../lib/places';
 import { t } from '../../i18n';
 import { stripFormatting } from '../../lib/richText';
 import { shortDateTime } from '../../lib/dates';
@@ -27,7 +27,7 @@ const rsvpLabel = (r: 'in' | 'maybe' | 'out') => t(`common.rsvp.${r}`);
 export function PlanCard({ plan, isSelected, isUnread = false, onClick, onSummary }: Props) {
   const { user } = useAuth();
   const myMember = plan.members.find(m => m.userId === user?.id);
-  const inCount = plan.members.filter(m => m.rsvp === 'in').length;
+  const inCount = comingCount(plan.members);
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
   // Limite de places : même calcul que le serveur (« Je suis in » et « Peut-être », lib/places.ts)
   const max = plan.maxParticipants ?? null;

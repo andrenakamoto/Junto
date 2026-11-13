@@ -1,9 +1,15 @@
 // Places d'un Plan à participants limités. Une place = une réponse « Je suis in » ou « Peut-être » (un
 // « Je passe » libère la sienne). Même règle que le serveur (server/src/lib/waitlist.ts).
-type PlacesPlan = { maxParticipants?: number | null; members: { userId: string; rsvp: string }[]; waitlist?: { userId: string }[]; participantCount?: number };
+// Une réponse occupe autant de places que de personnes qui viennent avec elle (accompagnants, `partySize`).
+type PlacesPlan = { maxParticipants?: number | null; members: { userId: string; rsvp: string; partySize?: number }[]; waitlist?: { userId: string }[]; participantCount?: number };
+
+const size = (m: { partySize?: number }) => Math.max(1, m.partySize ?? 1);
 
 // Liste des participants masquée (Mode annonce) : le serveur donne seulement le nombre de places prises
-export const occupiedPlaces = (plan: PlacesPlan) => plan.participantCount ?? plan.members.filter(m => m.rsvp !== 'out').length;
+export const occupiedPlaces = (plan: PlacesPlan) => plan.participantCount ?? plan.members.reduce((n, m) => n + (m.rsvp === 'out' ? 0 : size(m)), 0);
+
+// Personnes qui viennent (« Je suis in »), accompagnants compris
+export const comingCount = (members: { rsvp: string; partySize?: number }[]) => members.reduce((n, m) => n + (m.rsvp === 'in' ? size(m) : 0), 0);
 
 export const isPlanFull = (plan: PlacesPlan) => plan.maxParticipants != null && occupiedPlaces(plan) >= plan.maxParticipants;
 

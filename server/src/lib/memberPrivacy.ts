@@ -1,3 +1,4 @@
+import { occupiedFrom } from './party';
 import prisma from './prisma';
 import { ORGANIZER_ROLE } from './circleRoles';
 
@@ -34,8 +35,8 @@ export async function canSeeMembers(plan: PlanLike, userId: string): Promise<boo
 
 // Version d'un Plan pour une personne qui ne voit pas les participants
 export function maskMembers<T extends Record<string, any>>(plan: T, userId: string): T & { membersHidden: true; participantCount?: number } {
-  const members: { userId: string; rsvp: string }[] = plan.members ?? [];
-  const occupied = members.filter(m => m.rsvp !== 'out').length;
+  const members: { userId: string; rsvp: string; partySize?: number }[] = plan.members ?? [];
+  const occupied = occupiedFrom(members);
   return {
     ...plan,
     members: members.filter(m => m.userId === userId),

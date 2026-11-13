@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CompanionsField } from './PartyStepper';
 import { DESCRIPTION_MAX, RichTextArea, visibleLength } from '../../lib/richText';
 import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
@@ -39,6 +40,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
   const [recurrence, setRecurrence] = useState<Recurrence | ''>(plan.recurrence ?? '');
   const [recurrenceUntil, setRecurrenceUntil] = useState(isoToDateInput(plan.recurrenceUntil));
   const [maxParticipants, setMaxParticipants] = useState(plan.maxParticipants?.toString() ?? '');
+  const [companionsMax, setCompanionsMax] = useState(plan.companionsMax ?? 5);
   const [deletionMode, setDeletionMode] = useState<DeletionMode>(plan.deletionMode ?? 'vote');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(plan.disabledFeatures ?? []);
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(plan.enabledFeatures ?? []);
@@ -77,6 +79,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
         eventDate: eventDate ? localToISO(eventDate) : null,
         endDate: localToISO(endDate),
         maxParticipants: maxParticipants || null,
+        companionsMax,
         ...visibilityPayload(vis),
         deletionMode,
         disabledFeatures,
@@ -149,8 +152,8 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                 onChange={(v, u) => { setRecurrence(v); setRecurrenceUntil(u); }}
               />
             </OptionRow>
-            <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all'}
-              summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1, visibilityCount(vis).reserved)}>
+            <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || companionsMax === 0}
+              summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1, visibilityCount(vis).reserved, companionsMax === 0)}>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">{t('plan.form.maxParticipants')}</label>
                 <input
@@ -162,6 +165,7 @@ export function EditPlanModal({ plan, circleMembers = [], onClose, onUpdated, is
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 text-sm"
                 />
               </div>
+              <CompanionsField value={companionsMax} onChange={setCompanionsMax} />
               <VisibilityField members={circleMembers} currentUserId={plan.creatorId} value={vis} onChange={setVis} />
               {excludedUserIds.some(id => plan.members.some(m => m.userId === id)) && (
                 <p className="text-xs text-amber-600 -mt-2">{t('plan.form.excludedMember')}</p>

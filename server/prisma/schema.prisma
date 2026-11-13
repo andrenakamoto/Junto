@@ -466,6 +466,8 @@ model Plan {
   filesMode            String    @default("all")
   // Qui invite des personnes extérieures (lien /invitation) : « all », « managers » (créateur et organisateurs) ou « none »
   guestInviteMode      String    @default("all")
+  // Accompagnants : nombre maximum par réponse (0 = désactivé, défaut 5) — lib/party.ts
+  companionsMax    Int      @default(5)
   // Type choisi à la création (« Plan spécifique » : surprise, pere_noel, assemblee, organisation, annonce, cours, jeux, voyage) ;
   // null = Plan standard. Pré-règle seulement la création (tout reste modifiable), sert aux statistiques (lib/planKinds.ts)
   kind                 String?
@@ -695,6 +697,8 @@ model PlanMember {
   joinedAt DateTime @default(now())
   // Dernière consultation de chaque onglet du Plan : { chat: ISO, infos: ISO, … } — lib/planActivity.ts
   seen     Json     @default("{}")
+  // Nombre de personnes qui viennent avec cette réponse, la personne comprise (accompagnants, 2026-11-13) ; 1 par défaut
+  partySize Int     @default(1)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)

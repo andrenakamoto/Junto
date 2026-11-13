@@ -1,4 +1,5 @@
 import { MyCapsules } from './CapsuleTab';
+import { comingCount } from '../../lib/places';
 import { PlansViewToggle } from './PlansViewToggle';
 import { useEffect, useState } from 'react';
 import { endedLast, isPlanEnded } from '../../lib/planEnd';
@@ -67,7 +68,7 @@ export function AllPlansView({ onSelectPlan, selectedPlanId, onBack, refreshSign
           <div className="space-y-3">
             {sorted.map(plan => {
               const myMember = plan.members.find(m => m.userId === user?.id);
-              const inCount = plan.members.filter(m => m.rsvp === 'in').length;
+              const inCount = comingCount(plan.members);
               const date = plan.eventDate
                 ? shortDateTime(plan.eventDate)
                 : null;

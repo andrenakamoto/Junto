@@ -549,4 +549,14 @@ export default {
     ongoing: "en cours",
   },
   sort: { label: 'Trier les Plans', activity: 'Activité', date: 'Date' },
+  party: {
+    several: 'Vous venez à plusieurs ?',
+    question: 'Vous serez combien ?', hint: 'toi compris', you: 'Tu viens à combien ?',
+    less: 'Une personne de moins', more: 'Une personne de plus',
+    people_one: '{{count}} personne', people_other: '{{count}} personnes',
+    total_one: '{{count}} personne vient en tout', total_other: '{{count}} personnes viennent en tout',
+    field: 'Accompagnants', fieldHint: 'Chacun indique combien de personnes viennent avec lui (les places les comptent).',
+    allowed: 'Autorisés', upTo: 'Jusqu’à', perAnswer: 'accompagnant(s) par personne', off: 'Désactivés',
+    sumOff: 'sans accompagnants',
+  },
 };

@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
-import { BellRing, UserMinus, UserPlus } from 'lucide-react';
+import { BellRing, UserMinus, UserPlus, Users } from 'lucide-react';
+import { PartyStepper } from './PartyStepper';
+import { comingCount } from '../../lib/places';
 import { Plan, PlanMember } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { displayName } from '../../lib/names';
@@ -21,7 +23,7 @@ const GROUP_STYLE: Record<Group, { dot: string; chip: string; on: string }> = {
 };
 const PENDING_FOLDED = 6;
 
-export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creatorId, canRemove = false, onRemove, onNudge, onInvite }: {
+export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creatorId, canRemove = false, onRemove, onNudge, onInvite, myUserId, onPartySize }: {
   plan?: Plan;
   members: PlanMember[]; onlineUserIds?: Set<string>; waitlist?: NonNullable<Plan['waitlist']>;
   /** Créateur du Plan et organisateurs du Cercle : retirer quelqu'un du Plan (DELETE /plans/:id/members/:userId) */
@@ -30,6 +32,10 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
   onNudge?: () => Promise<number>;
   /** Ouvre la fenêtre « Inviter » du Plan (membres du Plan, Plan pas terminé) */
   onInvite?: () => void;
+  /** Accompagnants (2026-11-13) : nombre de personnes qui viennent avec une réponse, la personne comprise. Chacun le
+   *  change sur sa ligne ; le créateur du Plan et les organisateurs aussi pour les autres (canRemove). */
+  myUserId?: string;
+  onPartySize?: (userId: string, size: number) => Promise<void>;
 }) {
   // Noms de famille visibles par la personne (réglage de chacun, responsables d'une Organisation)
   const lastNames = useLastNames(plan ? `/plans/${plan.id}/last-names` : null, members.length);
@@ -40,6 +46,35 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
   const [filter, setFilter] = useState<Group | null>(null);
   const [showAllPending, setShowAllPending] = useState(false);
   const [nudgeState, setNudgeState] = useState<{ sent?: number; error?: string }>({});
+  const companionsMax = plan?.companionsMax ?? 0;
+  const [partyOpen, setPartyOpen] = useState<string | null>(null);
+  const [partyBusy, setPartyBusy] = useState<string | null>(null);
+  const [partyError, setPartyError] = useState<{ id: string; text: string } | null>(null);
+  async function changeParty(userId: string, size: number) {
+    if (!onPartySize) return;
+    setPartyBusy(userId); setPartyError(null);
+    try { await onPartySize(userId, size); }
+    catch (err: any) { setPartyError({ id: userId, text: err.response?.data?.error || t('common.retryError') }); }
+    finally { setPartyBusy(null); }
+  }
+  // Nombre de personnes d'une ligne : compteur pour sa propre ligne, et pour l'organisation (au toucher)
+  const partyCell = (m: PlanMember) => {
+    if (companionsMax <= 0 || m.rsvp === 'out') return null;
+    const n = Math.max(1, m.partySize ?? 1);
+    const mine = m.userId === myUserId;
+    if (onPartySize && (mine || (canRemove && partyOpen === m.userId))) {
+      return <PartyStepper value={n} max={companionsMax + 1} busy={partyBusy === m.userId} onChange={v => changeParty(m.userId, v)} />;
+    }
+    if (onPartySize && canRemove) {
+      return (
+        <button onClick={() => setPartyOpen(m.userId)} title={t('plan.party.question')}
+          className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full border flex-shrink-0 ${n > 1 ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold' : 'border-slate-200 text-slate-400'}`}>
+          <Users size={12} />{n}
+        </button>
+      );
+    }
+    return n > 1 ? <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 font-semibold flex-shrink-0"><Users size={12} />{n}</span> : null;
+  };
 
   async function remove(userId: string) {
     if (!onRemove) return;
@@ -78,7 +113,9 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
             </span>
           )}
           {fullOf(m.user, m.userId) && <span className="block text-xs text-slate-400 truncate">@{m.user.pseudo}</span>}
+          {m.userId === myUserId && companionsMax > 0 && m.rsvp !== 'out' && onPartySize && <span className="block text-[11px] text-slate-400">{t('plan.party.you')} ({t('plan.party.hint')})</span>}
         </span>
+        {partyCell(m)}
         {confirmId === m.userId ? (
           <span className="flex items-center gap-1.5 flex-shrink-0">
             <button onClick={() => setConfirmId(null)} className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium">{t('common.cancel')}</button>
@@ -89,6 +126,7 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
             className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0"><UserMinus size={16} /></button>
         )}
       </div>
+      {partyError?.id === m.userId && <p className="text-xs text-red-600 -mt-1 px-1">{partyError.text}</p>}
       {confirmId === m.userId && <p className="text-xs text-slate-500 -mt-1 px-1">{t('plan.members.removeHint', { name: fullOf(m.user, m.userId) ?? `@${m.user.pseudo}` })}</p>}
     </div>
   );
@@ -112,6 +150,12 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors">
           <UserPlus size={16} />{t('plan.detail.invite')}
         </button>
+      )}
+      {/* Accompagnants : total des personnes qui viennent (« Je suis in »), accompagnants compris */}
+      {companionsMax > 0 && (
+        <p className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+          <Users size={16} className="text-indigo-500" />{t('plan.party.total', { count: comingCount(members) })}
+        </p>
       )}
       {/* Résumé : toucher un groupe n'affiche que lui */}
       <div className="flex flex-wrap gap-1.5">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { PartyReveal } from './PartyStepper';
 import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
 import { MuteToggle } from './MuteToggle';
 import { addPlanToCalendar } from '../../lib/calendar';
@@ -51,7 +52,7 @@ import { getSocket } from '../../lib/socket';
 import { WheelSpinHost, openWheelSpin } from './WheelSection';
 import { QuizLiveHost, QuizTab } from './QuizTab';
 import api from '../../services/api';
-import { isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
+import { comingCount, isPlanFull, occupiedPlaces, waitlistPosition } from '../../lib/places';
 import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
 import { RichText } from '../../lib/richText';
@@ -531,6 +532,15 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     setReplyTo(null);
   }
 
+  // Accompagnants : nombre de personnes qui viennent avec une réponse (la sienne, ou celle d'un autre pour l'organisation)
+  const [partyBusy, setPartyBusy] = useState(false);
+  const [partyErr, setPartyErr] = useState('');
+  async function handlePartySize(userId: string, size: number) {
+    await api.put(`/plans/${plan.id}/party`, { size, ...(userId !== user.id ? { userId } : {}) });
+    const { data } = await api.get(`/plans/${plan.id}`);
+    onPlanUpdated(data);
+  }
+
   function handleReact(messageId: string, emoji: string) {
     if (!token) return;
     getSocket(token).emit('toggle-reaction', { messageId, emoji });
@@ -590,7 +600,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     : null;
 
 
-  const inCount = plan.members.filter(m => m.rsvp === 'in').length;
+  const inCount = comingCount(plan.members);
   const maybeCount = plan.members.filter(m => m.rsvp === 'maybe').length;
   const outCount = plan.members.filter(m => m.rsvp === 'out').length;
   const isFull = isPlanFull(plan);
@@ -985,6 +995,13 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
                 {rsvpConfig[rsvp].label}
               </button>
             ))}
+            {/* Mode annonce (pas de rubrique Membres) : on indique ici combien on vient */}
+            {plan.membersHidden && (plan.companionsMax ?? 0) > 0 && myMember && myMember.rsvp !== 'out' && (
+              <div className="col-span-3 md:basis-full mt-1">
+                <PartyReveal value={Math.max(1, myMember.partySize ?? 1)} max={(plan.companionsMax ?? 0) + 1} busy={partyBusy} error={partyErr}
+                  onChange={async n => { setPartyBusy(true); setPartyErr(''); try { await handlePartySize(user.id, n); } catch (err: any) { setPartyErr(err.response?.data?.error || t('common.retryError')); } finally { setPartyBusy(false); } }} />
+              </div>
+            )}
             {myMember?.rsvp === 'out' && (isFull || myWaitPos) && <div className="col-span-3 md:basis-full">{waitlistCard}</div>}
           </div>
         ) : isFull || myWaitPos ? (
@@ -1090,6 +1107,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
             <InfosTab plan={plan} onPlanUpdated={onPlanUpdated} pseudo={user.pseudo} userId={user.id} />
           )}
           {activeTab === 'membres' && <MembresTab plan={plan} members={plan.members} onlineUserIds={onlineUserIds} waitlist={plan.waitlist} creatorId={plan.creatorId} canRemove={!!plan.canManageFiles && !plan.viewerIsGuest}
+            myUserId={user.id} onPartySize={ended ? undefined : handlePartySize}
             onRemove={async userId => { await api.delete(`/plans/${plan.id}/members/${userId}`); const { data } = await api.get(`/plans/${plan.id}`); onPlanUpdated(data); }}
             onNudge={async () => { const { data } = await api.post(`/plans/${plan.id}/nudge`); api.get(`/plans/${plan.id}`).then(r => onPlanUpdated(r.data)).catch(() => {}); return data.count; }}
             onInvite={isMember && !ended ? () => setShowInvite(true) : undefined} />}

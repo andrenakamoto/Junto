@@ -1185,6 +1185,21 @@ Junto/
   **Relance** : POST `/plans/:id/nudge`, créateur du Plan et organisateurs du Cercle, une fois par 24 h (`Plan.lastNudgeAt`, réservation
   atomique, `canNudge` / `nextNudgeAt`), notification `plan_activity` « ⏰ @x attend ta réponse » (mode silencieux respecté). « · N sans
   réponse » dans l'en-tête du Plan. Bouton **« Inviter »** en tête de la rubrique (2026-11-04, `onInvite`, membres du Plan, Plan pas terminé). Démo : `demoPlanWithPending`. Fiche « Répondre et liste d'attente » du guide.
+- **Accompagnants** (2026-11-13, demande de l'utilisateur, `lib/party.ts` testé, migration `20261125100000_party_size`) :
+  `PlanMember.partySize` = **nombre total de personnes qui viennent avec la réponse, la personne comprise** (1 par défaut, jamais « +x ») ;
+  `Plan.companionsMax` = accompagnants permis par réponse (**5 par défaut**, 0 = désactivé ; Assemblée créée à 0), réglage `CompanionsField`
+  de `PartyStepper.tsx` dans la ligne « Participants » de création / modification (lecture dans `PlanSettingsModal`) ; le baisser ramène
+  les réponses au nouveau maximum. **Les places comptent toutes ces personnes** : `occupiedCount` = somme des `partySize` (« in » et
+  « peut-être »), `hasFreeSpot(plan, userId, need)`, `maskMembers` (`participantCount`), page d'invitation (`isFull`, `places`).
+  PUT `/plans/:id/party {size, userId?}` : pour soi, ou pour un autre par le créateur du Plan et les organisateurs du Cercle ; refus si la
+  limite serait dépassée (409) ; baisse = `promoteFromWaitlist`. « Je passe » remet à 1. Client : compteur − n + (`PartyStepper`) sur
+  sa propre ligne de la rubrique Membres (l'organisation touche le nombre d'une autre ligne pour l'ouvrir), total « N personnes viennent
+  en tout » en haut (`comingCount` de `lib/places.ts`, aussi sur les cartes et l'en-tête du Plan) ; Mode annonce (pas de rubrique
+  Membres) : sous les réponses ; réponse sans compte : sur `/invitation` — **dans ces deux cas, rien n'est demandé** (demande de
+  l'utilisateur : pas de question à chaque Plan) : un lien discret « + Vous venez à plusieurs ? » (`PartyReveal`) ouvre le compteur,
+  ouvert d'office si plus d'une personne est déjà indiquée (`partySize` de POST
+  `/api/invite/:token/respond`, `companionsMax` et `me.partySize` dans l'aperçu). Démo : désactivé (`companionsMax` absent). Pas
+  encore dans « En bref », le récapitulatif PDF ni l'aperçu des liens. Fiche « Répondre et liste d'attente » du guide.
 - **Index de performance** (2026-11-11, migration `20261123100000_perf_indexes`) : `Message (planId, createdAt)`, `Message (parentId)`,
   `CircleMember (circleId)`, `PlanMember (planId)` — les clés primaires commencent par `userId` et ne servaient pas aux recherches par Cercle / Plan.
 - **PlanMember** : userId+planId, rsvp ("in" par défaut), joinedAt, seen (Json,

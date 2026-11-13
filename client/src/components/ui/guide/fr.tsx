@@ -125,6 +125,10 @@ const groups: Group[] = [
           <P><strong>Rubrique Membres</strong> : les réponses par groupe (Je suis in, Peut-être, liste d'attente, Absent(e)) et les
             membres du Cercle qui n'ont <strong>pas encore répondu</strong> ; toucher un chiffre du résumé n'affiche que ce groupe. Le
             créateur du Plan et les organisateurs peuvent <strong>relancer</strong> ceux qui n'ont pas répondu, une fois par jour.</P>
+          <P><strong>Accompagnants</strong> : sur ta ligne de la rubrique Membres (ou sous tes réponses en Mode annonce, et sur la page
+            d’invitation sans compte), indique combien vous serez, toi compris (1 par défaut). Le total s’affiche en haut de la rubrique,
+            et les places d’un Plan limité comptent tout le monde. Le créateur peut le corriger pour quelqu’un, changer le maximum (5
+            accompagnants par défaut) ou désactiver les accompagnants dans « Participants ».</P>
         </>,
       },
       {

@@ -117,7 +117,7 @@ export async function createNextOccurrence(app: any, planId: string, createPlanI
     extraCircleIds,
     deletionMode: plan.deletionMode, disabledFeatures: plan.disabledFeatures, enabledFeatures: plan.enabledFeatures, editMode: plan.editMode,
     importantInfo: plan.importantInfo, importantInfoMode: plan.importantInfoMode, membersVisibility: plan.membersVisibility, allowCirclePlans: plan.allowCirclePlans,
-    visibility: plan.visibility, surprise: plan.surprise, filesMode: plan.filesMode, guestInviteMode: plan.guestInviteMode, kind: plan.kind,
+    visibility: plan.visibility, surprise: plan.surprise, filesMode: plan.filesMode, guestInviteMode: plan.guestInviteMode, companionsMax: plan.companionsMax, kind: plan.kind,
   }, plan.circle.organisationId && (plan.extraCircles.length || plan.orgRoleIds.length)
     // Organisation : mêmes destinataires, choisis avec « Pour qui ? »
     ? { extraIds: plan.extraCircles.map(e => e.circleId), roleIds: plan.orgRoleIds, excludedIds: plan.exclusions.filter(e => !e.removed).map(e => e.userId) }

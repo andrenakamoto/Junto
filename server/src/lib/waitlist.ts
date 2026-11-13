@@ -17,15 +17,20 @@ import { escapeHtml } from './escapeHtml';
 // Personnes qui occupent une place
 export const occupiedWhere = (planId: string) => ({ planId, rsvp: { not: 'out' } });
 
-export async function occupiedCount(planId: string) {
-  return prisma.planMember.count({ where: occupiedWhere(planId) });
+// Une réponse occupe autant de places que de personnes qui viennent avec elle (accompagnants, lib/party.ts)
+export async function occupiedCount(planId: string, exceptUserId?: string) {
+  const r = await prisma.planMember.aggregate({
+    where: { ...occupiedWhere(planId), ...(exceptUserId ? { userId: { not: exceptUserId } } : {}) },
+    _sum: { partySize: true },
+  });
+  return r._sum.partySize ?? 0;
 }
 
-// Reste-t-il une place pour cette personne ? Pas de limite : oui. Sinon il faut une place libre et que
-// personne n'attende avant elle (la liste d'attente passe en premier).
-export async function hasFreeSpot(plan: { id: string; maxParticipants: number | null }, userId?: string): Promise<boolean> {
+// Reste-t-il une place pour cette personne (need = places demandées) ? Pas de limite : oui. Sinon il faut assez de
+// places libres et que personne n'attende avant elle (la liste d'attente passe en premier).
+export async function hasFreeSpot(plan: { id: string; maxParticipants: number | null }, userId?: string, need = 1): Promise<boolean> {
   if (plan.maxParticipants === null) return true;
-  if (await occupiedCount(plan.id) >= plan.maxParticipants) return false;
+  if (await occupiedCount(plan.id) + need > plan.maxParticipants) return false;
   const first = await prisma.planWaitlist.findFirst({ where: { planId: plan.id }, orderBy: { createdAt: 'asc' }, select: { userId: true } });
   return !first || first.userId === userId;
 }

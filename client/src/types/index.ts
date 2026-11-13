@@ -115,6 +115,8 @@ export interface PlanMember {
   userId: string;
   planId: string;
   rsvp: 'in' | 'maybe' | 'out';
+  /** Personnes qui viennent avec cette réponse, la personne comprise (accompagnants, 1 par défaut) */
+  partySize?: number;
   /** Arrivée dans le Plan (inchangée quand la réponse change) */
   joinedAt?: string;
   user: User;
@@ -202,6 +204,8 @@ export interface Plan {
   endDate: string;
   location?: string | null;
   maxParticipants?: number | null;
+  /** Accompagnants permis par réponse (0 = désactivé ; absent dans la démo = désactivé) */
+  companionsMax?: number;
   /** Liste d'attente (Plan complet), dans l'ordre ; `user` seulement dans le détail du Plan */
   waitlist?: { userId: string; createdAt?: string; user?: { id: string; pseudo: string; firstName?: string | null } }[];
   /** Membres des Cercles qui n'ont pas encore répondu (GET /plans/:id, lib/planPending.ts du serveur) */

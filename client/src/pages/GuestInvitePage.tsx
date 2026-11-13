@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { PartyReveal } from '../components/plans/PartyStepper';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CalendarDays, ArrowRight, Loader2, MapPin, Users, Check, HelpCircle, X, MessageSquare, Car, Image, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,11 +37,13 @@ interface PublicPreview {
   /** null : liste des participants réservée (Mode annonce) */
   counts: { in: number; maybe: number } | null;
   places?: { taken: number; max: number } | null;
+  /** Accompagnants permis par réponse (0 = la question « Vous serez combien ? » n'est pas posée) */
+  companionsMax?: number;
   full: boolean;
   /** Père Noël secret : seuls les comptes entrent dans le tirage */
   santa?: boolean;
-  me: { firstName: string | null; rsvp: Rsvp } | null;
-  participants?: { name: string; rsvp: Rsvp; isMe: boolean }[];
+  me: { firstName: string | null; rsvp: Rsvp; partySize?: number } | null;
+  participants?: { name: string; rsvp: Rsvp; isMe: boolean; partySize?: number }[];
 }
 
 const RSVP_OPTIONS: { value: Rsvp; label: string; icon: typeof Check; active: string; idle: string }[] = [
@@ -95,6 +98,9 @@ function AnonymousInvite({ token }: { token: string }) {
   const [sending, setSending] = useState<Rsvp | null>(null);
   const [showTerms, setShowTerms] = useState(false);
   const [justAnswered, setJustAnswered] = useState(false);
+  // Nombre de personnes qui viennent, la personne comprise (accompagnants)
+  const [partySize, setPartySize] = useState(1);
+  const [partyBusy, setPartyBusy] = useState(false);
 
   const lightHeaders = () => {
     const lt = getLightToken();
@@ -113,7 +119,7 @@ function AnonymousInvite({ token }: { token: string }) {
     setSending(rsvp);
     setError('');
     try {
-      const { data } = await api.post(`/invite/${token}/respond`, { rsvp, firstName }, { headers: lightHeaders() });
+      const { data } = await api.post(`/invite/${token}/respond`, { rsvp, firstName, ...(!preview.me && rsvp !== 'out' && (preview.companionsMax ?? 0) > 0 ? { partySize } : {}) }, { headers: lightHeaders() });
       setLightToken(data.lightToken);
       setPreview(data);
       setJustAnswered(true);
@@ -121,6 +127,21 @@ function AnonymousInvite({ token }: { token: string }) {
       setError(err.response?.data?.error || t('common.retryError'));
     } finally {
       setSending(null);
+    }
+  }
+
+  // Changer le nombre de personnes après avoir répondu
+  async function changeParty(n: number) {
+    if (!preview?.me) return;
+    setPartyBusy(true);
+    setError('');
+    try {
+      const { data } = await api.post(`/invite/${token}/respond`, { rsvp: preview.me.rsvp, partySize: n }, { headers: lightHeaders() });
+      setPreview(data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || t('common.retryError'));
+    } finally {
+      setPartyBusy(false);
     }
   }
 
@@ -190,13 +211,16 @@ function AnonymousInvite({ token }: { token: string }) {
               </p>
               <RsvpButtons value={me.rsvp} sending={sending} onChoose={answer} disabledIn={preview.full && me.rsvp === 'out'} />
             </div>
+            {(preview.companionsMax ?? 0) > 0 && me.rsvp !== 'out' && (
+              <PartyReveal dark value={Math.max(1, me.partySize ?? 1)} max={(preview.companionsMax ?? 0) + 1} busy={partyBusy} onChange={changeParty} />
+            )}
             {preview.participants && preview.participants.length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{t('auth.guest.whoComes')}</p>
                 <ul className="flex flex-wrap gap-1.5">
                   {preview.participants.map((p, i) => (
                     <li key={i} className={`text-xs px-2.5 py-1 rounded-full border ${p.rsvp === 'in' ? 'border-emerald-500/30 text-emerald-200 bg-emerald-500/10' : 'border-amber-500/30 text-amber-200 bg-amber-500/10'}`}>
-                      {p.name}{p.isMe ? t('auth.guest.you') : ''}{p.rsvp === 'maybe' ? t('auth.guest.maybeTag') : ''}
+                      {p.name}{p.isMe ? t('auth.guest.you') : ''}{(p.partySize ?? 1) > 1 ? ` (${p.partySize})` : ''}{p.rsvp === 'maybe' ? t('auth.guest.maybeTag') : ''}
                     </li>
                   ))}
                 </ul>
@@ -219,6 +243,9 @@ function AnonymousInvite({ token }: { token: string }) {
                 className="w-full px-4 py-3 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-sm"
               />
             </div>
+            {(preview.companionsMax ?? 0) > 0 && (
+              <PartyReveal dark value={partySize} max={(preview.companionsMax ?? 0) + 1} onChange={setPartySize} />
+            )}
             <RsvpButtons value={null} sending={sending} onChoose={answer} disabled={!firstName.trim()} />
             <p className="text-[11px] text-slate-500 leading-relaxed">
               <Trans i18nKey="auth.guest.noAccount" components={{

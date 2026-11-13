@@ -1,4 +1,5 @@
 import { Pencil } from 'lucide-react';
+import { CompanionsField } from './PartyStepper';
 import { Plan } from '../../types';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -22,6 +23,7 @@ export function PlanSettingsModal({ plan, isCreator, onClose, onEdit }: Props) {
       <div className="space-y-4">
         <FeaturesField disabled={plan.disabledFeatures ?? []} onChange={noop} enabled={plan.enabledFeatures ?? []} readOnly />
         <EditModeField value={plan.editMode ?? 'creator'} onChange={noop} readOnly />
+        <CompanionsField value={plan.companionsMax ?? 0} onChange={noop} readOnly />
         <ImportantInfoModeField value={plan.importantInfoMode ?? 'creator'} onChange={noop} readOnly />
         <DeletionModeField subject="Plan" value={plan.deletionMode ?? 'vote'} onChange={noop} readOnly />
         {plan.membersVisibility === 'managers' && <CirclePlansField value={plan.allowCirclePlans ?? true} onChange={noop} readOnly />}

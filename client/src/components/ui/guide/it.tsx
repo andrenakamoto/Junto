@@ -126,6 +126,10 @@ const groups: Group[] = [
           <P><strong>Rubrica Membri</strong>: le risposte per gruppo (Ci sono, Forse, lista d’attesa, Assente) e i membri del Cerchio
             che <strong>non hanno ancora risposto</strong>; tocca un numero del riepilogo per vedere solo quel gruppo. Chi ha creato il
             Plan e l’organizzazione possono <strong>sollecitare</strong> chi non ha risposto, una volta al giorno.</P>
+          <P><strong>Accompagnatori</strong>: sulla tua riga della rubrica Membri (o sotto le tue risposte in modalità annuncio, e nella
+            pagina d’invito senza account) indica quanti sarete, te compreso/a (1 per impostazione). Il totale compare in cima alla rubrica,
+            e i posti di un Plan limitato contano tutti. Chi ha creato il Plan può correggerlo per qualcuno, cambiare il massimo (5
+            accompagnatori per impostazione) o disattivare gli accompagnatori in «Partecipanti».</P>
         </>,
       },
       {

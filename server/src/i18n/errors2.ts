@@ -306,4 +306,11 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Place pour les documents des fournisseurs épuisée (30 Mo par Plan)': ['Kein Platz mehr für Lieferantendokumente (30 MB pro Plan)', 'Spazio per i documenti dei fornitori esaurito (30 MB per Plan)', 'No more room for supplier documents (30 MB per Plan)'],
   'Document introuvable': ['Dokument nicht gefunden', 'Documento non trovato', 'Document not found'],
   'Ce fournisseur est encore utilisé dans un Plan : retire-le d’abord du Plan, ou archive-le': ['Dieser Lieferant wird noch in einem Plan verwendet: Entferne ihn zuerst aus dem Plan oder archiviere ihn', 'Questo fornitore è ancora usato in un Plan: rimuovilo prima dal Plan o archivialo', 'This supplier is still used in a Plan: remove it from the Plan first, or archive it'],
+  // Accompagnants (lib/party.ts)
+  'Seul le créateur du Plan peut le changer pour quelqu’un d’autre': ['Nur die Person, die den Plan erstellt hat, kann das für jemand anderen ändern', 'Solo chi ha creato il Plan può cambiarlo per un’altra persona', 'Only the Plan’s creator can change this for someone else'],
+  'Les accompagnants ne sont pas prévus pour ce Plan': ['Für diesen Plan sind keine Begleitpersonen vorgesehen', 'Per questo Plan non sono previsti accompagnatori', 'Companions are not allowed for this Plan'],
+  'De {0} à {1} personnes': ['{0} bis {1} Personen', 'Da {0} a {1} persone', '{0} to {1} people'],
+  'Réponds d’abord « Je suis in » ou « Peut-être »': ['Antworte zuerst «Ich bin dabei» oder «Vielleicht»', 'Rispondi prima «Ci sono» o «Forse»', 'First answer “I’m in” or “Maybe”'],
+  'Il ne reste que {0} place(s) pour des accompagnants': ['Es bleiben nur noch {0} Platz/Plätze für Begleitpersonen', 'Restano solo {0} posto/i per gli accompagnatori', 'Only {0} spot(s) left for companions'],
+  'Il ne reste pas assez de places': ['Es sind nicht mehr genug Plätze frei', 'Non ci sono più abbastanza posti', 'There aren’t enough spots left'],
 };

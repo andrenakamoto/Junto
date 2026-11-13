@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { COMPANIONS_DEFAULT, parseCompanionsMax } from '../lib/party';
 import { parseThreshold } from '../lib/availability';
 import { DESCRIPTION_MAX, parseRichInput } from '../lib/richText';
 import { isAllowedReaction } from '../lib/reactions';
@@ -855,6 +856,8 @@ interface NewPlanInput {
   filesMode?: unknown;
   /** Qui invite des personnes extérieures : « all », « managers » ou « none » (lib/planInvites.ts) */
   guestInviteMode?: unknown;
+  /** Accompagnants par réponse (0 = désactivé, défaut 5, lib/party.ts) */
+  companionsMax?: unknown;
   /** Type choisi à la création (« Plan spécifique », lib/planKinds.ts) */
   kind?: unknown;
   /** Mode annonce : les membres peuvent y aller avec un de leurs Cercles (lib/planSource.ts) */
@@ -947,6 +950,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
       filesMode: parseFilesMode(input.filesMode) ?? 'all',
       // Par défaut : ouvert à tous dans un Cercle en entrée libre, réservé à l'organisation sinon (anciennes apps comprises)
       guestInviteMode,
+      companionsMax: parseCompanionsMax(input.companionsMax) ?? COMPANIONS_DEFAULT,
       kind: parsePlanKind(input.kind),
       allowCirclePlans: parseAllowCirclePlans(input.allowCirclePlans) ?? true,
       visibility: excl.visibility,
@@ -1630,14 +1634,14 @@ router.post('/polls/:pollId/convert', async (req: AuthRequest, res) => {
     if (!(await canCreatePlans(req.userId!, poll.circleId))) { res.status(403).json({ error: PLAN_CREATION_RESERVED_ERROR }); return; }
   }
 
-  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, filesMode, guestInviteMode, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility } = req.body;
+  const { optionId, title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, filesMode, guestInviteMode, companionsMax, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility } = req.body;
   const option = poll.options.find(o => o.id === optionId);
   if (!option) { res.status(400).json({ error: 'Option invalide' }); return; }
   if (isPastOption(option.eventDate)) { res.status(400).json({ error: 'Cette date est déjà passée' }); return; }
   if (pollExpiresAt(poll.createdAt, poll.options.map(o => o.eventDate)) <= new Date()) { res.status(404).json({ error: 'Sondage terminé' }); return; }
 
   const result = await createPlanInCircle(req.app, poll.circleId, req.userId!, {
-    title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, filesMode, guestInviteMode, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility,
+    title, description, endDate, location, maxParticipants, excludedUserIds, visibility, allowedUserIds, surprise, filesMode, guestInviteMode, companionsMax, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfo, importantInfoMode, recurrence, recurrenceUntil, membersVisibility,
     eventDate: option.eventDate?.toISOString() ?? null,
   }, poll.extraCircles.length || poll.orgRoleIds.length
     // Sondage « Pour qui ? » : le Plan garde les mêmes destinataires

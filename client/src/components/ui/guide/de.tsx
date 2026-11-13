@@ -130,6 +130,10 @@ const groups: Group[] = [
             Mitglieder des Kreises, die <strong>noch nicht geantwortet</strong> haben; tippe auf eine Zahl der Übersicht, um nur diese
             Gruppe zu sehen. Wer den Plan erstellt hat und die Organisation können alle ohne Antwort <strong>erinnern</strong>, einmal
             pro Tag.</P>
+          <P><strong>Begleitpersonen</strong>: Gib auf deiner Zeile der Rubrik Mitglieder an (im Ankündigungsmodus unter deinen Antworten,
+            und auf der Einladungsseite ohne Konto), wie viele ihr seid, dich eingeschlossen (standardmäßig 1). Die Summe steht oben in der
+            Rubrik, und die Plätze eines begrenzten Plans zählen alle mit. Wer den Plan erstellt hat, kann es für jemanden korrigieren, das
+            Maximum ändern (standardmäßig 5 Begleitpersonen) oder Begleitpersonen unter «Teilnehmende» ausschalten.</P>
         </>,
       },
       {

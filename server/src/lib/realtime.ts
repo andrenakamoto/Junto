@@ -85,7 +85,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
-  join: 'membres', rsvp: 'membres', leave: 'membres',
+  join: 'membres', rsvp: 'membres', leave: 'membres', party: 'membres',
   shifts: 'benevoles', tasks: 'taches', suppliers: 'fournisseurs', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 

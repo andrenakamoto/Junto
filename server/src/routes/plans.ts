@@ -53,6 +53,7 @@ import secretSantaRoutes from './secretSanta';
 import { santaDateError } from '../lib/secretSanta';
 import { removeFromPlanGames } from '../lib/planGames';
 import { hasFreeSpot, occupiedCount, promoteFromWaitlist } from '../lib/waitlist';
+import { parseCompanionsMax, parsePartySize } from '../lib/party';
 import killerRoutes from './killer';
 import quizRoutes from './quiz';
 import teamsRoutes from './teams';
@@ -575,6 +576,9 @@ router.put('/:id', async (req: AuthRequest, res) => {
     const filesMode = settings.filesMode === undefined ? plan.filesMode : parseFilesMode(settings.filesMode);
     const guestInviteMode = settings.guestInviteMode === undefined ? plan.guestInviteMode : parseGuestInviteMode(settings.guestInviteMode);
     const allowCirclePlans = parseAllowCirclePlans(settings.allowCirclePlans) ?? plan.allowCirclePlans;
+    // Accompagnants par réponse (0 = désactivé, lib/party.ts)
+    const companionsMax = settings.companionsMax === undefined ? plan.companionsMax : parseCompanionsMax(settings.companionsMax);
+    if (companionsMax == null) { res.status(400).json({ error: 'Paramètres avancés invalides' }); return; }
     // Répétition (créateur seul) : absente = inchangée
     const repeat = settings.recurrence === undefined
       ? { recurrence: plan.recurrence, recurrenceUntil: plan.recurrenceUntil }
@@ -606,12 +610,17 @@ router.put('/:id', async (req: AuthRequest, res) => {
 
     await prisma.plan.update({
       where: { id: planId },
-      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, filesMode, guestInviteMode, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil, visibility, surprise,
+      data: { title: title.trim(), description: newDescription, eventDate: newEventDate, endDate: newEndDate, maxParticipants: newMaxParticipants, location: newLocation, deletionMode, disabledFeatures, enabledFeatures, editMode, importantInfoMode, membersVisibility, allowCirclePlans, filesMode, guestInviteMode, companionsMax, recurrence: repeat.recurrence, recurrenceUntil: repeat.recurrenceUntil, visibility, surprise,
         // Fin repoussée : la notification « supprimé dans 4 heures » pourra repartir (lib/planLifecycle.ts)
         ...(!sameMinute(plan.endDate, newEndDate) && { deletionNoticeSentAt: null }) },
     });
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });
+    }
+    // Moins d'accompagnants permis : les réponses au-delà sont ramenées au nouveau maximum (des places se libèrent)
+    if (companionsMax < plan.companionsMax) {
+      const cut = await prisma.planMember.updateMany({ where: { planId, partySize: { gt: companionsMax + 1 } }, data: { partySize: companionsMax + 1 } });
+      if (cut.count > 0) promoteFromWaitlist(req.app.get('io'), planId).catch(e => console.error('[party waitlist]', e));
     }
 
     if (logs.length > 0) {
@@ -765,6 +774,30 @@ router.post('/:id/join', async (req: AuthRequest, res) => {
 });
 
 // Update RSVP
+// PUT /:id/party { size, userId? } — nombre de personnes qui viennent avec une réponse, la personne comprise
+// (accompagnants, lib/party.ts). Pour soi, ou pour quelqu'un d'autre par le créateur du Plan et les organisateurs du
+// Cercle. Les places d'un Plan limité comptent ces personnes : on ne dépasse pas la limite.
+router.put('/:id/party', async (req: AuthRequest, res) => {
+  const targetId = typeof req.body?.userId === 'string' ? req.body.userId : req.userId!;
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, creatorId: true, circleId: true, maxParticipants: true, companionsMax: true } });
+  if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (targetId !== req.userId && plan.creatorId !== req.userId && !(await isCircleManager(req.userId!, plan.circleId))) {
+    res.status(403).json({ error: 'Seul le créateur du Plan peut le changer pour quelqu’un d’autre' }); return;
+  }
+  if (plan.companionsMax === 0) { res.status(400).json({ error: 'Les accompagnants ne sont pas prévus pour ce Plan' }); return; }
+  const size = parsePartySize(req.body?.size, plan.companionsMax);
+  if (size === null) { res.status(400).json({ error: `De 1 à ${plan.companionsMax + 1} personnes` }); return; }
+  const member = await prisma.planMember.findUnique({ where: { userId_planId: { userId: targetId, planId: plan.id } }, select: { rsvp: true, partySize: true } });
+  if (!member || member.rsvp === 'out') { res.status(400).json({ error: 'Réponds d’abord « Je suis in » ou « Peut-être »' }); return; }
+  if (size > member.partySize && plan.maxParticipants !== null) {
+    const left = plan.maxParticipants - (await occupiedCount(plan.id, targetId));
+    if (size > left) { res.status(409).json({ error: `Il ne reste que ${Math.max(0, left - 1)} place(s) pour des accompagnants`, full: true }); return; }
+  }
+  await prisma.planMember.update({ where: { userId_planId: { userId: targetId, planId: plan.id } }, data: { partySize: size } });
+  if (size < member.partySize) promoteFromWaitlist(req.app.get('io'), plan.id).catch(e => console.error('[party waitlist]', e));
+  res.json({ ok: true, partySize: size });
+});
+
 router.put('/:id/rsvp', async (req: AuthRequest, res) => {
   const { rsvp } = req.body;
   if (!['in', 'maybe', 'out'].includes(rsvp)) {
@@ -783,7 +816,8 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
     }
     const member = await prisma.planMember.update({
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
-      data: { rsvp },
+      // « Je passe » : on vient seul si l'on revient plus tard
+      data: { rsvp, ...(rsvp === 'out' ? { partySize: 1 } : {}) },
     });
     // Désistement (« Je passe ») ou retour : les autres participants sont prévenus
     const change = before && rsvpChange(before.rsvp, rsvp);

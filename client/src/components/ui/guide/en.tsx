@@ -125,6 +125,10 @@ const groups: Group[] = [
           <P><strong>Members section</strong>: replies by group (I’m in, Maybe, waiting list, Can’t make it) and the Circle members who
             <strong> haven’t answered yet</strong>; tap a number in the summary to see only that group. The Plan’s creator and the
             organisers can <strong>remind</strong> those who haven’t answered, once a day.</P>
+          <P><strong>Companions</strong>: on your line in the Members section (or under your answers in Announcement mode, and on the
+            invitation page without an account), say how many of you are coming, including you (1 by default). The total shows at the top
+            of the section, and spots in a limited Plan count everyone. The creator can correct it for someone, change the maximum (5
+            companions by default) or turn companions off under “Participants”.</P>
         </>,
       },
       {

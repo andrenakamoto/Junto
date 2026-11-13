@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { CompanionsField } from './PartyStepper';
 import { SantaDatesNote } from './SantaDatesNote';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
@@ -73,6 +74,8 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
   const [realTitle, setRealTitle] = useState('');
   const [realPlace, setRealPlace] = useState('');
   const [maxParticipants, setMaxParticipants] = useState('');
+  // Accompagnants par personne (0 = désactivés) ; l'Assemblée n'en a pas besoin
+  const [companionsMax, setCompanionsMax] = useState(kind === 'assemblee' ? 0 : 5);
   const [deletionMode, setDeletionMode] = useState<DeletionMode>('creator');
   const [disabledFeatures, setDisabledFeatures] = useState<PlanFeature[]>(preset?.disabled ?? []);
   const [enabledFeatures, setEnabledFeatures] = useState<OptionalFeature[]>(preset?.enabled ?? []);
@@ -149,6 +152,7 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
       location: placeTbd ? null : location || null,
       locationTbd: placeTbd || undefined,
       maxParticipants: maxParticipants || null,
+      companionsMax,
       ...visibilityPayload(vis),
       deletionMode,
       disabledFeatures,
@@ -258,8 +262,8 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
               />
             </OptionRow>
           )}
-          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0} defaultOpen={kind === 'cours' || kind === 'annonce'}
-            summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1 + chosenExtra.length, visibilityCount(vis).reserved)}>
+          <OptionRow icon={<Users size={16} />} label={t('plan.form.rows.participants')} modified={!!maxParticipants || vis.mode !== 'all' || chosenExtra.length > 0 || companionsMax === 0} defaultOpen={kind === 'cours' || kind === 'annonce'}
+            summary={participantsSummary(maxParticipants, visibilityCount(vis).hidden, 1 + chosenExtra.length, visibilityCount(vis).reserved, companionsMax === 0)}>
             {!wide && !fromPoll && !fromEvent && kind !== 'assemblee' && otherCircles.length > 0 && (
               <div className={`rounded-xl border p-3 ${multi ? 'border-indigo-200 bg-indigo-50' : 'border-slate-200'}`}>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -291,6 +295,7 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
               onChange={e => setMaxParticipants(e.target.value)}
               placeholder={t('plan.form.maxPlaceholder')}
             />
+            <CompanionsField value={companionsMax} onChange={setCompanionsMax} />
             {user && (
               kind !== 'surprise' && !wide && <VisibilityField members={surpriseMembers} currentUserId={user.id} value={vis} onChange={setVis} />
             )}

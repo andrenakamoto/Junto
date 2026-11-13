@@ -5,7 +5,8 @@ import { deleteUserAccount } from '../lib/accountDeletion';
 import { cleanFirstName, createLightUser, makeLightToken, readLightUser } from '../lib/lightGuest';
 import { markAllSeen, touchPlanSection } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
-import { hasFreeSpot, promoteFromWaitlist } from '../lib/waitlist';
+import { hasFreeSpot, occupiedCount, promoteFromWaitlist } from '../lib/waitlist';
+import { comingFrom, occupiedFrom, parsePartySize } from '../lib/party';
 
 // Lien d'invitation à un Plan, côté personne sans compte (lib/lightGuest.ts). Public : le
 // jeton du lien suffit pour voir l'essentiel du Plan ; le jeton « invité léger » (en-tête
@@ -37,9 +38,9 @@ async function findPlan(token: string) {
       plan: {
         select: {
           id: true, title: true, description: true, eventDate: true, endDate: true, location: true,
-          maxParticipants: true, circleId: true, membersVisibility: true, enabledFeatures: true,
+          maxParticipants: true, circleId: true, membersVisibility: true, enabledFeatures: true, companionsMax: true,
           creator: { select: { firstName: true, pseudo: true } },
-          members: { select: { userId: true, rsvp: true, user: { select: { firstName: true, pseudo: true } } } },
+          members: { select: { userId: true, rsvp: true, partySize: true, user: { select: { firstName: true, pseudo: true } } } },
         },
       },
     },
@@ -51,7 +52,7 @@ async function findPlan(token: string) {
 type InvitePlan = NonNullable<Awaited<ReturnType<typeof findPlan>>>;
 
 function isFull(plan: InvitePlan) {
-  return plan.maxParticipants !== null && plan.members.filter(m => m.rsvp !== 'out').length >= plan.maxParticipants;
+  return plan.maxParticipants !== null && occupiedFrom(plan.members) >= plan.maxParticipants;
 }
 
 // Ce que voit une personne sans compte. Avant de répondre : le Plan et le nombre de
@@ -68,18 +69,20 @@ function preview(plan: InvitePlan, meId: string | null) {
     creatorName: displayName(plan.creator),
     // Liste des participants réservée (Mode annonce) : ni nombre, ni prénoms (seulement les places d'un Plan limité)
     counts: plan.membersVisibility === 'managers' ? null : {
-      in: plan.members.filter(m => m.rsvp === 'in').length,
+      in: comingFrom(plan.members),
       maybe: plan.members.filter(m => m.rsvp === 'maybe').length,
     },
-    places: plan.maxParticipants != null ? { taken: plan.members.filter(m => m.rsvp !== 'out').length, max: plan.maxParticipants } : null,
+    places: plan.maxParticipants != null ? { taken: occupiedFrom(plan.members), max: plan.maxParticipants } : null,
+    // Accompagnants : nombre maximum par réponse (0 = la question « Vous serez combien ? » n'est pas posée)
+    companionsMax: plan.companionsMax,
     full: isFull(plan),
     // Père Noël secret : seuls les comptes entrent dans le tirage (la page invite à en créer un)
     santa: plan.enabledFeatures.includes('pere_noel'),
-    me: me ? { firstName: me.user.firstName, rsvp: me.rsvp } : null,
+    me: me ? { firstName: me.user.firstName, rsvp: me.rsvp, partySize: me.partySize } : null,
     participants: me && plan.membersVisibility !== 'managers'
       ? plan.members
           .filter(m => m.rsvp !== 'out')
-          .map(m => ({ name: displayName(m.user), rsvp: m.rsvp, isMe: m.userId === meId }))
+          .map(m => ({ name: displayName(m.user), rsvp: m.rsvp, partySize: m.partySize, isMe: m.userId === meId }))
       : undefined,
   };
 }
@@ -115,10 +118,25 @@ async function respond(req: Request, res: Response) {
 
     let light = await readLightUser(bearer(req));
     const existing = light ? plan.members.find(m => m.userId === light!.id) : undefined;
+    // Nombre de personnes, la personne comprise (accompagnants, lib/party.ts) : « Je passe » = 1
+    const partySize = rsvp === 'out' ? 1
+      : req.body?.partySize === undefined ? (existing && existing.rsvp !== 'out' ? Math.min(existing.partySize, plan.companionsMax + 1) : 1)
+      : parsePartySize(req.body.partySize, plan.companionsMax);
+    if (partySize === null) { res.status(400).json({ error: `De 1 à ${plan.companionsMax + 1} personnes` }); return; }
 
     if (existing) {
       // Revenir après « Je passe » demande une place libre (la liste d'attente des membres passe avant)
-      if (existing.rsvp === 'out' && rsvp !== 'out' && !(await hasFreeSpot(plan))) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
+      if (existing.rsvp === 'out' && rsvp !== 'out' && !(await hasFreeSpot(plan, undefined, partySize))) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
+      // Plus de personnes qu'avant : il faut la place
+      if (existing.rsvp !== 'out' && rsvp !== 'out' && partySize > existing.partySize && plan.maxParticipants !== null
+        && (await occupiedCount(plan.id, light!.id)) + partySize > plan.maxParticipants) {
+        res.status(409).json({ error: 'Il ne reste pas assez de places' }); return;
+      }
+      if (existing.partySize !== partySize) {
+        await prisma.planMember.update({ where: { userId_planId: { userId: light!.id, planId: plan.id } }, data: { partySize } });
+        if (existing.rsvp === rsvp) broadcastMembers(req, plan, light!.id);
+        if (partySize < existing.partySize) promoteFromWaitlist(req.app.get('io'), plan.id).catch(e => console.error('[waitlist invite]', e));
+      }
       if (existing.rsvp !== rsvp) {
         await prisma.planMember.update({ where: { userId_planId: { userId: light!.id, planId: plan.id } }, data: { rsvp } });
         const change = rsvpChange(existing.rsvp, rsvp);
@@ -127,13 +145,13 @@ async function respond(req: Request, res: Response) {
         if (rsvp === 'out' && existing.rsvp !== 'out') promoteFromWaitlist(req.app.get('io'), plan.id).catch(e => console.error('[waitlist invite]', e));
       }
     } else {
-      if (rsvp !== 'out' && !(await hasFreeSpot(plan))) { res.status(409).json({ error: 'Ce Plan est complet' }); return; }
+      if (rsvp !== 'out' && !(await hasFreeSpot(plan, undefined, partySize))) { res.status(409).json({ error: plan.maxParticipants !== null && partySize > 1 ? 'Il ne reste pas assez de places' : 'Ce Plan est complet' }); return; }
       if (!light) {
         const firstName = cleanFirstName(req.body?.firstName);
         if (!firstName) { res.status(400).json({ error: 'Indique ton prénom (30 caractères maximum)' }); return; }
         light = await createLightUser(firstName);
       }
-      await prisma.planMember.create({ data: { userId: light.id, planId: plan.id, rsvp } });
+      await prisma.planMember.create({ data: { userId: light.id, planId: plan.id, rsvp, partySize } });
       await markAllSeen(plan.id, light.id);
       if (rsvp !== 'out') notifyMembershipChange(req.app.get('io'), plan.id, { id: light.id, pseudo: light.pseudo }, 'join').catch(e => console.error('[invite notify]', e));
       broadcastMembers(req, plan, light.id);

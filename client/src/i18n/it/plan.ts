@@ -550,5 +550,15 @@ const plan: Dict['plan'] = {
     ongoing: "in corso",
   },
   sort: { label: 'Ordina i Plan', activity: 'Attività', date: 'Data' },
+  party: {
+    several: 'Venite in più persone?',
+    question: 'Quanti sarete?', hint: 'te compreso/a', you: 'In quanti vieni?',
+    less: 'Una persona in meno', more: 'Una persona in più',
+    people_one: '{{count}} persona', people_other: '{{count}} persone',
+    total_one: '{{count}} persona viene in tutto', total_other: '{{count}} persone vengono in tutto',
+    field: 'Accompagnatori', fieldHint: 'Ognuno indica quante persone vengono con lui (i posti le contano).',
+    allowed: 'Consentiti', upTo: 'Fino a', perAnswer: 'accompagnatore/i per persona', off: 'Disattivati',
+    sumOff: 'senza accompagnatori',
+  },
 };
 export default plan;
