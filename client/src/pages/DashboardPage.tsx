@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { CockpitView } from '../components/organisations/CockpitView';
 import { requestResync } from '../hooks/useResync';
 import { MuteProvider } from '../contexts/MuteContext';
 import { PhotosProvider, usePhotos } from '../contexts/PhotosContext';
@@ -75,6 +76,8 @@ export function DashboardPage() {
   const [calendarActive, setCalendarActive] = useState(false);
   const [contactsActive, setContactsActive] = useState(false);
   const [discoverActive, setDiscoverActive] = useState(false);
+  // Cockpit d'une Organisation (direction et administrateurs), sur toute la largeur comme Découvrir
+  const [cockpitOrgId, setCockpitOrgId] = useState<string | null>(null);
   // « Organiser un Plan » depuis la fiche d'une personne : fenêtre de création dans ce Cercle
   const [createPlanIn, setCreatePlanIn] = useState<string | null>(null);
   const [quickCreate, setQuickCreate] = useState(false);
@@ -142,6 +145,13 @@ export function DashboardPage() {
     if (searchParams.get('invitations') !== '1') return;
     setShowNotifCenter(true);
     setSearchParams(prev => { prev.delete('invitations'); return prev; }, { replace: true });
+  }, [searchParams]);
+  // Lien du résumé du cockpit (email du lundi) : /dashboard?cockpit=<id d'Organisation>
+  useEffect(() => {
+    const id = searchParams.get('cockpit');
+    if (!id) return;
+    handleCockpit(id);
+    setSearchParams(prev => { prev.delete('cockpit'); return prev; }, { replace: true });
   }, [searchParams]);
   // Lien d'une notification de capsule : /dashboard?capsule=<id> (même sans être membre du Cercle)
   useEffect(() => {
@@ -483,6 +493,7 @@ export function DashboardPage() {
     setCalendarActive(false);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     setMobileView('plans');
   }
 
@@ -575,6 +586,7 @@ export function DashboardPage() {
     setCalendarActive(false);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     setMobileView('plans');
     clearCircle(id);
     dismissHistory(n => n.circleId === id && !n.planId && !n.pollId);
@@ -587,6 +599,7 @@ export function DashboardPage() {
     setCalendarActive(false);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     setSelectedCircleId(null);
     setSelectedPlan(null);
     setMobileView('plans');
@@ -597,6 +610,7 @@ export function DashboardPage() {
     setChatCircleId(null);
     setContactsActive(true);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     setAllPlansActive(false);
     setCalendarActive(false);
     setSelectedCircleId(null);
@@ -607,12 +621,27 @@ export function DashboardPage() {
   function handleDiscover() {
     setSelectedPollId(null);
     setChatCircleId(null);
+    setCockpitOrgId(null);
     setDiscoverActive(true);
     setContactsActive(false);
     setAllPlansActive(false);
     setCalendarActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
+    setMobileView('plans');
+  }
+
+  // Cockpit d'une Organisation : sur toute la largeur, comme Découvrir
+  function handleCockpit(organisationId: string) {
+    setSelectedPollId(null);
+    setChatCircleId(null);
+    setDiscoverActive(false);
+    setContactsActive(false);
+    setAllPlansActive(false);
+    setCalendarActive(false);
+    setSelectedCircleId(null);
+    setSelectedPlan(null);
+    setCockpitOrgId(organisationId);
     setMobileView('plans');
   }
 
@@ -629,6 +658,7 @@ export function DashboardPage() {
     setCalendarActive(true);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     setAllPlansActive(false);
     setSelectedCircleId(null);
     setSelectedPlan(null);
@@ -660,6 +690,7 @@ export function DashboardPage() {
       setCalendarActive(false);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     } else if (plan.circleId) {
       // Invité externe : pas d'accès au Cercle, on affiche le Plan depuis « Tous mes plans »
       setSelectedCircleId(null);
@@ -667,6 +698,7 @@ export function DashboardPage() {
       setCalendarActive(false);
     setContactsActive(false);
     setDiscoverActive(false);
+    setCockpitOrgId(null);
     }
     api.get(`/plans/${plan.id}`).then(res => {
       setSelectedPlan(res.data);
@@ -839,6 +871,7 @@ export function DashboardPage() {
           contactsActive={contactsActive}
           onDiscover={handleDiscover}
           discoverActive={discoverActive}
+          onCockpit={handleCockpit}
           onCircleUpdated={handleCircleUpdated}
           unreadCount={bellCount}
           onOpenNotifications={() => setShowNotifCenter(true)}
@@ -849,7 +882,17 @@ export function DashboardPage() {
       </div>
 
       {/* Colonne 2 — Plans */}
-      {discoverActive ? (
+      {cockpitOrgId ? (
+        <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
+          <CockpitView
+            organisationId={cockpitOrgId}
+            onBack={() => setMobileView('circles')}
+            onOpenPlan={(planId, circleId, tab) => { setCockpitOrgId(null); handleSelectPlan({ id: planId, circleId } as Plan, tab); }}
+            onOpenCircle={circleId => { setCockpitOrgId(null); handleSelectCircle(circleId); }}
+            onOpenPoll={(circleId, pollId) => { setCockpitOrgId(null); handleSelectCircle(circleId); openPoll(pollId); }}
+          />
+        </div>
+      ) : discoverActive ? (
         <div className={`${showPlans ? 'flex' : 'hidden'} md:flex flex-1 min-w-0 flex-col h-full`}>
           <DiscoverView mode="app" onBack={() => setMobileView('circles')} />
         </div>
@@ -911,7 +954,7 @@ export function DashboardPage() {
       )}
 
       {/* Colonne 3 — Détail (absente dans Découvrir) */}
-      <div className={`${showDetail ? 'flex' : 'hidden'} ${discoverActive ? 'md:hidden' : 'md:flex'} flex-1 min-w-0 flex-col h-full`}>
+      <div className={`${showDetail ? 'flex' : 'hidden'} ${discoverActive || cockpitOrgId ? 'md:hidden' : 'md:flex'} flex-1 min-w-0 flex-col h-full`}>
         {chatCircleId && selectedCircle?.id === chatCircleId ? (
           <CircleChat
             circle={selectedCircle}

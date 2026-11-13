@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione dell’11 novembre 2026',
+  version: 'Versione del 13 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -54,7 +54,7 @@ const it: PrivacyText = {
         <li><strong>Discussione dei Cerchi</strong> (se il Cerchio l'ha attivata): i tuoi messaggi, foto e reazioni, visibili ai membri
           del Cerchio. Sono cifrati nella banca dati come quelli dei Plan e <strong>cancellati automaticamente dopo 7 giorni</strong>,
           foto comprese. Nei Cerchi di un’<strong>Organizzazione</strong>, i messaggi sono conservati <strong>3 mesi</strong> e le foto <strong>1 mese</strong>.</li>
-        <li><strong>Organizzazioni</strong> (associazioni a più livelli): i Cerchi di cui fai parte nell’Organizzazione e il tuo ruolo in ciascuno. L’amministrazione e la direzione dell’Organizzazione vedono i membri e i loro ruoli, e una persona della direzione può entrare in qualsiasi Cerchio; appare allora tra i membri e può leggerne la Discussione. Il ruolo serve a stabilire che cosa puoi fare e che cosa ricevi. Queste informazioni vengono cancellate quando lasci il Cerchio, o con il tuo account.</li>
+        <li><strong>Organizzazioni</strong> (associazioni a più livelli): i Cerchi di cui fai parte nell’Organizzazione e il tuo ruolo in ciascuno. L’amministrazione e la direzione dell’Organizzazione vedono i membri e i loro ruoli, e una persona della direzione può entrare in qualsiasi Cerchio; appare allora tra i membri e può leggerne la Discussione. Il ruolo serve a stabilire che cosa puoi fare e che cosa ricevi. La direzione e l’amministrazione hanno anche un <strong>cockpit</strong>: i Plan che vedono già, le richieste di adesione e <strong>cifre per squadra</strong> (membri, risposte, attività), senza monitoraggio individuale; possono riceverne un riepilogo per email ogni lunedì. Queste informazioni vengono cancellate quando lasci il Cerchio, o con il tuo account.</li>
         <li><strong>«Sono libero/a»</strong> (se il Cerchio l'ha attivato): il momento scelto (adesso o stasera), le etichette di attività
           e la parola facoltativa, visibili ai membri dei Cerchi in cui ti dichiari libero/a. Nessuna posizione viene registrata. Queste
           informazioni sono <strong>cancellate automaticamente</strong> alla fine del momento scelto (3 ore, oppure le 4 del mattino per

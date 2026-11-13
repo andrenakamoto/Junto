@@ -254,6 +254,9 @@ model OrganisationMember {
   // Règle les rôles, les droits et la structure
   isAdmin        Boolean      @default(false)
   isDirection    Boolean      @default(false)
+  // Cockpit (2026-11-13) : résumé hebdomadaire par email à la direction et aux administrateurs (désactivable dans le cockpit)
+  cockpitDigest       Boolean   @default(true)
+  cockpitDigestSentAt DateTime?
   createdAt      DateTime     @default(now())
 
   @@id([organisationId, userId])

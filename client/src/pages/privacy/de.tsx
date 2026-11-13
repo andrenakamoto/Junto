@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 11. November 2026',
+  version: 'Fassung vom 13. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -56,7 +56,7 @@ const de: PrivacyText = {
         <li><strong>Diskussion der Kreise</strong> (falls der Kreis sie eingeschaltet hat): deine Nachrichten, Fotos und Reaktionen,
           sichtbar für die Mitglieder des Kreises. Sie werden in der Datenbank verschlüsselt wie die der Pläne und <strong>nach 7 Tagen
           automatisch gelöscht</strong>, Fotos inbegriffen. In den Kreisen einer <strong>Organisation</strong> bleiben Nachrichten <strong>3 Monate</strong> und Fotos <strong>1 Monat</strong> gespeichert.</li>
-        <li><strong>Organisationen</strong> (Vereine mit mehreren Ebenen): die Kreise, denen du in der Organisation angehörst, und deine Rolle in jedem davon. Administration und Leitung der Organisation sehen die Mitglieder und ihre Rollen, und eine Person der Leitung kann jedem Kreis beitreten; sie erscheint dann unter den Mitgliedern und kann die Diskussion lesen. Die Rolle bestimmt, was du tun kannst und was du erhältst. Diese Angaben werden gelöscht, wenn du den Kreis verlässt, oder mit deinem Konto.</li>
+        <li><strong>Organisationen</strong> (Vereine mit mehreren Ebenen): die Kreise, denen du in der Organisation angehörst, und deine Rolle in jedem davon. Administration und Leitung der Organisation sehen die Mitglieder und ihre Rollen, und eine Person der Leitung kann jedem Kreis beitreten; sie erscheint dann unter den Mitgliedern und kann die Diskussion lesen. Die Rolle bestimmt, was du tun kannst und was du erhältst. Leitung und Administration haben zudem ein <strong>Cockpit</strong>: die Pläne, die sie schon sehen, die Beitrittsanfragen und <strong>Zahlen pro Team</strong> (Mitglieder, Antworten, Aktivität), ohne Überwachung einzelner Personen; sie können jeden Montag eine Zusammenfassung per E-Mail erhalten. Diese Angaben werden gelöscht, wenn du den Kreis verlässt, oder mit deinem Konto.</li>
         <li><strong>„Ich hab Zeit“</strong> (wenn der Kreis es eingeschaltet hat): der gewählte Zeitpunkt (jetzt oder heute Abend), die
           Aktivitäts-Etiketten und das freiwillige kurze Wort, sichtbar für die Mitglieder der Kreise, in denen du sagst, dass du Zeit
           hast. Kein Standort wird gespeichert. Diese Angaben werden am Ende des gewählten Zeitraums <strong>automatisch gelöscht</strong>

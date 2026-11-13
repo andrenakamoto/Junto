@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from './CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
-import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone, CalendarPlus, CalendarRange, Sparkles, ChevronLeft, ChevronDown, Network, Settings } from 'lucide-react';
+import { Plus, Users, ShieldCheck, LogOut, ScrollText, Calendar, CalendarDays, KeyRound, Bell, UserPlus, Check, X, Menu, BookOpen, UserRound, UserX, Lightbulb, BellOff, Vote, ChevronRight, Search, Contact as ContactIcon, Compass, Megaphone, CalendarPlus, CalendarRange, Sparkles, ChevronLeft, ChevronDown, Network, Settings, Gauge } from 'lucide-react';
 import { LogoFull } from '../ui/Logo';
 import { PLAN_KINDS, type PlanKind } from '../../lib/planKinds';
 import { isCircleManager } from '../../lib/settings';
@@ -60,6 +60,8 @@ interface Props {
   onContacts: () => void;
   contactsActive: boolean;
   onDiscover: () => void;
+  /** Cockpit d'une Organisation (direction et administrateurs) */
+  onCockpit?: (organisationId: string) => void;
   discoverActive: boolean;
   onCircleUpdated: (circle: Circle) => void;
   unreadCount: number;
@@ -71,7 +73,7 @@ interface Props {
   onOpenPoll?: (circleId: string, pollId: string) => void;
 }
 
-export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewPlan, onProposeDates, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
+export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewPlan, onProposeDates, onAllPlans, allPlansActive, onCalendar, calendarActive, onContacts, contactsActive, onDiscover, discoverActive, onCockpit, onCircleUpdated, unreadCount, onOpenNotifications, unreadCircles, onlineUserIds, onOpenPoll }: Props) {
   const { isCircleMuted } = useMutes();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -199,7 +201,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
     const mine = myOrgs.find(o => o.id === org.id);
     const canAnnounce = !!mine && Object.values(mine.permissions).some(list => list.includes('send_announcement'));
     const canManage = !!(mine?.isDirection || mine?.isAdmin);
-    const action = 'flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200';
+    // Jusqu'à trois boutons (Annonce, Cockpit, Gérer) : icône au-dessus du texte pour tenir dans la colonne
+    const action = 'flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-[11px] font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 truncate';
     return (
       <div key={org.id} className="pt-2.5">
         <div className="rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
@@ -218,8 +221,9 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
             </span>
           </button>
           {(canAnnounce || canManage) && (
-            <div className="flex gap-2 px-3 pb-3">
+            <div className="flex gap-1.5 px-3 pb-3">
               {canAnnounce && <button onClick={() => setAnnounceOrg(org.id)} className={action}><Megaphone size={14} />{t('org.block.announce')}</button>}
+              {canManage && onCockpit && <button onClick={() => onCockpit(org.id)} className={action}><Gauge size={14} />{t('org.cockpit.button')}</button>}
               {canManage && <button onClick={() => setManagedOrg(org.id)} className={action}><Settings size={14} />{t('org.block.manageShort')}</button>}
             </div>
           )}

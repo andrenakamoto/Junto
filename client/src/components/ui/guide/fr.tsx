@@ -489,6 +489,12 @@ const groups: Group[] = [
           <P>Chacun ne reçoit qu’une notification, et le mode silencieux est respecté. Comme tout message de Discussion, l’annonce disparaît après 3 mois : pour une information durable, préfère un Plan. Une Discussion désactivée ne la reçoit pas, et tu vois laquelle. On ne peut pas choisir des rôles, car tout le Cercle lit la Discussion.</P>
           <P>La même fenêtre liste tes annonces récentes pour les modifier ou les supprimer partout.</P></>,
       },
+      {
+        id: 'org-cockpit', emoji: '🧭', title: 'Cockpit de l’Organisation', summary: 'Tout voir d’un coup d’œil (direction)',
+        body: <><P>Bouton <strong>« Cockpit »</strong> du bloc de l’Organisation, pour la direction et l’administration. <strong>À traiter</strong> : demandes d’adhésion, équipes sans responsable, personnes sans rôle, sondages qui se terminent, Plans proches où la moitié n’a pas répondu. <strong>Agenda</strong> des 14 prochains jours : réponses, places, liste d’attente, postes à pourvoir, assemblées.</P>
+          <P><strong>Équipes</strong> : membres, Plans à venir, taux de réponse et une pastille (vert actif, orange à surveiller, rouge calme). Puis les annonces récentes, les tâches en retard et, avec le droit de voir les montants, les paiements des fournisseurs. Toucher une ligne ouvre le Plan ou le Cercle.</P>
+          <P>Seulement les Plans que tu vois déjà, et des chiffres par équipe : pas de suivi individuel. Un <strong>résumé chaque lundi par email</strong> reprend l’essentiel ; décoche-le en bas du cockpit.</P></>,
+      },
     ],
   },
   {

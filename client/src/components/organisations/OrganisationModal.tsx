@@ -15,9 +15,9 @@ interface PersonRow { userId: string; isAdmin: boolean; isDirection: boolean; us
 const personName = (u: { pseudo: string; firstName: string | null }) => (u.firstName ? `${u.firstName} (@${u.pseudo})` : `@${u.pseudo}`);
 
 // Vue d'ensemble d'une Organisation : direction et administrateurs
-export function OrganisationModal({ organisationId, onClose }: { organisationId: string; onClose: () => void }) {
+export function OrganisationModal({ organisationId, onClose, initialTab = 'circles' }: { organisationId: string; onClose: () => void; initialTab?: 'circles' | 'rights' | 'people' }) {
   const [view, setView] = useState<OrgView | null>(null);
-  const [tab, setTab] = useState<'circles' | 'rights' | 'people'>('circles');
+  const [tab, setTab] = useState<'circles' | 'rights' | 'people'>(initialTab);
   const [error, setError] = useState('');
   const load = useCallback(() => api.get(`/organisations/${organisationId}`).then(r => setView(r.data)).catch(e => setError(e.response?.data?.error ?? t('common.error'))), [organisationId]);
   useEffect(() => { load(); }, [load]);
@@ -44,6 +44,8 @@ export function OrganisationModal({ organisationId, onClose }: { organisationId:
   }
 
   const tabs = ['circles', ...(view?.isAdmin ? ['rights'] as const : []), ...(view?.canManagePeople ? ['people'] as const : [])] as const;
+  // Onglet demandé (cockpit) mais pas permis à cette personne : on revient aux Cercles
+  useEffect(() => { if (view && !(tabs as readonly string[]).includes(tab)) setTab('circles'); }, [view]);
   const tabLabel = { circles: t('org.manage.tabCircles'), rights: t('org.manage.tabRights'), people: t('org.manage.tabPeople') };
   const sections = view ? ([
     ['unit', view.unitLabel || t('org.words.units')], ['auto', t('org.words.auto')], ['team', view.teamLabel || t('org.words.teams')],

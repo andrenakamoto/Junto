@@ -40,6 +40,7 @@ import { setupSocketHandlers } from './socket/handlers';
 import prisma from './lib/prisma';
 import { refreshPhoneUsers } from './lib/notificationPrefs';
 import { sendPlanReminders, sendWeeklyDigest, deleteExpiredPlans } from './lib/reminders';
+import { sendCockpitDigests } from './lib/cockpitDigest';
 import { sendSantaReminders } from './lib/secretSanta';
 import { endDueWordGames } from './lib/wordGame';
 import { sendShiftReminders } from './lib/volunteers';
@@ -194,6 +195,9 @@ if (cronEnabled) {
 
   sendWeeklyDigest();
   setInterval(sendWeeklyDigest, 60 * 60 * 1000);
+  // Cockpit des Organisations : résumé du lundi à la direction et aux administrateurs
+  sendCockpitDigests();
+  setInterval(() => sendCockpitDigests(), 60 * 60 * 1000);
 
   deleteExpiredPolls();
   setInterval(deleteExpiredPolls, 60 * 60 * 1000);

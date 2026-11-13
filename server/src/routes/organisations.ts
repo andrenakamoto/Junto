@@ -15,6 +15,7 @@ import { joinCircleRoom } from '../lib/realtime';
 import { hideReservedPlans } from '../lib/planAccess';
 import { cleanOrgName, isManagerKind, ORG_ROLES_MAX, parseActions, parseAudience, parseOrganisationInput } from '../lib/organisations';
 import { orgPermissions } from '../lib/orgPermissions';
+import { buildCockpit, canSeeCockpit } from '../lib/cockpit';
 import { afterCircleEntry, afterCircleExit, audienceCount, integrateCircle, refreshOrgAudience, resolveAudience, syncOrganisation } from '../lib/orgSync';
 import { createCirclePoll, createPlanInCircle, generateCode, missingPlanBasics } from './circles';
 
@@ -115,6 +116,22 @@ router.get('/:id', async (req: AuthRequest, res) => {
   const canIntegrate = (await orgPermissions(req.userId!, req.params.id)).has('integrate_all');
   const perms = await orgPermissions(req.userId!, req.params.id);
   res.json({ ...organisation, isAdmin: me.isAdmin, canManagePeople: me.isAdmin || perms.has('manage_members'), canIntegrate, circles: circles.map(c => ({ ...c, isMember: inCircle.has(c.id) })) });
+});
+
+// GET /:id/cockpit — tableau de bord de la direction et des administrateurs (lib/cockpit.ts)
+router.get('/:id/cockpit', async (req: AuthRequest, res) => {
+  if (!(await canSeeCockpit(req.params.id, req.userId!))) { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+  const data = await buildCockpit(req.params.id, req.userId!);
+  if (!data) { res.status(404).json({ error: 'Organisation introuvable' }); return; }
+  res.json(data);
+});
+
+// PUT /:id/cockpit/digest { enabled } — recevoir (ou non) le résumé du cockpit chaque lundi par email
+router.put('/:id/cockpit/digest', async (req: AuthRequest, res) => {
+  if (typeof req.body?.enabled !== 'boolean') { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  if (!(await canSeeCockpit(req.params.id, req.userId!))) { res.status(403).json({ error: 'Réservé à la direction de l’Organisation' }); return; }
+  await prisma.organisationMember.update({ where: { organisationId_userId: { organisationId: req.params.id, userId: req.userId! } }, data: { cockpitDigest: req.body.enabled } });
+  res.json({ ok: true });
 });
 
 // POST /:id/circles/:circleId/integrate — entrer dans n'importe quel Cercle, sans code, en mode discret

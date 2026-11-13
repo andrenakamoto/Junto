@@ -485,6 +485,12 @@ const groups: Group[] = [
           <P>Everyone gets just one notification, and mute settings are respected. Like any Discussion message, the announcement disappears after 3 months: for lasting information, use a Plan instead. A switched-off Discussion doesn’t receive it, and you see which one. Roles can’t be chosen, because the whole Circle reads the Discussion.</P>
           <P>The same window lists your recent announcements so you can edit or delete them everywhere.</P></>,
       },
+      {
+        id: 'org-cockpit', emoji: '🧭', title: 'Organisation cockpit', summary: 'Everything at a glance (leadership)',
+        body: <><P><strong>“Cockpit”</strong> button in the Organisation block, for the leadership and administration. <strong>To do</strong>: join requests, teams without a coordinator, people without a role, polls ending, upcoming Plans where half haven’t answered. <strong>Agenda</strong> for the next 14 days: answers, spots, waiting list, shifts to fill, assemblies.</P>
+          <P><strong>Teams</strong>: members, upcoming Plans, answer rate and a dot (green active, orange keep an eye on, red quiet). Then recent announcements, overdue tasks and, with the right to see amounts, supplier payments. Tapping a line opens the Plan or the Circle.</P>
+          <P>Only Plans you can already see, and figures per team: no individual tracking. A <strong>summary every Monday by email</strong> sums it up; untick it at the bottom of the cockpit.</P></>,
+      },
     ],
   },
   {
