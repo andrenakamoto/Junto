@@ -1230,6 +1230,9 @@ Junto/
   `useUnread` (invitations et demandes d'adhésion restent, elles attendent une réponse). Toucher une seule notification
   efface toujours seulement son entrée de la cloche. Le nombre sur la cloche compte ses entrées (Plans, « À voir »
   regroupés par Plan / sondage, invitations).
+  **Date et heure sur chaque entrée** (2026-11-13, `whenLabel` / `When` de `NotificationCenter`) : « aujourd’hui, 14:32 », « hier, … »,
+  sinon « 12 nov., 14:32 » — notifications reçues (`at`), Plans (`unseenAt`), invitations (`createdAt`), demandes (la plus récente),
+  discussions (`chatLast.at`).
   Bouton retour Android : ferme le panneau. Apps :
   à l'ouverture et à chaque retour, les notifications EvLY du volet du
   téléphone sont effacées (`clearDeliveredNotifications`), **sans** être
@@ -2042,8 +2045,8 @@ conditions d'utilisation parlaient déjà d'« agendas publiés sous licence ouv
 - **« + Nouveau Plan »** en tête de `CircleSidebar` (`onNewPlan`) → `CreatePlanModal` avec `targets` (= `kindCircles`, Cercles où l'on peut créer
   un Plan) : ligne **« Avec qui ? »** (un Cercle ou **« Juste un lien »** = Cercle personnel par POST `/circles/personal`), « Qui voit ce Plan ? »
   remis à zéro au changement de Cercle ; `handleQuickCreated` ouvre le Plan dans son Cercle (`keepPlanRef` : le chargement des Plans du Cercle ne le
-  ferme pas). **Après la création d'un Plan standard, la fenêtre « Inviter » s'ouvre** (`onCreated(plan, 'invite')` → `openTab` `invite` de
-  `PlanDetail`). POST `/plans/:id/guest-link` tolère deux demandes simultanées (P2002 → relecture).
+  ferme pas). Après la création d'un Plan standard, la fenêtre « Inviter » s'ouvrait seule (`openTab` `invite` de `PlanDetail`, toujours
+  possible) : **retiré le 2026-11-13** à la demande de l'utilisateur, le Plan s'ouvre sur sa fiche. POST `/plans/:id/guest-link` tolère deux demandes simultanées (P2002 → relecture).
 - **Moins de boutons** (même date, demande de l'utilisateur après « + Nouveau Plan ») : en tête de `CircleSidebar`, **un seul « + Créer »** (menu :
   Plan standard, Plan spécifique → liste des types `PLAN_KINDS`, « Proposer des dates » du Cercle ouvert si permis — `onProposeDates`,
   `CreateCirclePollModal` de DashboardPage —, Créer un Cercle, Rejoindre un Cercle) ; puis **deux boutons** « Tous mes plans » et « Découvrir » ;

@@ -20,15 +20,25 @@ import { Trans } from 'react-i18next';
 const SECTIONS = ['chat', 'infos', 'trajets', 'membres', 'votes', 'depenses', 'benevoles', 'taches', 'deroule', 'idees'];
 const sectionLabel = (s: string) => SECTIONS.includes(s) ? t(`notif.center.sections.${s}` as any) : s;
 
-function timeAgo(at: number): string {
-  const min = Math.round((Date.now() - at) / 60000);
-  if (min < 1) return t('notif.center.justNow');
-  if (min < 60) return t('notif.center.minutesAgo', { n: min });
-  const h = Math.round(min / 60);
-  if (h < 24) return t('notif.center.hoursAgo', { n: h });
-  if (h < 48) return t('notif.center.yesterday');
-  return new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' }).format(at);
+// Date et heure de chaque entrée (2026-11-13, demande de l'utilisateur) : « aujourd'hui, 14:32 », « hier, 09:10 »,
+// sinon « 12 nov., 14:32 » (avec l'année si ce n'est pas l'année en cours)
+function whenLabel(value: number | string | null | undefined): string {
+  if (value == null) return '';
+  const at = new Date(value);
+  if (isNaN(at.getTime())) return '';
+  const time = new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }).format(at);
+  const day = (d: Date) => d.toDateString();
+  const now = new Date();
+  if (day(at) === day(now)) return t('notif.center.todayAt', { time });
+  if (day(at) === day(new Date(now.getTime() - 86_400_000))) return t('notif.center.yesterdayAt', { time });
+  const date = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short', ...(at.getFullYear() !== now.getFullYear() ? { year: 'numeric' } : {}) }).format(at);
+  return `${date}, ${time}`;
 }
+
+const When = ({ at }: { at: number | string | null | undefined }) => {
+  const label = whenLabel(at);
+  return label ? <span className="text-[11px] text-slate-400 flex-shrink-0 mt-0.5 whitespace-nowrap">{label}</span> : null;
+};
 
 interface Props {
   circles: Circle[];
@@ -51,6 +61,7 @@ interface CircleInvite {
   id: string;
   circle: { id: string; name: string; color: string | null; description: string | null; _count: { members: number } };
   inviter: { pseudo: string; firstName: string | null };
+  createdAt?: string;
 }
 
 export function NotificationCenter({ circles, plansWithNews, history, onClose, onOpenPlan, onOpenCircle, onOpenChat, onOpenNotification, onClearAll, onInvitationsChanged }: Props) {
@@ -116,6 +127,7 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                       <Trans i18nKey="notif.center.invitesYou" values={{ from: inv.inviter.pseudo, name: inv.circle.name }} components={{ b: <strong /> }} />
                       <span className="block text-xs text-slate-500">{t('notif.center.members', { count: inv.circle._count.members })}{inv.circle.description ? ` · ${inv.circle.description}` : ''}</span>
                     </div>
+                    <When at={inv.createdAt} />
                   </div>
                   <div className="flex gap-2 pl-7">
                     <button disabled={busyInvite === inv.id} onClick={() => answerInvite(inv, true)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
@@ -148,6 +160,7 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                       {p.circle?.name ?? t('notif.center.invitation')} · {t('notif.center.newIn', { sections: (p.unseen ?? []).map(sectionLabel).join(', ') })}
                     </span>
                   </span>
+                  <When at={p.unseenAt} />
                   <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
@@ -170,6 +183,7 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                     <span className="font-medium">{c.name}</span>
                     <span className="text-slate-500">{t('notif.center.pending', { count: c.joinRequests!.length })}</span>
                   </span>
+                  <When at={c.joinRequests!.reduce<string | null>((last, r) => (!last || r.createdAt > last ? r.createdAt : last), null)} />
                   <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
@@ -189,6 +203,7 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                     <span className="block font-medium text-slate-800 truncate">{c.name}</span>
                     {c.chatLast && <span className="block text-xs text-slate-500 truncate">{c.chatLast.author} : {c.chatLast.text}</span>}
                   </span>
+                  <When at={c.chatLast?.at} />
                   <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                 </button>
               ))}
@@ -215,7 +230,7 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
                       <span className="block text-sm text-slate-800 truncate">{cfg.title(n)}</span>
                       <span className="block text-xs text-slate-500 truncate">{cfg.body(n)}</span>
                     </span>
-                    <span className="text-[11px] text-slate-400 flex-shrink-0 mt-0.5">{timeAgo(n.at)}</span>
+                    <When at={n.at} />
                   </button>
                 );
               })}

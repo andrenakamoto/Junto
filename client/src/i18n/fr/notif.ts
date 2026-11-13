@@ -49,6 +49,8 @@ export default {
     minutesAgo: 'il y a {{n}} min',
     hoursAgo: 'il y a {{n}} h',
     yesterday: 'hier',
+    todayAt: 'aujourd’hui, {{time}}',
+    yesterdayAt: 'hier, {{time}}',
     invitePending: 'Demande envoyée : les membres de « {{name}} » doivent encore valider ton arrivée.',
     welcome: 'Bienvenue dans « {{name}} » !',
     title: 'Notifications',

@@ -50,6 +50,8 @@ const notif: Dict['notif'] = {
     minutesAgo: 'vor {{n}} Min.',
     hoursAgo: 'vor {{n}} Std.',
     yesterday: 'gestern',
+    todayAt: 'heute, {{time}}',
+    yesterdayAt: 'gestern, {{time}}',
     invitePending: 'Anfrage gesendet: Die Mitglieder von «{{name}}» müssen deinen Beitritt noch bestätigen.',
     welcome: 'Willkommen in «{{name}}»!',
     title: 'Benachrichtigungen',
