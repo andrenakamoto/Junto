@@ -86,7 +86,7 @@ const PLAN_SUBROUTE_ACTIVITY: Record<string, PlanActivityKind> = {
 // Onglet concerné par /api/plans/:id/<b>
 const PLAN_SUBROUTE_SECTION: Record<string, PlanSection> = {
   join: 'membres', rsvp: 'membres', leave: 'membres', party: 'membres',
-  shifts: 'benevoles', tasks: 'taches', suppliers: 'fournisseurs', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
+  shifts: 'benevoles', tasks: 'taches', suppliers: 'fournisseurs', equipment: 'materiel', 'task-groups': 'taches', program: 'deroule', ideas: 'idees', 'idea-columns': 'idees', polls: 'votes', matches: 'votes', items: 'depenses', expenses: 'depenses', reimbursements: 'depenses',
 };
 
 // Routes /api/plans
@@ -164,6 +164,11 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     }
     const task = await prisma.planTask.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(task?.planId, false, 'taches');
+  }
+  // Matériel : /equipment/:bookingId
+  if (a === 'equipment') {
+    const booking = await prisma.equipmentBooking.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(booking?.planId ?? undefined, false, 'materiel');
   }
   // Fournisseurs : /suppliers/:entryId/…, /suppliers/comments/:id, /suppliers/documents/:id
   if (a === 'suppliers') {

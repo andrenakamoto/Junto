@@ -36,7 +36,7 @@ const org: Dict['org'] = {
     actions: {
       create_plan: "Einen Plan erstellen", create_poll: "Eine Terminumfrage erstellen", write_plan_chat: "Im Chat eines Plans schreiben", add_files: "Fotos und Dateien hinzufügen",
       send_announcement: "Ankündigung senden",
-      manage_shifts: "Einsätze im Einsatzplan verwalten", invite_guests: "Externe Personen einladen", see_money: "Beträge der Lieferanten sehen", manage_members: "Mitglieder und Rollen verwalten", integrate_all: "Allen Kreisen beitreten",
+      manage_shifts: "Einsätze im Einsatzplan verwalten", invite_guests: "Externe Personen einladen", see_money: "Beträge der Lieferanten sehen", manage_members: "Mitglieder und Rollen verwalten", manage_equipment: 'Materialinventar verwalten', integrate_all: "Allen Kreisen beitreten",
     },
   },
   discussion: { title: "Wer schreibt in der Diskussion?", help: "Verantwortliche und Leitung schreiben immer." },

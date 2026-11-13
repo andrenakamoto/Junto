@@ -27,6 +27,8 @@ import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import capsuleRoutes from './routes/capsules';
 import supplierBookRoutes from './routes/supplierBook';
+import equipmentRoutes from './routes/equipment';
+import { sendEquipmentReminders } from './lib/equipment';
 import organisationRoutes from './routes/organisations';
 import { sendSupplierReminders } from './lib/suppliers';
 import { capsuleTick } from './lib/capsule';
@@ -132,6 +134,7 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/capsules', capsuleRoutes);
 app.use('/api/suppliers', supplierBookRoutes);
+app.use('/api/equipment', equipmentRoutes);
 app.use('/api/organisations', organisationRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/availability', availabilityRoutes);
@@ -195,6 +198,9 @@ if (cronEnabled) {
 
   sendWeeklyDigest();
   setInterval(sendWeeklyDigest, 60 * 60 * 1000);
+  // Matériel pas rendu : rappel le lendemain de la fin du Plan
+  sendEquipmentReminders(io);
+  setInterval(() => sendEquipmentReminders(io), 60 * 60 * 1000);
   // Cockpit des Organisations : résumé du lundi à la direction et aux administrateurs
   sendCockpitDigests();
   setInterval(() => sendCockpitDigests(), 60 * 60 * 1000);

@@ -441,7 +441,7 @@ export default {
     exitFullscreen: 'Quitter le plein écran',
     tabs: {
       chat: 'Chat', infos: 'Infos', trajets: 'Trajets', membres: 'Membres', votes: 'Votes', depenses: 'Dépenses',
-      benevoles: 'Planning', taches: 'Tâches', fournisseurs: 'Fournisseurs', deroule: 'Déroulé', dayPlan: 'Jour J', idees: 'Idées', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
+      benevoles: 'Planning', taches: 'Tâches', fournisseurs: 'Fournisseurs', materiel: 'Matériel', deroule: 'Déroulé', dayPlan: 'Jour J', idees: 'Idées', assemblee: 'Assemblée', pere_noel: 'Père Noël', quiz: 'Quiz', killer: 'Killer', mot_piege: 'Mot piège',
       equipes: 'Équipes', cagnotte: 'Cagnotte', capsule: 'Capsule', mystere: "Mystère",
     },
     skipConfirm: 'Annuler ce Plan cette fois-ci ? Il sera supprimé, et le suivant est créé tout de suite.',

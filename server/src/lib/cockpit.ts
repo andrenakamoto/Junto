@@ -4,6 +4,7 @@ import { pollExpiresAt } from './pollExpiry';
 import { decryptMessage } from './messageCrypto';
 import { orgPermissions } from './orgPermissions';
 import { chatSince } from './circleChat';
+import { findConflicts } from './equipment';
 
 // Cockpit d'une Organisation (2026-11-13) : direction et administrateurs voient en un coup d'œil ce qui demande une
 // action, ce qui arrive dans les 14 jours, la santé de chaque équipe, les annonces, les tâches en retard et les
@@ -219,8 +220,27 @@ export async function buildCockpit(organisationId: string, userId: string, now =
     suppliers.sort((a, b) => a.due.localeCompare(b.due));
   }
 
+  // Matériel de l'Organisation : pas encore rendu après la fin, conflits de réservation à venir, en réparation
+  const gear = await prisma.equipmentItem.findMany({
+    where: { organisationId, archivedAt: null },
+    select: { id: true, name: true, quantity: true, status: true, bookings: { where: { returnedAt: null }, select: { id: true, quantity: true, startsAt: true, endsAt: true, returnedAt: true, takenAt: true, planId: true, planTitle: true, circleId: true, takenBy: { select: { pseudo: true, firstName: true } } } } },
+  });
+  const equipment = gear.length === 0 ? null : {
+    items: gear.length,
+    late: gear.flatMap(i => i.bookings.filter(b => b.takenAt && b.endsAt < now).map(b => ({
+      bookingId: b.id, itemName: i.name, quantity: b.quantity, endsAt: b.endsAt, planId: b.planId, planTitle: b.planTitle, circleId: b.circleId,
+      holder: b.takenBy ? (b.takenBy.firstName ? `${b.takenBy.firstName} (@${b.takenBy.pseudo})` : `@${b.takenBy.pseudo}`) : null,
+    }))).sort((a, b) => a.endsAt.getTime() - b.endsAt.getTime()),
+    conflicts: gear.flatMap(i => findConflicts(i, i.bookings, now).map(c => ({
+      itemId: i.id, itemName: i.name, shortBy: c.shortBy, startsAt: c.bookings[0].startsAt,
+      plans: c.bookings.map(b => ({ planId: b.planId, planTitle: b.planTitle, circleId: b.circleId, quantity: b.quantity })),
+    }))).sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime()),
+    repair: gear.filter(i => i.status !== 'ok').map(i => ({ id: i.id, name: i.name, status: i.status })),
+  };
+
   return {
     organisation: { id: organisation.id, name: organisation.name },
+    equipment,
     isAdmin: me.isAdmin,
     digest: me.cockpitDigest,
     myCircleIds: members.filter(m => m.userId === userId).map(m => m.circleId),

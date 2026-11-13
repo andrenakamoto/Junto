@@ -43,6 +43,9 @@ export async function sendCockpitDigests(now = new Date()) {
         ...c.todo.pollsEnding.map(p => li(m.t('cockpit.pollEnding', { question: p.question, circle: p.circleName ?? '' }))),
         ...c.todo.lowAnswers.map(p => li(m.t('cockpit.lowAnswers', { plan: p.title, count: p.pending }))),
         ...(c.tasks.overdue ? [li(m.t('cockpit.tasks', { count: c.tasks.overdue }))] : []),
+        ...(c.equipment?.late ?? []).map(x => li(m.t('cockpit.gearLate', { item: x.itemName, who: x.holder ?? '?', plan: x.planTitle }))),
+        ...(c.equipment?.conflicts ?? []).map(x => li(m.t('cockpit.gearConflict', { item: x.itemName, count: x.shortBy }))),
+        ...(c.equipment?.repair.length ? [li(m.t('cockpit.gearRepair', { count: c.equipment.repair.length }))] : []),
       ];
       const week = now.getTime() + 7 * 86_400_000;
       const agenda = c.agenda.filter(p => new Date(p.eventDate ?? p.endDate).getTime() <= week)

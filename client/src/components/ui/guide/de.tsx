@@ -316,6 +316,12 @@ const groups: Group[] = [
           Adressbuch öffnest du über das Menü ⋯ des Kreises.</P>,
       },
       {
+        id: 'materiel', emoji: '📦', title: 'Material', summary: 'Tontechnik, Tische, Zelte: reservieren und wissen, wer es hat',
+        body: <><P><strong>Inventar</strong>: Menü ⋯ des Kreises → «Materialinventar» (in einer Organisation gemeinsam für alle Kreise). Die Organisation erfasst jeden Gegenstand mit Menge, Aufbewahrung und Zustand; alle sehen, <strong>wo er ist</strong>: am Aufbewahrungsort oder bei wem, und die nächsten Reservierungen.</P>
+          <P>Aktiviere in einem Plan <strong>«Material»</strong> (Im Team vorbereiten): «Material reservieren» zeigt, was im Zeitraum des Plans frei ist, und warnt, wenn etwas fehlt (anderswo schon reserviert). Beim Holen tippe auf <strong>«Ich hole es»</strong>, bei der Rückgabe auf <strong>«Zurückgebracht»</strong> mit dem Zustand (in Ordnung, beschädigt oder es fehlt etwas).</P>
+          <P>Am Tag nach dem Ende nicht zurück? Die Person, die es hat, bekommt eine Erinnerung. In einer Organisation zeigt das Cockpit nicht zurückgegebenes Material, Reservierungskonflikte und was in Reparatur ist.</P></>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Ablauf', summary: 'Das Programm des Abends, Minute für Minute',
         body: <P>Füge die Programmpunkte der Reihe nach hinzu (Empfang, Ansprache, Essen…) mit ihrer <strong>Dauer</strong>: Jeder beginnt am
           Ende des vorherigen, der erste zu Beginn des Plans, und die Zeiten werden automatisch neu berechnet. Ein Programmpunkt kann auch zu

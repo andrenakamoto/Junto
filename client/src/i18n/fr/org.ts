@@ -34,7 +34,7 @@ const org = {
     actions: {
       create_plan: "Créer un Plan", create_poll: "Créer un sondage de dates", write_plan_chat: "Écrire dans le chat d’un Plan", add_files: "Ajouter photos et fichiers",
       send_announcement: "Envoyer une annonce",
-      manage_shifts: "Gérer les postes du Planning", invite_guests: "Inviter des personnes extérieures", see_money: "Voir les montants des fournisseurs", manage_members: "Gérer les membres et les rôles", integrate_all: "Intégrer tous les Cercles",
+      manage_shifts: "Gérer les postes du Planning", invite_guests: "Inviter des personnes extérieures", see_money: "Voir les montants des fournisseurs", manage_members: "Gérer les membres et les rôles", manage_equipment: 'Gérer l’inventaire du matériel', integrate_all: "Intégrer tous les Cercles",
     },
   },
   discussion: { title: "Qui écrit dans la Discussion ?", help: "Les responsables et la direction écrivent toujours." },

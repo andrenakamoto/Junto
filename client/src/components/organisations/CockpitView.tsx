@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AlertTriangle, ArrowLeft, CalendarDays, ChevronRight, ClipboardList, Gauge, Landmark, Megaphone, RefreshCw, Settings, UserPlus, Users, Vote, Wallet,
+  AlertTriangle, ArrowLeft, CalendarDays, ChevronRight, ClipboardList, Gauge, Landmark, Megaphone, RefreshCw, Settings, UserPlus, Users, Vote, Wallet, Package,
 } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
@@ -8,6 +8,7 @@ import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { useResync } from '../../hooks/useResync';
 import { AnnouncementModal } from './AnnouncementModal';
 import { OrganisationModal } from './OrganisationModal';
+import { EquipmentBookModal } from '../plans/EquipmentBookModal';
 
 // Cockpit d'une Organisation (2026-11-13) : direction et administrateurs. À traiter, agenda de 14 jours, santé des
 // équipes, annonces, tâches en retard, paiements des fournisseurs, et le résumé du lundi par email.
@@ -34,6 +35,12 @@ interface Cockpit {
   teams: { id: string; name: string; color: string | null; orgKind: string | null; members: number; newMembers: number; upcoming: number; lastActivityAt: string | null; responseRate: number | null; status: Status }[];
   communication: { announcementId: string; content: string; createdAt: string; author: string; circles: string[]; reach: number }[];
   tasks: { overdue: number; items: { id: string; planId: string; circleId: string; planTitle: string; title: string; dueDate: string }[] };
+  equipment: {
+    items: number;
+    late: { bookingId: string; itemName: string; quantity: number; endsAt: string; planId: string | null; planTitle: string; circleId: string; holder: string | null }[];
+    conflicts: { itemId: string; itemName: string; shortBy: number; startsAt: string; plans: { planId: string | null; planTitle: string; circleId: string; quantity: number }[] }[];
+    repair: { id: string; name: string; status: string }[];
+  } | null;
   suppliers: { planId: string; circleId: string; planTitle: string; name: string; kind: 'deposit' | 'balance'; due: string; amount: number; currency: string; late: boolean }[] | null;
 }
 
@@ -67,6 +74,7 @@ export function CockpitView({ organisationId, onBack, onOpenPlan, onOpenCircle, 
   const [announce, setAnnounce] = useState(false);
   const [manage, setManage] = useState<null | 'circles' | 'people'>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [gear, setGear] = useState<null | 'all' | 'out'>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -243,6 +251,34 @@ export function CockpitView({ organisationId, onBack, onOpenPlan, onOpenCircle, 
               )}
             </div>
 
+            {/* Matériel de l'Organisation : pas rendu, conflits, en réparation */}
+            {data.equipment && (
+              <Card icon={<Package size={16} />} title={t('equipment.cockpit.title')} count={data.equipment.late.length + data.equipment.conflicts.length}
+                accent={data.equipment.late.length + data.equipment.conflicts.length > 0}>
+                <p className="text-xs text-slate-500 px-1">{t('equipment.cockpit.items', { count: data.equipment.items })}</p>
+                {data.equipment.late.length + data.equipment.conflicts.length + data.equipment.repair.length === 0 && <Empty text={t('equipment.cockpit.ok')} />}
+                {data.equipment.late.length > 0 && <p className="text-xs font-semibold text-slate-600 px-1 pt-1">{t('equipment.cockpit.late')}</p>}
+                {data.equipment.late.map(x => (
+                  <Row key={x.bookingId} icon={<Package size={15} className="text-red-500" />} onClick={() => setGear('out')}
+                    title={`${x.quantity > 1 ? `${x.quantity} × ` : ''}${x.itemName}`} sub={`${x.holder ?? '?'} · « ${x.planTitle} » · ${dateTime(x.endsAt)}`} />
+                ))}
+                {data.equipment.conflicts.length > 0 && <p className="text-xs font-semibold text-slate-600 px-1 pt-1">{t('equipment.cockpit.conflicts')}</p>}
+                {data.equipment.conflicts.map((x, i) => (
+                  <Row key={`${x.itemId}-${i}`} icon={<AlertTriangle size={15} className="text-amber-600" />}
+                    onClick={() => { const p = x.plans.find(pl => pl.planId); if (p?.planId) onOpenPlan(p.planId, p.circleId, 'materiel'); }}
+                    title={`${x.itemName} · ${t('equipment.cockpit.shortBy', { count: x.shortBy })}`}
+                    sub={`${dateTime(x.startsAt)} · ${x.plans.map(pl => `« ${pl.planTitle} » (${pl.quantity})`).join(', ')}`} />
+                ))}
+                {data.equipment.repair.length > 0 && <p className="text-xs font-semibold text-slate-600 px-1 pt-1">{t('equipment.cockpit.repair')}</p>}
+                {data.equipment.repair.map(x => (
+                  <Row key={x.id} icon={<Package size={15} className="text-slate-400" />} onClick={() => setGear('all')} title={x.name} sub={t(`equipment.inventory.statuses.${x.status}` as any)} />
+                ))}
+                {data.myCircleIds.length > 0 && (
+                  <button onClick={() => setGear('all')} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"><Package size={14} />{t('equipment.cockpit.open')}</button>
+                )}
+              </Card>
+            )}
+
             <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 cursor-pointer">
               <input type="checkbox" checked={data.digest} onChange={e => toggleDigest(e.target.checked)} className="mt-0.5 accent-indigo-600" />
               <span>
@@ -256,6 +292,7 @@ export function CockpitView({ organisationId, onBack, onOpenPlan, onOpenCircle, 
       </div>
 
       {announce && <AnnouncementModal organisationId={organisationId} onClose={() => { setAnnounce(false); load(); }} />}
+      {gear && data && data.myCircleIds.length > 0 && <EquipmentBookModal circleId={data.myCircleIds[0]} initialFilter={gear} onClose={() => { setGear(null); load(); }} />}
       {manage && <OrganisationModal organisationId={organisationId} initialTab={manage} onClose={() => { setManage(null); load(); }} />}
     </div>
   );

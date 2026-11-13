@@ -36,7 +36,7 @@ const org: Dict['org'] = {
     actions: {
       create_plan: "Create a Plan", create_poll: "Create a date poll", write_plan_chat: "Write in a Plan’s chat", add_files: "Add photos and files",
       send_announcement: "Send an announcement",
-      manage_shifts: "Manage Schedule shifts", invite_guests: "Invite outside people", see_money: "See supplier amounts", manage_members: "Manage members and roles", integrate_all: "Join all Circles",
+      manage_shifts: "Manage Schedule shifts", invite_guests: "Invite outside people", see_money: "See supplier amounts", manage_members: "Manage members and roles", manage_equipment: 'Manage the equipment inventory', integrate_all: "Join all Circles",
     },
   },
   discussion: { title: "Who writes in the Discussion?", help: "Coordinators and the leadership can always write." },

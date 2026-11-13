@@ -5,7 +5,7 @@
 
 export const ORG_ACTIONS = [
   'integrate_all', 'publish_multi', 'create_plan', 'create_poll', 'edit_others', 'write_plan_chat', 'write_discussion',
-  'add_files', 'manage_shifts', 'invite_guests', 'see_participants', 'manage_members', 'see_money', 'send_announcement',
+  'add_files', 'manage_shifts', 'invite_guests', 'see_participants', 'manage_members', 'see_money', 'send_announcement', 'manage_equipment',
 ] as const;
 export type OrgAction = typeof ORG_ACTIONS[number];
 

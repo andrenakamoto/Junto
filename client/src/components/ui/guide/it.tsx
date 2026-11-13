@@ -309,6 +309,12 @@ const groups: Group[] = [
           preventivo chiesto non è arrivato dopo 7 giorni. La rubrica completa si apre dal menu ⋯ del Cerchio.</P>,
       },
       {
+        id: 'materiel', emoji: '📦', title: 'Materiale', summary: 'Audio, tavoli, tende: prenotare e sapere chi li ha',
+        body: <><P><strong>Inventario</strong>: menu ⋯ del Cerchio → «Inventario del materiale» (in un’Organizzazione è comune a tutti i suoi Cerchi). L’organizzazione vi annota ogni oggetto con quantità, deposito e stato; tutti vedono <strong>dove si trova</strong>: in deposito o da chi, e le prossime prenotazioni.</P>
+          <P>In un Plan, attiva <strong>«Materiale»</strong> (Preparare in squadra): «Prenota materiale» mostra cosa è libero nel periodo del Plan e avvisa se ne manca (già prenotato altrove). Quando lo prendi tocca <strong>«Lo prendo io»</strong>; alla restituzione <strong>«Restituito»</strong> con lo stato (in ordine, danneggiato o ne manca).</P>
+          <P>Non restituito il giorno dopo la fine? Parte un promemoria per chi lo ha. In un’Organizzazione, il cockpit elenca il materiale non restituito, i conflitti di prenotazione e ciò che è in riparazione.</P></>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Scaletta', summary: 'Il programma della serata, minuto per minuto',
         body: <P>Aggiungi i momenti in ordine (accoglienza, discorso, cena…) con la loro <strong>durata</strong>: ognuno inizia alla fine del
           precedente, il primo all'inizio del Plan, e gli orari si ricalcolano da soli. Un momento può anche iniziare a un'<strong>ora

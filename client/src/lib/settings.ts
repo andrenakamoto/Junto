@@ -30,7 +30,7 @@ export function isEnabled(plan: { disabledFeatures?: PlanFeature[] }, feature: P
 }
 
 // Fonctions à activer : absentes tant que le créateur ne les coche pas
-export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = (['benevoles', 'taches', 'fournisseurs', 'deroule', 'idees', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'quiz', 'capsule', 'mystere'] as OptionalFeature[])
+export const OPTIONAL_FEATURES: { value: OptionalFeature; label: string }[] = (['benevoles', 'taches', 'fournisseurs', 'deroule', 'idees', 'pere_noel', 'killer', 'mot_piege', 'equipes', 'cagnotte', 'assemblee', 'quiz', 'capsule', 'mystere', 'materiel'] as OptionalFeature[])
   .map(value => ({ value, label: featureLabel(value) }));
 
 // Fonctions du Plan rangées par catégorie (fenêtres de création / modification / paramètres).
@@ -47,7 +47,7 @@ export const FEATURE_GROUPS: { key: string; title: string; icon: string; collaps
   { key: 'echanger', title: t('settings.groups.echanger'), icon: '💬', items: [item('base', 'chat'), item('base', 'votes'), item('base', 'fichiers')] },
   { key: 'pratique', title: t('settings.groups.pratique'), icon: '🎒', items: [item('base', 'trajets'), item('base', 'depenses')] },
   // Outils d'une équipe d'organisation (2026-11-06) : repliés tant que rien n'est coché, « Tout activer » en un geste
-  { key: 'equipe', title: t('settings.groups.equipe'), icon: '🛠️', collapsible: true, kit: true, items: [item('optional', 'idees'), item('optional', 'taches'), item('optional', 'deroule'), item('optional', 'benevoles'), item('optional', 'fournisseurs')] },
+  { key: 'equipe', title: t('settings.groups.equipe'), icon: '🛠️', collapsible: true, kit: true, items: [item('optional', 'idees'), item('optional', 'taches'), item('optional', 'deroule'), item('optional', 'benevoles'), item('optional', 'fournisseurs'), item('optional', 'materiel')] },
   // Assemblée + Mode annonce (case ajoutée par FeaturesField sous l'Assemblée)
   { key: 'public', title: t('settings.groups.public'), icon: '📣', collapsible: true, items: [item('optional', 'assemblee')] },
   { key: 'feter', title: t('settings.groups.feter'), icon: '🎁', collapsible: true, items: [item('optional', 'cagnotte'), item('optional', 'pere_noel'), item('optional', 'capsule'), item('optional', 'mystere')] },

@@ -133,6 +133,7 @@ model User {
   mysteryGuesses         PlanMysteryGuess[]
 
   @@index([lastActiveAt])
+  equipmentTaken    EquipmentBooking[] @relation("EquipmentTakenBy")
 }
 
 // Notifications push des apps Android / iOS (lib/push.ts) : un jeton Firebase par
@@ -211,6 +212,8 @@ model Circle {
   orgAutoCircleIds    String[] @default([])
 
   @@index([organisationId])
+  // Matériel du Cercle (Cercle sans Organisation ; lib/equipment.ts)
+  equipment         EquipmentItem[]
 }
 
 // Association à plusieurs niveaux : regroupe des Cercles, avec ses propres rôles (lib/organisations.ts)
@@ -229,6 +232,8 @@ model Organisation {
   roles   OrganisationRole[]
   members OrganisationMember[]
   circles Circle[]
+  // Matériel commun à tous les Cercles de l'Organisation (lib/equipment.ts)
+  equipment EquipmentItem[]
 }
 
 model OrganisationRole {
@@ -543,6 +548,8 @@ model Plan {
   mysteryGuesses    PlanMysteryGuess[]
 
   @@index([sourcePlanId])
+  // Matériel réservé pour ce Plan (fonction « materiel »)
+  equipmentBookings EquipmentBooking[]
 }
 
 // Lien d'invitation « invité externe » d'un Plan (réutilisable, régénérable par le
@@ -2179,4 +2186,58 @@ model SupplierUse {
   updatedAt  DateTime       @updatedAt
 
   @@index([supplierId])
+}
+
+// Matériel (2026-11-13, lib/equipment.ts) : inventaire d'une Organisation (organisationId) ou d'un Cercle simple
+// (circleId), en quantités ; réservations par Plan avec sortie et retour. Les réservations survivent au Plan
+// (planId SetNull, titre recopié) pour savoir qui a encore le matériel.
+model EquipmentItem {
+  id             String        @id @default(cuid())
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  circleId       String?
+  circle         Circle?       @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  name           String
+  category       String        @default("autre")
+  quantity       Int           @default(1)
+  location       String?
+  notes          String?
+  // ok | repair (en réparation) | out (hors service)
+  status         String        @default("ok")
+  createdById    String?
+  createdAt      DateTime      @default(now())
+  archivedAt     DateTime?
+
+  bookings EquipmentBooking[]
+
+  @@index([organisationId])
+  @@index([circleId])
+}
+
+model EquipmentBooking {
+  id          String        @id @default(cuid())
+  itemId      String
+  item        EquipmentItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  planId      String?
+  plan        Plan?         @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planTitle   String
+  // Cercle du Plan au moment de la réservation (accès une fois le Plan supprimé)
+  circleId    String
+  quantity    Int           @default(1)
+  startsAt    DateTime
+  endsAt      DateTime
+  createdById String?
+  createdAt   DateTime      @default(now())
+  // Sortie : qui l'a pris et quand ; retour : quand, état (ok | damaged | missing), nombre manquant, remarque
+  takenById   String?
+  takenBy     User?         @relation("EquipmentTakenBy", fields: [takenById], references: [id], onDelete: SetNull)
+  takenAt     DateTime?
+  returnedAt  DateTime?
+  returnState String?
+  missing     Int           @default(0)
+  returnNote  String?
+  reminderSentAt DateTime?
+
+  @@index([itemId])
+  @@index([planId])
 }

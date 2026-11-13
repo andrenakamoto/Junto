@@ -20,6 +20,7 @@ import noel from './noel';
 import capsule from './capsule';
 import mystery from './mystery';
 import org from './org';
+import equipment from './equipment';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment };
 export default dict;

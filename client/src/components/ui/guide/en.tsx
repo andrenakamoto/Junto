@@ -306,6 +306,12 @@ const groups: Group[] = [
           supplier book opens from the Circle's ⋯ menu.</P>,
       },
       {
+        id: 'materiel', emoji: '📦', title: 'Equipment', summary: 'Sound, tables, tents: book them and know who has them',
+        body: <><P><strong>Inventory</strong>: the Circle’s ⋯ menu → “Equipment inventory” (in an Organisation it’s shared by all its Circles). The organisers list each item with its quantity, storage place and condition; everyone can see <strong>where it is</strong>: in storage or with whom, and its next bookings.</P>
+          <P>In a Plan, turn on <strong>“Equipment”</strong> (Prepare as a team): “Book equipment” shows what’s free during the Plan and warns if some is short (already booked elsewhere). When you pick it up, tap <strong>“I’ll take it”</strong>; when you bring it back, <strong>“Returned”</strong> with its condition (fine, damaged or some missing).</P>
+          <P>Not returned the day after the end? The person who has it gets a reminder. In an Organisation, the cockpit lists unreturned equipment, booking conflicts and what’s under repair.</P></>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Run of show', summary: 'The evening’s programme, minute by minute',
         body: <P>Add the items in order (guests arrive, speech, dinner…) with their <strong>duration</strong>: each one starts when the
           previous one ends, the first when the Plan starts, and the times are worked out for you. An item can also start at a <strong>fixed

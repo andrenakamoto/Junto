@@ -162,6 +162,8 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '⏰ « {0} » est à faire d’ici {1} jours': ['⏰ «{0}» ist in {1} Tagen fällig', '⏰ «{0}» è da fare entro {1} giorni', '⏰ “{0}” is due in {1} days'],
   // Déroulé (lib/program.ts)
   '🎬 « {0} » commence à {1}, dans {2} minutes': ['🎬 «{0}» beginnt um {1}, in {2} Minuten', '🎬 «{0}» inizia alle {1}, tra {2} minuti', '🎬 “{0}” starts at {1}, in {2} minutes'],
+  // Matériel (lib/equipment.ts)
+  '📦 Pense à rendre « {0} »': ['📦 Denk daran, «{0}» zurückzugeben', '📦 Ricordati di restituire «{0}»', '📦 Remember to return “{0}”'],
   // Fournisseurs (lib/suppliers.ts)
   '@{0} t’a confié le suivi du fournisseur « {1} »': ['@{0} hat dir den Lieferanten «{1}» übertragen', '@{0} ti ha affidato il fornitore «{1}»', '@{0} asked you to handle the supplier “{1}”'],
   '✅ @{0} a confirmé le fournisseur « {1} »': ['✅ @{0} hat den Lieferanten «{1}» bestätigt', '✅ @{0} ha confermato il fornitore «{1}»', '✅ @{0} confirmed the supplier “{1}”'],

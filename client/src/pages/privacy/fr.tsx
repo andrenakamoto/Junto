@@ -83,6 +83,7 @@ const fr: PrivacyText = {
           indique le <strong>prénom et le nom</strong> des présents, des personnes représentées et des
           candidats ; il est téléchargé par l'organisateur ou le ou la secrétaire, et envoyé par email au
           créateur du Plan à la clôture de l'assemblée.</li>
+        <li><strong>Matériel</strong> (inventaire d'un Cercle ou d'une Organisation, fonction à activer dans un Plan) : les objets et leur rangement ; pour chaque réservation, qui a pris le matériel et quand, et son état au retour (avec une remarque). Gardé avec l'inventaire, même après la fin du Plan, pour savoir qui l'a encore ; ton nom est retiré si tu supprimes ton compte.</li>
         <li><strong>Fournisseurs</strong> (fonction à activer dans un Plan) : les coordonnées des fournisseurs ajoutés par l'équipe (nom, personne de contact, téléphone, email, site, adresse, notes) sont gardées dans le carnet du Cercle tant que le Cercle existe, ou jusqu'à ce qu'un organisateur les supprime du carnet. Le suivi propre à un Plan (état, montants, notes, commentaires chiffrés, documents comme les devis et contrats) est effacé avec le Plan ; seule une ligne d'historique (nom de l'événement, date, état final et total) reste dans le carnet. Les montants et les documents ne sont visibles que par les organisateurs.</li>
         <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
           connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à

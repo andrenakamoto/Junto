@@ -308,6 +308,12 @@ const groups: Group[] = [
           et une relance si un devis demandé n'est pas arrivé après 7 jours. Le carnet complet s'ouvre depuis le menu ⋯ du Cercle.</P>,
       },
       {
+        id: 'materiel', emoji: '📦', title: 'Matériel', summary: 'Sono, tables, tentes : réserver et savoir qui l’a',
+        body: <><P><strong>Inventaire</strong> : menu ⋯ du Cercle → « Inventaire du matériel » (dans une Organisation, il est commun à tous ses Cercles). L’organisation y note chaque objet avec sa quantité, son rangement et son état ; tout le monde voit <strong>où il se trouve</strong> : au rangement ou chez qui, et ses prochaines réservations.</P>
+          <P>Dans un Plan, active <strong>« Matériel »</strong> (Préparer en équipe) : « Réserver du matériel » montre ce qui est libre sur la période du Plan et prévient s’il en manque (déjà réservé ailleurs). Au moment de le prendre, touche <strong>« Je le prends »</strong> ; au retour, <strong>« Rendu »</strong> avec l’état (en ordre, abîmé ou il en manque).</P>
+          <P>Pas rendu le lendemain de la fin ? Un rappel part à la personne qui l’a. Dans une Organisation, le cockpit liste le matériel pas rendu, les conflits de réservation et ce qui est en réparation.</P></>,
+      },
+      {
         id: 'deroule', emoji: '🎬', title: 'Déroulé', summary: 'Le programme de la soirée, minute par minute',
         body: <P>Ajoute les moments dans l'ordre (accueil, discours, repas…) avec leur <strong>durée</strong> : chacun commence à la fin
           du précédent, le premier au début du Plan, et les heures se recalculent toutes seules. Un moment peut aussi commencer à une

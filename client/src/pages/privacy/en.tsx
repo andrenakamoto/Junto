@@ -73,6 +73,7 @@ const en: PrivacyText = {
           minutes. The <strong>minutes</strong> (PDF) show the <strong>first and last names</strong> of those present,
           people represented and candidates; they are downloaded by the organiser or the secretary and emailed to the
           Plan’s creator when the assembly closes.</li>
+        <li><strong>Equipment</strong> (a Circle’s or an Organisation’s inventory, a feature turned on in a Plan): the items and where they are stored; for each booking, who took the equipment and when, and its condition on return (with a note). Kept with the inventory, even after the Plan ends, to know who still has it; your name is removed if you delete your account.</li>
         <li><strong>Suppliers</strong> (a feature turned on in a Plan): the contact details of suppliers added by the team (name, contact person, phone, email, website, address, notes) are kept in the Circle's supplier book for as long as the Circle exists, or until an organiser deletes them from the book. What belongs to a single Plan (status, amounts, notes, encrypted comments, documents such as quotes and contracts) is deleted with the Plan; only a history line (event name, date, final status and total) stays in the book. Amounts and documents are only visible to the organisers.</li>
         <li><strong>Technical data</strong>: your online status in your Circles, your login session (kept in your
           browser), the date you last used EvLY (to the hour, to count active members), the date you viewed each tab of a
