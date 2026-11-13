@@ -62,5 +62,11 @@ export function decryptMessage(stored: string): string {
 // Déchiffre le champ content d'un message (ou d'une liste) avant envoi au client
 export function withPlainContent<T extends { content: string; deletedAt?: Date | null }>(message: T): T {
   // Message supprimé : plus aucun contenu ne sort du serveur
-  return { ...message, content: message.deletedAt ? '' : decryptMessage(message.content) };
+  const out: any = { ...message, content: message.deletedAt ? '' : decryptMessage(message.content) };
+  // Message cité par une réponse (quote, ou parent pour les réponses d'avant le 2026-11-13) : un court extrait suffit
+  for (const k of ['quote', 'parent']) {
+    const q = out[k];
+    if (q && typeof q === 'object' && typeof q.content === 'string') out[k] = { ...q, content: q.deletedAt ? '' : decryptMessage(q.content).slice(0, 160) };
+  }
+  return out;
 }

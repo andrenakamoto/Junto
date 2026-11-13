@@ -221,7 +221,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>@username</strong> to mention someone (notified even when muted).</>,
-            <>Emoji reactions and <strong>reply threads</strong>; on a phone, tap a message to react.</>,
+            <>Emoji reactions and <strong>replies</strong>: “Reply” under a message (even a reply) quotes it above your reply, and tapping the quote jumps back to the original message; on a phone, tap a message to react.</>,
             <><strong>Photos</strong> (camera or gallery) and <strong>voice messages</strong> (microphone button, 2 minutes at most).</>,
             <>Edit or delete your message for <strong>15 minutes</strong>; you can delete a photo you sent at any time.</>,
             <><strong>Report</strong> a message to the EvLY team, or <strong>hide</strong> a person (their messages and notifications disappear for you).</>,

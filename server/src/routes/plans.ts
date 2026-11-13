@@ -813,6 +813,18 @@ router.get('/:id/messages', async (req: AuthRequest, res) => {
     res.status(403).json({ error: 'Accès refusé' });
     return;
   }
+  // ?all=1 (apps depuis le 2026-11-13) : tout le chat, réponses comprises, dans l'ordre d'arrivée (les 400 derniers) ;
+  // sans : fil principal seulement, les réponses sous « N réponses » (anciennes apps)
+  if (req.query.all === '1') {
+    const all = await prisma.message.findMany({
+      where: { planId: req.params.id },
+      include: messageInclude,
+      orderBy: { createdAt: 'desc' },
+      take: 400,
+    });
+    res.json(all.reverse().map(withPlainContent));
+    return;
+  }
   const messages = await prisma.message.findMany({
     where: { planId: req.params.id, parentId: null },
     include: messageInclude,

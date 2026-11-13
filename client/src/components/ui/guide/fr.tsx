@@ -223,7 +223,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>@pseudo</strong> pour mentionner quelqu'un (notifié même en mode silencieux).</>,
-            <>Réactions emoji et <strong>fils de réponse</strong> ; sur téléphone, touche un message pour réagir.</>,
+            <>Réactions emoji et <strong>réponses</strong> : « Répondre » sous un message (même une réponse) le cite au-dessus de ta réponse, toucher la citation remonte au message d’origine ; sur téléphone, touche un message pour réagir.</>,
             <><strong>Photos</strong> (appareil photo ou galerie) et <strong>messages vocaux</strong> (bouton micro, 2 minutes au plus).</>,
             <>Modifier ou supprimer ton message pendant <strong>15 minutes</strong> ; la photo que tu as envoyée se supprime à tout moment.</>,
             <><strong>Signaler</strong> un message à l'équipe EvLY, ou <strong>masquer</strong> une personne (ses messages et notifications disparaissent pour toi).</>,

@@ -230,7 +230,7 @@ const groups: Group[] = [
         body: <>
           <L items={[
             <><strong>@pseudo</strong>, um jemanden zu erwähnen (benachrichtigt, auch wenn stummgeschaltet).</>,
-            <>Emoji-Reaktionen und <strong>Antwort-Threads</strong>; auf dem Handy eine Nachricht antippen, um zu reagieren.</>,
+            <>Emoji-Reaktionen und <strong>Antworten</strong>: „Antworten“ unter einer Nachricht (auch unter einer Antwort) zitiert sie über deiner Antwort, ein Tipp auf das Zitat springt zur ursprünglichen Nachricht; auf dem Handy eine Nachricht antippen, um zu reagieren.</>,
             <><strong>Fotos</strong> (Kamera oder Galerie) und <strong>Sprachnachrichten</strong> (Mikrofon-Taste, höchstens 2 Minuten).</>,
             <>Deine Nachricht <strong>15 Minuten</strong> lang bearbeiten oder löschen; dein gesendetes Foto kannst du jederzeit löschen.</>,
             <>Eine Nachricht dem EvLY-Team <strong>melden</strong> oder eine Person <strong>ausblenden</strong> (ihre Nachrichten und Benachrichtigungen verschwinden für dich).</>,

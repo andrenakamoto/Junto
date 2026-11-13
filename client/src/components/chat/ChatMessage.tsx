@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { REACTION_EMOJIS } from '../../lib/reactions';
-import { Flag, ImageOff, MessageCircle, SmilePlus } from 'lucide-react';
+import { CornerUpLeft, Flag, ImageOff, MessageCircle, SmilePlus } from 'lucide-react';
 import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
-import { Message } from '../../types';
+import { Message, QuotedMessage } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { DeletedBubble, MessageEditor, OwnMessageActions, useEditWindow } from './MessageEditing';
 import { VoiceMessage } from './VoiceMessage';
@@ -20,7 +20,10 @@ interface Props {
   myUserId: string;
   onReact: (messageId: string, emoji: string) => void;
   onReply?: (message: Message) => void;
-  replyCount?: number;
+  /** Toucher la citation : faire défiler jusqu'au message d'origine */
+  onJumpTo?: (messageId: string) => void;
+  /** Auteurs masqués par la personne : leur message cité n'est pas montré */
+  hiddenAuthors?: Set<string>;
   /** Modifier / supprimer son propre message (15 minutes après l'envoi) */
   onEdit?: (messageId: string, content: string) => void;
   onDelete?: (messageId: string) => void;
@@ -85,7 +88,8 @@ export function renderContent(content: string, isMe: boolean) {
   });
 }
 
-export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCount, onEdit, onDelete, onReport, mediaToken, onViewPhoto }: Props) {
+export function ChatMessage({ message, isMe, myUserId, onReact, onReply, onJumpTo, hiddenAuthors, onEdit, onDelete, onReport, mediaToken, onViewPhoto }: Props) {
+  const quoted = message.quote ?? message.parent ?? null;
   const [viewing, setViewing] = useState(false);
   const photo = !message.deletedAt && message.attachment?.mimeType.startsWith('image/') ? message.attachment : null;
   const voice = !message.deletedAt && message.attachment?.mimeType.startsWith('audio/') ? message.attachment : null;
@@ -158,6 +162,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
             />
           ) : (
             <div className={`flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+              {quoted && <QuoteBlock quoted={quoted} isMe={isMe} hidden={!!hiddenAuthors?.has(quoted.author.id)} onJump={onJumpTo} />}
               {photo && (
                 <button type="button" {...photoPress.handlers} onClick={e => { e.stopPropagation(); if (photoPress.consumed()) return; if (onViewPhoto) onViewPhoto(photo.id); else setViewing(true); }} className="block rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-sm select-none">
                   <img src={mediaUrl(photo.id, mediaToken, 600)} alt={photo.name} loading="lazy" draggable={false} className="block max-w-[240px] max-h-[320px] object-cover" />
@@ -243,7 +248,7 @@ export function ChatMessage({ message, isMe, myUserId, onReact, onReply, replyCo
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"
               >
                 <MessageCircle size={11} />
-                {replyCount ? t('chat.message.replies', { count: replyCount }) : t('chat.message.reply')}
+                {t('chat.message.reply')}
               </button>
             )}
             {onReport && !isMe && !deleted && (
@@ -335,5 +340,30 @@ function ReactionChip({ emoji, count, mine, who, alignRight, onToggle }: {
         </span>
       )}
     </span>
+  );
+}
+
+// Citation du message auquel on répond (comme dans les messageries) : auteur et début du texte ; la toucher fait
+// défiler jusqu'au message d'origine
+function QuoteBlock({ quoted, isMe, hidden, onJump }: { quoted: QuotedMessage; isMe: boolean; hidden: boolean; onJump?: (id: string) => void }) {
+  const text = hidden ? t('chat.message.quoteHidden')
+    : quoted.deletedAt ? t('chat.message.quoteDeleted')
+    : quoted.content ? quoted.content
+    : quoted.attachment?.mimeType.startsWith('audio/') ? t('chat.message.quoteVoice')
+    : quoted.attachment ? t('chat.message.quotePhoto') : t('chat.message.quoteDeleted');
+  const muted = hidden || !!quoted.deletedAt;
+  return (
+    <button
+      type="button"
+      onClick={e => { e.stopPropagation(); onJump?.(quoted.id); }}
+      title={t('chat.message.quoteJump')}
+      className={`max-w-full text-left flex items-start gap-1.5 px-3 py-1.5 rounded-xl border-l-4 border-indigo-400 bg-slate-100 hover:bg-slate-200 transition-colors ${isMe ? 'self-end' : 'self-start'}`}
+    >
+      <CornerUpLeft size={12} className="mt-0.5 flex-shrink-0 text-indigo-500" />
+      <span className="min-w-0">
+        <span className="block text-[11px] font-semibold text-indigo-600">@{quoted.author.pseudo}</span>
+        <span className={`block text-xs line-clamp-2 break-words ${muted ? 'italic text-slate-400' : 'text-slate-600'}`}>{text}</span>
+      </span>
+    </button>
   );
 }

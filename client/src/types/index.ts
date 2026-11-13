@@ -293,6 +293,15 @@ export interface MessageReaction {
   user: User;
 }
 
+/** Extrait du message cité par une réponse (texte limité à 160 caractères, vide s'il est supprimé) */
+export interface QuotedMessage {
+  id: string;
+  content: string;
+  deletedAt?: string | null;
+  author: { id: string; pseudo: string };
+  attachment?: { mimeType: string } | null;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -300,6 +309,10 @@ export interface Message {
   author: User;
   planId: string;
   parentId?: string | null;
+  /** Message auquel celui-ci répond (affiché en citation, 2026-11-13) ; `parent` pour les réponses plus anciennes */
+  quoteId?: string | null;
+  quote?: QuotedMessage | null;
+  parent?: QuotedMessage | null;
   /** Modifié par son auteur (dans les 15 min) */
   editedAt?: string | null;
   /** Supprimé par son auteur : contenu vide, affiché « Message supprimé » */

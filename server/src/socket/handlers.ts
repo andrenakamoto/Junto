@@ -97,10 +97,10 @@ export function setupSocketHandlers(io: Server) {
       socket.leave(`plan:${planId}`);
     });
 
-    socket.on('send-message', async ({ planId, content, parentId, attachmentId }: { planId: string; content: string; parentId?: string; attachmentId?: string }) => {
+    socket.on('send-message', async ({ planId, content, parentId, replyToId, attachmentId }: { planId: string; content: string; parentId?: string; replyToId?: string; attachmentId?: string }) => {
       const text = typeof content === 'string' ? content.trim().slice(0, 2000) : '';
       // Identifiants toujours en texte (un objet deviendrait un filtre Prisma)
-      if (typeof planId !== 'string' || (parentId != null && typeof parentId !== 'string') || (attachmentId != null && typeof attachmentId !== 'string')) return;
+      if (typeof planId !== 'string' || (parentId != null && typeof parentId !== 'string') || (replyToId != null && typeof replyToId !== 'string') || (attachmentId != null && typeof attachmentId !== 'string')) return;
       if (!text && !attachmentId) return;
       const member = await prisma.planMember.findUnique({
         where: { userId_planId: { userId: socket.data.userId, planId } },
@@ -123,14 +123,22 @@ export function setupSocketHandlers(io: Server) {
         isVoice = att.mimeType.startsWith('audio/');
       }
 
+      // Réponse à un message (replyToId, apps depuis le 2026-11-13 : n'importe quel message, réponses comprises) : citée
+      // dans le fil (quoteId) et rangée sous la racine du fil (parentId) pour les anciennes apps. Les anciennes apps
+      // envoient parentId = un message du fil principal.
       let validParentId: string | undefined;
-      if (parentId) {
-        const parent = await prisma.message.findFirst({ where: { id: parentId, planId } });
-        if (parent) validParentId = parentId;
+      let validQuoteId: string | undefined;
+      const target = replyToId ?? parentId;
+      if (target) {
+        const parent = await prisma.message.findFirst({ where: { id: target, planId }, select: { id: true, parentId: true } });
+        if (parent) {
+          validParentId = parent.parentId ?? parent.id;
+          if (replyToId) validQuoteId = parent.id;
+        }
       }
 
       const message = await prisma.message.create({
-        data: { content: encryptMessage(text), authorId: socket.data.userId, planId, parentId: validParentId, attachmentId: validAttachmentId },
+        data: { content: encryptMessage(text), authorId: socket.data.userId, planId, parentId: validParentId, quoteId: validQuoteId, attachmentId: validAttachmentId },
         include: messageInclude,
       });
       io.to(`plan:${planId}`).emit('message', withPlainContent(message));

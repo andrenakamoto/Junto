@@ -199,19 +199,16 @@ function handleSocket(event: string, p: any) {
     const content = typeof p.content === 'string' ? p.content.trim() : '';
     if (!content) return;
     if (touchActivity(p.planId)) fire('circle-updated', { circleId: plan(p.planId).circleId });
+    // Réponse (replyToId) : dans le fil du chat, avec la citation du message d'origine (comme le serveur)
+    const target = p.replyToId ? findMessage(p.replyToId) : null;
     const msg = {
       id: newId('msg'), content, createdAt: now(), editedAt: null, deletedAt: null,
-      authorId: me.id, planId: p.planId, parentId: p.parentId ?? null, attachmentId: null, attachment: null,
+      authorId: me.id, planId: p.planId, parentId: target ? (target.parentId ?? target.id) : null, quoteId: target?.id ?? null,
+      quote: target ? { id: target.id, content: target.deletedAt ? '' : String(target.content ?? '').slice(0, 160), deletedAt: target.deletedAt ?? null, author: target.author, attachment: target.attachment ? { mimeType: target.attachment.mimeType } : null } : null,
+      attachmentId: null, attachment: null,
       author: meRef(), reactions: [], _count: { replies: 0 },
     };
-    if (p.parentId) {
-      const key = `GET /plans/messages/${p.parentId}/replies`;
-      (fixtures![key] ??= []).push(msg);
-      const parent = findMessage(p.parentId);
-      if (parent) parent._count = { replies: (parent._count?.replies ?? 0) + 1 };
-    } else {
-      messageList(p.planId).push(msg);
-    }
+    messageList(p.planId).push(msg);
     fire('message', msg);
   } else if (event === 'toggle-reaction') {
     const m = findMessage(p.messageId);

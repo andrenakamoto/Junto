@@ -180,14 +180,17 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
     if (e.key === 'Escape') setMentionQuery(null);
   }
 
+  // « Répondre » : le curseur va dans le champ de saisie
+  useEffect(() => { if (replyTo) textareaRef.current?.focus(); }, [replyTo?.id]);
+
   return (
     <div className="px-6 py-4 border-t border-slate-200 bg-white relative short:sticky short:bottom-0 short:z-10">
       {replyTo && (
         <div className="flex items-center justify-between gap-2 mb-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-lg">
           <p className="text-xs text-indigo-700 truncate">
-            Réponse à <strong>{replyTo.authorPseudo}</strong> : {replyTo.preview}
+            {t('chat.message.replyingTo')} <strong>@{replyTo.authorPseudo}</strong> : {replyTo.preview}
           </p>
-          <button onClick={onCancelReply} className="text-indigo-400 hover:text-indigo-700 flex-shrink-0">
+          <button onClick={onCancelReply} aria-label={t('chat.message.cancelReply')} className="text-indigo-400 hover:text-indigo-700 flex-shrink-0">
             <X size={14} />
           </button>
         </div>

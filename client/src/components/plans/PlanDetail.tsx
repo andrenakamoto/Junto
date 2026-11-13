@@ -157,9 +157,9 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   const actionsMenuRef = useRef<HTMLDivElement>(null);
   const [showDeletePlan, setShowDeletePlan] = useState(false);
   const [showEditPlan, setShowEditPlan] = useState(false);
+  // Réponse en cours de saisie (2026-11-13) : les réponses restent dans le fil du chat, avec une citation du message
+  // d'origine, et on peut répondre à une réponse (avant : fil caché sous « N réponses »)
   const [replyTo, setReplyTo] = useState<Message | null>(null);
-  const [openThreadId, setOpenThreadId] = useState<string | null>(null);
-  const [threadReplies, setThreadReplies] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Signalement en cours, et messages des personnes masquées (lib/moderation.ts) cachés
   const [reporting, setReporting] = useState<Message | null>(null);
@@ -167,14 +167,21 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   const visibleMessages = messages.filter(m => !blocked.has(m.author.id));
   // Visionneuse : toutes les photos du chat dans l'ordre des messages (et celles du fil ouvert, après leur message)
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
-  const chatPhotos: ViewerPhoto[] = visibleMessages.flatMap(m => [m, ...(openThreadId === m.id ? threadReplies.filter(r => !blocked.has(r.author.id)) : [])])
+  const chatPhotos: ViewerPhoto[] = visibleMessages
     .filter(m => !m.deletedAt && m.attachment?.mimeType.startsWith('image/'))
     .map(m => ({
       id: m.attachment!.id, src: chatPhotoUrl(m.attachment!.id, plan.mediaToken, 1600), download: chatPhotoUrl(m.attachment!.id, plan.mediaToken),
       filename: m.attachment!.name || 'photo-evly.jpg', canDelete: m.author.id === user.id,
     }));
-  const openThreadIdRef = useRef<string | null>(null);
-  useEffect(() => { openThreadIdRef.current = openThreadId; }, [openThreadId]);
+  // Toucher une citation : le message d'origine défile à l'écran et s'entoure un instant
+  const [flashMsg, setFlashMsg] = useState<string | null>(null);
+  function jumpToMessage(id: string) {
+    const el = chatScrollRef.current?.querySelector(`[data-msg="${id}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setFlashMsg(id);
+    window.setTimeout(() => setFlashMsg(f => (f === id ? null : f)), 1600);
+  }
 
   const myMember = plan.members.find(m => m.userId === user.id);
   const isMember = !!myMember;
@@ -201,19 +208,13 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     if (!isMember || !token) return;
     setMessages([]);
     stickToBottomRef.current = true;
-    api.get(`/plans/${plan.id}/messages`).then(res => setMessages(res.data));
+    api.get(`/plans/${plan.id}/messages`, { params: { all: 1 } }).then(res => setMessages(res.data));
 
     const socket = getSocket(token);
     socket.emit('join-plan', plan.id);
 
     function onMessage(msg: Message) {
-      if (msg.parentId) {
-        setMessages(prev => prev.map(m => m.id === msg.parentId
-          ? { ...m, _count: { replies: (m._count?.replies ?? 0) + 1 } }
-          : m));
-        setThreadReplies(prev => msg.parentId === openThreadIdRef.current ? [...prev, msg] : prev);
-        return;
-      }
+      if (msg.planId && msg.planId !== plan.id) return;
       if (msg.author?.id === user.id) stickToBottomRef.current = true;
       setMessages(prev => [...prev, msg]);
       if (tabRef.current !== 'chat' && msg.author?.id !== user.id) setChatUnseen(true);
@@ -222,14 +223,17 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
 
     function onReactionsUpdated({ messageId, reactions }: { messageId: string; reactions: Message['reactions'] }) {
       setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
-      setThreadReplies(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
     }
     socket.on('reactions-updated', onReactionsUpdated);
 
     // Message modifié ou supprimé par son auteur
     function onMessageUpdated(msg: Message) {
-      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
-      setThreadReplies(prev => prev.map(m => m.id === msg.id ? { ...m, ...msg } : m));
+      // Le message lui-même, et sa citation dans les réponses (modifié ou supprimé)
+      setMessages(prev => prev.map(m => {
+        if (m.id === msg.id) return { ...m, ...msg };
+        const patch = (q?: Message['quote']) => q && q.id === msg.id ? { ...q, content: msg.deletedAt ? '' : (msg.content ?? '').slice(0, 160), deletedAt: msg.deletedAt, attachment: msg.attachment } : q;
+        return m.quote?.id === msg.id || m.parent?.id === msg.id ? { ...m, quote: patch(m.quote), parent: patch(m.parent) } : m;
+      }));
     }
     socket.on('message-updated', onMessageUpdated);
 
@@ -241,19 +245,13 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     // du Plan : on la rejoint à nouveau et on recharge les messages manqués.
     function onReconnect() {
       socket.emit('join-plan', plan.id);
-      api.get(`/plans/${plan.id}/messages`).then(res => {
+      api.get(`/plans/${plan.id}/messages`, { params: { all: 1 } }).then(res => {
         // Messages arrivés pendant la coupure : on les montre
         setMessages(prev => {
           if (res.data.length > prev.length) stickToBottomRef.current = true;
           return res.data;
         });
       }).catch(() => {});
-      const threadId = openThreadIdRef.current;
-      if (threadId) {
-        api.get(`/plans/messages/${threadId}/replies`)
-          .then(res => { if (openThreadIdRef.current === threadId) setThreadReplies(res.data); })
-          .catch(() => {});
-      }
     }
     socket.on('connect', onReconnect);
 
@@ -323,8 +321,6 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     setTab(valid ? wanted! : defaultTab);
     setHub(!valid);
     setReplyTo(null);
-    setOpenThreadId(null);
-    setThreadReplies([]);
   }, [plan.id, openTab?.n]);
 
   useLayoutEffect(() => {
@@ -391,8 +387,6 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   function backToHub() {
     setHub(true);
     setReplyTo(null);
-    setOpenThreadId(null);
-    setThreadReplies([]);
   }
   const phoneSectionRef = useRef(phoneSection);
   phoneSectionRef.current = phoneSection;
@@ -507,7 +501,8 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
 
   function handleSend(content: string) {
     if (!token) return;
-    getSocket(token).emit('send-message', { planId: plan.id, content, parentId: replyTo?.id });
+    getSocket(token).emit('send-message', { planId: plan.id, content, replyToId: replyTo?.id });
+    setReplyTo(null);
   }
 
   // Photo envoyée dans le chat : ajoutée aux fichiers du Plan (visible dans Infos), puis
@@ -519,7 +514,8 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     const { data } = await api.post(`/attachments/plans/${plan.id}?via=chat`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    getSocket(token).emit('send-message', { planId: plan.id, content: caption, parentId: replyTo?.id, attachmentId: data.id });
+    getSocket(token).emit('send-message', { planId: plan.id, content: caption, replyToId: replyTo?.id, attachmentId: data.id });
+    setReplyTo(null);
   }
 
   // Message vocal : même chemin qu'une photo (fichier du Plan rattaché au message), durée dans le nom
@@ -531,7 +527,8 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     const { data } = await api.post(`/attachments/plans/${plan.id}?via=chat`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    getSocket(token).emit('send-message', { planId: plan.id, content: '', parentId: replyTo?.id, attachmentId: data.id });
+    getSocket(token).emit('send-message', { planId: plan.id, content: '', replyToId: replyTo?.id, attachmentId: data.id });
+    setReplyTo(null);
   }
 
   function handleReact(messageId: string, emoji: string) {
@@ -547,18 +544,6 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     if (token) getSocket(token).emit('delete-message', { messageId });
   }
 
-  function handleOpenThread(message: Message) {
-    if (openThreadId === message.id) {
-      setOpenThreadId(null);
-      setThreadReplies([]);
-      setReplyTo(null);
-      return;
-    }
-    setOpenThreadId(message.id);
-    setThreadReplies([]);
-    setReplyTo(message);
-    api.get(`/plans/messages/${message.id}/replies`).then(res => setThreadReplies(res.data));
-  }
 
   async function handleExportIcal() {
     // Apps : écran « Nouvel événement » de l'agenda du téléphone ; site : fichier .ics
@@ -1066,38 +1051,21 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
                   </div>
                 ) : (
                   visibleMessages.map(msg => (
-                    <div key={msg.id}>
+                    <div key={msg.id} data-msg={msg.id} className={`rounded-2xl transition-shadow ${flashMsg === msg.id ? 'ring-4 ring-indigo-300 ring-offset-4 ring-offset-slate-50' : ''}`}>
                       <ChatMessage
                         message={msg}
                         isMe={msg.author.id === user.id}
                         myUserId={user.id}
                         onReact={handleReact}
-                        onReply={handleOpenThread}
-                        replyCount={msg._count?.replies}
+                        onReply={ended || plan.canWriteChat === false ? undefined : setReplyTo}
+                        onJumpTo={jumpToMessage}
+                        hiddenAuthors={blocked}
                         onEdit={handleEditMessage}
                         onDelete={handleDeleteMessage}
                         onReport={setReporting}
                         mediaToken={plan.mediaToken}
                         onViewPhoto={setViewingPhoto}
                       />
-                      {openThreadId === msg.id && (
-                        <div className={`mt-2 ml-8 pl-3 border-l-2 border-indigo-100 space-y-2 ${msg.author.id === user.id ? 'mr-8 ml-0 pr-3 pl-0 border-l-0 border-r-2' : ''}`}>
-                          {threadReplies.filter(r => !blocked.has(r.author.id)).map(reply => (
-                            <ChatMessage
-                              key={reply.id}
-                              message={reply}
-                              isMe={reply.author.id === user.id}
-                              myUserId={user.id}
-                              onReact={handleReact}
-                              onEdit={handleEditMessage}
-                              onDelete={handleDeleteMessage}
-                              onReport={setReporting}
-                              mediaToken={plan.mediaToken}
-                              onViewPhoto={setViewingPhoto}
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
                   ))
                 )}
@@ -1112,7 +1080,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
                 onSendPhoto={isEnabled(plan, 'fichiers') && (plan.filesMode !== 'managers' || plan.canManageFiles) ? handleSendPhoto : undefined}
                 onSendVoice={isEnabled(plan, 'fichiers') && (plan.filesMode !== 'managers' || plan.canManageFiles) ? handleSendVoice : undefined}
                 members={plan.members.map(m => ({ pseudo: m.user.pseudo }))}
-                replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment ? '📷 Photo' : '')).slice(0, 40) } : null}
+                replyTo={replyTo ? { id: replyTo.id, authorPseudo: replyTo.author.pseudo, preview: (replyTo.content || (replyTo.attachment?.mimeType.startsWith('audio/') ? t('chat.message.quoteVoice') : replyTo.attachment ? t('chat.message.quotePhoto') : '')).slice(0, 60) } : null}
                 onCancelReply={() => setReplyTo(null)}
               />}
             </div>

@@ -1276,6 +1276,15 @@ Junto/
   `datetime-local` / `date` (listes défilantes sur téléphone, sans jour de la semaine) ; même format
   de valeur (« AAAA-MM-JJTHH:MM »). Le chat propose aussi « Prendre une photo » / « Choisir dans la
   galerie » sur écran tactile (le sélecteur Android n'ouvrait que la galerie).
+- **Réponses dans le chat d'un Plan** (2026-11-13, demande de l'utilisateur : la réponse était cachée sous « N réponses » et on ne
+  pouvait pas répondre à une réponse ; migration `20261124100000_message_quote`) : `Message.quoteId` (SetNull) = message auquel on
+  répond, **affiché en citation au-dessus de la réponse** (`QuoteBlock` de `ChatMessage`, auteur + 2 lignes ; toucher = défiler jusqu'au
+  message d'origine, entouré un instant, `jumpToMessage` de `PlanDetail`) ; les réponses restent dans le fil, dans l'ordre d'arrivée.
+  « Répondre » sous **chaque** message, réponses comprises. Socket `send-message` avec `replyToId` (nouvelles apps) : `quoteId` = la
+  cible, `parentId` = la racine de son fil, pour que **les apps installées** (qui envoient `parentId` et lisent GET `/:id/messages` sans
+  `all`) gardent leur affichage « N réponses ». GET `/plans/:id/messages?all=1` = tout le chat (400 derniers). `messageInclude` ajoute
+  `quote` et `parent` (extrait de 160 caractères déchiffré par `withPlainContent`, vide si supprimé) ; une ancienne réponse sans
+  `quoteId` cite son `parent`. Citation d'une personne masquée : « Message masqué ». Démo : réponses en mémoire avec citation.
 - **MessageReaction** : messageId+userId+emoji (unique), pour les réactions
   emoji temps réel. **Mêmes 16 réactions dans tous les chats** (2026-10-19) : liste unique `REACTION_EMOJIS`
   (`server/src/lib/reactions.ts`, miroir `client/src/lib/reactions.ts`), vérifiée par le serveur (`isAllowedReaction` : socket

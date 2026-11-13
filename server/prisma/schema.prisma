@@ -796,6 +796,12 @@ model Message {
   parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  Message[] @relation("MessageReplies")
 
+  // Message auquel celui-ci répond (affiché en citation dans le fil du chat, 2026-11-13) ; parentId reste la racine
+  // du fil pour les anciennes apps, qui montrent les réponses sous « N réponses »
+  quoteId  String?
+  quote    Message?  @relation("MessageQuotes", fields: [quoteId], references: [id], onDelete: SetNull)
+  quotedBy Message[] @relation("MessageQuotes")
+
   // Photo envoyée dans le chat (aussi visible dans l'onglet Infos) — null si retirée depuis Infos
   attachmentId String?     @unique
   attachment   Attachment? @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
