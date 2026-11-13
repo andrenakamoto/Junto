@@ -175,8 +175,9 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
           : await api.post(`/circles/${createIn}/plans`, payload);
       // Plan mystère : le secret est enregistré tout de suite après (s'il échoue, la rubrique Mystère permet de le refaire)
       if (kind === 'mystere') await api.put(`/plans/${data.id}/mystery`, { realTitle: realTitle.trim(), realLocation: realPlace.trim() }).catch(() => {});
-      // Plan standard : on invite tout de suite (un Plan sans invités ne sert à rien) ; Plan spécifique : sa rubrique
-      onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : !kind && !fromPoll ? 'invite' : undefined));
+      // Plan spécifique : il s'ouvre sur sa rubrique ; Plan standard : sur sa fiche (la fenêtre « Inviter » ne s'ouvre plus
+      // toute seule depuis le 2026-11-13, demande de l'utilisateur ; le bouton « Inviter » reste dans l'en-tête)
+      onCreated(data, preset?.tab ?? (kind === 'jeux' ? KIND_GAMES.find(g => enabledFeatures.includes(g)) : undefined));
     } catch (err: any) {
       setError(err.response?.data?.error || t('common.error'));
     } finally {

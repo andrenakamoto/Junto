@@ -86,8 +86,8 @@ const groups: Group[] = [
         body: <>
           <P>The quickest way: <strong>"+ Create" › Standard Plan</strong>, at the very top of the Circle list. Fill in the Plan, then choose
             <strong>who with</strong>: one of your Circles, or <strong>"Just a link"</strong> (invite anyone you like, even without the
-            app). Place not chosen yet? Tick <strong>"To be decided"</strong> and add it later. Once the Plan is created, the "Invite"
-            window opens by itself. In the Plan, Rides, Votes and Expenses only show up when they're used: otherwise, tap
+            app). Place not chosen yet? Tick <strong>"To be decided"</strong> and add it later. Once the Plan is created, tap
+            <strong>"Invite"</strong> at the top of the Plan to send the link. In the Plan, Rides, Votes and Expenses only show up when they're used: otherwise, tap
             <strong>"+ Add"</strong>.</P>
           <P><strong>“Create a Plan”</strong> at the bottom of the Plan list: title, description, date, place, participant
             limit, <strong>important information</strong> (a box that stands out). The <strong>end date is
