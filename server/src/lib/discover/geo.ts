@@ -113,7 +113,12 @@ export function locateInText(text: string | null | undefined, near?: { lat: numb
 // Position complétée, et canton déduit de la position (recherche par canton, 2026-10-26)
 export function withCoords<T extends { city?: string | null; place?: string | null; address?: string | null; latitude?: number | null; longitude?: number | null }>(d: T, region: Region): T & { canton: string | null } {
   const country = isFrenchRegion(region) ? 'FR' : 'CH';
-  if (d.latitude != null && d.longitude != null) return { ...d, canton: cantonAt(d.latitude, d.longitude, country) };
+  if (d.latitude != null && d.longitude != null) {
+    const l = nearestLocality(d.latitude, d.longitude, country);
+    // Sans ville : celle de la localité la plus proche (seulement si l'objet a un champ ville vide, jamais pour un événement avec un lieu)
+    const city = 'city' in d && !d.city && !d.place && l ? { city: l.name } : {};
+    return { ...d, ...city, canton: l?.canton ?? null };
+  }
   const near = REGION_CENTERS[region];
   // Un nom trouvé dans le texte n'est retenu que près de la région (« Bar du Port » ≠ une localité nommée Port à 150 km)
   const inText = (s: string | null | undefined) => { const p = locateInText(s, near); return p && distanceKm(p, near) <= 80 ? p : null; };
@@ -127,6 +132,11 @@ export function withCoords<T extends { city?: string | null; place?: string | nu
 const grids: Partial<Record<'CH' | 'FR', Map<string, Locality[]>>> = {};
 const cell = (lat: number, lon: number) => `${Math.floor(lat * 10)},${Math.floor(lon * 10)}`;
 export function cantonAt(lat: number, lon: number, country: 'CH' | 'FR' = 'CH'): string | null {
+  return nearestLocality(lat, lon, country)?.canton ?? null;
+}
+
+// Localité la plus proche d'une position (canton, et ville d'un lieu qui n'en a pas : place de grillade, point de vue…)
+export function nearestLocality(lat: number, lon: number, country: 'CH' | 'FR' = 'CH'): Locality | null {
   let grid = grids[country];
   if (!grid) {
     grid = grids[country] = new Map();
@@ -141,7 +151,7 @@ export function cantonAt(lat: number, lon: number, country: 'CH' | 'FR' = 'CH'):
     for (let i = -r; i <= r; i++) for (let j = -r; j <= r; j++) {
       for (const l of grid.get(`${a + i},${b + j}`) ?? []) { const dd = (l.lat - lat) ** 2 + ((l.lon - lon) * 0.69) ** 2; if (dd < bestD) { bestD = dd; best = l; } }
     }
-    if (best) return best.canton;
+    if (best) return best;
   }
   return null;
 }
@@ -230,6 +240,12 @@ export async function fillMissingCoords(prisma: any) {
   for (const p of places) {
     const d = withCoords(p, p.region as Region);
     if (d.latitude != null) await prisma.discoverPlace.update({ where: { id: p.id }, data: { latitude: d.latitude, longitude: d.longitude } });
+  }
+  // Lieux sans ville (OpenStreetMap : places de grillade, points de vue…) : la localité la plus proche (2026-11-14)
+  const noCity = await prisma.discoverPlace.findMany({ where: { city: null, latitude: { not: null } }, select: { id: true, region: true, latitude: true, longitude: true } });
+  for (const p of noCity) {
+    const l = nearestLocality(p.latitude, p.longitude, isFrenchRegion(p.region as Region) ? 'FR' : 'CH');
+    if (l) await prisma.discoverPlace.update({ where: { id: p.id }, data: { city: l.name } });
   }
   for (const model of [prisma.discoverEvent, prisma.discoverPlace]) {
     const rows = await model.findMany({ where: { canton: null, latitude: { not: null } }, select: { id: true, latitude: true, longitude: true } });

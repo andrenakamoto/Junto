@@ -181,6 +181,7 @@ const discover: Dict['discover'] = {
     empty: "Nessun luogo di questo elenco ha una posizione sulla mappa.",
   },
   onMap: "Vedi sulla mappa",
+  near: "Vicino a {{city}}",
   wider_one: "Poco entro {{km}} km: {{count}} evento fino a 50 km.",
   wider_other: "Poco entro {{km}} km: {{count}} eventi fino a 50 km.",
   widerButton: "Allarga a 50 km",

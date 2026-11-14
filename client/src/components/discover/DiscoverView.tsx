@@ -444,13 +444,14 @@ function IdeaCard({ p, onGo, onReport, onHide }: { p: DiscoverPlace; onGo: (p: D
       <div className="flex-1 min-w-0">
         <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
           <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : host(p.website) === 'myswitzerland.com' ? 'MySwitzerland.com' : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+          <span className="block text-xs text-slate-500 truncate">{[p.address || (p.lat != null && p.lon != null) ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : host(p.website) === 'myswitzerland.com' ? 'MySwitzerland.com' : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
         </a>
-        {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas) */}
-        {p.address && (
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.name}, ${p.address}`)}`} target="_blank" rel="noopener noreferrer"
+        {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas). Sans adresse (place de
+            grillade, point de vue…) : la localité, et la carte s'ouvre sur la position exacte */}
+        {(p.address || (p.lat != null && p.lon != null)) && (
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.address ? `${p.name}, ${p.address}` : `${p.lat},${p.lon}`)}`} target="_blank" rel="noopener noreferrer"
             className="mt-0.5 flex items-start gap-1 text-xs text-slate-600 hover:text-indigo-700">
-            <MapPin size={12} className="mt-px flex-shrink-0 text-slate-400" /><span className="min-w-0">{p.address}</span>
+            <MapPin size={12} className="mt-px flex-shrink-0 text-slate-400" /><span className="min-w-0">{p.address ?? (p.city ? t('discover.near', { city: p.city }) : t('discover.onMap'))}</span>
           </a>
         )}
         <button onClick={() => onGo(p)} title={user ? undefined : t('discover.loginToGo')}
