@@ -547,6 +547,9 @@ Conséquences pratiques :
     **Version 1.0.51** (2026-11-13) : Android `versionCode` 53 (`evly-1.0.51-(53).aab`), iOS build 57 envoyé — réponses visibles dans le chat
     avec citation (et réponse à une réponse), accompagnants, date et heure dans la cloche, plus de fenêtre « Inviter » après la création,
     Idées plus rapides, cockpit des Organisations, Matériel (inventaire, réservations, sortie et retour).
+    **Version 1.0.52** (2026-11-14) : Android `versionCode` 54 (`evly-1.0.52-(54).aab`), iOS build 58 envoyé — consultation sans réseau
+    (dernières infos gardées dans le téléphone, prochains Plans enregistrés d'avance, affiche comprise), outils du Cercle (fournisseurs et matériel
+    à activer), réservation du matériel avec dates de prise et de retour pour plusieurs objets, bouton OK du calendrier.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
