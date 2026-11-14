@@ -2110,6 +2110,14 @@ ville) → une seule annonce, **celle qui a une photo** (choix de l'utilisateur,
 couverte par le même événement « sur plusieurs jours » d'une autre source est aussi retirée. Usage limité à « annoncer l'événement » :
 « Y aller avec un Cercle » à faire valider lors de l'appel avec Eventfrog (Priska Hubler, en français).
 
+**Plus d'idées de sorties** (2026-11-14, `lib/discover/osm.ts`) : OpenStreetMap garde aussi un lieu **sans site web** s'il a un téléphone,
+des horaires ou une fiche Wikidata, et les idées de **plein air** (`OUTDOOR_KINDS`) avec un nom seulement ; le lien mène alors à sa fiche
+openstreetmap.org (« Voir sur la carte »). Nouveaux types : `cinema`, `theatre`, `grillade`, `plage`, `vue` (avec Wikidata), `parc_ville`
+(avec Wikidata), `jeux_enfants` (noms d'écoles ou de jeux écartés, `NOT_A_PLAYGROUND`), `accrobranche`, `luge`, `ski` ; groupes « Plein air »
+et « Hiver » (l'hiver en tête de novembre à mars, `KIND_GROUPS` du client). Doublons : même nom à moins d'un kilomètre. **Clients `v=4`**
+(site et apps suivantes) ; `v=2` / `v=3` ne reçoivent que les anciens types (`PLACE_KINDS_V3`). Valais : de 191 à environ 380 idées.
+**« Élargir à 50 km »** : moins de 20 événements dans le rayon → le client regarde jusqu'à 50 km et propose d'élargir s'il y en a 10 de plus.
+
 **France voisine dans Découvrir** (2026-11-01, d'abord l'**Ain et la Haute-Savoie**) : régions `f01` / `f74` (codes « canton » `01` / `74`,
 `isFrenchRegion`, `isFrenchCode`) à côté des cantons ; communes des deux départements ajoutées à `server/assets/localities.json` (geo.api.gouv.fr,
 Licence Ouverte) ; `cantonAt(lat, lon, country)` cherche parmi les localités du **même pays** que la source (un événement de Chêne-Bourg ne finit
@@ -2531,6 +2539,9 @@ son Plan juste après avoir accepté l'invitation).
 
 - Toujours écrire les textes UI, messages de commit et communications en
   français.
+- **Emails à préparer** (partenaires, associations, prospection) : toujours des **brouillons dans l'app Mail du Mac**, compte
+  **info@evly.ch** (AppleScript : `make new outgoing message` avec `sender:"info@evly.ch"`, `visible:false`, puis `save`), **jamais
+  dans Gmail**, et jamais envoyés : l'utilisateur les relit et les envoie lui-même.
 - **Formulaire incomplet** (2026-10-20) : jamais de bouton qui « ne fait rien ». Un champ manquant affiche un
   message en rouge (`common.required.*` dans les dictionnaires, ou un texte d'explication sous un bouton grisé), et
   l'erreur du serveur s'affiche aussi (`catch` → `err.response.data.error`).
