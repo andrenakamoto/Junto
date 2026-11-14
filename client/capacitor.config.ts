@@ -36,8 +36,8 @@ const config: CapacitorConfig = {
       presentationOptions: [],
     },
     SocialLogin: {
-      // Seul Google est utilisé (bouton masqué tant que VITE_GOOGLE_NATIVE n'est pas activé)
-      providers: { google: true, facebook: false, apple: false, twitter: false },
+      // Google (deux apps) et Apple (app iPhone). Un fournisseur à false est refusé par le module, même sur iPhone.
+      providers: { google: true, facebook: false, apple: true, twitter: false },
       logLevel: 1,
     },
   },
