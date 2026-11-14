@@ -74,6 +74,8 @@ const capsule: Dict['capsule'] = {
   },
   circle: {
     section: "Zeitkapseln",
+    openedBadge_one: '{{count}} geöffnet!',
+    openedBadge_other: '{{count}} geöffnet!',
     sealed: "Öffnet sich am {{date}}",
     depositing: "Erinnerungen bis zum {{date}}",
     opened: "Offen! Erinnerungen ansehen",

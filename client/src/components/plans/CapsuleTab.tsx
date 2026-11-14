@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, ImagePlus, Lock, Mic, Square, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Lock, Mic, Square, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 import { useBackClose } from '../../lib/backClose';
@@ -312,11 +312,19 @@ export function CapsuleModal({ id, onClose, onReunion, canReunion, onChanged }: 
 
 // Liste de capsules (une carte par capsule)
 export function CapsuleList({ list, onOpen }: { list: CapsuleSummary[]; onOpen: (id: string) => void }) {
+  // Repliée par défaut (elles prennent de la place) ; ouverte ou fermée d'un toucher sur le titre, mémorisé sur l'appareil
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem('evly_capsules_open') === '1'; } catch { return false; } });
   if (!list.length) return null;
+  const opened = list.filter(c => c.stage === 'opened').length;
+  const toggle = () => { const next = !open; setOpen(next); try { localStorage.setItem('evly_capsules_open', next ? '1' : '0'); } catch { /* rien */ } };
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-1">⏳ {t('capsule.circle.section')}</p>
-      {list.map(c => (
+      <button onClick={toggle} aria-expanded={open} className="w-full flex items-center gap-1.5 px-1 py-1 text-left">
+        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">⏳ {t('capsule.circle.section')} ({list.length})</span>
+        {opened > 0 && !open && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{t('capsule.circle.openedBadge', { count: opened })}</span>}
+        <ChevronDown size={14} className={`ml-auto text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && list.map(c => (
         <button key={c.id} onClick={() => onOpen(c.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl border shadow-sm text-left ${c.stage === 'opened' ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'}`}>
           <Box open={c.stage === 'opened'} size={40} />
           <span className="flex-1 min-w-0">

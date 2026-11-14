@@ -1969,7 +1969,7 @@ par GET `/capsules/files/:depositId?t=` (jeton `purpose: 'capsule'`, avant l'ouv
 Cercle ; liste figée au scellage, et gardée même après un départ du Cercle. GET `/capsules/mine` (toutes mes capsules) → section en tête
 de « Tous mes plans » (`MyCapsules`), pour un invité extérieur au Cercle ou une personne qui l'a quitté ; notification → `/dashboard?capsule=<id>`
 (fenêtre `CapsuleModal` de DashboardPage, type `capsule` connu de `NotificationToast`). Client : rubrique
-« Capsule » du Plan et section « Capsules temporelles » de la colonne du Cercle (`CircleCapsules` dans `PlanList`, fenêtre, ouverture
+« Capsule » du Plan et section « Capsules temporelles » de la colonne du Cercle (`CircleCapsules` dans `PlanList` ; **repliée par défaut** depuis le 2026-11-14, un toucher sur le titre l'ouvre, mémorisé sur l'appareil `evly_capsules_open`, nombre de capsules et « N ouverte ! » sur le titre, même chose dans « Tous mes plans » ; fenêtre, ouverture
 en diaporama plein écran — portail sur `body` —, « On se retrouve ? » → `CreatePlanModal` avec `suggestedTitle`). Suppression du compte :
 fichiers des dépôts effacés (`removeDepositFiles`) ; du Cercle : `purgeCircleFiles`. Démo : rien (lecture vide). Guide (fiche « Capsule
 temporelle ») et politique de confidentialité (2 novembre 2026 : conservation jusqu'à l'ouverture, un an au plus après le Plan).

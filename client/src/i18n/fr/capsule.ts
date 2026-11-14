@@ -72,6 +72,8 @@ const capsule = {
   },
   circle: {
     section: "Capsules temporelles",
+    openedBadge_one: '{{count}} ouverte !',
+    openedBadge_other: '{{count}} ouvertes !',
     sealed: "S’ouvre le {{date}}",
     depositing: "Dépôts jusqu’au {{date}}",
     opened: "Ouverte ! Voir les souvenirs",
