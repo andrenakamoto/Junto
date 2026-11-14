@@ -1,3 +1,5 @@
+import { isOffline } from '../lib/connection';
+import { prefetchUpcoming } from '../lib/offlinePrefetch';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { CockpitView } from '../components/organisations/CockpitView';
 import { requestResync } from '../hooks/useResync';
@@ -133,7 +135,11 @@ export function DashboardPage() {
     });
   }
   const refreshBell = () => api.get<Plan[]>('/plans')
-    .then(res => setBellPlans(res.data.filter(p => (p.unseen?.length ?? 0) > 0)))
+    .then(res => {
+      setBellPlans(res.data.filter(p => (p.unseen?.length ?? 0) > 0));
+      // Prochains Plans gardés dans le téléphone pour les consulter sans réseau (lib/offlinePrefetch.ts)
+      if (!isOffline() && !(res as any).fromCache) prefetchUpcoming(res.data, user?.id);
+    })
     .catch(() => {});
   useEffect(() => { if (user) refreshBell(); }, [user?.id]);
   const bellPlanList = useMemo(() => bellPlans.filter(p => {

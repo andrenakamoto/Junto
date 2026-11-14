@@ -27,6 +27,8 @@ const ui: Dict['ui'] = {
     reload: 'Reload',
   },
   offline: {
+    cached: 'You’re seeing the info saved on your phone (last updated: {{date}}). Nothing can be changed for now.',
+    cantWrite: 'No connection: try again when the network is back.',
     title: 'No connection',
     text: 'Check your network. EvLY updates itself as soon as it’s back.',
     retry: 'Try again',

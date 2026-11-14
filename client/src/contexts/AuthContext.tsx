@@ -1,3 +1,4 @@
+import { clearOfflineCache } from '../lib/offlineCache';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { registerPush, unregisterPush } from '../lib/push';
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const status = err?.response?.status;
           if (status === 401 || status === 403 || status === 404) {
             localStorage.removeItem('estelle_token');
+            clearOfflineCache();
             setToken(null);
             setLoading(false);
           } else {
@@ -106,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function logout() {
+    clearOfflineCache();
     if (isDemo()) { exitDemo(); return; }
     unregisterPush(localStorage.getItem('estelle_token'));
     localStorage.removeItem('estelle_token');

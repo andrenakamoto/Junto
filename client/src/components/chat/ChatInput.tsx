@@ -1,3 +1,4 @@
+import { useOffline } from '../../lib/connection';
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
 import { useBackClose } from '../../lib/backClose';
 import { Send, X, ImagePlus, Loader2, Camera, Images, Mic, Trash2 } from 'lucide-react';
@@ -25,6 +26,7 @@ const VOICE_MAX_SECONDS = 120;
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSendPhoto, onSendVoice }: Props) {
+  const offline = useOffline();
   const [value, setValue] = useState('');
   const [sendingPhoto, setSendingPhoto] = useState(false);
   const [photoError, setPhotoError] = useState('');
@@ -141,6 +143,8 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
     : [];
 
   function handleSend() {
+    // Sans réseau : rien ne part (le texte reste dans le champ, à envoyer au retour du réseau)
+    if (offline) return;
     const trimmed = value.trim();
     if (!trimmed) return;
     onSend(trimmed);
@@ -265,7 +269,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={touch ? t('chat.input.placeholderTouch') : t('chat.input.placeholder')}
+          placeholder={offline ? t('ui.offline.cantWrite') : touch ? t('chat.input.placeholderTouch') : t('chat.input.placeholder')}
           enterKeyHint={touch ? 'enter' : 'send'}
           rows={1}
           className="flex-1 resize-none px-4 py-3 bg-slate-100 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
@@ -286,7 +290,7 @@ export function ChatInput({ onSend, members = [], replyTo, onCancelReply, onSend
           onClick={handleSend}
           onMouseDown={keepFocus}
           onPointerDown={keepFocus}
-          disabled={!value.trim()}
+          disabled={!value.trim() || offline}
           className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
           <Send size={16} />

@@ -27,6 +27,8 @@ export default {
   },
   // Bandeau sans réseau (OfflineBanner)
   offline: {
+    cached: 'Tu vois les infos gardées dans ton téléphone (dernière mise à jour : {{date}}). Rien ne peut être modifié pour l’instant.',
+    cantWrite: 'Pas de connexion : réessaie quand le réseau revient.',
     title: 'Pas de connexion',
     text: 'Vérifie ton réseau. EvLY se met à jour tout seul dès qu’il revient.',
     retry: 'Réessayer',

@@ -27,6 +27,8 @@ const ui: Dict['ui'] = {
     reload: 'Neu laden',
   },
   offline: {
+    cached: 'Du siehst die im Telefon gespeicherten Infos (Stand: {{date}}). Ändern ist im Moment nicht möglich.',
+    cantWrite: 'Keine Verbindung: Versuch es wieder, wenn das Netz zurück ist.',
     title: 'Keine Verbindung',
     text: 'Prüfe dein Netz. EvLY aktualisiert sich von selbst, sobald es zurück ist.',
     retry: 'Erneut versuchen',

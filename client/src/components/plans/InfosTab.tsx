@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { blobGet } from '../../lib/offlineCache';
+import { useEffect, useState, useRef } from 'react';
 import { AlignLeft, MapPin, Paperclip, FileText, File, Trash2, Download, Loader2, Images, ImagePlus } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Plan, Attachment } from '../../types';
@@ -290,10 +291,15 @@ function PosterSection({ plan, poster, onChanged, onDelete }: { plan: Plan; post
 // Affiche : photo publiée par l'organisation, en grand en haut de l'onglet Infos
 function Poster({ att, token, canDelete, onDelete }: { att: Attachment; token?: string; canDelete: boolean; onDelete: () => void }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Sans réseau : l'affiche gardée dans le téléphone pour les prochains Plans (lib/offlinePrefetch.ts)
+  const [src, setSrc] = useState(mediaUrl(att.id, token, 1200));
+  const [fallback, setFallback] = useState(false);
+  useEffect(() => { setSrc(mediaUrl(att.id, token, 1200)); setFallback(false); }, [att.id, token]);
   return (
     <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-white shadow-sm">
       <a href={mediaUrl(att.id, token)} target="_blank" rel="noopener noreferrer">
-        <img src={mediaUrl(att.id, token, 1200)} alt={att.name} className="w-full h-auto block" loading="lazy" />
+        <img src={src} alt={att.name} className="w-full h-auto block" loading="lazy"
+          onError={() => { if (fallback) return; setFallback(true); blobGet(`poster:${att.id}`).then(b => { if (b) setSrc(URL.createObjectURL(b)); }); }} />
       </a>
       {canDelete && (
         <div className="absolute top-2 right-2">
