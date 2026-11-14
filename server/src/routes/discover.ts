@@ -7,7 +7,7 @@ import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, isCantonCode, isFrenchCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
 import { CANTONS, REGIONS, PLACE_KINDS_V3 } from '../lib/discover/model';
 import { imageFile, isImageKey } from '../lib/discover/images';
-import { dedupeEvents } from '../lib/discover/dedupe';
+import { dedupeEvents, dedupePlaces } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
 import { escapeHtml } from '../lib/escapeHtml';
@@ -125,7 +125,7 @@ router.get('/', async (req, res) => {
   const typeOf = new Map(sources.map(s => [s.id, s.type]));
   const events = dedupeEvents(allEvents.filter(e => !point || e.latitude == null || e.longitude == null || distanceKm(point, { lat: e.latitude, lon: e.longitude }) <= point.radius), id => typeOf.get(id) ?? '')
     .map(e => ({ ...place(e), ...(isSessionSeries(e, typeOf.get(e.sourceId)) ? { sessions: true } : {}) }));
-  const places = allPlaces.map(place).filter(inRadius);
+  const places = dedupePlaces(allPlaces, id => typeOf.get(id) ?? '').map(place).filter(inRadius);
   const withSignup = await Promise.all(events.map(async ({ planId, ...e }) => {
     if (!planId) return e;
     const s = await planSignup(planId);

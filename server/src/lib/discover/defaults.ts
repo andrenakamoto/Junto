@@ -19,6 +19,10 @@ const DEFAULT_SOURCES = [
   // chaque donnée est cité sur sa carte (crédit exigé par la licence)
   { key: 'datatourisme', name: 'DATAtourisme (Ain, Haute-Savoie)', type: 'datatourisme', region: 'f74', status: 'active', autoPublish: true, config: { departments: ['01', '74'] },
     license: 'Licence Ouverte 2.0', licenseUrl: 'https://www.etalab.gouv.fr/licence-ouverte-open-licence/', attribution: 'DATAtourisme' },
+  // Suisse Tourisme (2026-11-14) : attractions et itinéraires de toute la Suisse, licence CC BY-SA 4.0 (source citée, lien vers
+  // la page MySwitzerland de chaque lieu), clé MYSWITZERLAND_API_KEY
+  { key: 'myswitzerland', name: 'Suisse Tourisme (MySwitzerland.com)', type: 'myswitzerland', region: 'la', status: 'active', autoPublish: true, config: {},
+    license: 'CC BY-SA 4.0', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr', attribution: 'Suisse Tourisme – MySwitzerland.com, SuisseMobile' },
   { key: 'evly-plans', name: 'Organisateurs EvLY', type: 'plan', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: 'Organisateurs sur EvLY' },
   { key: 'manual', name: 'Saisie EvLY', type: 'manual', region: null, status: 'active', autoPublish: true, config: {}, license: null, licenseUrl: null, attribution: null },
   // Eventfrog (Public API, accord du 2026-10-26) : toute la Suisse, une seule source ; chaque événement rangé d'après sa ville

@@ -58,3 +58,33 @@ export function dedupeEvents<T extends DedupeEvent>(events: T[], typeOfSource: (
   if (!drop.size) return events;
   return events.filter(e => !drop.has(e.id)).map(e => aliases.has(e.id) ? { ...e, aliases: [...aliases.get(e.id)!] } : e);
 }
+
+// Idées de sorties en double entre sources (2026-11-14) : même lieu chez Suisse Tourisme et dans OpenStreetMap → on garde
+// la fiche de Suisse Tourisme (choisie et décrite). Même nom (ou l'un contenu dans l'autre, 5 caractères au moins) à moins de
+// 500 m. Grille de ~1 km pour ne comparer que les voisins.
+type PlaceRow = { name: string; sourceId: string; latitude: number | null; longitude: number | null };
+const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+export function dedupePlaces<T extends PlaceRow>(places: T[], typeOf: (sourceId: string) => string): T[] {
+  const cell = (lat: number, lon: number) => `${Math.floor(lat * 100)},${Math.floor(lon * 100)}`;
+  const grid = new Map<string, T[]>();
+  for (const p of places) {
+    if (typeOf(p.sourceId) !== 'myswitzerland' || p.latitude == null || p.longitude == null) continue;
+    const k = cell(p.latitude, p.longitude);
+    grid.set(k, [...(grid.get(k) ?? []), p]);
+  }
+  if (!grid.size) return places;
+  const near = (a: PlaceRow, b: PlaceRow) => Math.abs(a.latitude! - b.latitude!) < 0.0045 && Math.abs(a.longitude! - b.longitude!) < 0.0065;
+  return places.filter(p => {
+    if (typeOf(p.sourceId) === 'myswitzerland' || p.latitude == null || p.longitude == null) return true;
+    const n = plain(p.name);
+    if (n.length < 5) return true;
+    const la = Math.floor(p.latitude * 100), lo = Math.floor(p.longitude * 100);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+      for (const q of grid.get(`${la + i},${lo + j}`) ?? []) {
+        const m = plain(q.name);
+        if (near(p, q) && m.length >= 5 && (m.includes(n) || n.includes(m))) return false;
+      }
+    }
+    return true;
+  });
+}

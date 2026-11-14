@@ -38,6 +38,8 @@ export const PLACE_KINDS = [
   // depuis le 2026-11-14 (clients v=4) : plein air, hiver, cinéma, théâtre
   'cinema', 'theatre', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski',
   'bar', 'discotheque',
+  // Suisse Tourisme (2026-11-14)
+  'nature', 'patrimoine', 'excursion', 'randonnee', 'raquettes', 'velo', 'ski_fond',
 ] as const;
 // Types connus des clients v=2 / v=3 (site et apps jusqu'à la 1.0.53) : ils affichent la clé brute pour les suivants
 export const PLACE_KINDS_V3: readonly string[] = PLACE_KINDS.slice(0, PLACE_KINDS.indexOf('cinema'));
@@ -46,7 +48,7 @@ export const isPlaceKind = (v: unknown): v is PlaceKind => typeof v === 'string'
 // Lieux adaptés aux familles par défaut
 export const FAMILY_KINDS: PlaceKind[] = ['bowling', 'trampoline', 'escalade', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'animaux', 'musee', 'laser',
   'loisirs', 'bateau', 'equitation', 'chateau', 'jardin', 'bibliotheque',
-  'cinema', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski'];
+  'cinema', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski', 'nature', 'excursion'];
 // Idées de plein air : souvent sans site web (place de grillade, plage, point de vue…), gardées avec un nom seulement
 export const OUTDOOR_KINDS: PlaceKind[] = ['grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'luge', 'ski'];
 

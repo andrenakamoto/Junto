@@ -6,6 +6,7 @@ import { fetchIcal, IcalConfig } from './ical';
 import { fetchGeneverSleep, GeneverSleepConfig } from './geneversleep';
 import { fetchEventfrog, EventfrogConfig } from './eventfrog';
 import { fetchDatatourisme, DatatourismeConfig } from './datatourisme';
+import { fetchMySwitzerland } from './myswitzerland';
 import { syncEventImages } from './images';
 import type { NormalizedEvent, NormalizedPlace, Region } from './model';
 import { nearestRegion, withCoords } from './geo';
@@ -46,14 +47,16 @@ async function saveEvents(source: DiscoverSource, region: Region, events: Normal
   return located.length;
 }
 
-async function savePlaces(source: DiscoverSource, region: Region, places: NormalizedPlace[]) {
+// `regionFromPlace` : source de toute la Suisse (Suisse Tourisme), chaque lieu rangé dans la région la plus proche
+async function savePlaces(source: DiscoverSource, region: Region, places: NormalizedPlace[], regionFromPlace = false) {
   const keep = new Set(places.map(p => p.externalId));
   for (const p of places) {
     const { externalId, ...data } = withCoords(p, region);
+    const r = regionFromPlace && data.latitude != null && data.longitude != null ? nearestRegion({ lat: data.latitude, lon: data.longitude }) : region;
     await prisma.discoverPlace.upsert({
       where: { sourceId_externalId: { sourceId: source.id, externalId } },
-      create: { ...data, externalId, sourceId: source.id, region, state: 'published' },
-      update: data,
+      create: { ...data, externalId, sourceId: source.id, region: r, state: 'published' },
+      update: { ...data, region: r },
     });
   }
   await prisma.discoverPlace.deleteMany({ where: { sourceId: source.id, externalId: { notIn: [...keep] }, state: { not: 'hidden' } } });
@@ -79,6 +82,7 @@ export async function syncSource(source: DiscoverSource): Promise<{ count: numbe
     else if (source.type === 'datatourisme') count = await saveEvents(source, region, await fetchDatatourisme(source.config as unknown as DatatourismeConfig, from, to), false, { needCoords: true });
     else if (source.type === 'geneversleep') count = await saveEvents(source, region, await fetchGeneverSleep(source.config as unknown as GeneverSleepConfig, from, to), true);
     else if (source.type === 'osm') count = await savePlaces(source, region, await fetchOsmPlaces(source.config as unknown as OsmConfig));
+    else if (source.type === 'myswitzerland') count = await savePlaces(source, region, await fetchMySwitzerland(), true);
     else return { error: 'Cette source ne se synchronise pas' };
     await prisma.discoverSource.update({ where: { id: source.id }, data: { lastSyncAt: new Date(), lastError: null, lastCount: count } });
     discoverCache.clear();
@@ -100,10 +104,10 @@ export async function syncDueSources() {
   if (syncing) return;
   syncing = true;
   try {
-    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog', 'datatourisme'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
+    const sources = await prisma.discoverSource.findMany({ where: { status: 'active', type: { in: ['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog', 'datatourisme', 'myswitzerland'] } }, orderBy: { lastSyncAt: { sort: 'asc', nulls: 'first' } } });
     let osm = 0;
     for (const s of sources) {
-      const every = s.type === 'osm' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;
+      const every = s.type === 'osm' || s.type === 'myswitzerland' ? PLACE_SYNC_MS : s.type === 'geneversleep' ? GNS_SYNC_MS : EVENT_SYNC_MS;
       if (s.lastSyncAt && Date.now() - s.lastSyncAt.getTime() < every) continue;
       if (s.type === 'osm') {
         if (osm >= OSM_PER_RUN) continue;

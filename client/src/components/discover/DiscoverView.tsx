@@ -405,7 +405,7 @@ function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: Dis
       <div className="flex-1 min-w-0">
         <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
           <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : host(p.website) === 'myswitzerland.com' ? 'MySwitzerland.com' : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
         </a>
         {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas) */}
         {p.address && (

@@ -102,7 +102,7 @@ router.post('/sources/:id/sync', async (req, res) => {
   if (!s) { res.status(404).json({ error: 'Source introuvable' }); return; }
   // Eventfrog : plusieurs minutes (toute la Suisse, 30 requêtes par minute au plus) → lancée en arrière-plan, le résultat
   // s'affiche ensuite sur la carte de la source (dernière synchronisation ou erreur)
-  if (s.type === 'eventfrog') { syncSource(s).catch(e => console.error('[discover eventfrog]', e)); res.json({ started: true }); return; }
+  if (s.type === 'eventfrog' || s.type === 'myswitzerland') { syncSource(s).catch(e => console.error('[discover eventfrog]', e)); res.json({ started: true }); return; }
   res.json(await syncSource(s));
 });
 

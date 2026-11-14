@@ -2116,6 +2116,15 @@ openstreetmap.org (« Voir sur la carte »). Nouveaux types : `cinema`, `theatre
 (avec Wikidata), `jeux_enfants` (noms d'écoles ou de jeux écartés, `NOT_A_PLAYGROUND`), `accrobranche`, `luge`, `ski`, `bar` (bar, pub, biergarten) et `discotheque` (groupe « Sortir le soir », site web, téléphone ou horaires exigés) ; groupes « Plein air »
 et « Hiver » (l'hiver en tête de novembre à mars, `KIND_GROUPS` du client). Doublons : même nom à moins d'un kilomètre. **Clients `v=4`**
 (site et apps suivantes) ; `v=2` / `v=3` ne reçoivent que les anciens types (`PLACE_KINDS_V3`). Valais : de 191 à environ 380 idées.
+**Suisse Tourisme** (2026-11-14, `lib/discover/myswitzerland.ts` testé) : OpenData API de MySwitzerland.com (`https://opendata.myswitzerland.io/v1`,
+en-tête `x-api-key`, clé **`MYSWITZERLAND_API_KEY`** dans `/etc/evly/app.env`, compte info@evly.ch sur developer.myswitzerland.io ; paramètres
+`lang`, `page`, `hitsPerPage` ≤ 50). **Pas d'agenda d'événements** : seulement des idées de sorties — attractions (≈ 1 460, type d'après
+`classification` : `attractionKind`) et itinéraires SuisseMobile (≈ 2 550 : `tourKind`, distance ajoutée au nom, départ en ville). Source
+`myswitzerland` (une seule, toute la Suisse, chaque lieu rangé dans la région la plus proche, synchronisée chaque semaine, « Synchroniser
+maintenant » en arrière-plan). **Licence CC BY-SA 4.0** : « Suisse Tourisme – MySwitzerland.com, SuisseMobile » dans les sources et lien vers la page
+MySwitzerland de chaque lieu (libellé « MySwitzerland.com ») ; pas d'images (droits propres à chaque photo). Nouveaux types : `nature`, `patrimoine`,
+`excursion`, `randonnee`, `raquettes`, `velo`, `ski_fond` (groupe « Balades et randonnées »). Doublons avec OpenStreetMap : `dedupePlaces` garde la fiche
+de Suisse Tourisme (même nom à moins de 500 m).
 **« Élargir à 50 km »** : moins de 20 événements dans le rayon → le client regarde jusqu'à 50 km et propose d'élargir s'il y en a 10 de plus.
 
 **France voisine dans Découvrir** (2026-11-01, d'abord l'**Ain et la Haute-Savoie**) : régions `f01` / `f74` (codes « canton » `01` / `74`,

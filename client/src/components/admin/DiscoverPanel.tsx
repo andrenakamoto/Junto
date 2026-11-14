@@ -12,7 +12,7 @@ const kindGroupLabel = (g: string) => ({ jeux: 'Jeux et défis', sport: 'Sport e
 
 const dateFmt = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
 const STATUS_LABELS: Record<string, string> = { active: 'Active', pending: 'En attente', disabled: 'Coupée' };
-const TYPE_LABELS: Record<string, string> = { plan: 'Plans EvLY', openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire', geneversleep: 'GeNEVERsleep', eventfrog: 'Eventfrog (API)' };
+const TYPE_LABELS: Record<string, string> = { plan: 'Plans EvLY', openagenda: 'OpenAgenda', osm: 'OpenStreetMap', ical: 'Flux iCal', manual: 'Saisie', partner: 'Partenaire', geneversleep: 'GeNEVERsleep', eventfrog: 'Eventfrog (API)', datatourisme: 'DATAtourisme', myswitzerland: 'Suisse Tourisme' };
 const CATEGORIES = CATEGORY_GROUPS.flatMap(([, l]) => l).filter(c => c !== IDEAS);
 const input = 'w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
@@ -107,7 +107,7 @@ function Sources() {
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
             {s.license && <span>Licence : {s.license}</span>}
-            {s.type !== 'osm' && <span>Événements : {s.events?.published ?? 0} publiés{s.events?.pending ? `, ${s.events.pending} à valider` : ''}{s.events?.hidden ? `, ${s.events.hidden} masqués` : ''}</span>}
+            {!['osm', 'myswitzerland'].includes(s.type) && <span>Événements : {s.events?.published ?? 0} publiés{s.events?.pending ? `, ${s.events.pending} à valider` : ''}{s.events?.hidden ? `, ${s.events.hidden} masqués` : ''}</span>}
             {s.places > 0 && <span>Lieux : {s.places}</span>}
             {s.lastSyncAt && <span>Synchronisée le {dateFmt.format(new Date(s.lastSyncAt))}{s.lastCount != null ? ` (${s.lastCount})` : ''}</span>}
             {s.lastError && <span className="text-red-600">Erreur : {s.lastError}</span>}
@@ -119,13 +119,13 @@ function Sources() {
                 Publication automatique (sinon : « À valider »)
               </label>
             )}
-            {['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'].includes(s.type) && s.status === 'active' && (
+            {['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog', 'datatourisme', 'myswitzerland'].includes(s.type) && s.status === 'active' && (
               <button onClick={() => sync(s.id)} disabled={busy === s.id} className="ml-auto flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50">
                 <RefreshCw size={12} className={busy === s.id ? 'animate-spin' : ''} />Synchroniser maintenant
               </button>
             )}
             {s.deletable && (
-              <button onClick={() => remove(s)} className={`${['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog'].includes(s.type) && s.status === 'active' ? '' : 'ml-auto '}flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50`}>
+              <button onClick={() => remove(s)} className={`${['openagenda', 'ical', 'osm', 'geneversleep', 'eventfrog', 'datatourisme', 'myswitzerland'].includes(s.type) && s.status === 'active' ? '' : 'ml-auto '}flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50`}>
                 <Trash2 size={12} />Supprimer
               </button>
             )}
