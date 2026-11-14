@@ -584,7 +584,7 @@ Conséquences pratiques :
     icône, bannière, AAB et identifiants de démo : dossier
     `~/Desktop/01-EvLY/04_Publication_stores/` sur le Mac de l'utilisateur (dossier synchronisé avec Google Drive,
     rangé le 2026-10-16 : `Android/` = dernier AAB, `iOS/Signature (ent.plist, export.plist)` = droits et options d'envoi
-    iPhone, `Captures stores (1.0.15)/`). Charte graphique : `~/Desktop/01-EvLY/02_Charte_graphique/` ; marketing :
+    iPhone, `Captures stores (1.0.54)/` — refaites le 2026-11-14 avec Découvrir et Secret Santa, sources et LISEZMOI dans `03_Marketing/05_Captures_app/Captures stores (sources)/`). Charte graphique : `~/Desktop/01-EvLY/02_Charte_graphique/` ; marketing :
     `03_Marketing/` (associations, réseaux sociaux, vidéos, captures) ; anciennes versions : `99_Archives/`.
     **Envoi iPhone (équipe Apple `LDRKKV8GR7`)** — validé le 2026-10-02 (build 1
     envoyé) : aucun iPhone n'est enregistré dans le compte, donc la signature
