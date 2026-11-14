@@ -563,6 +563,9 @@ Conséquences pratiques :
     avec Google (deux apps)**, Père Noël secret (« organise aussi le tien », image de la révélation à partager, « Nouvel An ensemble »), capsules
     repliables. Nouveau profil App Store avec « Sign in with Apple » : `1414f4c8-d486-46d1-b718-921b9482d5a2.mobileprovision` (l'ancien `c1bdcf3b…`
     ne l'a pas) ; obtenu par un export local (`destination export`) avec `-allowProvisioningUpdates`.
+    **Version 1.0.54** (2026-11-14) : Android `versionCode` 56 (`evly-1.0.54-(56).aab`), iOS build 61 envoyé — Découvrir : carte swisstopo
+    (« Liste | Carte »), « Y aller avec un Cercle » sur les idées de sorties, plein air, hiver, bars et discothèques, Suisse Tourisme (balades et
+    randonnées), « Près de … » pour les lieux sans adresse.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
