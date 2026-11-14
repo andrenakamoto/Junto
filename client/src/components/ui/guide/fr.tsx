@@ -305,12 +305,12 @@ const groups: Group[] = [
           compte pour cet événement et commentez à plusieurs ; touche son téléphone pour l'appeler. Les <strong>montants</strong> (devis,
           acompte, solde, échéances) et les <strong>documents</strong> (devis, contrat, facture) ne sont visibles que par les organisateurs
           (créateur du Plan, créateur et organisateurs du Cercle), qui seuls marquent « payé ». Rappels : 3 jours avant un acompte ou un solde,
-          et une relance si un devis demandé n'est pas arrivé après 7 jours. Le carnet complet s'ouvre depuis le menu ⋯ du Cercle.</P>,
+          et une relance si un devis demandé n'est pas arrivé après 7 jours. Le carnet complet s'ouvre depuis le menu ⋯ du Cercle (à cocher dans ses réglages, « Outils du Cercle » ; déjà là dans une Organisation).</P>,
       },
       {
         id: 'materiel', emoji: '📦', title: 'Matériel', summary: 'Sono, tables, tentes : réserver et savoir qui l’a',
-        body: <><P><strong>Inventaire</strong> : menu ⋯ du Cercle → « Inventaire du matériel » (dans une Organisation, il est commun à tous ses Cercles). L’organisation y note chaque objet avec sa quantité, son rangement et son état ; tout le monde voit <strong>où il se trouve</strong> : au rangement ou chez qui, et ses prochaines réservations.</P>
-          <P>Dans un Plan, active <strong>« Matériel »</strong> (Préparer en équipe) : « Réserver du matériel » montre ce qui est libre sur la période du Plan et prévient s’il en manque (déjà réservé ailleurs). Au moment de le prendre, touche <strong>« Je le prends »</strong> ; au retour, <strong>« Rendu »</strong> avec l’état (en ordre, abîmé ou il en manque).</P>
+        body: <><P><strong>Inventaire</strong> : menu ⋯ du Cercle → « Inventaire du matériel » (à cocher dans les réglages du Cercle, « Outils du Cercle » ; déjà là dans une Organisation, où il est commun à tous ses Cercles). L’organisation y note chaque objet avec sa quantité, son rangement et son état ; tout le monde voit <strong>où il se trouve</strong> : au rangement ou chez qui, et ses prochaines réservations.</P>
+          <P>Dans un Plan, active <strong>« Matériel »</strong> (Préparer en équipe) : « Réserver du matériel » demande d’abord les dates de <strong>prise</strong> et de <strong>retour</strong> (souvent la veille et le lendemain), puis tu coches tout ce qu’il te faut d’un coup : les dates valent pour chaque objet, et tu peux en changer pour un seul. EvLY montre ce qui est libre sur ces dates et prévient s’il en manque (déjà réservé ailleurs). Au moment de le prendre, touche <strong>« Je le prends »</strong> ; au retour, <strong>« Rendu »</strong> avec l’état (en ordre, abîmé ou il en manque).</P>
           <P>Pas rendu le lendemain de la fin ? Un rappel part à la personne qui l’a. Dans une Organisation, le cockpit liste le matériel pas rendu, les conflits de réservation et ce qui est en réparation.</P></>,
       },
       {

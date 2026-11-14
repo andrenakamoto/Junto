@@ -303,12 +303,12 @@ const groups: Group[] = [
           number to call. The <strong>amounts</strong> (quote, deposit, balance, due dates) and the <strong>documents</strong> (quote, contract,
           invoice) are only visible to the organisers (whoever created the Plan, whoever created the Circle and its organisers), who alone can mark
           “paid”. Reminders: 3 days before a deposit or balance is due, and a follow-up if a requested quote hasn't arrived after 7 days. The full
-          supplier book opens from the Circle's ⋯ menu.</P>,
+          supplier book opens from the Circle's ⋯ menu (tick it in the Circle’s settings, “Circle tools”; already there in an Organisation).</P>,
       },
       {
         id: 'materiel', emoji: '📦', title: 'Equipment', summary: 'Sound, tables, tents: book them and know who has them',
-        body: <><P><strong>Inventory</strong>: the Circle’s ⋯ menu → “Equipment inventory” (in an Organisation it’s shared by all its Circles). The organisers list each item with its quantity, storage place and condition; everyone can see <strong>where it is</strong>: in storage or with whom, and its next bookings.</P>
-          <P>In a Plan, turn on <strong>“Equipment”</strong> (Prepare as a team): “Book equipment” shows what’s free during the Plan and warns if some is short (already booked elsewhere). When you pick it up, tap <strong>“I’ll take it”</strong>; when you bring it back, <strong>“Returned”</strong> with its condition (fine, damaged or some missing).</P>
+        body: <><P><strong>Inventory</strong>: the Circle’s ⋯ menu → “Equipment inventory” (tick it in the Circle’s settings, “Circle tools”; already there in an Organisation, where it’s shared by all its Circles). The organisers list each item with its quantity, storage place and condition; everyone can see <strong>where it is</strong>: in storage or with whom, and its next bookings.</P>
+          <P>In a Plan, turn on <strong>“Equipment”</strong> (Prepare as a team): “Book equipment” first asks for the <strong>pick-up</strong> and <strong>return</strong> dates (often the day before and the day after), then you tick everything you need at once: the dates apply to every item, and you can change them for just one. EvLY shows what’s free on those dates and warns if some is short (already booked elsewhere). When you pick it up, tap <strong>“I’ll take it”</strong>; when you bring it back, <strong>“Returned”</strong> with its condition (fine, damaged or some missing).</P>
           <P>Not returned the day after the end? The person who has it gets a reminder. In an Organisation, the cockpit lists unreturned equipment, booking conflicts and what’s under repair.</P></>,
       },
       {

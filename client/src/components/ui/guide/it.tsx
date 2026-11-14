@@ -306,12 +306,12 @@ const groups: Group[] = [
           insieme; tocca il suo telefono per chiamarlo. Gli <strong>importi</strong> (preventivo, acconto, saldo, scadenze) e i <strong>documenti</strong>
           (preventivo, contratto, fattura) sono visibili solo agli organizzatori (chi ha creato il Plan, chi ha creato il Cerchio e i suoi
           organizzatori), che sono gli unici a segnare «pagato». Promemoria: 3 giorni prima di un acconto o di un saldo, e un sollecito se un
-          preventivo chiesto non è arrivato dopo 7 giorni. La rubrica completa si apre dal menu ⋯ del Cerchio.</P>,
+          preventivo chiesto non è arrivato dopo 7 giorni. La rubrica completa si apre dal menu ⋯ del Cerchio (da spuntare nelle sue impostazioni, «Strumenti del Cerchio»; già presente in un’Organizzazione).</P>,
       },
       {
         id: 'materiel', emoji: '📦', title: 'Materiale', summary: 'Audio, tavoli, tende: prenotare e sapere chi li ha',
-        body: <><P><strong>Inventario</strong>: menu ⋯ del Cerchio → «Inventario del materiale» (in un’Organizzazione è comune a tutti i suoi Cerchi). L’organizzazione vi annota ogni oggetto con quantità, deposito e stato; tutti vedono <strong>dove si trova</strong>: in deposito o da chi, e le prossime prenotazioni.</P>
-          <P>In un Plan, attiva <strong>«Materiale»</strong> (Preparare in squadra): «Prenota materiale» mostra cosa è libero nel periodo del Plan e avvisa se ne manca (già prenotato altrove). Quando lo prendi tocca <strong>«Lo prendo io»</strong>; alla restituzione <strong>«Restituito»</strong> con lo stato (in ordine, danneggiato o ne manca).</P>
+        body: <><P><strong>Inventario</strong>: menu ⋯ del Cerchio → «Inventario del materiale» (da spuntare nelle impostazioni del Cerchio, «Strumenti del Cerchio»; già presente in un’Organizzazione, dove è comune a tutti i suoi Cerchi). L’organizzazione vi annota ogni oggetto con quantità, deposito e stato; tutti vedono <strong>dove si trova</strong>: in deposito o da chi, e le prossime prenotazioni.</P>
+          <P>In un Plan, attiva <strong>«Materiale»</strong> (Preparare in squadra): «Prenota materiale» chiede prima le date di <strong>ritiro</strong> e di <strong>restituzione</strong> (spesso il giorno prima e il giorno dopo), poi spunti tutto quello che ti serve in una volta: le date valgono per ogni oggetto e puoi cambiarle per uno solo. EvLY mostra cosa è libero in quelle date e avvisa se ne manca (già prenotato altrove). Quando lo prendi tocca <strong>«Lo prendo io»</strong>; alla restituzione <strong>«Restituito»</strong> con lo stato (in ordine, danneggiato o ne manca).</P>
           <P>Non restituito il giorno dopo la fine? Parte un promemoria per chi lo ha. In un’Organizzazione, il cockpit elenca il materiale non restituito, i conflitti di prenotazione e ciò che è in riparazione.</P></>,
       },
       {

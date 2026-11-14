@@ -321,6 +321,8 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Matériel introuvable': ['Material nicht gefunden', 'Materiale non trovato', 'Equipment not found'],
   'Ce matériel est en réparation ou hors service': ['Dieses Material ist in Reparatur oder ausser Betrieb', 'Questo materiale è in riparazione o fuori servizio', 'This equipment is under repair or out of service'],
   'La fin doit venir après le début': ['Das Ende muss nach dem Beginn liegen', 'La fine deve venire dopo l’inizio', 'The end must come after the start'],
+  'Le retour doit venir après la prise': ['Die Rückgabe muss nach der Abholung liegen', 'La restituzione deve venire dopo il ritiro', 'The return must come after the pick-up'],
+  'Choisis au moins un objet': ['Wähle mindestens einen Gegenstand', 'Scegli almeno un oggetto', 'Choose at least one item'],
   'Réservation introuvable': ['Reservierung nicht gefunden', 'Prenotazione non trovata', 'Booking not found'],
   'Seuls la personne qui l’a réservé et l’organisation peuvent le modifier': ['Nur die Person, die es reserviert hat, und die Organisation können es ändern', 'Solo chi l’ha prenotato e l’organizzazione possono modificarlo', 'Only the person who booked it and the organisers can change it'],
   'Ce matériel est sorti : indique d’abord qu’il est rendu': ['Dieses Material ist ausgeliehen: gib zuerst an, dass es zurück ist', 'Questo materiale è fuori: indica prima che è stato restituito', 'This equipment is out: mark it as returned first'],

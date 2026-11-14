@@ -51,7 +51,9 @@ planEquipmentRoutes.get('/:id/equipment', async (req: AuthRequest, res) => {
   const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, circleId: true, creatorId: true, eventDate: true, endDate: true } });
   if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const scope = await inventoryScope(plan.circleId);
-  const period = planPeriod(plan);
+  // Disponibilités calculées sur la période demandée (?from=&to=, dates de prise et de retour), sinon celle du Plan
+  const asked = { startsAt: toDate(req.query.from), endsAt: toDate(req.query.to) };
+  const period = asked.startsAt && asked.endsAt && asked.endsAt > asked.startsAt ? { startsAt: asked.startsAt, endsAt: asked.endsAt } : planPeriod(plan);
   const [bookings, items] = await Promise.all([
     prisma.equipmentBooking.findMany({ where: { planId: plan.id }, include: bookingInclude, orderBy: { createdAt: 'asc' } }),
     scope ? prisma.equipmentItem.findMany({
@@ -92,13 +94,55 @@ planEquipmentRoutes.post('/:id/equipment', async (req: AuthRequest, res) => {
   const def = planPeriod(plan);
   const startsAt = toDate(req.body.startsAt) ?? def.startsAt;
   const endsAt = toDate(req.body.endsAt) ?? def.endsAt;
-  if (endsAt <= startsAt) { res.status(400).json({ error: 'La fin doit venir après le début' }); return; }
+  if (endsAt <= startsAt) { res.status(400).json({ error: 'Le retour doit venir après la prise' }); return; }
   const available = availableFor(item, item.bookings, { startsAt, endsAt });
   const booking = await prisma.equipmentBooking.create({
     data: { itemId: item.id, planId: plan.id, planTitle: plan.title, circleId: plan.circleId, quantity, startsAt, endsAt, createdById: req.userId! },
     include: bookingInclude,
   });
   res.json({ booking: shape(booking), shortBy: Math.max(0, quantity - available) });
+});
+
+// POST /:id/equipment/batch { startsAt, endsAt, items: [{ itemId, quantity, startsAt?, endsAt? }] } — réserver plusieurs objets d'un coup :
+// les dates de prise et de retour valent pour tous, chaque objet peut avoir les siennes (2026-11-14)
+planEquipmentRoutes.post('/:id/equipment/batch', async (req: AuthRequest, res) => {
+  const plan = await prisma.plan.findUnique({ where: { id: req.params.id }, select: { id: true, title: true, circleId: true, creatorId: true, eventDate: true, endDate: true, enabledFeatures: true } });
+  const access = plan && await getPlanAccess(req.userId!, plan.id);
+  if (!plan || !access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!plan.enabledFeatures.includes(EQUIPMENT_FEATURE)) { res.status(400).json({ error: 'La rubrique Matériel n’est pas activée pour ce Plan' }); return; }
+  if (!(await canWorkOnPlan(req.userId!, plan))) { res.status(403).json({ error: 'Réponds d’abord « Je suis in » ou « Peut-être »' }); return; }
+  const list = Array.isArray(req.body?.items) ? req.body.items : [];
+  if (list.length < 1 || list.length > 50) { res.status(400).json({ error: 'Choisis au moins un objet' }); return; }
+  const def = planPeriod(plan);
+  const start0 = req.body.startsAt === undefined ? def.startsAt : toDate(req.body.startsAt);
+  const end0 = req.body.endsAt === undefined ? def.endsAt : toDate(req.body.endsAt);
+  if (!start0 || !end0 || end0 <= start0) { res.status(400).json({ error: 'Le retour doit venir après la prise' }); return; }
+  const scope = await inventoryScope(plan.circleId);
+  if (!scope) { res.status(404).json({ error: 'Matériel introuvable' }); return; }
+  const ids = list.map((x: any) => x?.itemId).filter((x: unknown): x is string => typeof x === 'string');
+  const items = await prisma.equipmentItem.findMany({ where: { id: { in: ids }, ...scope, archivedAt: null }, include: { bookings: { where: { returnedAt: null } } } });
+  const rows: { item: (typeof items)[number]; quantity: number; startsAt: Date; endsAt: Date }[] = [];
+  for (const x of list) {
+    const item = items.find(i => i.id === x?.itemId);
+    if (!item) { res.status(404).json({ error: 'Matériel introuvable' }); return; }
+    if (item.status !== 'ok') { res.status(400).json({ error: 'Ce matériel est en réparation ou hors service' }); return; }
+    const quantity = Number(x.quantity ?? 1);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > item.quantity) { res.status(400).json({ error: `Quantité : de 1 à ${item.quantity}` }); return; }
+    const startsAt = x.startsAt === undefined || x.startsAt === null ? start0 : toDate(x.startsAt);
+    const endsAt = x.endsAt === undefined || x.endsAt === null ? end0 : toDate(x.endsAt);
+    if (!startsAt || !endsAt || endsAt <= startsAt) { res.status(400).json({ error: 'Le retour doit venir après la prise' }); return; }
+    rows.push({ item, quantity, startsAt, endsAt });
+  }
+  const created = await prisma.$transaction(rows.map(r => prisma.equipmentBooking.create({
+    data: { itemId: r.item.id, planId: plan.id, planTitle: plan.title, circleId: plan.circleId, quantity: r.quantity, startsAt: r.startsAt, endsAt: r.endsAt, createdById: req.userId! },
+    include: bookingInclude,
+  })));
+  // Manques : calculés avec les autres réservations de la même demande
+  const short = rows.map((r, i) => {
+    const others = rows.filter((o, j) => j < i && o.item.id === r.item.id).map(o => ({ id: `new-${o.item.id}`, quantity: o.quantity, startsAt: o.startsAt, endsAt: o.endsAt, returnedAt: null }));
+    return { name: r.item.name, shortBy: Math.max(0, r.quantity - availableFor(r.item, [...r.item.bookings, ...others], { startsAt: r.startsAt, endsAt: r.endsAt })) };
+  }).filter(x => x.shortBy > 0);
+  res.json({ bookings: created.map(b => shape(b)), short });
 });
 
 async function editableBooking(req: AuthRequest, res: any) {
@@ -120,7 +164,7 @@ planEquipmentRoutes.put('/equipment/:bookingId', async (req: AuthRequest, res) =
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > item.quantity) { res.status(400).json({ error: `Quantité : de 1 à ${item.quantity}` }); return; }
   const startsAt = req.body?.startsAt === undefined ? b.startsAt : toDate(req.body.startsAt);
   const endsAt = req.body?.endsAt === undefined ? b.endsAt : toDate(req.body.endsAt);
-  if (!startsAt || !endsAt || endsAt <= startsAt) { res.status(400).json({ error: 'La fin doit venir après le début' }); return; }
+  if (!startsAt || !endsAt || endsAt <= startsAt) { res.status(400).json({ error: 'Le retour doit venir après la prise' }); return; }
   const updated = await prisma.equipmentBooking.update({ where: { id: b.id }, data: { quantity, startsAt, endsAt, reminderSentAt: null }, include: bookingInclude });
   const available = availableFor(item, item.bookings, { startsAt, endsAt }, b.id);
   res.json({ booking: shape(updated), shortBy: Math.max(0, quantity - available) });

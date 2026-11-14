@@ -56,7 +56,6 @@ export function EquipmentTab({ plan, userId }: { plan: Plan; userId: string }) {
 
   if (!data) return <div className="flex-1 bg-slate-50" />;
   const canEdit = (b: Booking) => data.canManagePlan || data.canManageInventory || b.createdById === userId;
-  const samePeriod = (b: Booking) => b.startsAt === data.period.startsAt && b.endsAt === data.period.endsAt;
 
   return (
     <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 bg-slate-50 space-y-4 short:flex-none short:overflow-visible">
@@ -94,8 +93,8 @@ export function EquipmentTab({ plan, userId }: { plan: Plan; userId: string }) {
                     <p className="text-sm font-semibold text-slate-800 break-words">{b.quantity > 1 ? `${b.quantity} × ` : ''}{b.item.name}</p>
                     <p className="text-xs text-slate-500">
                       {t(`equipment.categories.${b.item.category}` as any)}{b.item.location ? ` · ${b.item.location}` : ''}
-                      {!samePeriod(b) && <> · {fmt(b.startsAt)} → {fmt(b.endsAt)}</>}
                     </p>
+                    {!b.returnedAt && <p className="text-xs text-slate-600 mt-0.5">{t('equipment.datesLine', { from: fmt(b.startsAt), to: fmt(b.endsAt) })}</p>}
                     {b.takenAt && !b.returnedAt && <p className="text-xs text-slate-600 mt-1">{t('equipment.outBy', { who: personName(b.takenBy), date: fmtDay(b.takenAt) })}</p>}
                     {b.returnedAt && (
                       <p className="text-xs text-slate-600 mt-1">
@@ -134,7 +133,7 @@ export function EquipmentTab({ plan, userId }: { plan: Plan; userId: string }) {
         </div>
       )}
 
-      {adding && <BookModal plan={plan} data={data} onClose={() => setAdding(false)} onBooked={short => { setAdding(false); setWarning(short > 0 ? t('equipment.shortBy', { count: short }) : ''); load(); }} />}
+      {adding && <BookModal plan={plan} data={data} onClose={() => setAdding(false)} onBooked={w => { setAdding(false); setWarning(w); load(); }} />}
       {editing && <EditBookingModal booking={editing} max={data.inventory.find(i => i.id === editing.itemId)?.quantity ?? editing.quantity} onClose={() => setEditing(null)}
         onSaved={short => { setEditing(null); setWarning(short > 0 ? t('equipment.shortBy', { count: short }) : ''); load(); }} />}
       {returning && <ReturnModal booking={returning} onClose={() => setReturning(null)} onDone={() => { setReturning(null); load(); }} />}
@@ -164,75 +163,119 @@ function PeriodFields({ start, end, onStart, onEnd }: { start: string; end: stri
   );
 }
 
-function BookModal({ plan, data, onClose, onBooked }: { plan: Plan; data: Data; onClose: () => void; onBooked: (shortBy: number) => void }) {
+// Réserver (2026-11-14) : les dates de prise et de retour d'abord, valables pour tout le matériel coché ; chaque objet peut avoir
+// les siennes (« Autres dates pour cet objet »). Les disponibilités sont recalculées pour les dates choisies.
+interface Pick { quantity: number; own: boolean; start: string; end: string }
+function BookModal({ plan, data, onClose, onBooked }: { plan: Plan; data: Data; onClose: () => void; onBooked: (warning: string) => void }) {
+  // Dates proposées : celles de la dernière réservation du Plan (souvent les mêmes), sinon celles du Plan
+  const last = data.bookings.filter(b => !b.returnedAt).slice(-1)[0];
+  const [start, setStart] = useState(isoToLocal(last?.startsAt ?? data.period.startsAt));
+  const [end, setEnd] = useState(isoToLocal(last?.endsAt ?? data.period.endsAt));
+  const [inventory, setInventory] = useState(data.inventory);
+  const [picks, setPicks] = useState<Record<string, Pick>>({});
   const [q, setQ] = useState('');
-  const [itemId, setItemId] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [start, setStart] = useState(isoToLocal(data.period.startsAt));
-  const [end, setEnd] = useState(isoToLocal(data.period.endsAt));
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const list = data.inventory.filter(i => !q.trim() || norm(`${i.name} ${t(`equipment.categories.${i.category}` as any)}`).includes(norm(q.trim())));
-  const item = data.inventory.find(i => i.id === itemId);
+  const datesOk = !!start && !!end && localToISO(end) > localToISO(start);
+
+  // Disponibilités sur les dates choisies
+  useEffect(() => {
+    if (!datesOk) return;
+    const id = setTimeout(() => {
+      api.get(`/plans/${plan.id}/equipment`, { params: { from: localToISO(start), to: localToISO(end) } })
+        .then(r => setInventory(r.data.inventory)).catch(() => {});
+    }, 300);
+    return () => clearTimeout(id);
+  }, [plan.id, start, end, datesOk]);
+
+  const list = inventory.filter(i => !q.trim() || norm(`${i.name} ${t(`equipment.categories.${i.category}` as any)}`).includes(norm(q.trim())));
+  const chosen = Object.entries(picks);
+  const toggle = (i: InventoryItem) => setPicks(p => {
+    const next = { ...p };
+    if (next[i.id]) delete next[i.id];
+    else next[i.id] = { quantity: Math.max(1, Math.min(i.available || 1, i.quantity)), own: false, start, end };
+    return next;
+  });
+  const update = (id: string, patch: Partial<Pick>) => setPicks(p => ({ ...p, [id]: { ...p[id], ...patch } }));
 
   async function submit() {
-    if (!item) return;
+    if (!chosen.length) { setError(t('equipment.selectNone')); return; }
+    if (!datesOk) { setError(t('common.retryError')); return; }
     setSending(true); setError('');
     try {
-      const { data: r } = await api.post(`/plans/${plan.id}/equipment`, { itemId: item.id, quantity, startsAt: localToISO(start), endsAt: localToISO(end) });
-      onBooked(r.shortBy ?? 0);
+      const { data: r } = await api.post(`/plans/${plan.id}/equipment/batch`, {
+        startsAt: localToISO(start), endsAt: localToISO(end),
+        items: chosen.map(([itemId, x]) => ({ itemId, quantity: x.quantity, ...(x.own ? { startsAt: localToISO(x.start), endsAt: localToISO(x.end) } : {}) })),
+      });
+      const short: { name: string; shortBy: number }[] = r.short ?? [];
+      onBooked(short.length ? t('equipment.shortList', { list: short.map(x => `${x.name} (${x.shortBy})`).join(', ') }) : '');
     } catch (err) { setError(errorOf(err)); } finally { setSending(false); }
   }
 
   return (
     <Modal title={t('equipment.add')} onClose={onClose}>
-      {!item ? (
-        <div className="space-y-3">
-          {data.inventory.length > 6 && (
+      <div className="space-y-4">
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3 space-y-2">
+          <p className="text-sm font-semibold text-slate-800">{t('equipment.period')}</p>
+          <PeriodFields start={start} end={end} onStart={setStart} onEnd={setEnd} />
+          <p className="text-xs text-slate-500">{t('equipment.datesHint')}</p>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-slate-800">{t('equipment.choose')}</p>
+          {inventory.length > 6 && (
             <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white">
               <Search size={15} className="text-slate-400" />
               <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('equipment.search')} className="flex-1 text-sm outline-none" />
             </label>
           )}
-          <div className="space-y-1.5 max-h-[55vh] overflow-y-auto">
-            {list.map(i => (
-              <button key={i.id} disabled={i.status !== 'ok'} onClick={() => { setItemId(i.id); setQuantity(Math.max(1, Math.min(i.available || 1, i.quantity))); }}
-                className="w-full text-left rounded-xl border border-slate-200 bg-white px-3 py-2.5 hover:border-indigo-300 hover:bg-indigo-50/40 disabled:opacity-50">
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-slate-800">{i.name}</span>
-                  <span className={`text-xs font-semibold flex-shrink-0 ${i.available === 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-                    {i.status !== 'ok' ? t(`equipment.inventory.statuses.${i.status}` as any) : i.available === 0 ? t('equipment.availableNone') : t('equipment.available', { count: i.available, total: i.quantity })}
-                  </span>
-                </span>
-                <span className="block text-xs text-slate-500">{t(`equipment.categories.${i.category}` as any)}{i.location ? ` · ${i.location}` : ''}</span>
-                {i.busyIn.length > 0 && <span className="block text-[11px] text-amber-700 mt-0.5">{t('equipment.busyIn', { list: i.busyIn.map(b => `${b.planTitle} (${b.quantity})`).join(', ') })}</span>}
-              </button>
-            ))}
+          <div className="space-y-1.5">
+            {list.map(i => {
+              const p = picks[i.id];
+              const usable = i.status === 'ok';
+              return (
+                <div key={i.id} className={`rounded-xl border bg-white ${p ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200'} ${usable ? '' : 'opacity-50'}`}>
+                  <label className={`flex items-start gap-2.5 px-3 py-2.5 ${usable ? 'cursor-pointer' : ''}`}>
+                    <input type="checkbox" checked={!!p} disabled={!usable} onChange={() => toggle(i)} className="mt-1 accent-indigo-600 w-4 h-4" />
+                    <span className="flex-1 min-w-0">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-slate-800">{i.name}</span>
+                        <span className={`text-xs font-semibold flex-shrink-0 ${i.available === 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+                          {!usable ? t(`equipment.inventory.statuses.${i.status}` as any) : i.available === 0 ? t('equipment.availableNone') : t('equipment.available', { count: i.available, total: i.quantity })}
+                        </span>
+                      </span>
+                      <span className="block text-xs text-slate-500">{t(`equipment.categories.${i.category}` as any)}{i.location ? ` · ${i.location}` : ''}</span>
+                      {i.busyIn.length > 0 && <span className="block text-[11px] text-amber-700 mt-0.5">{t('equipment.busyIn', { list: i.busyIn.map(b => `${b.planTitle} (${b.quantity})`).join(', ') })}</span>}
+                    </span>
+                  </label>
+                  {p && (
+                    <div className="px-3 pb-3 pl-9 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-medium text-slate-600">{t('equipment.quantity')}</span>
+                        <Stepper value={p.quantity} max={i.quantity} onChange={n => update(i.id, { quantity: n })} />
+                      </div>
+                      {!p.own && p.quantity > i.available && (
+                        <p className="flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 rounded-lg px-2.5 py-1.5"><AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />{t('equipment.shortBy', { count: p.quantity - i.available })}</p>
+                      )}
+                      <button type="button" onClick={() => update(i.id, { own: !p.own, start: p.own ? p.start : start, end: p.own ? p.end : end })} className="text-xs font-semibold text-indigo-600 hover:underline">
+                        {p.own ? t('equipment.sameDates') : t('equipment.otherDates')}
+                      </button>
+                      {p.own && <PeriodFields start={p.start} end={p.end} onStart={v => update(i.id, { start: v })} onEnd={v => update(i.id, { end: v })} />}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm font-semibold text-slate-800">{item.name}</p>
-            <p className="text-xs text-slate-500">{t('equipment.available', { count: item.available, total: item.quantity })}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-700 mb-1.5">{t('equipment.quantity')}</p>
-            <Stepper value={quantity} max={item.quantity} onChange={setQuantity} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-700 mb-1.5">{t('equipment.period')}</p>
-            <PeriodFields start={start} end={end} onStart={setStart} onEnd={setEnd} />
-          </div>
-          {quantity > item.available && <p className="flex items-start gap-2 text-xs text-amber-800 bg-amber-50 rounded-lg px-3 py-2"><AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />{t('equipment.shortBy', { count: quantity - item.available })}</p>}
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex gap-2">
-            <button onClick={() => setItemId(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600">{t('equipment.cancel')}</button>
-            <button onClick={submit} disabled={sending} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{t('equipment.book')}</button>
-          </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="sticky bottom-0 bg-white pt-2 flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600">{t('equipment.cancel')}</button>
+          <button onClick={submit} disabled={sending} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">
+            {chosen.length ? t('equipment.bookCount', { count: chosen.length }) : t('equipment.book')}
+          </button>
         </div>
-      )}
+      </div>
     </Modal>
   );
 }

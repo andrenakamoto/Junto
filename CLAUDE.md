@@ -1901,7 +1901,18 @@ hors du routeur des Plans (lecture seule après la fin). Inventaire : GET / POST
 en retard, prochaines réservations, historique), filtre « Pas encore rendu », l'organisation enregistre un retour depuis l'inventaire. Menu ⋯ du
 Cercle « Inventaire du matériel ». Rappel **dès 12 h après la fin** à la personne qui l'a (`sendEquipmentReminders`, horaire, gated, une fois,
 `plan_activity` avec `tab: 'materiel'`). **Cockpit** : bloc « Matériel » (pas rendu, conflits, en réparation) et lignes dans le résumé du lundi.
-Section `materiel` des pastilles. Fiche « Matériel » du guide, politique de confidentialité (13 novembre 2026). Pas dans la démo ni le
+Section `materiel` des pastilles. Fiche « Matériel » du guide, politique de confidentialité (13 novembre 2026).
+**Outils du Cercle** (2026-11-14, demande de l'utilisateur, migration `20261128100000_circle_tools`) : `Circle.suppliersEnabled` /
+`equipmentEnabled` affichent « Carnet des fournisseurs » / « Inventaire du matériel » dans le menu ⋯ du Cercle (`PlanList`). **Désactivés à
+la création d'un Cercle ordinaire** (anciennes apps comprises), **activés dans une Organisation** ; case « Outils du Cercle »
+(`CircleToolsField`) dans la création et les réglages (historique `CircleChangeLog`). Un Plan qui active « Fournisseurs » ou « Matériel » les
+allume dans son Cercle (`enableCircleTools` de `lib/settings.ts`, création et PUT /plans/:id). La migration a activé les Cercles
+d'Organisation et ceux qui s'en servaient déjà. Les fonctions des Plans ne dépendent pas de ces cases.
+**Réservation du matériel avec dates de prise et de retour** (même date) : « Réserver du matériel » demande d'abord **Prise** et **Retour**
+(proposés d'après la dernière réservation du Plan, sinon les dates du Plan), puis on coche plusieurs objets d'un coup, chacun avec sa quantité
+et, au besoin, « Autres dates pour cet objet ». POST `/plans/:id/equipment/batch {startsAt, endsAt, items: [{itemId, quantity, startsAt?,
+endsAt?}]}` (manques renvoyés dans `short`, en comptant la demande elle-même) ; GET `/plans/:id/equipment?from=&to=` calcule les disponibilités
+sur ces dates. POST `/:id/equipment` (un objet) reste pour les apps ≤ 1.0.51. Les dates s'affichent sur chaque réservation. Pas dans la démo ni le
 récapitulatif PDF. Pas fait : objets numérotés, location à des tiers.
 
 **Cockpit des Organisations** (2026-11-13, versions 1 et 2 demandées ensemble, `lib/cockpit.ts` testé, `lib/cockpitDigest.ts`,

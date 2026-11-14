@@ -313,12 +313,12 @@ const groups: Group[] = [
           <strong> Beträge</strong> (Offerte, Anzahlung, Restbetrag, Fristen) und die <strong>Dokumente</strong> (Offerte, Vertrag, Rechnung) sieht
           nur das Organisationsteam (wer den Plan erstellt hat, wer den Kreis erstellt hat und dessen Organisatoren); nur es markiert «bezahlt».
           Erinnerungen: 3 Tage vor einer Anzahlung oder einem Restbetrag, und eine Nachfrage, wenn eine Offerte nach 7 Tagen nicht da ist. Das ganze
-          Adressbuch öffnest du über das Menü ⋯ des Kreises.</P>,
+          Adressbuch öffnest du über das Menü ⋯ des Kreises (in seinen Einstellungen unter «Werkzeuge des Kreises» anzukreuzen; in einer Organisation schon da).</P>,
       },
       {
         id: 'materiel', emoji: '📦', title: 'Material', summary: 'Tontechnik, Tische, Zelte: reservieren und wissen, wer es hat',
-        body: <><P><strong>Inventar</strong>: Menü ⋯ des Kreises → «Materialinventar» (in einer Organisation gemeinsam für alle Kreise). Die Organisation erfasst jeden Gegenstand mit Menge, Aufbewahrung und Zustand; alle sehen, <strong>wo er ist</strong>: am Aufbewahrungsort oder bei wem, und die nächsten Reservierungen.</P>
-          <P>Aktiviere in einem Plan <strong>«Material»</strong> (Im Team vorbereiten): «Material reservieren» zeigt, was im Zeitraum des Plans frei ist, und warnt, wenn etwas fehlt (anderswo schon reserviert). Beim Holen tippe auf <strong>«Ich hole es»</strong>, bei der Rückgabe auf <strong>«Zurückgebracht»</strong> mit dem Zustand (in Ordnung, beschädigt oder es fehlt etwas).</P>
+        body: <><P><strong>Inventar</strong>: Menü ⋯ des Kreises → «Materialinventar» (in den Einstellungen des Kreises unter «Werkzeuge des Kreises» anzukreuzen; in einer Organisation schon da und gemeinsam für alle Kreise). Die Organisation erfasst jeden Gegenstand mit Menge, Aufbewahrung und Zustand; alle sehen, <strong>wo er ist</strong>: am Aufbewahrungsort oder bei wem, und die nächsten Reservierungen.</P>
+          <P>Aktiviere in einem Plan <strong>«Material»</strong> (Im Team vorbereiten): «Material reservieren» fragt zuerst nach den Daten für <strong>Abholung</strong> und <strong>Rückgabe</strong> (oft am Vortag und am Tag danach), dann kreuzt du alles auf einmal an: Die Daten gelten für jeden Gegenstand, für einen einzelnen kannst du sie ändern. EvLY zeigt, was an diesen Daten frei ist, und warnt, wenn etwas fehlt (anderswo schon reserviert). Beim Holen tippe auf <strong>«Ich hole es»</strong>, bei der Rückgabe auf <strong>«Zurückgebracht»</strong> mit dem Zustand (in Ordnung, beschädigt oder es fehlt etwas).</P>
           <P>Am Tag nach dem Ende nicht zurück? Die Person, die es hat, bekommt eine Erinnerung. In einer Organisation zeigt das Cockpit nicht zurückgegebenes Material, Reservierungskonflikte und was in Reparatur ist.</P></>,
       },
       {
