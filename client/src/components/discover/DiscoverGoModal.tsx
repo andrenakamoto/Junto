@@ -7,12 +7,13 @@ import api from '../../services/api';
 import { Circle } from '../../types';
 import { isCircleManager } from '../../lib/settings';
 import { useAuth } from '../../contexts/AuthContext';
-import { DiscoverEvent } from '../../lib/discover';
+import { DiscoverEvent, DiscoverPlace } from '../../lib/discover';
 import { t } from '../../i18n';
 
 // « Y aller avec un Cercle » depuis Découvrir : choisir un Cercle, puis la fenêtre « Créer un Plan » pré-remplie
-// (titre, dates, lieu, lien « Plus d'infos » dans la description)
-export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onClose: () => void }) {
+// (titre, dates, lieu, lien « Plus d'infos » dans la description). Idée de sortie (lieu, 2026-11-14) : titre et lieu seulement,
+// la date reste à choisir
+export function DiscoverGoModal({ event, place, onClose }: { event?: DiscoverEvent; place?: DiscoverPlace; onClose: () => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [circles, setCircles] = useState<Circle[] | null>(null);
@@ -24,7 +25,18 @@ export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onCl
       .catch(() => setCircles([]));
   }, []);
 
-  if (chosen) {
+  if (chosen && place) {
+    return (
+      <CreatePlanModal
+        circleId={chosen.id}
+        circleMembers={chosen.members}
+        fromEvent={{ title: place.name, eventDate: null, endDate: '', location: [place.name, place.address ?? place.city].filter(Boolean).join(', '), url: place.website }}
+        onClose={() => setChosen(null)}
+        onCreated={created => { onClose(); navigate(`/dashboard?planId=${created.id}`); }}
+      />
+    );
+  }
+  if (chosen && event) {
     // Événement sur plusieurs jours (exposition, festival…) : une sortie de 3 heures à ajuster, pas toute la durée,
     // et aujourd'hui plutôt que le premier jour s'il a déjà commencé
     const multi = event.multiDay || (!!event.endAt && new Date(event.endAt).toDateString() !== new Date(event.startAt).toDateString());
@@ -43,7 +55,7 @@ export function DiscoverGoModal({ event, onClose }: { event: DiscoverEvent; onCl
 
   return (
     <Modal title={t('plan.goWith.title')} onClose={onClose}>
-      <p className="text-sm text-slate-500 mb-2">{event.title}</p>
+      <p className="text-sm text-slate-500 mb-2">{event?.title ?? place?.name}</p>
       <p className="text-xs text-slate-500 mb-4">{t('discover.checkBefore')}</p>
       {circles === null ? (
         <p className="text-sm text-slate-400">…</p>

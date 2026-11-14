@@ -65,8 +65,8 @@ export function CreatePlanModal({ circleId: fixedCircleId, circleMembers: fixedM
   const [title, setTitle] = useState(fromPoll?.suggestedTitle ?? suggestedTitle ?? (fromEvent ? t('plan.goWith.titleSuggestion', { title: fromEvent.title }) : preset?.title ?? ''));
   const [description, setDescription] = useState(fromEvent?.url ? t('plan.goWith.moreInfo', { url: fromEvent.url }) : '');
   const [eventDate, setEventDate] = useState(isoToLocal(fromPoll?.suggestedEventDateISO ?? fromEvent?.eventDate) || fromAvailability?.start || preset?.start || '');
-  const [endDate, setEndDate] = useState(preset?.end ? preset.end : fromEvent ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
-  const [endTouched, setEndTouched] = useState(!!fromEvent || !!preset?.end);
+  const [endDate, setEndDate] = useState(preset?.end ? preset.end : fromEvent?.endDate ? isoToLocal(fromEvent.endDate) : fromPoll?.suggestedEventDateISO ? addDefaultDuration(isoToLocal(fromPoll.suggestedEventDateISO)) : fromAvailability ? addDefaultDuration(fromAvailability.start) : '');
+  const [endTouched, setEndTouched] = useState(!!fromEvent?.endDate || !!preset?.end);
   const [location, setLocation] = useState(fromEvent?.location ?? preset?.location ?? '');
   // Lieu « À définir » : le Plan est créé sans lieu (le serveur l'accepte avec `locationTbd`)
   const [placeTbd, setPlaceTbd] = useState(false);

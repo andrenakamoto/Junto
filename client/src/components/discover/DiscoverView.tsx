@@ -40,6 +40,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [ideaKind, setIdeaKind] = useState<string | null>(null);
   const [ideaCity, setIdeaCity] = useState<string | null>(null);
   const [going, setGoing] = useState<DiscoverEvent | null>(null);
+  const [goingPlace, setGoingPlace] = useState<DiscoverPlace | null>(null);
   const [reporting, setReporting] = useState<{ target: { eventId: string } | { placeId: string }; title: string } | null>(null);
   const [showPro, setShowPro] = useState(false);
   // Filtres repliés sur téléphone (sinon ils prennent tout l'écran avant le premier événement)
@@ -152,6 +153,10 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
   function goWith(e: DiscoverEvent) {
     if (user) setGoing(e);
+    else navigate(`/auth?redirect=${encodeURIComponent('/sorties')}`);
+  }
+  function goWithPlace(p: DiscoverPlace) {
+    if (user) setGoingPlace(p);
     else navigate(`/auth?redirect=${encodeURIComponent('/sorties')}`);
   }
 
@@ -294,8 +299,8 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                 </button>
               )}
               {ideas.length > 0 && (searching
-                ? <IdeasSection places={ideas} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
-                : <IdeasBrowser places={ideas} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
+                ? <IdeasSection places={ideas} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
+                : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
                     onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />)}
 
               <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
@@ -319,6 +324,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
       {picking && <PlacePicker value={choice} onChange={choosePlace} onClose={() => setPicking(false)} hereError={choice.here && hereError} />}
       {going && <DiscoverGoModal event={going} onClose={() => setGoing(null)} />}
+      {goingPlace && <DiscoverGoModal place={goingPlace} onClose={() => setGoingPlace(null)} />}
       {reporting && <ReportModal target={reporting.target} title={reporting.title} onClose={() => setReporting(null)} />}
       {showPro && (user?.canPublishDiscover
         ? <Modal title={t('discover.publish.howTitle')} onClose={() => setShowPro(false)}><p className="text-sm text-slate-700">{t('discover.publish.howText')}</p></Modal>
@@ -399,7 +405,8 @@ function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; on
   );
 }
 
-function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
+function IdeaCard({ p, onGo, onReport, onHide }: { p: DiscoverPlace; onGo: (p: DiscoverPlace) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
+  const { user } = useAuth();
   return (
     <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
       <div className="flex-1 min-w-0">
@@ -414,6 +421,10 @@ function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: Dis
             <MapPin size={12} className="mt-px flex-shrink-0 text-slate-400" /><span className="min-w-0">{p.address}</span>
           </a>
         )}
+        <button onClick={() => onGo(p)} title={user ? undefined : t('discover.loginToGo')}
+          className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700">
+          <Users size={12} />{t('discover.goWith')}
+        </button>
       </div>
       {onHide && <button onClick={() => onHide(p)} className="p-1 text-red-400 hover:text-red-600" aria-label="Masquer"><EyeOff size={13} /></button>}
       <button onClick={() => onReport(p)} className="p-1 text-slate-300 hover:text-slate-500" aria-label={t('discover.report')}><Flag size={12} /></button>
@@ -423,8 +434,8 @@ function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: Dis
 
 // Idées de sorties en deux temps : des tuiles par type (avec le nombre de lieux), puis la liste d'un seul type,
 // filtrable par ville dès qu'elle est longue
-function IdeasBrowser({ places, kind, onKind, city, onCity, onReport, onHide }: {
-  places: DiscoverPlace[]; kind: string | null; onKind: (k: string | null) => void;
+function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHide }: {
+  places: DiscoverPlace[]; onGo: (p: DiscoverPlace) => void; kind: string | null; onKind: (k: string | null) => void;
   city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
 }) {
   const count = (k: string) => places.filter(p => p.kind === k).length;
@@ -471,13 +482,13 @@ function IdeasBrowser({ places, kind, onKind, city, onCity, onReport, onHide }: 
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {shown.map(p => <IdeaCard key={p.id} p={p} onReport={onReport} onHide={onHide} />)}
+        {shown.map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} />)}
       </div>
     </section>
   );
 }
 
-function IdeasSection({ places, onReport, onHide }: { places: DiscoverPlace[]; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
+function IdeasSection({ places, onGo, onReport, onHide }: { places: DiscoverPlace[]; onGo: (p: DiscoverPlace) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
   const kinds = [...new Set(places.map(p => p.kind))].sort((a, b) => KIND_ORDER.indexOf(a) - KIND_ORDER.indexOf(b));
   return (
     <section className="space-y-3">
@@ -486,7 +497,7 @@ function IdeasSection({ places, onReport, onHide }: { places: DiscoverPlace[]; o
         <div key={k} className="space-y-2">
           <p className="text-sm font-semibold text-slate-800">{kindLabel(k)}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {places.filter(p => p.kind === k).map(p => <IdeaCard key={p.id} p={p} onReport={onReport} onHide={onHide} />)}
+            {places.filter(p => p.kind === k).map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} />)}
           </div>
         </div>
       ))}
