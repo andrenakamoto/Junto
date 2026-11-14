@@ -1,3 +1,5 @@
+import { encryptMessage } from '../lib/messageCrypto';
+import { verifyAppleIdToken, exchangeAppleCode } from '../lib/appleAuth';
 import { Router } from 'express';
 import { parseLocale, forgetUserLocale, localeFromHeader, requestLocale, type Locale } from '../lib/i18n';
 import { mail } from '../lib/emailText';
@@ -283,14 +285,13 @@ router.post('/login', loginLimiter, async (req, res) => {
 
 router.post('/google', loginLimiter, async (req, res) => {
   const { idToken } = req.body;
-  if (!idToken) { res.status(400).json({ error: 'Token Google manquant' }); return; }
+  if (typeof idToken !== 'string' || !idToken) { res.status(400).json({ error: 'Token Google manquant' }); return; }
   try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    // Site (client web) et apps : l'app iPhone peut recevoir un jeton émis pour son propre client OAuth
+    const audiences = [process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_IOS_CLIENT_ID].filter((x): x is string => !!x);
+    const ticket = await googleClient.verifyIdToken({ idToken, audience: audiences });
     const payload = ticket.getPayload();
-    if (!payload?.email || !payload.sub) {
+    if (!payload?.email || !payload.sub || payload.email_verified === false) {
       res.status(400).json({ error: 'Token Google invalide' }); return;
     }
 
@@ -343,6 +344,61 @@ router.post('/google', loginLimiter, async (req, res) => {
   } catch (e) {
     console.error('[google auth]', e);
     res.status(500).json({ error: 'Erreur lors de la connexion Google' });
+  }
+});
+
+// ─── Connexion avec Apple (app iPhone) ────────────────────────────────────────
+// Corps : identityToken (JWT d'Apple), authorizationCode (pour pouvoir révoquer l'accès à la suppression du compte),
+// firstName / lastName (Apple ne les donne qu'à la toute première connexion), lightToken, src.
+router.post('/apple', loginLimiter, async (req, res) => {
+  const { identityToken, authorizationCode } = req.body;
+  if (typeof identityToken !== 'string' || !identityToken) { res.status(400).json({ error: 'Jeton Apple manquant' }); return; }
+  const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, 50) : null);
+  try {
+    let apple;
+    try { apple = await verifyAppleIdToken(identityToken); }
+    catch (e) { console.error('[apple auth]', (e as Error).message); res.status(401).json({ error: 'Jeton Apple invalide' }); return; }
+    const givenName = text(req.body.firstName), familyName = text(req.body.lastName);
+    const email = apple.email && apple.emailVerified ? apple.email : null;
+
+    // Par l'identifiant Apple, sinon par l'email (vérifié par Apple) d'un compte existant
+    let user = await prisma.user.findUnique({ where: { appleId: apple.sub } });
+    if (!user && email) {
+      const byEmail = await prisma.user.findUnique({ where: { email } });
+      if (byEmail && !byEmail.appleId) user = await prisma.user.update({ where: { id: byEmail.id }, data: { appleId: apple.sub, emailVerified: true } });
+    }
+    if (user) {
+      if (!user.firstName && givenName) {
+        user = await prisma.user.update({ where: { id: user.id }, data: { firstName: givenName, lastName: user.lastName ?? familyName } });
+      }
+    } else {
+      const base = (givenName || email?.split('@')[0] || 'membre').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9_]/g, '').slice(0, 20) || 'membre';
+      let pseudo = base;
+      while (await isPseudoTaken(pseudo)) pseudo = base.slice(0, 16) + Math.floor(Math.random() * 9000 + 1000);
+      user = await prisma.user.create({
+        data: {
+          pseudo, email, appleId: apple.sub, firstName: givenName, lastName: familyName,
+          emailVerified: !!email, status: 'approved',
+          locale: localeFromHeader(req.headers['accept-language']),
+        },
+      });
+      countSourceSignup(req.body.src);
+    }
+    if (user.status === 'rejected') {
+      res.status(403).json({ error: 'rejected', message: 'Ton compte a été refusé.' }); return;
+    }
+    // Jeton de rafraîchissement (révocation à la suppression du compte) : en arrière-plan, sans bloquer la connexion
+    if (typeof authorizationCode === 'string' && authorizationCode) {
+      const uid = user.id;
+      exchangeAppleCode(authorizationCode)
+        .then(async rt => { if (rt) await prisma.user.update({ where: { id: uid }, data: { appleRefreshToken: encryptMessage(rt) } }); })
+        .catch(e => console.error('[apple] jeton', e));
+    }
+    await transferLightAnswers(req.body.lightToken, user.id);
+    res.json({ token: makeToken(user), user: safeUser(user) });
+  } catch (e) {
+    console.error('[apple auth]', e);
+    res.status(500).json({ error: 'Erreur lors de la connexion Apple' });
   }
 });
 

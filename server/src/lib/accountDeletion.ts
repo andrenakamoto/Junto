@@ -1,3 +1,5 @@
+import { revokeAppleToken } from './appleAuth';
+import { decryptMessage } from './messageCrypto';
 import { removeDepositFiles } from './capsule';
 import prisma from './prisma';
 import { nextCircleCreator } from './circleRoles';
@@ -14,6 +16,11 @@ import { deletePhoto } from './photos';
 // Circle.creator et Plan.creator n'ont pas de onDelete : sans ces transferts,
 // la suppression de l'utilisateur échouerait sur la contrainte de clé étrangère.
 export async function deleteUserAccount(userId: string) {
+  // Connexion avec Apple : Apple exige de révoquer l'accès quand le compte est supprimé (sans bloquer la suppression)
+  const apple = await prisma.user.findUnique({ where: { id: userId }, select: { appleRefreshToken: true } });
+  if (apple?.appleRefreshToken) {
+    try { await revokeAppleToken(decryptMessage(apple.appleRefreshToken)); } catch (e) { console.error('[apple] révocation', e); }
+  }
   const circles = await prisma.circle.findMany({ where: { creatorId: userId }, select: { id: true } });
   for (const { id: circleId } of circles) {
     const next = await nextCircleCreator(circleId, userId);

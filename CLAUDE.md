@@ -362,13 +362,22 @@ Conséquences pratiques :
   - **Liens vers le site** (fiche Découvrir, brochure, confidentialité) :
     `lib/siteUrl.ts` → URL absolue www.evly.ch dans les apps (ouverte dans le
     navigateur du téléphone), relative sur le web.
-  - **Connexion Google dans les apps** : `@capgo/capacitor-social-login`
-    (remplace `@codetrix-studio/capacitor-google-auth`, abandonné, prévu pour
-    Capacitor 6). Bouton **masqué dans les apps** tant que `VITE_GOOGLE_NATIVE`
-    ≠ `1` : il faut d'abord un client OAuth iOS (`VITE_GOOGLE_IOS_CLIENT_ID`,
-    + schéma d'URL inversé dans Info.plist) et l'empreinte SHA-1 Android
-    (clé d'upload et clé de signature Play) dans la console Google Cloud.
-    Apple exigera alors aussi « Sign in with Apple » (règle 4.8).
+  - **Connexion Google et Apple dans les apps** (activées le 2026-11-14, `@capgo/capacitor-social-login`) : bouton Google dans les deux
+    apps (`VITE_GOOGLE_NATIVE=1`, `VITE_GOOGLE_IOS_CLIENT_ID` dans `.env.production`) et **« Continuer avec Apple »** sur iPhone seulement
+    (`NATIVE_APPLE_ENABLED`, au-dessus de Google, règle 4.8). Google Cloud (projet « Estelle », numéro 556163299545) : clients OAuth web,
+    **iOS** (`…-m94bq6i0sn6fptou11cj8o4mast6d1aa`, schéma inversé dans `Info.plist`) et **deux clients Android** `ch.evly.app` (SHA-1 de la clé
+    d'envoi `5A:24:…:6B` et de la **clé de signature Google Play** `CC:92:…:E9`) ; écran de consentement **en production**, branding validé
+    (domaine evly.ch vérifié dans Search Console, adresse d'assistance info@evly.ch, compte Google `info@evly.ch` propriétaire du projet).
+    Serveur : `/auth/google` accepte les audiences `GOOGLE_CLIENT_ID` + `GOOGLE_IOS_CLIENT_ID` et refuse un email non vérifié ; **`/auth/apple`**
+    (`lib/appleAuth.ts`) vérifie le jeton d'identité (clés publiques d'Apple, `aud` = `ch.evly.app`), retrouve le compte par `User.appleId` puis par
+    email vérifié, sinon le crée (prénom et nom envoyés par l'app : Apple ne les donne qu'à la première connexion), échange le code d'autorisation
+    contre un jeton de rafraîchissement gardé **chiffré** (`User.appleRefreshToken`, migration `20261129100000_apple_signin`) et le **révoque à la
+    suppression du compte** (`accountDeletion.ts`, exigence d'Apple). Apple Developer : « Sign In with Apple » activé sur `ch.evly.app`, clé
+    **`GZ968T9G59`** (fichier `~/Documents/Clés EvLY/AuthKey_GZ968T9G59.p8`, aussi dans le gestionnaire de mots de passe), adresses d'envoi
+    `evly.ch`, `noreply@evly.ch`, `info@evly.ch` déclarées pour le relais des adresses masquées (SPF vert). Variables du serveur : `APPLE_CLIENT_ID`,
+    `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY_B64`, `GOOGLE_IOS_CLIENT_ID`. Signature iPhone : `com.apple.developer.applesignin` = `Default`
+    dans `App.entitlements` **et** dans `ent.plist` de la signature manuelle. Pas de connexion Apple sur le site ni sur Android. Une personne qui
+    masque son email chez Apple reçoit une adresse relais : pas de rapprochement automatique avec un compte existant.
   - **Notifications push** (2026-10-01) : Firebase Cloud Messaging, projet
     Firebase **`evly-23d40`** (« EvLY »), clé APNs `.p8` (Key ID `3C84P5R6S4`)
     importée dans Firebase **comme clé de développement ET de production** (Paramètres du projet › Cloud Messaging ›
