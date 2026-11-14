@@ -8,7 +8,7 @@ const processors: Processor[] = [
   { name: 'DATAtourisme', role: "feste e manifestazioni della Francia vicina (Ain, Alta Savoia), con Licence Ouverte (sezione Scopri): il nostro server legge gli eventi senza trasmettere nulla che ti riguardi", where: "Francia", safeguard: "nessun dato personale trasmesso" },
   { name: 'OpenStreetMap (Overpass)', role: "idee per uscire (sezione Scopri): il nostro server legge i luoghi pubblici senza trasmettere nulla che ti riguardi", where: "Germania", safeguard: "nessun dato personale trasmesso" },
   { name: 'Google', role: 'accesso con un account Google (se lo scegli), caratteri del sito e consegna delle notifiche delle app (Firebase Cloud Messaging)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
-  { name: 'Apple', role: 'consegna delle notifiche dell’app iPhone (Apple Push Notification service)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
+  { name: 'Apple', role: 'accesso con un account Apple nell’app iPhone (se lo scegli) e consegna delle notifiche dell’app iPhone (Apple Push Notification service)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
 ];
 
 const it: PrivacyText = {
@@ -126,7 +126,7 @@ const it: PrivacyText = {
       <p>EvLY si appoggia ai seguenti fornitori, che trattano dati per nostro conto:</p>
       <ProcessorTable rows={processors} head={['Fornitore', 'Ruolo', 'Paese', 'Garanzia']} />
       <p>
-        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi), e Google per l’accesso con un account Google e i caratteri del sito. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
+        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi), Google e Apple per l’accesso con il loro account (se lo scegli), e Google per i caratteri del sito. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
       </p>
     </Section>
 

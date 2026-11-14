@@ -35,6 +35,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 // Tant que VITE_GOOGLE_NATIVE n'est pas à « 1 », le bouton est masqué dans les apps.
 const GOOGLE_IOS_CLIENT_ID = import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID || '';
 const NATIVE_GOOGLE_ENABLED = Capacitor.isNativePlatform() && import.meta.env.VITE_GOOGLE_NATIVE === '1' && !!GOOGLE_CLIENT_ID;
+// Connexion avec Apple : dans l'app iPhone seulement (exigée par Apple dès que Google est proposé, règle 4.8)
+const NATIVE_APPLE_ENABLED = Capacitor.getPlatform() === 'ios';
 
 export function AuthPage() {
   const { login } = useAuth();
@@ -58,6 +60,7 @@ export function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   // « Voir la démo » : choix d'un exemple par type de Plan
   const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState('');
@@ -70,14 +73,16 @@ export function AuthPage() {
     // Plugin natif uniquement : sur le web, voir GoogleWebButton (Google Identity Services).
     // Le jeton est émis pour le client web (webClientId / iOSServerClientId) : le serveur
     // le vérifie comme celui du site.
-    if (NATIVE_GOOGLE_ENABLED) {
+    if (NATIVE_GOOGLE_ENABLED || NATIVE_APPLE_ENABLED) {
       SocialLogin.initialize({
-        google: {
+        ...(NATIVE_GOOGLE_ENABLED && { google: {
           webClientId: GOOGLE_CLIENT_ID,
           iOSClientId: GOOGLE_IOS_CLIENT_ID,
           iOSServerClientId: GOOGLE_CLIENT_ID,
-          mode: 'online',
-        },
+          mode: 'online' as const,
+        } }),
+        // Code d'autorisation renvoyé tel quel : le serveur l'échange (révocation à la suppression du compte)
+        ...(NATIVE_APPLE_ENABLED && { apple: { clientId: 'ch.evly.app', redirectUrl: '', useProperTokenExchange: true } }),
       }).catch(() => {});
     }
   }, [navigate]);
@@ -136,6 +141,32 @@ export function AuthPage() {
       }
     } finally {
       setGoogleLoading(false);
+    }
+  }
+
+  async function handleAppleSignIn() {
+    setAppleLoading(true);
+    setError('');
+    try {
+      const res = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } });
+      const r = res.result as { idToken: string | null; authorizationCode?: string; accessToken?: { token?: string } | null; profile?: { givenName: string | null; familyName: string | null } };
+      if (!r.idToken) throw new Error('Pas de jeton Apple');
+      const { data } = await api.post('/auth/apple', {
+        identityToken: r.idToken,
+        authorizationCode: r.authorizationCode ?? r.accessToken?.token,
+        firstName: r.profile?.givenName ?? undefined,
+        lastName: r.profile?.familyName ?? undefined,
+        ...lightTokenField(), ...sourceField(),
+      });
+      login(data.token, data.user);
+      navigate(afterLogin, { replace: true });
+    } catch (err: any) {
+      // Fenêtre d'Apple fermée : pas d'erreur à montrer
+      if (err?.code !== 'USER_CANCELLED' && !/cancel/i.test(String(err?.message ?? ''))) {
+        setError(err.response?.data?.error || t('auth.page.appleCancelled'));
+      }
+    } finally {
+      setAppleLoading(false);
     }
   }
 
@@ -204,6 +235,23 @@ export function AuthPage() {
             </div>
           )}
 
+          {/* Bouton Apple (app iPhone) : noir, au-dessus de Google, comme le demandent les règles d'Apple */}
+          {NATIVE_APPLE_ENABLED && (
+            <button
+              type="button"
+              onClick={handleAppleSignIn}
+              disabled={appleLoading}
+              className="w-full flex items-center justify-center gap-3 py-3 bg-black hover:bg-slate-900 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors text-sm mb-3 border border-slate-700"
+            >
+              {appleLoading ? <Loader2 size={18} className="animate-spin" /> : (
+                <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" aria-hidden="true">
+                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
+                </svg>
+              )}
+              {mode === 'login' ? t('auth.page.continueApple') : t('auth.page.signupApple')}
+            </button>
+          )}
+
           {/* Bouton Google : plugin natif sur mobile, Google Identity Services sur le web */}
           {!Capacitor.isNativePlatform() ? (
             GOOGLE_CLIENT_ID && (
@@ -243,7 +291,7 @@ export function AuthPage() {
           </button>
           )}
 
-          {(!Capacitor.isNativePlatform() ? !!GOOGLE_CLIENT_ID : NATIVE_GOOGLE_ENABLED) && (
+          {(!Capacitor.isNativePlatform() ? !!GOOGLE_CLIENT_ID : NATIVE_GOOGLE_ENABLED || NATIVE_APPLE_ENABLED) && (
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-slate-700" />
               <span className="text-xs text-slate-500 font-medium">{t('auth.page.or')}</span>

@@ -8,7 +8,7 @@ const processors: Processor[] = [
   { name: 'DATAtourisme', role: "Feste und Veranstaltungen im angrenzenden Frankreich (Ain, Hochsavoyen), unter Licence Ouverte (Bereich Entdecken): Unser Server liest die Events, ohne etwas über dich zu übermitteln", where: "Frankreich", safeguard: "keine Personendaten übermittelt" },
   { name: 'OpenStreetMap (Overpass)', role: "Ausflugsideen (Bereich Entdecken): Unser Server liest öffentliche Orte, ohne etwas über dich zu übermitteln", where: "Deutschland", safeguard: "keine Personendaten übermittelt" },
   { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst), Schriften der Website und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
-  { name: 'Apple', role: 'Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
+  { name: 'Apple', role: 'Anmeldung mit einem Apple-Konto in der iPhone-App (wenn du sie wählst) und Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
 ];
 
 const de: PrivacyText = {
@@ -133,7 +133,7 @@ const de: PrivacyText = {
       <p>EvLY stützt sich auf folgende Dienstleister, die in unserem Auftrag Daten bearbeiten:</p>
       <ProcessorTable rows={processors} head={['Dienstleister', 'Aufgabe', 'Land', 'Garantie']} />
       <p>
-        Deine Daten (Konto, Nachrichten, Pläne, Fotos, Dateien) werden in der Schweiz bei Infomaniak gespeichert und verlassen die Schweiz für die Speicherung nicht. Nur die aufgeführten Dienste in den USA sind noch beteiligt: Google und Apple für die Zustellung der Benachrichtigungen an die Telefone (ohne Inhalt der Nachrichten) und Google für die Anmeldung mit einem Google-Konto und die Schriften der Website. Die USA bieten im Allgemeinen kein der Schweiz gleichwertiges Schutzniveau: Diese Übermittlungen sind entweder durch die Zertifizierung des Dienstleisters nach dem Swiss-U.S. Data Privacy Framework, das der Bundesrat seit dem 15. September 2024 anerkennt, oder durch die an das Schweizer Recht angepassten Standardvertragsklauseln seines Auftragsverarbeitungsvertrags abgesichert.
+        Deine Daten (Konto, Nachrichten, Pläne, Fotos, Dateien) werden in der Schweiz bei Infomaniak gespeichert und verlassen die Schweiz für die Speicherung nicht. Nur die aufgeführten Dienste in den USA sind noch beteiligt: Google und Apple für die Zustellung der Benachrichtigungen an die Telefone (ohne Inhalt der Nachrichten) Google und Apple für die Anmeldung mit ihrem Konto (wenn du sie wählst) und Google für die Schriften der Website. Die USA bieten im Allgemeinen kein der Schweiz gleichwertiges Schutzniveau: Diese Übermittlungen sind entweder durch die Zertifizierung des Dienstleisters nach dem Swiss-U.S. Data Privacy Framework, das der Bundesrat seit dem 15. September 2024 anerkennt, oder durch die an das Schweizer Recht angepassten Standardvertragsklauseln seines Auftragsverarbeitungsvertrags abgesichert.
       </p>
     </Section>
 

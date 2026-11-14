@@ -8,7 +8,7 @@ const processors: Processor[] = [
   { name: 'DATAtourisme', role: "fêtes et manifestations de la France voisine (Ain, Haute-Savoie), sous Licence Ouverte (rubrique Découvrir) : notre serveur lit les événements, sans rien transmettre te concernant", where: "France", safeguard: "aucune donnée personnelle transmise" },
   { name: 'OpenStreetMap (Overpass)', role: "idées de sorties (rubrique Découvrir) : notre serveur lit les lieux publics, sans rien transmettre te concernant", where: "Allemagne", safeguard: "aucune donnée personnelle transmise" },
   { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
-  { name: 'Apple', role: 'acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
+  { name: 'Apple', role: 'connexion avec un compte Apple dans l\'app iPhone (si tu la choisis) et acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 const fr: PrivacyText = {
@@ -139,7 +139,7 @@ const fr: PrivacyText = {
       <p>EvLY s'appuie sur les prestataires suivants, qui traitent des données pour notre compte :</p>
       <ProcessorTable rows={processors} head={['Prestataire', 'Rôle', 'Pays', 'Garantie']} />
       <p>
-        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), et Google pour la connexion avec un compte Google et les polices du site. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
+        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), Google et Apple pour la connexion avec leur compte (si tu la choisis), et Google pour les polices du site. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
       </p>
     </Section>
 
