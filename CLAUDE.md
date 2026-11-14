@@ -1107,6 +1107,13 @@ Junto/
   `santa_draw|santa_message|santa_reveal|santa_reminder` → onglet `pere_noel` (`?tab=pere_noel`).
   Temps réel : rechargement seulement, pas de pastille « nouveau » (tout y est privé). Pas encore
   dans les apps (version 1.0.7) ; présent dans la démo.
+  **Croissance** (2026-11-14, campagne de fin d'année) : dans la rubrique, carte **« Tu fais aussi un Secret Santa ailleurs ? »** pour les
+  participants qui n'organisent pas (`OrganizeOwnCard`, « Plus tard » mémorisé `evly_santa_own_<planId>`) ; après la révélation,
+  **image story à partager** « Mon Père Noël secret était… <prénom> » signée EvLY (`lib/santaStory.ts`, canvas 1080 × 1920, `saveFile` :
+  menu de partage dans les apps, téléchargement sur le site) et, en décembre, carte **« Nouvel An ensemble »** (Plan dans le même Cercle,
+  pas pour un invité extérieur). Les deux boutons passent par l'événement **`evly-create-plan`** `{kind?, circleId?, title?}` écouté par
+  DashboardPage (Cercle connu → `CreatePlanModal` ; sinon `KindCircleChooser` ou Cercle personnel). Textes `games.santa.growth`. Plan de
+  campagne : `~/Desktop/01-EvLY/03_Marketing/03_Reseaux_sociaux/Campagne Secret Santa - plan jusqu'au 24 décembre.txt`.
 - **Killer, Équipes, Cagnotte** (2026-10-07, 3 nouvelles fonctions **à activer**, `OPTIONAL_FEATURES`
   `killer` / `equipes` / `cagnotte`, onglets `KillerTab` / `TeamsTab` / `GiftPotTab`, routes montées dans
   le routeur des Plans, migration `20261007200000_killer_teams_gift_pot`). Organisateur = créateur du Plan

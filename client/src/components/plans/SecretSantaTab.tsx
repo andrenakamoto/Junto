@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Gift, Send, Shuffle, Eye, UserPlus, X, Check, RotateCcw } from 'lucide-react';
+import { Gift, Send, Shuffle, Eye, UserPlus, X, Check, RotateCcw, Share2, PartyPopper } from 'lucide-react';
+import { santaStoryBlob } from '../../lib/santaStory';
+import { saveFile } from '../../lib/saveFile';
 import { Plan } from '../../types';
 import api from '../../services/api';
 import { displayName } from '../../lib/names';
@@ -69,6 +71,17 @@ export function SecretSantaTab({ plan, userId }: { plan: Plan; userId: string })
       </div>
 
       {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+
+      {/* Après la révélation : image à partager, et le prochain Plan du groupe */}
+      {s.reveal && <RevealShare giver={s.reveal.find(r => r.receiver.id === userId)?.giver ?? null} />}
+      {s.reveal && !plan.isGuest && new Date().getMonth() === 11 && (
+        <div className={`${card} bg-amber-50 border-amber-200`}>
+          <p className="font-semibold text-slate-800 flex items-center gap-2"><PartyPopper size={17} className="text-amber-600" />{t('games.santa.growth.nextTitle')}</p>
+          <p className="text-sm text-slate-600 mt-1">{t('games.santa.growth.nextText')}</p>
+          <button onClick={() => createPlan({ circleId: plan.circleId, title: t('games.santa.growth.nextPlanTitle') })}
+            className="mt-3 w-full py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">{t('games.santa.growth.nextButton')}</button>
+        </div>
+      )}
 
       {/* Révélation */}
       {s.reveal && (
@@ -163,6 +176,9 @@ export function SecretSantaTab({ plan, userId }: { plan: Plan; userId: string })
           {!s.drawn && <p className="text-xs text-slate-400 mt-2">{t('games.santa.participantsHint')}</p>}
         </div>
       )}
+
+      {/* Un participant organise le sien (famille, bureau, club) : c'est là que la fonction se diffuse */}
+      {isParticipant && !s.canManage && <OrganizeOwnCard planId={plan.id} />}
 
       {/* Organisateur */}
       {s.canManage && !s.reveal && (
@@ -346,6 +362,49 @@ function ManagerPanel({ s, planId, run }: { s: SantaState; planId: string; run: 
           </button>
         </>
       )}
+    </div>
+  );
+}
+
+// Ouvre la création d'un Plan depuis la rubrique (DashboardPage écoute « evly-create-plan »)
+function createPlan(detail: { kind?: 'pere_noel'; circleId?: string; title?: string }) {
+  window.dispatchEvent(new CustomEvent('evly-create-plan', { detail }));
+}
+
+function OrganizeOwnCard({ planId }: { planId: string }) {
+  const key = `evly_santa_own_${planId}`;
+  const [hidden, setHidden] = useState(() => { try { return localStorage.getItem(key) === '1'; } catch { return false; } });
+  if (hidden) return null;
+  const hide = () => { setHidden(true); try { localStorage.setItem(key, '1'); } catch { /* indisponible */ } };
+  return (
+    <div className="p-4 rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-amber-50">
+      <p className="font-semibold text-slate-800">{t('games.santa.growth.ownTitle')}</p>
+      <p className="text-sm text-slate-600 mt-1">{t('games.santa.growth.ownText')}</p>
+      <div className="flex gap-2 mt-3">
+        <button onClick={() => createPlan({ kind: 'pere_noel' })} className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700">🎅 {t('games.santa.growth.ownButton')}</button>
+        <button onClick={hide} className="px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-white/60">{t('games.santa.growth.later')}</button>
+      </div>
+    </div>
+  );
+}
+
+function RevealShare({ giver }: { giver: Person | null }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  if (!giver) return null;
+  const name = giver.firstName || `@${giver.pseudo}`;
+  async function share() {
+    setBusy(true); setError('');
+    try { await saveFile(await santaStoryBlob(name), 'secret-santa-evly.jpg', t('games.santa.growth.shareTitle')); }
+    catch { setError(t('games.santa.growth.shareError')); }
+    finally { setBusy(false); }
+  }
+  return (
+    <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-700 to-indigo-600 text-white text-center">
+      <p className="text-sm text-white/85">{t('games.santa.growth.shareTitle')}</p>
+      <p className="text-3xl font-bold mt-1">🎅 {name}</p>
+      <button onClick={share} disabled={busy} className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-rose-700 text-sm font-bold disabled:opacity-60"><Share2 size={16} />{t('games.santa.growth.shareButton')}</button>
+      {error && <p className="text-xs text-white mt-2">{error}</p>}
     </div>
   );
 }

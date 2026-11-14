@@ -358,6 +358,20 @@ export function DashboardPage() {
     else createInPersonalCircle();
   }, [circlesLoaded, user?.id, user?.termsAccepted]);
 
+  // Création demandée depuis une rubrique (Père Noël secret : « Organise aussi le tien », « Nouvel An ensemble »)
+  useEffect(() => {
+    function onCreate(e: Event) {
+      const { kind, circleId, title } = (e as CustomEvent<{ kind?: PlanKind; circleId?: string; title?: string }>).detail ?? {};
+      setReunionTitle(title ?? null);
+      setCreateKind(kind ?? null);
+      if (circleId && circles.some(c => c.id === circleId)) { setCreatePlanIn(circleId); return; }
+      if (kindCircles.length > 0) setChooseKindCircle(true);
+      else createInPersonalCircle();
+    }
+    window.addEventListener('evly-create-plan', onCreate);
+    return () => window.removeEventListener('evly-create-plan', onCreate);
+  });
+
   async function createInPersonalCircle() {
     setChooseKindCircle(false);
     try {
