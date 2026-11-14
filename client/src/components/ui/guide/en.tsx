@@ -58,7 +58,7 @@ const groups: Group[] = [
         body: <>
           <P>The <strong>“Discover”</strong> button (next to “All my plans”) shows events for the next 14 days and
             <strong> outing ideas</strong> (escape rooms, bowling, museums…) all over <strong>Switzerland</strong> and in <strong>nearby France</strong> (Ain, Haute-Savoie).
-            Choose the place (a town, a village or “Near me”) and the radius (10, 25 or 50 km), filter by day or category, or search for a word (“salsa”, “concert”…).</P>
+            Choose the place (a town, a village or “Near me”) and the radius (10, 25 or 50 km), filter by day or category, or search for a word (“salsa”, “concert”…). The <strong>“Map”</strong> button shows everything on the swisstopo map; tap a pin to see the place. On a place too, “Go with a Circle” suggests a Plan (you pick the date).</P>
           <P>On an event, <strong>“Go with a Circle”</strong> opens a ready-filled Plan (title, date, place, link) in the
             Circle of your choice; <strong>“More info”</strong> opens the website of the organiser or of the agenda the listing comes from.</P>
           <P>Listings come from public agendas (for example the City of Geneva’s) and from the EvLY team.

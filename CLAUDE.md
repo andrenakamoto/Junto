@@ -2125,6 +2125,13 @@ maintenant » en arrière-plan). **Licence CC BY-SA 4.0** : « Suisse Tourisme �
 MySwitzerland de chaque lieu (libellé « MySwitzerland.com ») ; pas d'images (droits propres à chaque photo). Nouveaux types : `nature`, `patrimoine`,
 `excursion`, `randonnee`, `raquettes`, `velo`, `ski_fond` (groupe « Balades et randonnées »). Doublons avec OpenStreetMap : `dedupePlaces` garde la fiche
 de Suisse Tourisme (même nom à moins de 500 m).
+**Carte de Découvrir** (2026-11-14, `components/discover/DiscoverMap.tsx`, chargée à la demande avec `lazy`) : bouton « Liste | Carte » (mémorisé,
+`evly_discover_view`), **Leaflet 1.9.4 + leaflet.markercluster 1.5.3**, fond **swisstopo** (`wmts.geo.admin.ch`, carte nationale en couleur, EPSG:3857,
+« © swisstopo ») — le navigateur demande les images à swisstopo (politique de confidentialité, et `img-src` de la **CSP nginx**, ajouté dans
+`deploy/infomaniak/nginx-evly.conf` **et à la main sur le serveur**). Épingles : emoji du type (idées), corail 🎟️ (événements filtrés), regroupées ;
+toucher = fiche en bas (`EventCard` / `IdeaCard` avec « Y aller avec un Cercle »). Rayon dessiné, point bleu pour « Autour de moi », canton = cadrage sur
+les épingles. GET `/api/discover` renvoie `lat` / `lon` (arrondis à 5 décimales) sur chaque événement et lieu. **« Y aller avec un Cercle » sur les idées
+de sorties** : `DiscoverGoModal` avec `place` (titre, lieu, lien ; date à choisir, fin calculée).
 **« Élargir à 50 km »** : moins de 20 événements dans le rayon → le client regarde jusqu'à 50 km et propose d'élargir s'il y en a 10 de plus.
 
 **France voisine dans Découvrir** (2026-11-01, d'abord l'**Ain et la Haute-Savoie**) : régions `f01` / `f74` (codes « canton » `01` / `74`,

@@ -173,6 +173,12 @@ const discover = {
   allDay: "journée",
   moreInfo: "Plus d’infos sur {{site}}",
   website: "Site web",
+  map: {
+    list: "Liste",
+    map: "Carte",
+    view: "Affichage",
+    empty: "Aucun lieu de cette liste n’a de position sur la carte.",
+  },
   onMap: "Voir sur la carte",
   wider_one: "Peu de choses à moins de {{km}} km : {{count}} événement jusqu’à 50 km.",
   wider_other: "Peu de choses à moins de {{km}} km : {{count}} événements jusqu’à 50 km.",

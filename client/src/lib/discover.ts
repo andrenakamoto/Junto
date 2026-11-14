@@ -17,6 +17,8 @@ export interface DiscoverEvent {
   signupPath?: string;
   // Distance depuis le lieu choisi (km), absente si l'événement n'a pas de position
   distanceKm?: number | null;
+  // Position (carte), absente si inconnue
+  lat?: number; lon?: number;
   // Image (Eventfrog) : copie gardée sur le serveur, crédit à afficher avec elle
   imageKey?: string | null;
   imageCredit?: string | null;
@@ -25,7 +27,7 @@ export interface DiscoverEvent {
   // Titres du même événement chez d'autres sources (doublons retirés) : pris en compte par la recherche
   aliases?: string[];
 }
-export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null }
+export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null; lat?: number; lon?: number }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
 export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[]; places: DiscoverPlace[]; sources: DiscoverSourceInfo[] }
 

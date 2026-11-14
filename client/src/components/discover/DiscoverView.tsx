@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, LocateFixed, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LocateFixed, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users, List, Map as MapIcon } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,6 +13,11 @@ import { PlacePicker } from './PlacePicker';
 import { DiscoverGoModal } from './DiscoverGoModal';
 import { ProSoonModal } from './ProSoonModal';
 import { ReportModal } from './ReportModal';
+import type { MapItem } from './DiscoverMap';
+
+// Carte : chargée seulement quand on l'ouvre (Leaflet)
+const DiscoverMap = lazy(() => import('./DiscoverMap').then(m => ({ default: m.DiscoverMap })));
+const VIEW_KEY = 'evly_discover_view';
 
 const MULTI = 'multi';
 const LATER = 'later';
@@ -41,6 +46,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [ideaCity, setIdeaCity] = useState<string | null>(null);
   const [going, setGoing] = useState<DiscoverEvent | null>(null);
   const [goingPlace, setGoingPlace] = useState<DiscoverPlace | null>(null);
+  // Liste ou carte, mémorisé sur l'appareil
+  const [view, setView] = useState<'list' | 'map'>(() => { try { return localStorage.getItem(VIEW_KEY) === 'map' ? 'map' : 'list'; } catch { return 'list'; } });
+  function chooseView(v: 'list' | 'map') { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* rien */ } }
   const [reporting, setReporting] = useState<{ target: { eventId: string } | { placeId: string }; title: string } | null>(null);
   const [showPro, setShowPro] = useState(false);
   // Filtres repliés sur téléphone (sinon ils prennent tout l'écran avant le premier événement)
@@ -121,6 +129,11 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     ? hit([p.name, p.city, p.address, kindLabel(p.kind)].join(' '))
     : cat === IDEAS || (cat === 'famille' && p.family));
 
+  // Carte : les événements filtrés et les idées de sorties (toutes dans « Tout », celles du type ouvert dans « Idées de sorties »)
+  const mapItems = useMemo<MapItem[]>(() => {
+    const ps = searching || cat !== ALL ? ideas.filter(p => !ideaKind || searching || p.kind === ideaKind) : places;
+    return [...shown.map(e => ({ type: 'event' as const, e })), ...ps.map(p => ({ type: 'place' as const, p }))];
+  }, [data, q, cat, day, ideaKind]);
   const multi = shown.filter(e => e.multiDay && !e.sessions);
   const sessions = shown.filter(e => e.sessions);
   const single = shown.filter(e => !e.multiDay);
@@ -253,11 +266,21 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
             <p className="text-sm text-slate-400 text-center py-8">{t('common.loading')}</p>
           ) : (
             <div className="space-y-5">
-              <p className="text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+              <p className="flex-1 min-w-0 text-xs text-slate-500">
                 {searching
                   ? t('discover.results', { count: shown.length + ideas.length, q: q.trim() })
                   : [cat !== IDEAS ? t('discover.events', { count: shown.length }) : null, ideas.length ? t('discover.ideas', { count: ideas.length }) : null].filter(Boolean).join(' · ')}
               </p>
+              <div className="flex-shrink-0 inline-flex rounded-lg border border-slate-200 bg-white p-0.5" role="group" aria-label={t('discover.map.view')}>
+                {(['list', 'map'] as const).map(v => (
+                  <button key={v} onClick={() => chooseView(v)} aria-pressed={view === v}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold ${view === v ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}>
+                    {v === 'list' ? <List size={13} /> : <MapIcon size={13} />}{t(`discover.map.${v}` as any)}
+                  </button>
+                ))}
+              </div>
+              </div>
               {wider != null && !searching && cat !== IDEAS && (
                 <button onClick={() => choosePlace({ ...choice, radius: 50 })}
                   className="w-full flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-left hover:bg-indigo-100">
@@ -265,6 +288,14 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                   <span className="flex-shrink-0 text-sm font-semibold text-indigo-700">{t('discover.widerButton')}</span>
                 </button>
               )}
+              {view === 'map' ? (
+                <Suspense fallback={<p className="text-sm text-slate-400 text-center py-8">{t('common.loading')}</p>}>
+                  <DiscoverMap items={mapItems} center={canton ? null : center} radiusKm={canton ? null : choice.radius} here={choice.here}
+                    renderSelected={it => it.type === 'event'
+                      ? <EventCard e={it.e} onGo={goWith} onReport={() => setReporting({ target: { eventId: it.e.id }, title: it.e.title })} onHide={isAdmin ? () => hideEvent(it.e) : undefined} credit={creditOf(it.e)} />
+                      : <IdeaCard p={it.p} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />} />
+                </Suspense>
+              ) : (<>
               {!searching && !events.length && places.length > 0 && cat === ALL && <p className="text-sm text-slate-600">{t('discover.noEvents')}</p>}
               {!shown.length && !ideas.length && !(cat === ALL && !searching && places.length > 0) && <p className="text-sm text-slate-500 text-center py-6">{searching ? t('discover.noResult') : t('discover.empty')}</p>}
 
@@ -302,6 +333,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                 ? <IdeasSection places={ideas} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
                 : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
                     onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />)}
+              </>)}
 
               <footer className="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
                 <p className="pb-2"><b className="font-semibold text-slate-600">{t('discover.warnTitle')}</b> {t('discover.warnText')}</p>

@@ -174,6 +174,12 @@ const discover: Dict['discover'] = {
   allDay: "all day",
   moreInfo: "More info on {{site}}",
   website: "Website",
+  map: {
+    list: "List",
+    map: "Map",
+    view: "View",
+    empty: "None of these places has a position on the map.",
+  },
   onMap: "View on the map",
   wider_one: "Not much within {{km}} km: {{count}} event within 50 km.",
   wider_other: "Not much within {{km}} km: {{count}} events within 50 km.",

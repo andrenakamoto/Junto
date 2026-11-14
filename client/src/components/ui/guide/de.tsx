@@ -60,7 +60,7 @@ const groups: Group[] = [
         body: <>
           <P>Der Button <strong>„Entdecken“</strong> (neben „Alle meine Pläne“) zeigt die Events der nächsten 14 Tage und
             <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in der ganzen <strong>Schweiz</strong> und im <strong>angrenzenden Frankreich</strong> (Ain, Hochsavoyen).
-            Wähle den Ort (eine Stadt, ein Dorf oder „In meiner Nähe“) und den Umkreis (10, 25 oder 50 km), filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …).</P>
+            Wähle den Ort (eine Stadt, ein Dorf oder „In meiner Nähe“) und den Umkreis (10, 25 oder 50 km), filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …). Die Schaltfläche <strong>„Karte“</strong> zeigt alles auf der Karte von swisstopo; tippe auf eine Stecknadel, um den Ort zu sehen. Auch bei einem Ort schlägt „Mit einem Kreis hingehen“ einen Plan vor (das Datum wählst du).</P>
           <P>Bei einem Event öffnet <strong>„Mit einem Kreis hingehen“</strong> einen fertig ausgefüllten Plan (Titel, Datum, Ort, Link)
             im Kreis deiner Wahl; <strong>„Mehr Infos“</strong> öffnet die Website der Veranstalter oder der Agenda, aus der die Anzeige stammt.</P>
           <P>Die Anzeigen stammen aus öffentlichen Agenden (zum Beispiel der Stadt Genf) und vom EvLY-Team.

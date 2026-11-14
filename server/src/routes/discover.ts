@@ -119,7 +119,9 @@ router.get('/', async (req, res) => {
   // Distance exacte (le rectangle déborde du cercle) ; sans position : pas de distance affichée
   const place = <T extends { latitude: number | null; longitude: number | null }>({ latitude, longitude, ...x }: T) => {
     const d = point && latitude != null && longitude != null ? distanceKm(point, { lat: latitude, lon: longitude }) : null;
-    return { ...x, distanceKm: d == null ? null : Math.round(d * 10) / 10 };
+    // Position (carte de Découvrir, 2026-11-14) : lieux et événements publics, arrondie à ~1 m
+    const pos = latitude != null && longitude != null ? { lat: Math.round(latitude * 1e5) / 1e5, lon: Math.round(longitude * 1e5) / 1e5 } : {};
+    return { ...x, ...pos, distanceKm: d == null ? null : Math.round(d * 10) / 10 };
   };
   const inRadius = (x: { distanceKm: number | null }) => !point || x.distanceKm == null || x.distanceKm <= point.radius;
   const typeOf = new Map(sources.map(s => [s.id, s.type]));

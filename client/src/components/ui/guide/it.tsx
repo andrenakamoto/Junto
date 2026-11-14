@@ -59,7 +59,7 @@ const groups: Group[] = [
         body: <>
           <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Tutti i miei plan») mostra gli eventi dei prossimi 14 giorni e delle
             <strong> idee per uscire</strong> (escape game, bowling, musei…) in tutta la <strong>Svizzera</strong> e nella <strong>Francia vicina</strong> (Ain, Alta Savoia).
-            Scegli il luogo (una città, un paese o «Vicino a me») e il raggio (10, 25 o 50 km), filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…).</P>
+            Scegli il luogo (una città, un paese o «Vicino a me») e il raggio (10, 25 o 50 km), filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…). Il pulsante <strong>«Mappa»</strong> mostra tutto sulla mappa di swisstopo; tocca uno spillo per vedere il luogo. Anche su un luogo, «Andarci con un Cerchio» propone un Plan (la data la scegli tu).</P>
           <P>Su un evento, <strong>«Andarci con un Cerchio»</strong> apre un Plan già compilato (titolo, data, luogo, link) nel
             Cerchio che preferisci; <strong>«Più info»</strong> apre il sito dell’organizzatore o dell’agenda da cui proviene l’annuncio.</P>
           <P>Gli annunci provengono da agende pubbliche (per esempio quella della Città di Ginevra) e dal team di EvLY.
