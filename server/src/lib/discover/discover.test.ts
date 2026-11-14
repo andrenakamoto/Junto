@@ -38,6 +38,17 @@ describe('OpenStreetMap', () => {
   it('garde les lieux avec nom et site web', () => {
     expect(normalizeOsmElement({ type: 'node', id: 1, tags: { name: 'Escape X', leisure: 'escape_game', website: 'escapex.ch' } })).toMatchObject({ kind: 'escape', website: 'https://escapex.ch/', family: false });
     expect(normalizeOsmElement({ type: 'node', id: 2, tags: { name: 'Sans site', leisure: 'bowling_alley' } })).toBeNull();
+    // Depuis le 2026-11-14 : sans site web mais avec un téléphone → fiche OpenStreetMap ; idées de plein air avec un nom seulement
+    expect(normalizeOsmElement({ type: 'way', id: 7, tags: { name: 'Bowling du Village', leisure: 'bowling_alley', phone: '+41 27 000 00 00' } }))
+      .toMatchObject({ kind: 'bowling', website: 'https://www.openstreetmap.org/way/7' });
+    expect(normalizeOsmElement({ type: 'node', id: 8, tags: { name: 'Foyer des Îles', leisure: 'firepit' } })).toMatchObject({ kind: 'grillade', family: true });
+    expect(normalizeOsmElement({ type: 'node', id: 9, tags: { leisure: 'firepit' } })).toBeNull();
+    expect(normalizeOsmElement({ type: 'node', id: 13, tags: { name: 'tobogan', leisure: 'playground' } })).toBeNull();
+    expect(normalizeOsmElement({ type: 'node', id: 14, tags: { name: 'Kindergarten Gampel;Kindergarten', leisure: 'playground' } })).toBeNull();
+    expect(normalizeOsmElement({ type: 'node', id: 15, tags: { name: 'Parc des Cropettes;X', leisure: 'playground' } })?.name).toBe('Parc des Cropettes');
+    expect(normalizeOsmElement({ type: 'way', id: 10, tags: { name: 'Piste de luge', 'piste:type': 'sled' } })?.kind).toBe('luge');
+    expect(normalizeOsmElement({ type: 'node', id: 11, tags: { name: 'Cinéma Lux', amenity: 'cinema', website: 'lux.ch' } })?.kind).toBe('cinema');
+    expect(normalizeOsmElement({ type: 'node', id: 12, tags: { name: 'Station', landuse: 'winter_sports' } })?.kind).toBe('ski');
   });
   it('reconnaît les types ajoutés le 2026-10-24', () => {
     const k = (tags: Record<string, string>) => normalizeOsmElement({ type: 'node', id: 3, tags: { name: 'Lieu', website: 'lieu.ch', ...tags } })?.kind;

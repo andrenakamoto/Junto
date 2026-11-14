@@ -35,12 +35,19 @@ export const PLACE_KINDS = [
   'escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee',
   // depuis le 2026-10-24
   'defi', 'loisirs', 'bains', 'cave', 'bateau', 'equitation', 'golf', 'chateau', 'jardin', 'galerie', 'poterie', 'bibliotheque',
+  // depuis le 2026-11-14 (clients v=4) : plein air, hiver, cinéma, théâtre
+  'cinema', 'theatre', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski',
 ] as const;
+// Types connus des clients v=2 / v=3 (site et apps jusqu'à la 1.0.53) : ils affichent la clé brute pour les suivants
+export const PLACE_KINDS_V3: readonly string[] = PLACE_KINDS.slice(0, PLACE_KINDS.indexOf('cinema'));
 export type PlaceKind = typeof PLACE_KINDS[number];
 export const isPlaceKind = (v: unknown): v is PlaceKind => typeof v === 'string' && (PLACE_KINDS as readonly string[]).includes(v);
 // Lieux adaptés aux familles par défaut
 export const FAMILY_KINDS: PlaceKind[] = ['bowling', 'trampoline', 'escalade', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'animaux', 'musee', 'laser',
-  'loisirs', 'bateau', 'equitation', 'chateau', 'jardin', 'bibliotheque'];
+  'loisirs', 'bateau', 'equitation', 'chateau', 'jardin', 'bibliotheque',
+  'cinema', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski'];
+// Idées de plein air : souvent sans site web (place de grillade, plage, point de vue…), gardées avec un nom seulement
+export const OUTDOOR_KINDS: PlaceKind[] = ['grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'luge', 'ski'];
 
 export const EVENT_STATUSES = ['scheduled', 'full', 'cancelled', 'postponed'] as const;
 export const STATES = ['published', 'pending', 'hidden'] as const;

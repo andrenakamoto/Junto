@@ -5,7 +5,7 @@ import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText, isSessionSeries } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, isCantonCode, isFrenchCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
-import { CANTONS, REGIONS } from '../lib/discover/model';
+import { CANTONS, REGIONS, PLACE_KINDS_V3 } from '../lib/discover/model';
 import { imageFile, isImageKey } from '../lib/discover/images';
 import { dedupeEvents } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
@@ -26,17 +26,20 @@ const CACHE_MS = 5 * 60 * 1000;
 // Types de lieux connus des apps jusqu'à la 1.0.32 : elles affichent la clé brute (« discover.kinds.galerie ») pour les autres.
 const LEGACY_KINDS = new Set(['escape', 'laser', 'bowling', 'trampoline', 'escalade', 'karting', 'minigolf', 'patinoire', 'piscine', 'arcade', 'parc', 'sport', 'animaux', 'musee']);
 // Versions demandées par le client : sans `v` = apps ≤ 1.0.32 (anciens types de lieux seulement) ; `v=2` = apps 1.0.33 à
-// 1.0.35 (tous les lieux, pas de crédit des partenaires sur les cartes) ; `v=3` = site et apps suivantes. Les clients sans
+// 1.0.35 (tous les lieux, pas de crédit des partenaires sur les cartes) ; `v=3` = apps 1.0.36 à 1.0.53 ; `v=4` (2026-11-14)
+// = site et apps suivantes, avec les nouveaux types de lieux (plein air, hiver, cinéma, théâtre). Les clients sans
 // crédit le reçoivent dans le texte du prix (vide pour ces sources).
+const KNOWN_V3 = new Set(PLACE_KINDS_V3);
 const CREDITED = new Set(['geneversleep', 'partner', 'eventfrog']);
 // Les clients connaissent les types `geneversleep` et `partner` pour le crédit : Eventfrog leur est présenté comme `partner`
 const asPartner = (body: any) => ({ ...body, sources: body.sources.map((s: any) => s.type === 'eventfrog' ? { ...s, type: 'partner' } : s) });
 const forClient = (body: any, v: unknown) => {
-  if (v === '3') return asPartner(body);
+  if (v === '4') return asPartner(body);
+  if (v === '3') return asPartner({ ...body, places: body.places.filter((p: { kind: string }) => KNOWN_V3.has(p.kind)) });
   const credit = new Map<string, string>(body.sources.filter((s: any) => CREDITED.has(s.type)).map((s: any) => [s.id, s.attribution ?? s.name]));
   return asPartner({
     ...body,
-    places: v === '2' ? body.places : body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)),
+    places: v === '2' ? body.places.filter((p: { kind: string }) => KNOWN_V3.has(p.kind)) : body.places.filter((p: { kind: string }) => LEGACY_KINDS.has(p.kind)),
     events: body.events.map(({ credit: own, ...e }: any) => {
       const c = own ?? credit.get(e.sourceId);
       return c ? { ...e, priceText: e.priceText ? `${e.priceText} · ${c}` : c } : e;

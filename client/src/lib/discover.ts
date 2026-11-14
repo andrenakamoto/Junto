@@ -41,12 +41,18 @@ export const CATEGORY_GROUPS: [string, string[]][] = [
   ['activites', [IDEAS, 'jeux', 'sport', 'famille']],
 ];
 // Idées de sorties : types de lieux rangés en groupes de tuiles (le premier qui contient le type l'emporte)
+// Plein air et hiver (2026-11-14) : l'hiver passe en tête de novembre à mars, le plein air d'avril à octobre
+const WINTER = [10, 11, 0, 1, 2].includes(new Date().getMonth());
+const OUTDOOR: [string, string[]] = ['dehors', ['grillade', 'plage', 'vue', 'parc_ville']];
+const SNOW: [string, string[]] = ['hiver', ['ski', 'luge']];
 export const KIND_GROUPS: [string, string[]][] = [
+  ...(WINTER ? [SNOW] : [OUTDOOR]),
   ['jeux', ['escape', 'laser', 'bowling', 'karting', 'defi', 'arcade', 'minigolf']],
   ['sport', ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport']],
   ['detente', ['bains', 'cave']],
-  ['famille', ['loisirs', 'parc', 'trampoline', 'animaux']],
-  ['culture', ['musee', 'bibliotheque', 'chateau', 'jardin', 'galerie', 'poterie']],
+  ['famille', ['loisirs', 'parc', 'trampoline', 'animaux', 'jeux_enfants', 'accrobranche']],
+  ['culture', ['musee', 'cinema', 'theatre', 'bibliotheque', 'chateau', 'jardin', 'galerie', 'poterie']],
+  ...(WINTER ? [OUTDOOR] : [SNOW]),
 ];
 export const KIND_ORDER = KIND_GROUPS.flatMap(([, kinds]) => kinds);
 export const KIND_EMOJI: Record<string, string> = {
@@ -54,6 +60,7 @@ export const KIND_EMOJI: Record<string, string> = {
   piscine: '🏊', escalade: '🧗', patinoire: '⛸️', golf: '🏌️', equitation: '🐴', bateau: '🛶', sport: '🏅',
   bains: '♨️', cave: '🍷', loisirs: '🎢', parc: '🧸', trampoline: '🤸', animaux: '🦁',
   musee: '🏛️', bibliotheque: '📚', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
+  cinema: '🎬', theatre: '🎭', grillade: '🔥', plage: '🏖️', vue: '🏔️', parc_ville: '🌳', jeux_enfants: '🛝', accrobranche: '🌲', luge: '🛷', ski: '⛷️',
 };
 
 export const catLabel = (c: string) => t(`discover.cats.${c}` as any);

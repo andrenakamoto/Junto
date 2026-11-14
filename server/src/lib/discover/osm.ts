@@ -1,9 +1,11 @@
 import type { NormalizedPlace, PlaceKind } from './model';
-import { cleanText, cleanUrl, FAMILY_KINDS } from './model';
+import { cleanText, cleanUrl, FAMILY_KINDS, OUTDOOR_KINDS } from './model';
 
 // Connecteur OpenStreetMap (idées de sorties) : service Overpass, données sous licence ODbL (mention « © les
-// contributeurs d'OpenStreetMap » affichée). Seulement les lieux qui ont un nom et un site web, et seulement en
-// Suisse : la zone est un canton (ISO3166-2, ex. CH-GE), éventuellement réduite à un rayon autour d'une ville.
+// contributeurs d'OpenStreetMap » affichée). Seulement les lieux qui ont un nom, et seulement dans la zone : un canton
+// (ISO3166-2, ex. CH-GE) ou un département, éventuellement réduit à un rayon autour d'une ville.
+// Depuis le 2026-11-14 : un lieu sans site web est gardé s'il a un téléphone, des horaires ou une fiche Wikidata, et les
+// idées de plein air (OUTDOOR_KINDS) avec un nom seulement ; le lien mène alors à sa fiche sur openstreetmap.org.
 
 export interface OsmConfig { area: string; around?: [number, number, number] }
 
@@ -36,9 +38,28 @@ const SELECTORS: [string, PlaceKind][] = [
   ['nwr["tourism"="gallery"]', 'galerie'],
   ['nwr["craft"="pottery"]', 'poterie'],
   ['nwr["amenity"="library"]', 'bibliotheque'],
+  // Ajoutés le 2026-11-14
+  ['nwr["amenity"="cinema"]', 'cinema'],
+  ['nwr["amenity"="theatre"]', 'theatre'],
+  ['nwr["leisure"~"^(firepit|picnic_site)$"]["name"]', 'grillade'],
+  ['nwr["amenity"="bbq"]["name"]', 'grillade'],
+  ['nwr["natural"="beach"]["name"]', 'plage'],
+  ['nwr["leisure"~"^(beach_resort|bathing_place)$"]["name"]', 'plage'],
+  ['nwr["tourism"="viewpoint"]["name"]["wikidata"]', 'vue'],
+  ['nwr["leisure"="park"]["name"]["wikidata"]', 'parc_ville'],
+  ['nwr["leisure"="playground"]["name"]', 'jeux_enfants'],
+  ['nwr["sport"="climbing_adventure"]', 'accrobranche'],
+  ['nwr["attraction"="summer_toboggan"]', 'luge'],
+  ['way["piste:type"="sled"]["name"]', 'luge'],
+  ['nwr["landuse"="winter_sports"]["name"]', 'ski'],
 ];
 
 export function placeKind(t: Record<string, string>): PlaceKind | null {
+  if (t.amenity === 'cinema') return 'cinema';
+  if (t.amenity === 'theatre') return 'theatre';
+  if (t.sport === 'climbing_adventure') return 'accrobranche';
+  if (t.attraction === 'summer_toboggan' || t['piste:type'] === 'sled') return 'luge';
+  if (t.landuse === 'winter_sports') return 'ski';
   if (t.leisure === 'escape_game') return 'escape';
   if (t.sport === 'laser_tag') return 'laser';
   if (t.leisure === 'bowling_alley') return 'bowling';
@@ -64,15 +85,33 @@ export function placeKind(t: Record<string, string>): PlaceKind | null {
   if (t.tourism === 'gallery') return 'galerie';
   if (t.craft === 'pottery') return 'poterie';
   if (t.amenity === 'library') return 'bibliotheque';
+  if (t.leisure === 'firepit' || t.leisure === 'picnic_site' || t.amenity === 'bbq') return 'grillade';
+  if (t.natural === 'beach' || t.leisure === 'beach_resort' || t.leisure === 'bathing_place') return 'plage';
+  if (t.tourism === 'viewpoint') return 'vue';
+  if (t.leisure === 'park') return 'parc_ville';
+  if (t.leisure === 'playground') return 'jeux_enfants';
   return null;
 }
 
+const NOT_A_PLAYGROUND = /kindergarten|kita|cr[eè]che|[ée]cole|schule|scuola|asilo|tobog|rutsch|balan[cç]oire|schaukel|mur de grimpe|kletterwand|sandkasten|bac [àa] sable/i;
+
 export function normalizeOsmElement(e: any): NormalizedPlace | null {
   const t = e?.tags ?? {};
-  const name = cleanText(t.name, 100);
-  const website = cleanUrl(t.website ?? t['contact:website']);
+  // « Kindergarten Gampel;Kindergarten » : plusieurs valeurs séparées par « ; », la première suffit
+  const name = cleanText(typeof t.name === 'string' ? t.name.split(';')[0] : t.name, 100);
   const kind = placeKind(t);
-  if (!name || !website || !kind) return null;
+  if (!name || !kind) return null;
+  // Places de jeux : le nom décrit souvent un jeu ou une école, pas un lieu où aller
+  if (kind === 'jeux_enfants' && (name.length < 4 || NOT_A_PLAYGROUND.test(name))) return null;
+  // Sans site web : lieu gardé s'il est vérifiable autrement (téléphone, horaires, Wikidata) ou si c'est une idée de plein
+  // air ; le lien mène à sa fiche OpenStreetMap (adresse, horaires, téléphone)
+  let website = cleanUrl(t.website ?? t['contact:website'] ?? t.url);
+  if (!website) {
+    const known = t.phone || t['contact:phone'] || t.opening_hours || t.wikidata;
+    if (!known && !OUTDOOR_KINDS.includes(kind)) return null;
+    if (!['node', 'way', 'relation'].includes(e.type) || !Number.isFinite(Number(e.id))) return null;
+    website = `https://www.openstreetmap.org/${e.type}/${e.id}`;
+  }
   // Position : le nœud lui-même, ou le centre d'un bâtiment / d'une zone (`out tags center`)
   const lat = Number(e.lat ?? e.center?.lat), lon = Number(e.lon ?? e.center?.lon);
   const pos = Number.isFinite(lat) && Number.isFinite(lon) ? { latitude: lat, longitude: lon } : { latitude: null, longitude: null };
@@ -100,7 +139,7 @@ async function overpass(query: string): Promise<any> {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'EvLY/1.0 (info@evly.ch)' },
         body: new URLSearchParams({ data: query }),
-        signal: AbortSignal.timeout(200_000),
+        signal: AbortSignal.timeout(320_000),
       });
       if (res.ok) {
         const data: any = await res.json();
@@ -121,14 +160,17 @@ async function overpass(query: string): Promise<any> {
 
 export async function fetchOsmPlaces(cfg: OsmConfig): Promise<NormalizedPlace[]> {
   const filter = cfg.around ? `(area.a)(around:${cfg.around[2]},${cfg.around[0]},${cfg.around[1]})` : '(area.a)';
-  const query = `[out:json][timeout:180];area["ISO3166-2"="${cfg.area}"]->.a;(${SELECTORS.map(([s]) => s + filter + ';').join('')});out tags center;`;
+  const query = `[out:json][timeout:300];area["ISO3166-2"="${cfg.area}"]->.a;(${SELECTORS.map(([s]) => s + filter + ';').join('')});out tags center;`;
   const data = await overpass(query);
   const seen = new Set<string>();
   const out: NormalizedPlace[] = [];
   for (const e of data.elements ?? []) {
     const p = normalizeOsmElement(e);
-    if (!p || seen.has(p.name.toLowerCase())) continue;
-    seen.add(p.name.toLowerCase());
+    if (!p) continue;
+    // Même lieu en point et en bâtiment : même nom à moins d'un kilomètre (des « Place de jeux » de villages différents restent)
+    const key = `${p.name.toLowerCase()}|${p.latitude == null ? p.city ?? '' : `${p.latitude.toFixed(2)},${p.longitude?.toFixed(2)}`}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     out.push(p);
   }
   return out;

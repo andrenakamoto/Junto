@@ -31,6 +31,8 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [picking, setPicking] = useState(false);
   const [data, setData] = useState<DiscoverData | null>(null);
   const [error, setError] = useState(false);
+  // Nombre d'événements à moins de 50 km, quand il y en a nettement plus que dans le rayon choisi
+  const [wider, setWider] = useState<number | null>(null);
   const [day, setDay] = useState(ALL);
   const [cat, setCat] = useState(ALL);
   const [q, setQ] = useState('');
@@ -61,14 +63,24 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     if (!center) return;
     setData(null);
     setError(false);
+    setWider(null);
     if (canton) {
-      api.get<DiscoverData>('/discover', { params: { canton, days: 14, v: 3 } }).then(res => setData(res.data)).catch(() => setError(true));
+      api.get<DiscoverData>('/discover', { params: { canton, days: 14, v: 4 } }).then(res => setData(res.data)).catch(() => setError(true));
       return;
     }
     // Position arrondie au centième (~1 km) sur l'appareil : rien de plus précis ne quitte le téléphone
     const round = (x: number) => Math.round(x * 100) / 100;
-    api.get<DiscoverData>('/discover', { params: { lat: round(center.lat), lon: round(center.lon), radius: choice.radius, days: 14, v: 3 } })
-      .then(res => setData(res.data))
+    const params = { lat: round(center.lat), lon: round(center.lon), days: 14, v: 4 };
+    api.get<DiscoverData>('/discover', { params: { ...params, radius: choice.radius } })
+      .then(res => {
+        setData(res.data);
+        // Peu de choses dans le rayon (vallée, village) : on regarde jusqu'à 50 km et on propose d'élargir
+        if (choice.radius < 50 && res.data.events.length < 20) {
+          api.get<DiscoverData>('/discover', { params: { ...params, radius: 50 } })
+            .then(w => { if (w.data.events.length >= res.data.events.length + 10) setWider(w.data.events.length); })
+            .catch(() => { /* rien à proposer */ });
+        }
+      })
       .catch(() => setError(true));
   }, [center?.lat, center?.lon, choice.radius, canton]);
 
@@ -241,6 +253,13 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                   ? t('discover.results', { count: shown.length + ideas.length, q: q.trim() })
                   : [cat !== IDEAS ? t('discover.events', { count: shown.length }) : null, ideas.length ? t('discover.ideas', { count: ideas.length }) : null].filter(Boolean).join(' · ')}
               </p>
+              {wider != null && !searching && cat !== IDEAS && (
+                <button onClick={() => choosePlace({ ...choice, radius: 50 })}
+                  className="w-full flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-left hover:bg-indigo-100">
+                  <span className="flex-1 min-w-0 text-sm text-slate-700">{t('discover.wider', { count: wider, km: choice.radius })}</span>
+                  <span className="flex-shrink-0 text-sm font-semibold text-indigo-700">{t('discover.widerButton')}</span>
+                </button>
+              )}
               {!searching && !events.length && places.length > 0 && cat === ALL && <p className="text-sm text-slate-600">{t('discover.noEvents')}</p>}
               {!shown.length && !ideas.length && !(cat === ALL && !searching && places.length > 0) && <p className="text-sm text-slate-500 text-center py-6">{searching ? t('discover.noResult') : t('discover.empty')}</p>}
 
@@ -386,7 +405,7 @@ function IdeaCard({ p, onReport, onHide }: { p: DiscoverPlace; onReport: (p: Dis
       <div className="flex-1 min-w-0">
         <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
           <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+          <span className="block text-xs text-slate-500 truncate">{[p.address ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
         </a>
         {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas) */}
         {p.address && (
