@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  tools: {
+    label: "Strumenti del Cerchio",
+    suppliers: { label: "Rubrica dei fornitori", hint: "Catering, sala, noleggio… da un evento all’altro" },
+    equipment: { label: "Inventario del materiale", hint: "Cosa possiede il Cerchio, chi l’ha preso, cosa è prenotato" },
+    note: "Compaiono nel menu ⋯ del Cerchio. Si attivano anche da soli quando un Plan li usa.",
+  },
   dispo: {
     label: "«Sono libero/a»",
     on: {

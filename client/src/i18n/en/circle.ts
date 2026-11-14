@@ -95,6 +95,8 @@ const circle: Dict['circle'] = {
       code: "Access code",
       availabilityEnabled: "I’m free",
       availabilityThreshold: "“I’m free” threshold",
+      suppliersEnabled: "Supplier book",
+      equipmentEnabled: "Equipment inventory",
       name: 'Name',
       description: 'Description',
       photo: 'Photo',

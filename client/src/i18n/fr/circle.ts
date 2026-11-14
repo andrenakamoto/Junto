@@ -94,6 +94,8 @@ export default {
       code: "Code d’accès",
       availabilityEnabled: "Dispo",
       availabilityThreshold: "Seuil « Dispo »",
+      suppliersEnabled: "Carnet des fournisseurs",
+      equipmentEnabled: "Inventaire du matériel",
       name: 'Nom',
       description: 'Description',
       photo: 'Photo',

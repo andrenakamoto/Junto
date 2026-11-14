@@ -225,10 +225,12 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   <button className={menuItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
                     <SlidersHorizontal size={15} className="text-slate-400" />{t('circle.planList.settings')}
                   </button>
-                  <button className={menuItem} onClick={() => { setShowMore(false); setShowSupplierBook(true); }}>
-                    <Store size={15} className="text-slate-400" />{t('suppliers.book.menu')}
-                  </button>
-                  {!circle.isPersonal && (
+                  {circle.suppliersEnabled && (
+                    <button className={menuItem} onClick={() => { setShowMore(false); setShowSupplierBook(true); }}>
+                      <Store size={15} className="text-slate-400" />{t('suppliers.book.menu')}
+                    </button>
+                  )}
+                  {!circle.isPersonal && circle.equipmentEnabled && (
                     <button className={menuItem} onClick={() => { setShowMore(false); setShowEquipment(true); }}>
                       <Boxes size={15} className="text-slate-400" />{t('equipment.inventory.menu')}
                     </button>

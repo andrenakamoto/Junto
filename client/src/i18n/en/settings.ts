@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  tools: {
+    label: "Circle tools",
+    suppliers: { label: "Supplier book", hint: "Caterer, venue, rentals… kept from one event to the next" },
+    equipment: { label: "Equipment inventory", hint: "What the Circle owns, who borrowed it, what is booked" },
+    note: "They appear in the Circle’s ⋯ menu. They also switch on by themselves when a Plan uses them.",
+  },
   dispo: {
     label: "“I’m free”",
     on: {

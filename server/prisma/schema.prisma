@@ -164,6 +164,9 @@ model Circle {
   // « Dispo » (lib/availability.ts) : fonction active et nombre de personnes dispo pour proposer un Plan
   availabilityEnabled   Boolean  @default(true)
   availabilityThreshold Int      @default(3)
+  // Outils du menu du Cercle (2026-11-14) : carnet des fournisseurs, inventaire du matériel ; activés d'office dans une Organisation
+  suppliersEnabled      Boolean  @default(false)
+  equipmentEnabled      Boolean  @default(false)
   createdAt             DateTime @default(now())
   // Cercle personnel « Mes Plans » (Plans express, lib/express.ts) : un par personne
   isPersonal            Boolean  @default(false)

@@ -1,6 +1,12 @@
 import type { Dict } from '../fr';
 
 const settings: Dict['settings'] = {
+  tools: {
+    label: "Werkzeuge des Kreises",
+    suppliers: { label: "Lieferanten-Adressbuch", hint: "Catering, Saal, Miete… von einem Anlass zum nächsten" },
+    equipment: { label: "Materialinventar", hint: "Was der Kreis besitzt, wer es ausgeliehen hat, was reserviert ist" },
+    note: "Sie erscheinen im Menü ⋯ des Kreises. Sie werden auch automatisch aktiviert, wenn ein Plan sie nutzt.",
+  },
   dispo: {
     label: "„Ich hab Zeit“",
     on: {

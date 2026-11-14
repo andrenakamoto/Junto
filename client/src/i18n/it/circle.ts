@@ -95,6 +95,8 @@ const circle: Dict['circle'] = {
       code: "Codice d’accesso",
       availabilityEnabled: "Sono libero/a",
       availabilityThreshold: "Soglia «Sono libero/a»",
+      suppliersEnabled: "Rubrica dei fornitori",
+      equipmentEnabled: "Inventario del materiale",
       name: 'Nome',
       description: 'Descrizione',
       photo: 'Foto',

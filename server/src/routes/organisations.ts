@@ -64,7 +64,7 @@ router.post('/', async (req: AuthRequest, res) => {
           name: c.name, code: codes.get(c.ref)!, color: c.color, creatorId: userId, organisationId: organisation.id, orgKind: c.kind,
           orgDefaultRoleId: c.defaultRoleRef ? roleIds.get(c.defaultRoleRef) : null, orgExtraPermissions: c.extraPermissions,
           orgDiscussionRoleIds: refs(c.discussionRoleRefs, roleIds), orgAutoDirection: c.autoDirection, orgAutoRoleIds: refs(c.autoRoleRefs, roleIds),
-          admissionMode: 'creator', deletionMode: 'creator', planCreationMode: 'creator', pollCreationMode: 'creator', chatMode: 'open', availabilityEnabled: false,
+          admissionMode: 'creator', deletionMode: 'creator', planCreationMode: 'creator', pollCreationMode: 'creator', chatMode: 'open', availabilityEnabled: false, suppliersEnabled: true, equipmentEnabled: true,
           members: { create: { userId, role: 'admin', orgRoleId: directionId, orgIntegrated: c.kind === 'team' } },
         },
       });

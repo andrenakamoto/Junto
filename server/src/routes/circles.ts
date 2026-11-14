@@ -26,7 +26,7 @@ import { afterCircleEntry, afterCircleExit, roleForAcceptance } from '../lib/org
 import { orgAllows } from '../lib/orgPermissions';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { getOrCreatePersonalCircle } from '../lib/express';
-import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR, parseChatMode, parseFilesMode, parseGuestInviteMode } from '../lib/settings';
+import { parseAdmissionMode, parseDeletionMode, parseDisabledFeatures, parseEnabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, parsePlanCreationMode, parsePollCreationMode, PLAN_CREATION_RESERVED_ERROR, POLL_CREATION_RESERVED_ERROR, parseChatMode, parseFilesMode, parseGuestInviteMode, enableCircleTools } from '../lib/settings';
 import { encryptMessage, withPlainContent } from '../lib/messageCrypto';
 import { checkMessageEdit, cleanContent } from '../lib/messageEdit';
 import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
@@ -209,6 +209,9 @@ router.post('/', async (req: AuthRequest, res) => {
       chatMode: parseChatMode(req.body.chatMode) ?? 'off',
       // « Dispo » : désactivée par défaut à la création (aussi pour les anciennes apps qui n'envoient rien)
       availabilityEnabled: typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : false,
+      // Fournisseurs et matériel : désactivés par défaut (anciennes apps comprises)
+      suppliersEnabled: req.body.suppliersEnabled === true,
+      equipmentEnabled: req.body.equipmentEnabled === true,
       code,
       creatorId: req.userId!,
       members: { create: { userId: req.userId!, role: 'admin' } },
@@ -301,6 +304,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   if (chatMode === undefined && req.body.chatMode !== undefined) { res.status(400).json({ error: 'Mode de discussion invalide' }); return; }
   const availabilityEnabled = typeof req.body.availabilityEnabled === 'boolean' ? req.body.availabilityEnabled : undefined;
   const availabilityThreshold = req.body.availabilityThreshold === undefined ? undefined : parseThreshold(req.body.availabilityThreshold);
+  const suppliersEnabled = typeof req.body.suppliersEnabled === 'boolean' ? req.body.suppliersEnabled : undefined;
+  const equipmentEnabled = typeof req.body.equipmentEnabled === 'boolean' ? req.body.equipmentEnabled : undefined;
   if (availabilityThreshold === undefined && req.body.availabilityThreshold !== undefined) { res.status(400).json({ error: 'Seuil invalide (entre 2 et 10 personnes)' }); return; }
   const description = typeof req.body.description === 'string' ? req.body.description.trim().slice(0, 500) : undefined;
   const name = typeof req.body.name === 'string' ? req.body.name.trim() : undefined;
@@ -317,7 +322,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   await prisma.circle.update({
     where: { id: circle.id },
     data: { ...(name && { name }), ...(deletionMode && { deletionMode }), ...(admissionMode && { admissionMode }), ...(planCreationMode && { planCreationMode }), ...(pollCreationMode && { pollCreationMode }), ...(chatMode && { chatMode }), ...(description !== undefined && { description: description || null }),
-      ...(availabilityEnabled !== undefined && { availabilityEnabled }), ...(availabilityThreshold !== undefined && { availabilityThreshold }) },
+      ...(availabilityEnabled !== undefined && { availabilityEnabled }), ...(availabilityThreshold !== undefined && { availabilityThreshold }),
+      ...(suppliersEnabled !== undefined && { suppliersEnabled }), ...(equipmentEnabled !== undefined && { equipmentEnabled }) },
   });
   // « Dispo » coupée : les déclarations en cours disparaissent
   if (availabilityEnabled === false) await prisma.availability.deleteMany({ where: { circleId: circle.id } });
@@ -336,6 +342,8 @@ router.put('/:id/settings', async (req: AuthRequest, res) => {
   track('chatMode', circle.chatMode, chatMode);
   track('availabilityEnabled', String(circle.availabilityEnabled), availabilityEnabled === undefined ? undefined : String(availabilityEnabled));
   track('availabilityThreshold', String(circle.availabilityThreshold), availabilityThreshold === undefined ? undefined : String(availabilityThreshold));
+  track('suppliersEnabled', String(circle.suppliersEnabled), suppliersEnabled === undefined ? undefined : String(suppliersEnabled));
+  track('equipmentEnabled', String(circle.equipmentEnabled), equipmentEnabled === undefined ? undefined : String(equipmentEnabled));
   if (changes.length) {
     await prisma.circleChangeLog.createMany({ data: changes.map(c => ({ ...c, circleId: circle.id, changedById: req.userId! })) });
   }
@@ -984,6 +992,7 @@ export async function createPlanInCircle(app: any, circleId: string, creatorId: 
     .then(n => { if (n === 1) countFunnel('funnel_first_plan'); })
     .catch(() => {});
 
+  await enableCircleTools(circleId, plan.enabledFeatures).catch(e => console.error('[circle tools]', e));
   return { plan };
 }
 

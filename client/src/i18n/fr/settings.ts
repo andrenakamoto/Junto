@@ -1,5 +1,11 @@
 // Paramètres avancés, fonctions du Plan, répétition, suggestions
 export default {
+  tools: {
+    label: "Outils du Cercle",
+    suppliers: { label: "Carnet des fournisseurs", hint: "Traiteur, salle, location… gardés d’un événement à l’autre" },
+    equipment: { label: "Inventaire du matériel", hint: "Ce que le Cercle possède, qui l’a emprunté, ce qui est réservé" },
+    note: "Ils apparaissent dans le menu ⋯ du Cercle. Ils s’activent aussi d’eux-mêmes quand un Plan les utilise.",
+  },
   dispo: {
     label: "« Je suis dispo »",
     on: {

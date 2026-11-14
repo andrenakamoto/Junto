@@ -79,6 +79,8 @@ export interface Circle {
   chatLast?: { author: string; text: string; at: string } | null;
   /** « Je suis dispo » : fonction active, seuil pour proposer un Plan, et qui est libre (GET /circles) */
   availabilityEnabled?: boolean;
+  suppliersEnabled?: boolean;
+  equipmentEnabled?: boolean;
   availabilityThreshold?: number;
   dispo?: { count: number; pseudos: string[] } | null;
   photoKey?: string | null;

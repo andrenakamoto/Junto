@@ -24,7 +24,7 @@ import { nextNudgeAt, pendingMembers } from '../lib/planPending';
 import { prepareCancelNotice } from '../lib/planCancel';
 import { canSeeMembers, forViewer, managedCircleIds, maskMembers, parseMembersVisibility } from '../lib/memberPrivacy';
 import { getPlanAccess, visiblePlansWhere, guestIdsAmong, planCircleIds, exclusionsFor, hideReservedList } from '../lib/planAccess';
-import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR, parseFilesMode, parseGuestInviteMode } from '../lib/settings';
+import { parseEnabledFeatures, parseDeletionMode, parseDisabledFeatures, parseEditMode, parseImportantInfo, parseImportantInfoMode, IMPORTANT_INFO_MAX, isFeatureDisabled, FEATURE_DISABLED_ERROR, parseFilesMode, parseGuestInviteMode, enableCircleTools } from '../lib/settings';
 import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
@@ -619,6 +619,7 @@ router.put('/:id', async (req: AuthRequest, res) => {
     if (deletionMode === 'creator' && plan.deletionMode !== 'creator') {
       await prisma.planDeleteVote.deleteMany({ where: { planId } });
     }
+    await enableCircleTools(plan.circleId, enabledFeatures);
     // Moins d'accompagnants permis : les réponses au-delà sont ramenées au nouveau maximum (des places se libèrent)
     if (companionsMax < plan.companionsMax) {
       const cut = await prisma.planMember.updateMany({ where: { planId, partySize: { gt: companionsMax + 1 } }, data: { partySize: companionsMax + 1 } });

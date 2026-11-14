@@ -100,3 +100,9 @@ export function parseChatMode(v: unknown): string | undefined {
 
 export const PLAN_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent créer des Plans';
 export const POLL_CREATION_RESERVED_ERROR = 'Dans ce Cercle, seuls le créateur et les organisateurs peuvent lancer des sondages de dates';
+
+// Outils du menu du Cercle (2026-11-14) : un Plan qui active « Fournisseurs » ou « Matériel » les affiche aussi dans son Cercle
+export async function enableCircleTools(circleId: string, enabledFeatures: string[]) {
+  if (enabledFeatures.includes('fournisseurs')) await prisma.circle.updateMany({ where: { id: circleId, suppliersEnabled: false }, data: { suppliersEnabled: true } });
+  if (enabledFeatures.includes('materiel')) await prisma.circle.updateMany({ where: { id: circleId, equipmentEnabled: false }, data: { equipmentEnabled: true } });
+}

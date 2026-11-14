@@ -239,3 +239,30 @@ export function FeaturesField({ disabled, onChange, enabled = [], onEnabledChang
     </fieldset>
   );
 }
+
+// Outils du menu du Cercle (2026-11-14) : carnet des fournisseurs et inventaire du matériel, cochés ou non
+export function CircleToolsField({ suppliers, equipment, onSuppliers, onEquipment, readOnly }: {
+  suppliers: boolean; equipment: boolean; onSuppliers: (v: boolean) => void; onEquipment: (v: boolean) => void; readOnly?: boolean;
+}) {
+  const rows = [
+    { key: 'suppliers', on: suppliers, set: onSuppliers },
+    { key: 'equipment', on: equipment, set: onEquipment },
+  ] as const;
+  return (
+    <fieldset className="min-w-0">
+      <legend className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{t('settings.tools.label')}</legend>
+      <div className="space-y-1.5">
+        {rows.map(r => (
+          <label key={r.key} className={`flex items-start gap-2 rounded-lg border px-2.5 py-2 ${r.on ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200'} ${readOnly ? '' : 'cursor-pointer'}`}>
+            <input type="checkbox" checked={r.on} onChange={e => r.set(e.target.checked)} disabled={readOnly} className="mt-0.5 accent-indigo-600" />
+            <span>
+              <span className="block text-sm text-slate-800">{t(`settings.tools.${r.key}.label`)}</span>
+              <span className="block text-xs text-slate-500">{t(`settings.tools.${r.key}.hint`)}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      <p className="text-xs text-slate-400 mt-1.5">{t('settings.tools.note')}</p>
+    </fieldset>
+  );
+}
