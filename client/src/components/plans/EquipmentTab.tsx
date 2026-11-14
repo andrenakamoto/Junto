@@ -156,9 +156,9 @@ function Stepper({ value, max, onChange }: { value: number; max: number; onChang
 
 function PeriodFields({ start, end, onStart, onEnd }: { start: string; end: string; onStart: (v: string) => void; onEnd: (v: string) => void }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      <DateTimeField label={t('equipment.from')} value={start} onChange={onStart} />
-      <DateTimeField label={t('equipment.to')} value={end} onChange={onEnd} />
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
+      <DateTimeField className="min-w-0" label={t('equipment.from')} value={start} onChange={onStart} />
+      <DateTimeField className="min-w-0" label={t('equipment.to')} value={end} onChange={onEnd} />
     </div>
   );
 }

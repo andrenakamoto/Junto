@@ -168,7 +168,7 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
             })}
           </div>
           {mode === 'datetime' && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-500/20">
+            <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-500/20">
               <span className="text-sm font-medium flex-1">{t('common.date.time')}</span>
               <select value={hh} onChange={e => setTime(e.target.value, mm)} aria-label={t('common.date.hour')}
                 className={`border rounded-lg px-2 py-1.5 text-sm ${select}`}>
@@ -179,7 +179,7 @@ export function DateTimeField({ value, onChange, mode = 'datetime', label, place
                 {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
               <button type="button" onClick={() => setOpen(false)}
-                className="ml-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                className="ml-auto px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
                 {t('common.ok')}
               </button>
             </div>

@@ -290,7 +290,7 @@ function Manual() {
           <select className={input} value={form.region} onChange={e => set('region', e.target.value)}>{REGIONS.map(r => <option key={r} value={r}>{regionLabel(r)}</option>)}</select>
           <select className={input} value={form.category} onChange={e => set('category', e.target.value)}>{CATEGORIES.map(c => <option key={c} value={c}>{catLabel(c)}</option>)}</select>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-start">
           <DateTimeField value={form.startAt} onChange={v => set('startAt', v)} placeholder="Début" />
           <DateTimeField value={form.endAt} onChange={v => set('endAt', v)} placeholder="Fin (facultatif)" clearable />
         </div>
