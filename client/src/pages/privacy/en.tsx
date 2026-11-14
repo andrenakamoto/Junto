@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 13 November 2026',
+  version: 'Version of 14 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -82,6 +82,7 @@ const en: PrivacyText = {
         <li><strong>Android and iPhone app notifications</strong>: if you allow them, your phone’s notification
           identifier, erased when you log out. A notification only says who wrote and in which Plan, Circle or poll —
           never the content of a message. You can turn them off at any time in your phone’s settings.</li>
+        <li><strong>Viewing without a network</strong>: so that you can see your Circles and Plans without a connection, the latest version of what you viewed (lists, Plan pages, latest chat messages, tasks, schedule, rides…) and the poster of your Plans in the next few days are kept on your device, in the app’s or browser’s private storage. Nothing is sent anywhere else. These copies are deleted when you log out, when you delete your account, and after 21 days at the latest.</li>
       </ul>
       <p>We do not collect date of birth, location or address book.</p>
     </Section>

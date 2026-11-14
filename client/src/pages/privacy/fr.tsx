@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 13 novembre 2026',
+  version: 'Version du 14 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -94,6 +94,7 @@ const fr: PrivacyText = {
           de notification de ton téléphone, effacé quand tu te déconnectes. Une notification indique
           seulement qui a écrit et dans quel Plan, Cercle ou sondage — jamais le contenu d'un message.
           Tu peux les couper à tout moment dans les réglages de ton téléphone.</li>
+        <li><strong>Consultation sans réseau</strong> : pour que tu puisses voir tes Cercles et tes Plans sans connexion, la dernière version de ce que tu as consulté (listes, fiches des Plans, derniers messages des chats, tâches, déroulé, trajets…) et l’affiche de tes Plans des prochains jours sont gardées dans ton appareil, dans l’espace privé de l’app ou du navigateur. Rien n’est envoyé ailleurs. Ces copies sont effacées quand tu te déconnectes, quand tu supprimes ton compte, et au plus tard après 21 jours.</li>
       </ul>
       <p>Nous ne collectons ni date de naissance, ni localisation, ni carnet d'adresses.</p>
     </Section>

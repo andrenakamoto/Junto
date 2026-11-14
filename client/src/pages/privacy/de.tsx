@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 13. November 2026',
+  version: 'Fassung vom 14. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -90,6 +90,7 @@ const de: PrivacyText = {
           Benachrichtigungskennung deines Telefons, gelöscht bei der Abmeldung. Eine Benachrichtigung zeigt nur, wer
           geschrieben hat und in welchem Plan, Kreis oder welcher Umfrage — nie den Inhalt einer Nachricht. Du kannst
           sie jederzeit in den Einstellungen deines Telefons abschalten.</li>
+        <li><strong>Ansehen ohne Netz</strong>: Damit du deine Kreise und Pläne ohne Verbindung sehen kannst, werden die letzte Fassung dessen, was du angesehen hast (Listen, Planseiten, letzte Chatnachrichten, Aufgaben, Ablauf, Fahrten…), und das Plakat deiner Pläne der nächsten Tage auf deinem Gerät gespeichert, im privaten Bereich der App oder des Browsers. Nichts wird anderswohin gesendet. Diese Kopien werden gelöscht, wenn du dich abmeldest, wenn du dein Konto löschst, und spätestens nach 21 Tagen.</li>
       </ul>
       <p>Wir erheben weder Geburtsdatum noch Standort noch Adressbuch.</p>
     </Section>

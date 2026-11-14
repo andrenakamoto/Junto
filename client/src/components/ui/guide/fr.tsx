@@ -528,6 +528,19 @@ const groups: Group[] = [
     title: 'Ton compte',
     topics: [
       {
+        id: 'hors-ligne', emoji: '📵', title: 'Sans réseau', summary: 'Ton Plan reste lisible dans un chalet ou un parking',
+        body: <>
+          <P>EvLY garde dans ton téléphone la dernière version de ce que tu as consulté : tes Cercles, tes Plans, leurs informations, les
+            derniers messages des chats, tes tâches, le déroulé, les trajets. Sans réseau, tu les retrouves, avec un bandeau « Pas de
+            connexion » qui dit de quand datent ces infos.</P>
+          <P>Pour tes <strong>Plans des 3 prochains jours</strong> (« Je suis in » ou « Peut-être »), tout est enregistré d'avance, même si tu
+            ne les as pas ouverts : adresse, heure, informations importantes (code de la porte…), ton trajet, tes postes et tes tâches,
+            l'affiche.</P>
+          <P>Sans réseau, rien ne peut être modifié ni envoyé : tu le feras quand le réseau revient, EvLY se met à jour tout seul. Ces copies
+            sont effacées quand tu te déconnectes.</P>
+        </>,
+      },
+      {
         id: 'photos', emoji: '🖼️', title: 'Photos de profil et de Cercle', summary: 'Ta tête, et celle de ton groupe',
         body: <>
           <P><strong>Photo de profil</strong> : menu ☰ → <strong>Mon profil</strong> → « Ajouter une photo ». Cadre-la en la faisant

@@ -2173,6 +2173,20 @@ les 5 s, puis « Connexion rétablie » et événement `evly-online` → `Dashbo
 des Cercles compris). **`AuthContext` n'efface plus le jeton sans réseau** (avant, ouvrir l'app hors ligne déconnectait) : seulement
 sur 401 / 403 / 404 de `/auth/me`, sinon il réessaie au retour du réseau.
 
+**Consultation sans réseau** (2026-11-14, demande de l'utilisateur, `lib/offlineCache.ts`, `lib/offlinePrefetch.ts`) : le client API
+(`services/api.ts`) garde dans **IndexedDB** (`evly-offline`) la dernière réponse des GET listés dans `CACHEABLE` (Cercles, Plans, fiche
+d'un Plan, chat `?all=1`, « En bref », tâches, déroulé, planning, trajets, transports publics, matériel, dépenses, jeux, discussion du
+Cercle…), rangée par compte (identifiant tiré du jeton) ; **sans réponse du serveur** (réseau coupé ou délai de 12 s dépassé), la version
+gardée est resservie (`fromCache: true`) et `OfflineBanner` dit de quand elle date, puis se réduit en pastille après 6 s. **Une écriture
+sans réseau** reçoit `err.response.data.error` = « Pas de connexion : réessaie quand le réseau revient. » ; le chat d'un Plan bloque l'envoi.
+**Prochains Plans** : après chaque GET /plans en ligne (`refreshBell` de DashboardPage), `prefetchUpcoming` charge d'avance, pour les Plans
+en cours ou dans les 3 jours avec « Je suis in » / « Peut-être », la fiche, « En bref », le chat et les rubriques actives, la liste des Plans
+de leur Cercle, et **l'affiche** en image (`blobPut`, reprise par `Poster` d'InfosTab si l'image ne charge pas) ; au plus 1×/30 min par
+Plan (`evly_offline_prefetch`). Effacé à la déconnexion et quand le serveur refuse le jeton (`clearOfflineCache`), entrées de plus de 21 jours
+et au-delà de 600 effacées au démarrage. **Toute nouvelle rubrique à consulter sans réseau s'ajoute dans `CACHEABLE` (et dans
+`prefetchUpcoming` si elle sert le jour J).** Pas de documents PDF ni de photos de la galerie hors ligne ; rien n'est écrit hors ligne
+(pas de file d'attente). Fiche « Sans réseau » du guide, politique de confidentialité du 14 novembre 2026.
+
 **Bouton retour Android et fenêtres** (2026-10-14, `lib/backClose.ts`) : `useBackClose(onClose, actif)` inscrit une
 fenêtre dans une pile ; `NativeChrome` ferme d'abord celle du dessus (`closeTopOverlay`) avant `evly-back`. Branché dans
 `Modal` (toutes les fenêtres standard), `GuideModal`, `PersonSheet`, la visionneuse photo du chat, le menu photo du chat,

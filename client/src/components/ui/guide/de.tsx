@@ -540,6 +540,18 @@ const groups: Group[] = [
     title: 'Dein Konto',
     topics: [
       {
+        id: 'hors-ligne', emoji: '📵', title: 'Ohne Netz', summary: 'Dein Plan bleibt lesbar, im Chalet wie in der Tiefgarage',
+        body: <>
+          <P>EvLY speichert auf deinem Telefon die letzte Fassung dessen, was du angesehen hast: deine Kreise, deine Pläne, ihre Infos, die
+            letzten Chatnachrichten, deine Aufgaben, den Ablauf, die Fahrten. Ohne Netz findest du sie wieder, mit einem Hinweis «Keine
+            Verbindung», der sagt, von wann diese Infos sind.</P>
+          <P>Für deine <strong>Pläne der nächsten 3 Tage</strong> («Ich bin dabei» oder «Vielleicht») wird alles im Voraus gespeichert, auch
+            wenn du sie nicht geöffnet hast: Adresse, Zeit, wichtige Infos (Türcode…), deine Fahrt, deine Einsätze und Aufgaben, das Plakat.</P>
+          <P>Ohne Netz kann nichts geändert oder gesendet werden: Das machst du, wenn das Netz zurück ist, EvLY aktualisiert sich von selbst.
+            Diese Kopien werden gelöscht, wenn du dich abmeldest.</P>
+        </>,
+      },
+      {
         id: 'photos', emoji: '🖼️', title: 'Profilfoto und Foto des Kreises', summary: 'Dein Gesicht und das deiner Gruppe',
         body: <>
           <P><strong>Profilfoto</strong>: Menü ☰ → <strong>Mein Profil</strong> → «Foto hinzufügen». Zieh das Foto für den

@@ -13,7 +13,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 13 novembre 2026',
+  version: 'Versione del 14 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -85,6 +85,7 @@ const it: PrivacyText = {
         <li><strong>Notifiche delle app Android e iPhone</strong>: se le autorizzi, l’identificativo di notifica del tuo
           telefono, cancellato quando esci. Una notifica indica solo chi ha scritto e in quale Plan, Cerchio o sondaggio —
           mai il contenuto di un messaggio. Puoi disattivarle in qualsiasi momento nelle impostazioni del telefono.</li>
+        <li><strong>Consultazione senza rete</strong>: perché tu possa vedere i tuoi Cerchi e i tuoi Plan senza connessione, l’ultima versione di ciò che hai consultato (elenchi, schede dei Plan, ultimi messaggi delle chat, compiti, scaletta, tragitti…) e la locandina dei tuoi Plan dei prossimi giorni sono salvate sul tuo dispositivo, nello spazio privato dell’app o del browser. Nulla viene inviato altrove. Queste copie vengono cancellate quando esci, quando elimini il tuo account e al più tardi dopo 21 giorni.</li>
       </ul>
       <p>Non raccogliamo né data di nascita, né posizione, né rubrica.</p>
     </Section>

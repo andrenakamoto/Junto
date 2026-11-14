@@ -531,6 +531,18 @@ const groups: Group[] = [
     title: 'Il tuo account',
     topics: [
       {
+        id: 'hors-ligne', emoji: '📵', title: 'Senza rete', summary: 'Il tuo Plan resta leggibile in uno chalet o in un parcheggio',
+        body: <>
+          <P>EvLY salva nel telefono l’ultima versione di ciò che hai consultato: i tuoi Cerchi, i tuoi Plan, le loro informazioni, gli ultimi
+            messaggi delle chat, i tuoi compiti, la scaletta, i tragitti. Senza rete li ritrovi, con un avviso «Nessuna connessione» che dice
+            a quando risalgono.</P>
+          <P>Per i tuoi <strong>Plan dei prossimi 3 giorni</strong> («Ci sono» o «Forse») tutto è salvato in anticipo, anche se non li hai
+            aperti: indirizzo, ora, informazioni importanti (codice della porta…), il tuo tragitto, i tuoi turni e compiti, la locandina.</P>
+          <P>Senza rete non si può modificare né inviare nulla: lo farai quando torna la rete, EvLY si aggiorna da solo. Queste copie vengono
+            cancellate quando esci.</P>
+        </>,
+      },
+      {
         id: 'photos', emoji: '🖼️', title: 'Foto del profilo e del Cerchio', summary: 'Il tuo volto e quello del tuo gruppo',
         body: <>
           <P><strong>Foto del profilo</strong>: menu ☰ → <strong>Il mio profilo</strong> → «Aggiungi una foto». Trascinala per

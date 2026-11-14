@@ -524,6 +524,18 @@ const groups: Group[] = [
     title: 'Your account',
     topics: [
       {
+        id: 'hors-ligne', emoji: '📵', title: 'Without a network', summary: 'Your Plan stays readable in a chalet or a car park',
+        body: <>
+          <P>EvLY keeps on your phone the latest version of what you viewed: your Circles, your Plans, their info, the latest chat messages,
+            your tasks, the schedule, the rides. Without a network you still find them, with a “No connection” banner saying how recent
+            the info is.</P>
+          <P>For your <strong>Plans in the next 3 days</strong> (“I’m in” or “Maybe”), everything is saved in advance, even if you haven’t
+            opened them: address, time, important info (door code…), your ride, your shifts and tasks, the poster.</P>
+          <P>Without a network nothing can be changed or sent: do it when the network is back, EvLY updates by itself. These copies are
+            deleted when you log out.</P>
+        </>,
+      },
+      {
         id: 'photos', emoji: '🖼️', title: 'Profile and Circle photos', summary: 'Your face, and your group’s',
         body: <>
           <P><strong>Profile photo</strong>: menu ☰ → <strong>My profile</strong> → “Add a photo”. Drag it to frame it, pinch to
