@@ -2113,7 +2113,7 @@ couverte par le même événement « sur plusieurs jours » d'une autre source e
 **Plus d'idées de sorties** (2026-11-14, `lib/discover/osm.ts`) : OpenStreetMap garde aussi un lieu **sans site web** s'il a un téléphone,
 des horaires ou une fiche Wikidata, et les idées de **plein air** (`OUTDOOR_KINDS`) avec un nom seulement ; le lien mène alors à sa fiche
 openstreetmap.org (« Voir sur la carte »). Nouveaux types : `cinema`, `theatre`, `grillade`, `plage`, `vue` (avec Wikidata), `parc_ville`
-(avec Wikidata), `jeux_enfants` (noms d'écoles ou de jeux écartés, `NOT_A_PLAYGROUND`), `accrobranche`, `luge`, `ski` ; groupes « Plein air »
+(avec Wikidata), `jeux_enfants` (noms d'écoles ou de jeux écartés, `NOT_A_PLAYGROUND`), `accrobranche`, `luge`, `ski`, `bar` (bar, pub, biergarten) et `discotheque` (groupe « Sortir le soir », site web, téléphone ou horaires exigés) ; groupes « Plein air »
 et « Hiver » (l'hiver en tête de novembre à mars, `KIND_GROUPS` du client). Doublons : même nom à moins d'un kilomètre. **Clients `v=4`**
 (site et apps suivantes) ; `v=2` / `v=3` ne reçoivent que les anciens types (`PLACE_KINDS_V3`). Valais : de 191 à environ 380 idées.
 **« Élargir à 50 km »** : moins de 20 événements dans le rayon → le client regarde jusqu'à 50 km et propose d'élargir s'il y en a 10 de plus.

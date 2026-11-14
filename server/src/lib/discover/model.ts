@@ -37,6 +37,7 @@ export const PLACE_KINDS = [
   'defi', 'loisirs', 'bains', 'cave', 'bateau', 'equitation', 'golf', 'chateau', 'jardin', 'galerie', 'poterie', 'bibliotheque',
   // depuis le 2026-11-14 (clients v=4) : plein air, hiver, cinéma, théâtre
   'cinema', 'theatre', 'grillade', 'plage', 'vue', 'parc_ville', 'jeux_enfants', 'accrobranche', 'luge', 'ski',
+  'bar', 'discotheque',
 ] as const;
 // Types connus des clients v=2 / v=3 (site et apps jusqu'à la 1.0.53) : ils affichent la clé brute pour les suivants
 export const PLACE_KINDS_V3: readonly string[] = PLACE_KINDS.slice(0, PLACE_KINDS.indexOf('cinema'));

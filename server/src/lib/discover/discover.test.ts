@@ -48,6 +48,8 @@ describe('OpenStreetMap', () => {
     expect(normalizeOsmElement({ type: 'node', id: 15, tags: { name: 'Parc des Cropettes;X', leisure: 'playground' } })?.name).toBe('Parc des Cropettes');
     expect(normalizeOsmElement({ type: 'way', id: 10, tags: { name: 'Piste de luge', 'piste:type': 'sled' } })?.kind).toBe('luge');
     expect(normalizeOsmElement({ type: 'node', id: 11, tags: { name: 'Cinéma Lux', amenity: 'cinema', website: 'lux.ch' } })?.kind).toBe('cinema');
+    expect(normalizeOsmElement({ type: 'node', id: 16, tags: { name: 'Le Baroque', amenity: 'nightclub', website: 'b.ch' } })).toMatchObject({ kind: 'discotheque', family: false });
+    expect(normalizeOsmElement({ type: 'node', id: 17, tags: { name: 'Bar sans rien', amenity: 'bar' } })).toBeNull();
     expect(normalizeOsmElement({ type: 'node', id: 12, tags: { name: 'Station', landuse: 'winter_sports' } })?.kind).toBe('ski');
   });
   it('reconnaît les types ajoutés le 2026-10-24', () => {

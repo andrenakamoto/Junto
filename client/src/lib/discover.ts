@@ -47,6 +47,7 @@ const OUTDOOR: [string, string[]] = ['dehors', ['grillade', 'plage', 'vue', 'par
 const SNOW: [string, string[]] = ['hiver', ['ski', 'luge']];
 export const KIND_GROUPS: [string, string[]][] = [
   ...(WINTER ? [SNOW] : [OUTDOOR]),
+  ['nuit', ['bar', 'discotheque']],
   ['jeux', ['escape', 'laser', 'bowling', 'karting', 'defi', 'arcade', 'minigolf']],
   ['sport', ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport']],
   ['detente', ['bains', 'cave']],
@@ -60,7 +61,7 @@ export const KIND_EMOJI: Record<string, string> = {
   piscine: '🏊', escalade: '🧗', patinoire: '⛸️', golf: '🏌️', equitation: '🐴', bateau: '🛶', sport: '🏅',
   bains: '♨️', cave: '🍷', loisirs: '🎢', parc: '🧸', trampoline: '🤸', animaux: '🦁',
   musee: '🏛️', bibliotheque: '📚', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
-  cinema: '🎬', theatre: '🎭', grillade: '🔥', plage: '🏖️', vue: '🏔️', parc_ville: '🌳', jeux_enfants: '🛝', accrobranche: '🌲', luge: '🛷', ski: '⛷️',
+  cinema: '🎬', theatre: '🎭', grillade: '🔥', plage: '🏖️', vue: '🏔️', parc_ville: '🌳', jeux_enfants: '🛝', accrobranche: '🌲', luge: '🛷', ski: '⛷️', bar: '🍸', discotheque: '🪩',
 };
 
 export const catLabel = (c: string) => t(`discover.cats.${c}` as any);

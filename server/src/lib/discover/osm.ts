@@ -52,10 +52,14 @@ const SELECTORS: [string, PlaceKind][] = [
   ['nwr["attraction"="summer_toboggan"]', 'luge'],
   ['way["piste:type"="sled"]["name"]', 'luge'],
   ['nwr["landuse"="winter_sports"]["name"]', 'ski'],
+  ['nwr["amenity"~"^(bar|pub|biergarten)$"]', 'bar'],
+  ['nwr["amenity"="nightclub"]', 'discotheque'],
 ];
 
 export function placeKind(t: Record<string, string>): PlaceKind | null {
   if (t.amenity === 'cinema') return 'cinema';
+  if (t.amenity === 'nightclub') return 'discotheque';
+  if (t.amenity === 'bar' || t.amenity === 'pub' || t.amenity === 'biergarten') return 'bar';
   if (t.amenity === 'theatre') return 'theatre';
   if (t.sport === 'climbing_adventure') return 'accrobranche';
   if (t.attraction === 'summer_toboggan' || t['piste:type'] === 'sled') return 'luge';
