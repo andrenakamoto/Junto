@@ -1,4 +1,5 @@
 import { isOffline } from '../lib/connection';
+import { PHONE_QUERY, isWideScreen } from '../lib/layout';
 import { prefetchUpcoming } from '../lib/offlinePrefetch';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { CockpitView } from '../components/organisations/CockpitView';
@@ -67,9 +68,9 @@ export function DashboardPage() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [mobileView, setMobileView] = useState<MobileView>('circles');
   // Téléphone : une seule colonne à la fois, donc pas de carte « sélectionnée » (le contour restait après le retour)
-  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
+  const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches);
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
+    const mq = window.matchMedia(PHONE_QUERY);
     const on = () => setNarrow(mq.matches);
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
@@ -809,7 +810,7 @@ export function DashboardPage() {
         e.preventDefault();
         return;
       }
-      if (window.matchMedia('(min-width: 768px)').matches) {
+      if (isWideScreen()) {
         if (!open) return;
         setSelectedPlan(null);
         setSelectedPollId(null);

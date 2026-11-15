@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isWideScreen } from '../lib/layout';
 import { startDemo } from '../lib/demo';
 import { countStep } from '../lib/funnel';
 import { DEMO_CHOICES, DemoChoices } from '../components/ui/DemoChoices';
@@ -18,7 +19,7 @@ async function showcasePath(key: string): Promise<string> {
     const { fixtures } = await (await fetch('/demo/data.json')).json() as { fixtures: Record<string, any> };
     const sc = (fixtures.DEMO_SHOWCASE as Record<string, [string, string]> | undefined)?.[key];
     const circleId = sc ? fixtures[`GET /plans/${sc[0]}`]?.circleId : null;
-    return circleId && window.matchMedia('(min-width: 768px)').matches ? `/dashboard?circleId=${circleId}` : '/dashboard';
+    return circleId && isWideScreen() ? `/dashboard?circleId=${circleId}` : '/dashboard';
   } catch {
     return '/dashboard';
   }

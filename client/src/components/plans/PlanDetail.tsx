@@ -58,10 +58,11 @@ import { Trans } from 'react-i18next';
 import { intlLocale, t } from '../../i18n';
 import { RichText } from '../../lib/richText';
 import { useBackClose } from '../../lib/backClose';
+import { PHONE_QUERY } from '../../lib/layout';
 
-// Écran de téléphone (< 768 px) : page principale du Plan avec des cartes au lieu des onglets
+// Écran de téléphone (< 768 px, ou téléphone en paysage) : page principale du Plan avec des cartes au lieu des onglets
 function useIsPhone() {
-  const query = '(max-width: 767px)';
+  const query = PHONE_QUERY;
   const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
   useEffect(() => {
     const mq = window.matchMedia(query);

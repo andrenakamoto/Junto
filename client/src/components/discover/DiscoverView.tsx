@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { isWideScreen } from '../../lib/layout';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, LocateFixed, ChevronLeft, ChevronRight, EyeOff, Lightbulb, MapPin, ExternalLink, Flag, Megaphone, Search, SlidersHorizontal, Ticket, Users, List, Map as MapIcon } from 'lucide-react';
 import { Modal } from '../ui/Modal';
@@ -52,7 +53,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [reporting, setReporting] = useState<{ target: { eventId: string } | { placeId: string }; title: string } | null>(null);
   const [showPro, setShowPro] = useState(false);
   // Filtres repliés sur téléphone (sinon ils prennent tout l'écran avant le premier événement)
-  const [filtersOpen, setFiltersOpen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches);
+  const [filtersOpen, setFiltersOpen] = useState(() => isWideScreen());
 
   useEffect(() => {
     if (!choice.here) return;
