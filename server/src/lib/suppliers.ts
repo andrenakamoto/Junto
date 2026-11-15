@@ -46,6 +46,16 @@ export async function canManageMoney(userId: string, plan: { creatorId: string; 
   return org ?? isCircleManager(userId, plan.circleId);
 }
 
+// Devis, montants et documents : organisateurs, ou aussi tous les participants du Plan si son créateur l'a choisi
+// (Plan.supplierVisibility = 'all', 2026-11-15). Voir n'est pas modifier : montants, « Payé » et documents restent gérés par les organisateurs.
+export const SUPPLIER_VISIBILITIES = ['managers', 'all'] as const;
+export async function canSeeSupplierMoney(userId: string, plan: { id: string; creatorId: string; circleId: string; supplierVisibility?: string | null }): Promise<boolean> {
+  if (await canManageMoney(userId, plan)) return true;
+  if (plan.supplierVisibility !== 'all') return false;
+  const m = await prisma.planMember.findUnique({ where: { userId_planId: { userId, planId: plan.id } }, select: { userId: true } });
+  return !!m;
+}
+
 const text = (v: unknown, max: number, label: string): string | null | { error: string } => {
   if (v === undefined || v === null) return null;
   if (typeof v !== 'string') return { error: `${label} invalide` };

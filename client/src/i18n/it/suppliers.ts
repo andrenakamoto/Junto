@@ -64,7 +64,15 @@ const suppliers: Dict['suppliers'] = {
   call: 'Chiama',
   write: 'Scrivi',
   site: 'Sito web',
+  visibility: {
+    label: 'Chi vede preventivi, importi e documenti?',
+    managers: 'Solo gli organizzatori',
+    all: 'Tutti i partecipanti',
+    hint_managers: 'Li vedono solo chi ha creato il Plan e gli organizzatori del Cerchio.',
+    hint_all: 'Li vedono tutti i partecipanti del Plan; solo gli organizzatori possono modificarli.',
+  },
   money: {
+    visibleAll: 'Visibili a tutti i partecipanti del Plan',
     title: 'Importi',
     onlyOrganisers: 'Visibili solo agli organizzatori',
     quote: 'Preventivo',
@@ -82,6 +90,7 @@ const suppliers: Dict['suppliers'] = {
     none: 'Nessun importo inserito',
   },
   docs: {
+    none: 'Nessun documento',
     title: 'Documenti',
     add: 'Aggiungi un preventivo, un contratto…',
     hint: 'PDF o foto, al massimo 10 MB',

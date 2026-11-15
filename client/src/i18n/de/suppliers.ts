@@ -64,7 +64,15 @@ const suppliers: Dict['suppliers'] = {
   call: 'Anrufen',
   write: 'Schreiben',
   site: 'Website',
+  visibility: {
+    label: 'Wer sieht Offerten, Beträge und Dokumente?',
+    managers: 'Nur die Organisation',
+    all: 'Alle Teilnehmenden',
+    hint_managers: 'Nur die Person, die den Plan erstellt hat, und die Organisation des Kreises sehen sie.',
+    hint_all: 'Alle Teilnehmenden des Plans sehen sie; nur die Organisation kann sie ändern.',
+  },
   money: {
+    visibleAll: 'Für alle Teilnehmenden des Plans sichtbar',
     title: 'Beträge',
     onlyOrganisers: 'Nur für das Organisationsteam sichtbar',
     quote: 'Offerte',
@@ -82,6 +90,7 @@ const suppliers: Dict['suppliers'] = {
     none: 'Keine Beträge erfasst',
   },
   docs: {
+    none: 'Keine Dokumente',
     title: 'Dokumente',
     add: 'Offerte, Vertrag … hinzufügen',
     hint: 'PDF oder Foto, höchstens 10 MB',

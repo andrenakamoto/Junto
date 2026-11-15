@@ -311,7 +311,7 @@ const groups: Group[] = [
           Tippe auf den Schritt, bei dem ihr seid, vorwärts wie rückwärts; «Zurückstellen» graut ihn aus, ohne den Schritt zu verlieren, und der Verlauf hält jede Änderung fest. Wähle eine <strong>verantwortliche Person</strong>, ordne ihn einem Bereich der
           Aufgaben zu, notiere, was für diesen Anlass wichtig ist, und kommentiert gemeinsam; tippe auf die Telefonnummer, um anzurufen. Die
           <strong> Beträge</strong> (Offerte, Anzahlung, Restbetrag, Fristen) und die <strong>Dokumente</strong> (Offerte, Vertrag, Rechnung) sieht
-          nur das Organisationsteam (wer den Plan erstellt hat, wer den Kreis erstellt hat und dessen Organisatoren); nur es markiert «bezahlt».
+          nur das Organisationsteam (wer den Plan erstellt hat, wer den Kreis erstellt hat und dessen Organisatoren); nur es markiert «bezahlt». Es kann sie auch allen Teilnehmenden zeigen («Wer sieht Offerten…» oben in der Rubrik), die sie dann ansehen, aber nicht ändern.
           Erinnerungen: 3 Tage vor einer Anzahlung oder einem Restbetrag, und eine Nachfrage, wenn eine Offerte nach 7 Tagen nicht da ist. Das ganze
           Adressbuch öffnest du über das Menü ⋯ des Kreises (in seinen Einstellungen unter «Werkzeuge des Kreises» anzukreuzen; in einer Organisation schon da).</P>,
       },

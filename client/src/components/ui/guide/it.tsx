@@ -305,7 +305,7 @@ const groups: Group[] = [
           indietro; «Metti da parte» lo rende grigio senza perdere il passo, e la cronologia tiene ogni modifica. Scegli un <strong>responsabile</strong>, collegalo a un gruppo dei Compiti, annota ciò che conta per questo evento e commentate
           insieme; tocca il suo telefono per chiamarlo. Gli <strong>importi</strong> (preventivo, acconto, saldo, scadenze) e i <strong>documenti</strong>
           (preventivo, contratto, fattura) sono visibili solo agli organizzatori (chi ha creato il Plan, chi ha creato il Cerchio e i suoi
-          organizzatori), che sono gli unici a segnare «pagato». Promemoria: 3 giorni prima di un acconto o di un saldo, e un sollecito se un
+          organizzatori), che sono gli unici a segnare «pagato»; possono anche mostrarli a tutti i partecipanti («Chi vede preventivi…» in cima alla rubrica), che li consultano senza poterli modificare. Promemoria: 3 giorni prima di un acconto o di un saldo, e un sollecito se un
           preventivo chiesto non è arrivato dopo 7 giorni. La rubrica completa si apre dal menu ⋯ del Cerchio (da spuntare nelle sue impostazioni, «Strumenti del Cerchio»; già presente in un’Organizzazione).</P>,
       },
       {

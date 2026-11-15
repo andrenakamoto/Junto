@@ -3,20 +3,20 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { AuthRequest, requireAuth } from '../middleware/auth';
 import { isCircleManager } from '../lib/circleRoles';
-import { canManageMoney, parseSupplierInput, supplierFile } from '../lib/suppliers';
+import { canSeeSupplierMoney, parseSupplierInput, supplierFile } from '../lib/suppliers';
 
 // Carnet des fournisseurs d'un Cercle (lib/suppliers.ts), sur /api/suppliers : consulter, modifier une fiche, archiver,
 // supprimer ; et documents des engagements (lien signé, organisateurs seulement).
 const router = Router();
 
-// GET /files/:docId?t= — document d'un fournisseur (jeton « supplier-docs » donné aux seuls organisateurs, droits revérifiés)
+// GET /files/:docId?t= — document d'un fournisseur (jeton « supplier-docs » donné à qui voit les devis, droits revérifiés)
 router.get('/files/:docId', async (req, res) => {
   let tok: { planId?: string; userId?: string; purpose?: string };
   try { tok = jwt.verify(String(req.query.t ?? ''), process.env.JWT_SECRET!) as any; } catch { res.status(403).end(); return; }
   if (tok.purpose !== 'supplier-docs' || !tok.planId || !tok.userId) { res.status(403).end(); return; }
-  const doc = await prisma.supplierDocument.findUnique({ where: { id: req.params.docId }, include: { entry: { include: { plan: { select: { creatorId: true, circleId: true } } } } } });
+  const doc = await prisma.supplierDocument.findUnique({ where: { id: req.params.docId }, include: { entry: { include: { plan: { select: { id: true, creatorId: true, circleId: true, supplierVisibility: true } } } } } });
   if (!doc || doc.planId !== tok.planId) { res.status(404).end(); return; }
-  if (!(await canManageMoney(tok.userId, doc.entry.plan))) { res.status(403).end(); return; }
+  if (!(await canSeeSupplierMoney(tok.userId, doc.entry.plan))) { res.status(403).end(); return; }
   res.setHeader('Cache-Control', 'private, max-age=600');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Content-Disposition', `${req.query.download ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(doc.name)}`);

@@ -304,7 +304,7 @@ const groups: Group[] = [
           vous en êtes, en avant comme en arrière ; « Mettre de côté » le grise sans perdre son étape, et l'historique garde chaque changement. Choisis un <strong>responsable</strong>, rattache-le à un lot des Tâches, note ce qui
           compte pour cet événement et commentez à plusieurs ; touche son téléphone pour l'appeler. Les <strong>montants</strong> (devis,
           acompte, solde, échéances) et les <strong>documents</strong> (devis, contrat, facture) ne sont visibles que par les organisateurs
-          (créateur du Plan, créateur et organisateurs du Cercle), qui seuls marquent « payé ». Rappels : 3 jours avant un acompte ou un solde,
+          (créateur du Plan, créateur et organisateurs du Cercle), qui seuls marquent « payé » ; ils peuvent aussi les montrer à tous les participants (« Qui voit les devis… » en haut de la rubrique), qui les consultent sans pouvoir les changer. Rappels : 3 jours avant un acompte ou un solde,
           et une relance si un devis demandé n'est pas arrivé après 7 jours. Le carnet complet s'ouvre depuis le menu ⋯ du Cercle (à cocher dans ses réglages, « Outils du Cercle » ; déjà là dans une Organisation).</P>,
       },
       {

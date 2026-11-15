@@ -1092,7 +1092,7 @@ Junto/
   acompte / solde avec échéances et « payé », devise CHF / EUR), **PlanSupplierComment** (chiffré), **SupplierDocument** (PDF ou photos, 10 Mo,
   10 par fournisseur, 30 Mo par Plan, dans `STORAGE_DIR/suppliers/<planId>/`, effacés par `purgePlanFiles`) et **SupplierUse** (historique
   « Déjà utilisé pour… », `planId` SetNull : survit au Plan). **Pas d'appréciation** (choix de l'utilisateur). **Montants, documents et « Payé » :
-  organisateurs seulement** (créateur du Plan, créateur et organisateurs du Cercle, `canManageMoney`) — `maskEntry` retire montants et documents
+  organisateurs seulement** — sauf réglage du Plan **`Plan.supplierVisibility` = `all`** (2026-11-15, demande de l'utilisateur, migration `20261130100000_supplier_visibility`, choix « Qui voit les devis, montants et documents ? » en tête de la rubrique pour les organisateurs, PUT `/plans/:id/suppliers/visibility`) : les participants du Plan les **voient en lecture seule** (`canSeeSupplierMoney`, `canSeeMoney` et `docToken` de GET `/:id/suppliers`) ; (créateur du Plan, créateur et organisateurs du Cercle, `canManageMoney`) — `maskEntry` retire montants et documents
   pour les autres (`documentCount` seulement) ; documents servis par GET `/api/suppliers/files/:id?t=` (jeton `purpose: 'supplier-docs'` 12 h,
   droits revérifiés). Ajouter un fournisseur (du carnet ou nouveau, créé aussi dans le carnet) : membres du Cercle ; faire avancer, responsable,
   lot, notes, commentaires : tout le monde qui voit le Plan ; retirer du Plan : la personne qui l'a ajouté ou un organisateur. Carnet complet :

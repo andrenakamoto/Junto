@@ -22,6 +22,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Ce rôle est encore utilisé : change d’abord le rôle des personnes et des équipes qui l’ont': ['Diese Rolle wird noch verwendet: Ändere zuerst die Rolle der Personen und Teams, die sie haben', 'Questo ruolo è ancora usato: cambia prima il ruolo delle persone e delle squadre che lo hanno', 'This role is still in use: first change the role of the people and teams that have it'],
   'Organisation introuvable': ['Organisation nicht gefunden', 'Organizzazione non trovata', 'Organisation not found'],
   'Valeur invalide': ['Ungültiger Wert', 'Valore non valido', 'Invalid value'],
+  'Réservé aux organisateurs': ['Nur für die Organisation', 'Riservato agli organizzatori', 'Organisers only'],
   'Lien invalide (il doit commencer par https://)': ['Ungültiger Link (er muss mit https:// beginnen)', 'Link non valido (deve iniziare con https://)', 'Invalid link (it must start with https://)'],
   'Lien invalide ou expiré': ['Ungültiger oder abgelaufener Link', 'Link non valido o scaduto', 'Invalid or expired link'],
   'Lien invalide ou expiré. Recommence le changement depuis « Mon profil ».': ['Ungültiger oder abgelaufener Link. Starte die Änderung erneut unter «Mein Profil».', 'Link non valido o scaduto. Ricomincia il cambio da «Il mio profilo».', 'Invalid or expired link. Start the change again from “My profile”.'],

@@ -64,7 +64,15 @@ const suppliers: Dict['suppliers'] = {
   call: 'Call',
   write: 'Email',
   site: 'Website',
+  visibility: {
+    label: 'Who sees quotes, amounts and documents?',
+    managers: 'Organisers only',
+    all: 'All participants',
+    hint_managers: 'Only the Plan’s creator and the Circle’s organisers can see them.',
+    hint_all: 'All of the Plan’s participants can see them; only organisers can change them.',
+  },
   money: {
+    visibleAll: 'Visible to all of the Plan’s participants',
     title: 'Amounts',
     onlyOrganisers: 'Only visible to the organisers',
     quote: 'Quote',
@@ -82,6 +90,7 @@ const suppliers: Dict['suppliers'] = {
     none: 'No amounts entered',
   },
   docs: {
+    none: 'No documents',
     title: 'Documents',
     add: 'Add a quote, a contract…',
     hint: 'PDF or photo, 10 MB at most',

@@ -447,6 +447,8 @@ model Plan {
   description          String
   eventDate            DateTime?
   endDate              DateTime
+  // Fournisseurs : qui voit devis, montants et documents — managers (créateur du Plan, organisateurs du Cercle) ou all (participants du Plan), 2026-11-15
+  supplierVisibility   String    @default("managers")
   location             String?
   archived             Boolean   @default(false)
   createdAt            DateTime  @default(now())

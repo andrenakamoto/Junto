@@ -302,7 +302,7 @@ const groups: Group[] = [
           Choose who is <strong>in charge</strong>, link it to a Tasks group, note what matters for this event and comment together; tap the phone
           number to call. The <strong>amounts</strong> (quote, deposit, balance, due dates) and the <strong>documents</strong> (quote, contract,
           invoice) are only visible to the organisers (whoever created the Plan, whoever created the Circle and its organisers), who alone can mark
-          “paid”. Reminders: 3 days before a deposit or balance is due, and a follow-up if a requested quote hasn't arrived after 7 days. The full
+          “paid”; they can also show them to all participants (“Who sees quotes…” at the top of the section), who can view but not change them. Reminders: 3 days before a deposit or balance is due, and a follow-up if a requested quote hasn't arrived after 7 days. The full
           supplier book opens from the Circle's ⋯ menu (tick it in the Circle’s settings, “Circle tools”; already there in an Organisation).</P>,
       },
       {

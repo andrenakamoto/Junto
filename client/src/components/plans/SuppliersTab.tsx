@@ -50,7 +50,7 @@ type Entry = {
   currency?: 'CHF' | 'EUR'; quoteAmount?: number | null; depositAmount?: number | null; depositDue?: string | null; depositPaidAt?: string | null;
   balanceAmount?: number | null; balanceDue?: string | null; balancePaidAt?: string | null;
 };
-type Data = { entries: Entry[]; people: Person[]; groups: { id: string; title: string }[]; canManageMoney: boolean; canUseBook: boolean; docToken: string | null };
+type Data = { entries: Entry[]; people: Person[]; groups: { id: string; title: string }[]; canManageMoney: boolean; canSeeMoney?: boolean; supplierVisibility?: 'managers' | 'all'; canUseBook: boolean; docToken: string | null };
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const localDay = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -112,6 +112,23 @@ export function SuppliersTab({ plan, userId }: { plan: Plan; userId: string }) {
         </p>
       )}
 
+      {/* Qui voit devis, montants et documents : réglage des organisateurs */}
+      {canManageMoney && (
+        <div className="rounded-xl bg-white border border-slate-200 px-3 py-2.5">
+          <p className="text-xs font-semibold text-slate-600 mb-1.5">{t('suppliers.visibility.label')}</p>
+          <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50" role="group">
+            {(['managers', 'all'] as const).map(v => (
+              <button key={v} onClick={() => run(() => api.put(`/plans/${plan.id}/suppliers/visibility`, { visibility: v }))}
+                aria-pressed={(data.supplierVisibility ?? 'managers') === v}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold ${(data.supplierVisibility ?? 'managers') === v ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-white'}`}>
+                {t(`suppliers.visibility.${v}`)}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1.5">{t(`suppliers.visibility.hint_${data.supplierVisibility ?? 'managers'}` as any)}</p>
+        </div>
+      )}
+
       {data.canUseBook && (
         <button onClick={() => setPicking(true)}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">
@@ -157,6 +174,8 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
   run: (a: () => Promise<unknown>) => Promise<boolean>;
 }) {
   const { canManageMoney, people, groups } = data;
+  // Voir devis, montants et documents (organisateurs, ou tout le monde si le réglage le permet) ; les modifier reste aux organisateurs
+  const canSeeMoney = data.canSeeMoney ?? canManageMoney;
   const s = e.supplier;
   const responsible = people.find(p => p.id === e.responsibleId);
   const canRemove = e.createdById === userId || canManageMoney;
@@ -172,7 +191,7 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
           <span className="flex flex-wrap items-center gap-1.5 mt-1">
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${e.onHold ? HOLD_STYLE : STATUS_STYLE[e.status]}`}>{e.onHold ? t('suppliers.onHold') : t(`suppliers.statuses.${e.status}`)}</span>
             <span className="text-xs text-slate-500">{t(`suppliers.categories.${s.category}`)}</span>
-            {canManageMoney && total != null && <span className="text-xs font-medium text-slate-700">· {money(total, e.currency)}</span>}
+            {canSeeMoney && total != null && <span className="text-xs font-medium text-slate-700">· {money(total, e.currency)}</span>}
             {canManageMoney && paymentSoon(e, today) && <span className="text-xs font-medium text-amber-700">· 💶</span>}
           </span>
           {/* Mini-frise : l'avancement sans déplier la carte */}
@@ -215,11 +234,11 @@ function SupplierCard({ entry: e, data, userId, today, open, onToggle, run }: {
 
           <NotesField entry={e} run={run} />
 
-          {/* Montants et documents : organisateurs seulement */}
-          {canManageMoney ? (
+          {/* Montants et documents : organisateurs, ou tous les participants si le réglage le permet (lecture seule) */}
+          {canSeeMoney ? (
             <>
-              <MoneySection entry={e} run={run} />
-              <DocsSection entry={e} token={data.docToken} run={run} />
+              <MoneySection entry={e} run={run} readOnly={!canManageMoney} shared={data.supplierVisibility === 'all'} />
+              <DocsSection entry={e} token={data.docToken} run={run} readOnly={!canManageMoney} />
             </>
           ) : (e.documentCount ?? 0) > 0 && (
             <p className="text-xs text-slate-400">{t('suppliers.docs.hidden', { count: e.documentCount })}</p>
@@ -348,7 +367,7 @@ function NotesField({ entry: e, run }: { entry: Entry; run: (a: () => Promise<un
   );
 }
 
-function MoneySection({ entry: e, run }: { entry: Entry; run: (a: () => Promise<unknown>) => Promise<boolean> }) {
+function MoneySection({ entry: e, run, readOnly = false, shared = false }: { entry: Entry; run: (a: () => Promise<unknown>) => Promise<boolean>; readOnly?: boolean; shared?: boolean }) {
   const [editing, setEditing] = useState(false);
   const cur = e.currency ?? 'CHF';
   const [form, setForm] = useState({ currency: cur, quoteAmount: '', depositAmount: '', depositDue: '', balanceAmount: '', balanceDue: '' });
@@ -368,7 +387,7 @@ function MoneySection({ entry: e, run }: { entry: Entry; run: (a: () => Promise<
           ? <span className="block text-xs text-emerald-700">{t('suppliers.money.paidOn', { date: fmtDate(paidAt) })}</span>
           : due && <span className="block text-xs text-slate-500">{t('suppliers.money.dueOn', { date: fmtDay(due) })}</span>)}
       </span>
-      {key && (
+      {key && !readOnly && (
         <button onClick={() => run(() => api.put(`/plans/suppliers/${e.id}`, { [key]: !paidAt }))}
           className={`flex-shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold ${paidAt ? 'text-slate-500 hover:bg-slate-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}>
           {paidAt ? t('suppliers.money.unpaid') : t('suppliers.money.markPaid')}
@@ -381,9 +400,9 @@ function MoneySection({ entry: e, run }: { entry: Entry; run: (a: () => Promise<
     <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
       <div className="flex items-center justify-between gap-2 mb-1">
         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{t('suppliers.money.title')}</p>
-        {!editing && <button onClick={start} className="flex items-center gap-1 text-xs text-indigo-600 font-medium"><Pencil size={12} />{t('suppliers.money.edit')}</button>}
+        {!editing && !readOnly && <button onClick={start} className="flex items-center gap-1 text-xs text-indigo-600 font-medium"><Pencil size={12} />{t('suppliers.money.edit')}</button>}
       </div>
-      <p className="text-[11px] text-slate-400 mb-2">{t('suppliers.money.onlyOrganisers')}</p>
+      <p className="text-[11px] text-slate-400 mb-2">{shared ? t('suppliers.money.visibleAll') : t('suppliers.money.onlyOrganisers')}</p>
       {!editing ? (
         none ? <p className="text-sm text-slate-500">{t('suppliers.money.none')}</p> : (
           <div className="divide-y divide-slate-200">
@@ -425,7 +444,7 @@ function MoneySection({ entry: e, run }: { entry: Entry; run: (a: () => Promise<
   );
 }
 
-function DocsSection({ entry: e, token, run }: { entry: Entry; token: string | null; run: (a: () => Promise<unknown>) => Promise<boolean> }) {
+function DocsSection({ entry: e, token, run, readOnly = false }: { entry: Entry; token: string | null; run: (a: () => Promise<unknown>) => Promise<boolean>; readOnly?: boolean }) {
   const [busy, setBusy] = useState(false);
   const docs = e.documents ?? [];
   async function open(d: Doc) {
@@ -449,17 +468,19 @@ function DocsSection({ entry: e, token, run }: { entry: Entry; token: string | n
             <button onClick={() => open(d)} className="flex-1 min-w-0 flex items-center gap-2 px-2.5 py-2 rounded-lg border border-slate-200 bg-white text-left text-sm text-slate-700 hover:bg-slate-50">
               <FileText size={15} className="flex-shrink-0 text-indigo-500" /><span className="truncate">{d.name}</span>
             </button>
-            <button onClick={() => { if (confirm(t('suppliers.docs.deleteConfirm', { name: d.name }))) run(() => api.delete(`/plans/suppliers/documents/${d.id}`)); }}
+            {!readOnly && <button onClick={() => { if (confirm(t('suppliers.docs.deleteConfirm', { name: d.name }))) run(() => api.delete(`/plans/suppliers/documents/${d.id}`)); }}
               aria-label={t('suppliers.docs.delete')} title={t('suppliers.docs.delete')}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50"><Trash2 size={15} /></button>
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50"><Trash2 size={15} /></button>}
           </li>
         ))}
       </ul>
+      {readOnly ? (docs.length === 0 && <p className="text-sm text-slate-500">{t('suppliers.docs.none')}</p>) : (<>
       <label className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-slate-300 text-sm text-slate-600 cursor-pointer hover:bg-slate-50 ${busy ? 'opacity-50 pointer-events-none' : ''}`}>
         <Paperclip size={14} />{t('suppliers.docs.add')}
         <input type="file" accept="application/pdf,image/*" className="hidden" onChange={ev => { const f = ev.target.files?.[0]; ev.target.value = ''; if (f) upload(f); }} />
       </label>
       <p className="text-[11px] text-slate-400 mt-1">{t('suppliers.docs.hint')}</p>
+      </>)}
     </div>
   );
 }

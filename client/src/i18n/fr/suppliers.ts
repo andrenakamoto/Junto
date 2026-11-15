@@ -62,7 +62,15 @@ export default {
   call: 'Appeler',
   write: 'Écrire',
   site: 'Site web',
+  visibility: {
+    label: 'Qui voit les devis, montants et documents ?',
+    managers: 'Organisateurs seulement',
+    all: 'Tous les participants',
+    hint_managers: 'Seuls le créateur du Plan et les organisateurs du Cercle les voient.',
+    hint_all: 'Tous les participants du Plan les voient ; seuls les organisateurs les modifient.',
+  },
   money: {
+    visibleAll: 'Visibles par tous les participants du Plan',
     title: 'Montants',
     onlyOrganisers: 'Visibles seulement par les organisateurs',
     quote: 'Devis',
@@ -80,6 +88,7 @@ export default {
     none: 'Aucun montant saisi',
   },
   docs: {
+    none: 'Aucun document',
     title: 'Documents',
     add: 'Ajouter un devis, un contrat…',
     hint: 'PDF ou photo, 10 Mo au plus',

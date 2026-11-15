@@ -11,7 +11,7 @@ import { decryptMessage, encryptMessage } from '../lib/messageCrypto';
 import { assignablePeople } from '../lib/tasks';
 import { fixUploadedFileName } from '../lib/fileName';
 import {
-  canManageMoney, maskEntry, MONEY_STATUSES, notifySupplier, parseComment, parseEntryNotes, parseMoneyInput, parseStatus,
+  canManageMoney, SUPPLIER_VISIBILITIES, maskEntry, MONEY_STATUSES, notifySupplier, parseComment, parseEntryNotes, parseMoneyInput, parseStatus,
   parseSupplierInput, pushHistory, recordStep, supplierDir, supplierFile, SUPPLIER_LIMITS, SUPPLIERS_DISABLED_ERROR, suppliersEnabled, syncUse,
 } from '../lib/suppliers';
 
@@ -55,6 +55,8 @@ router.get('/:id/suppliers', async (req: AuthRequest, res) => {
   const access = await getPlanAccess(req.userId!, req.params.id);
   if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const plan = access.plan;
+  const settings = await prisma.plan.findUnique({ where: { id: plan.id }, select: { supplierVisibility: true } });
+  const visibility = settings?.supplierVisibility === 'all' ? 'all' : 'managers';
   const [entries, people, groups, money, inCircle] = await Promise.all([
     prisma.planSupplier.findMany({
       where: { planId: plan.id },
@@ -70,6 +72,7 @@ router.get('/:id/suppliers', async (req: AuthRequest, res) => {
     canManageMoney(req.userId!, plan),
     isCircleMember(req.userId!, plan.circleId),
   ]);
+  const see = money || (visibility === 'all' && access.isPlanMember);
   res.json({
     entries: entries.map(e => maskEntry({
       id: e.id, status: e.status, steps: e.steps, onHold: e.onHold, history: e.history, responsibleId: e.responsibleId, groupId: e.groupId, notes: e.notes,
@@ -82,12 +85,26 @@ router.get('/:id/suppliers', async (req: AuthRequest, res) => {
       },
       comments: e.comments.map(c => ({ id: c.id, content: decryptMessage(c.content), createdAt: c.createdAt, author: c.author })),
       documents: e.documents,
-    }, money)),
+    }, see)),
     people, groups,
     canManageMoney: money,
+    // Réglage du Plan : les participants voient aussi devis, montants et documents (lecture seule)
+    canSeeMoney: see,
+    supplierVisibility: visibility,
     canUseBook: inCircle,
-    docToken: money ? mintDocToken(plan.id, req.userId!) : null,
+    docToken: see ? mintDocToken(plan.id, req.userId!) : null,
   });
+});
+
+// PUT /:id/suppliers/visibility { visibility: 'managers' | 'all' } — qui voit devis, montants et documents (organisateurs seulement)
+router.put('/:id/suppliers/visibility', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.id);
+  if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+  if (!(await canManageMoney(req.userId!, access.plan))) { res.status(403).json({ error: 'Réservé aux organisateurs' }); return; }
+  const v = req.body?.visibility;
+  if (typeof v !== 'string' || !(SUPPLIER_VISIBILITIES as readonly string[]).includes(v)) { res.status(400).json({ error: 'Valeur invalide' }); return; }
+  await prisma.plan.update({ where: { id: access.plan.id }, data: { supplierVisibility: v } });
+  res.json({ ok: true, visibility: v });
 });
 
 // GET /:id/suppliers/book — carnet du Cercle principal du Plan, avec l'historique de chaque fournisseur
