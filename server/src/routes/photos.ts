@@ -4,20 +4,27 @@ import rateLimit from 'express-rate-limit';
 import prisma from '../lib/prisma';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { isCircleManager } from '../lib/circleRoles';
-import { avatarsSeenBy, canSeePhotoOf, deletePhoto, isPhotoKey, photoFile, PHOTO_MAX_BYTES, savePhoto } from '../lib/photos';
+import { avatarsSeenBy, canSeePhotoOf, deletePhoto, isPhotoKey, largePhotoFile, photoFile, PHOTO_MAX_BYTES, savePhoto } from '../lib/photos';
 import { notifyAdmins, REPORT_REASON_MAX } from '../lib/moderation';
 
 // Photos de profil et de Cercle — voir lib/photos.ts
 const router = Router();
 
-// GET /api/photos/<clé>.jpg | <clé>-s.jpg — public (clé impossible à deviner), en cache longue durée
-router.get(/^\/([0-9a-f-]{36})(-s)?\.jpg$/, (req, res) => {
+// GET /api/photos/<clé>.jpg | <clé>-s.jpg | <clé>-l.jpg — public (clé impossible à deviner), en cache longue durée.
+// -l (grande taille, photos de Cercle depuis le 2026-11-15) : les photos plus anciennes n'en ont pas, la taille normale est servie.
+router.get(/^\/([0-9a-f-]{36})(-s|-l)?\.jpg$/, (req, res) => {
   const key = (req.params as any)[0] as string;
+  const variant = (req.params as any)[1] as string | undefined;
   if (!isPhotoKey(key)) { res.status(404).end(); return; }
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.type('image/jpeg');
-  res.sendFile(photoFile(key, !!(req.params as any)[1]), err => { if (err && !res.headersSent) res.status(404).end(); });
+  const notFound = (err?: Error) => { if (err && !res.headersSent) res.status(404).end(); };
+  if (variant === '-l') {
+    res.sendFile(largePhotoFile(key), err => { if (err && !res.headersSent) res.sendFile(photoFile(key), notFound); });
+    return;
+  }
+  res.sendFile(photoFile(key, variant === '-s'), notFound);
 });
 
 router.use(requireAuth as any);

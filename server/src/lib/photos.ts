@@ -14,6 +14,9 @@ import { STORAGE_DIR } from './storage';
 // chat : photo d'un message de la discussion du Cercle, proportions gardées (dans 1600 × 1600 et 480 × 480)
 export type PhotoKind = 'avatar' | 'circle' | 'chat';
 
+// large : photo de Cercle ou de profil en grande taille (2026-11-15), seulement pour l'afficher en grand (visionneuse) — taille
+// de la photo recadrée envoyée, sans agrandissement, au plus 3200 × 1600 (Cercle) ou 1024 × 1024 (profil). Le reste garde big / small.
+const LARGE: Partial<Record<PhotoKind, [number, number]>> = { circle: [3200, 1600], avatar: [1024, 1024] };
 const SIZES: Record<PhotoKind, { big: [number, number]; small: [number, number] }> = {
   avatar: { big: [512, 512], small: [160, 160] },
   circle: { big: [1200, 600], small: [480, 240] },
@@ -25,6 +28,7 @@ export const isPhotoKey = (key: unknown): key is string => typeof key === 'strin
 
 const DIR = path.join(STORAGE_DIR, 'photos');
 export const photoFile = (key: string, small = false) => path.join(DIR, `${key}${small ? '-s' : ''}.jpg`);
+export const largePhotoFile = (key: string) => path.join(DIR, `${key}-l.jpg`);
 
 export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
 
@@ -38,16 +42,23 @@ export async function savePhoto(buffer: Buffer, kind: PhotoKind): Promise<string
     .flatten({ background: '#ffffff' })
     .jpeg({ quality: 82, mozjpeg: true })
     .toBuffer();
-  const [b, s] = await Promise.all([render(big), render(small)]);
+  const lg = LARGE[kind];
+  const large = lg
+    ? sharp(buffer, { limitInputPixels: 50_000_000 }).rotate()
+      .resize(lg[0], lg[1], { fit: 'inside', withoutEnlargement: true })
+      .flatten({ background: '#ffffff' }).jpeg({ quality: 88, mozjpeg: true }).toBuffer()
+    : null;
+  const [b, s, l] = await Promise.all([render(big), render(small), large]);
   await fs.mkdir(DIR, { recursive: true });
   await fs.writeFile(photoFile(key), b, { mode: 0o640 });
   await fs.writeFile(photoFile(key, true), s, { mode: 0o640 });
+  if (l) await fs.writeFile(largePhotoFile(key), l, { mode: 0o640 });
   return key;
 }
 
 export async function deletePhoto(key: string | null | undefined) {
   if (!isPhotoKey(key)) return;
-  await Promise.all([fs.rm(photoFile(key), { force: true }), fs.rm(photoFile(key, true), { force: true })]);
+  await Promise.all([fs.rm(photoFile(key), { force: true }), fs.rm(photoFile(key, true), { force: true }), fs.rm(largePhotoFile(key), { force: true })]);
 }
 
 // Personnes qu'on côtoie (Cercle ou Plan en commun) et qui ont une photo : { pseudo: clé }, soi-même compris

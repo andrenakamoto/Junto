@@ -4,7 +4,8 @@ import api from '../../services/api';
 import { t } from '../../i18n';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBackClose } from '../../lib/backClose';
-import { photoUrl } from '../../lib/photos';
+import { largePhotoUrl, photoUrl } from '../../lib/photos';
+import { PhotoViewer } from '../chat/PhotoViewer';
 import { shortDateTime } from '../../lib/dates';
 import { ContactCircle, PersonDetails } from '../../types';
 import { Avatar } from './Avatar';
@@ -29,6 +30,7 @@ export function PersonSheet({ person, photoKey, actions, onClose }: {
   const { user } = useAuth();
   useBackClose(onClose);
   const [reporting, setReporting] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
   const isMe = person.userId === user?.id;
@@ -79,9 +81,16 @@ export function PersonSheet({ person, photoKey, actions, onClose }: {
         <div className="text-center">
           <div className="flex justify-center">
             {photoKey
-              ? <img src={photoUrl(photoKey)} alt="" className={`${details?.contact ? 'w-28 h-28' : 'w-40 h-40'} rounded-full object-cover bg-slate-200`} />
+              // Toucher la photo : elle s'ouvre en grand (visionneuse, zoom, « Enregistrer »)
+              ? <button type="button" onClick={() => setPhotoOpen(true)} aria-label={t('circle.planList.viewPhoto')} className="rounded-full cursor-zoom-in">
+                  <img src={photoUrl(photoKey)} alt="" className={`${details?.contact ? 'w-28 h-28' : 'w-40 h-40'} rounded-full object-cover bg-slate-200`} />
+                </button>
               : <Avatar pseudo={person.pseudo} size="xxl" noPhoto />}
           </div>
+          {photoOpen && photoKey && (
+            <PhotoViewer photos={[{ id: photoKey, src: largePhotoUrl(photoKey), download: largePhotoUrl(photoKey), filename: `${person.firstName || person.pseudo}.jpg` }]}
+              startId={photoKey} onClose={() => setPhotoOpen(false)} />
+          )}
           {person.firstName && <p className="mt-4 text-lg font-semibold text-slate-900">{person.firstName}</p>}
           <p className={person.firstName ? 'text-sm text-slate-400' : 'mt-4 text-lg font-semibold text-slate-900'}>@{person.pseudo}</p>
         </div>

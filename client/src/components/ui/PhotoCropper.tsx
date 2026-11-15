@@ -75,16 +75,18 @@ export function PhotoCropper({ file, aspect, title, onCancel, onDone }: {
   async function save() {
     if (!img) return;
     setBusy(true); setError('');
-    const [W, H] = CROP_OUTPUT[aspect];
-    const canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d')!;
     // Partie de l'image visible dans le cadre, en px de l'image
     const sw = box.w / scale, sh = box.h / scale;
     const sx = img.naturalWidth / 2 - view.x / scale - sw / 2, sy = img.naturalHeight / 2 - view.y / scale - sh / 2;
+    // Taille du résultat : celle de la partie choisie (jamais agrandie), au plus CROP_OUTPUT, au moins 512 px de large
+    const [MW, MH] = CROP_OUTPUT[aspect];
+    const W = Math.max(Math.min(MW, 512 * aspect), Math.min(MW, Math.round(sw))), H = Math.round(W * MH / MW);
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d')!;
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
-    const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, 'image/jpeg', 0.92));
     if (!blob) { setError(t('photos.unreadable')); setBusy(false); return; }
     try { await onDone(blob); } catch (err: any) { setError(err?.response?.data?.error || t('common.error')); setBusy(false); }
   }

@@ -7,5 +7,8 @@ export function photoUrl(key: string, small = false): string {
   return `${API_BASE}/photos/${key}${small ? '-s' : ''}.jpg`;
 }
 
-// Recadrage : taille de l'image envoyée (le serveur la refait à 512 × 512 ou 1200 × 600)
-export const CROP_OUTPUT: Record<1 | 2, [number, number]> = { 1: [1024, 1024], 2: [1600, 800] };
+// Taille la plus grande du recadrage envoyé (la partie choisie de la photo, sans agrandissement) : 1024 px pour un profil,
+// 3200 × 1600 pour un Cercle (2026-11-15 : la photo d'un Cercle s'ouvre en grand, 1600 × 800 la rendait floue)
+export const CROP_OUTPUT: Record<1 | 2, [number, number]> = { 1: [1024, 1024], 2: [3200, 1600] };
+// Photo de Cercle ou de profil en grande taille (visionneuse) ; anciennes photos : le serveur renvoie la taille normale
+export const largePhotoUrl = (key: string) => photoUrl(key).replace(/\.jpg$/, '-l.jpg');

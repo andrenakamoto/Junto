@@ -6,7 +6,7 @@ import { endedLast } from '../../lib/planEnd';
 import { usePlanSort } from '../../lib/planSort';
 import { sortPlans } from '../../lib/order';
 import { PlanSortToggle } from './PlanSortToggle';
-import { photoUrl } from '../../lib/photos';
+import { largePhotoUrl, photoUrl } from '../../lib/photos';
 import { CircleMembersSheet } from '../circles/CircleMembersSheet';
 import { useMutes } from '../../contexts/MuteContext';
 import { Plus, Copy, Check, Trash2, UserPlus, LogOut, ChevronLeft, CalendarRange, SlidersHorizontal, Bell, BellOff, Users, MessageCircle, Megaphone, MoreHorizontal, Sparkles, ChevronRight, Store, RefreshCw, Boxes } from 'lucide-react';
@@ -183,7 +183,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
         </div>
       )}
       {photoOpen && circle.photoKey && (
-        <PhotoViewer photos={[{ id: circle.photoKey, src: photoUrl(circle.photoKey), download: photoUrl(circle.photoKey), filename: `${circle.name}.jpg` }]}
+        <PhotoViewer photos={[{ id: circle.photoKey, src: largePhotoUrl(circle.photoKey), download: largePhotoUrl(circle.photoKey), filename: `${circle.name}.jpg` }]}
           startId={circle.photoKey} onClose={() => setPhotoOpen(false)} />
       )}
       <div className="px-4 py-2.5 border-b border-slate-200">

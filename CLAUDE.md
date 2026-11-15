@@ -1866,7 +1866,7 @@ côté de la réponse** et à côté du titre de la fiche, cloche du Cercle dans
 `20261017100000_photos`) : `User.avatarKey` et `Circle.photoKey` = clé uuid d'un fichier de `STORAGE_DIR/photos`
 (`<clé>.jpg` grande, `<clé>-s.jpg` miniature). Le client recadre (`PhotoCropper` : carré avec masque rond pour le profil,
 2:1 pour le Cercle, glisser / pincer / curseur) ; le serveur refait l'image par **sharp** (512×512 et 160 ; 1200×600 et
-480×240), ce qui **retire toutes les métadonnées (GPS)**. Image servie **sans connexion** (GET `/api/photos/<clé>.jpg`,
+480×240), ce qui **retire toutes les métadonnées (GPS)**. **Grande taille des photos de Cercle et de profil** (2026-11-15, demande de l'utilisateur : floues en grand) : le recadrage est envoyé à sa taille réelle (sans agrandissement, au plus 3200×1600 pour un Cercle, 1024×1024 pour un profil, `CROP_OUTPUT`) et le serveur garde aussi `<clé>-l.jpg` (`largePhotoFile`, qualité 88), servie par GET `/api/photos/<clé>-l.jpg` (taille normale pour les anciennes photos qui n'en ont pas) et utilisée **seulement par la visionneuse** (toucher la photo en tête de la liste des Plans, ou la photo d'une personne dans `PersonSheet`, `largePhotoUrl`) ; les cartes chargent `-s` ou la normale selon l'écran (`srcSet`). Image servie **sans connexion** (GET `/api/photos/<clé>.jpg`,
 adresse impossible à deviner, cache 1 an `immutable`) : une nouvelle photo = une nouvelle clé, l'ancienne est effacée.
 PUT/DELETE `/photos/me` ; PUT/DELETE `/photos/circles/:id` (créateur et organisateurs, `isCircleManager`, ligne `photo`
 dans `CircleChangeLog`, `circle-updated`). GET `/photos/people` = `{ pseudo: clé }` des personnes avec qui on partage un
