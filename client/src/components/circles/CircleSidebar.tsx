@@ -255,14 +255,18 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
                     initiale ; nom et compteurs écrits dessus. Toutes les cartes ont ainsi la même forme. */}
                 <div className="relative aspect-[2/1] bg-slate-200 [container-type:inline-size]">
                   {circle.photoKey ? (
-                    <img src={photoUrl(circle.photoKey, true)} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                    // Petite version (480 px) pour les écrans ordinaires, grande (1200 px) dès que la carte occupe plus de
+                    // pixels réels (écrans Retina, téléphones) : sinon la photo agrandie paraît floue et terne
+                    <img src={photoUrl(circle.photoKey, true)} srcSet={`${photoUrl(circle.photoKey, true)} 480w, ${photoUrl(circle.photoKey)} 1200w`}
+                      sizes="(min-width: 768px) and (min-height: 501px) 256px, 100vw" alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 flex items-start justify-center pt-[4%]"
                       style={{ background: `linear-gradient(135deg, ${circleColor || '#64748b'} 0%, ${circleColor || '#64748b'}cc 55%, #0f172a 140%)` }}>
                       <span className="font-['Fraunces'] italic font-light text-white/90 text-[22cqw] leading-none select-none">{circle.name[0]?.toUpperCase()}</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+                  {/* Voile sombre seulement sous le texte (bas de la photo) : le reste de la photo garde ses couleurs */}
+                  <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                   {hasUnread && !selected && (
                     <span className="absolute top-2.5 right-2.5 w-3 h-3 bg-orange-500 rounded-full ring-2 ring-white" />
                   )}
