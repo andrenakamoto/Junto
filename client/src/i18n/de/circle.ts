@@ -146,6 +146,7 @@ const circle: Dict['circle'] = {
     removeHint: '{{name}} aus dem Kreis entfernen? Die Person verlässt auch dessen Pläne. Sie kann erneut um Aufnahme bitten, je nach Aufnahmeregel des Kreises.',
   },
   planList: {
+    viewPhoto: 'Foto gross anzeigen',
     more: "Weitere Optionen",
     create: "Erstellen",
     planItem: "Einen Plan",

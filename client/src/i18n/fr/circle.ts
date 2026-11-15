@@ -145,6 +145,7 @@ export default {
     removeHint: 'Retirer {{name}} du Cercle ? Cette personne quittera aussi ses Plans. Elle pourra redemander à entrer, selon la règle d’admission du Cercle.',
   },
   planList: {
+    viewPhoto: 'Voir la photo en grand',
     more: "Plus d’options",
     create: "Créer",
     planItem: "Un Plan",

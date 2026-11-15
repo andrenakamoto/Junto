@@ -146,6 +146,7 @@ const circle: Dict['circle'] = {
     removeHint: 'Remove {{name}} from the Circle? They’ll also leave its Plans. They can ask to join again, depending on the Circle’s admission rule.',
   },
   planList: {
+    viewPhoto: 'View the photo full size',
     more: "More options",
     create: "Create",
     planItem: "A Plan",

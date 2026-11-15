@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { PhotoViewer } from '../chat/PhotoViewer';
 import { EquipmentBookModal } from './EquipmentBookModal';
 import { useResync } from '../../hooks/useResync';
 import { endedLast } from '../../lib/planEnd';
@@ -158,6 +159,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   ];
   // L'Assemblée : créateur et organisateurs du Cercle seulement (pas de Cercle personnel)
   const kinds = PLAN_KINDS.filter(k => !k.managersOnly || (!circle.isPersonal && isCircleManager(circle, user?.id)));
+  const [photoOpen, setPhotoOpen] = useState(false);
   const closeMenu = () => { setShowCreateMenu(false); setMenuLevel('main'); };
   // Bouton retour du téléphone : ferme le menu « Créer » et le menu ⋯ avant de quitter le Cercle
   useBackClose(closeMenu, showCreateMenu);
@@ -169,13 +171,20 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
       {/* Photo du Cercle : bandeau en tête, le nom écrit dessus */}
       {circle.photoKey && (
         <div className="relative h-[140px] md:h-[112px] short:h-[72px] flex-shrink-0 bg-slate-200">
-          <img src={photoUrl(circle.photoKey)} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+          {/* Toucher la photo : elle s'ouvre en grand (visionneuse des photos, zoom et « Enregistrer ») */}
+          <button type="button" onClick={() => setPhotoOpen(true)} aria-label={t('circle.planList.viewPhoto')} className="absolute inset-0 w-full h-full cursor-zoom-in">
+            <img src={photoUrl(circle.photoKey)} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+          </button>
           <button onClick={onBack} aria-label="←" className="md:hidden absolute top-2 left-2 p-1.5 rounded-full bg-black/30 text-white hover:bg-black/45">
             <ChevronLeft size={18} />
           </button>
-          <h2 className="absolute left-4 right-4 bottom-2.5 text-white font-bold text-lg leading-tight truncate drop-shadow">{circle.name}</h2>
+          <h2 className="pointer-events-none absolute left-4 right-4 bottom-2.5 text-white font-bold text-lg leading-tight truncate drop-shadow">{circle.name}</h2>
         </div>
+      )}
+      {photoOpen && circle.photoKey && (
+        <PhotoViewer photos={[{ id: circle.photoKey, src: photoUrl(circle.photoKey), download: photoUrl(circle.photoKey), filename: `${circle.name}.jpg` }]}
+          startId={circle.photoKey} onClose={() => setPhotoOpen(false)} />
       )}
       <div className="px-4 py-2.5 border-b border-slate-200">
         {!circle.photoKey && (

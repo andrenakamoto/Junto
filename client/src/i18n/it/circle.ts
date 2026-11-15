@@ -146,6 +146,7 @@ const circle: Dict['circle'] = {
     removeHint: 'Rimuovere {{name}} dal Cerchio? Questa persona lascerà anche i suoi Plan. Potrà chiedere di nuovo di entrare, secondo la regola di ammissione del Cerchio.',
   },
   planList: {
+    viewPhoto: 'Vedi la foto in grande',
     more: "Altre opzioni",
     create: "Crea",
     planItem: "Un Plan",
