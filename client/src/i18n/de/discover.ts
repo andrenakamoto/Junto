@@ -175,6 +175,8 @@ const discover: Dict['discover'] = {
   moreInfo: "Mehr Infos auf {{site}}",
   website: "Website",
   map: {
+    locate: "Mich orten",
+    locateError: "Standort nicht verfügbar: Erlaube EvLY den Zugriff auf den Standort.",
     list: "Liste",
     map: "Karte",
     view: "Ansicht",

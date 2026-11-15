@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
-import { X } from 'lucide-react';
+import { LocateFixed, Loader2, X } from 'lucide-react';
 import { DiscoverEvent, DiscoverPlace, KIND_EMOJI } from '../../lib/discover';
 import { t } from '../../i18n';
 
@@ -33,7 +33,10 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
 }) {
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
-  const layers = useRef<{ pins: L.MarkerClusterGroup; area: L.LayerGroup } | null>(null);
+  const layers = useRef<{ pins: L.MarkerClusterGroup; area: L.LayerGroup; me: L.LayerGroup } | null>(null);
+  // « Où suis-je ? » : position demandée au téléphone / navigateur, affichée seulement sur la carte (jamais envoyée au serveur)
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState(false);
   const [selected, setSelected] = useState<MapItem | null>(null);
 
   // Création de la carte (une fois)
@@ -49,9 +52,10 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
       iconCreateFunction: c => L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 18], html: `<div class="evly-cluster">${c.getChildCount()}</div>` }),
     });
     const area = L.layerGroup();
+    const me = L.layerGroup().addTo(m);
     m.addLayer(area); m.addLayer(pins);
     m.on('click', () => setSelected(null));
-    map.current = m; layers.current = { pins, area };
+    map.current = m; layers.current = { pins, area, me };
     m.setView([46.8, 8.2], 8);
     // La colonne peut changer de taille après l'affichage (téléphone, grand écran)
     const ro = new ResizeObserver(() => m.invalidateSize());
@@ -90,6 +94,23 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
     if (!radiusKm && markers.length) m.fitBounds(l.pins.getBounds(), { padding: [20, 20], maxZoom: 13 });
   }, [items]);
 
+  function locateMe() {
+    const m = map.current, l = layers.current;
+    if (!m || !l || locating) return;
+    setLocError(false);
+    if (!navigator.geolocation) { setLocError(true); return; }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(pos => {
+      setLocating(false);
+      const at: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
+      l.me.clearLayers();
+      // Précision (cercle pâle) puis le point bleu
+      if (pos.coords.accuracy < 5000) L.circle(at, { radius: pos.coords.accuracy, color: '#2563eb', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.12, interactive: false }).addTo(l.me);
+      L.circleMarker(at, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1, interactive: false }).addTo(l.me);
+      m.setView(at, Math.max(m.getZoom(), 14));
+    }, () => { setLocating(false); setLocError(true); setTimeout(() => setLocError(false), 5000); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  }
+
   const located = items.filter(it => (it.type === 'event' ? it.e : it.p).lat != null).length;
   return (
     <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
@@ -101,6 +122,13 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
           align-items: center; justify-content: center; border: 3px solid rgba(255,255,255,.85); box-shadow: 0 1px 5px rgba(15,23,42,.4); }
       `}</style>
       <div ref={box} className="h-[65vh] min-h-[340px] max-h-[720px] w-full" />
+      <button type="button" onClick={locateMe} aria-label={t('discover.map.locate')} title={t('discover.map.locate')}
+        className="absolute left-[10px] top-[84px] z-[500] w-[34px] h-[34px] rounded-[4px] bg-white border-2 border-black/20 bg-clip-padding flex items-center justify-center text-slate-700 hover:bg-slate-50">
+        {locating ? <Loader2 size={17} className="animate-spin" /> : <LocateFixed size={17} className="text-blue-600" />}
+      </button>
+      {locError && (
+        <p className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-white/95 rounded-full px-3 py-1.5 text-xs text-slate-600 shadow">{t('discover.map.locateError')}</p>
+      )}
       {located === 0 && (
         <p className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-white/95 rounded-full px-3 py-1.5 text-xs text-slate-600 shadow">{t('discover.map.empty')}</p>
       )}

@@ -174,6 +174,8 @@ const discover = {
   moreInfo: "Plus d’infos sur {{site}}",
   website: "Site web",
   map: {
+    locate: "Me localiser",
+    locateError: "Position indisponible : autorise la localisation pour EvLY.",
     list: "Liste",
     map: "Carte",
     view: "Affichage",
