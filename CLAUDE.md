@@ -569,6 +569,9 @@ Conséquences pratiques :
     **Version 1.0.54** (2026-11-14) : Android `versionCode` 56 (`evly-1.0.54-(56).aab`), iOS build 61 envoyé — Découvrir : carte swisstopo
     (« Liste | Carte »), « Y aller avec un Cercle » sur les idées de sorties, plein air, hiver, bars et discothèques, Suisse Tourisme (balades et
     randonnées), « Près de … » pour les lieux sans adresse.
+    **Version 1.0.55** (2026-11-15) : Android `versionCode` 57 (`evly-1.0.55-(57).aab`), iOS build 62 envoyé — photos des Cercles nettes
+    (grande taille sur les écrans Retina, voile seulement sous le texte), photos de Cercle et de profil qui s'ouvrent en grand en haute
+    définition, téléphone en paysage avec une colonne à la fois, bouton « Me localiser » sur la carte de Découvrir.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
