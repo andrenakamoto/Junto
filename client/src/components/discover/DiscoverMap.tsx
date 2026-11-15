@@ -94,21 +94,39 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
     if (!radiusKm && markers.length) m.fitBounds(l.pins.getBounds(), { padding: [20, 20], maxZoom: 13 });
   }, [items]);
 
+  // Le premier relevé est souvent approximatif (réseau, Wi-Fi) : on suit la position quelques secondes et on l'affine jusqu'à
+  // une précision de 30 m (ou 20 s), sans jamais reprendre une position gardée en mémoire (maximumAge 0)
+  const watchRef = useRef<number | null>(null);
+  const stopWatch = () => { if (watchRef.current != null) { navigator.geolocation.clearWatch(watchRef.current); watchRef.current = null; } };
+  useEffect(() => stopWatch, []);
   function locateMe() {
     const m = map.current, l = layers.current;
-    if (!m || !l || locating) return;
+    if (!m || !l) return;
     setLocError(false);
     if (!navigator.geolocation) { setLocError(true); return; }
+    stopWatch();
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(pos => {
-      setLocating(false);
-      const at: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
-      l.me.clearLayers();
-      // Précision (cercle pâle) puis le point bleu
-      if (pos.coords.accuracy < 5000) L.circle(at, { radius: pos.coords.accuracy, color: '#2563eb', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.12, interactive: false }).addTo(l.me);
-      L.circleMarker(at, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1, interactive: false }).addTo(l.me);
-      m.setView(at, Math.max(m.getZoom(), 14));
-    }, () => { setLocating(false); setLocError(true); setTimeout(() => setLocError(false), 5000); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    let best = Infinity, first = true;
+    const stopAt = Date.now() + 20000;
+    watchRef.current = navigator.geolocation.watchPosition(pos => {
+      const acc = pos.coords.accuracy || 99999;
+      if (acc <= best) {
+        best = acc;
+        const at: L.LatLngExpression = [pos.coords.latitude, pos.coords.longitude];
+        l.me.clearLayers();
+        // Précision (cercle pâle) puis le point bleu
+        if (acc < 5000) L.circle(at, { radius: acc, color: '#2563eb', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.12, interactive: false }).addTo(l.me);
+        L.circleMarker(at, { radius: 8, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1, interactive: false }).addTo(l.me);
+        if (first) m.setView(at, Math.max(m.getZoom(), 15)); else m.panTo(at);
+        first = false;
+      }
+      if (acc <= 30 || Date.now() > stopAt) { setLocating(false); stopWatch(); }
+    }, () => {
+      stopWatch(); setLocating(false);
+      if (first) { setLocError(true); setTimeout(() => setLocError(false), 5000); }
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    // Filet de sécurité : la recherche s'arrête de toute façon après 20 s
+    setTimeout(() => { if (watchRef.current != null) { stopWatch(); setLocating(false); } }, 21000);
   }
 
   const located = items.filter(it => (it.type === 'event' ? it.e : it.p).lat != null).length;
