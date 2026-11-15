@@ -144,6 +144,9 @@ Conséquences pratiques :
   défilantes internes), onglets `short:sticky top-0`, saisie du chat et
   pieds de colonne `short:sticky bottom-0`. À appliquer à toute nouvelle
   colonne/fiche avec en-tête fixe.
+  **Téléphone en paysage** (2026-11-15) : les variantes `md:` et `lg:` exigent aussi `min-height: 501px` (`screens` de
+  `tailwind.config.js`), et le code utilise `PHONE_QUERY` / `WIDE_QUERY` / `isWideScreen` de `lib/layout.ts` (jamais
+  `(max-width: 767px)` en dur) : un téléphone couché garde une colonne à la fois et le Plan en entier, comme en portrait.
 - **Logo / wordmark** (2026-08-24) : plus d'icône dans l'app — la marque
   est un wordmark typographique pur, "**Ev**LY" avec "Ev" en italique fine
   (police **Fraunces**, `ital,wght@1,300`, blanc sur fond sombre / `#1e293b`
