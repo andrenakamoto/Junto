@@ -572,6 +572,9 @@ Conséquences pratiques :
     **Version 1.0.55** (2026-11-15) : Android `versionCode` 57 (`evly-1.0.55-(57).aab`), iOS build 62 envoyé — photos des Cercles nettes
     (grande taille sur les écrans Retina, voile seulement sous le texte), photos de Cercle et de profil qui s'ouvrent en grand en haute
     définition, téléphone en paysage avec une colonne à la fois, bouton « Me localiser » sur la carte de Découvrir.
+    **Version 1.0.56** (2026-11-15) : Android `versionCode` 58 (`evly-1.0.56-(58).aab`), iOS build 63 envoyé — « Me localiser » précis
+    (position fraîche affinée jusqu'à 30 m ; Android demande aussi `ACCESS_FINE_LOCATION`), devis, montants et documents des fournisseurs
+    visibles par tous les participants si les organisateurs le choisissent.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
