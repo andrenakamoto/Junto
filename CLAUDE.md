@@ -575,6 +575,8 @@ Conséquences pratiques :
     **Version 1.0.56** (2026-11-15) : Android `versionCode` 58 (`evly-1.0.56-(58).aab`), iOS build 63 envoyé — « Me localiser » précis
     (position fraîche affinée jusqu'à 30 m ; Android demande aussi `ACCESS_FINE_LOCATION`), devis, montants et documents des fournisseurs
     visibles par tous les participants si les organisateurs le choisissent.
+    **Version 1.0.57** (2026-11-16) : Android `versionCode` 59 (`evly-1.0.57-(59).aab`), iOS build 64 envoyé — carte de Découvrir sous les
+    fenêtres des filtres, date sur la fiche d'un événement touché sur la carte, paiements des fournisseurs retirés du cockpit.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
