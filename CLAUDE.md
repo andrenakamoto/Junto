@@ -1956,7 +1956,7 @@ récapitulatif PDF. Pas fait : objets numérotés, location à des tiers.
 sans rôle dans une équipe — en nombre —, sondages qui se terminent dans 3 jours, Plans des 7 prochains jours où la moitié n'a pas répondu),
 **Agenda 14 jours** (in avec accompagnants, ?, sans réponse, places, liste d'attente, postes à pourvoir, assemblée), **Équipes** (membres, nouveaux
 sur 30 jours, Plans à venir, taux de réponse aux Plans à venir, dernière activité, pastille `teamStatus` ok / watch / quiet), **Annonces
-récentes**, **Tâches en retard**, **Paiements des fournisseurs** sur 7 jours (administrateurs ou droit `see_money`). **Seulement les Plans
+récentes**, **Tâches en retard** (les paiements des fournisseurs y figuraient, **retirés le 2026-11-16** à la demande de l'utilisateur, du cockpit comme du résumé du lundi ; `suppliers` toujours `null` pour les apps installées). **Seulement les Plans
 que la personne voit** (`visiblePlansWhere`) et des chiffres par équipe, jamais de suivi individuel (politique de confidentialité du
 13 novembre 2026). Client : bouton « Cockpit » du bloc de l'Organisation (`onCockpit` de `CircleSidebar`, trois boutons icône au-dessus du
 texte), vue pleine largeur comme Découvrir (`cockpitOrgId` de DashboardPage, lien `/dashboard?cockpit=<id>`), rechargée sur

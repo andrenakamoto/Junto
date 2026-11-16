@@ -510,7 +510,7 @@ const groups: Group[] = [
       {
         id: 'org-cockpit', emoji: '🧭', title: 'Cockpit der Organisation', summary: 'Alles auf einen Blick (Leitung)',
         body: <><P>Schaltfläche <strong>«Cockpit»</strong> im Block der Organisation, für Leitung und Administration. <strong>Zu erledigen</strong>: Beitrittsanfragen, Teams ohne Verantwortliche, Personen ohne Rolle, Umfragen, die enden, nahe Pläne, bei denen die Hälfte nicht geantwortet hat. <strong>Agenda</strong> der nächsten 14 Tage: Antworten, Plätze, Warteliste, offene Einsätze, Versammlungen.</P>
-          <P><strong>Teams</strong>: Mitglieder, kommende Pläne, Antwortquote und ein Punkt (grün aktiv, orange im Blick behalten, rot ruhig). Dann die letzten Ankündigungen, überfällige Aufgaben und, mit dem Recht, Beträge zu sehen, die Zahlungen an Lieferanten. Ein Tipp auf eine Zeile öffnet den Plan oder den Kreis.</P>
+          <P><strong>Teams</strong>: Mitglieder, kommende Pläne, Antwortquote und ein Punkt (grün aktiv, orange im Blick behalten, rot ruhig). Dann die letzten Ankündigungen und überfällige Aufgaben. Ein Tipp auf eine Zeile öffnet den Plan oder den Kreis.</P>
           <P>Nur Pläne, die du schon siehst, und Zahlen pro Team: keine Überwachung einzelner Personen. Eine <strong>Zusammenfassung jeden Montag per E-Mail</strong> fasst das Wichtigste zusammen; abwählbar unten im Cockpit.</P></>,
       },
     ],

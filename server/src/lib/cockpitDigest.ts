@@ -2,7 +2,6 @@ import prisma from './prisma';
 import { parseLocale } from './i18n';
 import { mail } from './emailText';
 import { escapeHtml } from './escapeHtml';
-import { formatAmount } from './expenses';
 import { resend, FROM_EMAIL, APP_URL } from './mailer';
 import { buildCockpit, zurichDay } from './cockpit';
 
@@ -52,8 +51,7 @@ export async function sendCockpitDigests(now = new Date()) {
         .map(p => li(`<strong>${escapeHtml(p.title)}</strong> — ${escapeHtml(date(p.eventDate ? new Date(p.eventDate) : null))}${p.circleName ? ` · ${escapeHtml(p.circleName)}` : ''}<br><span style="color:#64748b;font-size:13px">${m.t('cockpit.coming', { coming: p.coming, pending: p.pending })}</span>`));
       const teams = c.teams.filter(x => x.status !== 'ok').map(x => li(`${escapeHtml(x.name)} — ${m.t(x.status === 'quiet' ? 'cockpit.quiet' : 'cockpit.watch')}`));
       const today = zurichDay(now);
-      const suppliers = (c.suppliers ?? []).map(s => li(`${escapeHtml(s.planTitle)} · ${escapeHtml(s.name)} — ${m.t(s.kind === 'deposit' ? 'cockpit.deposit' : 'cockpit.balance')} ${escapeHtml(formatAmount(s.amount, s.currency, m.intl))}, ${escapeHtml(s.due)}${s.due < today ? ' ⚠️' : ''}`));
-      if (!todo.length && !agenda.length && !teams.length && !suppliers.length) continue;
+      if (!todo.length && !agenda.length && !teams.length) continue;
 
       const result = await resend.emails.send({
         from: FROM_EMAIL,
@@ -66,7 +64,6 @@ export async function sendCockpitDigests(now = new Date()) {
             ${section(m.t('cockpit.todo'), todo)}
             ${section(m.t('cockpit.agenda'), agenda)}
             ${section(m.t('cockpit.teams'), teams)}
-            ${section(m.t('cockpit.suppliers'), suppliers)}
             <p style="margin-top:24px"><a href="${APP_URL}/dashboard?cockpit=${encodeURIComponent(c.organisation.id)}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${m.t('cockpit.button')}</a></p>
             <p style="color:#94a3b8;font-size:12px;margin-top:24px">${m.t('cockpit.footer')}</p>
           </div>`,

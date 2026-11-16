@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AlertTriangle, ArrowLeft, CalendarDays, ChevronRight, ClipboardList, Gauge, Landmark, Megaphone, RefreshCw, Settings, UserPlus, Users, Vote, Wallet, Package,
+  AlertTriangle, ArrowLeft, CalendarDays, ChevronRight, ClipboardList, Gauge, Landmark, Megaphone, RefreshCw, Settings, UserPlus, Users, Vote, Package,
 } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
@@ -54,7 +54,6 @@ const STATUS_DOT: Record<Status, string> = { ok: 'bg-emerald-500', watch: 'bg-am
 const dateTime = (iso: string | null) => iso
   ? new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '';
 const dayOnly = (ymd: string) => new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'short' }).format(new Date(`${ymd}T12:00:00`));
-const money = (n: number, cur: string) => new Intl.NumberFormat(intlLocale(), { style: 'currency', currency: cur, minimumFractionDigits: n % 1 ? 2 : 0 }).format(n);
 function ago(iso: string | null): string {
   if (!iso) return t('org.cockpit.never');
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -216,7 +215,7 @@ export function CockpitView({ organisationId, onBack, onOpenPlan, onOpenCircle, 
               </div>
             </Card>
 
-            <div className={`grid gap-5 ${data.suppliers ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+            <div className="grid gap-5 lg:grid-cols-2">
               {/* Annonces */}
               <Card icon={<Megaphone size={16} />} title={t('org.cockpit.communication')}>
                 {data.communication.length === 0 && <Empty text={t('org.cockpit.communicationEmpty')} />}
@@ -238,17 +237,6 @@ export function CockpitView({ organisationId, onBack, onOpenPlan, onOpenCircle, 
                 ))}
               </Card>
 
-              {/* Paiements des fournisseurs (administrateurs et droit « voir les montants ») */}
-              {data.suppliers && (
-                <Card icon={<Wallet size={16} />} title={t('org.cockpit.suppliers')} count={data.suppliers.length}>
-                  {data.suppliers.length === 0 && <Empty text={t('org.cockpit.suppliersEmpty')} />}
-                  {data.suppliers.map((s, i) => (
-                    <Row key={i} icon={<Wallet size={15} className={s.late ? 'text-red-500' : 'text-slate-400'} />} onClick={() => onOpenPlan(s.planId, s.circleId, 'fournisseurs')}
-                      title={`${s.name} · ${t(s.kind === 'deposit' ? 'org.cockpit.deposit' : 'org.cockpit.balance')} ${money(s.amount, s.currency)}`}
-                      sub={`${s.planTitle} · ${dayOnly(s.due)}${s.late ? ` · ${t('org.cockpit.late')}` : ''}`} />
-                  ))}
-                </Card>
-              )}
             </div>
 
             {/* Matériel de l'Organisation : pas rendu, conflits, en réparation */}

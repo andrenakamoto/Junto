@@ -501,7 +501,7 @@ const groups: Group[] = [
       {
         id: 'org-cockpit', emoji: '🧭', title: 'Cockpit dell’Organizzazione', summary: 'Tutto a colpo d’occhio (direzione)',
         body: <><P>Pulsante <strong>«Cockpit»</strong> del blocco dell’Organizzazione, per la direzione e l’amministrazione. <strong>Da fare</strong>: richieste di adesione, squadre senza responsabile, persone senza ruolo, sondaggi in chiusura, Plan vicini in cui metà non ha risposto. <strong>Agenda</strong> dei prossimi 14 giorni: risposte, posti, lista d’attesa, turni da coprire, assemblee.</P>
-          <P><strong>Squadre</strong>: membri, Plan in arrivo, tasso di risposta e un pallino (verde attiva, arancione da tenere d’occhio, rosso tranquilla). Poi gli annunci recenti, le attività in ritardo e, con il diritto di vedere gli importi, i pagamenti ai fornitori. Toccare una riga apre il Plan o il Cerchio.</P>
+          <P><strong>Squadre</strong>: membri, Plan in arrivo, tasso di risposta e un pallino (verde attiva, arancione da tenere d’occhio, rosso tranquilla). Poi gli annunci recenti, e le attività in ritardo. Toccare una riga apre il Plan o il Cerchio.</P>
           <P>Solo i Plan che vedi già e cifre per squadra: nessun monitoraggio individuale. Un <strong>riepilogo ogni lunedì per email</strong> riprende l’essenziale; toglilo in fondo al cockpit.</P></>,
       },
     ],

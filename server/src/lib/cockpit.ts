@@ -2,7 +2,6 @@ import prisma from './prisma';
 import { visiblePlansWhere } from './planAccess';
 import { pollExpiresAt } from './pollExpiry';
 import { decryptMessage } from './messageCrypto';
-import { orgPermissions } from './orgPermissions';
 import { chatSince } from './circleChat';
 import { findConflicts } from './equipment';
 
@@ -204,21 +203,8 @@ export async function buildCockpit(organisationId: string, userId: string, now =
   });
   const tasks = { overdue: openTasks.length, items: openTasks.slice(0, 6).map(t => ({ ...t, planTitle: planTitle.get(t.planId) ?? '', circleId: planCircle.get(t.planId) ?? '' })) };
 
-  // Paiements des fournisseurs dans les 7 jours (ou en retard) : administrateurs et droit « voir les montants »
-  let suppliers: any[] | null = null;
-  if (me.isAdmin || (await orgPermissions(userId, organisationId)).has('see_money')) {
-    const soon = zurichDay(new Date(now.getTime() + 7 * DAY));
-    const rows = await prisma.planSupplier.findMany({
-      where: { planId: { in: planIds }, onHold: false, OR: [{ depositDue: { not: null, lte: soon }, depositPaidAt: null, depositAmount: { not: null } }, { balanceDue: { not: null, lte: soon }, balancePaidAt: null, balanceAmount: { not: null } }] },
-      select: { id: true, planId: true, currency: true, depositAmount: true, depositDue: true, depositPaidAt: true, balanceAmount: true, balanceDue: true, balancePaidAt: true, supplier: { select: { name: true } } },
-    });
-    suppliers = [];
-    for (const r of rows) {
-      if (r.depositDue && !r.depositPaidAt && r.depositAmount !== null && r.depositDue <= soon) suppliers.push({ planId: r.planId, circleId: planCircle.get(r.planId) ?? '', planTitle: planTitle.get(r.planId) ?? '', name: r.supplier.name, kind: 'deposit', due: r.depositDue, amount: r.depositAmount, currency: r.currency, late: r.depositDue < today });
-      if (r.balanceDue && !r.balancePaidAt && r.balanceAmount !== null && r.balanceDue <= soon) suppliers.push({ planId: r.planId, circleId: planCircle.get(r.planId) ?? '', planTitle: planTitle.get(r.planId) ?? '', name: r.supplier.name, kind: 'balance', due: r.balanceDue, amount: r.balanceAmount, currency: r.currency, late: r.balanceDue < today });
-    }
-    suppliers.sort((a, b) => a.due.localeCompare(b.due));
-  }
+  // Paiements des fournisseurs : retirés du cockpit le 2026-11-16 (demande de l'utilisateur) ; toujours null pour les apps installées
+  const suppliers = null;
 
   // Matériel de l'Organisation : pas encore rendu après la fin, conflits de réservation à venir, en réparation
   const gear = await prisma.equipmentItem.findMany({
