@@ -129,9 +129,10 @@ export function DiscoverMap({ items, center, radiusKm, here, renderSelected }: {
     setTimeout(() => { if (watchRef.current != null) { stopWatch(); setLocating(false); } }, 21000);
   }
 
+  // isolate + z-0 : les calques de Leaflet (z-index 400 à 1000) restent dans la carte, sous les fenêtres et les filtres
   const located = items.filter(it => (it.type === 'event' ? it.e : it.p).lat != null).length;
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+    <div className="relative isolate z-0 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
       <style>{`
         .evly-pin { width: 30px; height: 30px; border-radius: 9999px; background: #fff; border: 2px solid #ea5a2b; display: flex; align-items: center;
           justify-content: center; font-size: 16px; line-height: 1; box-shadow: 0 1px 4px rgba(15,23,42,.35); }

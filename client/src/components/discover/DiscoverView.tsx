@@ -293,7 +293,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
                 <Suspense fallback={<p className="text-sm text-slate-400 text-center py-8">{t('common.loading')}</p>}>
                   <DiscoverMap items={mapItems} center={canton ? null : center} radiusKm={canton ? null : choice.radius} here={choice.here}
                     renderSelected={it => it.type === 'event'
-                      ? <EventCard e={it.e} onGo={goWith} onReport={() => setReporting({ target: { eventId: it.e.id }, title: it.e.title })} onHide={isAdmin ? () => hideEvent(it.e) : undefined} credit={creditOf(it.e)} />
+                      ? <EventCard showDate e={it.e} onGo={goWith} onReport={() => setReporting({ target: { eventId: it.e.id }, title: it.e.title })} onHide={isAdmin ? () => hideEvent(it.e) : undefined} credit={creditOf(it.e)} />
                       : <IdeaCard p={it.p} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />} />
                 </Suspense>
               ) : (<>
@@ -372,7 +372,8 @@ function sessionTime(e: DiscoverEvent) {
   return b && b !== a ? `${a} – ${b}` : a;
 }
 
-function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void; credit?: string | null }) {
+// showDate : sur la carte, il n'y a pas de titre de jour au-dessus de la fiche, la date s'affiche avec l'heure
+function EventCard({ e, onGo, onReport, onHide, credit, showDate }: { e: DiscoverEvent; onGo: (e: DiscoverEvent) => void; onReport: () => void; onHide?: () => void; credit?: string | null; showDate?: boolean }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const where = [[e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', '), kmLabel(e.distanceKm)].filter(Boolean).join(' · ');
@@ -392,7 +393,7 @@ function EventCard({ e, onGo, onReport, onHide, credit }: { e: DiscoverEvent; on
           ? <><span className="block text-[10px] uppercase tracking-wide leading-tight">{t('discover.sessionsTop')}</span><span className="block text-[12px] font-bold leading-tight">{t('discover.sessionsBottom')}</span></>
           : e.multiDay
           ? <><span className="block text-[10px] uppercase tracking-wide">{t('discover.until')}</span><span className="block text-[13px] font-bold">{shortDate(e.endAt ?? e.startAt)}</span></>
-          : <span className="block text-[15px] font-bold">{timeLabel(e.startAt)}</span>}
+          : <>{showDate && <span className="block text-[10px] uppercase tracking-wide leading-tight">{shortDate(e.startAt)}</span>}<span className="block text-[15px] font-bold">{timeLabel(e.startAt)}</span></>}
       </div>
       <div className="flex-1 min-w-0 space-y-1.5">
         <p className="font-semibold text-slate-900 break-words">{e.title}</p>
