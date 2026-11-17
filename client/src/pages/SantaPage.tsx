@@ -85,10 +85,6 @@ export function SantaPage() {
             <div className="mt-7 flex flex-col sm:flex-row gap-3 sm:items-center">
               {cta(true)}
               <Link to="/demo?voir=pere-noel" className="inline-flex items-center justify-center px-5 py-3.5 rounded-2xl border border-white/25 text-sm font-semibold text-white hover:bg-white/10">{t('noel.demo')}</Link>
-              {/* Juste un tirage au sort, sans compte (2026-11-17) */}
-              <Link to="/secret-santa" className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-100 underline underline-offset-4 hover:text-white">
-                {t('noel.onlineLink')}<ArrowRight size={15} />
-              </Link>
             </div>
             {!user && (
               <button onClick={() => start(true)} className="mt-3 text-sm text-rose-100/80 underline underline-offset-4 hover:text-white">{t('noel.login')}</button>

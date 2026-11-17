@@ -39,10 +39,6 @@ const en: PrivacyText = {
         <li><strong>Outing organised without an account</strong> (“Organise an outing”): your first name, your outing
           (title, date, place) and an identifier kept in your browser to follow the replies. Erased with the outing, the
           day after its date. If you later create an account or log in, your outings are linked to it.</li>
-        <li><strong>Online Secret Santa without an account</strong> (“Secret Santa” page): the draw’s name, the date and budget if
-          given, the participants’ first names and, if the organiser enters them, their emails (used only once to send them their secret
-          link), the result of the draw and the wish lists (encrypted). Each link only shows that person’s draw. Everything is deleted 30 days
-          after the exchange date (60 days after creation without a date), or straight away with “Delete this draw”.</li>
         <li><strong>Invitations to a Circle</strong>: if a member invites you with your username or email, the invitation
           (who invites you, to which Circle) is kept until you accept or decline it.</li>
         <li><strong>Reports and hidden people</strong>: if you report a message, an encrypted copy of the message, your

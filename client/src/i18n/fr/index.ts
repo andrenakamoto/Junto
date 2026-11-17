@@ -20,10 +20,9 @@ import capsule from './capsule';
 import mystery from './mystery';
 import org from './org';
 import equipment from './equipment';
-import santaOnline from './santaOnline';
 
 // Textes français d'EvLY, langue d'origine. Chaque fichier = un domaine de l'app.
-const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment, santaOnline };
+const fr = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment };
 export default fr;
 
 // Même structure, chaînes de caractères dans une autre langue

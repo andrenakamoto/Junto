@@ -11,7 +11,6 @@ import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { OrganizePage } from './pages/OrganizePage';
 import { SantaPage } from './pages/SantaPage';
-import { SantaOnlineLegacyRedirect, SantaOnlinePage } from './pages/SantaOnlinePage';
 import { DemoPage } from './pages/DemoPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -70,10 +69,8 @@ export default function App() {
         <Route path="/invitation"            element={<GuestInvitePage />} />
         <Route path="/organiser"             element={<OrganizePage />} />
         <Route path="/pere-noel"             element={<SantaPage />} />
-        {/* Secret Santa en ligne, gratuit et sans compte (2026-11-17) */}
-        <Route path="/secret-santa"          element={<SantaOnlinePage />} />
-        <Route path="/secret-santa/o/:token" element={<SantaOnlineLegacyRedirect kind="o" />} />
-        <Route path="/secret-santa/p/:token" element={<SantaOnlineLegacyRedirect kind="p" />} />
+        {/* Secret Santa en ligne sans compte : essayé puis abandonné le 2026-11-17 (fragile, faux tirages, ne menait pas à l'app) */}
+        <Route path="/secret-santa/*"        element={<Navigate to="/pere-noel" replace />} />
         <Route path="/demo"                  element={<DemoPage />} />
         <Route path="/sorties"               element={<DiscoverPage />} />
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}

@@ -153,15 +153,6 @@ const de: EmailDict = {
     hint: 'Gib an, welche Termine dir passen, damit der beste gefunden wird.',
     button: 'Umfrage ansehen',
   },
-  santaOnline: {
-    subject: '🎁 Wichteln «{title}»: Entdecke, wen du beschenkst',
-    title: 'Hallo {name} 🎅',
-    text: '{organizer} hat dich zum Wichteln <strong>«{title}»</strong> angemeldet. Die Auslosung ist gemacht: Öffne deinen geheimen Link, um zu sehen, wen du beschenkst, und notiere deine Wünsche.',
-    button: 'Meine Auslosung ansehen',
-    date: '📅 Geschenkaustausch: {date}',
-    budget: '💰 Budget: {budget}',
-    footer: 'Gesendet von EvLY (evly.ch) im Auftrag von {organizer}, der deine Adresse eingegeben hat. Du erhältst keine weitere E-Mail.',
-  },
   invite: {
     subjectPlan: '{who} lädt dich zum Plan «{plan}» auf EvLY ein',
     subjectCircle: '{who} lädt dich in den Kreis «{circle}» auf EvLY ein',

@@ -2255,6 +2255,7 @@ model EquipmentBooking {
   @@index([planId])
 }
 
+// ABANDONNÉ le 2026-11-17 (tables gardées vides, effacées chaque heure ; à supprimer par une migration avec l'accord de l'utilisateur).
 // Secret Santa en ligne, gratuit et sans compte (2026-11-17, page publique /secret-santa) : l'organisateur saisit les prénoms,
 // le serveur tire au sort, chacun reçoit un lien secret (jeton) qui ne montre que la personne à qui il offre. Effacé 30 jours
 // après la date de l'échange (60 jours après la création sans date) par le job horaire (lib/santaOnline.ts).

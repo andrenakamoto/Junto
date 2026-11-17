@@ -43,11 +43,6 @@ const fr: PrivacyText = {
           sortie (titre, date, lieu) et un identifiant gardé dans ton navigateur pour suivre les réponses.
           Effacés avec la sortie, le lendemain de sa date. Si tu crées ensuite un compte ou te connectes,
           tes sorties y sont rattachées.</li>
-        <li><strong>Secret Santa en ligne sans compte</strong> (page « Secret Santa ») : le nom du tirage, la date et le budget
-          s'ils sont indiqués, les prénoms des participants et, si l'organisateur les saisit, leurs emails (utilisés une seule fois pour
-          leur envoyer leur lien secret), le résultat du tirage et les listes d'envies (chiffrées). Chaque lien ne montre que le tirage de
-          la personne. Tout est effacé 30 jours après la date de l'échange (60 jours après la création sans date), ou tout de suite avec
-          « Effacer ce tirage ».</li>
         <li><strong>Invitations à un Cercle</strong> : si un membre t'invite avec ton pseudo ou ton email,
           l'invitation (qui t'invite, dans quel Cercle) est gardée jusqu'à ce que tu l'acceptes ou la
           refuses.</li>

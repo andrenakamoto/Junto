@@ -6,7 +6,6 @@ const noel: Dict['noel'] = {
   title: 'Dein Wichteln, organisiert in 2 Minuten',
   subtitle: 'Automatische Auslosung, Wunschlisten und anonyme Nachrichten. Schluss mit Zettelchen und der WhatsApp-Gruppe, in der sich alle verraten.',
   cta: 'Mein Wichteln organisieren',
-  onlineLink: 'Nur auslosen? Online, ohne Konto',
   ctaLogged: 'Mein Wichteln erstellen',
   demo: 'Beispiel ansehen',
   stepsTitle: 'So funktioniert’s',

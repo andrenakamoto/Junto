@@ -2406,22 +2406,12 @@ source 30 jours sur l'appareil (`evly_src`) ; jointe à `/auth/register` et `/au
 `src_<source>_signup`. Panneau admin « Provenance des visiteurs » (`SourcesPanel`, GET `/admin/sources`, partie Statistiques). Politique de
 confidentialité (version du 29 octobre 2026).
 
-**Secret Santa en ligne, gratuit et sans compte** (2026-11-17, porte d'entrée vers EvLY, demande de l'utilisateur ; pages publiques
-`/secret-santa` = création, `/secret-santa?o=<jeton>` = organisateur, `/secret-santa?p=<jeton>` = participant — **adresses sur un seul niveau** :
-le site charge ses fichiers par `./assets` (`base: './'` de Vite, pour les apps), qui ne se résout pas depuis `/secret-santa/p/…` (écran bloqué sur
-le logo, 2026-11-17) ; les anciens liens `/secret-santa/o|p/<jeton>` sont redirigés par nginx (bloc dans `deploy/infomaniak/nginx-evly.conf`, **et à
-la main sur le serveur**) et par `SantaOnlineLegacyRedirect`. **Ne jamais créer de page publique à plusieurs niveaux d'adresse.** En tête de la page de
-création, « Deux façons de faire » : dans l'app EvLY (recommandé, `requestNewPlan('pere_noel')`) ou ici sans compte (garder le lien de la page de
-l'organisateur) ; `pages/SantaOnlinePage.tsx`,
-textes `i18n/<langue>/santaOnline.ts`, lien « Juste un tirage au sort ? » sur `/pere-noel`) : serveur `routes/santaOnline.ts` sur
-`/api/santa-online`, `lib/santaOnline.ts` testé (`parseSantaInput`, `santaExpiry`), tables **OnlineSanta** (`adminToken`, titre, budget, date,
-`locale`, `expiresAt`) et **OnlineSantaPerson** (`token` secret, prénom, email facultatif, `receiverId`, envies **chiffrées**, `openedAt`,
-`emailSentAt`), migration `20261204100000_online_santa`. Tirage par `drawPairs` (exclusions = couples) à la création ; la page de l'organisateur
-donne un lien par personne (copier, WhatsApp, email) et montre qui l'a ouvert, **jamais qui offre à qui** ; un participant voit seulement la personne
-à qui il offre et ses envies, et note les siennes. Emails facultatifs (`santaOnline` de `i18n/emails`, une fois par personne, 10 / h), création
-limitée à 10 / jour par connexion. Effacé 30 jours après l'échange (60 sans date) par `deleteExpiredOnlineSantas` (horaire, gated). Compteurs
-`funnel_santa_online_created` / `_opened` (panneau admin, parcours). Chaque page pousse vers EvLY (« Créer mon compte gratuit »). Politique de
-confidentialité du 17 novembre 2026.
+**Secret Santa en ligne sans compte** (2026-11-17) : essayé puis **abandonné le même jour** à la demande de l'utilisateur (tout tenait à un
+lien, risque de faux tirages, les personnes n'allaient pas dans l'app). `/secret-santa` (et tout `/secret-santa/…`) renvoie vers **`/pere-noel`**
+(le Secret Santa se fait dans l'app) ; nginx redirige encore `/secret-santa/o|p/<jeton>` vers `/secret-santa?…` (bloc gardé, sans effet gênant).
+Tables `OnlineSanta` / `OnlineSantaPerson` (migration `20261204100000_online_santa`) **gardées vides** : `deleteExpiredOnlineSantas` les vide
+chaque heure ; les supprimer demande une migration destructive, à faire seulement avec l'accord de l'utilisateur. Leçon gardée : **ne jamais créer
+de page publique à plusieurs niveaux d'adresse** (`base: './'` de Vite : `./assets` ne se résout pas depuis `/a/b/c`, écran bloqué sur le logo).
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site

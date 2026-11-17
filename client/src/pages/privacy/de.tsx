@@ -40,11 +40,6 @@ const de: PrivacyText = {
           (Titel, Datum, Ort) und eine im Browser gespeicherte Kennung, um die Antworten zu verfolgen. Gelöscht mit dem
           Ausflug, am Tag nach seinem Datum. Erstellst du danach ein Konto oder meldest dich an, werden deine Ausflüge
           damit verknüpft.</li>
-        <li><strong>Wichteln online ohne Konto</strong> (Seite «Secret Santa»): Name der Auslosung, Datum und Budget, falls
-          angegeben, die Vornamen der Teilnehmenden und, falls die organisierende Person sie eingibt, ihre E-Mails (nur einmal genutzt, um
-          ihnen ihren geheimen Link zu senden), das Ergebnis der Auslosung und die Wunschlisten (verschlüsselt). Jeder Link zeigt nur das Los
-          dieser Person. Alles wird 30 Tage nach dem Austauschdatum gelöscht (60 Tage nach der Erstellung ohne Datum) oder sofort mit
-          «Diese Auslosung löschen».</li>
         <li><strong>Einladungen in einen Kreis</strong>: Lädt dich ein Mitglied mit deinem Pseudonym oder deiner
           E-Mail ein, wird die Einladung (wer dich einlädt, in welchen Kreis) aufbewahrt, bis du sie annimmst oder
           ablehnst.</li>

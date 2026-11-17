@@ -153,15 +153,6 @@ const fr = {
     hint: 'Indique les dates qui te conviennent pour aider à trouver le meilleur créneau.',
     button: 'Voir le sondage',
   },
-  santaOnline: {
-    subject: '🎁 Secret Santa « {title} » : découvre à qui tu offres',
-    title: 'Salut {name} 🎅',
-    text: '{organizer} t’a inscrit(e) au Secret Santa <strong>« {title} »</strong>. Le tirage au sort est fait : ouvre ton lien secret pour découvrir à qui tu offres un cadeau, et note tes envies.',
-    button: 'Découvrir mon tirage',
-    date: '📅 Échange des cadeaux : {date}',
-    budget: '💰 Budget : {budget}',
-    footer: 'Envoyé par EvLY (evly.ch) à la demande de {organizer}, qui a saisi ton adresse. Tu ne recevras pas d’autre email.',
-  },
   invite: {
     subjectPlan: '{who} t’invite au Plan « {plan} » sur EvLY',
     subjectCircle: '{who} t’invite dans le Cercle « {circle} » sur EvLY',
