@@ -78,6 +78,13 @@ const landing: Dict['landing'] = {
     data: { title: 'Deine Daten bleiben deine', text: 'Nie verkauft, Nachrichten verschlüsselt.' },
     swiss: { title: 'In der Schweiz gehostet', text: 'Server bei Infomaniak, einem Schweizer Unternehmen.' },
   },
+  brochures: {
+    title: 'Für Vereine und Profis',
+    text: 'Alle Funktionen für euren Verein, euren Vorstand oder euren Betrieb, auf ein paar illustrierten Seiten (auf Französisch).',
+    download: 'Broschüre herunterladen (PDF)',
+    assoc: { title: 'Vereine und Clubs', text: 'Generalversammlung, Einsatzplan der Helfenden, Aufgaben des Vorstands, Material, Umfragen und Anmeldungen.' },
+    pro: { title: 'Profis', text: 'Bars, Säle, Schulen, Kurse und Aktivitäten: Ankündigungen mit Plakat, Anmeldungen, Warteliste, wiederkehrende Kurse.' },
+  },
   faq: {
     title: 'Häufige Fragen',
     q1: 'Ist es wirklich gratis?',

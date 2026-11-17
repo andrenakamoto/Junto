@@ -77,6 +77,13 @@ export default {
     data: { title: 'Tes données restent à toi', text: 'Jamais vendues, messages chiffrés.' },
     swiss: { title: 'Hébergé en Suisse', text: 'Serveurs chez Infomaniak, une entreprise suisse.' },
   },
+  brochures: {
+    title: 'Pour les associations et les professionnels',
+    text: 'Toutes les fonctions pour votre club, votre comité ou votre établissement, en quelques pages illustrées.',
+    download: 'Télécharger la brochure (PDF)',
+    assoc: { title: 'Associations et clubs', text: 'Assemblée générale, planning des bénévoles, tâches du comité, matériel, sondages et inscriptions.' },
+    pro: { title: 'Professionnels', text: 'Bars, salles, écoles, cours et activités : annonces avec affiche, inscriptions, liste d’attente, cours récurrents.' },
+  },
   faq: {
     title: 'Questions fréquentes',
     q1: 'Est-ce vraiment gratuit ?',

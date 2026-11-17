@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Garland, SantaScene, Snowfall } from '../components/noel/ChristmasDecor';
 import { requestNewPlan } from '../lib/newPlanIntent';
 import { santaSeason } from '../lib/season';
-import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, Gift, HeartHandshake, Lock, MapPin, Mountain, ShieldCheck, Sparkles, TrainFront, Users } from 'lucide-react';
+import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, FileDown, Gift, HeartHandshake, Lock, MapPin, Mountain, ShieldCheck, Sparkles, Ticket, TrainFront, Users } from 'lucide-react';
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 import { countStep } from '../lib/funnel';
@@ -338,6 +338,27 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Brochures PDF (2026-11-17, demande de l'utilisateur) : associations et professionnels, téléchargements comptés (/brochure, /brochure-pro) */}
+      <Section>
+        <H2>{t('landing.brochures.title')}</H2>
+        <p className="mt-4 text-center text-slate-600 max-w-2xl mx-auto">{t('landing.brochures.text')}</p>
+        <div className="mt-10 grid sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          {([['assoc', '/brochure', Users], ['pro', '/brochure-pro', Ticket]] as const).map(([key, href, Icon]) => (
+            <a key={key} href={siteUrl(href)} target="_blank" rel="noopener"
+              className="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-indigo-300 hover:shadow-md transition-shadow">
+              <span className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0"><Icon size={24} /></span>
+              <span className="flex-1 min-w-0">
+                <span className="block font-bold text-slate-900">{t(`landing.brochures.${key}.title`)}</span>
+                <span className="mt-1 block text-sm text-slate-600 leading-relaxed">{t(`landing.brochures.${key}.text`)}</span>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 group-hover:text-indigo-800">
+                  <FileDown size={16} />{t('landing.brochures.download')}
+                </span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </Section>
 
       {/* Questions fréquentes */}
       <Section tone="soft">
