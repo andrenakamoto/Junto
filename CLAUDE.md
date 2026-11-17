@@ -577,6 +577,9 @@ Conséquences pratiques :
     visibles par tous les participants si les organisateurs le choisissent.
     **Version 1.0.57** (2026-11-16) : Android `versionCode` 59 (`evly-1.0.57-(59).aab`), iOS build 64 envoyé — carte de Découvrir sous les
     fenêtres des filtres, date sur la fiche d'un événement touché sur la carte, paiements des fournisseurs retirés du cockpit.
+    **Version 1.0.58** (2026-11-17) : Android `versionCode` 60 (`evly-1.0.58-(60).aab`), iOS build 65 envoyé — cloche détaillée et changements
+    entourés d'orange dans les Plans, adresse des événements, restaurants par spécialité (clients `v=5`), idées de sorties en 5 groupes avec filtres
+    rapides, carte qui garde la sélection.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
