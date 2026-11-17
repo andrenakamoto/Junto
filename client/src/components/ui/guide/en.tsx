@@ -57,7 +57,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Discover', summary: 'Outings near you, and going together',
         body: <>
           <P>The <strong>“Discover”</strong> button (next to “All my plans”) shows events for the next 14 days and
-            <strong> outing ideas</strong> (escape rooms, bowling, museums…) all over <strong>Switzerland</strong> and in <strong>nearby France</strong> (Ain, Haute-Savoie).
+            <strong> outing ideas</strong> (escape rooms, bowling, museums, restaurants by cuisine…) all over <strong>Switzerland</strong> and in <strong>nearby France</strong> (Ain, Haute-Savoie).
             Choose the place (a town, a village or “Near me”) and the radius (10, 25 or 50 km), filter by day or category, or search for a word (“salsa”, “concert”…). The <strong>“Map”</strong> button shows everything on the swisstopo map; tap a pin to see the place. On a place too, “Go with a Circle” suggests a Plan (you pick the date).</P>
           <P>On an event, <strong>“Go with a Circle”</strong> opens a ready-filled Plan (title, date, place, link) in the
             Circle of your choice; <strong>“More info”</strong> opens the website of the organiser or of the agenda the listing comes from.</P>
@@ -422,6 +422,10 @@ const groups: Group[] = [
           <P>The <strong>bell</strong> 🔔 at the bottom of the Circle list gathers what you haven’t seen yet, invitations and
             requests to join. Automatic reminders: the day before a Plan, before a date poll ends, one hour before a
             shift.</P>
+          <P>In the bell, each Plan says what happened (“3 new messages from @emma”, new answers…) and an orange button per
+            section opens it directly. In the Plan, whatever changed since your last visit is <strong>outlined in orange</strong>
+            with “New” (messages, members, votes, expenses, rides, photos, tasks, shifts); on your next visit, everything is back
+            to normal.</P>
         </>,
       },
       {

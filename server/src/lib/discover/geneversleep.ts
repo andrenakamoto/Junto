@@ -31,6 +31,7 @@ export function normalizeGeneverSleepEvent(e: any, cityGroup: string | undefined
     externalId, title,
     place: cleanText(e.venue),
     city: cleanText(e.city, 60),
+    address: cleanText(e.address ?? e.venue_address, 120),
     latitude: null, longitude: null,
     category: categoryOf(e.categories),
     family: false,

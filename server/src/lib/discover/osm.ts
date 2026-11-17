@@ -1,5 +1,5 @@
 import type { NormalizedPlace, PlaceKind } from './model';
-import { cleanText, cleanUrl, FAMILY_KINDS, OUTDOOR_KINDS } from './model';
+import { cleanText, cleanUrl, cuisineOf, FAMILY_KINDS, OUTDOOR_KINDS } from './model';
 
 // Connecteur OpenStreetMap (idées de sorties) : service Overpass, données sous licence ODbL (mention « © les
 // contributeurs d'OpenStreetMap » affichée). Seulement les lieux qui ont un nom, et seulement dans la zone : un canton
@@ -54,6 +54,8 @@ const SELECTORS: [string, PlaceKind][] = [
   ['nwr["landuse"="winter_sports"]["name"]', 'ski'],
   ['nwr["amenity"~"^(bar|pub|biergarten)$"]', 'bar'],
   ['nwr["amenity"="nightclub"]', 'discotheque'],
+  // Restaurants (2026-11-17) : avec un nom, et site web, téléphone ou horaires (règle commune plus bas)
+  ['nwr["amenity"="restaurant"]["name"]', 'restaurant'],
 ];
 
 export function placeKind(t: Record<string, string>): PlaceKind | null {
@@ -61,6 +63,7 @@ export function placeKind(t: Record<string, string>): PlaceKind | null {
   if (t.amenity === 'nightclub') return 'discotheque';
   if (t.amenity === 'bar' || t.amenity === 'pub' || t.amenity === 'biergarten') return 'bar';
   if (t.amenity === 'theatre') return 'theatre';
+  if (t.amenity === 'restaurant') return 'restaurant';
   if (t.sport === 'climbing_adventure') return 'accrobranche';
   if (t.attraction === 'summer_toboggan' || t['piste:type'] === 'sled') return 'luge';
   if (t.landuse === 'winter_sports') return 'ski';
@@ -119,7 +122,8 @@ export function normalizeOsmElement(e: any): NormalizedPlace | null {
   // Position : le nœud lui-même, ou le centre d'un bâtiment / d'une zone (`out tags center`)
   const lat = Number(e.lat ?? e.center?.lat), lon = Number(e.lon ?? e.center?.lon);
   const pos = Number.isFinite(lat) && Number.isFinite(lon) ? { latitude: lat, longitude: lon } : { latitude: null, longitude: null };
-  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), address: osmAddress(t), ...pos, website, family: FAMILY_KINDS.includes(kind) };
+  return { externalId: `${e.type}/${e.id}`, name, kind, city: cleanText(t['addr:city'], 60), address: osmAddress(t), ...pos, website, family: FAMILY_KINDS.includes(kind),
+    ...(kind === 'restaurant' ? { cuisine: cuisineOf(t) } : {}) };
 }
 
 // « Rue du Rhône 12, 1204 Genève » à partir des champs addr:* (null sans rue ni place)

@@ -1288,6 +1288,17 @@ Junto/
   **Date et heure sur chaque entrée** (2026-11-13, `whenLabel` / `When` de `NotificationCenter`) : « aujourd’hui, 14:32 », « hier, … »,
   sinon « 12 nov., 14:32 » — notifications reçues (`at`), Plans (`unseenAt`), invitations (`createdAt`), demandes (la plus récente),
   discussions (`chatLast.at`).
+  **Cloche détaillée et mise en évidence des changements** (2026-11-17, demande de l'utilisateur : « on ne voit pas grand-chose ») :
+  la carte d'un Plan dans la cloche montre le titre en entier, **ce qui s'est passé** (GET /plans renvoie `unseenCounts` —
+  `unseenCounts()` de `lib/planActivity.ts` : nombre de nouveaux messages et de qui, nouvelles réponses et de qui — et les notifications
+  reçues de ce Plan, retirées de « À voir ») et **une pastille orange par rubrique** qui l'ouvre directement (`openPlanFromBell(plan, tab)`).
+  Dans le Plan, **ce qui a changé depuis la visite précédente est entouré d'orange avec « Nouveau »** (`lib/newSince.tsx` : `NewSinceProvider`
+  dans `PlanDetail`, `useIsNew(section, date, auteur)`, `NEW_CLASS`, `NewBadge`) : messages (trait « Nouveaux messages » avant le premier),
+  membres arrivés ou réponse changée (`PlanMember.rsvpAt`, migration `20261201100000_plan_member_rsvp_at`, posé par PUT /:id/rsvp),
+  sondages, dépenses, trajets, photos d'Infos, tâches, postes du planning ; jamais ce qu'on a fait soi-même. Dates de référence : `seenAt`
+  (dernière visite de chaque rubrique) renvoyé par GET /plans, GET /plans/:id et GET /circles/:id/plans, et `previous` renvoyé par POST
+  /plans/:id/seen ; PlanDetail garde la plus ancienne connue pendant la visite (sinon la marque « vu » l'effacerait aussitôt). À la visite
+  suivante, tout revient à la normale. Fiche « Notifications et cloche » du guide.
   Bouton retour Android : ferme le panneau. Apps :
   à l'ouverture et à chaque retour, les notifications EvLY du volet du
   téléphone sont effacées (`clearDeliveredNotifications`), **sans** être
@@ -2146,6 +2157,23 @@ de Suisse Tourisme (même nom à moins de 500 m).
 toucher = fiche en bas (`EventCard` / `IdeaCard` avec « Y aller avec un Cercle »). Rayon dessiné, point bleu pour « Autour de moi », canton = cadrage sur
 les épingles. GET `/api/discover` renvoie `lat` / `lon` (arrondis à 5 décimales) sur chaque événement et lieu. **« Y aller avec un Cercle » sur les idées
 de sorties** : `DiscoverGoModal` avec `place` (titre, lieu, lien ; date à choisir, fin calculée).
+**Idées de sorties réorganisées** (2026-11-17, demande de l'utilisateur : « on s'y perd ») : **5 groupes** (`KIND_GROUPS` de
+`client/src/lib/discover.ts` : Manger et sortir, Sport et nature — la neige en tête l'hiver —, Jeux et défis, Culture, Détente et loisirs) ; chaque
+groupe montre **une ligne de tuiles** dans son ordre (3 sur grand écran, 4 sur téléphone) puis « + N autres » ; les types à un seul lieu sont réunis
+dans **« Autres »** (`others:<groupe>`, cartes avec le type affiché). **Filtres rapides** (`QUICK_FILTERS`, `matchesQuick`) : Avec des enfants
+(drapeau `family`), À l'intérieur, Dehors, Ce soir (déduits du type). **« Près de toi »** : les 6 idées les plus proches, d'un type différent chacune
+(`IdeaCard` avec `showKind`). Côté client seulement (`IdeasBrowser` de `DiscoverView`).
+**Restaurants par spécialité** (2026-11-17, demande de l'utilisateur) : type d'idée `restaurant` (OpenStreetMap `amenity=restaurant`, nom +
+site web, téléphone ou horaires, sans avis ni notes), groupe « Sortir le soir » ; `DiscoverPlace.cuisine` (migration `20261203100000_discover_place_cuisine`)
+= spécialité regroupée par `cuisineOf` (`CUISINES` de `lib/discover/model.ts` : suisse, française, italienne, méditerranéenne, japonaise, chinoise,
+asiatique, indienne, orientale, africaine, latino, grill, burgers, poisson, végétarienne, autre ; `diet:vegan|vegetarian=only` → végétarienne). Dans la tuile
+« Restaurants », pastilles par spécialité avec leur nombre (`CUISINE_EMOJI`, `cuisineLabel` du client), et la spécialité sur chaque carte. **Clients `v=5`** ;
+`v=4` (apps 1.0.54 à 1.0.57) ne reçoit pas les restaurants (`PLACE_KINDS_V4`). Visibles après la synchronisation OpenStreetMap suivante.
+**Adresse des événements** (2026-11-17, demande de l'utilisateur) : `DiscoverEvent.address` (migration `20261202100000_discover_event_address`),
+remplie par OpenAgenda (`location.address`), DATAtourisme (rue + code postal), GeNEVERsleep (`address` / `venue_address` si le flux les donne) et
+Eventfrog (`eventfrogAddress` : champs du lieu lus de façon tolérante — `street`/`addressLine`, `zip`/`postalCode`, `city` — **noms non vérifiés**, à
+contrôler après une synchronisation ; les lieux gardés sans adresse sont relus une fois) ; Suisse Tourisme donne aussi l'adresse de ses attractions.
+`EventCard` affiche l'adresse sous le lieu (sinon « Voir sur la carte » d'après la position), touchée → Google Maps. Visible après la synchronisation suivante.
 **« Élargir à 50 km »** : moins de 20 événements dans le rayon → le client regarde jusqu'à 50 km et propose d'élargir s'il y en a 10 de plus.
 
 **France voisine dans Découvrir** (2026-11-01, d'abord l'**Ain et la Haute-Savoie**) : régions `f01` / `f74` (codes « canton » `01` / `74`,

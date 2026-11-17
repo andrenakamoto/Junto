@@ -83,7 +83,11 @@ export function normalizeAttraction(item: any): NormalizedPlace | null {
   if (!name || !website || !kind || !pos || typeof item?.identifier !== 'string') return null;
   const a = Array.isArray(item.address) ? item.address[0] : null;
   const city = cleanText(a?.addressLocality, 60);
-  return { externalId: `a:${item.identifier}`, name, kind, city, address: null, ...pos, website, family: FAMILY_KINDS.includes(kind) || has(classesOf(item), 'suitablefortype', 'family', 'children') };
+  // Adresse (2026-11-17) : rue, NPA et localité quand Suisse Tourisme les donne
+  const zipCity = [cleanText(a?.postalCode, 10), city].filter(Boolean).join(' ');
+  const street = cleanText(a?.streetAddress, 80);
+  const address = street ? [street, zipCity].filter(Boolean).join(', ') : null;
+  return { externalId: `a:${item.identifier}`, name, kind, city, address, ...pos, website, family: FAMILY_KINDS.includes(kind) || has(classesOf(item), 'suitablefortype', 'family', 'children') };
 }
 
 // « Randonnée du lac Noir (12 km) » : la distance aide à choisir ; ville = point de départ

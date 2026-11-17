@@ -40,7 +40,41 @@ export const PLACE_KINDS = [
   'bar', 'discotheque',
   // Suisse Tourisme (2026-11-14)
   'nature', 'patrimoine', 'excursion', 'randonnee', 'raquettes', 'velo', 'ski_fond',
+  // Restaurants par spécialité (2026-11-17, clients v=5)
+  'restaurant',
 ] as const;
+// Types connus des clients v=4 (site et apps 1.0.54 à 1.0.57)
+export const PLACE_KINDS_V4: readonly string[] = PLACE_KINDS.slice(0, PLACE_KINDS.indexOf('restaurant'));
+
+// Spécialités des restaurants (OpenStreetMap `cuisine`, `diet:*`), regroupées pour les filtrer dans l'app
+export const CUISINES = ['suisse', 'francais', 'italien', 'mediterraneen', 'japonais', 'chinois', 'asiatique', 'indien', 'orient', 'africain',
+  'latino', 'grill', 'burger', 'poisson', 'vegetarien', 'autre'] as const;
+export type Cuisine = typeof CUISINES[number];
+const CUISINE_OF: Record<string, Cuisine> = {
+  swiss: 'suisse', regional: 'suisse', fondue: 'suisse', raclette: 'suisse', alpine: 'suisse', austrian: 'suisse', german: 'suisse',
+  french: 'francais', crepe: 'francais', savoyard: 'francais', brasserie: 'francais',
+  italian: 'italien', pizza: 'italien', pasta: 'italien', italian_pizza: 'italien',
+  greek: 'mediterraneen', mediterranean: 'mediterraneen', spanish: 'mediterraneen', portuguese: 'mediterraneen', tapas: 'mediterraneen',
+  japanese: 'japonais', sushi: 'japonais', ramen: 'japonais',
+  chinese: 'chinois', dim_sum: 'chinois', cantonese: 'chinois', sichuan: 'chinois',
+  thai: 'asiatique', vietnamese: 'asiatique', asian: 'asiatique', korean: 'asiatique', indonesian: 'asiatique', malaysian: 'asiatique', tibetan: 'asiatique', filipino: 'asiatique',
+  indian: 'indien', nepalese: 'indien', pakistani: 'indien', sri_lankan: 'indien', bangladeshi: 'indien',
+  lebanese: 'orient', turkish: 'orient', kebab: 'orient', middle_eastern: 'orient', syrian: 'orient', persian: 'orient', iranian: 'orient', arab: 'orient', falafel: 'orient', kurdish: 'orient', afghan: 'orient',
+  african: 'africain', ethiopian: 'africain', eritrean: 'africain', moroccan: 'africain', tunisian: 'africain', senegalese: 'africain', maghreb: 'africain',
+  mexican: 'latino', tex_mex: 'latino', 'tex-mex': 'latino', peruvian: 'latino', brazilian: 'latino', argentinian: 'latino', latin_american: 'latino', colombian: 'latino',
+  steak_house: 'grill', grill: 'grill', barbecue: 'grill', bbq: 'grill',
+  burger: 'burger', american: 'burger',
+  seafood: 'poisson', fish: 'poisson', fish_and_chips: 'poisson',
+  vegetarian: 'vegetarien', vegan: 'vegetarien',
+};
+export function cuisineOf(t: Record<string, string>): Cuisine {
+  if (t['diet:vegan'] === 'only' || t['diet:vegetarian'] === 'only') return 'vegetarien';
+  for (const raw of (t.cuisine ?? '').toLowerCase().split(/[;,]/)) {
+    const c = CUISINE_OF[raw.trim().replace(/\s+/g, '_')];
+    if (c) return c;
+  }
+  return 'autre';
+}
 // Types connus des clients v=2 / v=3 (site et apps jusqu'à la 1.0.53) : ils affichent la clé brute pour les suivants
 export const PLACE_KINDS_V3: readonly string[] = PLACE_KINDS.slice(0, PLACE_KINDS.indexOf('cinema'));
 export type PlaceKind = typeof PLACE_KINDS[number];
@@ -63,6 +97,8 @@ export interface NormalizedEvent {
   title: string;
   place: string | null;
   city: string | null;
+  /** Rue, NPA et ville (si la source la donne) */
+  address?: string | null;
   latitude: number | null;
   longitude: number | null;
   category: Category;
@@ -90,6 +126,8 @@ export interface NormalizedPlace {
   longitude?: number | null;
   website: string;
   family: boolean;
+  /** Restaurants : spécialité regroupée */
+  cuisine?: string | null;
 }
 
 export const TITLE_MAX = 160;

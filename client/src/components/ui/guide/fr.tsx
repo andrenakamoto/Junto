@@ -58,7 +58,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Découvrir', summary: 'Les sorties près de chez toi, et y aller à plusieurs',
         body: <>
           <P>Le bouton <strong>« Découvrir »</strong> (à côté de « Tous mes plans ») montre les événements des 14 prochains jours et des
-            <strong> idées de sorties</strong> (escape games, bowling, musées…) partout en <strong>Suisse</strong> et en <strong>France voisine</strong> (Ain, Haute-Savoie).
+            <strong> idées de sorties</strong> (escape games, bowling, musées, restaurants par spécialité…) partout en <strong>Suisse</strong> et en <strong>France voisine</strong> (Ain, Haute-Savoie).
             Choisis le lieu (une ville, un village ou « Autour de moi ») et le rayon (10, 25 ou 50 km), filtre par jour ou par catégorie, ou cherche un mot (« salsa », « concert »…). Le bouton <strong>« Carte »</strong> montre tout sur la carte de swisstopo ; touche une épingle pour voir le lieu. Sur un lieu aussi, « Y aller avec un Cercle » propose un Plan (la date reste à choisir).</P>
           <P>Sur un événement, <strong>« Y aller avec un Cercle »</strong> ouvre un Plan déjà rempli (titre, date, lieu, lien) dans le
             Cercle de ton choix ; <strong>« Plus d'infos »</strong> ouvre le site de l'organisateur ou de l'agenda d'où vient l'annonce.</P>
@@ -426,6 +426,10 @@ const groups: Group[] = [
           <P>La <strong>cloche</strong> 🔔 en bas de la liste des Cercles regroupe ce que tu n'as pas encore vu, les invitations et
             les demandes d'adhésion. Rappels automatiques : la veille d'un Plan, avant la fin d'un sondage de dates, une heure
             avant un poste du planning.</P>
+          <P>Dans la cloche, chaque Plan dit ce qui s'est passé (« 3 nouveaux messages de @emma », nouvelles réponses…) et
+            une pastille orange par rubrique l'ouvre directement. Dans le Plan, ce qui a changé depuis ta dernière visite est
+            <strong>entouré d'orange</strong> avec « Nouveau » (messages, membres, votes, dépenses, trajets, photos, tâches,
+            postes) ; à la visite suivante, tout revient à la normale.</P>
         </>,
       },
       {

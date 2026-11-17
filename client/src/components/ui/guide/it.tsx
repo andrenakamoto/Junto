@@ -58,7 +58,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Scopri', summary: 'Le uscite vicino a te, e andarci insieme',
         body: <>
           <P>Il pulsante <strong>«Scopri»</strong> (accanto a «Tutti i miei plan») mostra gli eventi dei prossimi 14 giorni e delle
-            <strong> idee per uscire</strong> (escape game, bowling, musei…) in tutta la <strong>Svizzera</strong> e nella <strong>Francia vicina</strong> (Ain, Alta Savoia).
+            <strong> idee per uscire</strong> (escape game, bowling, musei, ristoranti per cucina…) in tutta la <strong>Svizzera</strong> e nella <strong>Francia vicina</strong> (Ain, Alta Savoia).
             Scegli il luogo (una città, un paese o «Vicino a me») e il raggio (10, 25 o 50 km), filtra per giorno o categoria, oppure cerca una parola («salsa», «concerto»…). Il pulsante <strong>«Mappa»</strong> mostra tutto sulla mappa di swisstopo; tocca uno spillo per vedere il luogo. Anche su un luogo, «Andarci con un Cerchio» propone un Plan (la data la scegli tu).</P>
           <P>Su un evento, <strong>«Andarci con un Cerchio»</strong> apre un Plan già compilato (titolo, data, luogo, link) nel
             Cerchio che preferisci; <strong>«Più info»</strong> apre il sito dell’organizzatore o dell’agenda da cui proviene l’annuncio.</P>
@@ -428,6 +428,10 @@ const groups: Group[] = [
           <P>La <strong>campanella</strong> 🔔 in fondo alla lista dei Cerchi raccoglie ciò che non hai ancora visto, gli
             inviti e le richieste di adesione. Promemoria automatici: il giorno prima di un Plan, prima della fine di un
             sondaggio date, un’ora prima di un turno.</P>
+          <P>Nella campanella ogni Plan dice cosa è successo («3 nuovi messaggi da @emma», nuove risposte…) e un bottone
+            arancione per sezione la apre direttamente. Nel Plan, ciò che è cambiato dalla tua ultima visita è
+            <strong>contornato di arancione</strong> con «Nuovo» (messaggi, membri, voti, spese, viaggi, foto, attività, turni);
+            alla visita successiva torna tutto normale.</P>
         </>,
       },
       {

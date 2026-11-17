@@ -59,7 +59,7 @@ const groups: Group[] = [
         id: 'decouvrir', emoji: '🧭', title: 'Entdecken', summary: 'Ausgehen in deiner Nähe – und gemeinsam hingehen',
         body: <>
           <P>Der Button <strong>„Entdecken“</strong> (neben „Alle meine Pläne“) zeigt die Events der nächsten 14 Tage und
-            <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen …) in der ganzen <strong>Schweiz</strong> und im <strong>angrenzenden Frankreich</strong> (Ain, Hochsavoyen).
+            <strong> Ausflugsideen</strong> (Escape Games, Bowling, Museen, Restaurants nach Küche …) in der ganzen <strong>Schweiz</strong> und im <strong>angrenzenden Frankreich</strong> (Ain, Hochsavoyen).
             Wähle den Ort (eine Stadt, ein Dorf oder „In meiner Nähe“) und den Umkreis (10, 25 oder 50 km), filtere nach Tag oder Kategorie oder suche ein Wort („Salsa“, „Konzert“ …). Die Schaltfläche <strong>„Karte“</strong> zeigt alles auf der Karte von swisstopo; tippe auf eine Stecknadel, um den Ort zu sehen. Auch bei einem Ort schlägt „Mit einem Kreis hingehen“ einen Plan vor (das Datum wählst du).</P>
           <P>Bei einem Event öffnet <strong>„Mit einem Kreis hingehen“</strong> einen fertig ausgefüllten Plan (Titel, Datum, Ort, Link)
             im Kreis deiner Wahl; <strong>„Mehr Infos“</strong> öffnet die Website der Veranstalter oder der Agenda, aus der die Anzeige stammt.</P>
@@ -437,6 +437,10 @@ const groups: Group[] = [
           <P>Die <strong>Glocke</strong> 🔔 unten in der Liste der Kreise sammelt, was du noch nicht gesehen hast,
             Einladungen und Beitrittsanfragen. Automatische Erinnerungen: am Vortag eines Plans, vor dem Ende einer
             Terminumfrage, eine Stunde vor einem Einsatz.</P>
+          <P>In der Glocke zeigt jeder Plan, was passiert ist („3 neue Nachrichten von @emma“, neue Antworten …), und ein
+            oranger Knopf pro Bereich öffnet ihn direkt. Im Plan ist alles, was sich seit deinem letzten Besuch geändert hat,
+            <strong>orange umrandet</strong> und mit „Neu“ markiert (Nachrichten, Mitglieder, Abstimmungen, Ausgaben, Fahrten,
+            Fotos, Aufgaben, Einsätze); beim nächsten Besuch ist wieder alles normal.</P>
         </>,
       },
       {

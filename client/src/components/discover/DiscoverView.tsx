@@ -6,7 +6,7 @@ import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n';
-import {
+import { QUICK_FILTERS, QUICK_EMOJI, matchesQuick, type QuickFilter, CUISINE_EMOJI, cuisineLabel,
   CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, SpotChoice,
   catLabel, dayChips, dayKey, dayTitle, discoverImageUrl, host, kindLabel, kmLabel, norm, savedSpot, saveSpot, shortDate, timeLabel,
 } from '../../lib/discover';
@@ -75,12 +75,12 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     setError(false);
     setWider(null);
     if (canton) {
-      api.get<DiscoverData>('/discover', { params: { canton, days: 14, v: 4 } }).then(res => setData(res.data)).catch(() => setError(true));
+      api.get<DiscoverData>('/discover', { params: { canton, days: 14, v: 5 } }).then(res => setData(res.data)).catch(() => setError(true));
       return;
     }
     // Position arrondie au centième (~1 km) sur l'appareil : rien de plus précis ne quitte le téléphone
     const round = (x: number) => Math.round(x * 100) / 100;
-    const params = { lat: round(center.lat), lon: round(center.lon), days: 14, v: 4 };
+    const params = { lat: round(center.lat), lon: round(center.lon), days: 14, v: 5 };
     api.get<DiscoverData>('/discover', { params: { ...params, radius: choice.radius } })
       .then(res => {
         setData(res.data);
@@ -398,6 +398,13 @@ function EventCard({ e, onGo, onReport, onHide, credit, showDate }: { e: Discove
       <div className="flex-1 min-w-0 space-y-1.5">
         <p className="font-semibold text-slate-900 break-words">{e.title}</p>
         {(where || e.dateLabel) && <p className="text-[13px] text-slate-500 break-words">{[where, e.multiDay && !e.sessions ? e.dateLabel : null].filter(Boolean).join(' · ')}</p>}
+        {/* Adresse du lieu (2026-11-17) : touchée, elle ouvre la carte ; sans adresse, la position exacte */}
+        {(e.address || (e.lat != null && e.lon != null)) && (
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.address ? `${e.place ?? e.title}, ${e.address}` : `${e.lat},${e.lon}`)}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-start gap-1 text-xs text-slate-600 hover:text-indigo-700">
+            <MapPin size={12} className="mt-px flex-shrink-0 text-slate-400" /><span className="min-w-0 break-words">{e.address ?? t('discover.onMap')}</span>
+          </a>
+        )}
         {e.sessions && <p className="text-[13px] text-slate-600 break-words">{t('discover.sessionsLine', { from: shortDate(e.startAt), to: shortDate(e.endAt ?? e.startAt), time: sessionTime(e) })}</p>}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">{catLabel(e.category)}</span>
@@ -439,14 +446,16 @@ function EventCard({ e, onGo, onReport, onHide, credit, showDate }: { e: Discove
   );
 }
 
-function IdeaCard({ p, onGo, onReport, onHide }: { p: DiscoverPlace; onGo: (p: DiscoverPlace) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void }) {
+// showKind : le type de lieu devant le nom (« Près de toi », « Autres » qui mélangent les types)
+function IdeaCard({ p, onGo, onReport, onHide, showKind = false }: { p: DiscoverPlace; onGo: (p: DiscoverPlace) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void; showKind?: boolean }) {
   const { user } = useAuth();
   return (
     <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2 min-w-0">
       <div className="flex-1 min-w-0">
         <a href={p.website} target="_blank" rel="noopener noreferrer" className="block group">
-          <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{p.name}</span>
-          <span className="block text-xs text-slate-500 truncate">{[p.address || (p.lat != null && p.lon != null) ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : host(p.website) === 'myswitzerland.com' ? 'MySwitzerland.com' : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
+          <span className="block text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-700">{showKind && <span className="mr-1">{KIND_EMOJI[p.kind] ?? '📍'}</span>}{p.name}</span>
+          {showKind && <span className="block text-[11px] font-medium text-indigo-700 truncate">{kindLabel(p.kind)}</span>}
+          <span className="block text-xs text-slate-500 truncate">{[p.kind === 'restaurant' ? `${CUISINE_EMOJI[p.cuisine ?? 'autre'] ?? ''} ${cuisineLabel(p.cuisine ?? 'autre')}` : null, p.address || (p.lat != null && p.lon != null) ? null : p.city, kmLabel(p.distanceKm), host(p.website) === 'openstreetmap.org' ? t('discover.onMap') : host(p.website) === 'myswitzerland.com' ? 'MySwitzerland.com' : t('discover.website')].filter(Boolean).join(' · ')} ↗</span>
         </a>
         {/* Adresse : ouvre la carte (recherche par adresse, rien n'est chargé tant qu'on ne touche pas). Sans adresse (place de
             grillade, point de vue…) : la localité, et la carte s'ouvre sur la position exacte */}
@@ -473,26 +482,80 @@ function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHi
   places: DiscoverPlace[]; onGo: (p: DiscoverPlace) => void; kind: string | null; onKind: (k: string | null) => void;
   city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
 }) {
-  const count = (k: string) => places.filter(p => p.kind === k).length;
-  if (!kind || !count(kind)) {
+  // Refait le 2026-11-17 (« on s'y perd ») : filtres rapides, « Près de toi », 5 groupes dont chacun montre une ligne de tuiles
+  // (dans l'ordre du groupe, « + N autres » pour déplier) ; les types à un seul lieu sont réunis dans « Autres ».
+  const [quick, setQuick] = useState<QuickFilter | null>(null);
+  const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
+  // Restaurants : filtre par spécialité (2026-11-17), remis à zéro quand on change de type
+  const [cuisine, setCuisine] = useState<string | null>(null);
+  useEffect(() => setCuisine(null), [kind]);
+  const pool = places.filter(p => matchesQuick(p, quick));
+  const count = (k: string) => pool.filter(p => p.kind === k).length;
+  const groupKinds = (g: string) => KIND_GROUPS.find(([x]) => x === g)?.[1] ?? [];
+  const singlesOf = (g: string) => { const one = groupKinds(g).filter(k => count(k) === 1); return one.length >= 2 ? one : []; };
+  const othersGroup = kind?.startsWith('others:') ? kind.slice(7) : null;
+  const inKind = (p: DiscoverPlace) => othersGroup ? singlesOf(othersGroup).includes(p.kind) : p.kind === kind;
+  const chips = (
+    <div className="flex flex-wrap gap-1.5">
+      {QUICK_FILTERS.map(f => (
+        <button key={f} onClick={() => setQuick(quick === f ? null : f)}
+          className={`px-3 py-1.5 rounded-full border text-xs font-semibold ${quick === f ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300'}`}>
+          {QUICK_EMOJI[f]} {t(`discover.quick.${f}` as any)}
+        </button>
+      ))}
+    </div>
+  );
+  if (!kind || !pool.some(inKind)) {
+    // Près de toi : les 6 idées les plus proches, d'un type différent chacune
+    const near: DiscoverPlace[] = [];
+    for (const p of [...pool].filter(p => p.distanceKm != null).sort((a, b) => a.distanceKm! - b.distanceKm!)) {
+      if (near.length >= 6) break;
+      if (!near.some(n => n.kind === p.kind)) near.push(p);
+    }
+    const slots = isWideScreen() ? 3 : 4;
     return (
       <section className="space-y-4">
-        {KIND_GROUPS.map(([g, kinds]) => {
-          const avail = kinds.filter(k => count(k) > 0);
-          if (!avail.length) return null;
+        {chips}
+        {pool.length === 0 && <p className="text-sm text-slate-500">{t('discover.noIdeasFilter')}</p>}
+        {near.length >= 3 && (
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">📍 {t('discover.nearYou')}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {near.map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} showKind />)}
+            </div>
+          </div>
+        )}
+        {KIND_GROUPS.map(([g]) => {
+          const singles = singlesOf(g);
+          // Ordre choisi par groupe (la neige en tête l'hiver, musées avant bibliothèques…), pas le nombre de lieux
+          const tiles: [string, number][] = groupKinds(g).filter(k => count(k) > 0 && !singles.includes(k)).map(k => [k, count(k)] as [string, number]);
+          if (singles.length) tiles.push([`others:${g}`, singles.length]);
+          if (!tiles.length) return null;
+          const open = unfolded.has(g);
+          const folded = !open && tiles.length > slots;
+          const shown = folded ? tiles.slice(0, slots - 1) : tiles;
+          const toggle = () => setUnfolded(prev => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n; });
           return (
             <div key={g} className="space-y-2">
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t(`discover.kindGroups.${g}` as any)}</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {avail.map(k => (
+                {shown.map(([k, n]) => (
                   <button key={k} onClick={() => onKind(k)}
                     className="flex items-center gap-2.5 bg-white border border-slate-200 rounded-xl px-3 py-3 text-left shadow-sm hover:border-indigo-300 min-w-0">
-                    <span className="text-xl leading-none flex-shrink-0">{KIND_EMOJI[k] ?? '📍'}</span>
-                    <span className="flex-1 min-w-0 text-sm font-semibold text-slate-800 leading-tight">{kindLabel(k)}</span>
-                    <span className="text-xs font-semibold text-slate-400 flex-shrink-0">{count(k)}</span>
+                    <span className="text-xl leading-none flex-shrink-0">{k.startsWith('others:') ? '✨' : KIND_EMOJI[k] ?? '📍'}</span>
+                    <span className="flex-1 min-w-0 text-sm font-semibold text-slate-800 leading-tight">{k.startsWith('others:') ? t('discover.otherKinds') : kindLabel(k)}</span>
+                    <span className="text-xs font-semibold text-slate-400 flex-shrink-0">{n}</span>
                   </button>
                 ))}
+                {folded && (
+                  <button onClick={toggle} className="flex items-center justify-center rounded-xl border border-dashed border-slate-300 px-3 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+                    {t('discover.moreKinds', { count: tiles.length - shown.length })}
+                  </button>
+                )}
               </div>
+              {open && tiles.length > slots && (
+                <button onClick={toggle} className="text-xs font-medium text-slate-500 hover:text-indigo-700">{t('discover.lessKinds')}</button>
+              )}
             </div>
           );
         })}
@@ -500,24 +563,39 @@ function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHi
     );
   }
   // Le plus proche d'abord (lieux sans position à la fin), sinon par nom
-  const list = places.filter(p => p.kind === kind).sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999) || a.name.localeCompare(b.name));
+  const list = pool.filter(inKind).sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999) || a.name.localeCompare(b.name));
   const cities = [...new Set(list.map(p => p.city).filter((c): c is string => !!c))].sort((a, b) => a.localeCompare(b));
-  const shown = city ? list.filter(p => p.city === city) : list;
+  const inCity = city ? list.filter(p => p.city === city) : list;
+  const cuisines = kind === 'restaurant'
+    ? Object.keys(CUISINE_EMOJI).map(c => [c, inCity.filter(p => (p.cuisine ?? 'autre') === c).length] as const).filter(([, n]) => n > 0)
+    : [];
+  const shown = cuisine ? inCity.filter(p => (p.cuisine ?? 'autre') === cuisine) : inCity;
   const pill = (active: boolean) => `px-3 py-1 rounded-full border text-xs font-medium ${active ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-700'}`;
   return (
     <section className="space-y-3">
       <button onClick={() => onKind(null)} className="flex items-center gap-1 text-sm font-medium text-indigo-700">
         <ChevronLeft size={16} />{t('discover.allIdeas')}
       </button>
-      <h3 className="text-base font-bold text-slate-900">{KIND_EMOJI[kind] ?? '📍'} {kindLabel(kind)} <span className="text-sm font-medium text-slate-400">{list.length}</span></h3>
+      {chips}
+      <h3 className="text-base font-bold text-slate-900">{othersGroup ? `✨ ${t('discover.otherKinds')} · ${t(`discover.kindGroups.${othersGroup}` as any)}` : `${KIND_EMOJI[kind] ?? '📍'} ${kindLabel(kind)}`} <span className="text-sm font-medium text-slate-400">{list.length}</span></h3>
       {list.length > 8 && cities.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => onCity(null)} className={pill(!city)}>{t('discover.allCities')}</button>
           {cities.map(c => <button key={c} onClick={() => onCity(c)} className={pill(city === c)}>{c}</button>)}
         </div>
       )}
+      {cuisines.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button onClick={() => setCuisine(null)} className={pill(!cuisine)}>{t('discover.allCuisines')}</button>
+          {cuisines.map(([c, n]) => (
+            <button key={c} onClick={() => setCuisine(cuisine === c ? null : c)} className={pill(cuisine === c)}>
+              {CUISINE_EMOJI[c]} {cuisineLabel(c)} <span className="opacity-70">{n}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {shown.map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} />)}
+        {shown.map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} showKind={!!othersGroup} />)}
       </div>
     </section>
   );

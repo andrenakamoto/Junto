@@ -68,6 +68,9 @@ export function normalizeDatatourismeEvent(o: any, from: Date, to: Date): (Norma
   const street = (Array.isArray(addr.streetAddress) ? addr.streetAddress : []).map((s: unknown) => cleanText(s)).filter(Boolean) as string[];
   // Nom du lieu : la première ligne d'adresse qui n'est pas un numéro de rue (« Salle des fêtes », « Les Allos - Théâtre de Cluses »)
   const place = street.find(s => !/^\d/.test(s)) ?? street[0] ?? null;
+  // Adresse : les autres lignes (rue) puis le code postal et la ville
+  const zipCity = [cleanText(addr.postalCode), city].filter(Boolean).join(' ');
+  const address = [...street.filter(s => s !== place || street.length === 1 && /^\d/.test(s)), zipCity].filter(Boolean).join(', ') || null;
   const lat = typeof loc.geo?.latitude === 'number' ? loc.geo.latitude : null;
   const lon = typeof loc.geo?.longitude === 'number' ? loc.geo.longitude : null;
   const types: string[] = Array.isArray(o.type) ? o.type : [];
@@ -75,7 +78,7 @@ export function normalizeDatatourismeEvent(o: any, from: Date, to: Date): (Norma
   const contact = first(o.hasContact) ?? {};
   const url = cleanUrl(first(contact.homepage)) ?? cleanUrl(first(o.hasBeenCreatedBy?.homepage)) ?? null;
   const base = {
-    title, place, city, latitude: lat, longitude: lon, category, family: category === 'famille', priceText: null,
+    title, place, city, address, latitude: lat, longitude: lon, category, family: category === 'famille', priceText: null,
     status: 'scheduled' as const, url, region, credit: creditOf(o),
   };
   const out: (NormalizedEvent & { region?: Region; credit: string })[] = [];

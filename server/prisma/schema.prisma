@@ -713,6 +713,8 @@ model PlanMember {
   planId   String
   rsvp     String   @default("in")
   joinedAt DateTime @default(now())
+  // Dernier changement de réponse (2026-11-17) : mis en évidence dans la rubrique Membres et compté dans la cloche
+  rsvpAt   DateTime?
   // Dernière consultation de chaque onglet du Plan : { chat: ISO, infos: ISO, … } — lib/planActivity.ts
   seen     Json     @default("{}")
   // Nombre de personnes qui viennent avec cette réponse, la personne comprise (accompagnants, 2026-11-13) ; 1 par défaut
@@ -1925,6 +1927,8 @@ model DiscoverEvent {
   title       String
   place       String?
   city        String?
+  // Adresse du lieu (rue, NPA, ville) quand la source la donne (2026-11-17) : affichée sur la carte, touchée → carte Google
+  address     String?
   latitude    Float?
   longitude   Float?
   category    String // soiree | concert | danse | bar | theatre | scene | festival | expo | atelier | animation | jeux | sport | famille
@@ -1968,6 +1972,7 @@ model DiscoverPlace {
   kind       String // PLACE_KINDS de lib/discover/model.ts (escape, piscine, cave, bains…)
   city       String?
   address    String? // « Rue du Rhône 12, 1204 Genève » (OpenStreetMap ou saisie)
+  cuisine    String? // Restaurants (2026-11-17) : spécialité regroupée (CUISINES de lib/discover/model.ts)
   latitude   Float? // position (OpenStreetMap, sinon d'après la ville) : recherche par lieu et rayon
   longitude  Float?
   canton     String? // code ISO du canton, comme DiscoverEvent.canton

@@ -5,7 +5,7 @@ import { verifySessionToken } from '../middleware/auth';
 import { isRegion, parseProInterest, cleanText, isSessionSeries } from '../lib/discover/model';
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, isCantonCode, isFrenchCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
-import { CANTONS, REGIONS, PLACE_KINDS_V3 } from '../lib/discover/model';
+import { CANTONS, REGIONS, PLACE_KINDS_V3, PLACE_KINDS_V4 } from '../lib/discover/model';
 import { imageFile, isImageKey } from '../lib/discover/images';
 import { dedupeEvents, dedupePlaces } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
@@ -33,8 +33,11 @@ const KNOWN_V3 = new Set(PLACE_KINDS_V3);
 const CREDITED = new Set(['geneversleep', 'partner', 'eventfrog']);
 // Les clients connaissent les types `geneversleep` et `partner` pour le crédit : Eventfrog leur est présenté comme `partner`
 const asPartner = (body: any) => ({ ...body, sources: body.sources.map((s: any) => s.type === 'eventfrog' ? { ...s, type: 'partner' } : s) });
+// `v=5` (2026-11-17) : restaurants par spécialité ; les clients v=4 (apps 1.0.54 à 1.0.57) ne les reçoivent pas
+const KNOWN_V4 = new Set(PLACE_KINDS_V4);
 const forClient = (body: any, v: unknown) => {
-  if (v === '4') return asPartner(body);
+  if (v === '5') return asPartner(body);
+  if (v === '4') return asPartner({ ...body, places: body.places.filter((p: { kind: string }) => KNOWN_V4.has(p.kind)) });
   if (v === '3') return asPartner({ ...body, places: body.places.filter((p: { kind: string }) => KNOWN_V3.has(p.kind)) });
   const credit = new Map<string, string>(body.sources.filter((s: any) => CREDITED.has(s.type)).map((s: any) => [s.id, s.attribution ?? s.name]));
   return asPartner({
@@ -106,12 +109,12 @@ router.get('/', async (req, res) => {
       where: { AND: [near, { OR: [{ endAt: { gte: now } }, { endAt: null, startAt: { gte: new Date(now.getTime() - 3 * 3600e3) } }] }], state: 'published', startAt: { lte: until } },
       orderBy: { startAt: 'asc' },
       take: 3000,
-      select: { id: true, title: true, place: true, city: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true, imageKey: true, imageCredit: true, credit: true },
+      select: { id: true, title: true, place: true, city: true, address: true, category: true, family: true, priceText: true, status: true, startAt: true, endAt: true, multiDay: true, dateLabel: true, url: true, sourceId: true, planId: true, latitude: true, longitude: true, imageKey: true, imageCredit: true, credit: true },
     }),
     prisma.discoverPlace.findMany({
       where: { ...near, state: 'published' },
       orderBy: { name: 'asc' },
-      select: { id: true, name: true, kind: true, city: true, address: true, website: true, family: true, sourceId: true, latitude: true, longitude: true },
+      select: { id: true, name: true, kind: true, city: true, address: true, cuisine: true, website: true, family: true, sourceId: true, latitude: true, longitude: true },
     }),
     prisma.discoverSource.findMany({ where: { status: 'active' }, select: { id: true, name: true, type: true, attribution: true, license: true, licenseUrl: true, lastSyncAt: true } }),
   ]);

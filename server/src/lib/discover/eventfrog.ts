@@ -48,7 +48,17 @@ export function pickLang(o: unknown): string | null {
   return null;
 }
 
-export interface EventfrogLocation { name: string | null; city: string | null; lat: number | null; lon: number | null; at: number }
+export interface EventfrogLocation { name: string | null; city: string | null; lat: number | null; lon: number | null; at: number; address?: string | null }
+
+// Adresse d'un lieu Eventfrog (2026-11-17) : noms de champs lus de façon tolérante (rue + NPA + ville)
+export function eventfrogAddress(l: any): string | null {
+  const pick = (...keys: string[]) => { for (const k of keys) { const v = l?.[k]; const s = typeof v === 'string' ? v : pickLang(v); if (s && String(s).trim()) return String(s).trim(); } return null; };
+  const street = pick('street', 'addressLine', 'addressLine1', 'address', 'streetAddress');
+  const zip = pick('zip', 'zipCode', 'postalCode', 'plz');
+  const city = pick('city', 'town');
+  const line = [street, [zip, city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  return street ? cleanText(line, 120) : null;
+}
 
 // `inSeries` : l'événement fait partie d'un groupe Eventfrog de plusieurs dates (un spectacle chaque soir…). Des organisateurs y
 // saisissent une fin des semaines plus tard : chaque date redevient une soirée (même heure de fin, le jour même), à son jour.
@@ -70,6 +80,7 @@ export function normalizeEventfrogEvent(e: any, loc: EventfrogLocation | undefin
     externalId, title,
     place: cleanText(pickLang(e.locationAlias) ?? loc?.name ?? null),
     city: cleanText(loc?.city ?? null, 60),
+    address: loc?.address ?? null,
     latitude: loc?.lat ?? null, longitude: loc?.lon ?? null,
     category, family,
     priceText: price ? `CHF ${price.toFixed(2)}` : null,
@@ -123,14 +134,15 @@ export async function fetchEventfrog(cfg: EventfrogConfig, from: Date, to: Date)
   const locs = await loadLocations();
   const now = Date.now();
   const needed = [...new Set(events.map(e => e.locationIds?.[0]).filter((id: unknown): id is string => typeof id === 'string'))]
-    .filter(id => !locs[id] || now - locs[id].at > LOC_TTL);
+    // Lieux gardés avant le 2026-11-17 (sans adresse) : relus une fois
+    .filter(id => !locs[id] || now - locs[id].at > LOC_TTL || !('address' in locs[id]));
   for (let i = 0; i < needed.length; i += 100) {
     const ids = needed.slice(i, i + 100);
     const data = await get(`/locations?perPage=100&${ids.map(id => `id=${encodeURIComponent(id)}`).join('&')}`);
     for (const l of data.locations ?? []) {
       locs[String(l.id)] = {
         name: cleanText(pickLang(l.title)), city: cleanText(l.city ?? null, 60),
-        lat: typeof l.lat === 'number' ? l.lat : null, lon: typeof l.lng === 'number' ? l.lng : null, at: now,
+        lat: typeof l.lat === 'number' ? l.lat : null, lon: typeof l.lng === 'number' ? l.lng : null, at: now, address: eventfrogAddress(l),
       };
     }
     if (i % 1000 === 0) await saveLocations(locs);

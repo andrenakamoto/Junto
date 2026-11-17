@@ -46,10 +46,12 @@ export function normalizeOpenAgendaEvent(e: any, cfg: OpenAgendaConfig, from: Da
   const loc = e.location ?? {};
   const place = cleanText(loc.name);
   const city = cleanText(loc.city, 60);
+  // Adresse de la salle (OpenAgenda : « Rue de la Corraterie 15, 1204 Genève »)
+  const address = cleanText(loc.address, 120) ?? (cleanText(loc.postalCode) && city ? `${cleanText(loc.postalCode)} ${city}` : null);
   const reg = (e.registration ?? []).find((r: any) => r?.type === 'link' && cleanUrl(r.value));
   const url = cleanUrl(reg?.value) ?? cleanUrl(e.organisator_url) ?? cleanUrl(e.canonicalUrl) ?? cleanUrl(`https://openagenda.com/agendas/${cfg.agendaUid}/events/${e.uid}`);
   const base = {
-    title, place, city, category, family, url,
+    title, place, city, address, category, family, url,
     latitude: typeof loc.latitude === 'number' ? loc.latitude : null,
     longitude: typeof loc.longitude === 'number' ? loc.longitude : null,
     priceText: cleanText(fr(e.conditions), 80),

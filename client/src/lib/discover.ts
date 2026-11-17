@@ -9,6 +9,8 @@ export type DiscoverRegion = typeof REGIONS[number];
 
 export interface DiscoverEvent {
   id: string; title: string; place: string | null; city: string | null; category: string; family: boolean;
+  /** Rue, NPA et ville du lieu, si la source la donne (2026-11-17) */
+  address?: string | null;
   priceText: string | null; status: string; startAt: string; endAt: string | null; multiDay: boolean; dateLabel: string | null;
   /** Séances à plusieurs dates dont on ne connaît que la première et la dernière (Eventfrog, hors expositions et festivals) */
   sessions?: boolean;
@@ -27,7 +29,7 @@ export interface DiscoverEvent {
   // Titres du même événement chez d'autres sources (doublons retirés) : pris en compte par la recherche
   aliases?: string[];
 }
-export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null; lat?: number; lon?: number }
+export interface DiscoverPlace { id: string; name: string; kind: string; city: string | null; address?: string | null; cuisine?: string | null; website: string; family: boolean; sourceId: string; distanceKm?: number | null; lat?: number; lon?: number }
 export interface DiscoverSourceInfo { id: string; name: string; type: string; attribution: string | null; license: string | null; licenseUrl: string | null }
 export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[]; places: DiscoverPlace[]; sources: DiscoverSourceInfo[] }
 
@@ -45,30 +47,50 @@ export const CATEGORY_GROUPS: [string, string[]][] = [
 // Idées de sorties : types de lieux rangés en groupes de tuiles (le premier qui contient le type l'emporte)
 // Plein air et hiver (2026-11-14) : l'hiver passe en tête de novembre à mars, le plein air d'avril à octobre
 const WINTER = [10, 11, 0, 1, 2].includes(new Date().getMonth());
-const OUTDOOR: [string, string[]] = ['dehors', ['nature', 'vue', 'excursion', 'grillade', 'plage', 'parc_ville']];
-const SNOW: [string, string[]] = ['hiver', ['ski', 'luge', 'raquettes', 'ski_fond']];
-// Balades et randonnées (Suisse Tourisme, SuisseMobile)
-const WALKS: [string, string[]] = ['balades', ['randonnee', 'velo']];
+// Refait le 2026-11-17 (demande de l'utilisateur : « il y a beaucoup de choses et on s'y perd ») : 5 groupes rangés par envie au lieu
+// de 9 ; « En famille » devient un filtre rapide (QUICK_FILTERS). Dans « Sport et nature », la neige passe en tête l'hiver.
+const SNOW = ['ski', 'luge', 'raquettes', 'ski_fond'];
+const NATURE = ['randonnee', 'velo', 'nature', 'vue', 'excursion', 'plage', 'grillade', 'parc_ville'];
+const SPORT = ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport'];
 export const KIND_GROUPS: [string, string[]][] = [
-  ...(WINTER ? [SNOW] : [OUTDOOR]),
-  WALKS,
-  ['nuit', ['bar', 'discotheque']],
-  ['jeux', ['escape', 'laser', 'bowling', 'karting', 'defi', 'arcade', 'minigolf']],
-  ['sport', ['piscine', 'escalade', 'patinoire', 'golf', 'equitation', 'bateau', 'sport']],
-  ['detente', ['bains', 'cave']],
-  ['famille', ['loisirs', 'parc', 'trampoline', 'animaux', 'jeux_enfants', 'accrobranche']],
-  ['culture', ['musee', 'patrimoine', 'cinema', 'theatre', 'bibliotheque', 'chateau', 'jardin', 'galerie', 'poterie']],
-  ...(WINTER ? [OUTDOOR] : [SNOW]),
+  ['sortir', ['restaurant', 'bar', 'discotheque', 'cave']],
+  ['sport', WINTER ? [...SNOW, ...NATURE, ...SPORT] : [...NATURE, ...SPORT, ...SNOW]],
+  ['jeux', ['escape', 'laser', 'bowling', 'karting', 'defi', 'arcade', 'minigolf', 'trampoline', 'accrobranche', 'parc', 'jeux_enfants']],
+  ['culture', ['musee', 'patrimoine', 'cinema', 'theatre', 'chateau', 'jardin', 'galerie', 'poterie', 'bibliotheque']],
+  ['detente', ['bains', 'loisirs', 'animaux']],
 ];
+
+// Filtres rapides des idées de sorties (2026-11-17), déduits du type de lieu (et du drapeau « famille » de chaque lieu)
+export const QUICK_FILTERS = ['family', 'indoor', 'outdoor', 'evening'] as const;
+export type QuickFilter = typeof QUICK_FILTERS[number];
+export const QUICK_EMOJI: Record<QuickFilter, string> = { family: '👨‍👩‍👧', indoor: '☔', outdoor: '🌳', evening: '🌙' };
+const INDOOR_KINDS = new Set(['escape', 'laser', 'bowling', 'trampoline', 'arcade', 'parc', 'escalade', 'piscine', 'musee', 'cinema', 'theatre',
+  'bibliotheque', 'galerie', 'poterie', 'bains', 'restaurant', 'bar', 'discotheque', 'cave']);
+const OUTDOOR_KINDS = new Set([...SNOW, ...NATURE, 'golf', 'equitation', 'bateau', 'minigolf', 'accrobranche', 'jeux_enfants', 'loisirs', 'animaux', 'jardin', 'chateau', 'karting']);
+const EVENING_KINDS = new Set(['restaurant', 'bar', 'discotheque', 'cinema', 'theatre', 'bowling', 'laser', 'escape', 'karting', 'arcade', 'bains']);
+export function matchesQuick(p: { kind: string; family: boolean }, f: QuickFilter | null): boolean {
+  if (!f) return true;
+  if (f === 'family') return p.family;
+  if (f === 'indoor') return INDOOR_KINDS.has(p.kind);
+  if (f === 'outdoor') return OUTDOOR_KINDS.has(p.kind);
+  return EVENING_KINDS.has(p.kind);
+}
 export const KIND_ORDER = KIND_GROUPS.flatMap(([, kinds]) => kinds);
 export const KIND_EMOJI: Record<string, string> = {
   escape: '🔐', laser: '🔫', bowling: '🎳', karting: '🏎️', defi: '🎯', arcade: '🕹️', minigolf: '⛳',
   piscine: '🏊', escalade: '🧗', patinoire: '⛸️', golf: '🏌️', equitation: '🐴', bateau: '🛶', sport: '🏅',
   bains: '♨️', cave: '🍷', loisirs: '🎢', parc: '🧸', trampoline: '🤸', animaux: '🦁',
   musee: '🏛️', bibliotheque: '📚', chateau: '🏰', jardin: '🌿', galerie: '🖼️', poterie: '🏺',
-  cinema: '🎬', theatre: '🎭', grillade: '🔥', plage: '🏖️', vue: '🏔️', parc_ville: '🌳', jeux_enfants: '🛝', accrobranche: '🌲', luge: '🛷', ski: '⛷️', bar: '🍸', discotheque: '🪩',
+  cinema: '🎬', theatre: '🎭', grillade: '🔥', plage: '🏖️', vue: '🏔️', parc_ville: '🌳', jeux_enfants: '🛝', accrobranche: '🌲', luge: '🛷', ski: '⛷️', bar: '🍸', discotheque: '🪩', restaurant: '🍽️',
   nature: '🏞️', patrimoine: '⛪', excursion: '🚠', randonnee: '🥾', raquettes: '❄️', velo: '🚲', ski_fond: '🎿',
 };
+
+// Restaurants par spécialité (2026-11-17) : ordre des pastilles et emoji (clés = CUISINES du serveur)
+export const CUISINE_EMOJI: Record<string, string> = {
+  suisse: '🧀', francais: '🥐', italien: '🍕', mediterraneen: '🫒', japonais: '🍣', chinois: '🥢', asiatique: '🍜', indien: '🍛', orient: '🥙',
+  africain: '🍲', latino: '🌮', grill: '🥩', burger: '🍔', poisson: '🐟', vegetarien: '🌱', autre: '🍽️',
+};
+export const cuisineLabel = (c: string) => t(`discover.cuisines.${c}` as any);
 
 export const catLabel = (c: string) => t(`discover.cats.${c}` as any);
 export const kindLabel = (k: string) => t(`discover.kinds.${k}` as any);

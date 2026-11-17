@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { normalizeOpenAgendaEvent } from './openagenda';
 import { normalizeOsmElement } from './osm';
+import { cuisineOf } from './model';
 import { parseIcal, parseIcalDate } from './ical';
 import { categoryOf, normalizeGeneverSleepEvent } from './geneversleep';
 import { cleanUrl, isSessionSeries, parseManualEvent, parseProInterest } from './model';
@@ -130,5 +131,23 @@ describe('plusieurs dates', () => {
     expect(isSessionSeries({ multiDay: true, category: 'expo' }, 'openagenda')).toBe(false);
     expect(isSessionSeries({ multiDay: true, category: 'atelier' }, 'manual')).toBe(false);
     expect(isSessionSeries({ multiDay: false, category: 'concert' }, 'eventfrog')).toBe(false);
+  });
+});
+
+describe('restaurants par spécialité (2026-11-17)', () => {
+  it('regroupe la cuisine OpenStreetMap', () => {
+    expect(cuisineOf({ cuisine: 'pizza;italian' })).toBe('italien');
+    expect(cuisineOf({ cuisine: 'Sushi' })).toBe('japonais');
+    expect(cuisineOf({ cuisine: 'lebanese' })).toBe('orient');
+    expect(cuisineOf({ cuisine: 'fondue' })).toBe('suisse');
+    expect(cuisineOf({ cuisine: 'italian', 'diet:vegan': 'only' })).toBe('vegetarien');
+    expect(cuisineOf({})).toBe('autre');
+    expect(cuisineOf({ cuisine: 'unknown_food' })).toBe('autre');
+  });
+  it('garde un restaurant joignable, avec sa spécialité', () => {
+    const r = normalizeOsmElement({ type: 'node', id: 1, lat: 46.2, lon: 6.14, tags: { amenity: 'restaurant', name: 'Chez Mario', cuisine: 'pizza', phone: '+41 22 000 00 00' } });
+    expect(r?.kind).toBe('restaurant');
+    expect(r?.cuisine).toBe('italien');
+    expect(normalizeOsmElement({ type: 'node', id: 2, lat: 46.2, lon: 6.14, tags: { amenity: 'restaurant', name: 'Sans contact' } })).toBeNull();
   });
 });
