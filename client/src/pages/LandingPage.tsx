@@ -210,7 +210,10 @@ export function LandingPage() {
       {/* En-tête */}
       <header className="sticky top-0 z-30 bg-[#0f172a]/95 backdrop-blur border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <Link to="/" aria-label="EvLY"><LogoFull iconSize={26} /></Link>
+          <Link to="/" aria-label="EvLY" className="flex items-center gap-3">
+            <LogoFull iconSize={26} />
+            <span className="hidden sm:block text-[10px] font-extrabold tracking-[0.2em] text-orange-400 leading-tight">EVENTS LINKED<br />TO YOU</span>
+          </Link>
           <nav className="hidden md:flex items-center gap-5 ml-6 text-sm font-medium text-slate-300">
             <Link to="/sorties" className="hover:text-white">{t('landing.nav.discover')}</Link>
             <Link to="/demo" className="hover:text-white">{t('landing.nav.demo')}</Link>

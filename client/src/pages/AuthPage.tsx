@@ -487,12 +487,7 @@ export function AuthPage() {
           <DemoChoices />
         </Modal>
       )}
-      {santaSeason() && <SantaPanel onOrganize={() => {
-        countStep('funnel_cta_santa');
-        requestNewPlan('pere_noel');
-        switchMode('register');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }} />}
+      {santaSeason() && <SantaPanel />}
       </div>
     </div>
   );
@@ -500,7 +495,8 @@ export function AuthPage() {
 
 // Campagne de Noël, grand écran : à droite de la connexion. « Organiser » ouvre l'inscription et mémorise l'intention
 // (lib/newPlanIntent.ts) : après l'inscription, le tableau de bord ouvre la création du Père Noël secret.
-function SantaPanel({ onOrganize }: { onOrganize: () => void }) {
+// « Organiser mon Père Noël secret » retiré le 2026-11-17 (demande de l'utilisateur) : il ramenait sur cette même page
+function SantaPanel() {
   return (
     <aside className="hidden lg:flex flex-col relative overflow-hidden w-[440px] flex-shrink-0 rounded-3xl border border-rose-400/20 bg-gradient-to-b from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] text-white shadow-2xl shadow-black/40">
       <Snowfall count={16} />
@@ -519,9 +515,6 @@ function SantaPanel({ onOrganize }: { onOrganize: () => void }) {
           ))}
         </ul>
         <div className="mt-6 flex flex-col gap-2.5">
-          <button onClick={onOrganize} className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-900/30 transition-colors">
-            <Gift size={18} />{t('noel.cta')}<ArrowRight size={16} />
-          </button>
           <Link to="/demo?voir=pere-noel" className="inline-flex items-center justify-center px-5 py-3 rounded-2xl border border-white/25 text-sm font-semibold text-white hover:bg-white/10">{t('noel.demo')}</Link>
         </div>
       </div>
