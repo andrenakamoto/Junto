@@ -2413,6 +2413,16 @@ Tables `OnlineSanta` / `OnlineSantaPerson` (migration `20261204100000_online_san
 chaque heure ; les supprimer demande une migration destructive, à faire seulement avec l'accord de l'utilisateur. Leçon gardée : **ne jamais créer
 de page publique à plusieurs niveaux d'adresse** (`base: './'` de Vite : `./assets` ne se résout pas depuis `/a/b/c`, écran bloqué sur le logo).
 
+**Site d'accueil** (2026-11-17, demande de l'utilisateur : « faire un vrai site au lieu de juste un point de connexion ») : **`/`** sur le web
+= `pages/LandingPage.tsx` (textes `i18n/<langue>/landing.ts`), route `Home` d'`App.tsx` : **les apps ouvrent toujours `/auth`**, une personne
+connectée va à `/dashboard`. La connexion reste sur **`/auth`**. Sections : en-tête (Sorties, Démo, langue, Se connecter, Créer un compte),
+accroche « Fini les 300 messages pour savoir qui vient samedi. » avec un **téléphone dessiné et animé** (pas de captures, choix de l'utilisateur),
+avant / après (groupe de discussion vs Plan), « Pour tous tes groupes » (onglets amis, famille, collègues, associations, pros, avec un exemple de la
+démo `?voir=`), 6 fonctions phares, **sorties en direct** autour de Genève (Découvrir, chargées quand la section arrive à l'écran, une par titre
+et par catégorie), confiance (gratuit, sans pub, données, Suisse) et l'histoire de la cafétéria, questions fréquentes, dernier appel, pied de page
+(brochures, confidentialité, contact). Compteurs `home` (visites) et `funnel_cta_home` (clics « Créer mon compte »). Titre et description de la
+page posés par JavaScript ; **pas encore de version prérendue** pour les moteurs de recherche (étape suivante possible), ni de pages par public.
+
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
 (`countStep` dans `client/src/lib/funnel.ts` → POST /api/stats/visit, pages autorisées

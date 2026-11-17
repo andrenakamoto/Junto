@@ -11,6 +11,8 @@ import { JoinPage } from './pages/JoinPage';
 import { GuestInvitePage } from './pages/GuestInvitePage';
 import { OrganizePage } from './pages/OrganizePage';
 import { SantaPage } from './pages/SantaPage';
+import { LandingPage } from './pages/LandingPage';
+import { Capacitor } from '@capacitor/core';
 import { DemoPage } from './pages/DemoPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -49,11 +51,21 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Accueil (2026-11-17) : site d'EvLY sur le web ; les apps ouvrent la connexion, une personne connectée va à ses Plans
+function Home() {
+  const { user, loading } = useAuth();
+  if (Capacitor.isNativePlatform()) return <Navigate to="/auth" replace />;
+  if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <LandingPage />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <NativeChrome />
       <Routes>
+        <Route path="/"                      element={<Home />} />
         <Route path="/auth"                  element={<AuthPage />} />
         <Route path="/setup"                 element={<SetupPage />} />
         <Route path="/pending"               element={<PendingPage />} />

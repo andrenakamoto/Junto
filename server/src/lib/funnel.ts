@@ -6,6 +6,8 @@ import { visitDay } from './pageVisits';
 // (GET /admin/funnel). Les étapes « client » arrivent par POST /api/stats/visit?page=… ;
 // les autres sont comptées par le serveur (countFunnel).
 export const FUNNEL_STEPS = [
+  { page: 'home', label: 'Visites du site d’accueil (evly.ch)' },
+  { page: 'funnel_cta_home', label: 'Clic « Créer mon compte » (site d’accueil)' },
   { page: 'decouvrir', label: 'Visites de la page Découvrir' },
   { page: 'funnel_cta_signup', label: 'Clic « Créer mon compte » (page Découvrir)' },
   { page: 'funnel_cta_express', label: 'Clic « Organiser une sortie »' },
@@ -20,7 +22,7 @@ export const FUNNEL_STEPS = [
 ] as const;
 
 // Étapes envoyées par le site (clics), acceptées par /api/stats/visit
-export const CLIENT_FUNNEL_PAGES = ['funnel_cta_signup', 'funnel_cta_express', 'funnel_express_shared', 'funnel_demo', 'pere_noel', 'funnel_cta_santa'] as const;
+export const CLIENT_FUNNEL_PAGES = ['funnel_cta_signup', 'funnel_cta_express', 'funnel_express_shared', 'funnel_demo', 'pere_noel', 'funnel_cta_santa', 'home', 'funnel_cta_home'] as const;
 
 // Provenance des visiteurs (campagnes) : lien evly.ch/…?src=instagram. Le site compte une visite par source et par
 // session (POST /stats/visit?page=src_<source>), garde la source sur l'appareil 30 jours (client/src/lib/source.ts) et
