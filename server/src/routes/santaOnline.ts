@@ -99,7 +99,7 @@ async function sendLinks(santaId: string, personId: string | null): Promise<numb
     if (!p.email || (personId && p.id !== personId)) continue;
     if (p.emailSentAt && (!personId || Date.now() - p.emailSentAt.getTime() < 10 * 60 * 1000)) continue;
     const vars = { name: p.name, organizer, title: santa.title };
-    const link = `${APP_URL}/secret-santa/p/${p.token}`;
+    const link = `${APP_URL}/secret-santa?p=${p.token}`;
     const details = [
       santa.exchangeDate ? m.t('santaOnline.date', { date: new Intl.DateTimeFormat(intlLocale(locale), { weekday: 'long', day: 'numeric', month: 'long' }).format(santa.exchangeDate) }) : '',
       santa.budget ? m.t('santaOnline.budget', { budget: santa.budget }) : '',

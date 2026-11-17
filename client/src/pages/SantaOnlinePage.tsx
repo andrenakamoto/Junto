@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Check, Copy, Gift, Loader2, Mail, MessageCircle, Plus, Trash2, X } from 'lucide-react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { AlertTriangle, ArrowDown, ArrowRight, Check, Copy, Gift, Loader2, Mail, MessageCircle, Plus, Smartphone, Trash2, X } from 'lucide-react';
+import { requestNewPlan } from '../lib/newPlanIntent';
+import { countStep } from '../lib/funnel';
 import api from '../services/api';
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
@@ -11,9 +13,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { intlLocale, t } from '../i18n';
 
 // Secret Santa en ligne, gratuit et sans compte (2026-11-17, serveur : routes/santaOnline.ts). Porte d'entrée vers EvLY :
-//  /secret-santa          créer le tirage (prénoms, emails facultatifs, exclusions)
-//  /secret-santa/o/:token page de l'organisateur : un lien secret par personne à transmettre (jamais « qui offre à qui »)
-//  /secret-santa/p/:token page d'un participant : la personne à qui il offre, ses envies, sa propre liste
+//  /secret-santa           créer le tirage (prénoms, emails facultatifs, exclusions)
+//  /secret-santa?o=<jeton> page de l'organisateur : un lien secret par personne à transmettre (jamais « qui offre à qui »)
+//  /secret-santa?p=<jeton> page d'un participant : la personne à qui il offre, ses envies, sa propre liste
+// Adresses sur un seul niveau : le site charge ses fichiers par un chemin relatif (./assets, pour les apps), qui ne se
+// résout pas depuis /secret-santa/p/… (écran bloqué sur le logo, constaté le 2026-11-17). Les anciens liens sont redirigés.
 // Chaque page invite ensuite à découvrir EvLY (chat anonyme, rappels, révélation…).
 
 const errText = (err: any) => err?.response?.data?.error || t('santaOnline.error');
@@ -75,9 +79,16 @@ function EvlyCta({ own = false }: { own?: boolean }) {
 }
 
 // ─────────────────────────────────────────────────────────── Création du tirage
-export function SantaOnlineCreatePage() {
+function SantaOnlineCreatePage() {
   useTitle();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Dans l'app : même parcours que la page /pere-noel (l'intention survit à l'inscription et à la validation de l'email)
+  function inApp() {
+    countStep('funnel_cta_santa', 'click');
+    requestNewPlan('pere_noel');
+    navigate(user ? '/dashboard' : '/auth?mode=inscription&redirect=/dashboard');
+  }
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [budget, setBudget] = useState('');
@@ -108,7 +119,7 @@ export function SantaOnlineCreatePage() {
         exclusions: exclusions.filter(([a, b]) => index.has(a) && index.has(b)).map(([a, b]) => [index.get(a), index.get(b)]),
         sendEmails: sendEmails && hasEmail,
       });
-      navigate(`/secret-santa/o/${data.adminToken}`);
+      navigate(`/secret-santa?o=${data.adminToken}`);
     } catch (err) {
       setError(errText(err));
     } finally {
@@ -119,7 +130,36 @@ export function SantaOnlineCreatePage() {
   const input = 'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300';
   return (
     <Shell>
-      <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4">
+      {/* Deux façons de faire (2026-11-17, demande de l'utilisateur) : dans l'app EvLY (messages avec son Père Noël secret…)
+          ou ici, sans compte, en gardant bien le lien de la page de l'organisateur */}
+      <section className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-3">
+        <h2 className="font-bold text-lg text-slate-900">{t('santaOnline.choice.title')}</h2>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-50/50 p-4 flex flex-col gap-2">
+            <p className="flex items-center gap-2 font-bold text-slate-900"><Smartphone size={18} className="text-indigo-600" />{t('santaOnline.choice.appTitle')}
+              <span className="ml-auto text-[10px] font-bold uppercase tracking-wide rounded-full bg-indigo-600 text-white px-2 py-0.5">{t('santaOnline.choice.appBadge')}</span></p>
+            <ul className="text-sm text-slate-700 space-y-1">
+              {(['p1', 'p2', 'p3', 'p4'] as const).map(k => <li key={k} className="flex gap-1.5"><Check size={15} className="text-emerald-600 mt-0.5 flex-shrink-0" />{t(`santaOnline.choice.${k}`)}</li>)}
+            </ul>
+            <button onClick={inApp} className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 hover:bg-indigo-500">
+              {user ? t('santaOnline.choice.appButtonLogged') : t('santaOnline.choice.appButton')}<ArrowRight size={16} />
+            </button>
+          </div>
+          <div className="rounded-2xl border border-slate-200 p-4 flex flex-col gap-2">
+            <p className="flex items-center gap-2 font-bold text-slate-900"><Gift size={18} className="text-red-600" />{t('santaOnline.choice.webTitle')}</p>
+            <p className="text-sm text-slate-700">{t('santaOnline.choice.webText')}</p>
+            <p className="flex gap-1.5 text-xs rounded-xl bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2">
+              <AlertTriangle size={14} className="mt-px flex-shrink-0" />{t('santaOnline.choice.webWarn')}</p>
+            <button onClick={() => document.getElementById('santa-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 text-sm font-semibold px-4 py-2.5 text-slate-800 hover:bg-slate-50">
+              {t('santaOnline.choice.webButton')}<ArrowDown size={16} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="santa-form" className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4 scroll-mt-4">
+        <h2 className="font-bold text-lg text-slate-900">{t('santaOnline.choice.webTitle')}</h2>
         <p className="text-sm text-slate-600">{t('santaOnline.subtitle')}</p>
         <label className="block space-y-1">
           <span className="text-sm font-semibold text-slate-800">{t('santaOnline.form.title')}</span>
@@ -221,9 +261,23 @@ interface AdminView {
   people: { id: string; name: string; hasEmail: boolean; token: string; opened: boolean; wishes: boolean; emailSentAt: string | null }[];
 }
 
-export function SantaOnlineAdminPage() {
-  useTitle();
+// /secret-santa : création, page de l'organisateur (?o=) ou d'un participant (?p=)
+export function SantaOnlinePage() {
+  const [params] = useSearchParams();
+  const o = params.get('o'), p = params.get('p');
+  if (o) return <SantaOnlineAdminPage token={o} />;
+  if (p) return <SantaOnlineParticipantPage token={p} />;
+  return <SantaOnlineCreatePage />;
+}
+
+// Anciennes adresses /secret-santa/o/:token et /p/:token (liens déjà envoyés), dans l'app
+export function SantaOnlineLegacyRedirect({ kind }: { kind: 'o' | 'p' }) {
   const { token } = useParams();
+  return <Navigate to={`/secret-santa?${kind}=${token ?? ''}`} replace />;
+}
+
+function SantaOnlineAdminPage({ token }: { token: string }) {
+  useTitle();
   const navigate = useNavigate();
   const [data, setData] = useState<AdminView | null>(null);
   const [error, setError] = useState('');
@@ -234,7 +288,7 @@ export function SantaOnlineAdminPage() {
   const load = () => api.get<AdminView>(`/santa-online/o/${token}`).then(r => setData(r.data)).catch(err => setError(err?.response?.status === 404 ? t('santaOnline.notFound') : errText(err)));
   useEffect(() => { load(); }, [token]);
 
-  const linkOf = (tok: string) => `${publicOrigin()}/secret-santa/p/${tok}`;
+  const linkOf = (tok: string) => `${publicOrigin()}/secret-santa?p=${tok}`;
   async function copy(text: string, key: string) {
     try { await navigator.clipboard.writeText(text); } catch { /* presse-papiers refusé */ }
     setCopied(key);
@@ -325,9 +379,8 @@ interface ParticipantView {
   receiver: { name: string; wishes: string; noWish: boolean } | null;
 }
 
-export function SantaOnlineParticipantPage() {
+function SantaOnlineParticipantPage({ token }: { token: string }) {
   useTitle();
-  const { token } = useParams();
   const [data, setData] = useState<ParticipantView | null>(null);
   const [error, setError] = useState('');
   const [revealed, setRevealed] = useState(false);

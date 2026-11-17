@@ -2407,7 +2407,12 @@ source 30 jours sur l'appareil (`evly_src`) ; jointe à `/auth/register` et `/au
 confidentialité (version du 29 octobre 2026).
 
 **Secret Santa en ligne, gratuit et sans compte** (2026-11-17, porte d'entrée vers EvLY, demande de l'utilisateur ; pages publiques
-`/secret-santa` = création, `/secret-santa/o/:token` = organisateur, `/secret-santa/p/:token` = participant, `pages/SantaOnlinePage.tsx`,
+`/secret-santa` = création, `/secret-santa?o=<jeton>` = organisateur, `/secret-santa?p=<jeton>` = participant — **adresses sur un seul niveau** :
+le site charge ses fichiers par `./assets` (`base: './'` de Vite, pour les apps), qui ne se résout pas depuis `/secret-santa/p/…` (écran bloqué sur
+le logo, 2026-11-17) ; les anciens liens `/secret-santa/o|p/<jeton>` sont redirigés par nginx (bloc dans `deploy/infomaniak/nginx-evly.conf`, **et à
+la main sur le serveur**) et par `SantaOnlineLegacyRedirect`. **Ne jamais créer de page publique à plusieurs niveaux d'adresse.** En tête de la page de
+création, « Deux façons de faire » : dans l'app EvLY (recommandé, `requestNewPlan('pere_noel')`) ou ici sans compte (garder le lien de la page de
+l'organisateur) ; `pages/SantaOnlinePage.tsx`,
 textes `i18n/<langue>/santaOnline.ts`, lien « Juste un tirage au sort ? » sur `/pere-noel`) : serveur `routes/santaOnline.ts` sur
 `/api/santa-online`, `lib/santaOnline.ts` testé (`parseSantaInput`, `santaExpiry`), tables **OnlineSanta** (`adminToken`, titre, budget, date,
 `locale`, `expiresAt`) et **OnlineSantaPerson** (`token` secret, prénom, email facultatif, `receiverId`, envies **chiffrées**, `openedAt`,
