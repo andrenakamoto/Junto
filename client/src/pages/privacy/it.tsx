@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 14 novembre 2026',
+  version: 'Versione del 17 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -39,6 +39,11 @@ const it: PrivacyText = {
         <li><strong>Uscita organizzata senza account</strong> («Organizza un’uscita»): il tuo nome, la tua uscita (titolo,
           data, luogo) e un identificativo conservato nel browser per seguire le risposte. Cancellati con l’uscita, il
           giorno dopo la sua data. Se poi crei un account o accedi, le tue uscite vi vengono collegate.</li>
+        <li><strong>Secret Santa online senza account</strong> (pagina «Secret Santa»): il nome del sorteggio, la data e il budget
+          se indicati, i nomi dei partecipanti e, se chi organizza li inserisce, le loro email (usate una sola volta per inviare loro il link
+          segreto), il risultato del sorteggio e le liste dei desideri (cifrate). Ogni link mostra solo il sorteggio di quella persona. Tutto
+          viene cancellato 30 giorni dopo la data dello scambio (60 giorni dopo la creazione senza data), o subito con «Cancella questo
+          sorteggio».</li>
         <li><strong>Inviti in un Cerchio</strong>: se un membro ti invita con il tuo pseudonimo o la tua email, l’invito
           (chi ti invita, in quale Cerchio) è conservato finché non lo accetti o lo rifiuti.</li>
         <li><strong>Segnalazioni e persone nascoste</strong>: se segnali un messaggio, una copia cifrata del messaggio, il

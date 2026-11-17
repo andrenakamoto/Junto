@@ -17,6 +17,8 @@ export const FUNNEL_STEPS = [
   { page: 'funnel_register', label: 'Inscription envoyée' },
   { page: 'funnel_verified', label: 'Email validé' },
   { page: 'funnel_first_plan', label: 'Premier Plan créé (avec compte)' },
+  { page: 'funnel_santa_online_created', label: 'Secret Santa en ligne : tirage créé (sans compte)' },
+  { page: 'funnel_santa_online_opened', label: 'Secret Santa en ligne : lien d’un participant ouvert' },
 ] as const;
 
 // Étapes envoyées par le site (clics), acceptées par /api/stats/visit
@@ -37,7 +39,7 @@ export function countSourceSignup(src: unknown) {
   if (isSource(src)) bump(`src_${src}_signup`);
 }
 
-export type ServerFunnelStep = 'funnel_express_created' | 'funnel_register' | 'funnel_verified' | 'funnel_first_plan';
+export type ServerFunnelStep = 'funnel_express_created' | 'funnel_register' | 'funnel_verified' | 'funnel_first_plan' | 'funnel_santa_online_created' | 'funnel_santa_online_opened';
 
 export function countFunnel(page: ServerFunnelStep) {
   bump(page);

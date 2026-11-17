@@ -334,4 +334,15 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Réservé aux participants du Plan et à l’organisation': ['Den Teilnehmenden des Plans und der Organisation vorbehalten', 'Riservato ai partecipanti del Plan e all’organizzazione', 'Only for the Plan’s participants and the organisers'],
   'Ce matériel a déjà été rendu': ['Dieses Material wurde schon zurückgegeben', 'Questo materiale è già stato restituito', 'This equipment has already been returned'],
   'Ce matériel n’est pas indiqué comme rendu': ['Dieses Material ist nicht als zurückgegeben markiert', 'Questo materiale non risulta restituito', 'This equipment isn’t marked as returned'],
+  // Secret Santa en ligne (2026-11-17)
+  'Tu as déjà créé plusieurs tirages aujourd’hui. Réessaie demain, ou crée ton compte EvLY.': ['Du hast heute schon mehrere Auslosungen erstellt. Versuch es morgen wieder oder erstelle dein EvLY-Konto.', 'Oggi hai già creato diversi sorteggi. Riprova domani o crea il tuo account EvLY.', 'You’ve already created several draws today. Try again tomorrow, or create your EvLY account.'],
+  'Trop d’envois : réessaie dans une heure.': ['Zu viele Sendungen: Versuch es in einer Stunde wieder.', 'Troppi invii: riprova tra un’ora.', 'Too many sends: try again in an hour.'],
+  'Ce tirage n’existe plus (il est effacé 30 jours après l’échange)': ['Diese Auslosung gibt es nicht mehr (sie wird 30 Tage nach dem Austausch gelöscht)', 'Questo sorteggio non esiste più (viene cancellato 30 giorni dopo lo scambio)', 'This draw no longer exists (it’s deleted 30 days after the exchange)'],
+  'Impossible de faire un tirage avec ces exclusions : retires-en une': ['Mit diesen Ausschlüssen ist keine Auslosung möglich: Entferne einen', 'Impossibile fare il sorteggio con queste esclusioni: togline una', 'No draw is possible with these exclusions: remove one'],
+  'La date de l’échange est déjà passée': ['Das Datum des Austauschs ist schon vorbei', 'La data dello scambio è già passata', 'The exchange date has already passed'],
+  'Ajoute les participants': ['Füge die Teilnehmenden hinzu', 'Aggiungi i partecipanti', 'Add the participants'],
+  'Il faut au moins 3 participants': ['Es braucht mindestens 3 Teilnehmende', 'Servono almeno 3 partecipanti', 'At least 3 participants are needed'],
+  'Au plus 40 participants': ['Höchstens 40 Teilnehmende', 'Al massimo 40 partecipanti', 'At most 40 participants'],
+  'Deux participants ont le même prénom : ajoute une initiale pour les distinguer': ['Zwei Teilnehmende haben denselben Vornamen: Füge eine Initiale hinzu', 'Due partecipanti hanno lo stesso nome: aggiungi un’iniziale per distinguerli', 'Two participants have the same first name: add an initial to tell them apart'],
+  'Email invalide : {0}': ['Ungültige E-Mail: {0}', 'Email non valida: {0}', 'Invalid email: {0}'],
 };

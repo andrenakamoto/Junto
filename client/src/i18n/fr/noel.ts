@@ -6,6 +6,7 @@ const noel = {
   title: 'Ton Père Noël secret (Secret Santa), organisé en 2 minutes',
   subtitle: 'Tirage au sort automatique, listes d’envies et messages anonymes. Fini les petits papiers et le groupe WhatsApp où tout le monde se trahit.',
   cta: 'Organiser mon Père Noël secret',
+  onlineLink: 'Juste un tirage au sort ? En ligne, sans compte',
   ctaLogged: 'Créer mon Père Noël secret',
   demo: 'Voir un exemple',
   stepsTitle: 'Comment ça marche',

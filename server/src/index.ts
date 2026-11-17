@@ -20,6 +20,8 @@ import shareRoutes from './routes/share';
 import moderationRoutes from './routes/moderation';
 import suggestionRoutes from './routes/suggestions';
 import expressPlanRoutes from './routes/express';
+import santaOnlineRoutes from './routes/santaOnline';
+import { deleteExpiredOnlineSantas } from './lib/santaOnline';
 import { translateErrors } from './lib/i18n';
 import quizScreenRoutes from './routes/quizScreen';
 import muteRoutes from './routes/mutes';
@@ -129,6 +131,7 @@ app.use('/api/share', shareRoutes);
 app.use('/api/moderation', moderationRoutes);
 app.use('/api/suggestions', suggestionRoutes);
 app.use('/api/express', expressPlanRoutes);
+app.use('/api/santa-online', santaOnlineRoutes);
 app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
@@ -217,6 +220,9 @@ if (cronEnabled) {
   setInterval(cleanAvailability, 60 * 60 * 1000);
   deleteOrphanLightUsers();
   setInterval(deleteOrphanLightUsers, 60 * 60 * 1000);
+  // Secret Santa en ligne : effacé 30 jours après l'échange (lib/santaOnline.ts)
+  deleteExpiredOnlineSantas();
+  setInterval(deleteExpiredOnlineSantas, 60 * 60 * 1000);
 
   sendPollReminders();
   setInterval(sendPollReminders, 15 * 60 * 1000);

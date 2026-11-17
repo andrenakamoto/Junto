@@ -6,6 +6,7 @@ const noel: Dict['noel'] = {
   title: 'Il tuo Babbo Natale segreto (Secret Santa), organizzato in 2 minuti',
   subtitle: 'Estrazione automatica, liste dei desideri e messaggi anonimi. Basta bigliettini e gruppi WhatsApp dove tutti si tradiscono.',
   cta: 'Organizza il mio Babbo Natale segreto',
+  onlineLink: 'Solo un sorteggio? Online, senza account',
   ctaLogged: 'Crea il mio Babbo Natale segreto',
   demo: 'Vedi un esempio',
   stepsTitle: 'Come funziona',

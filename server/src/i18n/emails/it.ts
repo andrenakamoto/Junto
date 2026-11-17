@@ -153,6 +153,15 @@ const it: EmailDict = {
     hint: 'Indica le date che ti vanno bene per aiutare a trovare il momento migliore.',
     button: 'Vedi il sondaggio',
   },
+  santaOnline: {
+    subject: '🎁 Secret Santa «{title}»: scopri a chi fai il regalo',
+    title: 'Ciao {name} 🎅',
+    text: '{organizer} ti ha iscritto/a al Secret Santa <strong>«{title}»</strong>. Il sorteggio è fatto: apri il tuo link segreto per scoprire a chi fai il regalo e annota i tuoi desideri.',
+    button: 'Scopri il mio sorteggio',
+    date: '📅 Scambio dei regali: {date}',
+    budget: '💰 Budget: {budget}',
+    footer: 'Inviato da EvLY (evly.ch) su richiesta di {organizer}, che ha inserito il tuo indirizzo. Non riceverai altre email.',
+  },
   invite: {
     subjectPlan: '{who} ti invita al Plan «{plan}» su EvLY',
     subjectCircle: '{who} ti invita nel Cerchio «{circle}» su EvLY',

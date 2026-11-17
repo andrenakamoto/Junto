@@ -21,6 +21,7 @@ import capsule from './capsule';
 import mystery from './mystery';
 import org from './org';
 import equipment from './equipment';
+import santaOnline from './santaOnline';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment, santaOnline };
 export default dict;

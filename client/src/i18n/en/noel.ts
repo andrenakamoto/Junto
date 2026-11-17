@@ -6,6 +6,7 @@ const noel: Dict['noel'] = {
   title: 'Your Secret Santa, organised in 2 minutes',
   subtitle: 'Automatic draw, wish lists and anonymous messages. No more slips of paper or WhatsApp groups where everyone gives themselves away.',
   cta: 'Organise my Secret Santa',
+  onlineLink: 'Just a draw? Online, no account',
   ctaLogged: 'Create my Secret Santa',
   demo: 'See an example',
   stepsTitle: 'How it works',

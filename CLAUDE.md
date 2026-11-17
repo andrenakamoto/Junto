@@ -2161,8 +2161,9 @@ de sorties** : `DiscoverGoModal` avec `place` (titre, lieu, lien ; date à chois
 `client/src/lib/discover.ts` : Manger et sortir, Sport et nature — la neige en tête l'hiver —, Jeux et défis, Culture, Détente et loisirs) ; chaque
 groupe montre **une ligne de tuiles** dans son ordre (3 sur grand écran, 4 sur téléphone) puis « + N autres » ; les types à un seul lieu sont réunis
 dans **« Autres »** (`others:<groupe>`, cartes avec le type affiché). **Filtres rapides** (`QUICK_FILTERS`, `matchesQuick`) : Avec des enfants
-(drapeau `family`), À l'intérieur, Dehors, Ce soir (déduits du type). **« Près de toi »** : les 6 idées les plus proches, d'un type différent chacune
-(`IdeaCard` avec `showKind`). Côté client seulement (`IdeasBrowser` de `DiscoverView`).
+(drapeau `family`), À l'intérieur, Dehors, Ce soir (déduits du type). « Près de toi » (6 idées proches) et le **filtre par localité** dans la liste d'un type ont été **retirés le
+2026-11-17** à la demande de l'utilisateur : c'est le lieu choisi en haut de Découvrir qui fait foi. Côté client seulement (`IdeasBrowser` de
+`DiscoverView`).
 **Restaurants par spécialité** (2026-11-17, demande de l'utilisateur) : type d'idée `restaurant` (OpenStreetMap `amenity=restaurant`, nom +
 site web, téléphone ou horaires, sans avis ni notes), groupe « Sortir le soir » ; `DiscoverPlace.cuisine` (migration `20261203100000_discover_place_cuisine`)
 = spécialité regroupée par `cuisineOf` (`CUISINES` de `lib/discover/model.ts` : suisse, française, italienne, méditerranéenne, japonaise, chinoise,
@@ -2404,6 +2405,18 @@ liste fermée (instagram, tiktok, facebook, whatsapp, email, affiche, partenaire
 source 30 jours sur l'appareil (`evly_src`) ; jointe à `/auth/register` et `/auth/google` (nouveau compte), elle compte
 `src_<source>_signup`. Panneau admin « Provenance des visiteurs » (`SourcesPanel`, GET `/admin/sources`, partie Statistiques). Politique de
 confidentialité (version du 29 octobre 2026).
+
+**Secret Santa en ligne, gratuit et sans compte** (2026-11-17, porte d'entrée vers EvLY, demande de l'utilisateur ; pages publiques
+`/secret-santa` = création, `/secret-santa/o/:token` = organisateur, `/secret-santa/p/:token` = participant, `pages/SantaOnlinePage.tsx`,
+textes `i18n/<langue>/santaOnline.ts`, lien « Juste un tirage au sort ? » sur `/pere-noel`) : serveur `routes/santaOnline.ts` sur
+`/api/santa-online`, `lib/santaOnline.ts` testé (`parseSantaInput`, `santaExpiry`), tables **OnlineSanta** (`adminToken`, titre, budget, date,
+`locale`, `expiresAt`) et **OnlineSantaPerson** (`token` secret, prénom, email facultatif, `receiverId`, envies **chiffrées**, `openedAt`,
+`emailSentAt`), migration `20261204100000_online_santa`. Tirage par `drawPairs` (exclusions = couples) à la création ; la page de l'organisateur
+donne un lien par personne (copier, WhatsApp, email) et montre qui l'a ouvert, **jamais qui offre à qui** ; un participant voit seulement la personne
+à qui il offre et ses envies, et note les siennes. Emails facultatifs (`santaOnline` de `i18n/emails`, une fois par personne, 10 / h), création
+limitée à 10 / jour par connexion. Effacé 30 jours après l'échange (60 sans date) par `deleteExpiredOnlineSantas` (horaire, gated). Compteurs
+`funnel_santa_online_created` / `_opened` (panneau admin, parcours). Chaque page pousse vers EvLY (« Créer mon compte gratuit »). Politique de
+confidentialité du 17 novembre 2026.
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site

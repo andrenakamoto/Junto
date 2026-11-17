@@ -2254,3 +2254,35 @@ model EquipmentBooking {
   @@index([itemId])
   @@index([planId])
 }
+
+// Secret Santa en ligne, gratuit et sans compte (2026-11-17, page publique /secret-santa) : l'organisateur saisit les prénoms,
+// le serveur tire au sort, chacun reçoit un lien secret (jeton) qui ne montre que la personne à qui il offre. Effacé 30 jours
+// après la date de l'échange (60 jours après la création sans date) par le job horaire (lib/santaOnline.ts).
+model OnlineSanta {
+  id           String              @id @default(cuid())
+  adminToken   String              @unique
+  title        String
+  budget       String?
+  exchangeDate DateTime?
+  locale       String              @default("fr")
+  createdAt    DateTime            @default(now())
+  expiresAt    DateTime
+  people       OnlineSantaPerson[]
+}
+
+model OnlineSantaPerson {
+  id          String      @id @default(cuid())
+  santaId     String
+  santa       OnlineSanta @relation(fields: [santaId], references: [id], onDelete: Cascade)
+  position    Int
+  token       String      @unique
+  name        String
+  email       String?
+  receiverId  String?
+  wishes      String? // liste d'envies, chiffrée comme les messages
+  noWish      Boolean     @default(false)
+  openedAt    DateTime?
+  emailSentAt DateTime?
+
+  @@index([santaId])
+}
