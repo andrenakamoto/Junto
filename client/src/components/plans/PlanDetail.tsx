@@ -1,4 +1,5 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { Fragment, useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { NewSinceProvider, NEW_CLASS } from '../../lib/newSince';
 import { EquipmentTab } from './EquipmentTab';
 import { PartyReveal } from './PartyStepper';
 import { isPlanEnded, planDeletionAt } from '../../lib/planEnd';
@@ -169,6 +170,32 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   const [reporting, setReporting] = useState<Message | null>(null);
   const blocked = new Set(me?.blockedUserIds ?? []);
   const visibleMessages = messages.filter(m => !blocked.has(m.author.id));
+
+  // Ce qui a changé depuis la visite précédente de chaque rubrique (lib/newSince.tsx) : on garde la date la plus ancienne
+  // connue pendant que le Plan est ouvert (seenAt du serveur, ou `previous` de POST /seen), pour que la mise en évidence
+  // reste visible pendant toute la visite, même après que la rubrique a été marquée vue.
+  const [since, setSince] = useState<{ planId: string; map: Record<string, string> }>(() => ({ planId: plan.id, map: { ...(plan.seenAt ?? {}) } }));
+  const keepEarliest = useCallback((entries: Record<string, string | null | undefined>) => {
+    setSince(prev => {
+      const base = prev.planId === plan.id ? prev : { planId: plan.id, map: {} };
+      let map = base.map;
+      for (const [k, v] of Object.entries(entries)) {
+        if (!v || (map[k] && map[k] <= v)) continue;
+        map = { ...map, [k]: v };
+      }
+      return map === base.map && base === prev ? prev : { planId: plan.id, map };
+    });
+  }, [plan.id]);
+  const seenKey = JSON.stringify(plan.seenAt ?? {});
+  useEffect(() => { keepEarliest(plan.seenAt ?? {}); }, [plan.id, seenKey, keepEarliest]);
+  const newSince = useMemo(() => ({ since: since.planId === plan.id ? since.map : {}, me: user.id }), [since, plan.id, user.id]);
+  const postSeen = (section: string) => api.post(`/plans/${plan.id}/seen`, { section })
+    .then(r => { if (r.data?.previous) keepEarliest({ [section]: r.data.previous }); }).catch(() => {});
+  const isNewMessage = (m: { createdAt: string; author: { id: string } }) => {
+    const s = newSince.since.chat;
+    return !!s && m.author.id !== user.id && new Date(m.createdAt).getTime() > new Date(s).getTime();
+  };
+  const firstNewMessageId = visibleMessages.find(isNewMessage)?.id;
   // Visionneuse : toutes les photos du chat dans l'ordre des messages (et celles du fil ouvert, après leur message)
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   const chatPhotos: ViewerPhoto[] = visibleMessages
@@ -382,7 +409,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
     if (activeTab === 'chat') setChatUnseen(false);
     if (dayMerged && activeTab === 'deroule') return; // chaque rubrique est marquée vue à son ouverture (DayPlanTab)
     if (!isMember || !(plan.unseen ?? []).includes(activeTab)) return;
-    api.post(`/plans/${plan.id}/seen`, { section: activeTab }).catch(() => {});
+    postSeen(activeTab);
     onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== activeTab) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan.id, activeTab, isMember, unseenKey]);
@@ -422,7 +449,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   // Rubrique de l'onglet combiné ouverte : marquée vue
   const markSectionSeen = (section: string) => {
     if (!isMember) return;
-    api.post(`/plans/${plan.id}/seen`, { section }).catch(() => {});
+    postSeen(section);
     onPlanUpdated({ ...plan, unseen: (plan.unseen ?? []).filter(s => s !== section) });
   };
 
@@ -1037,6 +1064,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
   );
 
   return (
+    <NewSinceProvider value={newSince}>
     <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden short:overflow-y-auto" {...(phoneSection ? swipeHandlers : {})}>
       {/* En-tête : page principale (téléphone) ou au-dessus des onglets (grand écran) */}
       {phoneSection ? sectionHeader : showHub ? (
@@ -1071,7 +1099,13 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
                   </div>
                 ) : (
                   visibleMessages.map(msg => (
-                    <div key={msg.id} data-msg={msg.id} className={`rounded-2xl transition-shadow ${flashMsg === msg.id ? 'ring-4 ring-indigo-300 ring-offset-4 ring-offset-slate-50' : ''}`}>
+                    <Fragment key={msg.id}>
+                    {msg.id === firstNewMessageId && (
+                      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-orange-600 pt-1">
+                        <span className="flex-1 h-px bg-orange-300" />{t('notif.highlight.newMessages')}<span className="flex-1 h-px bg-orange-300" />
+                      </div>
+                    )}
+                    <div data-msg={msg.id} className={`rounded-2xl transition-shadow ${flashMsg === msg.id ? 'ring-4 ring-indigo-300 ring-offset-4 ring-offset-slate-50' : isNewMessage(msg) ? `${NEW_CLASS} p-1.5` : ''}`}>
                       <ChatMessage
                         message={msg}
                         isMe={msg.author.id === user.id}
@@ -1087,6 +1121,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
                         onViewPhoto={setViewingPhoto}
                       />
                     </div>
+                    </Fragment>
                   ))
                 )}
                 <div ref={messagesEndRef} />
@@ -1248,5 +1283,6 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
         />
       )}
     </div>
+    </NewSinceProvider>
   );
 }

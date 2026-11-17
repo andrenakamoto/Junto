@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import {
   CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Lock, MessageSquare, Pencil, Play, Plus,
   RotateCcw, Search, Send, Trash2, Unlock, UserPlus, UserMinus,
@@ -353,6 +354,7 @@ function TaskCard({ task: x, num, numOf, userId, isMember, today, state, late, w
 }) {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const fresh = useIsNew()('taches', x.createdAt, x.createdById); // nouvelle tâche depuis la dernière visite
   const done = x.status === 'done';
   const mine = x.assignees.some(a => a.userId === userId);
   const due = x.dueDate && !done ? dueLabel(x.dueDate, today) : null;
@@ -364,7 +366,8 @@ function TaskCard({ task: x, num, numOf, userId, isMember, today, state, late, w
 
   const border = done ? 'border-emerald-200 bg-emerald-50/50' : late ? 'border-red-200 bg-white' : state === 'doing' ? 'border-amber-200 bg-white' : state === 'blocked' ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-white';
   return (
-    <div id={`task-${x.id}`} className={`rounded-xl border shadow-sm ${border}`}>
+    <div id={`task-${x.id}`} className={`rounded-xl border shadow-sm ${border} ${fresh ? NEW_CLASS : ''}`}>
+      {fresh && <NewBadge className="ml-3 mt-2" />}
       {/* Toute la ligne déplie la tâche (flèche à droite) ; le numéro sert à la repérer (ordre de création) */}
       <button onClick={onToggle} aria-expanded={open} className="w-full flex items-start gap-2.5 p-3 text-left">
         <span className={`flex-shrink-0 min-w-[26px] h-[26px] px-1 rounded-full text-xs font-bold flex items-center justify-center ${done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>

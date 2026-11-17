@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import { useResync } from '../../hooks/useResync';
 import { Car, Hand, Loader2, Pencil, Trash2, X } from 'lucide-react';
 import { Ride, RideRequest } from '../../types';
@@ -39,6 +40,7 @@ type RideForm = { departure: string; departureAt: string; seats: string; note: s
 const emptyForm: RideForm = { departure: '', departureAt: '', seats: '3', note: '' };
 
 export function CarpoolSection({ planId, userId, isAbsent }: Props) {
+  const isNew = useIsNew(); // ce qui a changé depuis la dernière visite (lib/newSince.tsx)
   const { token } = useAuth();
   const [rides, setRides] = useState<Ride[]>([]);
   const [requests, setRequests] = useState<RideRequest[]>([]);
@@ -135,7 +137,8 @@ export function CarpoolSection({ planId, userId, isAbsent }: Props) {
             const isPassenger = ride.passengers.some(p => p.userId === userId);
             const full = ride.passengers.length >= ride.seats;
             return (
-              <div key={ride.id} className={`p-3 rounded-xl border shadow-sm ${isDriver || isPassenger ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
+              <div key={ride.id} className={`p-3 rounded-xl border shadow-sm ${isDriver || isPassenger ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'} ${isNew('trajets', (ride as any).createdAt, ride.driver.id) ? NEW_CLASS : ''}`}>
+                {isNew('trajets', (ride as any).createdAt, ride.driver.id) && <NewBadge className="mb-1.5" />}
                 <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
                     <Car size={15} className="text-indigo-600" />

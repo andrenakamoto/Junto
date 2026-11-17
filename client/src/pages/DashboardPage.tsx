@@ -728,9 +728,10 @@ export function DashboardPage() {
   }
 
   // Cloche : toucher un Plan l'efface de la cloche et l'ouvre sur le premier onglet concerné
-  function openPlanFromBell(plan: Plan) {
+  // Cloche : toucher un Plan l'ouvre sur sa première rubrique non vue, toucher une rubrique l'ouvre directement
+  function openPlanFromBell(plan: Plan, tab?: string) {
     dismissBellPlans([plan.id]);
-    handleSelectPlan(plan, plan.unseen?.[0]);
+    handleSelectPlan(plan, tab ?? plan.unseen?.[0]);
   }
 
   // Cloche : « Tout effacer » vide la cloche ET enlève les points orange des Cercles, des Plans et des onglets

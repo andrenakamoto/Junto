@@ -33,7 +33,7 @@ import { isPastOption, pollExpiresAt, withExpiry } from '../lib/pollExpiry';
 import { countMessageSent } from '../lib/activity';
 import { countFunnel } from '../lib/funnel';
 import { compareByActivity, planLastActivity, sortCirclesByActivity } from '../lib/planOrder';
-import { unseenByPlan } from '../lib/planActivity';
+import { unseenByPlan, unseenDetails } from '../lib/planActivity';
 import { notifyUser } from '../lib/push';
 import { parseLocale, requestLocale, translateMessage } from '../lib/i18n';
 import { mail } from '../lib/emailText';
@@ -804,11 +804,11 @@ router.get('/:id/plans', async (req: AuthRequest, res) => {
     },
     orderBy: [{ eventDate: { sort: 'asc', nulls: 'last' } }, { endDate: 'asc' }],
   });
-  const unseen = await unseenByPlan(req.userId!, plans.map(p => p.id));
+  const unseen = await unseenDetails(req.userId!, plans.map(p => p.id));
   const managed = await managedCircleIds(req.userId!);
   // Le Plan le plus récemment modifié en premier (création, chat, infos, réponses…)
   res.json(plans.map(p => hideReservedList(forViewer(p, req.userId!, managed), req.userId!))
-    .map(({ activities, extraCircles, circle, ...p }) => ({ ...p, circles: extraCircles.length ? [circle, ...extraCircles.map(e => e.circle)] : undefined, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id) ?? [] }))
+    .map(({ activities, extraCircles, circle, ...p }) => ({ ...p, circles: extraCircles.length ? [circle, ...extraCircles.map(e => e.circle)] : undefined, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString(), unseen: unseen.get(p.id)?.sections ?? [], seenAt: unseen.get(p.id)?.seen ?? null }))
     .sort(compareByActivity));
 });
 

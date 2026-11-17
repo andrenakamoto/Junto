@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import { Plus, Trash2, X } from 'lucide-react';
 import { Plan, Poll } from '../../types';
 import { Button } from '../ui/Button';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
+  const isNew = useIsNew(); // ce qui a changé depuis la dernière visite (lib/newSince.tsx)
   const [showCreate, setShowCreate] = useState(false);
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
@@ -85,7 +87,10 @@ export function VotesTab({ plan, onPlanUpdated, userId }: Props) {
       {wheels.map(w => <WheelCard key={w.id} wheel={w} plan={plan} serverOffset={wheelOffset} onChanged={loadWheels} />)}
       {matches.map(m => <MatchCard key={m.id} match={m} plan={plan} onChanged={loadMatches} />)}
       {polls.map(poll => (
-        <PollCard key={poll.id} poll={poll} userId={userId} members={plan.members} onVote={handleVote} onDelete={plan.canDeletePolls ? () => handleDelete(poll.id) : undefined} />
+        <div key={poll.id} className={isNew('votes', (poll as any).createdAt) ? `rounded-2xl ${NEW_CLASS} p-1` : ''}>
+        {isNew('votes', (poll as any).createdAt) && <NewBadge className="ml-1 mb-1" />}
+        <PollCard poll={poll} userId={userId} members={plan.members} onVote={handleVote} onDelete={plan.canDeletePolls ? () => handleDelete(poll.id) : undefined} />
+        </div>
       ))}
 
       {showCreate ? (

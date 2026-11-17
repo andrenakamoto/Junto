@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import { AlertTriangle, CalendarPlus, CheckCircle2, Clock, MessageSquare, Pencil, Plus, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { addShiftToCalendar } from '../../lib/calendar';
 import { Plan, VolunteerShift } from '../../types';
@@ -188,6 +189,7 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
   // Inscrits du poste et gestionnaires : commenter, déclarer terminé
   const canWork = mine || canManage;
   const done = !!s.doneAt;
+  const fresh = useIsNew()('benevoles', (s as any).createdAt, (s as any).createdById); // nouveau poste depuis la dernière visite
   const comments = s.comments ?? [];
   const full = s.signups.length >= s.needed;
   const hours = shiftHours(s);
@@ -218,7 +220,8 @@ function ShiftCard({ shift: s, userId, canManage, clash, onSignUp, onWithdraw, o
     </div>
   );
   return (
-    <div className={`p-3.5 rounded-xl border shadow-sm ${done ? 'bg-emerald-50/60 border-emerald-200' : mine ? 'bg-indigo-50/60 border-indigo-200' : 'bg-white border-slate-200'}`}>
+    <div className={`p-3.5 rounded-xl border shadow-sm ${done ? 'bg-emerald-50/60 border-emerald-200' : mine ? 'bg-indigo-50/60 border-indigo-200' : 'bg-white border-slate-200'} ${fresh ? NEW_CLASS : ''}`}>
+      {fresh && <NewBadge className="mb-1.5" />}
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm text-slate-800 break-words">{s.title}</p>

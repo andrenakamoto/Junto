@@ -29,7 +29,7 @@ import { broadcastWrites, resolvePlanWrite } from '../lib/realtime';
 import crypto from 'crypto';
 import { withPlainContent } from '../lib/messageCrypto';
 import { messageInclude } from '../lib/messageInclude';
-import { isPlanSection, markAllSeen, markSectionSeen, unseenDetails } from '../lib/planActivity';
+import { isPlanSection, markAllSeen, markSectionSeen, previousSeen, unseenCounts, unseenDetails } from '../lib/planActivity';
 import { notifyMembershipChange, rsvpChange } from '../lib/planNotifications';
 import { wantsEmail } from '../lib/notificationPrefs';
 
@@ -189,13 +189,14 @@ router.get('/', async (req: AuthRequest, res) => {
     // Un invité externe ne doit rien savoir du Cercle : on masque son nom
     const circleIds = new Set(myCircles.map(c => c.circleId));
     const unseen = await unseenDetails(userId, plans.map(p => p.id));
+    const counts = await unseenCounts(userId, unseen);
     const managed = await managedCircleIds(userId);
     res.json(plans.map(p => hideReservedList(forViewer(p, userId, managed), userId)).map(({ extraCircles, activities, ...p }) => {
       const u = unseen.get(p.id);
       // Plan pour plusieurs Cercles : affiché sous le Cercle de la personne, avec la liste des Cercles réunis
       const all = [p.circle, ...extraCircles.map(e => e.circle)];
       const mine = all.find(c => circleIds.has(c.id));
-      const withUnseen = { ...p, circle: mine ?? p.circle, circles: extraCircles.length ? all : undefined, unseen: u?.sections ?? [], unseenAt: u?.at ?? null, lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString() };
+      const withUnseen = { ...p, circle: mine ?? p.circle, circles: extraCircles.length ? all : undefined, unseen: u?.sections ?? [], unseenAt: u?.at ?? null, seenAt: u?.seen ?? null, unseenCounts: counts.get(p.id), lastActivityAt: planLastActivity({ createdAt: p.createdAt, activities }).toISOString() };
       return mine ? withUnseen : { ...withUnseen, circle: null, circles: undefined, isGuest: true };
     }));
   } catch {
@@ -268,6 +269,8 @@ router.get('/:id', async (req: AuthRequest, res) => {
     // Onglets avec du nouveau depuis la dernière visite (pastilles)
     unseen: unseen?.sections ?? [],
     unseenAt: unseen?.at ?? null,
+    // Dernière visite de chaque rubrique : ce qui est plus récent est mis en évidence dans le Plan
+    seenAt: unseen?.seen ?? null,
     viewerIsGuest: access.isGuest,
     mediaToken: mintMediaToken(plan.id, req.userId!),
     // Récapitulatif PDF : créateur du Plan et gestionnaires du Cercle
@@ -356,8 +359,9 @@ router.post('/seen-all', async (req: AuthRequest, res) => {
 router.post('/:id/seen', async (req: AuthRequest, res) => {
   const section = req.body?.section;
   if (!isPlanSection(section)) { res.status(400).json({ error: 'Onglet invalide' }); return; }
+  const previous = await previousSeen(req.params.id, req.userId!, section);
   await markSectionSeen(req.params.id, req.userId!, section);
-  res.json({ ok: true });
+  res.json({ ok: true, previous });
 });
 
 // ─── Invités externes : lien d'invitation donnant accès à ce seul Plan ───────
@@ -820,7 +824,7 @@ router.put('/:id/rsvp', async (req: AuthRequest, res) => {
     const member = await prisma.planMember.update({
       where: { userId_planId: { userId: req.userId!, planId: req.params.id } },
       // « Je passe » : on vient seul si l'on revient plus tard
-      data: { rsvp, ...(rsvp === 'out' ? { partySize: 1 } : {}) },
+      data: { rsvp, ...(before?.rsvp !== rsvp ? { rsvpAt: new Date() } : {}), ...(rsvp === 'out' ? { partySize: 1 } : {}) },
     });
     // Désistement (« Je passe ») ou retour : les autres participants sont prévenus
     const change = before && rsvpChange(before.rsvp, rsvp);

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { latest, NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import { BellRing, UserMinus, UserPlus, Users } from 'lucide-react';
 import { PartyStepper } from './PartyStepper';
 import { comingCount } from '../../lib/places';
@@ -41,6 +42,7 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
   const lastNames = useLastNames(plan ? `/plans/${plan.id}/last-names` : null, members.length);
   const fullOf = (user: { firstName?: string | null }, id?: string) => withLastName(displayName(user), id ? lastNames[id] : null);
   const { t } = useTranslation();
+  const isNew = useIsNew();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState<Group | null>(null);
@@ -101,12 +103,16 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
   const nextNudge = plan?.nextNudgeAt ? new Date(plan.nextNudgeAt) : null;
   const canNudgeNow = !!plan?.canNudge && !!onNudge && pending.length > 0 && !(nextNudge && nextNudge > new Date()) && nudgeState.sent === undefined;
 
-  const memberRow = (m: PlanMember) => (
+  // Nouveau membre ou réponse changée depuis la dernière visite : entouré d'orange (lib/newSince.tsx)
+  const memberRow = (m: PlanMember) => {
+    const fresh = isNew('membres', latest(m.joinedAt, m.rsvpAt), m.userId);
+    return (
     <div key={m.userId} className="space-y-2">
-      <div className={`flex items-center gap-3 p-3 bg-white rounded-xl border shadow-sm ${m.rsvp === 'out' ? 'border-red-100' : 'border-slate-200'}`}>
+      <div className={`flex items-center gap-3 p-3 bg-white rounded-xl border shadow-sm ${fresh ? `${NEW_CLASS} border-orange-300` : m.rsvp === 'out' ? 'border-red-100' : 'border-slate-200'}`}>
         <Avatar pseudo={m.user.pseudo} size="xl" person={{ userId: m.userId, pseudo: m.user.pseudo, firstName: m.user.firstName }} online={onlineUserIds ? onlineUserIds.has(m.userId) : undefined} />
         <span className="flex-1 min-w-0">
           <span className={`text-sm font-medium ${m.rsvp === 'out' ? 'text-slate-500' : 'text-slate-800'}`}>{fullOf(m.user, m.userId) ?? `@${m.user.pseudo}`}</span>
+          {fresh && <NewBadge className="ml-2 align-middle" />}
           {m.isGuest && (
             <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 align-middle">
               {t('plan.members.guest')}
@@ -130,6 +136,7 @@ export function MembresTab({ plan, members, onlineUserIds, waitlist = [], creato
       {confirmId === m.userId && <p className="text-xs text-slate-500 -mt-1 px-1">{t('plan.members.removeHint', { name: fullOf(m.user, m.userId) ?? `@${m.user.pseudo}` })}</p>}
     </div>
   );
+  };
 
   const section = (g: Group, title: string, children: ReactNode, hint?: string) => (
     <section key={g}>

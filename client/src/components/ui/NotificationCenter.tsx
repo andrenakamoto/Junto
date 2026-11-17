@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronRight, Mail, Trash2, UserPlus, X, MessageCircle } from 'lucide-react';
+import { Check, ChevronRight, Mail, Trash2, UserPlus, X, MessageCircle, Users } from 'lucide-react';
 import { Modal } from './Modal';
 import { NOTIF_CONFIG, type AppNotification } from './NotificationToast';
 import api from '../../services/api';
@@ -46,7 +46,8 @@ interface Props {
   plansWithNews: Plan[];
   history: AppNotification[];
   onClose: () => void;
-  onOpenPlan: (plan: Plan) => void;
+  /** tab : rubrique touchée dans la carte (sinon la première non vue) */
+  onOpenPlan: (plan: Plan, tab?: string) => void;
   onOpenCircle: (circleId: string) => void;
   /** Discussion d'un Cercle avec des messages non lus */
   onOpenChat: (circleId: string) => void;
@@ -95,6 +96,10 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
   }
 
   const requests = circles.filter(c => (c.joinRequests?.length ?? 0) > 0);
+  // Les notifications reçues d'un Plan qui a du nouveau sont montrées dans sa carte (ce qui s'est passé), pas en double plus bas
+  const newsIds = new Set(plansWithNews.map(p => p.id));
+  const historyOf = (planId: string) => history.filter(n => n.planId === planId && NOTIF_CONFIG[n.type]);
+  const otherHistory = history.filter(n => !n.planId || !newsIds.has(n.planId));
   const chats = circles.filter(c => c.chatUnseen);
   const clearable = plansWithNews.length > 0 || history.length > 0 || chats.length > 0;
   const nothing = plansWithNews.length === 0 && requests.length === 0 && chats.length === 0 && history.length === 0 && invites.length === 0 && !inviteMsg;
@@ -146,24 +151,59 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
         {plansWithNews.length > 0 && (
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{t('notif.center.plansNews')}</h3>
-            <div className="space-y-1.5">
-              {plansWithNews.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => { onClose(); onOpenPlan(p); }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left"
-                >
-                  <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" aria-hidden />
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-sm font-medium text-slate-800 truncate">{p.title}</span>
-                    <span className="block text-xs text-slate-500 truncate">
-                      {p.circle?.name ?? t('notif.center.invitation')} · {t('notif.center.newIn', { sections: (p.unseen ?? []).map(sectionLabel).join(', ') })}
-                    </span>
-                  </span>
-                  <When at={p.unseenAt} />
-                  <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-                </button>
-              ))}
+            <div className="space-y-2.5">
+              {plansWithNews.map(p => {
+                // Carte d'un Plan (refaite le 2026-11-17, « on ne voit pas grand-chose ») : titre en entier, ce qui s'est passé
+                // (nouveaux messages et de qui, nouvelles réponses, notifications reçues), et une pastille par rubrique
+                // qui ouvre directement la rubrique concernée
+                const counts = p.unseenCounts;
+                const events = historyOf(p.id).filter(n => n.type !== 'new_message' && n.type !== 'mention' || !counts?.chat).slice(0, 3);
+                return (
+                  <div key={p.id} className="rounded-xl border border-orange-200 bg-orange-50/40 overflow-hidden">
+                    <button onClick={() => { onClose(); onOpenPlan(p); }} className="w-full flex items-start gap-3 p-3 text-left hover:bg-orange-50">
+                      <span className="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0 mt-1.5" aria-hidden />
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-[15px] font-semibold text-slate-900 leading-snug break-words">{p.title}</span>
+                        <span className="block text-xs text-slate-500 mt-0.5">{p.circle?.name ?? t('notif.center.invitation')}</span>
+                      </span>
+                      <span className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <When at={p.unseenAt} />
+                        <ChevronRight size={16} className="text-slate-300" />
+                      </span>
+                    </button>
+                    {(counts?.chat || counts?.membres || events.length > 0) && (
+                      <ul className="px-3 pb-2 -mt-1 space-y-1 text-[13px] text-slate-700">
+                        {counts?.chat && (
+                          <li className="flex items-start gap-2"><MessageCircle size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                            <span>{t('notif.center.newMessages', { count: counts.chat.count, from: counts.chat.from.map(x => `@${x}`).join(', ') })}</span></li>
+                        )}
+                        {counts?.membres && (
+                          <li className="flex items-start gap-2"><Users size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                            <span>{t('notif.center.newAnswers', { count: counts.membres.count, who: counts.membres.who.map(x => `@${x}`).join(', ') })}</span></li>
+                        )}
+                        {events.map(n => {
+                          const cfg = NOTIF_CONFIG[n.type]!;
+                          const Icon = cfg.icon;
+                          return (
+                            <li key={n.id} className="flex items-start gap-2"><Icon size={14} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                              <span className="min-w-0 break-words">{cfg.body(n)}</span></li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    {(p.unseen ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 px-3 pb-3">
+                        {(p.unseen ?? []).map(sec => (
+                          <button key={sec} onClick={() => { onClose(); onOpenPlan(p, sec); }}
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-500 text-white hover:bg-orange-600">
+                            {sectionLabel(sec)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
@@ -211,11 +251,11 @@ export function NotificationCenter({ circles, plansWithNews, history, onClose, o
           </section>
         )}
 
-        {history.length > 0 && (
+        {otherHistory.length > 0 && (
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{t('notif.center.toSee')}</h3>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-              {history.map(n => {
+              {otherHistory.map(n => {
                 const cfg = NOTIF_CONFIG[n.type];
                 if (!cfg) return null;
                 const Icon = cfg.icon;

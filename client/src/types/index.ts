@@ -121,6 +121,8 @@ export interface PlanMember {
   partySize?: number;
   /** Arrivée dans le Plan (inchangée quand la réponse change) */
   joinedAt?: string;
+  /** Dernier changement de réponse (mise en évidence, 2026-11-17) */
+  rsvpAt?: string | null;
   user: User;
   /** Invité externe : membre du Plan sans être membre du Cercle */
   isGuest?: boolean;
@@ -201,6 +203,10 @@ export interface Plan {
   content?: { trajets: boolean; votes: boolean; depenses: boolean };
   /** Date de la dernière activité non vue (cloche) */
   unseenAt?: string | null;
+  /** Dernière visite de chaque rubrique (mise en évidence de ce qui a changé, lib/newSince.tsx) */
+  seenAt?: Record<string, string> | null;
+  /** Cloche : nouveaux messages (et de qui), nouvelles réponses (et de qui) */
+  unseenCounts?: { chat?: { count: number; from: string[] }; membres?: { count: number; who: string[] } };
   description: string;
   eventDate?: string | null;
   endDate: string;

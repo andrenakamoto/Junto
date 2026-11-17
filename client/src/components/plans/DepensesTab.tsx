@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NEW_CLASS, NewBadge, useIsNew } from '../../lib/newSince';
 import { useResync } from '../../hooks/useResync';
 import { useSocketEvent } from '../../hooks/useSocketEvent';
 import { Plus, ArrowRight, Trash2, Check, Mail } from 'lucide-react';
@@ -33,6 +34,7 @@ function expenseDate(iso: string) {
 }
 
 export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdated }: Props) {
+  const isNew = useIsNew(); // ce qui a changé depuis la dernière visite (lib/newSince.tsx)
   const [data, setData] = useState<ExpensesData | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [description, setDescription] = useState('');
@@ -285,9 +287,9 @@ export function DepensesTab({ planId, members, userId, plan, pseudo, onPlanUpdat
         ) : (
           <div className="space-y-2">
             {data.expenses.map(exp => (
-              <div key={exp.id} className="flex items-center justify-between gap-2 bg-white rounded-xl border border-slate-200 shadow-sm p-3">
+              <div key={exp.id} className={`flex items-center justify-between gap-2 bg-white rounded-xl border border-slate-200 shadow-sm p-3 ${isNew('depenses', exp.createdAt, exp.paidById) ? NEW_CLASS : ''}`}>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{exp.description}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">{isNew('depenses', exp.createdAt, exp.paidById) && <NewBadge className="mr-1.5 align-middle" />}{exp.description}</p>
                   <p className="text-xs text-slate-400">
                     {expenseDate(exp.createdAt)} · {t('plan.expenses.paidBy', { pseudo: exp.paidBy.pseudo })}
                     {exp.splitWith.length > 0 && exp.splitWith.length !== members.length &&

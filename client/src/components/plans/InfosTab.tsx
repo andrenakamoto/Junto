@@ -1,4 +1,5 @@
 import { blobGet } from '../../lib/offlineCache';
+import { useIsNew } from '../../lib/newSince';
 import { useEffect, useState, useRef } from 'react';
 import { AlignLeft, MapPin, Paperclip, FileText, File, Trash2, Download, Loader2, Images, ImagePlus } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -31,6 +32,7 @@ function isImage(mimeType: string) {
 
 
 export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
+  const isNew = useIsNew(); // ce qui a changé depuis la dernière visite (lib/newSince.tsx)
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -179,13 +181,14 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {imageAttachments.map(att => (
+              <div key={att.id} className={isNew('infos', att.createdAt) && att.uploadedBy.toLowerCase() !== pseudo.toLowerCase() ? 'rounded-lg ring-[3px] ring-orange-400' : ''}>
               <GalleryThumb
-                key={att.id}
                 att={att}
                 token={plan.mediaToken}
                 canDelete={isCreator || att.uploadedBy.toLowerCase() === pseudo.toLowerCase()}
                 onDelete={() => handleDelete(att)}
               />
+              </div>
             ))}
           </div>
         </div>
