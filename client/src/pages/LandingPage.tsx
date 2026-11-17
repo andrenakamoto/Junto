@@ -111,8 +111,18 @@ function LiveOutings() {
       api.get<DiscoverData>('/discover', { params: { lat: 46.2, lon: 6.14, radius: 10, days: 7, v: 5 } })
         .then(r => {
           // Un seul événement par titre et par catégorie, pour montrer de la variété
+          // Langue de la page (2026-11-17) : Eventfrog garde la langue de l'organisateur ; hors allemand, on écarte les annonces
+          // visiblement en allemand et on montre d'abord les agendas publics (Ville de Genève…), puis les partenaires
+          const german = /\b(und|der|die|das|mit|für|frei|wählbar|Genf|Führung|Konzert|Ausstellung)\b|[äöüß]/i;
+          const english = /\b(the|and|with|free|tickets|drinks|night|good|vibes|party|live)\b/i;
+          const partner = new Set(r.data.sources.filter(x => x.type === 'partner').map(x => x.id));
+          const lang = currentLang();
+          const pool = [...r.data.events]
+            .filter(e => lang === 'de' || !german.test(`${e.title} ${e.place ?? ''}`))
+            .filter(e => lang === 'en' || !english.test(e.title))
+            .sort((a, b) => Number(partner.has(a.sourceId)) - Number(partner.has(b.sourceId)));
           const picked: DiscoverEvent[] = [];
-          for (const e of r.data.events) {
+          for (const e of pool) {
             if (picked.length >= 4) break;
             if (!e.imageKey || e.multiDay || picked.some(p => p.title === e.title || p.category === e.category)) continue;
             picked.push(e);

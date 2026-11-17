@@ -44,6 +44,10 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [q, setQ] = useState('');
   // Idées de sorties : type de lieu ouvert (null = tuiles) et ville choisie dans ce type
   const [ideaKind, setIdeaKind] = useState<string | null>(null);
+  // Filtres des idées gardés ici (et non dans IdeasBrowser) pour que la carte montre la même sélection (2026-11-17)
+  const [ideaQuick, setIdeaQuick] = useState<QuickFilter | null>(null);
+  const [ideaCuisine, setIdeaCuisine] = useState<string | null>(null);
+  useEffect(() => setIdeaCuisine(null), [ideaKind]);
   const [going, setGoing] = useState<DiscoverEvent | null>(null);
   const [goingPlace, setGoingPlace] = useState<DiscoverPlace | null>(null);
   // Liste ou carte, mémorisé sur l'appareil
@@ -130,9 +134,9 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
 
   // Carte : les événements filtrés et les idées de sorties (toutes dans « Tout », celles du type ouvert dans « Idées de sorties »)
   const mapItems = useMemo<MapItem[]>(() => {
-    const ps = searching || cat !== ALL ? ideas.filter(p => !ideaKind || searching || p.kind === ideaKind) : places;
+    const ps = searching ? ideas : cat !== ALL ? visibleIdeas(ideas, ideaKind, ideaQuick, ideaCuisine) : places;
     return [...shown.map(e => ({ type: 'event' as const, e })), ...ps.map(p => ({ type: 'place' as const, p }))];
-  }, [data, q, cat, day, ideaKind]);
+  }, [data, q, cat, day, ideaKind, ideaQuick, ideaCuisine]);
   const multi = shown.filter(e => e.multiDay && !e.sessions);
   const sessions = shown.filter(e => e.sessions);
   const single = shown.filter(e => !e.multiDay);
@@ -330,7 +334,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
               )}
               {ideas.length > 0 && (searching
                 ? <IdeasSection places={ideas} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
-                : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind}
+                : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind} quick={ideaQuick} onQuick={setIdeaQuick} cuisine={ideaCuisine} onCuisine={setIdeaCuisine}
                     onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />)}
               </>)}
 
@@ -476,17 +480,30 @@ function IdeaCard({ p, onGo, onReport, onHide, showKind = false }: { p: Discover
 
 // Idées de sorties en deux temps : des tuiles par type (avec le nombre de lieux), puis la liste d'un seul type,
 // filtrable par ville dès qu'elle est longue
-function IdeasBrowser({ places, onGo, kind, onKind, onReport, onHide }: {
+// Idées visibles pour un choix (type, « Autres » d'un groupe, filtre rapide, spécialité) : la liste et la carte montrent les mêmes
+function visibleIdeas(ideas: DiscoverPlace[], kind: string | null, quick: QuickFilter | null, cuisine: string | null): DiscoverPlace[] {
+  const pool = ideas.filter(p => matchesQuick(p, quick));
+  if (!kind) return pool;
+  const others = kind.startsWith('others:') ? kind.slice(7) : null;
+  let list: DiscoverPlace[];
+  if (others) {
+    const kinds = KIND_GROUPS.find(([g]) => g === others)?.[1] ?? [];
+    const singles = kinds.filter(k => pool.filter(p => p.kind === k).length === 1);
+    list = pool.filter(p => singles.includes(p.kind));
+  } else list = pool.filter(p => p.kind === kind);
+  return kind === 'restaurant' && cuisine ? list.filter(p => (p.cuisine ?? 'autre') === cuisine) : list;
+}
+
+function IdeasBrowser({ places, onGo, kind, onKind, quick, onQuick, cuisine, onCuisine, onReport, onHide }: {
   places: DiscoverPlace[]; onGo: (p: DiscoverPlace) => void; kind: string | null; onKind: (k: string | null) => void;
+  quick: QuickFilter | null; onQuick: (f: QuickFilter | null) => void; cuisine: string | null; onCuisine: (c: string | null) => void;
   onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
 }) {
   // Refait le 2026-11-17 (« on s'y perd ») : filtres rapides, 5 groupes dont chacun montre une ligne de tuiles
   // (dans l'ordre du groupe, « + N autres » pour déplier) ; les types à un seul lieu sont réunis dans « Autres ».
-  const [quick, setQuick] = useState<QuickFilter | null>(null);
+  const setQuick = onQuick;
+  const setCuisine = onCuisine;
   const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
-  // Restaurants : filtre par spécialité (2026-11-17), remis à zéro quand on change de type
-  const [cuisine, setCuisine] = useState<string | null>(null);
-  useEffect(() => setCuisine(null), [kind]);
   const pool = places.filter(p => matchesQuick(p, quick));
   const count = (k: string) => pool.filter(p => p.kind === k).length;
   const groupKinds = (g: string) => KIND_GROUPS.find(([x]) => x === g)?.[1] ?? [];

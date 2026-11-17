@@ -2164,6 +2164,9 @@ dans **« Autres »** (`others:<groupe>`, cartes avec le type affiché). **Filtr
 (drapeau `family`), À l'intérieur, Dehors, Ce soir (déduits du type). « Près de toi » (6 idées proches) et le **filtre par localité** dans la liste d'un type ont été **retirés le
 2026-11-17** à la demande de l'utilisateur : c'est le lieu choisi en haut de Découvrir qui fait foi. Côté client seulement (`IdeasBrowser` de
 `DiscoverView`).
+**Carte et filtres des idées** (2026-11-17) : les filtres des idées (type ouvert, « Autres », filtres rapides, spécialité des restaurants) sont gardés
+dans `DiscoverView` et appliqués par `visibleIdeas` **à la liste comme à la carte** (avant, la carte montrait toutes les idées). Site d'accueil :
+les sorties en direct écartent les annonces visiblement dans une autre langue (allemand, anglais) et montrent d'abord les agendas publics.
 **Restaurants par spécialité** (2026-11-17, demande de l'utilisateur) : type d'idée `restaurant` (OpenStreetMap `amenity=restaurant`, nom +
 site web, téléphone ou horaires, sans avis ni notes), groupe « Sortir le soir » ; `DiscoverPlace.cuisine` (migration `20261203100000_discover_place_cuisine`)
 = spécialité regroupée par `cuisineOf` (`CUISINES` de `lib/discover/model.ts` : suisse, française, italienne, méditerranéenne, japonaise, chinoise,
