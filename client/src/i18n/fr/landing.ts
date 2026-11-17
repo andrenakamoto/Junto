@@ -21,6 +21,18 @@ export default {
     count: '{{n}} in · 1 peut-être',
     bring: 'Tom apporte le vin 🍷',
   },
+  santa: {
+    badge: 'Noël approche 🎄',
+    title: 'Ton Secret Santa, organisé en 2 minutes',
+    text: 'Le tirage au sort, les envies de chacun et les messages secrets : tout se passe dans l’app EvLY, gratuitement. Pour la famille, les collègues ou les amis.',
+    p1: 'Tirage au sort automatique, couples séparés',
+    p2: 'Listes d’envies et budget',
+    p3: 'Messages anonymes avec ton Père Noël secret',
+    p4: 'Rappels et grande révélation',
+    cta: 'Organiser mon Secret Santa',
+    more: 'Comment ça marche',
+    example: 'Voir un exemple',
+  },
   compare: {
     title: 'La même soirée, deux façons de l’organiser',
     beforeTitle: 'Le groupe de discussion',
@@ -64,8 +76,6 @@ export default {
     noads: { title: 'Sans pub', text: 'Ni dans l’app, ni ailleurs.' },
     data: { title: 'Tes données restent à toi', text: 'Jamais vendues, messages chiffrés.' },
     swiss: { title: 'Hébergé en Suisse', text: 'Serveurs chez Infomaniak, une entreprise suisse.' },
-    storyTitle: 'Comment c’est né',
-    story: 'Tout est parti d’une discussion à la cafétéria : on voulait organiser l’anniversaire surprise d’une collègue… mais elle était dans notre groupe WhatsApp. Il a fallu recréer un groupe sans elle et faire attention à chaque message. EvLY est né ce jour-là, à Genève.',
   },
   faq: {
     title: 'Questions fréquentes',

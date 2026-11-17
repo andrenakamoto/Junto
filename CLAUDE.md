@@ -2419,7 +2419,9 @@ connectée va à `/dashboard`. La connexion reste sur **`/auth`**. Sections : en
 accroche « Fini les 300 messages pour savoir qui vient samedi. » avec un **téléphone dessiné et animé** (pas de captures, choix de l'utilisateur),
 avant / après (groupe de discussion vs Plan), « Pour tous tes groupes » (onglets amis, famille, collègues, associations, pros, avec un exemple de la
 démo `?voir=`), 6 fonctions phares, **sorties en direct** autour de Genève (Découvrir, chargées quand la section arrive à l'écran, une par titre
-et par catégorie), confiance (gratuit, sans pub, données, Suisse) et l'histoire de la cafétéria, questions fréquentes, dernier appel, pied de page
+et par catégorie), confiance (gratuit, sans pub, données, Suisse ; l'histoire de la cafétéria retirée le 2026-11-17 à la demande de l'utilisateur), **bloc Secret Santa
+de saison** sous l'accroche (`SantaHighlight`, `santaSeason` de `lib/season.ts` partagé avec AuthPage, 6 nov. → 25 déc. : « Organiser mon Secret Santa »
+= inscription puis création du Plan « Père Noël secret », « Comment ça marche » → `/pere-noel`, exemple de la démo), questions fréquentes, dernier appel, pied de page
 (brochures, confidentialité, contact). Compteurs `home` (visites) et `funnel_cta_home` (clics « Créer mon compte »). Titre et description de la
 page posés par JavaScript ; **pas encore de version prérendue** pour les moteurs de recherche (étape suivante possible), ni de pages par public.
 

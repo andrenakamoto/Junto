@@ -22,6 +22,18 @@ const landing: Dict['landing'] = {
     count: '{{n}} in · 1 maybe',
     bring: 'Tom is bringing the wine 🍷',
   },
+  santa: {
+    badge: 'Christmas is coming 🎄',
+    title: 'Your Secret Santa, organised in 2 minutes',
+    text: 'The draw, everyone’s wish list and the secret messages: it all happens in the EvLY app, for free. For family, colleagues or friends.',
+    p1: 'Automatic draw, couples kept apart',
+    p2: 'Wish lists and budget',
+    p3: 'Anonymous messages with your Secret Santa',
+    p4: 'Reminders and the big reveal',
+    cta: 'Organise my Secret Santa',
+    more: 'How it works',
+    example: 'See an example',
+  },
   compare: {
     title: 'Same evening, two ways to organise it',
     beforeTitle: 'The group chat',
@@ -65,8 +77,6 @@ const landing: Dict['landing'] = {
     noads: { title: 'No ads', text: 'Not in the app, not anywhere.' },
     data: { title: 'Your data stays yours', text: 'Never sold, messages encrypted.' },
     swiss: { title: 'Hosted in Switzerland', text: 'Servers at Infomaniak, a Swiss company.' },
-    storyTitle: 'How it started',
-    story: 'It all started with a chat in the cafeteria: we wanted to organise a surprise birthday for a colleague… but she was in our WhatsApp group. We had to make a new group without her and be careful with every message. EvLY was born that day, in Geneva.',
   },
   faq: {
     title: 'Frequently asked questions',

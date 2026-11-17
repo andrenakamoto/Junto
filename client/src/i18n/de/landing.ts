@@ -22,6 +22,18 @@ const landing: Dict['landing'] = {
     count: '{{n}} dabei · 1 vielleicht',
     bring: 'Tom bringt den Wein 🍷',
   },
+  santa: {
+    badge: 'Weihnachten naht 🎄',
+    title: 'Dein Wichteln, in 2 Minuten organisiert',
+    text: 'Die Auslosung, die Wünsche aller und die geheimen Nachrichten: Alles passiert in der EvLY-App, gratis. Für Familie, Arbeitskollegen oder Freunde.',
+    p1: 'Automatische Auslosung, Paare getrennt',
+    p2: 'Wunschlisten und Budget',
+    p3: 'Anonyme Nachrichten mit deinem Wichtel',
+    p4: 'Erinnerungen und grosse Enthüllung',
+    cta: 'Mein Wichteln organisieren',
+    more: 'So funktioniert’s',
+    example: 'Beispiel ansehen',
+  },
   compare: {
     title: 'Derselbe Abend, zwei Arten, ihn zu organisieren',
     beforeTitle: 'Der Gruppenchat',
@@ -65,8 +77,6 @@ const landing: Dict['landing'] = {
     noads: { title: 'Ohne Werbung', text: 'Weder in der App noch anderswo.' },
     data: { title: 'Deine Daten bleiben deine', text: 'Nie verkauft, Nachrichten verschlüsselt.' },
     swiss: { title: 'In der Schweiz gehostet', text: 'Server bei Infomaniak, einem Schweizer Unternehmen.' },
-    storyTitle: 'Wie alles begann',
-    story: 'Alles begann bei einem Gespräch in der Cafeteria: Wir wollten den Überraschungsgeburtstag einer Kollegin organisieren … aber sie war in unserer WhatsApp-Gruppe. Wir mussten eine Gruppe ohne sie erstellen und bei jeder Nachricht aufpassen. An diesem Tag entstand EvLY, in Genf.',
   },
   faq: {
     title: 'Häufige Fragen',

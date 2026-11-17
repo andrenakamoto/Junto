@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, HeartHandshake, Lock, MapPin, Mountain, PartyPopper, ShieldCheck, Sparkles, TrainFront, Users } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Garland, SantaScene, Snowfall } from '../components/noel/ChristmasDecor';
+import { requestNewPlan } from '../lib/newPlanIntent';
+import { santaSeason } from '../lib/season';
+import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, Gift, HeartHandshake, Lock, MapPin, Mountain, ShieldCheck, Sparkles, TrainFront, Users } from 'lucide-react';
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 import { countStep } from '../lib/funnel';
@@ -138,6 +141,41 @@ function LiveOutings() {
   );
 }
 
+// Secret Santa mis en avant pendant la saison (2026-11-17, demande de l'utilisateur) : tout se fait dans l'app (même parcours
+// que la page /pere-noel : l'intention survit à l'inscription et ouvre la création du Plan « Père Noël secret »)
+function SantaHighlight() {
+  const navigate = useNavigate();
+  function organize() {
+    countStep('funnel_cta_santa');
+    requestNewPlan('pere_noel');
+    navigate('/auth?mode=inscription&redirect=/dashboard');
+  }
+  return (
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0b1d3a] via-[#3b0d0c] to-[#6b1513] text-white">
+      <Snowfall />
+      <Garland />
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-16 grid lg:grid-cols-[1.3fr_1fr] gap-10 items-center">
+        <div>
+          <p className="inline-block text-[11px] sm:text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-rose-100">{t('landing.santa.badge')}</p>
+          <h2 className="mt-4 font-serif text-3xl sm:text-4xl font-bold leading-tight">{t('landing.santa.title')}</h2>
+          <p className="mt-4 text-rose-50/85 leading-relaxed max-w-xl">{t('landing.santa.text')}</p>
+          <ul className="mt-5 grid sm:grid-cols-2 gap-2 text-sm text-rose-50">
+            {(['p1', 'p2', 'p3', 'p4'] as const).map(k => <li key={k} className="flex gap-2"><Check size={16} className="text-emerald-300 flex-shrink-0 mt-0.5" />{t(`landing.santa.${k}`)}</li>)}
+          </ul>
+          <div className="mt-7 flex flex-col sm:flex-row sm:flex-wrap gap-3">
+            <button onClick={organize} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-red-600 text-white font-semibold px-6 py-3.5 shadow-lg shadow-black/30 hover:bg-red-500">
+              <Gift size={18} />{t('landing.santa.cta')}<ArrowRight size={18} />
+            </button>
+            <Link to="/pere-noel" className="inline-flex items-center justify-center whitespace-nowrap px-5 py-3.5 rounded-2xl border border-white/25 text-sm font-semibold text-white hover:bg-white/10">{t('landing.santa.more')}</Link>
+            <a href="/demo?voir=pere-noel" className="inline-flex items-center justify-center whitespace-nowrap px-5 py-3.5 text-sm font-semibold text-rose-100 underline underline-offset-4 hover:text-white">{t('landing.santa.example')}</a>
+          </div>
+        </div>
+        <SantaScene className="hidden lg:block w-full max-w-[320px] mx-auto drop-shadow-2xl" />
+      </div>
+    </section>
+  );
+}
+
 export function LandingPage() {
   const [audience, setAudience] = useState<typeof AUDIENCES[number]['key']>('friends');
 
@@ -202,6 +240,8 @@ export function LandingPage() {
           <PhoneMock />
         </div>
       </section>
+
+      {santaSeason() && <SantaHighlight />}
 
       {/* Avant / après */}
       <Section tone="soft">
@@ -287,10 +327,6 @@ export function LandingPage() {
                 <p className="mt-1 text-sm text-slate-300">{t(`landing.trust.${key}.text`)}</p>
               </div>
             ))}
-          </div>
-          <div className="mt-10 max-w-3xl mx-auto rounded-3xl bg-white/5 border border-white/10 p-6 sm:p-8">
-            <p className="flex items-center gap-2 font-bold text-orange-300"><PartyPopper size={18} />{t('landing.trust.storyTitle')}</p>
-            <p className="mt-3 text-slate-200 leading-relaxed">{t('landing.trust.story')}</p>
           </div>
         </div>
       </section>

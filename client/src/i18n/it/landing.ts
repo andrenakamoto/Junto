@@ -22,6 +22,18 @@ const landing: Dict['landing'] = {
     count: '{{n}} ci sono · 1 forse',
     bring: 'Tom porta il vino 🍷',
   },
+  santa: {
+    badge: 'Natale si avvicina 🎄',
+    title: 'Il tuo Secret Santa, organizzato in 2 minuti',
+    text: 'Il sorteggio, i desideri di ognuno e i messaggi segreti: tutto avviene nell’app EvLY, gratuitamente. Per la famiglia, i colleghi o gli amici.',
+    p1: 'Sorteggio automatico, coppie separate',
+    p2: 'Liste dei desideri e budget',
+    p3: 'Messaggi anonimi con il tuo Babbo Natale segreto',
+    p4: 'Promemoria e grande rivelazione',
+    cta: 'Organizzare il mio Secret Santa',
+    more: 'Come funziona',
+    example: 'Guarda un esempio',
+  },
   compare: {
     title: 'La stessa serata, due modi di organizzarla',
     beforeTitle: 'Il gruppo di chat',
@@ -65,8 +77,6 @@ const landing: Dict['landing'] = {
     noads: { title: 'Senza pubblicità', text: 'Né nell’app, né altrove.' },
     data: { title: 'I tuoi dati restano tuoi', text: 'Mai venduti, messaggi cifrati.' },
     swiss: { title: 'Ospitata in Svizzera', text: 'Server presso Infomaniak, un’azienda svizzera.' },
-    storyTitle: 'Come è nata',
-    story: 'Tutto è partito da una chiacchierata in caffetteria: volevamo organizzare il compleanno a sorpresa di una collega… ma lei era nel nostro gruppo WhatsApp. Abbiamo dovuto creare un altro gruppo senza di lei e fare attenzione a ogni messaggio. EvLY è nata quel giorno, a Ginevra.',
   },
   faq: {
     title: 'Domande frequenti',
