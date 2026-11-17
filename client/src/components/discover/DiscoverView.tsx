@@ -44,7 +44,6 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
   const [q, setQ] = useState('');
   // Idées de sorties : type de lieu ouvert (null = tuiles) et ville choisie dans ce type
   const [ideaKind, setIdeaKind] = useState<string | null>(null);
-  const [ideaCity, setIdeaCity] = useState<string | null>(null);
   const [going, setGoing] = useState<DiscoverEvent | null>(null);
   const [goingPlace, setGoingPlace] = useState<DiscoverPlace | null>(null);
   // Liste ou carte, mémorisé sur l'appareil
@@ -99,7 +98,6 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
     if (c.here !== choice.here || c.spot?.name !== choice.spot?.name) { setCat(ALL); setIdeaKind(null); }
   }
   useEffect(() => { setIdeaKind(null); }, [cat]);
-  useEffect(() => { setIdeaCity(null); }, [ideaKind, center?.lat, center?.lon]);
 
   const chips = useMemo(() => dayChips(), [data]);
   const chipKeys = new Set(chips.map(c => c.key));
@@ -332,7 +330,7 @@ export function DiscoverView({ mode, onBack }: { mode: 'app' | 'public'; onBack?
               )}
               {ideas.length > 0 && (searching
                 ? <IdeasSection places={ideas} onGo={goWithPlace} onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />
-                : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind} city={ideaCity} onCity={setIdeaCity}
+                : <IdeasBrowser places={ideas} onGo={goWithPlace} kind={ideaKind} onKind={setIdeaKind}
                     onReport={p => setReporting({ target: { placeId: p.id }, title: p.name })} onHide={isAdmin ? hidePlace : undefined} />)}
               </>)}
 
@@ -446,7 +444,7 @@ function EventCard({ e, onGo, onReport, onHide, credit, showDate }: { e: Discove
   );
 }
 
-// showKind : le type de lieu devant le nom (« Près de toi », « Autres » qui mélangent les types)
+// showKind : le type de lieu devant le nom (« Autres », qui mélange les types)
 function IdeaCard({ p, onGo, onReport, onHide, showKind = false }: { p: DiscoverPlace; onGo: (p: DiscoverPlace) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void; showKind?: boolean }) {
   const { user } = useAuth();
   return (
@@ -478,11 +476,11 @@ function IdeaCard({ p, onGo, onReport, onHide, showKind = false }: { p: Discover
 
 // Idées de sorties en deux temps : des tuiles par type (avec le nombre de lieux), puis la liste d'un seul type,
 // filtrable par ville dès qu'elle est longue
-function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHide }: {
+function IdeasBrowser({ places, onGo, kind, onKind, onReport, onHide }: {
   places: DiscoverPlace[]; onGo: (p: DiscoverPlace) => void; kind: string | null; onKind: (k: string | null) => void;
-  city: string | null; onCity: (c: string | null) => void; onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
+  onReport: (p: DiscoverPlace) => void; onHide?: (p: DiscoverPlace) => void;
 }) {
-  // Refait le 2026-11-17 (« on s'y perd ») : filtres rapides, « Près de toi », 5 groupes dont chacun montre une ligne de tuiles
+  // Refait le 2026-11-17 (« on s'y perd ») : filtres rapides, 5 groupes dont chacun montre une ligne de tuiles
   // (dans l'ordre du groupe, « + N autres » pour déplier) ; les types à un seul lieu sont réunis dans « Autres ».
   const [quick, setQuick] = useState<QuickFilter | null>(null);
   const [unfolded, setUnfolded] = useState<Set<string>>(new Set());
@@ -506,25 +504,11 @@ function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHi
     </div>
   );
   if (!kind || !pool.some(inKind)) {
-    // Près de toi : les 6 idées les plus proches, d'un type différent chacune
-    const near: DiscoverPlace[] = [];
-    for (const p of [...pool].filter(p => p.distanceKm != null).sort((a, b) => a.distanceKm! - b.distanceKm!)) {
-      if (near.length >= 6) break;
-      if (!near.some(n => n.kind === p.kind)) near.push(p);
-    }
     const slots = isWideScreen() ? 3 : 4;
     return (
       <section className="space-y-4">
         {chips}
         {pool.length === 0 && <p className="text-sm text-slate-500">{t('discover.noIdeasFilter')}</p>}
-        {near.length >= 3 && (
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">📍 {t('discover.nearYou')}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {near.map(p => <IdeaCard key={p.id} p={p} onGo={onGo} onReport={onReport} onHide={onHide} showKind />)}
-            </div>
-          </div>
-        )}
         {KIND_GROUPS.map(([g]) => {
           const singles = singlesOf(g);
           // Ordre choisi par groupe (la neige en tête l'hiver, musées avant bibliothèques…), pas le nombre de lieux
@@ -564,8 +548,8 @@ function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHi
   }
   // Le plus proche d'abord (lieux sans position à la fin), sinon par nom
   const list = pool.filter(inKind).sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999) || a.name.localeCompare(b.name));
-  const cities = [...new Set(list.map(p => p.city).filter((c): c is string => !!c))].sort((a, b) => a.localeCompare(b));
-  const inCity = city ? list.filter(p => p.city === city) : list;
+  // Pas de filtre par localité (2026-11-17, demande de l'utilisateur) : c'est le lieu choisi en haut de Découvrir qui fait foi
+  const inCity = list;
   const cuisines = kind === 'restaurant'
     ? Object.keys(CUISINE_EMOJI).map(c => [c, inCity.filter(p => (p.cuisine ?? 'autre') === c).length] as const).filter(([, n]) => n > 0)
     : [];
@@ -578,12 +562,6 @@ function IdeasBrowser({ places, onGo, kind, onKind, city, onCity, onReport, onHi
       </button>
       {chips}
       <h3 className="text-base font-bold text-slate-900">{othersGroup ? `✨ ${t('discover.otherKinds')} · ${t(`discover.kindGroups.${othersGroup}` as any)}` : `${KIND_EMOJI[kind] ?? '📍'} ${kindLabel(kind)}`} <span className="text-sm font-medium text-slate-400">{list.length}</span></h3>
-      {list.length > 8 && cities.length > 1 && (
-        <div className="flex flex-wrap gap-1.5">
-          <button onClick={() => onCity(null)} className={pill(!city)}>{t('discover.allCities')}</button>
-          {cities.map(c => <button key={c} onClick={() => onCity(c)} className={pill(city === c)}>{c}</button>)}
-        </div>
-      )}
       {cuisines.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
           <button onClick={() => setCuisine(null)} className={pill(!cuisine)}>{t('discover.allCuisines')}</button>
