@@ -2166,7 +2166,8 @@ dans **« Autres »** (`others:<groupe>`, cartes avec le type affiché). **Filtr
 `DiscoverView`).
 **Carte et filtres des idées** (2026-11-17) : les filtres des idées (type ouvert, « Autres », filtres rapides, spécialité des restaurants) sont gardés
 dans `DiscoverView` et appliqués par `visibleIdeas` **à la liste comme à la carte** (avant, la carte montrait toutes les idées). Site d'accueil :
-les sorties en direct écartent les annonces visiblement dans une autre langue (allemand, anglais) et montrent d'abord les agendas publics.
+les sorties en direct montrent d'abord les agendas publics ; **aucune annonce n'est écartée pour sa langue** (filtre allemand / anglais essayé puis
+retiré le même jour à la demande de l'utilisateur).
 **Restaurants par spécialité** (2026-11-17, demande de l'utilisateur) : type d'idée `restaurant` (OpenStreetMap `amenity=restaurant`, nom +
 site web, téléphone ou horaires, sans avis ni notes), groupe « Sortir le soir » ; `DiscoverPlace.cuisine` (migration `20261203100000_discover_place_cuisine`)
 = spécialité regroupée par `cuisineOf` (`CUISINES` de `lib/discover/model.ts` : suisse, française, italienne, méditerranéenne, japonaise, chinoise,
