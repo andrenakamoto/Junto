@@ -36,6 +36,8 @@ model User {
   resetPasswordExpires DateTime?
   status               String    @default("approved")
   isAdmin              Boolean   @default(false)
+  // Numéro de session (lib/sessions.ts) : l'augmenter déconnecte tous les appareils
+  sessionVersion       Int       @default(0)
   acceptedTermsVersion Int       @default(0)
   weeklyDigestEnabled  Boolean   @default(true)
   // Canal des notifications (lib/notificationPrefs.ts) : push | both | email. N'affecte ni les

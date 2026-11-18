@@ -11,11 +11,19 @@ export default {
   password: {
     title: 'Changer mon mot de passe',
     mismatch: 'Les mots de passe ne correspondent pas',
-    changed: 'Mot de passe modifié avec succès ✓',
+    changed: "Mot de passe modifié ✓ Tes autres appareils ont été déconnectés.",
     current: 'Mot de passe actuel',
     new: 'Nouveau mot de passe',
     confirmNew: 'Confirmer le nouveau mot de passe',
     changing: 'Modification…',
+  },
+  sessions: {
+    button: "Se déconnecter de tous les appareils",
+    hint: "Téléphone perdu ou volé ? Ferme toutes tes sessions, sauf celle-ci.",
+    confirm: "Tous tes autres appareils (téléphones, tablettes, ordinateurs) seront déconnectés et ne recevront plus de notifications. Tu restes connecté(e) ici.",
+    go: "Déconnecter les autres appareils",
+    done: "C'est fait : tes autres appareils sont déconnectés ✓",
+    passwordTip: "Si quelqu'un connaît ton mot de passe, change-le aussi.",
   },
   delete: {
     title: 'Supprimer mon compte',

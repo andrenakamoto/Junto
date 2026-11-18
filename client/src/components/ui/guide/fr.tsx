@@ -565,6 +565,10 @@ const groups: Group[] = [
             ton prénom et ton pseudo, jamais ton nom de famille (sauf dans le procès-verbal d'une assemblée).</P>
           <P><strong>Langue</strong> : EvLY existe en français, allemand, italien et anglais. Change-la dans{' '}
             <strong>Mon profil</strong> ; les emails et notifications suivent ta langue.</P>
+          <P><strong>Téléphone perdu ?</strong> Depuis un autre appareil, ouvre <strong>Mon profil</strong> →{' '}
+            « Se déconnecter de tous les appareils » : toutes tes autres sessions se ferment et ne reçoivent plus de notifications.
+            Changer ton mot de passe (ou « Mot de passe oublié ») les déconnecte aussi. Sans ça, une session reste ouverte
+            30 jours après ta dernière utilisation.</P>
           <P>EvLY existe aussi en <strong>application iPhone et Android</strong>, avec notifications sur le téléphone. Tout se
             met à jour en direct ; un bandeau propose de recharger quand une nouvelle version est en ligne.</P>
         </>,

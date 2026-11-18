@@ -18,6 +18,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>(null!);
 
+/** Compte d'un jeton de session (contenu du JWT, sans vérification : seulement pour comparer deux jetons) */
+function sessionUserId(tok: string | null): string | null {
+  if (!tok) return null;
+  try {
+    const p = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof p.userId === 'string' ? p.userId : tok;
+  } catch { return tok; }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -71,9 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // retour sur l'onglet par sécurité (un événement manqué pendant la mise en veille).
   useEffect(() => {
     if (isDemo()) return;
+    // Comparé par compte, pas par jeton : le jeton est renouvelé chaque jour (session glissante) sans changer de compte
     const check = () => {
-      const stored = localStorage.getItem('estelle_token');
-      if (stored !== token && (stored || token)) window.location.reload();
+      if (sessionUserId(localStorage.getItem('estelle_token')) !== sessionUserId(token)) window.location.reload();
     };
     const onStorage = (e: StorageEvent) => { if (e.key === 'estelle_token' || e.key === null) check(); };
     const onVisible = () => { if (document.visibilityState === 'visible') check(); };

@@ -12,11 +12,19 @@ const account: Dict['account'] = {
   password: {
     title: 'Mein Passwort ändern',
     mismatch: 'Die Passwörter stimmen nicht überein',
-    changed: 'Passwort erfolgreich geändert ✓',
+    changed: "Passwort geändert ✓ Deine anderen Geräte wurden abgemeldet.",
     current: 'Aktuelles Passwort',
     new: 'Neues Passwort',
     confirmNew: 'Neues Passwort bestätigen',
     changing: 'Wird geändert…',
+  },
+  sessions: {
+    button: "Auf allen Geräten abmelden",
+    hint: "Handy verloren oder gestohlen? Beende alle Sitzungen ausser dieser.",
+    confirm: "Alle deine anderen Geräte (Handys, Tablets, Computer) werden abgemeldet und erhalten keine Benachrichtigungen mehr. Hier bleibst du angemeldet.",
+    go: "Andere Geräte abmelden",
+    done: "Erledigt: Deine anderen Geräte sind abgemeldet ✓",
+    passwordTip: "Falls jemand dein Passwort kennt, ändere es auch.",
   },
   delete: {
     title: 'Mein Konto löschen',

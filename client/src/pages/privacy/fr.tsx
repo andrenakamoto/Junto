@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 17 novembre 2026',
+  version: 'Version du 18 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -88,7 +88,7 @@ const fr: PrivacyText = {
         <li><strong>Matériel</strong> (inventaire d'un Cercle ou d'une Organisation, fonction à activer dans un Plan) : les objets et leur rangement ; pour chaque réservation, qui a pris le matériel et quand, et son état au retour (avec une remarque). Gardé avec l'inventaire, même après la fin du Plan, pour savoir qui l'a encore ; ton nom est retiré si tu supprimes ton compte.</li>
         <li><strong>Fournisseurs</strong> (fonction à activer dans un Plan) : les coordonnées des fournisseurs ajoutés par l'équipe (nom, personne de contact, téléphone, email, site, adresse, notes) sont gardées dans le carnet du Cercle tant que le Cercle existe, ou jusqu'à ce qu'un organisateur les supprime du carnet. Le suivi propre à un Plan (état, montants, notes, commentaires chiffrés, documents comme les devis et contrats) est effacé avec le Plan ; seule une ligne d'historique (nom de l'événement, date, état final et total) reste dans le carnet. Les montants et les documents ne sont visibles que par les organisateurs, sauf si un organisateur choisit de les montrer à tous les participants du Plan.</li>
         <li><strong>Données techniques</strong> : ton statut en ligne dans tes Cercles, ta session de
-          connexion (conservée dans ton navigateur), la date de ta dernière utilisation d'EvLY (à
+          connexion (conservée dans ton navigateur ou ton app, valable 30 jours après ta dernière utilisation ; « Se déconnecter de tous les appareils », dans Mon profil, ferme toutes les autres), la date de ta dernière utilisation d'EvLY (à
           l'heure près, pour compter les membres actifs), la date à laquelle tu as consulté chaque
           onglet d'un Plan (pour signaler les nouveautés, effacée avec le Plan) et l'adresse IP enregistrée dans les journaux
           du serveur pour la sécurité.</li>

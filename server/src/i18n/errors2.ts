@@ -45,6 +45,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Mode inconnu': ['Unbekannter Modus', 'Modalità sconosciuta', 'Unknown mode'],
   'Montant invalide': ['Ungültiger Betrag', 'Importo non valido', 'Invalid amount'],
   'Mot de passe actuel incorrect': ['Aktuelles Passwort falsch', 'Password attuale errata', 'Current password incorrect'],
+  'Session expirée': ['Sitzung abgelaufen', 'Sessione scaduta', 'Session expired'],
   'Mot de passe incorrect': ['Falsches Passwort', 'Password errata', 'Incorrect password'],
   'Mots : 100 au maximum, 40 caractères chacun': ['Wörter: höchstens 100, je 40 Zeichen', 'Parole: al massimo 100, 40 caratteri ciascuna', 'Words: 100 at most, 40 characters each'],
   'Niveaux invalides': ['Ungültige Stufen', 'Livelli non validi', 'Invalid levels'],

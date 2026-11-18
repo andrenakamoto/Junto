@@ -7,7 +7,10 @@ export function getSocket(token: string): Socket {
   // Démo sans compte : faux temps réel en mémoire (lib/demo.ts)
   if (isDemo()) return demoSocket as unknown as Socket;
   if (!socket) {
-    socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001', { auth: { token } });
+    // Jeton relu à chaque (re)connexion : il est renouvelé chaque jour (session glissante)
+    socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001', {
+      auth: (cb) => cb({ token: localStorage.getItem('estelle_token') || token }),
+    });
   }
   return socket;
 }

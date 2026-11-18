@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight, Network } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight, Network, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -61,6 +61,7 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState<string | null>(null);
   const [resetDone, setResetDone] = useState<{ id: string; ok: boolean; message: string } | null>(null);
   const [editingPseudoId, setEditingPseudoId] = useState<string | null>(null);
   const [pseudoInput, setPseudoInput] = useState('');
@@ -170,6 +171,18 @@ export function AdminPage() {
       setEmailMsg({ id, ok: false, text: err.response?.data?.error || 'Envoi impossible' });
     }
     setTimeout(() => setEmailMsg(null), 6000);
+  }
+
+  // Téléphone perdu, la personne ne peut plus se connecter : fermer toutes ses sessions (serveur lib/sessions.ts)
+  async function handleLogoutEverywhere(id: string) {
+    setConfirmLogout(null);
+    try {
+      await api.post(`/admin/users/${id}/logout-everywhere`);
+      setResetDone({ id, ok: true, message: 'Tous les appareils sont déconnectés ✓' });
+    } catch (err: any) {
+      setResetDone({ id, ok: false, message: err.response?.data?.error || 'Impossible' });
+    }
+    setTimeout(() => setResetDone(null), 4000);
   }
 
   async function handleResetPassword(id: string) {
@@ -491,6 +504,12 @@ export function AdminPage() {
                           <button onClick={() => handleResetPassword(u.id)} className={`${btn} bg-amber-500 text-white hover:bg-amber-600`}>Envoyer</button>
                           <button onClick={() => setConfirmReset(null)} className={`${btn} bg-white border border-slate-200 text-slate-600`}>Annuler</button>
                         </div>
+                      ) : confirmLogout === u.id ? (
+                        <div className="flex gap-1.5 items-center">
+                          <span className="text-xs text-amber-700 font-medium">Déconnecter tous ses appareils ?</span>
+                          <button onClick={() => handleLogoutEverywhere(u.id)} className={`${btn} bg-amber-500 text-white hover:bg-amber-600`}>Déconnecter</button>
+                          <button onClick={() => setConfirmLogout(null)} className={`${btn} bg-white border border-slate-200 text-slate-600`}>Annuler</button>
+                        </div>
                       ) : confirmDelete === u.id ? (
                         <div className="flex gap-1.5 items-center">
                           <span className="text-xs text-red-700 font-medium">Supprimer définitivement ce compte ?</span>
@@ -502,6 +521,8 @@ export function AdminPage() {
                           className={`${btn} text-slate-600 hover:text-indigo-700 hover:bg-indigo-50`}><AtSign size={13} />Email</button>
                         <button onClick={() => setConfirmReset(u.id)} title="Envoyer un lien de réinitialisation du mot de passe"
                           className={`${btn} text-slate-600 hover:text-amber-700 hover:bg-amber-50`}><KeyRound size={13} />Mot de passe</button>
+                        <button onClick={() => setConfirmLogout(u.id)} title="Téléphone perdu : fermer toutes les sessions de ce compte"
+                          className={`${btn} text-slate-600 hover:text-amber-700 hover:bg-amber-50`}><LogOut size={13} />Appareils</button>
                         <button onClick={() => setConfirmDelete(u.id)} title="Supprimer définitivement"
                           className={`${btn} text-slate-500 hover:text-red-700 hover:bg-red-50`}><Trash2 size={13} />Supprimer</button>
                       </>)}

@@ -87,6 +87,8 @@ const corsOptions = {
     else cb(new Error(`CORS bloqué: ${origin}`));
   },
   credentials: true,
+  // Session glissante : le client lit le jeton renouvelé (lib/sessionToken.ts)
+  exposedHeaders: ['X-Session-Token'],
 };
 
 const app = express();

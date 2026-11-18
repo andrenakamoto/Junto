@@ -20,18 +20,14 @@ import { absorbLightUser, readLightUser } from '../lib/lightGuest';
 import { countFunnel, countSourceSignup } from '../lib/funnel';
 import { cancelEmailChange, confirmEmailChange, requestEmailChange, resendEmailChange } from '../lib/emailChange';
 
+import { makeToken } from '../lib/sessionToken';
+import { revokeAllSessions } from '../lib/sessions';
+
 const router = Router();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const CURRENT_TERMS_VERSION = 5;
 
-function makeToken(user: { id: string; pseudo: string; isAdmin: boolean }) {
-  return jwt.sign(
-    { userId: user.id, pseudo: user.pseudo, isAdmin: user.isAdmin },
-    process.env.JWT_SECRET!,
-    { expiresIn: '7d' }
-  );
-}
 
 function safeUser(user: {
   id: string; pseudo: string; status: string; isAdmin: boolean;
@@ -433,7 +429,9 @@ router.post('/reset-password', async (req, res) => {
       where: { id: user.id },
       data: { password: hashed, resetPasswordToken: null, resetPasswordExpires: null },
     });
-    res.json({ token: makeToken(user), user: safeUser(user) });
+    // Nouveau mot de passe : les autres appareils sont déconnectés (lib/sessions.ts)
+    const sessionVersion = await revokeAllSessions(req.app.get('io'), user.id);
+    res.json({ token: makeToken({ ...user, sessionVersion }), user: safeUser(user) });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -556,7 +554,21 @@ router.put('/change-password', requireAuth, async (req: AuthRequest, res) => {
     }
     const hashed = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
-    res.json({ ok: true });
+    // Les autres appareils sont déconnectés ; celui-ci reçoit un jeton neuf (les apps ≤ 1.0.58 l'ignorent : reconnexion)
+    const sessionVersion = await revokeAllSessions(req.app.get('io'), user.id);
+    res.json({ ok: true, token: makeToken({ ...user, sessionVersion }) });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// « Se déconnecter de tous les appareils » (téléphone perdu, lib/sessions.ts) : l'appareil qui le demande reste connecté
+router.post('/logout-everywhere', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    const sessionVersion = await revokeAllSessions(req.app.get('io'), user.id);
+    res.json({ ok: true, token: makeToken({ ...user, sessionVersion }) });
   } catch {
     res.status(500).json({ error: 'Erreur serveur' });
   }

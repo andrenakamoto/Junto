@@ -560,6 +560,9 @@ const groups: Group[] = [
             see your first name and username, never your last name (except in the minutes of an assembly).</P>
           <P><strong>Language</strong>: EvLY is available in French, German, Italian and English. Change it in{' '}
             <strong>My profile</strong>; emails and notifications follow your language.</P>
+          <P><strong>Lost your phone?</strong> On another device, open <strong>My profile</strong> →{' '}
+            “Sign out of all devices”: all your other sessions close and stop receiving notifications. Changing your password
+            (or “Forgot password”) signs them out too. Otherwise a session stays open for 30 days after you last use it.</P>
           <P>EvLY is also available as an <strong>iPhone and Android app</strong>, with notifications on your phone.
             Everything updates live; a banner offers to reload when a new version is online.</P>
         </>,

@@ -2495,7 +2495,19 @@ son Plan juste après avoir accepté l'invitation).
   connecter avec un autre compte ou se déconnecter dans un onglet **recharge les autres** (événement `storage`, et vérification au retour
   sur l'onglet) : avant, un onglet affichait encore l'ancien compte en appelant le serveur avec le nouveau jeton. Pour tester deux comptes
   en même temps : fenêtre privée ou autre navigateur.
-- **Admin vérifié en base** à chaque requête (`middleware/admin.ts`), pas d'après le jeton (7 jours).
+- **Admin vérifié en base** à chaque requête (`middleware/admin.ts`), pas d'après le jeton.
+- **Sessions** (2026-11-18, `lib/sessionToken.ts`, `lib/sessions.ts`, migration `20261205100000_session_version`) : jeton de **30 jours,
+  glissant** — `requireAuth` renvoie un jeton neuf dans l'en-tête **`X-Session-Token`** (exposé par CORS) dès que le jeton a plus d'un jour ;
+  `services/api.ts` le garde s'il remplace celui qui a été envoyé. Avant : 7 jours sans renouvellement. **`User.sessionVersion`** écrit dans le
+  jeton (`sv`, absent = 0) et vérifié par `requireAuth` et le socket (`isSessionCurrent`, cache mémoire 5 min, mis à jour aussitôt par
+  `revokeAllSessions`). L'augmenter (`revokeAllSessions` : jetons refusés, PushToken du compte effacés, sockets coupés) : POST
+  `/auth/logout-everywhere` (« Se déconnecter de tous les appareils » de « Mon profil », l'appareil garde sa session avec le jeton renvoyé),
+  changement et réinitialisation du mot de passe, POST `/admin/users/:id/logout-everywhere` (bouton « Appareils » du panneau admin). Un 401
+  de `requireAuth` porte `code: 'SESSION'` : le client efface le jeton et va sur `/auth` (`lib/session.ts`). AuthContext compare les onglets
+  **par compte** (`sessionUserId`), pas par jeton (sinon chaque renouvellement rechargeait les autres onglets) ; le socket relit le jeton à
+  chaque reconnexion. Les apps ≤ 1.0.58 ignorent le jeton renvoyé par le changement de mot de passe (reconnexion).
+- **Ouverture des apps** (2026-11-18) : `Home` d'`App.tsx` envoie une personne connectée vers `/dashboard`, dans les apps aussi. Du 17 au 18
+  novembre (1.0.58), les apps allaient toujours sur `/auth` : chaque relance affichait la connexion alors que la session était valable.
 - **Invitations par email / SMS** (`routes/invitations.ts`) : le serveur fabrique le lien et le texte
   à partir de `{ circleId | planId, guest }` (forme ancienne `{ circleCode, joinLink }` encore acceptée
   pour les apps installées, dont seuls les identifiants sont repris), expéditeur membre obligatoire,

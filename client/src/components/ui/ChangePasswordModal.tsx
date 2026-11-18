@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { KeyRound } from 'lucide-react';
 import { Modal } from './Modal';
+import { replaceSessionToken } from '../../lib/session';
 import api from '../../services/api';
 import { t } from '../../i18n';
 
@@ -25,7 +26,9 @@ export function ChangePasswordModal({ onClose }: Props) {
     setLoading(true);
     setError('');
     try {
-      await api.put('/auth/change-password', { currentPassword, newPassword });
+      const res = await api.put('/auth/change-password', { currentPassword, newPassword });
+      // Les autres appareils sont déconnectés ; celui-ci garde sa session avec le jeton neuf
+      replaceSessionToken(res.data?.token);
       setSuccess(true);
       setTimeout(onClose, 1500);
     } catch (err: any) {

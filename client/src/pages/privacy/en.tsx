@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 17 November 2026',
+  version: 'Version of 18 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -77,8 +77,7 @@ const en: PrivacyText = {
           Plan’s creator when the assembly closes.</li>
         <li><strong>Equipment</strong> (a Circle’s or an Organisation’s inventory, a feature turned on in a Plan): the items and where they are stored; for each booking, who took the equipment and when, and its condition on return (with a note). Kept with the inventory, even after the Plan ends, to know who still has it; your name is removed if you delete your account.</li>
         <li><strong>Suppliers</strong> (a feature turned on in a Plan): the contact details of suppliers added by the team (name, contact person, phone, email, website, address, notes) are kept in the Circle's supplier book for as long as the Circle exists, or until an organiser deletes them from the book. What belongs to a single Plan (status, amounts, notes, encrypted comments, documents such as quotes and contracts) is deleted with the Plan; only a history line (event name, date, final status and total) stays in the book. Amounts and documents are only visible to the organisers, unless an organiser chooses to show them to all of the Plan’s participants.</li>
-        <li><strong>Technical data</strong>: your online status in your Circles, your login session (kept in your
-          browser), the date you last used EvLY (to the hour, to count active members), the date you viewed each tab of a
+        <li><strong>Technical data</strong>: your online status in your Circles, your login session (kept in your browser or app, valid for 30 days after you last use it; “Sign out of all devices”, in My profile, closes all the others), the date you last used EvLY (to the hour, to count active members), the date you viewed each tab of a
           Plan (to flag what’s new, erased with the Plan) and the IP address recorded in the server logs for
           security.</li>
         <li><strong>Android and iPhone app notifications</strong>: if you allow them, your phone’s notification

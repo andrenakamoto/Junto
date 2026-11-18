@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, Mail, Trash2 } from 'lucide-react';
+import { KeyRound, LogOut, Mail, Trash2 } from 'lucide-react';
+import { replaceSessionToken } from '../../lib/session';
+import { registerPush } from '../../lib/push';
 import { DeleteAccountModal } from './DeleteAccountModal';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { Modal } from './Modal';
@@ -75,6 +77,7 @@ export function ProfileModal({ onClose }: Props) {
             <KeyRound size={16} className="text-slate-400" />{t('circle.sidebar.password')}
           </button>
         )}
+        <SessionsSection />
         <BlockedSection />
         {error && <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <div className="flex gap-2 justify-end pt-1">
@@ -260,6 +263,53 @@ function BlockedSection() {
         ))}
       </ul>
       <p className="text-xs text-slate-400 mt-1.5">{t('account.profile.blockedHint')}</p>
+    </div>
+  );
+}
+
+// « Se déconnecter de tous les appareils » (téléphone perdu, serveur lib/sessions.ts) : cet appareil reste connecté
+function SessionsSection() {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+
+  async function run() {
+    setBusy(true); setError('');
+    try {
+      const res = await api.post('/auth/logout-everywhere');
+      replaceSessionToken(res.data?.token);
+      // Les notifications de tous les téléphones ont été retirées : celui-ci se réinscrit
+      registerPush();
+      setDone(true); setConfirming(false);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || t('common.error'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200 px-3 py-2.5 space-y-2">
+      {!confirming ? (
+        <button type="button" onClick={() => { setConfirming(true); setDone(false); }}
+          className="w-full flex items-center gap-2 text-sm font-medium text-slate-700 text-left">
+          <LogOut size={16} className="text-slate-400 shrink-0" />{t('account.sessions.button')}
+        </button>
+      ) : (
+        <p className="text-sm text-slate-700">{t('account.sessions.confirm')}</p>
+      )}
+      {!confirming && !done && <p className="text-xs text-slate-500">{t('account.sessions.hint')}</p>}
+      {confirming && (
+        <div className="flex gap-2 justify-end">
+          <Button type="button" variant="ghost" onClick={() => setConfirming(false)} disabled={busy}>{t('common.cancel')}</Button>
+          <Button type="button" onClick={run} disabled={busy}>{busy ? t('common.saving') : t('account.sessions.go')}</Button>
+        </div>
+      )}
+      {done && (
+        <p className="text-xs text-emerald-700">{t('account.sessions.done')} {t('account.sessions.passwordTip')}</p>
+      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }

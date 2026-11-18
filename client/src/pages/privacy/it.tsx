@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 17 novembre 2026',
+  version: 'Versione del 18 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -80,8 +80,7 @@ const it: PrivacyText = {
           creatore del Plan alla chiusura dell’assemblea.</li>
         <li><strong>Materiale</strong> (inventario di un Cerchio o di un’Organizzazione, funzione da attivare in un Plan): gli oggetti e dove sono riposti; per ogni prenotazione, chi ha preso il materiale e quando, e il suo stato alla restituzione (con una nota). Conservato con l’inventario, anche dopo la fine del Plan, per sapere chi lo ha ancora; il tuo nome viene tolto se elimini il tuo account.</li>
         <li><strong>Fornitori</strong> (funzione da attivare in un Plan): i contatti dei fornitori aggiunti dalla squadra (nome, persona di contatto, telefono, email, sito, indirizzo, note) restano nella rubrica del Cerchio finché il Cerchio esiste, o finché un organizzatore non li elimina dalla rubrica. Il seguito proprio di un Plan (stato, importi, note, commenti cifrati, documenti come preventivi e contratti) viene cancellato con il Plan; nella rubrica resta solo una riga di cronologia (nome dell'evento, data, stato finale e totale). Importi e documenti sono visibili solo agli organizzatori, a meno che un organizzatore scelga di mostrarli a tutti i partecipanti del Plan.</li>
-        <li><strong>Dati tecnici</strong>: il tuo stato online nei tuoi Cerchi, la tua sessione di accesso (conservata nel
-          browser), la data del tuo ultimo utilizzo di EvLY (all’ora, per contare i membri attivi), la data in cui hai
+        <li><strong>Dati tecnici</strong>: il tuo stato online nei tuoi Cerchi, la tua sessione di accesso (conservata nel browser o nell’app, valida 30 giorni dopo l’ultimo utilizzo; «Esci da tutti i dispositivi», in Il mio profilo, chiude tutte le altre), la data del tuo ultimo utilizzo di EvLY (all’ora, per contare i membri attivi), la data in cui hai
           consultato ogni scheda di un Plan (per segnalare le novità, cancellata con il Plan) e l’indirizzo IP registrato
           nei log del server per la sicurezza.</li>
         <li><strong>Notifiche delle app Android e iPhone</strong>: se le autorizzi, l’identificativo di notifica del tuo

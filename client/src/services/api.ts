@@ -3,7 +3,8 @@ import { demoAdapter, isDemo } from '../lib/demo';
 import { currentLang } from '../i18n';
 import { markOffline, markOnline } from '../lib/connection';
 import { endPending, isTracked, startPending } from '../lib/pending';
-import { cacheGet, cacheKey, cachePut, isCacheable, noteServedFromCache, resetServedFromCache } from '../lib/offlineCache';
+import { endSession } from '../lib/session';
+import { clearOfflineCache, cacheGet, cacheKey, cachePut, isCacheable, noteServedFromCache, resetServedFromCache } from '../lib/offlineCache';
 import { t } from '../i18n';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api' });
@@ -33,6 +34,13 @@ api.interceptors.response.use(
     if ((res.config as any)?._tracked) endPending();
     if (!isDemo()) {
       markOnline(); resetServedFromCache();
+      // Session glissante (serveur lib/sessionToken.ts) : jeton renouvelé, gardé seulement s'il remplace celui qui a été
+      // envoyé (pas après une déconnexion ou un changement de compte pendant la requête)
+      const renewed = res.headers?.['x-session-token'];
+      const sent = String(res.config.headers?.Authorization ?? '').replace(/^Bearer /, '');
+      if (typeof renewed === 'string' && renewed && sent && localStorage.getItem('estelle_token') === sent) {
+        try { localStorage.setItem('estelle_token', renewed); } catch { /* stockage plein : l'ancien jeton reste valable */ }
+      }
       const c = res.config;
       if (res.status === 200 && localStorage.getItem('estelle_token') && isCacheable(c.method, c.url, c.params, c.responseType)) {
         const key = cacheKey(c.url!, c.params);
@@ -44,7 +52,17 @@ api.interceptors.response.use(
   async (err) => {
     if (err?.config?._tracked) endPending();
     if (isDemo() || axios.isCancel(err)) return Promise.reject(err);
-    if (err?.response) { markOnline(); return Promise.reject(err); }
+    if (err?.response) {
+      markOnline();
+      // Session fermée ailleurs (« Se déconnecter de tous les appareils », mot de passe changé) : retour à la connexion,
+      // seulement si le jeton refusé est encore celui de l'appareil
+      const sent = String(err.config?.headers?.Authorization ?? '').replace(/^Bearer /, '');
+      if (err.response.status === 401 && err.response.data?.code === 'SESSION' && sent && localStorage.getItem('estelle_token') === sent) {
+        clearOfflineCache();
+        endSession();
+      }
+      return Promise.reject(err);
+    }
     markOffline();
     const c = err?.config;
     if (c && isCacheable(c.method, c.url, c.params, c.responseType)) {

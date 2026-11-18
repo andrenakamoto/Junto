@@ -12,11 +12,19 @@ const account: Dict['account'] = {
   password: {
     title: 'Change my password',
     mismatch: 'The passwords don’t match',
-    changed: 'Password changed successfully ✓',
+    changed: "Password changed ✓ Your other devices have been signed out.",
     current: 'Current password',
     new: 'New password',
     confirmNew: 'Confirm the new password',
     changing: 'Changing…',
+  },
+  sessions: {
+    button: "Sign out of all devices",
+    hint: "Lost or stolen phone? Close all your sessions except this one.",
+    confirm: "All your other devices (phones, tablets, computers) will be signed out and will no longer receive notifications. You stay signed in here.",
+    go: "Sign out other devices",
+    done: "Done: your other devices are signed out ✓",
+    passwordTip: "If someone knows your password, change it too.",
   },
   delete: {
     title: 'Delete my account',

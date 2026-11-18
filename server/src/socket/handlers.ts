@@ -4,6 +4,7 @@ import { isAllowedReaction } from '../lib/reactions';
 import { isPlanEnded } from '../lib/planLifecycle';
 import { escapeHtml } from '../lib/escapeHtml';
 import { verifySessionToken } from '../middleware/auth';
+import { isSessionCurrent } from '../lib/sessions';
 import prisma from '../lib/prisma';
 import { parseLocale } from '../lib/i18n';
 import { mail } from '../lib/emailText';
@@ -31,10 +32,14 @@ export function setupSocketHandlers(io: Server) {
     const payload = verifySessionToken(token);
     if (!payload) return next(new Error('Token invalide'));
     if (payload.light) return next(new Error('Non authentifié')); // réponse sans compte : pas de temps réel
-    socket.data.userId = payload.userId;
-    socket.data.pseudo = payload.pseudo;
-    touchUser(payload.userId);
-    next();
+    // Sessions fermées sur tous les appareils (lib/sessions.ts)
+    isSessionCurrent(payload.userId, payload.sv).then(ok => {
+      if (!ok) return next(new Error('Token invalide'));
+      socket.data.userId = payload.userId;
+      socket.data.pseudo = payload.pseudo;
+      touchUser(payload.userId);
+      next();
+    }, () => next(new Error('Erreur serveur')));
   });
 
   io.on('connection', (socket: Socket) => {

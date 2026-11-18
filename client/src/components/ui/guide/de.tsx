@@ -577,6 +577,10 @@ const groups: Group[] = [
             Versammlung).</P>
           <P><strong>Sprache</strong>: EvLY gibt es auf Französisch, Deutsch, Italienisch und Englisch. Ändere sie unter{' '}
             <strong>Mein Profil</strong>; E-Mails und Benachrichtigungen folgen deiner Sprache.</P>
+          <P><strong>Handy verloren?</strong> Öffne auf einem anderen Gerät <strong>Mein Profil</strong> →{' '}
+            «Auf allen Geräten abmelden»: Alle anderen Sitzungen werden beendet und erhalten keine Benachrichtigungen mehr.
+            Auch eine Passwortänderung (oder «Passwort vergessen») meldet sie ab. Sonst bleibt eine Sitzung 30 Tage nach
+            deiner letzten Nutzung offen.</P>
           <P>EvLY gibt es auch als <strong>App für iPhone und Android</strong>, mit Benachrichtigungen auf dem Handy. Alles
             aktualisiert sich live; ein Band schlägt das Neuladen vor, wenn eine neue Version online ist.</P>
         </>,

@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 17. November 2026',
+  version: 'Fassung vom 18. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -84,8 +84,7 @@ const de: PrivacyText = {
           Versammlung per E-Mail an den Ersteller des Plans gesendet.</li>
         <li><strong>Material</strong> (Inventar eines Kreises oder einer Organisation, Funktion, die in einem Plan aktiviert wird): die Gegenstände und ihr Aufbewahrungsort; bei jeder Reservierung, wer das Material geholt hat und wann, und sein Zustand bei der Rückgabe (mit einer Bemerkung). Mit dem Inventar aufbewahrt, auch nach dem Ende des Plans, um zu wissen, wer es noch hat; dein Name wird entfernt, wenn du dein Konto löschst.</li>
         <li><strong>Lieferanten</strong> (Funktion, die in einem Plan aktiviert wird): Die Kontaktdaten der vom Team erfassten Lieferanten (Name, Kontaktperson, Telefon, E-Mail, Website, Adresse, Notizen) bleiben im Adressbuch des Kreises, solange der Kreis besteht oder bis das Organisationsteam sie daraus löscht. Die Angaben zu einem Plan (Stand, Beträge, Notizen, verschlüsselte Kommentare, Dokumente wie Offerten und Verträge) werden mit dem Plan gelöscht; im Adressbuch bleibt nur eine Verlaufszeile (Name des Anlasses, Datum, letzter Stand und Total). Beträge und Dokumente sieht nur das Organisationsteam, ausser es entscheidet, sie allen Teilnehmenden des Plans zu zeigen.</li>
-        <li><strong>Technische Daten</strong>: dein Online-Status in deinen Kreisen, deine Anmeldesitzung (im Browser
-          gespeichert), das Datum deiner letzten Nutzung von EvLY (auf die Stunde genau, um aktive Mitglieder zu zählen),
+        <li><strong>Technische Daten</strong>: dein Online-Status in deinen Kreisen, deine Anmeldesitzung (im Browser oder in der App gespeichert, gültig 30 Tage nach deiner letzten Nutzung; «Auf allen Geräten abmelden» unter Mein Profil beendet alle anderen), das Datum deiner letzten Nutzung von EvLY (auf die Stunde genau, um aktive Mitglieder zu zählen),
           das Datum, an dem du jeden Bereich eines Plans angesehen hast (um Neues zu markieren, gelöscht mit dem Plan),
           und die IP-Adresse, die aus Sicherheitsgründen in den Serverprotokollen gespeichert wird.</li>
         <li><strong>Benachrichtigungen der Android- und iPhone-Apps</strong>: Wenn du sie erlaubst, die

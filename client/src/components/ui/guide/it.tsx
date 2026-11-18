@@ -567,6 +567,10 @@ const groups: Group[] = [
             vedono il tuo nome e il tuo pseudonimo, mai il tuo cognome (tranne nel verbale di un’assemblea).</P>
           <P><strong>Lingua</strong>: EvLY esiste in francese, tedesco, italiano e inglese. Cambiala in{' '}
             <strong>Il mio profilo</strong>; email e notifiche seguono la tua lingua.</P>
+          <P><strong>Telefono perso?</strong> Da un altro dispositivo apri <strong>Il mio profilo</strong> →{' '}
+            «Esci da tutti i dispositivi»: tutte le altre sessioni si chiudono e non ricevono più notifiche. Anche cambiare la
+            password (o «Password dimenticata») le disconnette. Altrimenti una sessione resta aperta 30 giorni dopo l'ultimo
+            utilizzo.</P>
           <P>EvLY esiste anche come <strong>app per iPhone e Android</strong>, con notifiche sul telefono. Tutto si aggiorna
             in diretta; una fascia propone di ricaricare quando è online una nuova versione.</P>
         </>,

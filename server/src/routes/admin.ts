@@ -1,3 +1,4 @@
+import { revokeAllSessions } from '../lib/sessions';
 import { Router } from 'express';
 import { storageStats } from '../lib/storageStats';
 import { circleMessageInclude } from '../lib/circleChat';
@@ -133,6 +134,18 @@ router.put('/users/:id/email', async (req: AuthRequest, res) => {
 });
 
 // Delete a user permanently
+// Secours : déconnecter tous les appareils d'un compte (téléphone perdu, la personne ne peut plus se connecter)
+router.post('/users/:id/logout-everywhere', async (req: AuthRequest, res) => {
+  try {
+    const exists = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true } });
+    if (!exists) { res.status(404).json({ error: 'Utilisateur introuvable' }); return; }
+    await revokeAllSessions(req.app.get('io'), exists.id);
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 router.delete('/users/:id', async (req: AuthRequest, res) => {
   try {
     // Cercles et Plans créés par l'utilisateur transférés à d'autres membres, pas effacés
