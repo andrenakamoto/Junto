@@ -54,9 +54,11 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 // Accueil (2026-11-17) : site d'EvLY sur le web ; les apps ouvrent la connexion, une personne connectée va à ses Plans
 function Home() {
   const { user, loading } = useAuth();
-  if (Capacitor.isNativePlatform()) return <Navigate to="/auth" replace />;
   if (loading) return null;
+  // Connecté : le tableau de bord, dans les apps comme sur le site. (Le 17 novembre, les apps allaient toujours sur /auth :
+  // chaque relance de l'app affichait la connexion alors que la session était encore valable.)
   if (user) return <Navigate to="/dashboard" replace />;
+  if (Capacitor.isNativePlatform()) return <Navigate to="/auth" replace />;
   return <LandingPage />;
 }
 
