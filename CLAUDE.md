@@ -580,6 +580,8 @@ Conséquences pratiques :
     **Version 1.0.58** (2026-11-17) : Android `versionCode` 60 (`evly-1.0.58-(60).aab`), iOS build 65 envoyé — cloche détaillée et changements
     entourés d'orange dans les Plans, adresse des événements, restaurants par spécialité (clients `v=5`), idées de sorties en 5 groupes avec filtres
     rapides, carte qui garde la sélection.
+    **Version 1.0.59** (2026-11-18) : Android `versionCode` 61 (`evly-1.0.59-(61).aab`), iOS build 66 envoyé — l'app rouvre sur les Cercles
+    (la 1.0.58 affichait la connexion à chaque relance), session de 30 jours renouvelée, « Se déconnecter de tous les appareils ».
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
