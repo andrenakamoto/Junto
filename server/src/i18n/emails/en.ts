@@ -121,6 +121,17 @@ const en: EmailDict = {
     text: '<strong>{who}</strong> mentioned you in the Plan <strong>“{plan}”</strong>.',
     button: 'View the message',
   },
+  orgAdmin: {
+    hello: "Hi {name},",
+    button: "Open the Organisation",
+    help: "A question or a deadlock? Write to info@evly.ch.",
+    namedSubject: "{who} made {target} an admin of “{org}”",
+    namedText: "<strong>{who}</strong> made <strong>{target}</strong> an admin of the Organisation <strong>“{org}”</strong>.",
+    namedHint: "If you didn’t expect this, talk to the other admins. An admin can never remove another one alone: it takes a majority of the admins, and admins appointed less than 7 days ago don’t vote.",
+    removalSubject: "Request to remove you as an admin of “{org}”",
+    removalText: "<strong>{who}</strong> is asking for you to no longer be an admin of the Organisation <strong>“{org}”</strong>.",
+    removalHint: "You are only removed if a majority of the other admins agree (at least 2 votes). Without a majority, the request expires after 14 days. You can see it and the votes in “Manage” › “People”.",
+  },
   joinRefused: {
     subject: "Your request for “{circle}” wasn’t accepted",
     hello: "Hello {name},",

@@ -491,6 +491,12 @@ const groups: Group[] = [
           <P><strong>Discussione</strong>: nelle impostazioni di ogni Cerchio, spunta i ruoli che possono scrivere. I responsabili e la direzione scrivono sempre.</P></>,
       },
       {
+        id: 'org-admins', emoji: '🛡️', title: 'Amministratori, direzione e uscite', summary: 'Chi gestisce, e come andarsene',
+        body: <><P><strong>Amministratori</strong>: gestiscono ruoli, diritti e direzione (rotella › scheda <strong>Persone</strong>). Un amministratore ne nomina un altro da solo, e gli altri vengono avvisati. Per <strong>rimuoverne</strong> uno serve la maggioranza degli altri amministratori, con almeno 2 voti; chi è stato nominato da meno di 7 giorni non vota, e la persona interessata viene avvisata. Senza maggioranza, la richiesta scade dopo 14 giorni. La cronologia conserva ogni modifica. In caso di blocco, scrivi a info@evly.ch.</P>
+          <P><strong>Direzione</strong>: un amministratore vi aggiunge o toglie qualcuno. Il gruppo della direzione è un <strong>gruppo automatico</strong>: non si può lasciare direttamente, si verrebbe subito riaggiunti. Per uscirne: rotella › <strong>Il mio posto nell’Organizzazione</strong> › «Lascia la direzione».</P>
+          <P><strong>Andarsene</strong>: «Lascia l’Organizzazione» (menu ⋯ di uno dei suoi Cerchi, o Il mio posto nell’Organizzazione) fa uscire da tutti i suoi Cerchi. Un amministratore può anche togliere qualcuno dall’Organizzazione nella scheda Persone, ma mai un altro amministratore senza voto. L’ultimo amministratore deve prima nominarne un altro.</P></>,
+      },
+      {
         id: 'org-pourqui', emoji: '🎯', title: '«Per chi?»', summary: 'Un Plan o un sondaggio per più gruppi',
         body: <><P>Creando un Plan o un sondaggio di date, le persone autorizzate vedono la riga <strong>«Per chi?»</strong>: tutta l’Organizzazione, o alcune squadre, unità e gruppi. Si possono anche scegliere ruoli nelle squadre, per esempio «Arancione + Capo»: i genitori allora non vedono nulla. EvLY indica quante persone saranno coinvolte.</P>
           <P>Chi è in più Cerchi scelti vede il Plan una sola volta e vota una sola volta. Chi arriva più tardi, o cambia ruolo, vede ciò che lo riguarda. Con più Cerchi, l’elenco dei partecipanti è riservato all’organizzazione per impostazione predefinita (modificabile in Regole).</P>

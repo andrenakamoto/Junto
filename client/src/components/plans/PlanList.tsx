@@ -19,7 +19,7 @@ import { CircleCapsules } from './CapsuleTab';
 import { PLAN_KINDS, PlanKind } from '../../lib/planKinds';
 import { AvailabilityPanel } from '../circles/AvailabilityPanel';
 import { DeleteCircleModal } from '../circles/DeleteCircleModal';
-import { LeaveCircleModal } from '../circles/LeaveCircleModal';
+import { LeaveCircleModal, LeaveOrganisationModal } from '../circles/LeaveCircleModal';
 import { InviteModal } from '../circles/InviteModal';
 import { NewCodeModal } from '../circles/NewCodeModal';
 import { CreateCirclePollModal } from '../circles/CreateCirclePollModal';
@@ -70,6 +70,7 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
   const [reunionTitle, setReunionTitle] = useState<string | null>(null);
   const [showDelete, setShowDelete] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
+  const [showLeaveOrg, setShowLeaveOrg] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [summaryPlan, setSummaryPlan] = useState<Plan | null>(null);
@@ -260,6 +261,11 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
                   <button className={menuItem} onClick={() => { setShowMore(false); setShowLeave(true); }}>
                     <LogOut size={15} className="text-slate-400" />{t('circle.planList.leave')}
                   </button>
+                  {circle.organisation && (
+                    <button className={`${menuItem} text-red-600`} onClick={() => { setShowMore(false); setShowLeaveOrg(true); }}>
+                      <LogOut size={15} />{t('org.admins.leaveOrgMenu', { org: circle.organisation.name })}
+                    </button>
+                  )}
                 </div>
               </>
             )}
@@ -485,6 +491,9 @@ export function PlanList({ circle, plans, loading, selectedPlanId, onSelectPlan,
           onClose={() => setShowLeave(false)}
           onLeft={() => { setShowLeave(false); onCircleDeleted(); }}
         />
+      )}
+      {showLeaveOrg && circle.organisation && (
+        <LeaveOrganisationModal organisation={circle.organisation} onClose={() => setShowLeaveOrg(false)} onLeft={() => { setShowLeaveOrg(false); onCircleDeleted(); }} />
       )}
       {summaryPlan && (
         <PlanSummarySheet planId={summaryPlan.id} onClose={() => setSummaryPlan(null)} onOpenTab={tab => { const p = summaryPlan; setSummaryPlan(null); onSelectPlan(p, tab); }} />

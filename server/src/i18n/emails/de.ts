@@ -121,6 +121,17 @@ const de: EmailDict = {
     text: '<strong>{who}</strong> hat dich im Plan <strong>«{plan}»</strong> erwähnt.',
     button: 'Nachricht ansehen',
   },
+  orgAdmin: {
+    hello: "Hallo {name},",
+    button: "Organisation öffnen",
+    help: "Eine Frage oder eine Blockade? Schreib an info@evly.ch.",
+    namedSubject: "{who} hat {target} zum Admin von «{org}» ernannt",
+    namedText: "<strong>{who}</strong> hat <strong>{target}</strong> zum Admin der Organisation <strong>«{org}»</strong> ernannt.",
+    namedHint: "Falls du das nicht erwartet hast, sprich mit den anderen Admins. Ein Admin kann nie allein einen anderen absetzen: Dafür braucht es die Mehrheit der Admins, und wer seit weniger als 7 Tagen Admin ist, stimmt nicht ab.",
+    removalSubject: "Antrag, dich als Admin von «{org}» abzusetzen",
+    removalText: "<strong>{who}</strong> beantragt, dass du nicht mehr Admin der Organisation <strong>«{org}»</strong> bist.",
+    removalHint: "Die Absetzung gilt nur, wenn die Mehrheit der anderen Admins zustimmt (mindestens 2 Stimmen). Ohne Mehrheit verfällt der Antrag nach 14 Tagen. Du siehst ihn und die Stimmen unter «Verwalten» › «Personen».",
+  },
   joinRefused: {
     subject: "Deine Anfrage für «{circle}» wurde nicht angenommen",
     hello: "Hallo {name},",

@@ -175,4 +175,10 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '💶 Solde de « {0} » à payer aujourd’hui': ['💶 Restbetrag für «{0}» heute fällig', '💶 Saldo di «{0}» da pagare oggi', '💶 Balance for “{0}” due today'],
   '💶 Solde de « {0} » à payer demain': ['💶 Restbetrag für «{0}» morgen fällig', '💶 Saldo di «{0}» da pagare domani', '💶 Balance for “{0}” due tomorrow'],
   '💶 Solde de « {0} » à payer d’ici {1} jours': ['💶 Restbetrag für «{0}» in {1} Tagen fällig', '💶 Saldo di «{0}» da pagare entro {1} giorni', '💶 Balance for “{0}” due in {1} days'],
+  // Administrateurs d’une Organisation (routes/orgAdmins.ts)
+  "Tu es maintenant administrateur de l’Organisation": ["Du bist jetzt Admin der Organisation", "Ora sei amministratore dell’Organizzazione", "You’re now an admin of the Organisation"],
+  "{0} a nommé {1} administrateur": ["{0} hat {1} zum Admin ernannt", "{0} ha nominato {1} amministratore", "{0} made {1} an admin"],
+  "{0} demande ton retrait comme administrateur": ["{0} beantragt deine Absetzung als Admin", "{0} chiede la tua rimozione da amministratore", "{0} is asking to remove you as an admin"],
+  "{0} demande le retrait de {1} comme administrateur": ["{0} beantragt die Absetzung von {1} als Admin", "{0} chiede la rimozione di {1} da amministratore", "{0} is asking to remove {1} as an admin"],
+  "Tu n’es plus administrateur de l’Organisation": ["Du bist nicht mehr Admin der Organisation", "Non sei più amministratore dell’Organizzazione", "You’re no longer an admin of the Organisation"],
 };

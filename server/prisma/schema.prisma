@@ -240,6 +240,9 @@ model Organisation {
   roles   OrganisationRole[]
   members OrganisationMember[]
   circles Circle[]
+  // Retrait d'un administrateur par vote des autres, et historique des administrateurs (lib/orgAdmins.ts, 2026-11-20)
+  adminRemovals OrganisationAdminRemoval[]
+  adminLogs     OrganisationAdminLog[]
   // Matériel commun à tous les Cercles de l'Organisation (lib/equipment.ts)
   equipment EquipmentItem[]
 }
@@ -266,6 +269,8 @@ model OrganisationMember {
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Règle les rôles, les droits et la structure
   isAdmin        Boolean      @default(false)
+  // Date de nomination comme administrateur : il ne vote sur un retrait qu'après 7 jours (lib/orgAdmins.ts)
+  adminSince     DateTime?
   isDirection    Boolean      @default(false)
   // Cockpit (2026-11-13) : résumé hebdomadaire par email à la direction et aux administrateurs (désactivable dans le cockpit)
   cockpitDigest       Boolean   @default(true)
@@ -274,6 +279,43 @@ model OrganisationMember {
 
   @@id([organisationId, userId])
   @@index([userId])
+}
+
+// Demande de retrait d'un administrateur (2026-11-20) : jamais seul, il faut la majorité des autres administrateurs
+// (au moins 2 voix, nommés depuis 7 jours). Effacée après 14 jours sans majorité. Personnes référencées par id.
+model OrganisationAdminRemoval {
+  id             String                         @id @default(cuid())
+  organisationId String
+  organisation   Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  targetId       String
+  requestedById  String
+  createdAt      DateTime                       @default(now())
+  votes          OrganisationAdminRemovalVote[]
+
+  @@unique([organisationId, targetId])
+}
+
+model OrganisationAdminRemovalVote {
+  removalId String
+  removal   OrganisationAdminRemoval @relation(fields: [removalId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime                 @default(now())
+
+  @@id([removalId, userId])
+}
+
+// Historique des administrateurs et des retraits (visible des administrateurs) : named, stepped_down, removal_requested,
+// removed, member_removed, left
+model OrganisationAdminLog {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  action         String
+  actorId        String?
+  targetId       String?
+  createdAt      DateTime     @default(now())
+
+  @@index([organisationId, createdAt])
 }
 
 // Sondage pour caler une date (ou autre choix) avant de créer un Plan.

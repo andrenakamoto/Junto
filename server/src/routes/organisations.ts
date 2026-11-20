@@ -75,7 +75,7 @@ router.post('/', async (req: AuthRequest, res) => {
     for (const c of input.circles.filter(x => x.autoCircleRefs.length)) {
       await tx.circle.update({ where: { id: circleIds.get(c.ref)! }, data: { orgAutoCircleIds: refs(c.autoCircleRefs, circleIds) } });
     }
-    await tx.organisationMember.create({ data: { organisationId: organisation.id, userId, isAdmin: true, isDirection: true } });
+    await tx.organisationMember.create({ data: { organisationId: organisation.id, userId, isAdmin: true, adminSince: new Date(), isDirection: true } });
     return { organisation, circleIds: [...circleIds.values()] };
   });
   for (const id of result.circleIds) joinCircleRoom(req.app.get('io'), userId, id);
@@ -115,7 +115,7 @@ router.get('/:id', async (req: AuthRequest, res) => {
   const inCircle = new Set(mine.map(m => m.circleId));
   const canIntegrate = (await orgPermissions(req.userId!, req.params.id)).has('integrate_all');
   const perms = await orgPermissions(req.userId!, req.params.id);
-  res.json({ ...organisation, isAdmin: me.isAdmin, canManagePeople: me.isAdmin || perms.has('manage_members'), canIntegrate, circles: circles.map(c => ({ ...c, isMember: inCircle.has(c.id) })) });
+  res.json({ ...organisation, isAdmin: me.isAdmin, isDirection: me.isDirection, canManagePeople: me.isAdmin || perms.has('manage_members'), canIntegrate, circles: circles.map(c => ({ ...c, isMember: inCircle.has(c.id) })) });
 });
 
 // GET /:id/cockpit — tableau de bord de la direction et des administrateurs (lib/cockpit.ts)

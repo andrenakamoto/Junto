@@ -5,10 +5,12 @@ import { Modal } from '../ui/Modal';
 import api from '../../services/api';
 import { t } from '../../i18n';
 import { compareOrgCircles, ORG_MATRIX_ACTIONS } from '../../lib/organisations';
+import { useAuth } from '../../contexts/AuthContext';
+import { AdminsPanel, MyPlace, PersonAdminActions, useAdminsInfo } from './OrgAdminParts';
 
 interface OrgRole { id: string; name: string; kind: 'direction' | 'responsible' | 'member'; permissions: string[] }
 interface OrgCircle { id: string; name: string; code: string; color: string | null; orgKind: 'unit' | 'team' | 'auto'; orgPosition: number; createdAt: string; isMember: boolean; _count: { members: number } }
-interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; fixedOrder: boolean; isAdmin: boolean; canManagePeople: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
+interface OrgView { id: string; name: string; unitLabel: string | null; teamLabel: string | null; fixedOrder: boolean; isAdmin: boolean; isDirection?: boolean; canManagePeople: boolean; canIntegrate: boolean; roles: OrgRole[]; circles: OrgCircle[] }
 interface CircleMemberRow { userId: string; orgRoleId: string | null; orgIntegrated: boolean; user: { pseudo: string; firstName: string | null } }
 interface PersonRow { userId: string; isAdmin: boolean; isDirection: boolean; user: { pseudo: string; firstName: string | null }; circles: { circleId: string; orgRoleId: string | null }[] }
 
@@ -88,6 +90,7 @@ export function OrganisationModal({ organisationId, onClose, initialTab = 'circl
               </section>
             );
           })}
+          <MyPlace org={view} onChanged={load} onGone={onClose} />
         </div>
       )}
       {view && tab === 'rights' && (
@@ -196,9 +199,11 @@ function PeopleTab({ org, ordered, onChanged, onError }: { org: OrgView; ordered
   const [open, setOpen] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const base = `/organisations/${org.id}`;
+  const { user } = useAuth();
+  const { info, reload: reloadAdmins } = useAdminsInfo(org.id, org.isAdmin);
   const load = useCallback(() => api.get(`${base}/people`).then(r => setPeople(r.data)).catch(onError), [base]);
   useEffect(() => { load(); }, [load]);
-  const done = () => { load(); onChanged(); };
+  const done = () => { load(); reloadAdmins(); onChanged(); };
   const toggleDirection = (p: PersonRow) => api.put(`${base}/members/${p.userId}/direction`, { isDirection: !p.isDirection }).then(done).catch(onError);
   const setRole = (p: PersonRow, circleId: string, roleId: string) => api.put(`${base}/circles/${circleId}/members/${p.userId}/role`, { roleId }).then(done).catch(onError);
   const add = (p: PersonRow, circleId: string) => api.post(`${base}/people/${p.userId}/circles`, { circleId }).then(done).catch(onError);
@@ -231,6 +236,7 @@ function PeopleTab({ org, ordered, onChanged, onError }: { org: OrgView; ordered
                     <button onClick={() => toggleDirection(p)} className={`px-2.5 py-1 rounded-lg border text-xs font-medium ${p.isDirection ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-indigo-50'}`}>{p.isDirection ? t('org.manage.removeDirection') : t('org.manage.makeDirection')}</button>
                   )}
                   {p.isAdmin && <p className="text-xs font-medium text-slate-500">{t('org.manage.admin')}</p>}
+                  {org.isAdmin && <PersonAdminActions organisationId={org.id} person={p} meId={user?.id} info={info} onChanged={done} />}
                   {mine.map(c => {
                     const roleId = p.circles.find(m => m.circleId === c.id)?.orgRoleId ?? '';
                     const current = org.roles.find(r => r.id === roleId);
@@ -263,6 +269,7 @@ function PeopleTab({ org, ordered, onChanged, onError }: { org: OrgView; ordered
           );
         })}
       </div>
+      {org.isAdmin && <AdminsPanel info={info} />}
     </div>
   );
 }

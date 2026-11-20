@@ -121,6 +121,17 @@ const it: EmailDict = {
     text: '<strong>{who}</strong> ti ha menzionato/a nel Plan <strong>«{plan}»</strong>.',
     button: 'Vedi il messaggio',
   },
+  orgAdmin: {
+    hello: "Ciao {name},",
+    button: "Apri l’Organizzazione",
+    help: "Una domanda o un blocco? Scrivi a info@evly.ch.",
+    namedSubject: "{who} ha nominato {target} amministratore di «{org}»",
+    namedText: "<strong>{who}</strong> ha nominato <strong>{target}</strong> amministratore dell’Organizzazione <strong>«{org}»</strong>.",
+    namedHint: "Se non te lo aspettavi, parlane con gli altri amministratori. Un amministratore non può mai rimuoverne un altro da solo: serve la maggioranza degli amministratori, e chi è stato nominato da meno di 7 giorni non vota.",
+    removalSubject: "Richiesta di rimozione dal ruolo di amministratore di «{org}»",
+    removalText: "<strong>{who}</strong> chiede che tu non sia più amministratore dell’Organizzazione <strong>«{org}»</strong>.",
+    removalHint: "La rimozione avviene solo se la maggioranza degli altri amministratori è d’accordo (almeno 2 voti). Senza maggioranza, la richiesta scade dopo 14 giorni. Vedi la richiesta e i voti in «Gestisci» › «Persone».",
+  },
   joinRefused: {
     subject: "La tua richiesta per «{circle}» non è stata accettata",
     hello: "Ciao {name},",

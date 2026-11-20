@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 18 novembre 2026',
+  version: 'Version du 20 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -62,7 +62,7 @@ const fr: PrivacyText = {
         <li><strong>Discussion des Cercles</strong> (si le Cercle l'a activée) : tes messages, photos et réactions, visibles par les
           membres du Cercle. Ils sont chiffrés en base comme ceux des Plans et <strong>effacés automatiquement au bout de 7 jours</strong>,
           photos comprises. Dans les Cercles d'une <strong>Organisation</strong>, les messages sont gardés <strong>3 mois</strong> et les photos <strong>1 mois</strong>.</li>
-        <li><strong>Organisations</strong> (associations à plusieurs niveaux) : les Cercles dont tu fais partie dans l'Organisation et ton rôle dans chacun. L'administration et la direction de l'Organisation voient les membres et leurs rôles, et une personne de la direction peut entrer dans n'importe quel Cercle ; elle apparaît alors dans ses membres et peut lire sa Discussion. Le rôle sert à calculer ce que tu peux faire et ce que tu reçois. La direction et l'administration ont aussi un <strong>cockpit</strong> : les Plans qu'elles voient déjà, les demandes d'adhésion et des <strong>chiffres par équipe</strong> (membres, réponses, activité), sans suivi individuel ; elles peuvent en recevoir un résumé par email chaque lundi. Ces informations sont supprimées quand tu quittes le Cercle, ou avec ton compte.</li>
+        <li><strong>Organisations</strong> (associations à plusieurs niveaux) : les Cercles dont tu fais partie dans l'Organisation et ton rôle dans chacun. L'administration et la direction de l'Organisation voient les membres et leurs rôles, et une personne de la direction peut entrer dans n'importe quel Cercle ; elle apparaît alors dans ses membres et peut lire sa Discussion. Le rôle sert à calculer ce que tu peux faire et ce que tu reçois. La direction et l'administration ont aussi un <strong>cockpit</strong> : les Plans qu'elles voient déjà, les demandes d'adhésion et des <strong>chiffres par équipe</strong> (membres, réponses, activité), sans suivi individuel ; elles peuvent en recevoir un résumé par email chaque lundi. Ces informations sont supprimées quand tu quittes le Cercle, ou avec ton compte. Les nominations et retraits d’administrateurs, ainsi que les départs et retraits de l’Organisation, sont inscrits dans un <strong>historique</strong> visible des administrateurs (qui, quand), gardé tant que l’Organisation existe.</li>
         <li><strong>« Je suis dispo »</strong> (si le Cercle l'a activé) : le moment choisi (maintenant ou ce soir), les étiquettes
           d'activité et le petit mot facultatif, visibles par les membres des Cercles où tu te déclares dispo. Aucune position n'est
           enregistrée. Ces informations sont <strong>effacées automatiquement</strong> à la fin du moment choisi (3 heures, ou 4 h du

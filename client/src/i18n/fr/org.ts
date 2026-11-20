@@ -66,5 +66,42 @@ const org = {
     today: 'aujourd’hui', daysAgo_one: 'il y a {{count}} jour', daysAgo_other: 'il y a {{count}} jours',
   },
   plan: { readOnlyChat: "Ton rôle ne permet pas d’écrire dans ce chat." },
+  // Administrateurs et départs (routes/orgAdmins.ts du serveur, 2026-11-20)
+  admins: {
+      "myPlace": "Ma place dans l’Organisation",
+      "leaveDirection": "Quitter la direction",
+      "leaveDirectionHint": "Tu sortiras du groupe de la direction et des Cercles que tu avais intégrés. Tes équipes ne changent pas.",
+      "stepDown": "Ne plus être administrateur",
+      "stepDownHint": "Tu ne régleras plus les rôles, les droits ni la direction. Il doit toujours rester au moins un administrateur.",
+      "leaveOrg": "Quitter l’Organisation",
+      "leaveOrgHint": "Tu sortiras de tous les Cercles de l’Organisation : équipes, groupes automatiques et Cercles intégrés.",
+      "leaveOrgMenu": "Quitter l’Organisation « {{org}} »",
+      "confirm": "Confirmer",
+      "makeAdmin": "Nommer administrateur",
+      "makeAdminHint": "Les autres administrateurs seront prévenus. Un administrateur ne peut jamais en retirer un autre seul.",
+      "removeFromOrg": "Retirer de l’Organisation",
+      "removeFromOrgHint": "Cette personne sortira de tous les Cercles de l’Organisation.",
+      "requestRemoval": "Demander son retrait comme administrateur",
+      "requestRemovalHint": "La personne sera prévenue. Le retrait n’a lieu qu’avec la majorité des autres administrateurs (au moins 2 voix).",
+      "pending": "Retrait demandé par {{who}} · {{votes}} / {{needed}} voix",
+      "pendingStuck": "Retrait demandé par {{who}} · pas assez d’administrateurs pour voter",
+      "vote": "Je suis d’accord",
+      "unvote": "Retirer ma voix",
+      "title": "Administrateurs",
+      "help": "Un administrateur en nomme un autre seul. Pour en retirer un, il faut la majorité des autres administrateurs (au moins 2 voix) ; ceux nommés depuis moins de 7 jours ne votent pas. Sans majorité, une demande s’efface après 14 jours.",
+      "since": "depuis le {{date}}",
+      "votesIn_one": "vote dans {{count}} jour",
+      "votesIn_other": "vote dans {{count}} jours",
+      "history": "Historique",
+      "gone": "compte supprimé",
+      "log": {
+          "named": "{{actor}} a nommé {{target}} administrateur",
+          "stepped_down": "{{target}} n’est plus administrateur (à sa demande)",
+          "removal_requested": "{{actor}} a demandé le retrait de {{target}}",
+          "removed": "{{target}} a été retiré des administrateurs (vote)",
+          "member_removed": "{{actor}} a retiré {{target}} de l’Organisation",
+          "left": "{{target}} a quitté l’Organisation"
+      }
+  },
 };
 export default org;

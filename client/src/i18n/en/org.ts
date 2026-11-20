@@ -68,5 +68,42 @@ const org: Dict['org'] = {
     today: 'today', daysAgo_one: '{{count}} day ago', daysAgo_other: '{{count}} days ago',
   },
   plan: { readOnlyChat: "Your role doesn’t allow you to write in this chat." },
+  // Administrateurs et départs (routes/orgAdmins.ts du serveur, 2026-11-20)
+  admins: {
+      "myPlace": "My place in the Organisation",
+      "leaveDirection": "Leave the leadership",
+      "leaveDirectionHint": "You’ll leave the leadership group and the Circles you had joined. Your teams stay the same.",
+      "stepDown": "Stop being an admin",
+      "stepDownHint": "You’ll no longer manage roles, rights or the leadership. There must always be at least one admin.",
+      "leaveOrg": "Leave the Organisation",
+      "leaveOrgHint": "You’ll leave every Circle of the Organisation: teams, automatic groups and Circles you had joined.",
+      "leaveOrgMenu": "Leave the Organisation “{{org}}”",
+      "confirm": "Confirm",
+      "makeAdmin": "Make admin",
+      "makeAdminHint": "The other admins will be notified. An admin can never remove another one alone.",
+      "removeFromOrg": "Remove from the Organisation",
+      "removeFromOrgHint": "This person will leave every Circle of the Organisation.",
+      "requestRemoval": "Request their removal as an admin",
+      "requestRemovalHint": "They’ll be notified. They’re only removed with a majority of the other admins (at least 2 votes).",
+      "pending": "Removal requested by {{who}} · {{votes}} / {{needed}} votes",
+      "pendingStuck": "Removal requested by {{who}} · not enough admins to vote",
+      "vote": "I agree",
+      "unvote": "Withdraw my vote",
+      "title": "Admins",
+      "help": "An admin can appoint another one alone. Removing one takes a majority of the other admins (at least 2 votes); admins appointed less than 7 days ago don’t vote. Without a majority, a request expires after 14 days.",
+      "since": "since {{date}}",
+      "votesIn_one": "votes in {{count}} day",
+      "votesIn_other": "votes in {{count}} days",
+      "history": "History",
+      "gone": "deleted account",
+      "log": {
+          "named": "{{actor}} made {{target}} an admin",
+          "stepped_down": "{{target}} is no longer an admin (own request)",
+          "removal_requested": "{{actor}} requested the removal of {{target}}",
+          "removed": "{{target}} was removed as an admin (vote)",
+          "member_removed": "{{actor}} removed {{target}} from the Organisation",
+          "left": "{{target}} left the Organisation"
+      }
+  },
 };
 export default org;

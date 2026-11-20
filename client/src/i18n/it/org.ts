@@ -68,5 +68,42 @@ const org: Dict['org'] = {
     today: 'oggi', daysAgo_one: '{{count}} giorno fa', daysAgo_other: '{{count}} giorni fa',
   },
   plan: { readOnlyChat: "Il tuo ruolo non permette di scrivere in questa chat." },
+  // Administrateurs et départs (routes/orgAdmins.ts du serveur, 2026-11-20)
+  admins: {
+      "myPlace": "Il mio posto nell’Organizzazione",
+      "leaveDirection": "Lascia la direzione",
+      "leaveDirectionHint": "Uscirai dal gruppo della direzione e dai Cerchi in cui eri entrato/a. Le tue squadre non cambiano.",
+      "stepDown": "Non essere più amministratore",
+      "stepDownHint": "Non gestirai più ruoli, diritti e direzione. Deve sempre restare almeno un amministratore.",
+      "leaveOrg": "Lascia l’Organizzazione",
+      "leaveOrgHint": "Uscirai da tutti i Cerchi dell’Organizzazione: squadre, gruppi automatici e Cerchi in cui eri entrato/a.",
+      "leaveOrgMenu": "Lascia l’Organizzazione «{{org}}»",
+      "confirm": "Conferma",
+      "makeAdmin": "Nomina amministratore",
+      "makeAdminHint": "Gli altri amministratori saranno avvisati. Un amministratore non può mai rimuoverne un altro da solo.",
+      "removeFromOrg": "Togli dall’Organizzazione",
+      "removeFromOrgHint": "Questa persona uscirà da tutti i Cerchi dell’Organizzazione.",
+      "requestRemoval": "Chiedi la sua rimozione da amministratore",
+      "requestRemovalHint": "La persona sarà avvisata. La rimozione avviene solo con la maggioranza degli altri amministratori (almeno 2 voti).",
+      "pending": "Rimozione chiesta da {{who}} · {{votes}} / {{needed}} voti",
+      "pendingStuck": "Rimozione chiesta da {{who}} · troppo pochi amministratori per votare",
+      "vote": "Sono d’accordo",
+      "unvote": "Ritira il mio voto",
+      "title": "Amministratori",
+      "help": "Un amministratore ne nomina un altro da solo. Per rimuoverne uno serve la maggioranza degli altri amministratori (almeno 2 voti); chi è stato nominato da meno di 7 giorni non vota. Senza maggioranza, una richiesta scade dopo 14 giorni.",
+      "since": "dal {{date}}",
+      "votesIn_one": "vota tra {{count}} giorno",
+      "votesIn_other": "vota tra {{count}} giorni",
+      "history": "Cronologia",
+      "gone": "account eliminato",
+      "log": {
+          "named": "{{actor}} ha nominato {{target}} amministratore",
+          "stepped_down": "{{target}} non è più amministratore (su sua richiesta)",
+          "removal_requested": "{{actor}} ha chiesto la rimozione di {{target}}",
+          "removed": "{{target}} è stato rimosso dagli amministratori (voto)",
+          "member_removed": "{{actor}} ha tolto {{target}} dall’Organizzazione",
+          "left": "{{target}} ha lasciato l’Organizzazione"
+      }
+  },
 };
 export default org;

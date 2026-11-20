@@ -53,6 +53,24 @@ export async function syncOrganisation(app: any, organisationId: string) {
   }
 }
 
+// La personne serait-elle remise tout de suite dans ce Cercle automatique (direction, rôle, Cercle source) ? Sert à refuser de le
+// quitter avec une explication, au lieu de l'y remettre en silence (2026-11-20).
+export async function keptInAutoCircle(circleId: string, userId: string): Promise<boolean> {
+  const auto = await prisma.circle.findUnique({ where: { id: circleId }, select: { organisationId: true, orgKind: true, orgAutoDirection: true, orgAutoRoleIds: true, orgAutoCircleIds: true } });
+  if (!auto?.organisationId || auto.orgKind !== 'auto') return false;
+  const organisationId = auto.organisationId;
+  const [directors, assignments, units] = await Promise.all([
+    prisma.organisationMember.findMany({ where: { organisationId, isDirection: true }, select: { userId: true } }),
+    prisma.circleMember.findMany({ where: { circle: { organisationId, orgKind: 'team' } }, select: { userId: true, orgRoleId: true } }),
+    prisma.circleMember.findMany({ where: { circle: { organisationId, orgKind: 'unit' } }, select: { circleId: true, userId: true } }),
+  ]);
+  const circleMembers = new Map<string, string[]>();
+  for (const m of units) circleMembers.set(m.circleId, [...(circleMembers.get(m.circleId) ?? []), m.userId]);
+  const wanted = autoMemberIds({ autoDirection: auto.orgAutoDirection, autoRoleIds: auto.orgAutoRoleIds, autoCircleIds: auto.orgAutoCircleIds },
+    { directionIds: directors.map(d => d.userId), assignments: assignments.map(a => ({ userId: a.userId, roleId: a.orgRoleId })), circleMembers });
+  return wanted.has(userId);
+}
+
 // À appeler pour toute entrée dans un Cercle : rôle par défaut de l'équipe, rattachement à l'Organisation, Cercles automatiques
 export async function afterCircleEntry(app: any, userId: string, circleId: string) {
   try {

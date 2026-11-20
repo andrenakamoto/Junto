@@ -488,6 +488,12 @@ const groups: Group[] = [
           <P><strong>Discussion</strong> : dans les paramètres de chaque Cercle, coche les rôles qui peuvent y écrire. Les responsables et la direction écrivent toujours.</P></>,
       },
       {
+        id: 'org-admins', emoji: '🛡️', title: 'Administrateurs, direction et départs', summary: 'Qui gère, et comment partir',
+        body: <><P><strong>Administrateurs</strong> : ils règlent les rôles, les droits et la direction (roue dentée › onglet <strong>Personnes</strong>). Un administrateur en nomme un autre seul, et les autres sont prévenus. Pour en <strong>retirer</strong> un, il faut l’accord de la majorité des autres administrateurs, avec au moins 2 voix ; ceux nommés depuis moins de 7 jours ne votent pas, et la personne visée est prévenue. Sans majorité, la demande s’efface après 14 jours. L’historique garde la trace de chaque changement. En cas de blocage, écris à info@evly.ch.</P>
+          <P><strong>Direction</strong> : un administrateur y met ou en retire quelqu’un. Le groupe de la direction est un <strong>groupe automatique</strong> : on ne peut pas le quitter directement, on y serait remis aussitôt. Pour en sortir : roue dentée › <strong>Ma place dans l’Organisation</strong> › « Quitter la direction ».</P>
+          <P><strong>Partir</strong> : « Quitter l’Organisation » (menu ⋯ d’un de ses Cercles, ou Ma place dans l’Organisation) fait sortir de tous ses Cercles. Un administrateur peut aussi retirer quelqu’un de l’Organisation depuis l’onglet Personnes, mais jamais un autre administrateur sans vote. Le dernier administrateur doit d’abord en nommer un autre.</P></>,
+      },
+      {
         id: 'org-pourqui', emoji: '🎯', title: '« Pour qui ? »', summary: 'Un Plan ou un sondage pour plusieurs groupes',
         body: <><P>En créant un Plan ou un sondage de dates, les personnes autorisées voient la ligne <strong>« Pour qui ? »</strong> : toute l’Organisation, ou certaines équipes, unités et certains groupes. On peut aussi viser des rôles dans les équipes, par exemple « Orange + Chef » : les parents ne voient alors rien. EvLY indique combien de personnes seront concernées.</P>
           <P>Une personne dans plusieurs Cercles choisis ne voit le Plan qu’une fois et ne vote qu’une fois. Une personne qui arrive plus tard, ou qui change de rôle, voit ce qui la concerne. Quand plusieurs Cercles sont visés, la liste des participants est réservée à l’organisation par défaut (modifiable dans Règles).</P>

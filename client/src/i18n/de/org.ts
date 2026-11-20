@@ -68,5 +68,42 @@ const org: Dict['org'] = {
     today: 'heute', daysAgo_one: 'vor {{count}} Tag', daysAgo_other: 'vor {{count}} Tagen',
   },
   plan: { readOnlyChat: "Mit deiner Rolle kannst du in diesem Chat nicht schreiben." },
+  // Administrateurs et départs (routes/orgAdmins.ts du serveur, 2026-11-20)
+  admins: {
+      "myPlace": "Mein Platz in der Organisation",
+      "leaveDirection": "Leitung verlassen",
+      "leaveDirectionHint": "Du verlässt die Gruppe der Leitung und die Kreise, denen du beigetreten bist. Deine Teams bleiben gleich.",
+      "stepDown": "Nicht mehr Admin sein",
+      "stepDownHint": "Du verwaltest dann keine Rollen, Rechte und Leitung mehr. Es muss immer mindestens ein Admin bleiben.",
+      "leaveOrg": "Organisation verlassen",
+      "leaveOrgHint": "Du verlässt alle Kreise der Organisation: Teams, automatische Gruppen und beigetretene Kreise.",
+      "leaveOrgMenu": "Organisation «{{org}}» verlassen",
+      "confirm": "Bestätigen",
+      "makeAdmin": "Zum Admin ernennen",
+      "makeAdminHint": "Die anderen Admins werden benachrichtigt. Ein Admin kann nie allein einen anderen absetzen.",
+      "removeFromOrg": "Aus der Organisation entfernen",
+      "removeFromOrgHint": "Diese Person verlässt alle Kreise der Organisation.",
+      "requestRemoval": "Absetzung als Admin beantragen",
+      "requestRemovalHint": "Die Person wird benachrichtigt. Die Absetzung gilt nur mit der Mehrheit der anderen Admins (mindestens 2 Stimmen).",
+      "pending": "Absetzung beantragt von {{who}} · {{votes}} / {{needed}} Stimmen",
+      "pendingStuck": "Absetzung beantragt von {{who}} · zu wenige Admins zum Abstimmen",
+      "vote": "Ich bin einverstanden",
+      "unvote": "Meine Stimme zurückziehen",
+      "title": "Admins",
+      "help": "Ein Admin ernennt allein einen anderen. Um einen abzusetzen, braucht es die Mehrheit der anderen Admins (mindestens 2 Stimmen); wer seit weniger als 7 Tagen Admin ist, stimmt nicht ab. Ohne Mehrheit verfällt ein Antrag nach 14 Tagen.",
+      "since": "seit {{date}}",
+      "votesIn_one": "stimmt in {{count}} Tag ab",
+      "votesIn_other": "stimmt in {{count}} Tagen ab",
+      "history": "Verlauf",
+      "gone": "gelöschtes Konto",
+      "log": {
+          "named": "{{actor}} hat {{target}} zum Admin ernannt",
+          "stepped_down": "{{target}} ist nicht mehr Admin (auf eigenen Wunsch)",
+          "removal_requested": "{{actor}} hat die Absetzung von {{target}} beantragt",
+          "removed": "{{target}} wurde als Admin abgesetzt (Abstimmung)",
+          "member_removed": "{{actor}} hat {{target}} aus der Organisation entfernt",
+          "left": "{{target}} hat die Organisation verlassen"
+      }
+  },
 };
 export default org;

@@ -22,7 +22,7 @@ import { checkSourcePlan, parseAllowCirclePlans } from '../lib/planSource';
 import { forViewer, managedCircleIds, parseMembersVisibility } from '../lib/memberPrivacy';
 import { isCircleManager, nextCircleCreator, ORGANIZER_ROLE } from '../lib/circleRoles';
 import { detachFromCircle } from '../lib/circleDetach';
-import { afterCircleEntry, afterCircleExit, roleForAcceptance } from '../lib/orgSync';
+import { afterCircleEntry, afterCircleExit, keptInAutoCircle, roleForAcceptance } from '../lib/orgSync';
 import { orgAllows } from '../lib/orgPermissions';
 import { broadcastWrites, resolveCircleWrite, joinCircleRoom, leaveCircleRoom } from '../lib/realtime';
 import { getOrCreatePersonalCircle } from '../lib/express';
@@ -1150,6 +1150,11 @@ router.post('/:id/leave', async (req: AuthRequest, res) => {
 
   const circle = await prisma.circle.findUnique({ where: { id: circleId } });
   if (!circle) { res.status(404).json({ error: 'Cercle introuvable' }); return; }
+  // Cercle automatique d'une Organisation : la personne y serait remise aussitôt (lib/orgSync.ts)
+  if (circle.orgKind === 'auto' && (await keptInAutoCircle(circleId, userId))) {
+    res.status(409).json({ error: 'Ce groupe se remplit tout seul selon les rôles de l’Organisation. Pour en sortir, quitte la direction ou demande qu’on change ton rôle.', code: 'AUTO_CIRCLE' });
+    return;
+  }
   leaveCircleRoom(req.app.get('io'), userId, circleId);
   // Plans du Cercle auxquels la personne n'aura plus accès : un Plan pour plusieurs Cercles reste accessible
   // si elle est encore membre d'un autre de ses Cercles

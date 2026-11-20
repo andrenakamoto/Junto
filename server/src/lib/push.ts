@@ -137,6 +137,9 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
       return { title: n.circleName ?? 'EvLY', body: fill(T.invite), url: '/dashboard?invitations=1', group: `invite:${n.circleName}` };
     case 'join_accepted':
       return { title: n.circleName ?? 'EvLY', body: T.joinAccepted, url: circleUrl, group: `join:${n.circleId}` };
+    // Administrateurs d'une Organisation (routes/orgAdmins.ts) : titre = nom de l'Organisation
+    case 'org_admin':
+      return { title: n.circleName ?? 'EvLY', body: n.preview ?? '', url: '/dashboard', group: `org:${n.circleName}` };
     case 'capsule':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `/dashboard?capsule=${n.capsuleId}`, group: `capsule:${n.capsuleId}` };
     case 'suggestion_update':

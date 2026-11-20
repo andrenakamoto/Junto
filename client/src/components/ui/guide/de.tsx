@@ -500,6 +500,12 @@ const groups: Group[] = [
           <P><strong>Diskussion</strong>: In den Einstellungen jedes Kreises wählst du die Rollen, die schreiben dürfen. Verantwortliche und Leitung schreiben immer.</P></>,
       },
       {
+        id: 'org-admins', emoji: '🛡️', title: 'Admins, Leitung und Austritte', summary: 'Wer verwaltet, und wie man geht',
+        body: <><P><strong>Admins</strong>: Sie regeln Rollen, Rechte und die Leitung (Zahnrad › Tab <strong>Personen</strong>). Ein Admin ernennt allein einen anderen, die übrigen werden benachrichtigt. Um einen <strong>abzusetzen</strong>, braucht es die Mehrheit der anderen Admins, mindestens 2 Stimmen; wer seit weniger als 7 Tagen Admin ist, stimmt nicht ab, und die betroffene Person wird benachrichtigt. Ohne Mehrheit verfällt der Antrag nach 14 Tagen. Der Verlauf hält jede Änderung fest. Bei einer Blockade schreib an info@evly.ch.</P>
+          <P><strong>Leitung</strong>: Ein Admin fügt Personen hinzu oder entfernt sie. Die Gruppe der Leitung ist eine <strong>automatische Gruppe</strong>: Man kann sie nicht direkt verlassen, man würde sofort wieder hinzugefügt. Zum Austreten: Zahnrad › <strong>Mein Platz in der Organisation</strong> › «Leitung verlassen».</P>
+          <P><strong>Gehen</strong>: «Organisation verlassen» (Menü ⋯ eines ihrer Kreise oder Mein Platz in der Organisation) führt aus allen ihren Kreisen. Ein Admin kann auch jemanden im Tab Personen aus der Organisation entfernen, aber nie einen anderen Admin ohne Abstimmung. Der letzte Admin muss zuerst einen anderen ernennen.</P></>,
+      },
+      {
         id: 'org-pourqui', emoji: '🎯', title: '«Für wen?»', summary: 'Ein Plan oder eine Umfrage für mehrere Gruppen',
         body: <><P>Beim Erstellen eines Plans oder einer Terminumfrage sehen berechtigte Personen die Zeile <strong>«Für wen?»</strong>: die ganze Organisation oder bestimmte Teams, Einheiten und Gruppen. Man kann auch Rollen in den Teams wählen, zum Beispiel «Orange + Gruppenleiter»: Die Eltern sehen dann nichts. EvLY zeigt, wie viele Personen betroffen sind.</P>
           <P>Wer in mehreren gewählten Kreisen ist, sieht den Plan nur einmal und stimmt nur einmal ab. Wer später dazukommt oder die Rolle wechselt, sieht, was ihn betrifft. Bei mehreren Kreisen ist die Teilnehmerliste standardmässig der Organisation vorbehalten (änderbar unter Regeln).</P>

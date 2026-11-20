@@ -31,6 +31,7 @@ import supplierBookRoutes from './routes/supplierBook';
 import equipmentRoutes from './routes/equipment';
 import { sendEquipmentReminders } from './lib/equipment';
 import organisationRoutes from './routes/organisations';
+import orgAdminRoutes from './routes/orgAdmins';
 import { sendSupplierReminders } from './lib/suppliers';
 import { capsuleTick } from './lib/capsule';
 import contactRoutes from './routes/contacts';
@@ -138,6 +139,8 @@ app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/capsules', capsuleRoutes);
 app.use('/api/suppliers', supplierBookRoutes);
 app.use('/api/equipment', equipmentRoutes);
+// Administrateurs et départs (avant le routeur principal des Organisations)
+app.use('/api/organisations', orgAdminRoutes);
 app.use('/api/organisations', organisationRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/availability', availabilityRoutes);

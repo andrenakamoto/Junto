@@ -484,6 +484,12 @@ const groups: Group[] = [
           <P><strong>Discussion</strong>: in each Circle’s settings, tick the roles that can write. Coordinators and the leadership can always write.</P></>,
       },
       {
+        id: 'org-admins', emoji: '🛡️', title: 'Admins, leadership and leaving', summary: 'Who manages, and how to leave',
+        body: <><P><strong>Admins</strong> manage roles, rights and the leadership (gear › <strong>People</strong> tab). An admin can appoint another one alone, and the others are notified. <strong>Removing</strong> one takes a majority of the other admins, with at least 2 votes; admins appointed less than 7 days ago don’t vote, and the person concerned is notified. Without a majority, the request expires after 14 days. The history keeps track of every change. If you’re stuck, write to info@evly.ch.</P>
+          <P><strong>Leadership</strong>: an admin adds or removes people. The leadership group is an <strong>automatic group</strong>: you can’t leave it directly, you’d be added back right away. To leave it: gear › <strong>My place in the Organisation</strong> › “Leave the leadership”.</P>
+          <P><strong>Leaving</strong>: “Leave the Organisation” (⋯ menu of one of its Circles, or My place in the Organisation) takes you out of all its Circles. An admin can also remove someone from the Organisation in the People tab, but never another admin without a vote. The last admin must appoint someone else first.</P></>,
+      },
+      {
         id: 'org-pourqui', emoji: '🎯', title: '“Who is it for?”', summary: 'A Plan or poll for several groups',
         body: <><P>When creating a Plan or date poll, authorised people see the <strong>“Who is it for?”</strong> line: the whole Organisation, or certain teams, units and groups. You can also target roles in the teams, for example “Orange + Team leader”: parents then see nothing. EvLY shows how many people are concerned.</P>
           <P>Someone in several chosen Circles sees the Plan once and votes once. Someone who arrives later, or changes role, sees what concerns them. With several Circles, the participant list is reserved for the organisation by default (can be changed in Rules).</P>

@@ -121,6 +121,17 @@ const fr = {
     text: '<strong>{who}</strong> t’a mentionné(e) dans le Plan <strong>« {plan} »</strong>.',
     button: 'Voir le message',
   },
+  orgAdmin: {
+    hello: "Bonjour {name},",
+    button: "Ouvrir l’Organisation",
+    help: "Une question ou un blocage ? Écris à info@evly.ch.",
+    namedSubject: "{who} a nommé {target} administrateur de « {org} »",
+    namedText: "<strong>{who}</strong> a nommé <strong>{target}</strong> administrateur de l’Organisation <strong>« {org} »</strong>.",
+    namedHint: "Si tu ne t’y attendais pas, parles-en aux autres administrateurs. Un administrateur ne peut jamais en retirer un autre seul : il faut la majorité des administrateurs, et ceux nommés depuis moins de 7 jours ne votent pas.",
+    removalSubject: "Demande de retrait de ton rôle d’administrateur de « {org} »",
+    removalText: "<strong>{who}</strong> demande que tu ne sois plus administrateur de l’Organisation <strong>« {org} »</strong>.",
+    removalHint: "Le retrait n’a lieu que si la majorité des autres administrateurs est d’accord (au moins 2 voix). Sans majorité, la demande s’efface après 14 jours. Tu vois la demande et les voix dans « Gérer » › « Personnes ».",
+  },
   joinRefused: {
     subject: "Ta demande pour « {circle} » n’a pas été acceptée",
     hello: "Bonjour {name},",
