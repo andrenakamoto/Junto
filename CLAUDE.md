@@ -582,6 +582,9 @@ Conséquences pratiques :
     rapides, carte qui garde la sélection.
     **Version 1.0.59** (2026-11-18) : Android `versionCode` 61 (`evly-1.0.59-(61).aab`), iOS build 66 envoyé — l'app rouvre sur les Cercles
     (la 1.0.58 affichait la connexion à chaque relance), session de 30 jours renouvelée, « Se déconnecter de tous les appareils ».
+    **Version 1.0.60** (2026-11-21) : Android `versionCode` 62 (`evly-1.0.60-(62).aab`), iOS build 67 envoyé — Organisations : administrateurs
+    nommés et retirés par vote, quitter la direction ou l'Organisation ; Documents des Tâches (PDF, Word, Excel, photos, ZIP) ; image d'un
+    événement de Découvrir ouverte en grand.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
