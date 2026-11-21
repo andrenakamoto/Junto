@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Garland, SantaScene, Snowfall } from '../components/noel/ChristmasDecor';
 import { requestNewPlan } from '../lib/newPlanIntent';
@@ -7,6 +7,7 @@ import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, FileDown, Gift, He
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 import { countStep } from '../lib/funnel';
+import { CompareSlider, CountUp, FloatingBubbles, InteractivePhone, Magnetic, Reveal, RotatingWords, SideNav, StoryScroll, Tilt, WordReveal } from '../components/landing/LandingFx';
 import { siteUrl } from '../lib/siteUrl';
 import { discoverImageUrl, type DiscoverData, type DiscoverEvent } from '../lib/discover';
 import api from '../services/api';
@@ -16,15 +17,18 @@ import { currentLang, intlLocale, t } from '../i18n';
 // Page / sur le web seulement (App.tsx : les apps ouvrent la connexion, une personne connectée va à ses Plans) ; la connexion
 // est sur /auth. Écrans de l'app dessinés et animés (pas de captures), accroche « Fini les 300 messages… », histoire de la
 // cafétéria dans « Confiance ». Textes : i18n/<langue>/landing.ts. Visites et clics comptés (lib/funnel.ts : home, funnel_cta_home).
+// 2026-11-21 (demande de l'utilisateur) : accroche « On organise moins. On se voit plus. » avec fin de phrase qui change, téléphone
+// qu'on touche, histoire d'un samedi qui défile avec le téléphone collé, avant / après à glisser, « Pour qui ? » qui change la page,
+// points de navigation sur le bord et barre de progression, petits effets (components/landing/LandingFx.tsx).
 
 const APP_STORE_URL = 'https://apps.apple.com/app/id6818454100';
 const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=ch.evly.app';
 const AUDIENCES = [
-  { key: 'friends', demo: 'amis', emoji: '🍻' },
-  { key: 'family', demo: 'surprise', emoji: '🎂' },
-  { key: 'work', demo: 'organisation', emoji: '💼' },
-  { key: 'clubs', demo: 'assemblee', emoji: '🏛️' },
-  { key: 'pros', demo: 'annonce', emoji: '🎟️' },
+  { key: 'friends', demo: 'amis', emoji: '🍻', tone: 'from-orange-500 to-rose-500', features: ['rsvp', 'money', 'games'] },
+  { key: 'family', demo: 'surprise', emoji: '🎂', tone: 'from-pink-500 to-fuchsia-600', features: ['surprise', 'money', 'travel'] },
+  { key: 'work', demo: 'organisation', emoji: '💼', tone: 'from-sky-500 to-indigo-600', features: ['rsvp', 'surprise', 'games'] },
+  { key: 'clubs', demo: 'assemblee', emoji: '🏛️', tone: 'from-emerald-500 to-teal-600', features: ['rsvp', 'money', 'travel'] },
+  { key: 'pros', demo: 'annonce', emoji: '🎟️', tone: 'from-violet-500 to-purple-700', features: ['rsvp', 'discover', 'travel'] },
 ] as const;
 const FEATURES = [
   { key: 'rsvp', Icon: Users },
@@ -40,63 +44,20 @@ const TRUST = [
   { key: 'data', Icon: Lock },
   { key: 'swiss', Icon: Mountain },
 ] as const;
-const PEOPLE = [['Emma', 'in'], ['Noah', 'in'], ['Julie', 'in'], ['Tom', 'maybe'], ['Léa', 'in']] as const;
 
 const signupUrl = '/auth?mode=inscription';
 
 function Section({ id, children, tone = 'white' }: { id?: string; children: ReactNode; tone?: 'white' | 'soft' }) {
   return (
-    <section id={id} className={tone === 'soft' ? 'bg-slate-50' : 'bg-white'}>
+    <section id={id} className={`scroll-mt-16 ${tone === 'soft' ? 'bg-slate-50' : 'bg-white'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">{children}</div>
     </section>
   );
 }
 
 const H2 = ({ children }: { children: ReactNode }) => (
-  <h2 className="font-serif text-3xl sm:text-4xl font-bold text-slate-900 leading-tight text-center max-w-3xl mx-auto">{children}</h2>
+  <Reveal><h2 className="font-serif text-3xl sm:text-4xl font-bold text-slate-900 leading-tight text-center max-w-3xl mx-auto">{children}</h2></Reveal>
 );
-
-// Téléphone dessiné : la carte d'un Plan où les réponses arrivent une à une (boucle)
-function PhoneMock() {
-  const [step, setStep] = useState(0);
-  useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setStep(PEOPLE.length + 1); return; }
-    const id = setInterval(() => setStep(s => (s >= PEOPLE.length + 3 ? 0 : s + 1)), 900);
-    return () => clearInterval(id);
-  }, []);
-  const shown = Math.min(step, PEOPLE.length);
-  const ins = PEOPLE.slice(0, shown).filter(([, r]) => r === 'in').length + (step > PEOPLE.length ? 1 : 0);
-  return (
-    <div className="relative mx-auto w-[280px] sm:w-[300px] rounded-[44px] border-[10px] border-slate-800 bg-slate-100 shadow-2xl shadow-black/40 overflow-hidden">
-      <div className="h-6 bg-slate-800 flex justify-center"><span className="w-24 h-4 rounded-b-2xl bg-slate-900" /></div>
-      <div className="p-3 space-y-2.5 min-h-[470px]">
-        <div className="rounded-2xl bg-white shadow-md p-4">
-          <p className="font-serif text-xl font-bold text-slate-900">{t('landing.mock.title')}</p>
-          <p className="mt-1 inline-block rounded-lg bg-orange-50 text-orange-700 text-xs font-bold px-2 py-1">{t('landing.mock.when')}</p>
-          <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500"><MapPin size={12} />{t('landing.mock.where')}</p>
-          <div className="mt-3 grid grid-cols-3 gap-1.5 text-[11px] font-bold text-center">
-            <span className={`rounded-lg py-2 border-2 transition-colors ${step > PEOPLE.length ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-emerald-600 text-emerald-700'}`}>{t('landing.mock.in')}</span>
-            <span className="rounded-lg py-2 border-2 border-amber-400 text-amber-700">{t('landing.mock.maybe')}</span>
-            <span className="rounded-lg py-2 border-2 border-slate-200 text-slate-500">{t('landing.mock.out')}</span>
-          </div>
-          <p className="mt-3 text-xs font-bold text-slate-600">{t('landing.mock.count', { n: ins })}</p>
-        </div>
-        {PEOPLE.slice(0, shown).map(([name, r]) => (
-          <div key={name} className="flex items-center gap-2.5 rounded-xl bg-white shadow-sm px-3 py-2 animate-[landingIn_.35s_ease-out]">
-            <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">{name[0]}</span>
-            <span className="flex-1 text-sm font-semibold text-slate-800">{name}</span>
-            <span className={`text-[11px] font-bold rounded-full px-2 py-0.5 ${r === 'in' ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-              {r === 'in' ? t('landing.mock.in') : t('landing.mock.maybe')}
-            </span>
-          </div>
-        ))}
-        {step > PEOPLE.length && (
-          <div className="rounded-xl bg-white shadow-sm px-3 py-2 text-xs text-slate-700 animate-[landingIn_.35s_ease-out]">{t('landing.mock.bring')}</div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // Quelques vraies sorties autour de Genève (Découvrir), chargées quand la section arrive à l'écran
 function LiveOutings() {
@@ -183,6 +144,8 @@ function SantaHighlight() {
 
 export function LandingPage() {
   const [audience, setAudience] = useState<typeof AUDIENCES[number]['key']>('friends');
+  const navSections = useMemo(() => (['accueil', 'comment', 'avant-apres', 'pour-qui', 'fonctions', 'sorties', 'confiance', 'questions'] as const)
+    .map((id, i) => ({ id, label: t(`landing.fx.nav.${(['hero', 'story', 'compare', 'audiences', 'features', 'discover', 'trust', 'faq'] as const)[i]}`) })), []);
 
   useEffect(() => {
     countStep('home', 'visit');
@@ -200,6 +163,7 @@ export function LandingPage() {
       {t('landing.hero.cta')}<ArrowRight size={18} />
     </Link>
   );
+  const magneticSignup = (big = false) => <Magnetic>{signupButton(big)}</Magnetic>;
   const stores = (
     <div className="flex flex-wrap items-center gap-3">
       <a href={APP_STORE_URL} target="_blank" rel="noopener" className="hover:opacity-85"><img src={`/badges/app-store-${currentLang()}.svg`} alt="App Store" className="h-11 w-auto" /></a>
@@ -210,7 +174,12 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-800">
-      <style>{`@keyframes landingIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+      <style>{`@keyframes landingIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @keyframes landingFloat { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-18px) } }
+        @keyframes landingPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(5,150,105,.5) } 50% { box-shadow: 0 0 0 8px rgba(5,150,105,0) } }
+        @keyframes landingConfetti { from { opacity: 1; transform: translate(0,0) rotate(0) } to { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) } }
+        html { scroll-behavior: smooth } @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }`}</style>
+      <SideNav sections={navSections} />
 
       {/* En-tête */}
       <header className="sticky top-0 z-30 bg-[#0f172a]/95 backdrop-blur border-b border-white/10">
@@ -232,50 +201,47 @@ export function LandingPage() {
       </header>
 
       {/* Accroche */}
-      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_80%_20%,#7c2d12_0%,rgba(15,23,42,0)_55%)] bg-[#0f172a] text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
+      <section id="accueil" className="scroll-mt-16 relative overflow-hidden bg-[radial-gradient(circle_at_80%_20%,#7c2d12_0%,rgba(15,23,42,0)_55%)] bg-[#0f172a] text-white">
+        <FloatingBubbles />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
           <div>
             <p className="inline-block text-[11px] sm:text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-orange-100">{t('landing.hero.kicker')}</p>
-            <h1 className="mt-5 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05]">{t('landing.hero.title')}</h1>
-            <p className="mt-5 text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">{t('landing.hero.text')}</p>
+            <h1 className="mt-5 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05]"><WordReveal text={t('landing.hero.title')} /></h1>
+            <p className="mt-5 text-lg sm:text-xl text-slate-200 leading-snug max-w-xl min-h-[3.4em] sm:min-h-[2.6em]">
+              {t('landing.fx.rotPrefix')}{' '}
+              <RotatingWords className="font-bold text-orange-400" words={(['rot1', 'rot2', 'rot3', 'rot4', 'rot5'] as const).map(k => t(`landing.fx.${k}`))} />
+            </p>
+            <p className="mt-4 text-base text-slate-300 leading-relaxed max-w-xl">{t('landing.hero.text')}</p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              {signupButton(true)}
+              {magneticSignup(true)}
               <Link to="/demo" className="inline-flex items-center justify-center px-6 py-4 rounded-2xl border border-white/25 text-base font-semibold text-white hover:bg-white/10">{t('landing.hero.demo')}</Link>
             </div>
             <p className="mt-4 flex items-center gap-1.5 text-sm text-slate-400"><Check size={16} className="text-emerald-400" />{t('landing.hero.guests')}</p>
             <div className="mt-6">{stores}</div>
           </div>
-          <PhoneMock />
+          <InteractivePhone />
         </div>
       </section>
 
       {santaSeason() && <SantaHighlight />}
 
-      {/* Avant / après */}
-      <Section tone="soft">
+      {/* Histoire d'un samedi : le téléphone reste en place et son écran suit la lecture */}
+      <section id="comment" className="scroll-mt-16 bg-gradient-to-b from-white to-slate-50 pt-16 sm:pt-20 pb-8">
+        <Reveal className="text-center px-4">
+          <p className="text-sm font-bold uppercase tracking-wider text-orange-600">{t('landing.fx.storyKicker')}</p>
+          <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold text-slate-900">{t('landing.fx.storyTitle')}</h2>
+        </Reveal>
+        <div className="mt-6"><StoryScroll /></div>
+      </section>
+
+      {/* Avant / après à glisser */}
+      <Section id="avant-apres" tone="soft">
         <H2>{t('landing.compare.title')}</H2>
-        <div className="mt-10 grid md:grid-cols-2 gap-5 max-w-4xl mx-auto">
-          <div className="rounded-3xl bg-[#111318] text-white p-5 shadow-lg">
-            <p className="text-sm font-semibold text-slate-400">💬 {t('landing.compare.beforeTitle')}</p>
-            <div className="mt-4 space-y-2">
-              {(['before1', 'before2', 'before3', 'before4'] as const).map((k, i) => (
-                <p key={k} className={`max-w-[80%] rounded-2xl bg-[#262a33] px-4 py-2 text-sm ${i % 2 ? 'ml-auto' : ''}`}>{t(`landing.compare.${k}`)}</p>
-              ))}
-            </div>
-            <p className="mt-5 inline-block rounded-full bg-red-600 px-4 py-1.5 text-sm font-bold">{t('landing.compare.unread')}</p>
-          </div>
-          <div className="rounded-3xl bg-white border-2 border-indigo-500 p-5 shadow-lg">
-            <p className="text-sm font-semibold text-indigo-700">✨ {t('landing.compare.afterTitle')}</p>
-            <p className="mt-3 font-serif text-2xl font-bold text-slate-900">{t('landing.mock.title')}</p>
-            <ul className="mt-3 space-y-2.5 text-sm text-slate-700">
-              {(['after1', 'after2', 'after3', 'after4'] as const).map(k => <li key={k}>{t(`landing.compare.${k}`)}</li>)}
-            </ul>
-          </div>
-        </div>
+        <CompareSlider />
       </Section>
 
-      {/* Pour qui ? */}
-      <Section>
+      {/* Pour qui ? : le choix change l'exemple et les fonctions mises en avant plus bas */}
+      <Section id="pour-qui">
         <H2>{t('landing.audiences.title')}</H2>
         <div className="mt-8 flex flex-wrap justify-center gap-2" role="tablist">
           {AUDIENCES.map(a => (
@@ -285,34 +251,60 @@ export function LandingPage() {
             </button>
           ))}
         </div>
-        <div className="mt-8 max-w-2xl mx-auto rounded-3xl bg-slate-50 border border-slate-200 p-6 sm:p-8">
-          <ul className="space-y-3">
-            {(['p1', 'p2', 'p3'] as const).map(k => (
-              <li key={k} className="flex gap-3 text-slate-800"><Check size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />{t(`landing.audiences.${current.key}.${k}`)}</li>
-            ))}
-          </ul>
-          <a href={`/demo?voir=${current.demo}`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 hover:text-indigo-800">
-            <Sparkles size={16} />{t('landing.audiences.seeExample')}<ArrowRight size={16} />
-          </a>
+        <div key={current.key} className="mt-8 max-w-4xl mx-auto grid md:grid-cols-[1.2fr_1fr] gap-6 items-center animate-[landingIn_.45s_ease-out]">
+          <div className="rounded-3xl bg-slate-50 border border-slate-200 p-6 sm:p-8">
+            <ul className="space-y-3">
+              {(['p1', 'p2', 'p3'] as const).map((k, i) => (
+                <li key={k} className="flex gap-3 text-slate-800 animate-[landingIn_.4s_ease-out_both]" style={{ animationDelay: `${120 + i * 120}ms` }}>
+                  <Check size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />{t(`landing.audiences.${current.key}.${k}`)}
+                </li>
+              ))}
+            </ul>
+            <a href={`/demo?voir=${current.demo}`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 hover:text-indigo-800">
+              <Sparkles size={16} />{t('landing.audiences.seeExample')}<ArrowRight size={16} />
+            </a>
+          </div>
+          <Tilt>
+            <div className="rounded-3xl overflow-hidden shadow-xl bg-white border border-slate-200">
+              <div className={`bg-gradient-to-br ${current.tone} p-6 text-white`}>
+                <span className="text-5xl">{current.emoji}</span>
+                <p className="mt-3 font-serif text-2xl font-bold leading-tight">{t(`landing.fx.plans.${current.key}.title`)}</p>
+                <p className="mt-1 text-sm font-semibold text-white/85">{t(`landing.fx.plans.${current.key}.when`)}</p>
+              </div>
+              <div className="p-4 grid grid-cols-3 gap-1.5 text-[11px] font-bold text-center">
+                <span className="rounded-lg py-2 bg-emerald-600 text-white">{t('landing.mock.in')}</span>
+                <span className="rounded-lg py-2 border-2 border-amber-400 text-amber-700">{t('landing.mock.maybe')}</span>
+                <span className="rounded-lg py-2 border-2 border-slate-200 text-slate-500">{t('landing.mock.out')}</span>
+              </div>
+            </div>
+          </Tilt>
         </div>
       </Section>
 
-      {/* Fonctions phares */}
-      <Section tone="soft">
+      {/* Fonctions phares : celles du public choisi plus haut d'abord, marquées « Pour toi » */}
+      <Section id="fonctions" tone="soft">
         <H2>{t('landing.features.title')}</H2>
         <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map(({ key, Icon }) => (
-            <div key={key} className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-              <span className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Icon size={22} /></span>
-              <h3 className="mt-3 font-bold text-slate-900">{t(`landing.features.${key}.title`)}</h3>
-              <p className="mt-1 text-sm text-slate-600 leading-relaxed">{t(`landing.features.${key}.text`)}</p>
-            </div>
-          ))}
+          {[...FEATURES].sort((a, b) => Number(!(current.features as readonly string[]).includes(a.key)) - Number(!(current.features as readonly string[]).includes(b.key))).map(({ key, Icon }, i) => {
+            const mine = (current.features as readonly string[]).includes(key);
+            return (
+              <Reveal key={`${current.key}-${key}`} delay={i * 70}>
+                <Tilt className="h-full">
+                  <div className={`relative h-full rounded-2xl bg-white p-5 shadow-sm transition-colors ${mine ? 'border-2 border-indigo-400 shadow-indigo-100' : 'border border-slate-200'}`}>
+                    {mine && <span className="absolute top-3 right-3 rounded-full bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5">{t('landing.fx.featured')}</span>}
+                    <span className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Icon size={22} /></span>
+                    <h3 className="mt-3 font-bold text-slate-900">{t(`landing.features.${key}.title`)}</h3>
+                    <p className="mt-1 text-sm text-slate-600 leading-relaxed">{t(`landing.features.${key}.text`)}</p>
+                  </div>
+                </Tilt>
+              </Reveal>
+            );
+          })}
         </div>
       </Section>
 
       {/* Découvrir en direct */}
-      <Section>
+      <Section id="sorties">
         <H2>{t('landing.discover.title')}</H2>
         <p className="mt-4 text-center text-slate-600 max-w-2xl mx-auto">{t('landing.discover.text')}</p>
         <LiveOutings />
@@ -324,16 +316,20 @@ export function LandingPage() {
       </Section>
 
       {/* Confiance et histoire */}
-      <section className="bg-[#0f172a] text-white">
+      <section id="confiance" className="scroll-mt-16 bg-[#0f172a] text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold leading-tight text-center max-w-3xl mx-auto">{t('landing.trust.title')}</h2>
+          <Reveal><h2 className="font-serif text-3xl sm:text-4xl font-bold leading-tight text-center max-w-3xl mx-auto">{t('landing.trust.title')}</h2></Reveal>
           <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {TRUST.map(({ key, Icon }) => (
-              <div key={key} className="rounded-2xl bg-white/5 border border-white/10 p-5">
+            {TRUST.map(({ key, Icon }, i) => (
+              <Reveal key={key} delay={i * 90}><div className="h-full rounded-2xl bg-white/5 border border-white/10 p-5">
                 <Icon size={24} className="text-orange-400" />
-                <p className="mt-3 font-bold">{t(`landing.trust.${key}.title`)}</p>
+                {/* Chiffre qui défile : jusqu'à 0 (pub, CHF, données vendues) ou 100 % (Suisse) */}
+                <p className="mt-3 font-serif text-2xl sm:text-3xl font-bold text-orange-300">
+                  <CountUp from={key === 'swiss' ? 0 : 100} to={key === 'swiss' ? 100 : 0} render={n => t(`landing.fx.big.${key}`, { n })} />
+                </p>
+                <p className="mt-2 font-bold">{t(`landing.trust.${key}.title`)}</p>
                 <p className="mt-1 text-sm text-slate-300">{t(`landing.trust.${key}.text`)}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -361,7 +357,7 @@ export function LandingPage() {
       </Section>
 
       {/* Questions fréquentes */}
-      <Section tone="soft">
+      <Section id="questions" tone="soft">
         <H2>{t('landing.faq.title')}</H2>
         <div className="mt-8 max-w-3xl mx-auto divide-y divide-slate-200 rounded-2xl bg-white border border-slate-200">
           {(['1', '2', '3', '4', '5', '6'] as const).map(n => (
@@ -380,7 +376,7 @@ export function LandingPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
           <h2 className="font-serif text-3xl sm:text-5xl font-bold leading-tight">{t('landing.final.title')}</h2>
           <p className="mt-4 text-slate-300">{t('landing.final.text')}</p>
-          <div className="mt-8 flex justify-center">{signupButton(true)}</div>
+          <div className="mt-8 flex justify-center">{magneticSignup(true)}</div>
           <div className="mt-6 flex justify-center">{stores}</div>
         </div>
       </section>

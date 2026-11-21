@@ -1,11 +1,11 @@
 // Site d'accueil d'EvLY (page / sur le web, 2026-11-17). Les apps ouvrent toujours directement la connexion.
 export default {
   pageTitle: 'EvLY : organisez vos sorties entre amis, en famille ou en association',
-  metaDescription: 'Fini les 300 messages pour savoir qui vient samedi. EvLY réunit les réponses, le chat, les dépenses et les trajets de vos sorties. Gratuit, sans pub, hébergé en Suisse.',
+  metaDescription: "On organise moins, on se voit plus. EvLY réunit les réponses, le chat, les dépenses et les trajets de vos sorties. Gratuit, sans pub, hébergé en Suisse.",
   nav: { discover: 'Sorties', demo: 'Démo', login: 'Se connecter', signup: 'Créer un compte' },
   hero: {
     kicker: 'Gratuit · sans pub · hébergé en Suisse',
-    title: 'Fini les 300 messages pour savoir qui vient samedi.',
+    title: "On organise moins. On se voit plus.",
     text: 'EvLY réunit tout ce qu’il faut pour sortir ensemble : un Plan clair, la réponse de chacun, le chat, les dépenses, les trajets… Pour tes amis, ta famille, ton club ou tes collègues.',
     cta: 'Créer mon compte gratuit',
     demo: 'Voir la démo',
@@ -111,5 +111,92 @@ export default {
     childSafety: 'Sécurité des enfants',
     contact: 'Contact',
     made: 'Créé à Genève · hébergé en Suisse',
+  },
+  // Effets et navigation du site d'accueil (2026-11-21)
+  fx: {
+      "rotPrefix": "Fini les 300 messages pour savoir qui vient…",
+      "rot1": "samedi",
+      "rot2": "à l’anniversaire de Mamie",
+      "rot3": "à l’entraînement",
+      "rot4": "à l’AG",
+      "rot5": "au Secret Santa",
+      "tapHint": "À toi ! Touche « Je suis in »",
+      "you": "Toi",
+      "welcome": "Bienvenue dans le Plan 🎉",
+      "again": "Recommencer",
+      "storyKicker": "Comment ça marche",
+      "storyTitle": "Un samedi, du bazar au Plan",
+      "s1": {
+          "title": "Le groupe déborde",
+          "text": "« C’est où ? », « Qui vient ? », « 19 h ou 20 h ? »… Les infos se perdent dans 143 messages."
+      },
+      "s2": {
+          "title": "Tu crées un Plan",
+          "text": "Un titre, une date, un lieu. En 30 secondes, tout le monde a la même info au même endroit."
+      },
+      "s3": {
+          "title": "Chacun répond en un geste",
+          "text": "« Je suis in », « Peut-être » ou « Je passe ». Tu sais enfin qui vient, même tes invités sans compte."
+      },
+      "s4": {
+          "title": "Tout s’organise tout seul",
+          "text": "Qui apporte quoi, les places en voiture, les dépenses partagées : chaque chose a sa place."
+      },
+      "s5": {
+          "title": "Et la prochaine sortie ?",
+          "text": "Découvrir te propose les événements et les idées de sorties près de chez toi. Un geste, et c’est un nouveau Plan."
+      },
+      "created": "Nouveau Plan",
+      "bringTitle": "Qui apporte quoi",
+      "bring1": "Tom · le vin 🍷",
+      "bring2": "Léa · le dessert 🍰",
+      "bring3": "Les chips · à prendre",
+      "car": "Noah · 2 places 🚗",
+      "expenses": "Dépenses · 84 CHF, partagées",
+      "nearYou": "Près de chez toi",
+      "idea1": "🎄 Marché de Noël",
+      "idea2": "⛸️ Patinoire",
+      "idea3": "🛷 Piste de luge",
+      "goCircle": "Y aller avec un Cercle",
+      "drag": "Fais glisser pour comparer",
+      "nav": {
+          "hero": "Accueil",
+          "story": "Comment ça marche",
+          "compare": "Avant / après",
+          "audiences": "Pour qui",
+          "features": "Fonctions",
+          "discover": "Sorties",
+          "trust": "Confiance",
+          "faq": "Questions"
+      },
+      "big": {
+          "free": "{{n}} CHF",
+          "noads": "{{n}} pub",
+          "data": "{{n}} donnée vendue",
+          "swiss": "{{n}} % suisse"
+      },
+      "plans": {
+          "friends": {
+              "title": "Apéro sur le toit 🌅",
+              "when": "Samedi · 19:00"
+          },
+          "family": {
+              "title": "Les 80 ans de Mamie 🎂",
+              "when": "Dimanche · 12:00"
+          },
+          "work": {
+              "title": "Afterwork de fin de mois 🍻",
+              "when": "Jeudi · 18:30"
+          },
+          "clubs": {
+              "title": "Assemblée générale 🏛️",
+              "when": "Mardi · 20:00"
+          },
+          "pros": {
+              "title": "Soirée salsa 💃",
+              "when": "Vendredi · 21:00"
+          }
+      },
+      "featured": "Pour toi"
   },
 };

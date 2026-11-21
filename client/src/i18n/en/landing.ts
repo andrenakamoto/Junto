@@ -2,11 +2,11 @@ import type { Dict } from '../fr';
 
 const landing: Dict['landing'] = {
   pageTitle: 'EvLY: organise outings with friends, family or your club',
-  metaDescription: 'No more 300 messages to find out who’s coming on Saturday. EvLY brings together the answers, chat, expenses and travel for your outings. Free, no ads, hosted in Switzerland.',
+  metaDescription: "Less organising, more getting together. EvLY brings together the answers, chat, expenses and travel for your outings. Free, no ads, hosted in Switzerland.",
   nav: { discover: 'Outings', demo: 'Demo', login: 'Log in', signup: 'Create an account' },
   hero: {
     kicker: 'Free · no ads · hosted in Switzerland',
-    title: 'No more 300 messages to find out who’s coming on Saturday.',
+    title: "Less organising. More getting together.",
     text: 'EvLY brings together everything you need to go out together: a clear Plan, everyone’s answer, the chat, expenses, travel… For your friends, your family, your club or your colleagues.',
     cta: 'Create my free account',
     demo: 'See the demo',
@@ -112,6 +112,93 @@ const landing: Dict['landing'] = {
     childSafety: 'Child safety',
     contact: 'Contact',
     made: 'Made in Geneva · hosted in Switzerland',
+  },
+  // Effets et navigation du site d'accueil (2026-11-21)
+  fx: {
+      "rotPrefix": "No more 300 messages to find out who’s coming…",
+      "rot1": "on Saturday",
+      "rot2": "to Grandma’s birthday",
+      "rot3": "to training",
+      "rot4": "to the AGM",
+      "rot5": "to Secret Santa",
+      "tapHint": "Your turn! Tap “I’m in”",
+      "you": "You",
+      "welcome": "Welcome to the Plan 🎉",
+      "again": "Start again",
+      "storyKicker": "How it works",
+      "storyTitle": "One Saturday, from chaos to Plan",
+      "s1": {
+          "title": "The group chat overflows",
+          "text": "“Where is it?”, “Who’s coming?”, “7 or 8 pm?”… The info gets lost in 143 messages."
+      },
+      "s2": {
+          "title": "You create a Plan",
+          "text": "A title, a date, a place. In 30 seconds, everyone has the same info in the same place."
+      },
+      "s3": {
+          "title": "Everyone answers in one tap",
+          "text": "“I’m in”, “Maybe” or “I’ll pass”. You finally know who’s coming, even guests without an account."
+      },
+      "s4": {
+          "title": "Everything falls into place",
+          "text": "Who brings what, seats in the car, shared expenses: everything has its place."
+      },
+      "s5": {
+          "title": "What about the next outing?",
+          "text": "Discover suggests events and outing ideas near you. One tap, and it’s a new Plan."
+      },
+      "created": "New Plan",
+      "bringTitle": "Who brings what",
+      "bring1": "Tom · the wine 🍷",
+      "bring2": "Léa · dessert 🍰",
+      "bring3": "Crisps · up for grabs",
+      "car": "Noah · 2 seats 🚗",
+      "expenses": "Expenses · CHF 84, shared",
+      "nearYou": "Near you",
+      "idea1": "🎄 Christmas market",
+      "idea2": "⛸️ Ice rink",
+      "idea3": "🛷 Sledging run",
+      "goCircle": "Go with a Circle",
+      "drag": "Drag to compare",
+      "nav": {
+          "hero": "Home",
+          "story": "How it works",
+          "compare": "Before / after",
+          "audiences": "Who it’s for",
+          "features": "Features",
+          "discover": "Outings",
+          "trust": "Trust",
+          "faq": "Questions"
+      },
+      "big": {
+          "free": "CHF {{n}}",
+          "noads": "{{n}} ads",
+          "data": "{{n}} data sold",
+          "swiss": "{{n}}% Swiss"
+      },
+      "plans": {
+          "friends": {
+              "title": "Rooftop drinks 🌅",
+              "when": "Saturday · 19:00"
+          },
+          "family": {
+              "title": "Grandma’s 80th 🎂",
+              "when": "Sunday · 12:00"
+          },
+          "work": {
+              "title": "End-of-month afterwork 🍻",
+              "when": "Thursday · 18:30"
+          },
+          "clubs": {
+              "title": "General meeting 🏛️",
+              "when": "Tuesday · 20:00"
+          },
+          "pros": {
+              "title": "Salsa night 💃",
+              "when": "Friday · 21:00"
+          }
+      },
+      "featured": "For you"
   },
 };
 export default landing;

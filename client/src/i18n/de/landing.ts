@@ -2,11 +2,11 @@ import type { Dict } from '../fr';
 
 const landing: Dict['landing'] = {
   pageTitle: 'EvLY: Ausflüge mit Freunden, Familie oder Verein organisieren',
-  metaDescription: 'Schluss mit 300 Nachrichten, um herauszufinden, wer am Samstag kommt. EvLY vereint Antworten, Chat, Ausgaben und Fahrten eurer Ausflüge. Gratis, ohne Werbung, in der Schweiz gehostet.',
+  metaDescription: "Weniger organisieren, mehr zusammen sein. EvLY vereint Antworten, Chat, Ausgaben und Fahrten eurer Ausflüge. Gratis, ohne Werbung, in der Schweiz gehostet.",
   nav: { discover: 'Ausgehen', demo: 'Demo', login: 'Anmelden', signup: 'Konto erstellen' },
   hero: {
     kicker: 'Gratis · ohne Werbung · in der Schweiz gehostet',
-    title: 'Schluss mit 300 Nachrichten, um zu wissen, wer am Samstag kommt.',
+    title: "Weniger organisieren. Mehr zusammen sein.",
     text: 'EvLY vereint alles, was es zum gemeinsamen Ausgehen braucht: einen klaren Plan, die Antwort aller, den Chat, die Ausgaben, die Fahrten … Für deine Freunde, deine Familie, deinen Verein oder deine Arbeitskollegen.',
     cta: 'Gratis-Konto erstellen',
     demo: 'Demo ansehen',
@@ -112,6 +112,93 @@ const landing: Dict['landing'] = {
     childSafety: 'Kinderschutz',
     contact: 'Kontakt',
     made: 'In Genf entwickelt · in der Schweiz gehostet',
+  },
+  // Effets et navigation du site d'accueil (2026-11-21)
+  fx: {
+      "rotPrefix": "Schluss mit 300 Nachrichten, um zu wissen, wer kommt…",
+      "rot1": "am Samstag",
+      "rot2": "zu Omas Geburtstag",
+      "rot3": "ins Training",
+      "rot4": "an die GV",
+      "rot5": "zum Secret Santa",
+      "tapHint": "Du bist dran! Tippe auf «Ich bin dabei»",
+      "you": "Du",
+      "welcome": "Willkommen im Plan 🎉",
+      "again": "Nochmal",
+      "storyKicker": "So funktioniert’s",
+      "storyTitle": "Ein Samstag, vom Chaos zum Plan",
+      "s1": {
+          "title": "Die Gruppe läuft über",
+          "text": "«Wo ist das?», «Wer kommt?», «19 oder 20 Uhr?»… Die Infos gehen in 143 Nachrichten unter."
+      },
+      "s2": {
+          "title": "Du erstellst einen Plan",
+          "text": "Ein Titel, ein Datum, ein Ort. In 30 Sekunden haben alle dieselbe Info am selben Ort."
+      },
+      "s3": {
+          "title": "Alle antworten mit einem Tipp",
+          "text": "«Ich bin dabei», «Vielleicht» oder «Ich passe». Endlich weisst du, wer kommt – auch Gäste ohne Konto."
+      },
+      "s4": {
+          "title": "Alles organisiert sich von selbst",
+          "text": "Wer bringt was, Plätze im Auto, geteilte Ausgaben: Alles hat seinen Platz."
+      },
+      "s5": {
+          "title": "Und der nächste Ausflug?",
+          "text": "Entdecken schlägt dir Veranstaltungen und Ausflugsideen in deiner Nähe vor. Ein Tipp, und schon ist es ein neuer Plan."
+      },
+      "created": "Neuer Plan",
+      "bringTitle": "Wer bringt was",
+      "bring1": "Tom · den Wein 🍷",
+      "bring2": "Léa · das Dessert 🍰",
+      "bring3": "Chips · noch offen",
+      "car": "Noah · 2 Plätze 🚗",
+      "expenses": "Ausgaben · 84 CHF, geteilt",
+      "nearYou": "In deiner Nähe",
+      "idea1": "🎄 Weihnachtsmarkt",
+      "idea2": "⛸️ Eisbahn",
+      "idea3": "🛷 Schlittelpiste",
+      "goCircle": "Mit einem Kreis hingehen",
+      "drag": "Zum Vergleichen ziehen",
+      "nav": {
+          "hero": "Start",
+          "story": "So funktioniert’s",
+          "compare": "Vorher / nachher",
+          "audiences": "Für wen",
+          "features": "Funktionen",
+          "discover": "Ausflüge",
+          "trust": "Vertrauen",
+          "faq": "Fragen"
+      },
+      "big": {
+          "free": "{{n}} CHF",
+          "noads": "{{n}} Werbung",
+          "data": "{{n}} Daten verkauft",
+          "swiss": "{{n}} % Schweiz"
+      },
+      "plans": {
+          "friends": {
+              "title": "Apéro auf dem Dach 🌅",
+              "when": "Samstag · 19:00"
+          },
+          "family": {
+              "title": "Omas 80. Geburtstag 🎂",
+              "when": "Sonntag · 12:00"
+          },
+          "work": {
+              "title": "Feierabendbier am Monatsende 🍻",
+              "when": "Donnerstag · 18:30"
+          },
+          "clubs": {
+              "title": "Generalversammlung 🏛️",
+              "when": "Dienstag · 20:00"
+          },
+          "pros": {
+              "title": "Salsa-Abend 💃",
+              "when": "Freitag · 21:00"
+          }
+      },
+      "featured": "Für dich"
   },
 };
 export default landing;

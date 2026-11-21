@@ -2455,6 +2455,18 @@ de saison** sous l'accroche (`SantaHighlight`, `santaSeason` de `lib/season.ts` 
 = inscription puis création du Plan « Père Noël secret », « Comment ça marche » → `/pere-noel`, exemple de la démo), questions fréquentes, dernier appel, pied de page
 (brochures, confidentialité, contact). Compteurs `home` (visites) et `funnel_cta_home` (clics « Créer mon compte »). Titre et description de la
 page posés par JavaScript ; **pas encore de version prérendue** pour les moteurs de recherche (étape suivante possible), ni de pages par public.
+**Site d'accueil animé** (2026-11-21, demande de l'utilisateur : « plus dynamique, navigation interactive et innovante ») : accroche
+**« On organise moins. On se voit plus. »** (de « Weniger organisieren. Mehr zusammen sein. », it « Organizziamo meno. Ci vediamo di più. », en « Less
+organising. More getting together. ») qui apparaît mot par mot, suivie de « Fini les 300 messages pour savoir qui vient… » avec une fin qui change
+(samedi, anniversaire de Mamie, entraînement, AG, Secret Santa) ; effets dans `components/landing/LandingFx.tsx`, textes `landing.fx` :
+**téléphone qu'on touche** (`InteractivePhone` : les réponses arrivent puis « À toi ! », toucher « Je suis in » ajoute « Toi » avec des confettis),
+**histoire d'un samedi** (`StoryScroll`, section `#comment` : le téléphone reste collé — à droite sur grand écran, en haut sur téléphone — et son écran
+suit les 5 étapes du défilement : groupe qui déborde, Plan créé, réponses, qui apporte quoi / trajets / dépenses, Découvrir), **avant / après à glisser**
+(`CompareSlider`, chaque version sur sa moitié, `touch-action: pan-y` pour garder le défilement), **« Pour qui ? »** avec un Plan d'exemple coloré par
+public et les fonctions du public choisi mises en avant (« Pour toi ») dans « Tout au même endroit », **points de navigation** sur le bord et barre de
+progression sous l'en-tête (`SideNav`, sections `accueil`, `comment`, `avant-apres`, `pour-qui`, `fonctions`, `sorties`, `confiance`, `questions`),
+chiffres qui défilent dans « Confiance » (`CountUp`), cartes qui s'inclinent (`Tilt`), boutons aimantés (`Magnetic`), apparitions au défilement
+(`Reveal`). Sans bibliothèque ; tout s'arrête avec `prefers-reduced-motion`.
 
 **Parcours d'inscription** (2026-10-05, `lib/funnel.ts`) : totaux anonymes par jour dans
 **PageVisit** (pages `funnel_*`, comme le compteur de la page Découvrir). Clics comptés par le site
