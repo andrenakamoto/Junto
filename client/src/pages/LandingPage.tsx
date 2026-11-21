@@ -253,7 +253,7 @@ export function LandingPage() {
           </Reveal>
           <Reveal delay={150}>
             <Tilt className="max-w-[448px] mx-auto">
-              <img src={`/landing/en-bref-${currentLang()}.png`} alt={t('landing.fx.briefAlt')} width={448} height={499} loading="lazy"
+              <img src={`/landing/en-bref-${currentLang()}.png`} alt={t('landing.fx.briefAlt')} width={448} height={540} loading="lazy"
                 className="w-full h-auto rounded-[28px] shadow-2xl shadow-orange-900/25" />
             </Tilt>
           </Reveal>

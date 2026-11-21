@@ -201,6 +201,40 @@ export function InteractivePhone() {
 // ------------------------------------------------------------------------------------------------ Histoire d'un samedi
 const STEPS = ['s1', 's2', 's3', 's4', 's5'] as const;
 
+const CHAT_NAMES = ['Emma', 'Noah', 'Tom', 'Léa', 'Julie', 'Hugo'];
+const CHAT_COLORS = ['text-pink-300', 'text-sky-300', 'text-amber-300', 'text-emerald-300', 'text-violet-300', 'text-orange-300'];
+
+/** Fil de discussion qui déborde : un message toutes les 0,35 s, le fil remonte, l'écran est plein */
+function ChatFlood() {
+  const [count, setCount] = useState(reducedMotion() ? 16 : 6);
+  useEffect(() => {
+    if (reducedMotion()) return;
+    const id = setInterval(() => setCount(c => c + 1), 350);
+    return () => clearInterval(id);
+  }, []);
+  const lines = Array.from({ length: count }, (_, i) => i);
+  return (
+    <div className="absolute inset-0 bg-[#111318] pt-7 overflow-hidden">
+      <div className="absolute inset-x-0 top-7 bottom-0 flex flex-col justify-end gap-1.5 px-3 pb-[68px]">
+        {lines.slice(-16).map(i => {
+          const who = i % CHAT_NAMES.length, mine = i % 5 === 3;
+          return (
+            <div key={i} className={`max-w-[82%] rounded-2xl px-3 py-1.5 animate-[landingIn_.3s_ease-out] ${mine ? 'self-end bg-[#2b3a55]' : 'self-start bg-[#262a33]'}`}>
+              {!mine && <p className={`text-[10px] font-bold ${CHAT_COLORS[who]}`}>{CHAT_NAMES[who]}</p>}
+              <p className="text-xs text-slate-100">{t(`landing.fx.chat${(i % 16) + 1}` as 'landing.fx.chat1')}</p>
+            </div>
+          );
+        })}
+      </div>
+      {/* Le haut s'assombrit : on sent que le fil continue au-dessus */}
+      <div className="absolute inset-x-0 top-6 h-16 bg-gradient-to-b from-[#111318] to-transparent pointer-events-none" />
+      <p className="absolute left-1/2 -translate-x-1/2 bottom-8 whitespace-nowrap rounded-full bg-red-600 text-white text-sm font-bold px-4 py-1.5 shadow-lg shadow-black/50">
+        <CountUp from={0} to={143} duration={1200} render={n => t('landing.compare.unread').replace(/\d+/, String(n))} />
+      </p>
+    </div>
+  );
+}
+
 function StoryScreen({ step }: { step: number }) {
   const card = (compact = false) => (
     <div className={`rounded-2xl bg-white shadow-md ${compact ? 'p-3' : 'p-4'}`}>
@@ -210,20 +244,8 @@ function StoryScreen({ step }: { step: number }) {
       <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500"><MapPin size={12} />{t('landing.mock.where')}</p>
     </div>
   );
-  if (step === 0) return (
-    <div key="s0" className="absolute inset-0 bg-[#111318] p-3 pt-8">
-      <div className="space-y-1.5">
-        {(['before1', 'before2', 'before3', 'before4', 'before2', 'before1'] as const).map((k, i) => (
-          <p key={i} className={`max-w-[78%] rounded-2xl bg-[#262a33] text-slate-100 px-3 py-1.5 text-xs animate-[landingIn_.35s_ease-out_both] ${i % 2 ? 'ml-auto' : ''}`} style={{ animationDelay: `${i * 180}ms` }}>
-            {t(`landing.compare.${k}`)}
-          </p>
-        ))}
-      </div>
-      <p className="absolute left-1/2 -translate-x-1/2 bottom-8 whitespace-nowrap rounded-full bg-red-600 text-white text-sm font-bold px-4 py-1.5 shadow-lg">
-        <CountUp from={0} to={143} duration={1200} render={n => t('landing.compare.unread').replace(/\d+/, String(n))} />
-      </p>
-    </div>
-  );
+  // Étape 1 : le groupe déborde — l'écran se remplit de messages qui continuent d'arriver (2026-11-21, demande de l'utilisateur)
+  if (step === 0) return <ChatFlood />;
   return (
     <div key={`s${step}`} className="absolute inset-0 bg-slate-100 p-3 pt-7 space-y-2 animate-[landingIn_.45s_ease-out]">
       {step === 1 && card()}
