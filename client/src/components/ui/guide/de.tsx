@@ -245,7 +245,7 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Infos, Fotos und Dateien', summary: 'Wichtige Infos, Galerie, Dokumente',
         body: <P>Der Bereich <strong>Infos</strong> vereint Beschreibung, <strong>wichtige Infos</strong>, Dateien und
           Fotogalerie. <strong>«Alle Fotos herunterladen»</strong> holt alles auf einmal (ZIP): Mach das vor dem Enddatum.
-          10 MB pro Datei, 100 MB pro Plan. Beschreibung (500 Zeichen) und wichtige Infos (5000 Zeichen) lassen sich mit den
+          10 MB pro Datei, 200 MB pro Plan. Beschreibung (500 Zeichen) und wichtige Infos (5000 Zeichen) lassen sich mit den
           Schaltflächen über dem Feld formatieren: <strong>fett</strong>, <em>kursiv</em>, <u>unterstrichen</u>, Aufzählungen oder nummerierte Listen.</P>,
       },
       {
@@ -301,7 +301,9 @@ const groups: Group[] = [
           bereit, blockiert oder erledigt ist; «Meine Aufgaben» und «Überfällig» filtern die Liste. Jede Aufgabe hat eine Nummer, damit man sie
           wiederfindet; tippe sie (oder ihren Pfeil) an, um sie aufzuklappen: beginnen, erledigen, kommentieren, übernehmen («Ich kümmere mich darum») oder bearbeiten. Alle fügen Aufgaben
           hinzu und bringen sie voran; löschen können sie die Person, die sie erstellt hat, und das Organisationsteam. Für die Einsätze am Tag
-          selbst nimmst du besser den Einsatzplan.</P>,
+          selbst nimmst du besser den Einsatzplan. Unten sammelt der Bereich <strong>📎 Dokumente</strong> die Dateien des Teams (Offerten, Saalplan,
+          Budget… als PDF, Word, Excel, PowerPoint oder Foto, 20 MB pro Dokument), auf Wunsch nach Bereich geordnet; «Alles herunterladen» holt sie
+          als ZIP, bevor der Plan gelöscht wird.</P>,
       },
       {
         id: 'fournisseurs', emoji: '🤝', title: 'Lieferanten', summary: 'Caterer, Saal, Tontechnik: Offerten, Zahlungen und Kontakte an einem Ort',
@@ -594,7 +596,7 @@ const groups: Group[] = [
       {
         id: 'limites', emoji: '📏', title: 'Grenzen', summary: 'Dateien, Dauer, Kreise, Pseudonym',
         body: <L items={[
-          'Dateien: 10 MB pro Datei, 100 MB pro Plan.',
+          'Dateien: 10 MB pro Datei, 200 MB pro Plan.',
           'Ein Plan dauert höchstens 3 Wochen.',
           'Höchstens 20 erstellte Kreise pro Person.',
           'Pseudonym: Buchstaben ohne Akzente, Ziffern und _ (2 bis 24 Zeichen), Gross- und Kleinschreibung egal.',

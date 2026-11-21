@@ -7,6 +7,7 @@ import {
   assignablePeople, canManageTasks, commentRecipients, createsCycle, MAX_GROUPS, MAX_TASKS, newlyUnblocked, notifyTask, parseGroupTitle,
   parseStatus, parseTaskComment, parseTaskInput, TaskInput, tasksEnabled, TASKS_DISABLED_ERROR,
 } from '../lib/tasks';
+import { TASK_DOCS_SECTION } from '../lib/taskDocs';
 
 // Tâches de préparation d'un Plan (lib/tasks.ts), montées dans le routeur des Plans (/api/plans) :
 // même authentification, même lecture seule après la fin du Plan et même diffusion temps réel (lib/realtime.ts).
@@ -54,7 +55,7 @@ router.get('/:id/tasks', async (req: AuthRequest, res) => {
   const access = await getPlanAccess(req.userId!, req.params.id);
   if (!access?.canView) { res.status(404).json({ error: 'Plan introuvable' }); return; }
   const planId = req.params.id;
-  const [groups, tasks, people] = await Promise.all([
+  const [groups, tasks, people, documents] = await Promise.all([
     prisma.planTaskGroup.findMany({ where: { planId }, orderBy: { createdAt: 'asc' } }),
     prisma.planTask.findMany({
       where: { planId },
@@ -67,6 +68,12 @@ router.get('/:id/tasks', async (req: AuthRequest, res) => {
       },
     }),
     assignable(planId),
+    // Documents de la rubrique (jamais l'emplacement du fichier : affichés par /api/attachments/:id/view + jeton média du Plan)
+    prisma.attachment.findMany({
+      where: { planId, section: TASK_DOCS_SECTION },
+      select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true, taskGroupId: true },
+      orderBy: { createdAt: 'asc' },
+    }),
   ]);
   res.json({
     groups: groups.map(g => ({ id: g.id, title: g.title, createdById: g.createdById })),
@@ -78,8 +85,21 @@ router.get('/:id/tasks', async (req: AuthRequest, res) => {
       comments: t.comments.map(c => ({ id: c.id, content: decryptMessage(c.content), createdAt: c.createdAt, author: c.author })),
     })),
     people,
+    documents: documents.map(({ taskGroupId, ...d }) => ({ ...d, groupId: taskGroupId })),
     canManage: await canManageTasks(req.userId!, access.plan),
   });
+});
+
+// PUT /task-docs/:docId — ranger un document dans un lot (groupId null = « Général ») ; tout le monde qui voit le Plan
+router.put('/task-docs/:docId', async (req: AuthRequest, res) => {
+  const doc = await prisma.attachment.findUnique({ where: { id: req.params.docId }, select: { id: true, planId: true, section: true } });
+  if (!doc || doc.section !== TASK_DOCS_SECTION) { res.status(404).json({ error: 'Document introuvable' }); return; }
+  const plan = await writablePlan(req, res, doc.planId);
+  if (!plan) return;
+  const groupId = typeof req.body?.groupId === 'string' && req.body.groupId ? req.body.groupId : null;
+  if (groupId && !(await prisma.planTaskGroup.findFirst({ where: { id: groupId, planId: plan.id }, select: { id: true } }))) { res.status(400).json({ error: 'Lot introuvable' }); return; }
+  await prisma.attachment.update({ where: { id: doc.id }, data: { taskGroupId: groupId } });
+  res.json({ ok: true });
 });
 
 // POST /:id/tasks — ajouter une tâche (toute personne qui voit le Plan)

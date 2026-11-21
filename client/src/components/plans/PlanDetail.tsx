@@ -1157,7 +1157,7 @@ export function PlanDetail({ plan, circleName, circleCode, circlePersonal = fals
           {activeTab === 'equipes' && <TeamsTab plan={plan} userId={user.id} />}
           {activeTab === 'cagnotte' && <GiftPotTab plan={plan} userId={user.id} />}
           {activeTab === 'assemblee' && <AssemblyTab plan={plan} userId={user.id} />}
-          {activeTab === 'taches' && <TasksTab plan={plan} userId={user.id} />}
+          {activeTab === 'taches' && <TasksTab plan={plan} userId={user.id} pseudo={user.pseudo} />}
           {activeTab === 'fournisseurs' && <SuppliersTab plan={plan} userId={user.id} />}
           {activeTab === 'materiel' && <EquipmentTab plan={plan} userId={user.id} />}
           {activeTab === 'deroule' && (dayMerged

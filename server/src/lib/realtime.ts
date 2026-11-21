@@ -197,6 +197,10 @@ export async function resolvePlanWrite(req: Request): Promise<WriteTarget> {
     const item = await prisma.planProgramItem.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(item?.planId, false, 'deroule');
   }
+  if (a === 'task-docs') {
+    const doc = await prisma.attachment.findUnique({ where: { id: b }, select: { planId: true } });
+    return planTarget(doc?.planId, false, 'taches');
+  }
   if (a === 'task-groups') {
     const group = await prisma.planTaskGroup.findUnique({ where: { id: b }, select: { planId: true } });
     return planTarget(group?.planId, false, 'taches');
@@ -255,9 +259,11 @@ export async function resolveAttachmentWrite(req: Request): Promise<WriteTarget>
   // (?via=chat : la photo part dans un message du chat, qui notifie déjà — pas de 2e notification)
   // (?via=match : photo d'une proposition de match, ni onglet Infos ni notification)
   if (a === 'plans' && req.query.via === 'match') return null;
+  // (?via=taches : document de la rubrique Tâches, notification envoyée par la route)
+  if (a === 'plans' && req.query.via === 'taches') return b && !segments(req)[2] ? planTarget(b, false, 'taches') : null;
   if (a === 'plans') return b && !segments(req)[2] ? planTarget(b, false, 'infos', req.method === 'POST' && req.query.via !== 'chat' ? 'file' : undefined) : null;
-  const att = await prisma.attachment.findUnique({ where: { id: a }, select: { planId: true } });
-  return planTarget(att?.planId, false, 'infos');
+  const att = await prisma.attachment.findUnique({ where: { id: a }, select: { planId: true, section: true } });
+  return planTarget(att?.planId, false, att?.section === 'taches' ? 'taches' : 'infos');
 }
 
 // Garder les rooms de Cercle à jour pour les sockets déjà connectés

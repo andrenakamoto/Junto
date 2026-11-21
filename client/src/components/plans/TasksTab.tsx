@@ -4,7 +4,8 @@ import {
   CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Lock, MessageSquare, Pencil, Play, Plus,
   RotateCcw, Search, Send, Trash2, Unlock, UserPlus, UserMinus,
 } from 'lucide-react';
-import { Plan, PlanTask, PlanTaskGroup } from '../../types';
+import { Plan, PlanTask, PlanTaskDoc, PlanTaskGroup } from '../../types';
+import { TaskDocuments } from './TaskDocuments';
 import { FullscreenButton, FullscreenFrame } from '../ui/FullscreenFrame';
 import api from '../../services/api';
 import { isDemo } from '../../lib/demo';
@@ -19,7 +20,7 @@ import { intlLocale, t } from '../../i18n';
 
 type Person = { id: string; pseudo: string; firstName?: string | null };
 type State = 'ready' | 'blocked' | 'doing' | 'done';
-type Data = { groups: PlanTaskGroup[]; tasks: PlanTask[]; people: Person[]; canManage: boolean };
+type Data = { groups: PlanTaskGroup[]; tasks: PlanTask[]; people: Person[]; canManage: boolean; documents?: PlanTaskDoc[] };
 
 const VIEW_KEY = 'evly_tasks_view';
 const NEW_GROUP = '__new';
@@ -56,7 +57,7 @@ function sortTasks(list: PlanTask[]) {
 
 const personName = (p: Person) => displayName(p) || `@${p.pseudo}`;
 
-export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
+export function TasksTab({ plan, userId, pseudo }: { plan: Plan; userId: string; pseudo: string }) {
   const [data, setData] = useState<Data | null>(null);
   const [full, setFull] = useState(false);
   const [view, setView] = useState<'groups' | 'states'>(() => {
@@ -251,6 +252,9 @@ export function TasksTab({ plan, userId }: { plan: Plan; userId: string }) {
           })}
         </div>
       )}
+
+      {/* Documents de l'équipe (devis, plans, budget…), pas attachés à une tâche */}
+      <TaskDocuments plan={plan} docs={data.documents ?? []} groups={groups} pseudo={pseudo} canManage={canManage} onChanged={load} />
 
       {form && (
         <TaskForm

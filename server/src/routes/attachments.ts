@@ -15,6 +15,8 @@ import { isCircleManager } from '../lib/circleRoles';
 import { broadcastWrites, resolveAttachmentWrite } from '../lib/realtime';
 import { messageInclude } from '../lib/messageInclude';
 import { withPlainContent } from '../lib/messageCrypto';
+import { MAX_TASK_DOCS, OTHER_FILE_MAX_BYTES, TASK_DOCS_SECTION, TASK_DOC_MAX_BYTES, taskDocType } from '../lib/taskDocs';
+import { assignablePeople, notifyTask, TASKS_DISABLED_ERROR } from '../lib/tasks';
 
 const router = Router();
 const FILES_RESERVED_ERROR = 'Seuls le créateur du Plan et les organisateurs du Cercle ajoutent des photos et fichiers';
@@ -31,15 +33,22 @@ router.use((req, res, next) => {
 router.use(lockEndedPlans(resolveAttachmentWrite, { fromPath: segs => (segs[0] === 'plans' ? segs[1] : undefined) }));
 router.use(broadcastWrites(resolveAttachmentWrite));
 
+// 20 Mo pour les documents des Tâches (?via=taches), 10 Mo pour les autres fichiers (vérifié dans la route)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: { fileSize: TASK_DOC_MAX_BYTES },
+});
+// Fichier trop gros : message clair plutôt qu'une erreur 500
+const uploadOne = (req: any, res: any, next: any) => upload.single('file')(req, res, (err: any) => {
+  if (err?.code === 'LIMIT_FILE_SIZE') { res.status(400).json({ error: req.query.via === 'taches' ? 'Fichier trop volumineux (20 Mo au plus)' : 'Fichier trop volumineux (10 Mo au plus)' }); return; }
+  if (err) { next(err); return; }
+  next();
 });
 
-const PLAN_ATTACHMENTS_LIMIT = 100 * 1024 * 1024; // 100 MB cumulés par plan
+const PLAN_ATTACHMENTS_LIMIT = 200 * 1024 * 1024; // 200 Mo cumulés par Plan (depuis le 2026-11-21)
 
 // POST /api/attachments/plans/:planId  — upload
-router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, res) => {
+router.post('/plans/:planId', uploadOne, async (req: AuthRequest, res) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'Fichier manquant' }); return; }
 
@@ -54,6 +63,16 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     const viaQuiz = req.query.via === 'quiz' && plan.enabledFeatures.includes('quiz');
     // Document de l'ordre du jour d'une assemblée (?via=assemblee) : possible même sans « Photos et fichiers »
     const viaAssembly = req.query.via === 'assemblee' && plan.enabledFeatures.includes('assemblee');
+    // Document de la rubrique Tâches (?via=taches[&groupId=]) : tout le monde qui voit le Plan, comme les tâches ;
+    // indépendant de « Photos et fichiers » et de « Qui ajoute des photos et fichiers »
+    const viaTasks = req.query.via === 'taches';
+    if (viaTasks && !plan.enabledFeatures.includes('taches')) { res.status(403).json({ error: TASKS_DISABLED_ERROR }); return; }
+    if (!viaTasks && req.file.size > OTHER_FILE_MAX_BYTES) { res.status(400).json({ error: 'Fichier trop volumineux (10 Mo au plus)' }); return; }
+    const docType = viaTasks ? taskDocType(req.file.mimetype, fixUploadedFileName(req.file.originalname)) : null;
+    if (viaTasks && !docType) { res.status(400).json({ error: 'Formats acceptés : PDF, Word, Excel, PowerPoint, LibreOffice, texte et photos' }); return; }
+    const taskGroupId = viaTasks && typeof req.query.groupId === 'string' && req.query.groupId ? req.query.groupId : null;
+    if (taskGroupId && !(await prisma.planTaskGroup.findFirst({ where: { id: taskGroupId, planId: plan.id }, select: { id: true } }))) { res.status(400).json({ error: 'Lot introuvable' }); return; }
+    if (viaTasks && await prisma.attachment.count({ where: { planId: plan.id, section: TASK_DOCS_SECTION } }) >= MAX_TASK_DOCS) { res.status(400).json({ error: `${MAX_TASK_DOCS} documents au plus par Plan` }); return; }
     // « Photos et fichiers » décoché : seuls le créateur et les organisateurs ajoutent (affiche et documents de l'onglet Infos)
     const organizer = plan.creatorId === req.userId || await isCircleManager(req.userId!, plan.circleId);
     // Affiche du Plan (?via=affiche, flyer d'une soirée…) : une seule, en grand en haut de l'onglet Infos, nommée « affiche-… » ;
@@ -63,10 +82,10 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     // (photos et messages vocaux du chat compris ; les photos du match, du quiz et de l'assemblée ont leurs propres règles)
     const orgFiles = await orgPlanAllows(req.userId!, plan.circleId, 'add_files');
     const filesReserved = orgFiles === null ? plan.filesMode === 'managers' && !organizer : !orgFiles && plan.creatorId !== req.userId;
-    if (filesReserved && !viaMatch && !viaQuiz && !viaAssembly) { res.status(403).json({ error: FILES_RESERVED_ERROR }); return; }
+    if (filesReserved && !viaMatch && !viaQuiz && !viaAssembly && !viaTasks) { res.status(403).json({ error: FILES_RESERVED_ERROR }); return; }
     if (viaPoster && !organizer) { res.status(403).json({ error: 'Réservé au créateur et aux organisateurs du Cercle' }); return; }
     if (viaPoster && !req.file.mimetype.startsWith('image/')) { res.status(400).json({ error: 'Seules les photos sont acceptées' }); return; }
-    if (!viaMatch && !viaQuiz && !viaAssembly && !viaPoster && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
+    if (!viaMatch && !viaQuiz && !viaAssembly && !viaPoster && !viaTasks && plan.disabledFeatures.includes('fichiers') && !(organizer && !req.query.via)) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
 
     const { _sum } = await prisma.attachment.aggregate({
       where: { planId: req.params.planId },
@@ -76,7 +95,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
     if (currentTotal + req.file.size > PLAN_ATTACHMENTS_LIMIT) {
       const remainingMb = Math.max(0, (PLAN_ATTACHMENTS_LIMIT - currentTotal) / (1024 * 1024));
       res.status(400).json({
-        error: `Limite de 100 Mo de pièces jointes atteinte pour ce plan (il reste ${remainingMb.toFixed(1)} Mo).`,
+        error: `Limite de 200 Mo de pièces jointes atteinte pour ce plan (il reste ${remainingMb.toFixed(1)} Mo).`,
       });
       return;
     }
@@ -97,7 +116,7 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
       if (plan.disabledFeatures.includes('chat')) { res.status(403).json({ error: FEATURE_DISABLED_ERROR }); return; }
     }
     // Messages vocaux : resourceType « video » (convention héritée de Cloudinary), servis convertis en MP3
-    const mimeType = req.file.mimetype.split(';')[0].trim();
+    const mimeType = docType ?? req.file.mimetype.split(';')[0].trim();
     const result = await storeFile(req.file.buffer, req.params.planId, mimeType, isImageMime ? 'image' : isVoice ? 'video' : 'raw');
 
     // Nouvelle affiche : l'ancienne est supprimée (fichier compris)
@@ -119,11 +138,18 @@ router.post('/plans/:planId', upload.single('file'), async (req: AuthRequest, re
         mimeType,
         size:         req.file.size,
         uploadedBy:   req.pseudo!,
+        ...(viaTasks ? { section: TASK_DOCS_SECTION, taskGroupId } : {}),
       },
     });
 
     const { url: _url, publicId: _publicId, ...safe } = attachment;
     res.json(safe);
+    // Document des Tâches : les participants sont prévenus (app + push), comme pour les autres activités des Tâches
+    if (viaTasks) {
+      const io = req.app.get('io');
+      const people = await assignablePeople(plan.id).catch(() => []);
+      for (const p of people) notifyTask(io, p.id, plan, `📎 @${req.pseudo} a ajouté le document « ${attachment.name} »`, { id: req.userId!, pseudo: req.pseudo! });
+    }
   } catch (e) {
     console.error('[attachment upload]', e);
     res.status(500).json({ error: "Erreur lors de l'envoi du fichier" });
@@ -173,6 +199,14 @@ router.get('/plans/:planId/photos-token', async (req: AuthRequest, res) => {
   }
 });
 
+// GET /api/attachments/plans/:planId/task-docs-token — token court (2 min) pour le ZIP des documents des Tâches sur mobile
+router.get('/plans/:planId/task-docs-token', async (req: AuthRequest, res) => {
+  const access = await getPlanAccess(req.userId!, req.params.planId);
+  if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  const token = jwt.sign({ planId: req.params.planId, userId: req.userId, purpose: 'task-docs' }, process.env.JWT_SECRET!, { expiresIn: '2m' });
+  res.json({ token });
+});
+
 function uniqueZipEntryName(name: string, used: Set<string>): string {
   const safe = name.replace(/[/\\]/g, '_') || 'photo.jpg';
   if (!used.has(safe.toLowerCase())) { used.add(safe.toLowerCase()); return safe; }
@@ -214,7 +248,7 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
 
     const photos = await prisma.attachment.findMany({
-      where: { planId: plan.id, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
+      where: { planId: plan.id, mimeType: { startsWith: 'image/' }, matchOption: null, section: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
       orderBy: { createdAt: 'asc' },
     });
     if (photos.length === 0) { res.status(404).json({ error: 'Aucune photo dans ce Plan' }); return; }
@@ -245,6 +279,58 @@ router.get('/plans/:planId/photos/download', async (req: AuthRequest, res) => {
     await archive.finalize();
   } catch (e) {
     console.error('[photos zip]', e);
+    if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de la création du ZIP' });
+    else res.destroy();
+  }
+});
+
+// GET /api/attachments/plans/:planId/task-docs/download — ZIP de tous les documents des Tâches
+// Bearer (web) ou ?token= (mobile, purpose « task-docs »)
+router.get('/plans/:planId/task-docs/download', async (req: AuthRequest, res) => {
+  try {
+    if (!req.userId && req.query.token) {
+      try {
+        const payload = jwt.verify(req.query.token as string, process.env.JWT_SECRET!) as { planId?: string; userId: string; purpose?: string };
+        if (payload.purpose !== 'task-docs' || payload.planId !== req.params.planId) { res.status(403).json({ error: 'Token invalide pour ce Plan' }); return; }
+        req.userId = payload.userId;
+      } catch {
+        res.status(401).json({ error: 'Token expiré ou invalide' }); return;
+      }
+    }
+    if (!req.userId) { res.status(401).json({ error: 'Non authentifié' }); return; }
+    const access = await getPlanAccess(req.userId, req.params.planId);
+    if (!access?.canView) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    const plan = await prisma.plan.findUnique({ where: { id: access.plan.id }, select: { id: true, title: true } });
+    if (!plan) { res.status(404).json({ error: 'Plan introuvable' }); return; }
+    const docs = await prisma.attachment.findMany({
+      where: { planId: plan.id, section: TASK_DOCS_SECTION },
+      include: { taskGroup: { select: { title: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (docs.length === 0) { res.status(404).json({ error: 'Aucun document dans les Tâches' }); return; }
+
+    const zipName = `${plan.title.replace(/[/\\:*?"<>|]/g, '_')} - documents.zip`;
+    const encoded = encodeURIComponent(zipName).replace(/'/g, '%27');
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`);
+    const archive = archiver('zip', { zlib: { level: 6 } });
+    archive.on('error', (err) => { console.error('[task docs zip]', err); res.destroy(err); });
+    archive.pipe(res);
+    // Un dossier par lot ; les documents sans lot à la racine
+    const used = new Set<string>();
+    for (const doc of docs) {
+      try {
+        const buffer = await readStored(doc);
+        if (buffer.length === 0) continue;
+        const folder = doc.taskGroup ? `${doc.taskGroup.title.replace(/[/\\:*?"<>|]/g, '_').trim() || 'Lot'}/` : '';
+        archive.append(buffer, { name: folder + uniqueZipEntryName(doc.name, used) });
+      } catch (e) {
+        console.error('[task docs zip] fetch', doc.id, e);
+      }
+    }
+    await archive.finalize();
+  } catch (e) {
+    console.error('[task docs zip]', e);
     if (!res.headersSent) res.status(500).json({ error: 'Erreur lors de la création du ZIP' });
     else res.destroy();
   }

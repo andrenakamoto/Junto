@@ -240,7 +240,7 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Info, foto e file', summary: 'Informazioni importanti, galleria, documenti',
         body: <P>La sezione <strong>Info</strong> raccoglie descrizione, <strong>informazioni importanti</strong>, file e
           galleria fotografica. <strong>«Scarica tutte le foto»</strong> recupera tutto in una volta (ZIP): fallo prima
-          della data di fine. 10 MB per file, 100 MB per Plan. Descrizione (500 caratteri) e informazioni importanti (5000
+          della data di fine. 10 MB per file, 200 MB per Plan. Descrizione (500 caratteri) e informazioni importanti (5000
           caratteri) si formattano con i pulsanti sopra il campo: <strong>grassetto</strong>, <em>corsivo</em>, <u>sottolineato</u>, elenchi puntati o numerati.</P>,
       },
       {
@@ -295,7 +295,9 @@ const groups: Group[] = [
           iniziare. La vista <strong>«Per stato»</strong> mostra cosa è in corso, pronto, bloccato o completato; «I miei compiti» e «In
           ritardo» filtrano l'elenco. Ogni compito ha un numero per ritrovarlo; toccalo (o la sua freccia) per aprirlo: iniziarlo, completarlo, commentarlo,
           prenderlo («Me ne occupo io») o modificarlo. Tutti aggiungono e portano avanti i compiti; possono eliminarli chi li ha creati e gli organizzatori. Per i turni del
-          giorno stesso usa piuttosto i Turni.</P>,
+          giorno stesso usa piuttosto i Turni. In fondo, la sezione <strong>📎 Documenti</strong> raccoglie i file del team (preventivi, piantina
+          della sala, budget… in PDF, Word, Excel, PowerPoint o foto, 20 MB per documento), divisi per area se vuoi; «Scarica tutto» li recupera
+          in uno ZIP prima che il Plan venga cancellato.</P>,
       },
       {
         id: 'fournisseurs', emoji: '🤝', title: 'Fornitori', summary: 'Catering, sala, audio: preventivi, pagamenti e contatti nello stesso posto',
@@ -584,7 +586,7 @@ const groups: Group[] = [
       {
         id: 'limites', emoji: '📏', title: 'Limiti da conoscere', summary: 'File, durata, Cerchi, pseudonimo',
         body: <L items={[
-          'File: 10 MB per file, 100 MB per Plan.',
+          'File: 10 MB per file, 200 MB per Plan.',
           'Un Plan dura al massimo 3 settimane.',
           'Al massimo 20 Cerchi creati per persona.',
           'Pseudonimo: lettere senza accenti, cifre e _ (da 2 a 24 caratteri), senza distinzione tra maiuscole e minuscole.',

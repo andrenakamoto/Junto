@@ -236,7 +236,7 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Info, photos and files', summary: 'Important information, gallery, documents',
         body: <P>The <strong>Info</strong> section brings together the description, <strong>important information</strong>,
           files and the photo gallery. <strong>“Download all photos”</strong> gets everything at once (ZIP): do it before
-          the end date. 10 MB per file, 100 MB per Plan. The description (500 characters) and important information (5,000
+          the end date. 10 MB per file, 200 MB per Plan. The description (500 characters) and important information (5,000
           characters) can be formatted with the buttons above the field: <strong>bold</strong>, <em>italic</em>, <u>underline</u>, bulleted or numbered lists.</P>,
       },
       {
@@ -291,7 +291,9 @@ const groups: Group[] = [
           <strong> blocked</strong> 🔒, and when the last one is done, the people in charge are told they can start. The <strong>“By
           status”</strong> view shows what is in progress, ready, blocked or done; “My tasks” and “Overdue” filter the list. Each task has a
           number so you can find it; tap it (or its arrow) to open it: start it, finish it, comment, take it on (“I’ll take it”) or edit it. Everyone adds tasks and moves them forward;
-          the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead.</P>,
+          the person who created a task and the organisers can delete it. For shifts on the day itself, use the Schedule instead. At the bottom,
+          <strong>📎 Documents</strong> gathers the team's files (quotes, room layout, budget… as PDF, Word, Excel, PowerPoint or photo, 20 MB
+          per document), filed by area if you like; “Download all” gets them as a ZIP before the Plan is deleted.</P>,
       },
       {
         id: 'fournisseurs', emoji: '🤝', title: 'Suppliers', summary: 'Caterer, venue, sound: quotes, payments and contacts in one place',
@@ -576,7 +578,7 @@ const groups: Group[] = [
       {
         id: 'limites', emoji: '📏', title: 'Limits to know', summary: 'Files, duration, Circles, username',
         body: <L items={[
-          'Files: 10 MB per file, 100 MB per Plan.',
+          'Files: 10 MB per file, 200 MB per Plan.',
           'A Plan lasts 3 weeks at most.',
           '20 Circles created at most per person.',
           'Username: unaccented letters, numbers and _ (2 to 24 characters), not case-sensitive.',

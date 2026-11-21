@@ -739,6 +739,11 @@ model Attachment {
   message      Message?
   // Proposition d'un match qui affiche cette photo
   matchOption  MatchOption?
+  // Rubrique propre (« taches » = Documents des Tâches) : masqué de l'onglet Infos, du ZIP des photos et d'« En bref »
+  section      String?
+  // Lot des Tâches où le document est rangé (facultatif)
+  taskGroupId  String?
+  taskGroup    PlanTaskGroup? @relation(fields: [taskGroupId], references: [id], onDelete: SetNull)
 }
 
 model PlanDeleteVote {
@@ -1105,6 +1110,7 @@ model PlanTaskGroup {
   createdAt   DateTime       @default(now())
   tasks       PlanTask[]
   suppliers   PlanSupplier[]
+  documents   Attachment[]
 
   @@index([planId])
 }

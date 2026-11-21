@@ -118,7 +118,7 @@ const planInclude = {
   // Jamais l'URL Cloudinary : le client affiche via /api/attachments/:id/view + mediaToken
   attachments: {
     // Sans les photos des propositions de match (elles appartiennent au match)
-    where: { matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
+    where: { matchOption: null, section: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] },
     select: { id: true, name: true, mimeType: true, size: true, uploadedBy: true, createdAt: true },
     orderBy: { createdAt: 'asc' as const },
   },

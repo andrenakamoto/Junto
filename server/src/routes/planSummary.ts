@@ -45,7 +45,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
     optional('benevoles') ? prisma.volunteerShift.findMany({ where: { planId, signups: { some: { userId } } }, select: { title: true, startsAt: true, endsAt: true }, orderBy: { startsAt: 'asc' } }) : [],
     optional('taches') ? prisma.planTask.findMany({ where: { planId, assignees: { some: { userId } } }, select: { title: true, status: true, dueDate: true, createdAt: true } }) : [],
     // Comme le ZIP des photos : images du Plan, sans les photos des matchs ni du quiz
-    prisma.attachment.count({ where: { planId, mimeType: { startsWith: 'image/' }, matchOption: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] } }),
+    prisma.attachment.count({ where: { planId, mimeType: { startsWith: 'image/' }, matchOption: null, section: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] } }),
   ]);
 
   const counts = { in: 0, maybe: 0, out: 0 };

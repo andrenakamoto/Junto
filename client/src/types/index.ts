@@ -462,6 +462,8 @@ export interface VolunteerShift {
 // Tâches de préparation d'un Plan (fonction « taches », routes/tasks.ts côté serveur)
 export type TaskStatus = 'todo' | 'doing' | 'done';
 export interface PlanTaskGroup { id: string; title: string; createdById: string | null }
+/** Document de la rubrique Tâches (pièce jointe rangée à part, éventuellement dans un lot) */
+export interface PlanTaskDoc { id: string; name: string; mimeType: string; size: number; uploadedBy: string; createdAt: string; groupId: string | null }
 export interface PlanTask {
   id: string;
   title: string;

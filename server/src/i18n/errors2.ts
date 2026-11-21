@@ -28,7 +28,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Lien invalide ou expiré. Recommence le changement depuis « Mon profil ».': ['Ungültiger oder abgelaufener Link. Starte die Änderung erneut unter «Mein Profil».', 'Link non valido o scaduto. Ricomincia il cambio da «Il mio profilo».', 'Invalid or expired link. Start the change again from “My profile”.'],
   'Lieu de départ requis (100 caractères max)': ['Abfahrtsort erforderlich (max. 100 Zeichen)', 'Luogo di partenza obbligatorio (max 100 caratteri)', 'Departure point required (100 characters max)'],
   'Lieux : de 1 à 30, 60 caractères maximum chacun': ['Orte: 1 bis 30, je höchstens 60 Zeichen', 'Luoghi: da 1 a 30, al massimo 60 caratteri ciascuno', 'Places: 1 to 30, 60 characters max each'],
-  'Limite de 100 Mo de pièces jointes atteinte pour ce plan (il reste {0} Mo).': ['Grenze von 100 MB Anhängen für diesen Plan erreicht (noch {0} MB frei).', 'Limite di 100 MB di allegati raggiunto per questo plan (restano {0} MB).', '100 MB attachment limit reached for this plan ({0} MB left).'],
+  'Limite de 200 Mo de pièces jointes atteinte pour ce plan (il reste {0} Mo).': ['Grenze von 200 MB Anhängen für diesen Plan erreicht (noch {0} MB frei).', 'Limite di 200 MB di allegati raggiunto per questo plan (restano {0} MB).', '200 MB attachment limit reached for this plan ({0} MB left).'],
   'Limite de participants invalide': ['Ungültige Teilnehmergrenze', 'Limite di partecipanti non valido', 'Invalid participant limit'],
   'Liste d’envies : {0} caractères maximum': ['Wunschliste: höchstens {0} Zeichen', 'Lista dei desideri: al massimo {0} caratteri', 'Wish list: {0} characters at most'],
   'Liste des personnes exclues invalide': ['Ungültige Liste der ausgeschlossenen Personen', 'Lista delle persone escluse non valida', 'Invalid list of excluded people'],
@@ -307,6 +307,12 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   '{0} documents au plus par fournisseur': ['Höchstens {0} Dokumente pro Lieferant', 'Al massimo {0} documenti per fornitore', '{0} documents at most per supplier'],
   'Place pour les documents des fournisseurs épuisée (30 Mo par Plan)': ['Kein Platz mehr für Lieferantendokumente (30 MB pro Plan)', 'Spazio per i documenti dei fornitori esaurito (30 MB per Plan)', 'No more room for supplier documents (30 MB per Plan)'],
   'Document introuvable': ['Dokument nicht gefunden', 'Documento non trovato', 'Document not found'],
+  // Documents des Tâches (routes/attachments.ts ?via=taches, routes/tasks.ts)
+  'Fichier trop volumineux (20 Mo au plus)': ['Datei zu gross (höchstens 20 MB)', 'File troppo grande (20 MB al massimo)', 'File too large (20 MB at most)'],
+  'Fichier trop volumineux (10 Mo au plus)': ['Datei zu gross (höchstens 10 MB)', 'File troppo grande (10 MB al massimo)', 'File too large (10 MB at most)'],
+  'Formats acceptés : PDF, Word, Excel, PowerPoint, LibreOffice, texte et photos': ['Erlaubte Formate: PDF, Word, Excel, PowerPoint, LibreOffice, Text und Fotos', 'Formati accettati: PDF, Word, Excel, PowerPoint, LibreOffice, testo e foto', 'Accepted formats: PDF, Word, Excel, PowerPoint, LibreOffice, text and photos'],
+  '{0} documents au plus par Plan': ['Höchstens {0} Dokumente pro Plan', 'Al massimo {0} documenti per Plan', '{0} documents at most per Plan'],
+  'Aucun document dans les Tâches': ['Keine Dokumente in den Aufgaben', 'Nessun documento nei Compiti', 'No documents in Tasks'],
   'Ce fournisseur est encore utilisé dans un Plan : retire-le d’abord du Plan, ou archive-le': ['Dieser Lieferant wird noch in einem Plan verwendet: Entferne ihn zuerst aus dem Plan oder archiviere ihn', 'Questo fornitore è ancora usato in un Plan: rimuovilo prima dal Plan o archivialo', 'This supplier is still used in a Plan: remove it from the Plan first, or archive it'],
   // Accompagnants (lib/party.ts)
   'Seul le créateur du Plan peut le changer pour quelqu’un d’autre': ['Nur die Person, die den Plan erstellt hat, kann das für jemand anderen ändern', 'Solo chi ha creato il Plan può cambiarlo per un’altra persona', 'Only the Plan’s creator can change this for someone else'],

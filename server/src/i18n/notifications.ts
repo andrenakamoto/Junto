@@ -157,6 +157,7 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '✅ @{0} a terminé la tâche « {1} »': ['✅ @{0} hat die Aufgabe «{1}» erledigt', '✅ @{0} ha completato il compito «{1}»', '✅ @{0} finished the task “{1}”'],
   '▶️ Tu peux commencer « {0} » : « {1} » est terminée': ['▶️ Du kannst mit «{0}» beginnen: «{1}» ist erledigt', '▶️ Puoi iniziare «{0}»: «{1}» è completato', '▶️ You can start “{0}”: “{1}” is done'],
   '@{0} a commenté la tâche « {1} »': ['@{0} hat die Aufgabe «{1}» kommentiert', '@{0} ha commentato il compito «{1}»', '@{0} commented on the task “{1}”'],
+  '📎 @{0} a ajouté le document « {1} »': ['📎 @{0} hat das Dokument «{1}» hinzugefügt', '📎 @{0} ha aggiunto il documento «{1}»', '📎 @{0} added the document “{1}”'],
   '⏰ « {0} » est à faire aujourd’hui': ['⏰ «{0}» ist heute fällig', '⏰ «{0}» è da fare oggi', '⏰ “{0}” is due today'],
   '⏰ « {0} » est à faire pour demain': ['⏰ «{0}» ist morgen fällig', '⏰ «{0}» è da fare per domani', '⏰ “{0}” is due tomorrow'],
   '⏰ « {0} » est à faire d’ici {1} jours': ['⏰ «{0}» ist in {1} Tagen fällig', '⏰ «{0}» è da fare entro {1} giorni', '⏰ “{0}” is due in {1} days'],

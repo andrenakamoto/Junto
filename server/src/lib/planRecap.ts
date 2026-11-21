@@ -81,7 +81,7 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   const m = mail(locale);
   const who = whoIn(m);
   const has = (f: string) => plan.enabledFeatures.includes(f);
-  const [assembly, quiz, teamDraw, killer, words, santa, pot, programItems, taskGroups, tasks, ideaColumns, ideas, suppliers] = await Promise.all([
+  const [assembly, quiz, teamDraw, killer, words, santa, pot, programItems, taskGroups, tasks, ideaColumns, ideas, suppliers, taskDocs] = await Promise.all([
     has('assemblee') ? prisma.assembly.findUnique({ where: { planId }, include: { items: { orderBy: { position: 'asc' }, include: { candidates: true, ballots: true } } } }) : null,
     has('quiz') ? prisma.quiz.findUnique({ where: { planId }, include: { questions: { select: { id: true } } } }) : null,
     has('equipes') ? prisma.teamDraw.findUnique({ where: { planId }, include: { teams: { orderBy: { position: 'asc' }, include: { members: { include: { user: { select: PERSON } } } } }, matches: { orderBy: [{ round: 'asc' }, { position: 'asc' }] } } }) : null,
@@ -95,6 +95,8 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
     has('idees') ? prisma.ideaColumn.findMany({ where: { planId }, orderBy: [{ position: 'asc' }, { createdAt: 'asc' }], select: { id: true, title: true } }) : [],
     has('idees') ? prisma.idea.findMany({ where: { planId }, orderBy: { createdAt: 'asc' } }) : [],
     has('fournisseurs') ? prisma.planSupplier.findMany({ where: { planId }, orderBy: { createdAt: 'asc' }, include: { supplier: { select: { name: true, category: true, contactName: true, phone: true } } } }) : [],
+    // Documents des Tâches : seulement les noms (les fichiers restent dans l'app)
+    has('taches') ? prisma.attachment.findMany({ where: { planId, section: 'taches' }, orderBy: { createdAt: 'asc' }, select: { name: true, taskGroupId: true } }) : [],
   ]);
   // Quiz : seulement une fois la partie terminée
   const quizAnswers = quiz?.endedAt ? await prisma.quizAnswer.findMany({ where: { planId }, select: { userId: true, points: true } }) : [];
@@ -257,6 +259,18 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
         if (x.note) doc.font('regular').fontSize(9).fillColor(DIM).text(x.note, left + 12, doc.y, { width: width - 12 });
         doc.x = left;
       }
+    }
+  }
+  // Documents des Tâches : la liste des noms, par lot
+  if (taskDocs.length > 0) {
+    if (tasks.length === 0) section(m.s('recapPdf.tasks'));
+    sub(m.s('recapPdf.taskDocs', { count: taskDocs.length }));
+    const groupTitle = new Map(taskGroups.map(g => [g.id, g.title]));
+    for (const d of taskDocs) {
+      if (doc.y > doc.page.height - 90) doc.addPage();
+      const lot = d.taskGroupId ? groupTitle.get(d.taskGroupId) : undefined;
+      doc.font('regular').fontSize(10).fillColor(INK).text(`•  ${d.name}`, { continued: !!lot }).font('regular').fillColor(DIM);
+      if (lot) doc.text(`  ·  ${lot}`);
     }
   }
 

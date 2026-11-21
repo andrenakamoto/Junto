@@ -238,7 +238,7 @@ const groups: Group[] = [
         id: 'infos', emoji: '📋', title: 'Infos, photos et fichiers', summary: 'Informations importantes, galerie, documents',
         body: <P>L'onglet <strong>Infos</strong> regroupe la description, les <strong>informations importantes</strong>, les
           fichiers et la galerie photo. <strong>« Télécharger toutes les photos »</strong> récupère tout d'un coup (ZIP) : pense
-          à le faire avant la date de fin. 10 Mo par fichier, 100 Mo par Plan. La description (500 caractères) et les informations
+          à le faire avant la date de fin. 10 Mo par fichier, 200 Mo par Plan. La description (500 caractères) et les informations
           importantes (5 000 caractères) se mettent en forme avec les boutons au-dessus du champ : <strong>gras</strong>,
           <em>italique</em>, <u>souligné</u>, listes à puces ou numérotées.</P>,
       },
@@ -294,7 +294,9 @@ const groups: Group[] = [
           prévenus qu'ils peuvent commencer. La vue <strong>« Par état »</strong> montre ce qui est en cours, prêt, bloqué ou terminé ;
           « Mes tâches » et « En retard » filtrent la liste. Chaque tâche a un numéro pour la repérer. Touche-la (ou sa flèche) pour la
           déplier : la commencer, la terminer, la commenter, la prendre (« Je m'en occupe ») ou la modifier. Tout le monde ajoute et fait avancer les tâches ; les supprimer : la personne qui
-          les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning.</P>,
+          les a créées et les organisateurs. Pour les postes du jour même, utilise plutôt le Planning. En bas, la rubrique
+          <strong> 📎 Documents</strong> réunit les fichiers de l'équipe (devis, plan de salle, budget… : PDF, Word, Excel, PowerPoint ou photo,
+          20 Mo par document), rangés par lot si tu veux ; « Tout télécharger » les récupère en ZIP avant la suppression du Plan.</P>,
       },
       {
         id: 'fournisseurs', emoji: '🤝', title: 'Fournisseurs', summary: 'Traiteur, salle, sono : devis, paiements et contacts au même endroit',
@@ -582,7 +584,7 @@ const groups: Group[] = [
       {
         id: 'limites', emoji: '📏', title: 'Limites à connaître', summary: 'Fichiers, durée, Cercles, pseudo',
         body: <L items={[
-          'Fichiers : 10 Mo par fichier, 100 Mo par Plan.',
+          'Fichiers : 10 Mo par fichier, 200 Mo par Plan.',
           'Un Plan dure 3 semaines au plus.',
           '20 Cercles créés au maximum par personne.',
           'Pseudo : lettres sans accent, chiffres et _ (2 à 24 caractères), sans distinction de majuscules.',

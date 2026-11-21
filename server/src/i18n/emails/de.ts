@@ -248,6 +248,7 @@ const de: EmailDict = {
     tasks: 'Aufgaben',
     tasksSub: '{done} von {total} erledigt',
     taskNoGroup: 'Ohne Bereich',
+    taskDocs: 'Dokumente ({count})',
     taskTodo: 'Offen',
     taskDoing: 'In Arbeit',
     taskDone: 'Erledigt',

@@ -248,6 +248,7 @@ const fr = {
     tasks: 'Tâches',
     tasksSub: 'terminées : {done} sur {total}',
     taskNoGroup: 'Sans lot',
+    taskDocs: 'Documents ({count})',
     taskTodo: 'À faire',
     taskDoing: 'En cours',
     taskDone: 'Terminée',
