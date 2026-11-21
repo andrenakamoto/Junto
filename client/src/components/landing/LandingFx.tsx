@@ -304,66 +304,6 @@ export function StoryScroll() {
   );
 }
 
-// ------------------------------------------------------------------------------------------------ Avant / après à glisser
-export function CompareSlider() {
-  const [pos, setPos] = useState(50);
-  const box = useRef<HTMLDivElement>(null);
-  const drag = useRef(false);
-  const [ref, seen] = useInView<HTMLDivElement>();
-  const touched = useRef(false);
-  // Petit va-et-vient d'invitation quand la section arrive à l'écran
-  useEffect(() => {
-    if (!seen || reducedMotion()) return;
-    const seq = [32, 68, 50]; const ids = seq.map((p, i) => setTimeout(() => { if (!touched.current) setPos(p); }, 400 + i * 650));
-    return () => ids.forEach(clearTimeout);
-  }, [seen]);
-  const at = (clientX: number) => {
-    const r = box.current?.getBoundingClientRect(); if (!r) return;
-    setPos(Math.max(4, Math.min(96, ((clientX - r.left) / r.width) * 100)));
-  };
-  const down = (e: React.PointerEvent) => { touched.current = true; drag.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); at(e.clientX); };
-  const move = (e: React.PointerEvent) => { if (drag.current) at(e.clientX); };
-  const up = () => { drag.current = false; };
-  const panel = 'absolute inset-0 p-5 sm:p-7';
-  return (
-    <div ref={ref} className="mt-10 max-w-4xl mx-auto">
-      <div ref={box} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-        className="relative h-[380px] sm:h-[400px] rounded-3xl overflow-hidden shadow-xl select-none cursor-ew-resize [touch-action:pan-y]">
-        {/* Avant : le groupe de discussion */}
-        {/* Chaque version occupe sa moitié : la poignée en recouvre une plus ou moins */}
-        <div className={`${panel} bg-[#111318] text-white`}>
-          <div className="w-1/2 pr-4 sm:pr-8">
-          <p className="text-sm font-semibold text-slate-400">💬 {t('landing.compare.beforeTitle')}</p>
-          <div className="mt-4 space-y-2">
-            {(['before1', 'before2', 'before3', 'before4'] as const).map((k, i) => (
-              <p key={k} className={`w-fit max-w-full rounded-2xl bg-[#262a33] px-3 sm:px-4 py-2 text-xs sm:text-sm ${i % 2 ? 'ml-auto' : ''}`}>{t(`landing.compare.${k}`)}</p>
-            ))}
-          </div>
-          <p className="mt-5 inline-block rounded-full bg-red-600 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold">{t('landing.compare.unread')}</p>
-          </div>
-        </div>
-        {/* Après : le Plan, découvert depuis la droite */}
-        <div className={`${panel} bg-white flex justify-end`} style={{ clipPath: `inset(0 0 0 ${pos}%)` }}>
-          <div className="w-1/2 pl-4 sm:pl-8">
-            <p className="text-sm font-semibold text-indigo-700">✨ {t('landing.compare.afterTitle')}</p>
-            <p className="mt-3 font-serif text-lg sm:text-2xl font-bold text-slate-900">{t('landing.mock.title')}</p>
-            <ul className="mt-3 space-y-2.5 text-xs sm:text-sm text-slate-700">
-              {(['after1', 'after2', 'after3', 'after4'] as const).map(k => <li key={k}>{t(`landing.compare.${k}`)}</li>)}
-            </ul>
-          </div>
-        </div>
-        {/* Poignée */}
-        <div className="absolute inset-y-0 w-1 bg-white shadow-[0_0_0_1px_rgba(0,0,0,.1)] pointer-events-none" style={{ left: `calc(${pos}% - 2px)`, transition: drag.current ? 'none' : 'left .6s ease' }}>
-          <button type="button" role="slider" aria-label={t('landing.fx.drag')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pos)}
-            onKeyDown={e => { if (e.key === 'ArrowLeft') setPos(p => Math.max(4, p - 6)); if (e.key === 'ArrowRight') setPos(p => Math.min(96, p + 6)); }}
-            className="pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-indigo-600 text-white shadow-xl flex items-center justify-center text-lg font-bold">⇆</button>
-        </div>
-      </div>
-      <p className="mt-3 text-center text-sm text-slate-500">↔ {t('landing.fx.drag')}</p>
-    </div>
-  );
-}
-
 // ------------------------------------------------------------------------------------------------ Navigation de côté
 export interface NavSection { id: string; label: string }
 

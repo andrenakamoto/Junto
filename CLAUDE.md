@@ -2457,14 +2457,15 @@ de saison** sous l'accroche (`SantaHighlight`, `santaSeason` de `lib/season.ts` 
 page posés par JavaScript ; **pas encore de version prérendue** pour les moteurs de recherche (étape suivante possible), ni de pages par public.
 **Site d'accueil animé** (2026-11-21, demande de l'utilisateur : « plus dynamique, navigation interactive et innovante ») : accroche
 **« On organise moins. On se voit plus. »** (de « Weniger organisieren. Mehr zusammen sein. », it « Organizziamo meno. Ci vediamo di più. », en « Less
-organising. More getting together. ») qui apparaît mot par mot, suivie de « Fini les 300 messages pour savoir qui vient… » avec une fin qui change
+organising. More getting together. ») qui apparaît mot par mot, **centrée**, suivie de « Fini les 300 messages pour savoir qui vient… » avec une fin qui change, **toujours sur sa propre ligne**
 (samedi, anniversaire de Mamie, entraînement, AG, Secret Santa) ; effets dans `components/landing/LandingFx.tsx`, textes `landing.fx` :
 **téléphone qu'on touche** (`InteractivePhone` : les réponses arrivent puis « À toi ! », toucher « Je suis in » ajoute « Toi » avec des confettis),
 **histoire d'un samedi** (`StoryScroll`, section `#comment` : le téléphone reste collé — à droite sur grand écran, en haut sur téléphone — et son écran
-suit les 5 étapes du défilement : groupe qui déborde, Plan créé, réponses, qui apporte quoi / trajets / dépenses, Découvrir), **avant / après à glisser**
-(`CompareSlider`, chaque version sur sa moitié, `touch-action: pan-y` pour garder le défilement), **« Pour qui ? »** avec un Plan d'exemple coloré par
+suit les 5 étapes du défilement : groupe qui déborde, Plan créé, réponses, qui apporte quoi / trajets / dépenses, Découvrir), **section « En bref »**
+(`#en-bref`, même jour : remplace l'avant / après « La même soirée… », jugé redondant ; **vraie capture** du « En bref » de « Raclette chez Tom » dans la
+démo, une par langue dans `public/landing/en-bref-<langue>.png`, prises sur grand écran en ne gardant que la fenêtre), **« Pour qui ? »** avec un Plan d'exemple coloré par
 public et les fonctions du public choisi mises en avant (« Pour toi ») dans « Tout au même endroit », **points de navigation** sur le bord et barre de
-progression sous l'en-tête (`SideNav`, sections `accueil`, `comment`, `avant-apres`, `pour-qui`, `fonctions`, `sorties`, `confiance`, `questions`),
+progression sous l'en-tête (`SideNav`, sections `accueil`, `comment`, `en-bref`, `pour-qui`, `fonctions`, `sorties`, `confiance`, `questions`),
 chiffres qui défilent dans « Confiance » (`CountUp`), cartes qui s'inclinent (`Tilt`), boutons aimantés (`Magnetic`), apparitions au défilement
 (`Reveal`). Sans bibliothèque ; tout s'arrête avec `prefers-reduced-motion`.
 

@@ -114,6 +114,14 @@ export default {
   },
   // Effets et navigation du site d'accueil (2026-11-21)
   fx: {
+      "briefKicker": "En bref",
+      "briefTitle": "Tout ce qui te concerne, en un coup d’œil",
+      "briefText": "Pas besoin d’ouvrir le Plan ni de relire le chat : « En bref » te dit l’essentiel, rien que pour toi.",
+      "briefP1": "Quand, où, et qui vient",
+      "briefP2": "Ta place en voiture, ce qui manque encore",
+      "briefP3": "Ce que tu dois, et à qui",
+      "briefP4": "Un résumé à copier, avec un lien pour répondre sans compte",
+      "briefAlt": "Écran « En bref » d’un Plan dans EvLY",
       "rotPrefix": "Fini les 300 messages pour savoir qui vient…",
       "rot1": "samedi",
       "rot2": "à l’anniversaire de Mamie",
@@ -125,7 +133,7 @@ export default {
       "welcome": "Bienvenue dans le Plan 🎉",
       "again": "Recommencer",
       "storyKicker": "Comment ça marche",
-      "storyTitle": "Un samedi, du bazar au Plan",
+      "storyTitle": "Du groupe qui déborde au Plan qui tient",
       "s1": {
           "title": "Le groupe déborde",
           "text": "« C’est où ? », « Qui vient ? », « 19 h ou 20 h ? »… Les infos se perdent dans 143 messages."
@@ -162,7 +170,7 @@ export default {
       "nav": {
           "hero": "Accueil",
           "story": "Comment ça marche",
-          "compare": "Avant / après",
+          "compare": "En bref",
           "audiences": "Pour qui",
           "features": "Fonctions",
           "discover": "Sorties",

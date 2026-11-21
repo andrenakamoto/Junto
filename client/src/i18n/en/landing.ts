@@ -115,6 +115,14 @@ const landing: Dict['landing'] = {
   },
   // Effets et navigation du site d'accueil (2026-11-21)
   fx: {
+      "briefKicker": "At a glance",
+      "briefTitle": "Everything that concerns you, at a glance",
+      "briefText": "No need to open the Plan or scroll back through the chat: “At a glance” gives you the essentials, just for you.",
+      "briefP1": "When, where and who’s coming",
+      "briefP2": "Your seat in the car, what’s still missing",
+      "briefP3": "What you owe, and to whom",
+      "briefP4": "A summary to copy, with a link to answer without an account",
+      "briefAlt": "“At a glance” screen of a Plan in EvLY",
       "rotPrefix": "No more 300 messages to find out who’s coming…",
       "rot1": "on Saturday",
       "rot2": "to Grandma’s birthday",
@@ -126,7 +134,7 @@ const landing: Dict['landing'] = {
       "welcome": "Welcome to the Plan 🎉",
       "again": "Start again",
       "storyKicker": "How it works",
-      "storyTitle": "One Saturday, from chaos to Plan",
+      "storyTitle": "From an overflowing group chat to a Plan that holds",
       "s1": {
           "title": "The group chat overflows",
           "text": "“Where is it?”, “Who’s coming?”, “7 or 8 pm?”… The info gets lost in 143 messages."
@@ -163,7 +171,7 @@ const landing: Dict['landing'] = {
       "nav": {
           "hero": "Home",
           "story": "How it works",
-          "compare": "Before / after",
+          "compare": "At a glance",
           "audiences": "Who it’s for",
           "features": "Features",
           "discover": "Outings",

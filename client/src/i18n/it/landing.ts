@@ -115,6 +115,14 @@ const landing: Dict['landing'] = {
   },
   // Effets et navigation du site d'accueil (2026-11-21)
   fx: {
+      "briefKicker": "In breve",
+      "briefTitle": "Tutto ciò che ti riguarda, a colpo d’occhio",
+      "briefText": "Niente Plan da aprire né chat da rileggere: «In breve» ti dice l’essenziale, solo per te.",
+      "briefP1": "Quando, dove e chi viene",
+      "briefP2": "Il tuo posto in auto, cosa manca ancora",
+      "briefP3": "Quanto devi, e a chi",
+      "briefP4": "Un riepilogo da copiare, con un link per rispondere senza account",
+      "briefAlt": "Schermata «In breve» di un Plan in EvLY",
       "rotPrefix": "Basta con 300 messaggi per sapere chi viene…",
       "rot1": "sabato",
       "rot2": "al compleanno della nonna",
@@ -126,7 +134,7 @@ const landing: Dict['landing'] = {
       "welcome": "Benvenuto/a nel Plan 🎉",
       "again": "Ricomincia",
       "storyKicker": "Come funziona",
-      "storyTitle": "Un sabato, dal caos al Plan",
+      "storyTitle": "Dal gruppo che straripa al Plan che regge",
       "s1": {
           "title": "Il gruppo straripa",
           "text": "«Dov’è?», «Chi viene?», «Alle 19 o alle 20?»… Le info si perdono in 143 messaggi."
@@ -163,7 +171,7 @@ const landing: Dict['landing'] = {
       "nav": {
           "hero": "Inizio",
           "story": "Come funziona",
-          "compare": "Prima / dopo",
+          "compare": "In breve",
           "audiences": "Per chi",
           "features": "Funzioni",
           "discover": "Uscite",

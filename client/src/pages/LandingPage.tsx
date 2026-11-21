@@ -7,7 +7,7 @@ import { ArrowRight, Banknote, Check, Compass, Dices, EyeOff, FileDown, Gift, He
 import { LogoFull } from '../components/ui/Logo';
 import { LanguagePicker } from '../components/ui/LanguagePicker';
 import { countStep } from '../lib/funnel';
-import { CompareSlider, CountUp, FloatingBubbles, InteractivePhone, Magnetic, Reveal, RotatingWords, SideNav, StoryScroll, Tilt, WordReveal } from '../components/landing/LandingFx';
+import { CountUp, FloatingBubbles, InteractivePhone, Magnetic, Reveal, RotatingWords, SideNav, StoryScroll, Tilt, WordReveal } from '../components/landing/LandingFx';
 import { siteUrl } from '../lib/siteUrl';
 import { discoverImageUrl, type DiscoverData, type DiscoverEvent } from '../lib/discover';
 import api from '../services/api';
@@ -144,7 +144,7 @@ function SantaHighlight() {
 
 export function LandingPage() {
   const [audience, setAudience] = useState<typeof AUDIENCES[number]['key']>('friends');
-  const navSections = useMemo(() => (['accueil', 'comment', 'avant-apres', 'pour-qui', 'fonctions', 'sorties', 'confiance', 'questions'] as const)
+  const navSections = useMemo(() => (['accueil', 'comment', 'en-bref', 'pour-qui', 'fonctions', 'sorties', 'confiance', 'questions'] as const)
     .map((id, i) => ({ id, label: t(`landing.fx.nav.${(['hero', 'story', 'compare', 'audiences', 'features', 'discover', 'trust', 'faq'] as const)[i]}`) })), []);
 
   useEffect(() => {
@@ -204,20 +204,23 @@ export function LandingPage() {
       <section id="accueil" className="scroll-mt-16 relative overflow-hidden bg-[radial-gradient(circle_at_80%_20%,#7c2d12_0%,rgba(15,23,42,0)_55%)] bg-[#0f172a] text-white">
         <FloatingBubbles />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
-          <div>
+          <div className="text-center">
             <p className="inline-block text-[11px] sm:text-xs font-semibold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 border border-white/15 text-orange-100">{t('landing.hero.kicker')}</p>
             <h1 className="mt-5 font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05]"><WordReveal text={t('landing.hero.title')} /></h1>
-            <p className="mt-5 text-lg sm:text-xl text-slate-200 leading-snug max-w-xl min-h-[3.4em] sm:min-h-[2.6em]">
-              {t('landing.fx.rotPrefix')}{' '}
-              <RotatingWords className="font-bold text-orange-400" words={(['rot1', 'rot2', 'rot3', 'rot4', 'rot5'] as const).map(k => t(`landing.fx.${k}`))} />
+            {/* Fin de phrase toujours sur sa propre ligne (2026-11-21) : sinon les fins longues passaient à la ligne et le texte sautait */}
+            <p className="mt-5 text-lg sm:text-xl text-slate-200 leading-snug">
+              {t('landing.fx.rotPrefix')}
+              <span className="block mt-1 h-[1.3em] text-2xl sm:text-3xl whitespace-nowrap">
+                <RotatingWords className="font-bold text-orange-400" words={(['rot1', 'rot2', 'rot3', 'rot4', 'rot5'] as const).map(k => t(`landing.fx.${k}`))} />
+              </span>
             </p>
-            <p className="mt-4 text-base text-slate-300 leading-relaxed max-w-xl">{t('landing.hero.text')}</p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            <p className="mt-4 text-base text-slate-300 leading-relaxed max-w-xl mx-auto">{t('landing.hero.text')}</p>
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
               {magneticSignup(true)}
               <Link to="/demo" className="inline-flex items-center justify-center px-6 py-4 rounded-2xl border border-white/25 text-base font-semibold text-white hover:bg-white/10">{t('landing.hero.demo')}</Link>
             </div>
-            <p className="mt-4 flex items-center gap-1.5 text-sm text-slate-400"><Check size={16} className="text-emerald-400" />{t('landing.hero.guests')}</p>
-            <div className="mt-6">{stores}</div>
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-sm text-slate-400"><Check size={16} className="text-emerald-400" />{t('landing.hero.guests')}</p>
+            <div className="mt-6 flex justify-center">{stores}</div>
           </div>
           <InteractivePhone />
         </div>
@@ -234,10 +237,27 @@ export function LandingPage() {
         <div className="mt-6"><StoryScroll /></div>
       </section>
 
-      {/* Avant / après à glisser */}
-      <Section id="avant-apres" tone="soft">
-        <H2>{t('landing.compare.title')}</H2>
-        <CompareSlider />
+      {/* « En bref » d'un Plan (2026-11-21, demande de l'utilisateur : remplace « La même soirée… », redondant avec l'histoire) :
+          vraie capture de la démo (Raclette chez Tom), une par langue dans public/landing/en-bref-<langue>.png */}
+      <Section id="en-bref" tone="soft">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center max-w-5xl mx-auto">
+          <Reveal>
+            <p className="text-sm font-bold uppercase tracking-wider text-orange-600">{t('landing.fx.briefKicker')}</p>
+            <h2 className="mt-2 font-serif text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">{t('landing.fx.briefTitle')}</h2>
+            <p className="mt-4 text-slate-600 text-base sm:text-lg leading-relaxed">{t('landing.fx.briefText')}</p>
+            <ul className="mt-6 space-y-3">
+              {(['briefP1', 'briefP2', 'briefP3', 'briefP4'] as const).map(k => (
+                <li key={k} className="flex gap-3 text-slate-800"><Check size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />{t(`landing.fx.${k}`)}</li>
+              ))}
+            </ul>
+          </Reveal>
+          <Reveal delay={150}>
+            <Tilt className="max-w-[448px] mx-auto">
+              <img src={`/landing/en-bref-${currentLang()}.png`} alt={t('landing.fx.briefAlt')} width={448} height={499} loading="lazy"
+                className="w-full h-auto rounded-[28px] shadow-2xl shadow-orange-900/25" />
+            </Tilt>
+          </Reveal>
+        </div>
       </Section>
 
       {/* Pour qui ? : le choix change l'exemple et les fonctions mises en avant plus bas */}
