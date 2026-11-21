@@ -198,6 +198,7 @@ const discover: Dict['discover'] = {
   wider_other: "Not much within {{km}} km: {{count}} events within 50 km.",
   widerButton: "Widen to 50 km",
   credit: "Source: {{name}}",
+  openImage: "Enlarge image",
   goWith: "Go with a Circle",
   loginToGo: "Log in to go with a Circle",
   report: "Report a mistake",

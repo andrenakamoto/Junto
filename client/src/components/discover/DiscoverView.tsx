@@ -8,10 +8,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { t } from '../../i18n';
 import { QUICK_FILTERS, QUICK_EMOJI, matchesQuick, type QuickFilter, CUISINE_EMOJI, cuisineLabel,
   CATEGORY_GROUPS, DiscoverData, DiscoverEvent, DiscoverPlace, IDEAS, KIND_EMOJI, KIND_GROUPS, KIND_ORDER, SpotChoice,
-  catLabel, dayChips, dayKey, dayTitle, discoverImageUrl, host, kindLabel, kmLabel, norm, savedSpot, saveSpot, shortDate, timeLabel,
+  catLabel, dayChips, dayKey, dayTitle, discoverImageUrl, discoverLargeImageUrl, host, kindLabel, kmLabel, norm, savedSpot, saveSpot, shortDate, timeLabel,
 } from '../../lib/discover';
 import { PlacePicker } from './PlacePicker';
 import { DiscoverGoModal } from './DiscoverGoModal';
+import { PhotoViewer } from '../chat/PhotoViewer';
 import { ProSoonModal } from './ProSoonModal';
 import { ReportModal } from './ReportModal';
 import type { MapItem } from './DiscoverMap';
@@ -380,14 +381,25 @@ function EventCard({ e, onGo, onReport, onHide, credit, showDate }: { e: Discove
   const navigate = useNavigate();
   const where = [[e.place, e.city && !(e.place ?? '').includes(e.city) ? e.city : null].filter(Boolean).join(', '), kmLabel(e.distanceKm)].filter(Boolean).join(' · ');
   const status = e.status !== 'scheduled' ? t(`discover.status.${e.status}` as any) : null;
+  const [zoom, setZoom] = useState(false);
   return (
     <article className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       {/* Image (Eventfrog) : copie chez nous, crédit affiché avec elle (règle de la source) */}
       {e.imageKey && (
         <figure className="relative bg-slate-100">
-          <img src={discoverImageUrl(e.imageKey)} alt="" loading="lazy" className="w-full aspect-[2/1] max-h-52 object-cover" />
-          {e.imageCredit && <figcaption className="absolute right-1.5 bottom-1.5 max-w-[80%] truncate rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">© {e.imageCredit}</figcaption>}
+          {/* Toucher l'image l'ouvre en grand, en entier (une affiche est souvent en hauteur : coupée sur la carte) */}
+          <button type="button" onClick={() => setZoom(true)} aria-label={t('discover.openImage')} className="block w-full cursor-zoom-in">
+            <img src={discoverImageUrl(e.imageKey)} alt="" loading="lazy" className="w-full aspect-[2/1] max-h-52 object-cover" />
+          </button>
+          {e.imageCredit && <figcaption className="absolute right-1.5 bottom-1.5 max-w-[80%] truncate rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white pointer-events-none">© {e.imageCredit}</figcaption>}
         </figure>
+      )}
+      {zoom && e.imageKey && (
+        <PhotoViewer
+          photos={[{ id: e.id, src: discoverLargeImageUrl(e.imageKey), download: discoverLargeImageUrl(e.imageKey), filename: e.title, noSave: true,
+            caption: [e.title, e.imageCredit ? `© ${e.imageCredit}` : null].filter(Boolean).join(' · ') }]}
+          startId={e.id} onClose={() => setZoom(false)}
+        />
       )}
       <div className="p-3.5 flex gap-3">
       <div className="w-14 flex-shrink-0 self-start text-center rounded-xl bg-indigo-50 text-indigo-700 py-2 tabular-nums">

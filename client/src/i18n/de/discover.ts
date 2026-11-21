@@ -198,6 +198,7 @@ const discover: Dict['discover'] = {
   wider_other: "Wenig im Umkreis von {{km}} km: {{count}} Anlässe bis 50 km.",
   widerButton: "Auf 50 km erweitern",
   credit: "Quelle: {{name}}",
+  openImage: "Bild vergrössern",
   goWith: "Mit einem Kreis hingehen",
   loginToGo: "Melde dich an, um mit einem Kreis hinzugehen",
   report: "Fehler melden",

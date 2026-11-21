@@ -6,7 +6,7 @@ import { isRegion, parseProInterest, cleanText, isSessionSeries } from '../lib/d
 import { discoverCache } from '../lib/discover/sync';
 import { boundingBox, distanceKm, isCantonCode, isFrenchCode, nearestRegion, searchAreas, searchLocalities } from '../lib/discover/geo';
 import { CANTONS, REGIONS, PLACE_KINDS_V3, PLACE_KINDS_V4 } from '../lib/discover/model';
-import { imageFile, isImageKey } from '../lib/discover/images';
+import { imageFile, isImageKey, largeImage } from '../lib/discover/images';
 import { dedupeEvents, dedupePlaces } from '../lib/discover/dedupe';
 import { planSignup } from '../lib/discover/planPublish';
 import { resend, FROM_EMAIL, APP_URL } from '../lib/mailer';
@@ -59,6 +59,19 @@ function parsePoint(q: any): { lat: number; lon: number; radius: number } | null
   const r = Number(q.radius);
   return { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100, radius: RADII.includes(r) ? r : 25 };
 }
+
+// GET /api/discover/img/<clé>-l.jpg — grande version (image touchée, ouverte en grand) ; la petite si elle ne peut pas être faite
+router.get(/^\/img\/([0-9a-f-]{36})-l\.jpg$/, async (req, res) => {
+  const key = (req.params as any)[0] as string;
+  if (!isImageKey(key)) { res.status(404).end(); return; }
+  const large = await largeImage(key);
+  const file = large ?? imageFile(key);
+  // La petite en secours : gardée peu de temps, pour reprendre la grande plus tard
+  res.setHeader('Cache-Control', large ? 'public, max-age=31536000, immutable' : 'public, max-age=3600');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.type('image/jpeg');
+  res.sendFile(file, err => { if (err && !res.headersSent) res.status(404).end(); });
+});
 
 // GET /api/discover/img/<clé>.jpg — image d'un événement (copie chez nous, lib/discover/images.ts), public, en cache 1 an
 router.get(/^\/img\/([0-9a-f-]{36})\.jpg$/, (req, res) => {

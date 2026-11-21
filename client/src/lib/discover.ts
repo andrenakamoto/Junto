@@ -35,6 +35,8 @@ export interface DiscoverData { region: DiscoverRegion; events: DiscoverEvent[];
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') as string;
 export const discoverImageUrl = (key: string) => `${API_BASE}/discover/img/${key}.jpg`;
+// Grande version, pour l'ouvrir en grand (fabriquée par le serveur au premier appel)
+export const discoverLargeImageUrl = (key: string) => `${API_BASE}/discover/img/${key}-l.jpg`;
 
 export const IDEAS = 'ideas';
 // Catégories rangées en groupes (pas de défilement horizontal)

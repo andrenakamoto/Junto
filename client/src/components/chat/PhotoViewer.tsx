@@ -18,6 +18,10 @@ export type ViewerPhoto = {
   filename: string;
   /** L'auteur peut retirer sa photo à tout moment */
   canDelete?: boolean;
+  /** Ligne sous la photo (Découvrir : titre et crédit de l'image) */
+  caption?: string;
+  /** Pas de bouton « Enregistrer » (image d'un tiers, Découvrir) */
+  noSave?: boolean;
 };
 
 const MAX_SCALE = 5;
@@ -166,8 +170,14 @@ export function PhotoViewer({ photos, startId, onClose, onDelete }: {
           <button type="button" onClick={() => go(1)} disabled={index === photos.length - 1} aria-label={t('chat.viewer.next')} className={`${arrow} right-3 hidden sm:block`}><ChevronRight size={26} /></button>
         </>
       )}
+      {current.caption && (
+        <p className="absolute inset-x-4 text-center text-xs text-white/80 pointer-events-none truncate"
+          style={{ bottom: `calc(${current.noSave && !current.canDelete ? '1.5rem' : '5rem'} + var(--sa-bottom, 0px))` }}>
+          {current.caption}
+        </p>
+      )}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2" style={{ bottom: 'calc(1.5rem + var(--sa-bottom, 0px))' }}>
-        <SavePhotoButton url={current.download} filename={current.filename} />
+        {!current.noSave && <SavePhotoButton url={current.download} filename={current.filename} />}
         {current.canDelete && onDelete && (
           <button
             type="button"

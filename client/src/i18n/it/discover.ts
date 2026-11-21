@@ -198,6 +198,7 @@ const discover: Dict['discover'] = {
   wider_other: "Poco entro {{km}} km: {{count}} eventi fino a 50 km.",
   widerButton: "Allarga a 50 km",
   credit: "Fonte: {{name}}",
+  openImage: "Ingrandisci l’immagine",
   goWith: "Andarci con un Cerchio",
   loginToGo: "Accedi per andarci con un Cerchio",
   report: "Segnala un errore",

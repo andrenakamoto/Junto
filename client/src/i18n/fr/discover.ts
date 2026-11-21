@@ -197,6 +197,7 @@ const discover = {
   wider_other: "Peu de choses à moins de {{km}} km : {{count}} événements jusqu’à 50 km.",
   widerButton: "Élargir à 50 km",
   credit: "Source : {{name}}",
+  openImage: "Agrandir l’image",
   goWith: "Y aller avec un Cercle",
   loginToGo: "Connecte-toi pour y aller avec un Cercle",
   report: "Signaler une erreur",
