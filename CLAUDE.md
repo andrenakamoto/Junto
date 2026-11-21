@@ -1041,7 +1041,19 @@ Junto/
   `NotificationToast` ignore désormais les types inconnus. Pastille « nouveau » : section `taches`. « Je passe », exclusion, départ du
   Cercle : retiré des responsables (`removeFromPlanGames` / `removeFromGamesInCircle`). Dans la démo depuis le 2026-10-29 (« Fête de fin d'année », lecture seule) ;
   dans le récapitulatif PDF depuis le 2026-10-29 ; dans « En bref » (2026-10-29, `myTasks` de `lib/planSummary.ts`) : « Tu as N tâches à faire (dont X en
-  retard) » et la plus urgente, pour les tâches confiées à la personne. Fiche « Tâches » du guide. Prochaines étapes prévues : « Déroulé » de la soirée,
+  retard) » et la plus urgente, pour les tâches confiées à la personne. Fiche « Tâches » du guide.
+  **Documents des Tâches** (2026-11-21, demande de l'utilisateur : une rubrique commune, pas un fichier par tâche ; `lib/taskDocs.ts` testé,
+  `components/plans/TaskDocuments.tsx`, migration `20261207100000_task_documents`) : bloc « 📎 Documents » en bas de la rubrique Tâches. Ce sont
+  des pièces jointes du Plan avec **`Attachment.section = 'taches'`** et `taskGroupId` (lot, SetNull) : **masquées de l'onglet Infos, du ZIP des
+  photos et d'« En bref »** (`section: null` dans ces requêtes — à reprendre pour toute nouvelle liste de fichiers). Envoi POST
+  `/attachments/plans/:id?via=taches[&groupId=]` : tout le monde qui voit le Plan (comme les tâches), fonction `taches` active, indépendant de
+  « Photos et fichiers » et de `filesMode` ; formats PDF, Word, Excel, PowerPoint, LibreOffice, RTF, texte, CSV, photos (`taskDocType`, extension
+  prise en compte si le type est vague ; HTML, SVG, exécutables refusés), **20 Mo par document** (10 Mo pour les autres fichiers), 100 documents
+  par Plan. GET `/plans/:id/tasks` renvoie `documents` ; PUT `/plans/task-docs/:id {groupId}` range dans un lot ; suppression par DELETE
+  `/attachments/:id` (auteur, créateur du Plan, organisateurs du Cercle). ZIP : GET `/attachments/plans/:id/task-docs/download` (un dossier par
+  lot ; jeton `purpose: 'task-docs'` pour les apps). Notification `plan_activity` « 📎 @x a ajouté le document … » (`tab: 'taches'`). Noms des
+  documents dans le récapitulatif PDF. Supprimés avec le Plan (24 h après la fin), comme le dit la notification de 4 h avant. Pas dans la démo.
+  **Limite des pièces jointes par Plan : 200 Mo** depuis le 2026-11-21 (avant 100 Mo). Prochaines étapes prévues : « Déroulé » de la soirée,
   « Idées » (brainstorming projeté), lien vers le Plan d'annonce, budget par lot, bilan et « Refaire l'an prochain ».
 - **Déroulé** (2026-10-27, `lib/program.ts` testé, `routes/program.ts` monté dans le routeur des Plans, `lib/programPdf.ts`,
   `components/plans/ProgramTab.tsx`, dictionnaire `i18n/<langue>/program.ts`, migration `20261105100000_plan_program`) : fonction **à
@@ -1813,7 +1825,7 @@ info disparaîtrait avec le Plan (cascade sur Expense/Reimbursement).
   PUT|DELETE /:rideId (conducteur uniquement, la suppression prévient les
   passagers), POST|DELETE /:rideId/join. Réservé aux membres du Plan, et
   aux non-absents pour les actions.
-- **attachments.ts** : upload (100 Mo cumulés max par Plan), /:id/download-token,
+- **attachments.ts** : upload (200 Mo cumulés max par Plan depuis le 2026-11-21), /:id/download-token,
   /:id/download (proxy), DELETE, /plans/:planId/photos-token +
   /plans/:planId/photos/download (ZIP de toutes les photos du Plan, généré à
   la volée avec `archiver` — bouton "Télécharger toutes les photos" dans
@@ -2155,7 +2167,7 @@ sans position écartés (`needCoords`), données et clé jamais transmises. **Im
 synchronisation, refaite par sharp (600 px de large, JPEG, sans métadonnées) dans `STORAGE_DIR/discover/img/<clé>.jpg`, servie par GET
 `/api/discover/img/<clé>.jpg` (public, cache 1 an) ; `DiscoverEvent.imageKey` / `imageCredit` envoyés aux clients, `imageSource` (adresse
 d'origine) jamais ; nouvelle image = nouvelle clé, fichiers sans événement effacés à chaque synchronisation. **Jamais d'adresse d'image
-Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. **Séries** : des organisateurs saisissent chaque soirée d'un groupe
+Eventfrog dans l'app.** Client : bandeau 2:1 en haut de la carte (`EventCard`) avec « © crédit » en surimpression. **Toucher l'image l'ouvre en grand** (2026-11-21, `PhotoViewer` des chats avec `noSave` et `caption` = titre + crédit) : GET `/api/discover/img/<clé>-l.jpg` = grande version (1200 px de côté au plus, `largeImage` de `lib/discover/images.ts`), **fabriquée seulement au premier appel** d'après `imageSource` (pas de copie pour toutes les images : disque), effacée avec l'image, petite version servie en secours (cache 1 h). **Séries** : des organisateurs saisissent chaque soirée d'un groupe
 (`groupId`) avec une fin des semaines plus tard ; dans un groupe de plusieurs dates, chaque date redevient une soirée (`inSeries`). **Doublons
 entre sources** (`lib/discover/dedupe.ts` testé, appliqué par GET /api/discover) : même titre (ou l'un contenu dans l'autre, 12 caractères au moins), même jour, même endroit (moins de 1 km ou même
 ville) → une seule annonce, **celle qui a une photo** (choix de l'utilisateur, 2026-10-26 : les soirées Eventfrog l'emportent sur la ligne « sur plusieurs jours » de la Ville qui les couvre), sinon la source la plus sûre, qui garde les titres des autres pour la recherche (`aliases`) (`SOURCE_RANK` : Plans, saisie, agenda de Genève, iCal, GeNEVERsleep, Eventfrog) ; une date
