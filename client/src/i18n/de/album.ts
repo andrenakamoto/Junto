@@ -21,7 +21,6 @@ const album = {
   poster: {
     title: "Plakat für den Abend",
     kicker: "Fotoalbum",
-    together: "Gemeinsam machen wir das Album des Abends",
     headline: "Teil deine Fotos vom Abend!",
     step1: "Scann den Code mit deinem Handy",
     step2: "Lade deine Fotos hoch, ohne Konto und App",

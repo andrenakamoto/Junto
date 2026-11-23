@@ -3,8 +3,8 @@ import { intlLocale, t } from '../i18n';
 import { albumLink } from './album';
 
 // Affiche A4 de l'album souvenir (2026-11-23, style « Polaroïds » choisi par l'utilisateur parmi 5) : à imprimer et poser sur les
-// tables ou à l'entrée de la soirée, ou à projeter. Grand logo EvLY en haut, le QR code dans un polaroïd entouré de fausses photos,
-// « Créons ensemble l'album de la soirée », trois étapes, date de fin, adresse de l'album, evly.ch en bas.
+// tables ou à l'entrée de la soirée, ou à projeter. Grand logo EvLY en haut, le QR code dans un polaroïd avec le titre,
+// « Partage tes photos de la soirée ! », trois étapes, date de fin, adresse de l'album, evly.ch en bas.
 // Dessinée sur un canvas (200 dpi), sans service extérieur ; le QR code est tracé module par module pour rester net.
 
 export const POSTER_W = 1654;
@@ -66,7 +66,7 @@ function texts(album: Album) {
   const date = new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long' }).format(new Date(album.expiresAt));
   return {
     link: albumLink(album.token), short: albumLink(album.token).replace(/^https?:\/\//, ''),
-    kicker: t('album.poster.kicker'), together: t('album.poster.together'), head: t('album.poster.headline'),
+    kicker: t('album.poster.kicker'), head: t('album.poster.headline'),
     steps: [t('album.poster.step1'), t('album.poster.step2'), t('album.poster.step3')],
     footer: t('album.poster.footer', { date }),
   };
@@ -84,29 +84,11 @@ function steps3(g: G, list: string[], y: number, circle: string, num: string, te
 function shadow(g: G, color: string, blur: number, dy: number) { g.shadowColor = color; g.shadowBlur = blur; g.shadowOffsetY = dy; }
 function noShadow(g: G) { g.shadowColor = 'transparent'; g.shadowBlur = 0; g.shadowOffsetY = 0; }
 
-// Fausse photo : dégradé pastel et un emoji
-function fakePhoto(g: G, x: number, y: number, w: number, h: number, c1: string, c2: string, emoji: string) {
-  const gr = g.createLinearGradient(x, y, x + w, y + h);
-  gr.addColorStop(0, c1); gr.addColorStop(1, c2);
-  g.fillStyle = gr; g.fillRect(x, y, w, h);
-  g.font = `${Math.round(Math.min(w, h) * 0.42)}px serif`; g.textBaseline = 'middle';
-  g.fillText(emoji, x + w / 2, y + h / 2 + 6); g.textBaseline = 'alphabetic';
-}
-
-// Fond crème, photos instantanées éparpillées, le QR code dans le polaroïd du milieu
-function polaroids(g: G, a: Album) {
+// Fond crème, le QR code dans un polaroïd penché avec le titre de la soirée écrit dessous, photos instantanées éparpillées, le QR code dans le polaroïd du milieu
+function polaroid(g: G, a: Album) {
   const x = texts(a);
   g.fillStyle = '#f7f1e8'; g.fillRect(0, 0, W, H);
   wordmark(g, W / 2, 225, 180); tagline(g, W / 2, 315, '#64748b');
-  const around: [number, number, number, string, string, string][] = [
-    [190, 760, -14, '#fecdd3', '#fda4af', '🥂'], [1470, 700, 12, '#bae6fd', '#a5b4fc', '🎉'],
-    [200, 1420, 10, '#fde68a', '#fdba74', '💃'], [1460, 1400, -9, '#bbf7d0', '#5eead4', '📸'],
-  ];
-  for (const [cx, cy, deg, c1, c2, e] of around) {
-    g.save(); g.translate(cx, cy); g.rotate(deg * Math.PI / 180);
-    shadow(g, 'rgba(15,23,42,0.18)', 30, 12); g.fillStyle = '#fff'; g.fillRect(-210, -240, 420, 490); noShadow(g);
-    fakePhoto(g, -180, -210, 360, 360, c1, c2, e); g.restore();
-  }
   // Polaroïd central
   g.save(); g.translate(W / 2, 1050); g.rotate(-2 * Math.PI / 180);
   shadow(g, 'rgba(15,23,42,0.25)', 50, 20); g.fillStyle = '#fff'; g.fillRect(-430, -500, 860, 1040); noShadow(g);
@@ -116,9 +98,8 @@ function polaroids(g: G, a: Album) {
   const { size, tl } = fitTitle(g, a.title, 760, 84, '300', true);
   g.fillStyle = DARK; tl.forEach((l, i) => g.fillText(l, 0, 440 + i * size * 1.05 - (tl.length - 1) * size * 0.3));
   g.restore();
-  g.fillStyle = CORAL; g.font = 'italic 300 66px Fraunces, Georgia, serif'; g.fillText(x.together, W / 2, 1720, W - 160);
-  g.fillStyle = DARK; g.font = '800 84px Fraunces, Georgia, serif'; g.fillText(x.head, W / 2, 1825, W - 160);
-  steps3(g, x.steps, 1880, CORAL, '#fff', '#334155');
+  g.fillStyle = DARK; g.font = '800 84px Fraunces, Georgia, serif'; g.fillText(x.head, W / 2, 1760, W - 160);
+  steps3(g, x.steps, 1840, CORAL, '#fff', '#334155');
   g.fillStyle = '#64748b'; g.font = '500 34px Inter, Arial, sans-serif'; g.fillText(x.footer, W / 2, H - 200);
   g.fillStyle = '#94a3b8'; g.font = '500 26px Inter, Arial, sans-serif'; g.fillText(x.short, W / 2, H - 155);
   g.fillStyle = CORAL; g.font = '800 84px Inter, Arial, sans-serif'; g.fillText('evly.ch', W / 2, H - 55);
@@ -130,7 +111,7 @@ export async function albumPosterCanvas(album: Album): Promise<HTMLCanvasElement
   const g = c.getContext('2d')!;
   try { await Promise.all([document.fonts.load('800 100px Fraunces'), document.fonts.load('italic 300 100px Fraunces')]); } catch { /* police par défaut */ }
   g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-  polaroids(g, album);
+  polaroid(g, album);
   return c;
 }
 
