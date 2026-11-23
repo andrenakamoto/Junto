@@ -585,6 +585,8 @@ Conséquences pratiques :
     **Version 1.0.60** (2026-11-21) : Android `versionCode` 62 (`evly-1.0.60-(62).aab`), iOS build 67 envoyé — Organisations : administrateurs
     nommés et retirés par vote, quitter la direction ou l'Organisation ; Documents des Tâches (PDF, Word, Excel, photos, ZIP) ; image d'un
     événement de Découvrir ouverte en grand.
+    **Version 1.0.61** (2026-11-23) : Android `versionCode` 63 (`evly-1.0.61-(63).aab`), iOS build 68 envoyé — album souvenir (photos de la
+    soirée par un lien ou un QR code, sans compte, 7 jours), affiche A4 avec le QR code.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
