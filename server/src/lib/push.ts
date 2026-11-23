@@ -33,6 +33,8 @@ export type AppNotification = {
   status?: string;
   /** Capsule temporelle (type capsule) : ouverte par /dashboard?capsule=<id>, même sans être membre du Cercle */
   capsuleId?: string;
+  /** Album souvenir (type album) : ouvert par /album?t=<lien>, même après la suppression du Plan */
+  albumToken?: string;
 };
 
 let messaging: Messaging | null | undefined;
@@ -140,6 +142,8 @@ export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title:
     // Administrateurs d'une Organisation (routes/orgAdmins.ts) : titre = nom de l'Organisation
     case 'org_admin':
       return { title: n.circleName ?? 'EvLY', body: n.preview ?? '', url: '/dashboard', group: `org:${n.circleName}` };
+    case 'album':
+      return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `/album?t=${n.albumToken}`, group: `album:${n.albumToken}` };
     case 'capsule':
       return { title: n.planTitle ?? 'EvLY', body: n.preview ?? '', url: `/dashboard?capsule=${n.capsuleId}`, group: `capsule:${n.capsuleId}` };
     case 'suggestion_update':

@@ -222,6 +222,7 @@ model Circle {
   @@index([organisationId])
   // Matériel du Cercle (Cercle sans Organisation ; lib/equipment.ts)
   equipment         EquipmentItem[]
+  albums              PhotoAlbum[]
 }
 
 // Association à plusieurs niveaux : regroupe des Cercles, avec ses propres rôles (lib/organisations.ts)
@@ -602,6 +603,8 @@ model Plan {
   @@index([sourcePlanId])
   // Matériel réservé pour ce Plan (fonction « materiel »)
   equipmentBookings EquipmentBooking[]
+  // Album souvenir (lib/albums.ts), qui survit au Plan 30 jours
+  album               PhotoAlbum?
 }
 
 // Lien d'invitation « invité externe » d'un Plan (réutilisable, régénérable par le
@@ -2336,4 +2339,56 @@ model OnlineSantaPerson {
   emailSentAt DateTime?
 
   @@index([santaId])
+}
+
+// Album souvenir d'une soirée (lib/albums.ts, routes/albums.ts) : ouvert à qui a le lien, sans compte ni app.
+// Survit au Plan (planId SetNull) jusqu'à 30 jours après la fin de la soirée. Fichiers dans STORAGE_DIR/albums/<id>/.
+model PhotoAlbum {
+  id           String       @id @default(cuid())
+  planId       String?      @unique
+  plan         Plan?        @relation(fields: [planId], references: [id], onDelete: SetNull)
+  circleId     String
+  circle       Circle       @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  title        String
+  // Lien public de l'album (régénérable : l'ancien ne marche plus)
+  token        String       @unique
+  createdById  String?
+  eventEnd     DateTime
+  expiresAt    DateTime
+  // Participants du Plan avec un compte (prévenus 3 jours avant l'effacement), tenus à jour tant que le Plan existe
+  audienceIds  String[]     @default([])
+  noticeSentAt DateTime?
+  createdAt    DateTime     @default(now())
+  photos       AlbumPhoto[]
+
+  @@index([expiresAt])
+}
+
+model AlbumPhoto {
+  id         String           @id @default(cuid())
+  albumId    String
+  album      PhotoAlbum       @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  key        String           @unique
+  width      Int
+  height     Int
+  size       Int
+  // Prénom donné par la personne (sans compte), compte si elle était connectée, appareil (pour retirer ses photos)
+  authorName String
+  authorId   String?
+  deviceId   String
+  hidden     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  likes      AlbumPhotoLike[]
+
+  @@index([albumId, createdAt])
+  @@index([albumId, deviceId])
+}
+
+model AlbumPhotoLike {
+  photoId   String
+  photo     AlbumPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  deviceId  String
+  createdAt DateTime   @default(now())
+
+  @@id([photoId, deviceId])
 }

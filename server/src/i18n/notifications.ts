@@ -157,6 +157,9 @@ export const NOTIFICATIONS: Record<string, [string, string, string]> = {
   '✅ @{0} a terminé la tâche « {1} »': ['✅ @{0} hat die Aufgabe «{1}» erledigt', '✅ @{0} ha completato il compito «{1}»', '✅ @{0} finished the task “{1}”'],
   '▶️ Tu peux commencer « {0} » : « {1} » est terminée': ['▶️ Du kannst mit «{0}» beginnen: «{1}» ist erledigt', '▶️ Puoi iniziare «{0}»: «{1}» è completato', '▶️ You can start “{0}”: “{1}” is done'],
   '@{0} a commenté la tâche « {1} »': ['@{0} hat die Aufgabe «{1}» kommentiert', '@{0} ha commentato il compito «{1}»', '@{0} commented on the task “{1}”'],
+  // Album souvenir (routes/albums.ts, lib/albums.ts)
+  '📸 @{0} a ouvert l’album souvenir : ajoute tes photos': ['📸 @{0} hat das Erinnerungsalbum geöffnet: Füge deine Fotos hinzu', '📸 @{0} ha aperto l’album ricordo: aggiungi le tue foto', '📸 @{0} opened the memory album: add your photos'],
+  '📸 L’album « {0} » sera effacé dans 3 jours : télécharge tes photos': ['📸 Das Album «{0}» wird in 3 Tagen gelöscht: Lade deine Fotos herunter', '📸 L’album «{0}» sarà cancellato tra 3 giorni: scarica le tue foto', '📸 The album “{0}” will be deleted in 3 days: download your photos'],
   '📎 @{0} a ajouté le document « {1} »': ['📎 @{0} hat das Dokument «{1}» hinzugefügt', '📎 @{0} ha aggiunto il documento «{1}»', '📎 @{0} added the document “{1}”'],
   '⏰ « {0} » est à faire aujourd’hui': ['⏰ «{0}» ist heute fällig', '⏰ «{0}» è da fare oggi', '⏰ “{0}” is due today'],
   '⏰ « {0} » est à faire pour demain': ['⏰ «{0}» ist morgen fällig', '⏰ «{0}» è da fare per domani', '⏰ “{0}” is due tomorrow'],

@@ -27,6 +27,7 @@ import muteRoutes from './routes/mutes';
 import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import capsuleRoutes from './routes/capsules';
+import albumRoutes from './routes/albums';
 import supplierBookRoutes from './routes/supplierBook';
 import equipmentRoutes from './routes/equipment';
 import { sendEquipmentReminders } from './lib/equipment';
@@ -34,6 +35,7 @@ import organisationRoutes from './routes/organisations';
 import orgAdminRoutes from './routes/orgAdmins';
 import { sendSupplierReminders } from './lib/suppliers';
 import { capsuleTick } from './lib/capsule';
+import { albumTick } from './lib/albums';
 import contactRoutes from './routes/contacts';
 import availabilityRoutes from './routes/availability';
 import discoverRoutes from './routes/discover';
@@ -137,6 +139,7 @@ app.use('/api/mutes', muteRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/capsules', capsuleRoutes);
+app.use('/api/albums', albumRoutes);
 app.use('/api/suppliers', supplierBookRoutes);
 app.use('/api/equipment', equipmentRoutes);
 // Administrateurs et départs (avant le routeur principal des Organisations)
@@ -185,6 +188,9 @@ if (cronEnabled) {
   // Capsules temporelles : scellage, rappel une semaine avant, ouverture, effacement 30 jours après
   capsuleTick(io);
   setInterval(() => capsuleTick(io), 60 * 60 * 1000);
+  // Albums souvenirs : suivent leur Plan, préviennent 3 jours avant l'effacement, effacés 30 jours après la soirée
+  albumTick(io);
+  setInterval(() => albumTick(io), 60 * 60 * 1000);
   // Bénévoles : rappel une heure avant la prise de poste
   sendShiftReminders(io);
   setInterval(() => sendShiftReminders(io), 5 * 60 * 1000);
