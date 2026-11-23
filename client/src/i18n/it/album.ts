@@ -2,7 +2,7 @@
 const album = {
   card: {
     title: "Album ricordo",
-    intro: "Dopo la serata, ognuno aggiunge le sue foto con un link o un codice QR, senza account né app. L’album resta aperto 7 giorni.",
+    intro: "Durante e dopo la serata, ognuno aggiunge le sue foto con un link o un codice QR, senza account né app. L’album resta aperto 7 giorni.",
     create: "Apri l’album ricordo",
     onlyOrganisers: "Chi ha creato il Plan e gli organizzatori del Cerchio possono aprire l’album.",
     count_one: "{{count}} foto",
