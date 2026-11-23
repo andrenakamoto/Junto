@@ -8,6 +8,7 @@ import api from '../../services/api';
 import { mediaUrl } from '../../lib/media';
 import { isEnabled } from '../../lib/settings';
 import { ImportantInfoCard } from './ImportantInfoCard';
+import { AlbumCard } from './AlbumCard';
 import { downloadPlanPhotos } from '../../lib/planPhotos';
 import { isVoiceNote } from '../../lib/media';
 import { intlLocale, t } from '../../i18n';
@@ -148,6 +149,8 @@ export function InfosTab({ plan, onPlanUpdated, pseudo, userId }: Props) {
       )}
 
       <ImportantInfoCard plan={plan} userId={userId} onChanged={refresh} />
+      {/* Album souvenir de la soirée (lien et QR code, sans compte) */}
+      <AlbumCard plan={plan} />
 
       {plan.location && (
         <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">

@@ -541,6 +541,8 @@ export function DashboardPage() {
   function openNotification(n: AppNotification) {
     if (n.type === 'circle_invite') {
       setShowNotifCenter(true);
+    } else if (n.type === 'album' && n.albumToken) {
+      navigate(`/album?t=${encodeURIComponent(n.albumToken)}`);
     } else if (n.type === 'capsule' && n.capsuleId) {
       setOpenCapsuleId(n.capsuleId);
     } else if (n.type === 'suggestion_update') {

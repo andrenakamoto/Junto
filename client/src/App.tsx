@@ -19,6 +19,7 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
 import { ChildSafetyPage } from './pages/ChildSafetyPage';
 import { QuizScreenPage } from './pages/QuizScreenPage';
+import AlbumPage from './pages/AlbumPage';
 import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { ConfirmEmailChangePage } from './pages/ConfirmEmailChangePage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -93,6 +94,7 @@ export default function App() {
         <Route path="/supprimer-mon-compte"  element={<DeleteAccountInfoPage />} />
         <Route path="/securite-enfants"      element={<ChildSafetyPage />} />
         <Route path="/ecran"                 element={<QuizScreenPage />} />
+        <Route path="/album"                 element={<AlbumPage />} />
         <Route path="*"                      element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { t } from '../../i18n';
-import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark, Brain, Bus, Hourglass, ShieldCheck } from 'lucide-react';
+import { Bell, MessageSquare, AtSign, UserPlus, PartyPopper, CalendarRange, Car, Trash2, Users, X, Lightbulb, Gift, Crosshair, Trophy, PiggyBank, Speech, HandHeart, Heart, Dices, Landmark, Brain, Bus, Hourglass, ShieldCheck, Camera } from 'lucide-react';
 
 export interface AppNotification {
   id: string;
   type: 'new_plan' | 'new_message' | 'mention' | 'join_request' | 'join_accepted' | 'new_circle_poll' | 'poll_dates_added' | 'ride' | 'plan_gone' | 'plan_cancelled' | 'poll_message' | 'plan_member' | 'plan_activity' | 'circle_invite' | 'circle_renamed' | 'suggestion_update' | 'circle_mention' | 'circle_message' | 'plan_deleting' | 'availability'
-    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder' | 'capsule' | 'org_admin';
+    | 'santa_draw' | 'santa_message' | 'santa_reveal' | 'santa_reminder' | 'killer' | 'teams' | 'pot' | 'words' | 'shift' | 'shift_reminder' | 'waitlist' | 'match' | 'wheel' | 'assembly' | 'assembly_vote' | 'quiz' | 'transit' | 'transit_reminder' | 'capsule' | 'org_admin' | 'album';
   pollId?: string;
   planId?: string;
   planTitle?: string;
@@ -20,6 +20,8 @@ export interface AppNotification {
   tab?: string;
   /** Capsule temporelle (type capsule) */
   capsuleId?: string;
+  /** Album souvenir (type album) : lien de l'album */
+  albumToken?: string;
   at: number;
 }
 
@@ -115,6 +117,7 @@ export const NOTIF_CONFIG: Record<AppNotification['type'], { icon: typeof Bell; 
   transit_reminder: { icon: Bus, iconClass: 'text-sky-300', bgClass: 'bg-sky-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   // Administrateurs d'une Organisation (serveur : routes/orgAdmins.ts) : circleName = nom de l'Organisation
   org_admin: { icon: ShieldCheck, iconClass: 'text-indigo-300', bgClass: 'bg-indigo-600/30', title: n => n.circleName ?? 'EvLY', body: n => n.preview ?? '' },
+  album: { icon: Camera, iconClass: 'text-rose-300', bgClass: 'bg-rose-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   capsule: { icon: Hourglass, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => n.planTitle ?? 'EvLY', body: n => n.preview ?? '' },
   shift: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
   shift_reminder: { icon: HandHeart, iconClass: 'text-amber-300', bgClass: 'bg-amber-600/30', title: n => t('notif.shiftTitle', { plan: n.planTitle }), body: n => n.preview ?? '' },
