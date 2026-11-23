@@ -21,6 +21,7 @@ const album = {
   poster: {
     title: "Poster for the evening",
     kicker: "Memory album",
+    together: "Let’s make tonight’s album together",
     headline: "Share your photos from tonight!",
     step1: "Scan the code with your phone",
     step2: "Add your photos, no account or app needed",

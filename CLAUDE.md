@@ -2074,8 +2074,9 @@ n'importe laquelle et peut créer un **nouveau lien** (l'ancien et ses QR codes 
 l'envoi (`shrinkPhoto`, 2048 px) puis **refaites par sharp** (2048 px + miniature 480, sans métadonnées ni GPS) dans `STORAGE_DIR/albums/<id>/`,
 servies par GET `/api/albums/files/:token/:key[-s].jpg` ; 600 photos par album, 60 par appareil, 11 Mo par envoi, 120 envois / 30 min par
 adresse, refus si le disque dépasse 85 %. Cœurs, visionneuse (`PhotoViewer`), ZIP de tout l'album. **Affiche** (même jour, bouton « Créer
-l'affiche » de la carte) : A4 PNG 1654 × 2339 dessinée sur un canvas (en haut, grand logo EvLY et « Events Linked to You » sur fond blanc ;
-bandeau corail avec le titre de la soirée ; QR code tracé module par module ; 3 étapes, date de fin, adresse de l'album ; « evly.ch » en grand en bas) ; aperçu, « Télécharger » (menu de partage dans les apps, `saveFile`) et « Imprimer » (site). Tâche horaire
+l'affiche » de la carte) : A4 PNG 1654 × 2339 dessinée sur un canvas (style « Polaroïds » choisi parmi 5 : fond crème, grand logo EvLY et « Events
+Linked to You » en haut, QR code tracé module par module dans un polaroïd entouré de fausses photos, titre en italique, « Créons ensemble
+l'album de la soirée », 3 étapes, date de fin, adresse de l'album, « evly.ch » en grand en bas) ; aperçu, « Télécharger » (menu de partage dans les apps, `saveFile`) et « Imprimer » (site). Tâche horaire
 `albumTick` (gated) : suit la fin et les participants du Plan tant qu'il existe, prévient **3 jours avant l'effacement** (type `album` →
 `/album?t=…`, connu de `NotificationToast`), efface fichiers et lignes à l'échéance ; `purgeCircleFiles` efface les albums du Cercle. Les apps
 ≤ 1.0.60 n'ont pas la carte (l'album marche sur le site). Fiche « Album souvenir » du guide, politique de confidentialité du 23 novembre 2026.
