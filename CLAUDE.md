@@ -2061,6 +2061,26 @@ en diaporama plein écran — portail sur `body` —, « On se retrouve ? » →
 fichiers des dépôts effacés (`removeDepositFiles`) ; du Cercle : `purgeCircleFiles`. Démo : rien (lecture vide). Guide (fiche « Capsule
 temporelle ») et politique de confidentialité (2 novembre 2026 : conservation jusqu'à l'ouverture, un an au plus après le Plan).
 
+**Album souvenir** (2026-11-23, demande de l'utilisateur pour sa soirée d'entreprise de début décembre, 70 personnes ; `lib/albums.ts` testé,
+`routes/albums.ts` sur **`/api/albums`**, migration `20261208100000_photo_albums`, page publique **`/album?t=<jeton>`** = `pages/AlbumPage.tsx`,
+carte `components/plans/AlbumCard.tsx` dans l'onglet Infos après les informations importantes, `client/src/lib/album.ts`, affiche
+`client/src/lib/albumPoster.ts`, dictionnaire `i18n/<langue>/album.ts`) : un album de photos par Plan, **ouvert à qui a le lien, sans compte ni
+app**. Ouvert par le créateur du Plan ou un gestionnaire du Cercle (« Ouvrir l'album souvenir » ; participants prévenus, `plan_activity` avec
+`tab: 'infos'`). Tables **PhotoAlbum** (`planId` unique **SetNull = survit au Plan**, `circleId` Cascade, `token` 24 caractères, `eventEnd`,
+`expiresAt` = fin + 7 jours, `audienceIds`, `noticeSentAt`), **AlbumPhoto** (`authorName`, `authorId?`, `deviceId`, `hidden`) et
+**AlbumPhotoLike** (photo + appareil). Sans compte : identifiant d'appareil `evly_album_device` et prénom `evly_album_name` dans le navigateur
+(en-tête `x-album-device`) ; chacun retire ses photos, l'organisation (`canManage`, aussi par jeton de connexion facultatif) masque ou retire
+n'importe laquelle et peut créer un **nouveau lien** (l'ancien et ses QR codes ne marchent plus). Photos **réduites dans le téléphone** avant
+l'envoi (`shrinkPhoto`, 2048 px) puis **refaites par sharp** (2048 px + miniature 480, sans métadonnées ni GPS) dans `STORAGE_DIR/albums/<id>/`,
+servies par GET `/api/albums/files/:token/:key[-s].jpg` ; 600 photos par album, 60 par appareil, 11 Mo par envoi, 120 envois / 30 min par
+adresse, refus si le disque dépasse 85 %. Cœurs, visionneuse (`PhotoViewer`), ZIP de tout l'album. **Affiche** (même jour, bouton « Créer
+l'affiche » de la carte) : A4 PNG 1654 × 2339 dessinée sur un canvas (titre de la soirée, grand QR code tracé module par module, 3 étapes, date
+de fin, adresse écrite, EvLY) ; aperçu, « Télécharger » (menu de partage dans les apps, `saveFile`) et « Imprimer » (site). Tâche horaire
+`albumTick` (gated) : suit la fin et les participants du Plan tant qu'il existe, prévient **3 jours avant l'effacement** (type `album` →
+`/album?t=…`, connu de `NotificationToast`), efface fichiers et lignes à l'échéance ; `purgeCircleFiles` efface les albums du Cercle. Les apps
+≤ 1.0.60 n'ont pas la carte (l'album marche sur le site). Fiche « Album souvenir » du guide, politique de confidentialité du 23 novembre 2026.
+Pas dans la démo.
+
 **« Je suis dispo »** (2026-10-21, `lib/availability.ts` testé, `routes/availability.ts` sur `/api/availability`, migration
 `20261024100000_availability`) : table **Availability** (une ligne par personne et par Cercle, remplacée à chaque déclaration :
 `slot` `now` = 3 h / `tonight` = jusqu'au prochain 4 h heure suisse, `tags` parmi apero, manger, cine, sport, jeux, balade — 3 au plus —,

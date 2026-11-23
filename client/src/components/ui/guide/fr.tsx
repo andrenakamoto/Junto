@@ -373,6 +373,10 @@ const groups: Group[] = [
           Aucun argent ne passe par EvLY. Pense à cacher le Plan à la personne fêtée (« Cacher à… », « C'est une surprise »).</P>,
       },
       {
+        id: 'album', emoji: '📸', title: 'Album souvenir', summary: 'Toutes les photos de la soirée, sans compte',
+        body: <P>Dans l'onglet Infos d'un Plan, le créateur du Plan ou un organisateur du Cercle touche « Ouvrir l'album souvenir ». Chacun reçoit ensuite le lien ou scanne le QR code de l'affiche (« Créer l'affiche » : une affiche A4 avec le titre de la soirée et un grand QR code, à télécharger, imprimer pour les tables et l'entrée, ou projeter) et ajoute ses photos sans compte ni app : le prénom est demandé une fois, plusieurs photos partent d'un coup. Tout le monde voit l'album, met des cœurs, ouvre les photos en grand et télécharge tout en ZIP. Chacun retire ses propres photos ; l'organisation masque ou retire n'importe laquelle, et peut créer un nouveau lien. L'album reste disponible 7 jours après la soirée (même quand le Plan est supprimé) : les participants sont prévenus 3 jours avant l'effacement.</P>,
+      },
+      {
         id: 'capsule', emoji: '⏳', title: 'Capsule temporelle', summary: 'Des souvenirs à rouvrir dans un an',
         body: <P>À activer dans les fonctions du Plan (Fêter et offrir). Le créateur du Plan choisit la date d'ouverture (dans 1 an, ou une
           autre date dans l'année). Pendant le Plan et jusqu'à 7 jours après sa fin, chacun dépose un mot, une photo ou un

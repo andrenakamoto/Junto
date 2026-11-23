@@ -369,6 +369,10 @@ const groups: Group[] = [
           goes through EvLY. Remember to hide the Plan from the person being celebrated (“Hide from…”, “It’s a surprise”).</P>,
       },
       {
+        id: 'album', emoji: '📸', title: 'Memory album', summary: 'All the party\'s photos, no account needed',
+        body: <P>In a Plan's Info tab, the Plan's creator or a Circle organiser taps “Open the memory album”. Everyone then gets the link or scans the QR code on the poster (“Create the poster”: an A4 poster with the party's title and a large QR code, to download, print for the tables and the entrance, or show on screen) and adds their photos without an account or app: the first name is asked once, several photos go up at once. Everyone sees the album, gives hearts, opens photos full size and downloads everything as a ZIP. Each person can remove their own photos; the organisers can hide or remove any photo and create a new link. The album stays available for 7 days after the party (even once the Plan is deleted): participants are notified 3 days before it is erased.</P>,
+      },
+      {
         id: 'capsule', emoji: '⏳', title: 'Time capsule', summary: 'Memories to reopen in a year',
         body: <P>Turn it on in the Plan's features (Celebrate and give). The Plan's creator picks the opening date (in 1 year,
           or another date within the year). During the Plan and up to 7 days after it ends, everyone drops in a note, a photo or a voice message: nobody

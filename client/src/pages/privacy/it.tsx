@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 20 novembre 2026',
+  version: 'Versione del 23 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -144,6 +144,7 @@ const it: PrivacyText = {
         <li><strong>Sondaggi sulle date</strong>: eliminati appena diventano un Plan (la loro conversazione è ripresa nel
           Plan), altrimenti automaticamente il giorno dopo l’ultima data proposta, e al più tardi 30 giorni dopo la loro
           creazione, con i loro voti e la loro chat.</li>
+        <li><strong>Album ricordo</strong>: chiunque abbia il link o il codice QR di un album può vederne le foto, aggiungerne e scaricarle, senza account. Per ogni foto conserviamo il nome indicato, un identificativo casuale del dispositivo (salvato nel browser, per poter togliere le proprie foto e contare i cuori) e, se la persona era connessa, il suo account. Le foto vengono rifatte dal server senza i loro metadati (posizione GPS compresa). L’album viene cancellato automaticamente 7 giorni dopo la serata, anche se il Plan lo è prima. Chi ha aggiunto una foto può toglierla in qualsiasi momento; l’organizzazione (chi ha creato il Plan, organizzatori del Cerchio) può nascondere o togliere qualsiasi foto. Chi compare in una foto e non lo desidera può chiederne la rimozione all’organizzazione o a info@evly.ch.</li>
         <li><strong>Capsule del tempo</strong> (funzione da attivare in un Plan): i messaggi, le foto e i messaggi vocali depositati sono conservati fino alla data di apertura scelta da chi ha creato il Plan (al massimo un anno dopo il Plan), anche dopo l’eliminazione del Plan, poi cancellati automaticamente 30 giorni dopo l’apertura. I testi sono cifrati, le foto rifatte senza i loro metadati (posizione GPS compresa). Prima dell’apertura ognuno vede solo i propri contributi e può ritirarli fino alla sigillatura; eliminare il proprio account cancella i propri contributi.</li>
         <li><strong>Fornitori</strong>: rubrica del Cerchio conservata finché il Cerchio esiste (o fino all'eliminazione dalla rubrica); seguito, importi e documenti di un Plan cancellati con il Plan.</li>
         <li><strong>Account</strong>: conservato finché non lo elimini.</li>

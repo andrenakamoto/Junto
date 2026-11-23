@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 20 November 2026',
+  version: 'Version of 23 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -142,6 +142,7 @@ const en: PrivacyText = {
         <li><strong>Date polls</strong>: deleted as soon as they become a Plan (their chat carries over to the Plan),
           otherwise automatically the day after the last suggested date, and at the latest 30 days after they were
           created, with their votes and chat.</li>
+        <li><strong>Memory albums</strong>: anyone with an album's link or QR code can view its photos, add some and download them, without an account. For each photo we keep the first name given, a random device identifier (stored in the browser, so people can remove their own photos and hearts can be counted) and, if the person was logged in, their account. Photos are remade by the server without their metadata (GPS position included). The album is deleted automatically 7 days after the party, even if the Plan is deleted earlier. Whoever added a photo can remove it at any time; the organisers (the Plan's creator, the Circle's organisers) can hide or remove any photo. Someone who appears in a photo and doesn't want to can ask the organisers or info@evly.ch to remove it.</li>
         <li><strong>Time capsules</strong> (a feature to turn on in a Plan): the notes, photos and voice messages dropped in are kept until the opening date chosen by the Plan's creator (at most one year after the Plan), even after the Plan is deleted, then erased automatically 30 days after opening. Texts are encrypted, photos are remade without their metadata (GPS position included). Before opening, everyone sees only their own items and can remove them until the capsule is sealed; deleting your account erases your items.</li>
         <li><strong>Suppliers</strong>: the Circle's supplier book is kept while the Circle exists (or until deleted from the book); a Plan's tracking, amounts and documents are deleted with the Plan.</li>
         <li><strong>Account</strong>: kept until you delete it.</li>

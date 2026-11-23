@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 20. November 2026',
+  version: 'Fassung vom 23. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -152,6 +152,7 @@ const de: PrivacyText = {
         <li><strong>Terminumfragen</strong>: gelöscht, sobald daraus ein Plan wird (ihr Chat wird in den Plan
           übernommen), sonst automatisch am Tag nach dem letzten vorgeschlagenen Termin und spätestens 30 Tage nach ihrer
           Erstellung, mit ihren Stimmen und ihrem Chat.</li>
+        <li><strong>Erinnerungsalben</strong>: Wer den Link oder QR-Code eines Albums hat, kann ohne Konto die Fotos ansehen, eigene hinzufügen und sie herunterladen. Zu jedem Foto speichern wir den angegebenen Vornamen, eine zufällige Kennung des Geräts (im Browser gespeichert, damit man seine eigenen Fotos entfernen kann und Herzen gezählt werden) und, falls die Person angemeldet war, ihr Konto. Die Fotos werden vom Server ohne Metadaten (GPS-Position inbegriffen) neu erstellt. Das Album wird 7 Tage nach dem Anlass automatisch gelöscht, auch wenn der Plan vorher gelöscht wird. Wer ein Foto hinzugefügt hat, kann es jederzeit entfernen; das Organisationsteam (wer den Plan erstellt hat, Organisationsteam des Kreises) kann jedes Foto ausblenden oder entfernen. Wer auf einem Foto zu sehen ist und das nicht möchte, kann beim Organisationsteam oder bei info@evly.ch die Entfernung verlangen.</li>
         <li><strong>Zeitkapseln</strong> (in einem Plan einschaltbare Funktion): Die hineingelegten Nachrichten, Fotos und Sprachnachrichten werden bis zum Öffnungsdatum aufbewahrt, das die Person wählt, die den Plan erstellt hat (höchstens ein Jahr nach dem Plan), auch nach dem Löschen des Plans, und 30 Tage nach dem Öffnen automatisch gelöscht. Texte werden verschlüsselt, Fotos ohne ihre Metadaten (GPS-Position inbegriffen) neu erstellt. Vor dem Öffnen sieht jede Person nur ihre eigenen Beiträge und kann sie bis zur Versiegelung zurückziehen; wer sein Konto löscht, löscht auch seine Beiträge.</li>
         <li><strong>Lieferanten</strong>: Adressbuch des Kreises, solange der Kreis besteht (oder bis zur Löschung aus dem Adressbuch); Angaben, Beträge und Dokumente eines Plans werden mit dem Plan gelöscht.</li>
         <li><strong>Konto</strong>: aufbewahrt, bis du es löschst.</li>

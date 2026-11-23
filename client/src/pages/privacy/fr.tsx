@@ -15,7 +15,7 @@ const processors: Processor[] = [
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 20 novembre 2026',
+  version: 'Version du 23 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -159,6 +159,7 @@ const fr: PrivacyText = {
         <li><strong>Sondages de dates</strong> : supprimés dès qu'ils deviennent un Plan (leur
           conversation est reprise dans le Plan), sinon automatiquement le lendemain de la dernière date
           proposée, et au plus tard 30 jours après leur création, avec leurs votes et leur chat.</li>
+        <li><strong>Albums souvenirs</strong> : toute personne qui a le lien ou le QR code d'un album peut voir ses photos, en ajouter et les télécharger, sans compte. Pour chaque photo, nous gardons le prénom indiqué, un identifiant aléatoire de l'appareil (gardé dans son navigateur, pour pouvoir retirer ses propres photos et compter les cœurs) et, si la personne était connectée, son compte. Les photos sont refaites par le serveur, sans leurs métadonnées (position GPS comprise). L'album est effacé automatiquement 7 jours après la soirée, même si le Plan l'est avant. La personne qui a ajouté une photo peut la retirer à tout moment ; l'organisation (créateur du Plan, organisateurs du Cercle) peut masquer ou retirer n'importe quelle photo. Une personne qui figure sur une photo et ne le souhaite pas peut en demander le retrait à l'organisation ou à info@evly.ch.</li>
         <li><strong>Capsules temporelles</strong> (fonction à activer dans un Plan) : les mots, photos et messages vocaux déposés sont gardés jusqu'à la date d'ouverture choisie par le créateur du Plan (un an au plus après le Plan), même après la suppression du Plan, puis effacés automatiquement 30 jours après l'ouverture. Les textes sont chiffrés, les photos refaites sans leurs métadonnées (position GPS comprise). Avant l'ouverture, chacun ne voit que ses propres dépôts et peut les retirer jusqu'au scellage ; supprimer son compte efface ses dépôts.</li>
         <li><strong>Fournisseurs</strong> : carnet du Cercle gardé tant que le Cercle existe (ou jusqu'à sa suppression du carnet) ; suivi, montants et documents d'un Plan effacés avec le Plan.</li>
         <li><strong>Compte</strong> : conservé jusqu'à ce que tu le supprimes.</li>

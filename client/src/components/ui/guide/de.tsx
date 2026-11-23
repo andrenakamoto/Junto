@@ -384,6 +384,10 @@ const groups: Group[] = [
           («Verstecken vor…», «Es ist eine Überraschung»).</P>,
       },
       {
+        id: 'album', emoji: '📸', title: 'Erinnerungsalbum', summary: 'Alle Fotos vom Abend, ohne Konto',
+        body: <P>Im Tab Infos eines Plans tippt die Person, die den Plan erstellt hat, oder jemand aus dem Organisationsteam des Kreises auf «Erinnerungsalbum öffnen». Danach erhalten alle den Link oder scannen den QR-Code auf dem Plakat («Plakat erstellen»: ein A4-Plakat mit dem Titel des Anlasses und einem grossen QR-Code, zum Herunterladen, Ausdrucken für die Tische und den Eingang oder zum Projizieren) und fügen ihre Fotos ohne Konto und ohne App hinzu: Der Vorname wird einmal gefragt, mehrere Fotos gehen auf einmal. Alle sehen das Album, vergeben Herzen, öffnen die Fotos gross und laden alles als ZIP herunter. Alle können ihre eigenen Fotos entfernen; das Organisationsteam kann jedes Foto ausblenden oder entfernen und einen neuen Link erstellen. Das Album bleibt 7 Tage nach dem Anlass verfügbar (auch wenn der Plan gelöscht wird): Die Teilnehmenden werden 3 Tage vor dem Löschen benachrichtigt.</P>,
+      },
+      {
         id: 'capsule', emoji: '⏳', title: 'Zeitkapsel', summary: 'Erinnerungen, die sich in einem Jahr öffnen',
         body: <P>In den Funktionen des Plans einschalten (Feiern und schenken). Wer den Plan erstellt hat, wählt das Öffnungsdatum (in 1 Jahr
           oder ein anderes Datum im folgenden Jahr). Während des Plans und bis 7 Tage nach seinem Ende legt jede Person eine Nachricht, ein

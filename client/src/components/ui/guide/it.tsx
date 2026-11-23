@@ -375,6 +375,10 @@ const groups: Group[] = [
           Nessun denaro passa da EvLY. Ricordati di nascondere il Plan alla persona festeggiata («Nascondi a…», «È una sorpresa»).</P>,
       },
       {
+        id: 'album', emoji: '📸', title: 'Album ricordo', summary: 'Tutte le foto della serata, senza account',
+        body: <P>Nella scheda Info di un Plan, chi ha creato il Plan o un organizzatore del Cerchio tocca «Apri l’album ricordo». Poi ognuno riceve il link o scansiona il codice QR del manifesto («Crea il manifesto»: un manifesto A4 con il titolo della serata e un grande codice QR, da scaricare, stampare per i tavoli e l’ingresso, o proiettare) e aggiunge le sue foto senza account né app: il nome viene chiesto una volta, più foto partono insieme. Tutti vedono l’album, mettono cuori, aprono le foto in grande e scaricano tutto in ZIP. Ognuno toglie le proprie foto; l’organizzazione nasconde o toglie qualsiasi foto, e può creare un nuovo link. L’album resta disponibile 7 giorni dopo la serata (anche quando il Plan è eliminato): i partecipanti vengono avvisati 3 giorni prima della cancellazione.</P>,
+      },
+      {
         id: 'capsule', emoji: '⏳', title: 'Capsula del tempo', summary: 'Ricordi da riaprire tra un anno',
         body: <P>Da attivare nelle funzioni del Plan (Festeggiare e regalare). Chi ha creato il Plan sceglie la data di apertura (tra 1 anno,
           o un'altra data entro l'anno). Durante il Plan e fino a 7 giorni dopo la sua fine, ognuno deposita un messaggio, una foto o un
