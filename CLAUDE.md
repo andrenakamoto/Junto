@@ -2085,6 +2085,18 @@ tes photos de la soirée ! », 3 étapes, date de fin, adresse de l'album, « ev
 `/album?t=…`, connu de `NotificationToast`), efface fichiers et lignes à l'échéance ; `purgeCircleFiles` efface les albums du Cercle. Les apps
 ≤ 1.0.60 n'ont pas la carte (l'album marche sur le site). Fiche « Album souvenir » du guide, politique de confidentialité du 23 novembre 2026.
 Pas dans la démo.
+**Adresse de l'album dans les résumés** (2026-11-24, demande de l'utilisateur ; `planAlbumInfo` / `albumUrl` de `lib/albums.ts`, album encore
+ouvert seulement) : ligne « Album souvenir » cliquable avec la date d'effacement dans le **récapitulatif PDF** et son email (`planRecap.ts`), ligne
+« Album souvenir : N photos » de **« En bref »** qui ouvre `/album` (GET `/plans/:id/summary` renvoie `album`) et ligne 📸 de **« Copier le
+résumé »** ; **email « Les photos de … »** (`sendAlbumEndEmails` de `lib/reminders.ts`, textes `albumEnd` de `i18n/emails`) envoyé à la
+suppression du Plan (24 h après sa fin, l'album restant ouvert environ 6 jours) aux participants « Je suis in » et « Peut-être » avec un email
+vérifié, sauf Plan ou Cercle en silence, **même sans photo**.
+**Album ouvert depuis l'app ou connecté** (même jour) : GET `/albums/public/:token` renvoie `canOpenPlan` (`getPlanAccess`) et `me` (prénom du
+compte, sinon pseudo) ; bouton **« Retour au Plan »** en haut de la page (`/dashboard?planId=…&tab=infos`) et **plus de question du prénom** ;
+à l'envoi, le serveur prend le prénom du compte de la personne connectée, jamais celui du formulaire (`accountName`).
+**Panneau admin** (même jour) : cartes « Albums actifs » et « Photos des albums » (avec la taille des photos d'après la base) dans la vue d'ensemble
+(GET `/admin/stats` → `albums`), bloc « Albums souvenirs » du panneau Stockage (taille réelle de `STORAGE_DIR/albums`, miniatures comprises,
+albums ouverts, photos ; retirée de « Fichiers des Plans »).
 
 **« Je suis dispo »** (2026-10-21, `lib/availability.ts` testé, `routes/availability.ts` sur `/api/availability`, migration
 `20261024100000_availability`) : table **Availability** (une ligne par personne et par Cercle, remplacée à chaque déclaration :
