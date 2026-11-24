@@ -40,6 +40,13 @@ async function optionalUser(req: Request): Promise<string | null> {
   return (await isSessionCurrent(p.userId, p.sv)) ? p.userId : null;
 }
 
+// Prénom (sinon pseudo) d'une personne connectée : utilisé à la place du prénom demandé aux personnes sans compte
+async function accountName(userId: string | null): Promise<string | null> {
+  if (!userId) return null;
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { firstName: true, pseudo: true } });
+  return u ? (u.firstName?.trim() || u.pseudo).slice(0, 30) : null;
+}
+
 type Album = NonNullable<Awaited<ReturnType<typeof byToken>>>;
 const byToken = (token: unknown) => (isAlbumToken(token) ? prisma.photoAlbum.findUnique({ where: { token }, include: { plan: { select: { id: true, creatorId: true } } } }) : Promise.resolve(null));
 
@@ -69,6 +76,8 @@ router.get('/public/:token', async (req, res) => {
   const device = parseDeviceId(req.headers['x-album-device']);
   const me = await optionalUser(req);
   const manager = await canManage(me, a);
+  // Personne connectée qui voit le Plan : bouton « Retour au Plan » ; son prénom remplace la question du prénom
+  const [access, myName] = await Promise.all([me && a.planId ? getPlanAccess(me, a.planId) : null, accountName(me)]);
   const photos = await prisma.albumPhoto.findMany({
     where: { albumId: a.id, ...(manager ? {} : { hidden: false }) }, orderBy: { createdAt: 'desc' },
     include: { likes: { select: { deviceId: true } } },
@@ -79,6 +88,7 @@ router.get('/public/:token', async (req, res) => {
     contributorCount: new Set(photos.filter(p => !p.hidden).map(p => p.deviceId)).size,
     myCount: device ? photos.filter(p => p.deviceId === device).length : 0, maxPerDevice: ALBUM_MAX_PER_DEVICE,
     full: photos.length >= ALBUM_MAX_PHOTOS,
+    canOpenPlan: !!access?.canView, me: myName ? { name: myName } : null,
     photos: photos.map(p => ({
       id: p.id, key: p.key, width: p.width, height: p.height, author: p.authorName, createdAt: p.createdAt, hidden: p.hidden,
       likes: p.likes.length, liked: !!device && p.likes.some(l => l.deviceId === device), mine: !!device && p.deviceId === device,
@@ -91,7 +101,9 @@ router.post('/public/:token/photos', uploadLimiter, uploadOne, async (req, res) 
   const a = await byToken(req.params.token);
   if (!a || a.expiresAt <= new Date()) { res.status(404).json({ error: 'Album introuvable' }); return; }
   const device = parseDeviceId(req.headers['x-album-device']);
-  const name = parseAuthorName(req.body?.name);
+  const userId = await optionalUser(req);
+  // Compte connecté : son prénom (pas celui du formulaire) ; sans compte : le prénom indiqué
+  const name = (await accountName(userId)) ?? parseAuthorName(req.body?.name);
   if (!device) { res.status(400).json({ error: 'Appareil inconnu : recharge la page' }); return; }
   if (!name) { res.status(400).json({ error: 'Indique ton prénom' }); return; }
   const f = (req as any).file as { buffer: Buffer; mimetype: string } | undefined;
@@ -115,7 +127,7 @@ router.post('/public/:token/photos', uploadLimiter, uploadOne, async (req, res) 
   await fs.writeFile(albumFile(a.id, key), big.data, { mode: 0o640 });
   await fs.writeFile(albumFile(a.id, key, true), small, { mode: 0o640 });
   const p = await prisma.albumPhoto.create({
-    data: { albumId: a.id, key, width: big.info.width, height: big.info.height, size: big.data.length, authorName: name, authorId: await optionalUser(req), deviceId: device },
+    data: { albumId: a.id, key, width: big.info.width, height: big.info.height, size: big.data.length, authorName: name, authorId: userId, deviceId: device },
   });
   res.json({ id: p.id, key: p.key, width: p.width, height: p.height });
 });

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Camera, Download, EyeOff, Eye, Heart, Loader2, Images } from 'lucide-react';
+import { ArrowLeft, Camera, Download, EyeOff, Eye, Heart, Loader2, Images } from 'lucide-react';
 import api from '../services/api';
 import { LogoFull } from '../components/ui/Logo';
 import { Modal } from '../components/ui/Modal';
@@ -50,7 +50,7 @@ export default function AlbumPage() {
 
   function pick() {
     setError('');
-    if (!albumName()) { setAskName(true); return; }
+    if (!album?.me && !albumName()) { setAskName(true); return; }
     input.current?.click();
   }
 
@@ -70,7 +70,7 @@ export default function AlbumPage() {
         try {
           const blob = await shrinkPhoto(f);
           const form = new FormData();
-          form.append('name', albumName());
+          form.append('name', album?.me?.name ?? albumName());
           form.append('photo', blob, f.name.replace(/\.(heic|heif|png|webp)$/i, '.jpg') || 'photo.jpg');
           await api.post(`/albums/public/${token}/photos`, form, { headers });
         } catch (e: any) {
@@ -123,7 +123,14 @@ export default function AlbumPage() {
       {/* En-tête */}
       <header className="bg-gradient-to-br from-indigo-600 via-indigo-500 to-rose-500 text-white px-5 pt-6 pb-8" style={{ paddingTop: 'calc(1.5rem + var(--sa-top, 0px))' }}>
         <div className="max-w-3xl mx-auto">
-          <Link to="/" className="inline-flex items-center rounded-full bg-white px-3.5 py-1 shadow-sm"><LogoFull light iconSize={24} /></Link>
+          <div className="flex items-center justify-between gap-3">
+            {album.canOpenPlan && album.planId ? (
+              <Link to={`/dashboard?planId=${encodeURIComponent(album.planId)}&tab=infos`} className="inline-flex items-center gap-1.5 rounded-full bg-white/20 hover:bg-white/30 px-3.5 py-2 text-sm font-semibold backdrop-blur-sm">
+                <ArrowLeft size={16} /> {t('album.page.backToPlan')}
+              </Link>
+            ) : <span />}
+            <Link to="/" className="inline-flex items-center rounded-full bg-white px-3.5 py-1 shadow-sm"><LogoFull light iconSize={24} /></Link>
+          </div>
           <p className="mt-6 text-sm font-semibold uppercase tracking-wider text-white/80">📸 {t('album.page.title')}</p>
           <h1 className="mt-1 font-serif text-3xl sm:text-4xl font-extrabold leading-tight" style={{ fontFamily: 'Fraunces, serif' }}>{album.title}</h1>
           <p className="mt-2 text-white/90 font-medium">{t('album.page.stats', { photos: photosLabel, people: peopleLabel })}</p>

@@ -34,6 +34,7 @@ const album = {
     text: "📸 The photos from “{{title}}”: add yours and download the album (no account needed) 👉 {{link}}",
   },
   page: {
+    backToPlan: "Back to the Plan",
     title: "Memory album",
     add: "Add my photos",
     adding: "Uploading… {{done}} / {{total}}",

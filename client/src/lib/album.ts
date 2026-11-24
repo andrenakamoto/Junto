@@ -10,6 +10,8 @@ export type AlbumPhoto = { id: string; key: string; width: number; height: numbe
 export type AlbumView = {
   id: string; title: string; token: string; eventEnd: string; expiresAt: string; planId: string | null; canManage: boolean;
   photoCount: number; contributorCount: number; myCount: number; maxPerDevice: number; full: boolean; photos: AlbumPhoto[];
+  /** Personne connectée qui voit le Plan (bouton « Retour au Plan ») ; son prénom, utilisé sans le demander (2026-11-24) */
+  canOpenPlan?: boolean; me?: { name: string } | null;
 };
 export type OwnAlbum = { id: string; token: string; expiresAt: string; title: string; photoCount: number };
 
