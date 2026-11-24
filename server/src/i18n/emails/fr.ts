@@ -7,6 +7,7 @@ const fr = {
     viewPlan: 'Voir le Plan',
     openEvly: 'Ouvrir EvLY',
     manageNotifications: 'Gérer mes notifications',
+    unsubscribe: 'Me désinscrire de ce résumé',
   },
   footer: {
     menu: 'dans EvLY, touche le menu <b>☰</b> en bas de la liste de tes Cercles (à côté de ton pseudo), puis <b>« Notifications »</b>',

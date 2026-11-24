@@ -7,6 +7,7 @@ const en: EmailDict = {
     viewPlan: 'View the Plan',
     openEvly: 'Open EvLY',
     manageNotifications: 'Manage my notifications',
+    unsubscribe: 'Unsubscribe from this summary',
   },
   footer: {
     menu: 'in EvLY, tap the <b>☰</b> menu at the bottom of your Circle list (next to your username), then <b>“Notifications”</b>',

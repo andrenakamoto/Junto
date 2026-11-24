@@ -12,6 +12,7 @@ import { shiftHours, sortShifts } from './volunteers';
 import { purgePlanFiles } from './storage';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
+import { unsubscribeLinks } from './unsubscribe';
 import { computeByCurrency, formatAmount } from './expenses';
 import { wantsEmail } from './notificationPrefs';
 import { sendPush } from './push';
@@ -234,9 +235,11 @@ export async function sendWeeklyDigest() {
         return `<li><strong>${escapeHtml(p.title)}</strong> (${where}) — ${dateStr}</li>`;
       }).join('');
 
+      const unsub = unsubscribeLinks(user.id, 'digest');
       const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: user.email!,
+        headers: unsub.headers,
         subject: m.s('digest.subject', { count: plans.length }),
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
@@ -246,7 +249,7 @@ export async function sendWeeklyDigest() {
             <a href="${APP_URL}/dashboard" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">
               ${m.t('common.openEvly')}
             </a>
-          ${notificationFooter('digest', m.locale)}
+          ${notificationFooter('digest', m.locale, unsub.page)}
           </div>`,
       }).catch(e => { console.error('[digest email]', user.email, e); return null; });
       if (result?.error) console.error('[digest email]', user.email, result.error);

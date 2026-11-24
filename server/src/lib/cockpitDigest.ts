@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { unsubscribeLinks } from './unsubscribe';
 import { parseLocale } from './i18n';
 import { mail } from './emailText';
 import { escapeHtml } from './escapeHtml';
@@ -53,9 +54,11 @@ export async function sendCockpitDigests(now = new Date()) {
       const today = zurichDay(now);
       if (!todo.length && !agenda.length && !teams.length) continue;
 
+      const unsub = unsubscribeLinks(row.userId, `cockpit:${row.organisationId}`);
       const result = await resend.emails.send({
         from: FROM_EMAIL,
         to: row.user.email!,
+        headers: unsub.headers,
         subject: m.s('cockpit.subject', { org: c.organisation.name }),
         html: `
           <div style="font-family:sans-serif;max-width:520px;margin:auto">
@@ -65,7 +68,7 @@ export async function sendCockpitDigests(now = new Date()) {
             ${section(m.t('cockpit.agenda'), agenda)}
             ${section(m.t('cockpit.teams'), teams)}
             <p style="margin-top:24px"><a href="${APP_URL}/dashboard?cockpit=${encodeURIComponent(c.organisation.id)}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${m.t('cockpit.button')}</a></p>
-            <p style="color:#94a3b8;font-size:12px;margin-top:24px">${m.t('cockpit.footer')}</p>
+            <p style="color:#94a3b8;font-size:12px;margin-top:24px">${m.t('cockpit.footer')}<br><a href="${unsub.page}" style="color:#64748b;font-weight:600">${m.t('common.unsubscribe')}</a></p>
           </div>`,
       }).catch(e => { console.error('[cockpit digest]', row.user.email, e); return null; });
       if (result?.error) console.error('[cockpit digest]', row.user.email, result.error);

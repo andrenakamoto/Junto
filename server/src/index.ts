@@ -28,6 +28,7 @@ import photoRoutes from './routes/photos';
 import circleChatRoutes from './routes/circleChat';
 import capsuleRoutes from './routes/capsules';
 import albumRoutes from './routes/albums';
+import unsubscribeRoutes from './routes/unsubscribe';
 import supplierBookRoutes from './routes/supplierBook';
 import equipmentRoutes from './routes/equipment';
 import { sendEquipmentReminders } from './lib/equipment';
@@ -140,6 +141,7 @@ app.use('/api/photos', photoRoutes);
 app.use('/api/circle-chat', circleChatRoutes);
 app.use('/api/capsules', capsuleRoutes);
 app.use('/api/albums', albumRoutes);
+app.use('/api/unsubscribe', unsubscribeRoutes);
 app.use('/api/suppliers', supplierBookRoutes);
 app.use('/api/equipment', equipmentRoutes);
 // Administrateurs et départs (avant le routeur principal des Organisations)

@@ -7,6 +7,7 @@ const de: EmailDict = {
     viewPlan: 'Plan ansehen',
     openEvly: 'EvLY öffnen',
     manageNotifications: 'Meine Benachrichtigungen verwalten',
+    unsubscribe: 'Diese Zusammenfassung abbestellen',
   },
   footer: {
     menu: 'tippe in EvLY auf das Menü <b>☰</b> unten in der Liste deiner Kreise (neben deinem Pseudonym) und dann auf <b>«Benachrichtigungen»</b>',
