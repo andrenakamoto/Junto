@@ -589,6 +589,8 @@ Conséquences pratiques :
     soirée par un lien ou un QR code, sans compte, 7 jours), affiche A4 avec le QR code.
     **Version 1.0.62** (2026-11-24) : Android `versionCode` 64 (`evly-1.0.62-(64).aab`), iOS build 69 envoyé — conformité : polices servies par
     evly.ch, page Mentions légales (menu ☰), case « J'ai 16 ans ou plus » (inscription et conditions d'utilisation).
+    **Version 1.0.63** (2026-11-24) : Android `versionCode` 65 (`evly-1.0.63-(65).aab`), iOS build 70 envoyé — album : « Retour au Plan », prénom
+    du compte, album dans « En bref » et le résumé copié.
     Signature iPhone : passer l'**empreinte** du certificat à `codesign`
     (`security find-identity -v -p codesigning`), le nom avec « é » est mal lu par le shell.
     Envoi iPhone : construire l'archive dans un dossier temporaire ; une archive copiée par le Finder
