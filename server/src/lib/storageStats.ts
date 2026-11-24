@@ -19,7 +19,8 @@ function folderSize(dir: string): Promise<number> {
 }
 
 export async function storageStats() {
-  const [db, files, photos, backups, disk, attachments, capsules, capsuleCount] = await Promise.all([
+  const now = new Date();
+  const [db, files, photos, backups, disk, attachments, capsules, capsuleCount, albums, albumCount, albumPhotos] = await Promise.all([
     prisma.$queryRaw<{ size: bigint }[]>`SELECT pg_database_size(current_database()) AS size`.then(r => Number(r[0]?.size ?? 0)).catch(() => 0),
     folderSize(STORAGE_DIR),
     folderSize(path.join(STORAGE_DIR, 'photos')),
@@ -28,6 +29,9 @@ export async function storageStats() {
     prisma.attachment.aggregate({ _count: true, _sum: { size: true } }),
     folderSize(path.join(STORAGE_DIR, 'capsules')),
     prisma.timeCapsule.count(),
+    folderSize(path.join(STORAGE_DIR, 'albums')),
+    prisma.photoAlbum.count({ where: { expiresAt: { gt: now } } }),
+    prisma.albumPhoto.count(),
   ]);
   return {
     database: db,
@@ -38,6 +42,8 @@ export async function storageStats() {
     attachments: { count: attachments._count, size: attachments._sum.size ?? 0 },
     // Capsules temporelles : gardées jusqu'à un an, à surveiller
     capsules: { count: capsuleCount, size: capsules },
+    // Albums souvenirs (effacés 7 jours après la soirée) : albums encore ouverts, photos, place sur le disque (miniatures comprises)
+    albums: { count: albumCount, photos: albumPhotos, size: albums },
     at: new Date().toISOString(),
   };
 }

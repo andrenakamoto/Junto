@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight, Network, LogOut } from 'lucide-react';
+import { ShieldCheck, Check, X, ArrowLeft, Users, Clock, CheckCircle, Trash2, KeyRound, Mail, MailX, AtSign, CircleDot, Images, Search, Calendar, MessageSquare, Activity, Pencil, UserCheck, UserPlus, CalendarDays, Compass, Flag, Lightbulb, BarChart3, HardDrive, ChevronRight, Network, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogoIcon } from '../components/ui/Logo';
 import { disconnectSocket } from '../lib/socket';
@@ -35,6 +35,7 @@ interface AdminUser {
 interface Stats {
   pending: number; approved: number; rejected: number;
   totalCircles: number; activePlans: number; messagesLast7Days: number; activeUsersLast7Days: number; lightGuests?: number; newUsersLast7Days?: number;
+  albums?: { active: number; photos: number; size: number };
 }
 
 type Filter = 'pending' | 'approved' | 'rejected' | 'all';
@@ -265,20 +266,23 @@ export function AdminPage() {
         <h1 className="text-xl font-bold text-slate-800 mb-4">Vue d'ensemble</h1>
 
         {/* Activity stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           <StatCard icon={UserCheck} label="Utilisateurs approuvés" value={stats.approved} highlight />
           <StatCard icon={UserPlus} label="Inscriptions (7j)" value={stats.newUsersLast7Days ?? 0} />
           <StatCard icon={CircleDot} label="Cercles créés" value={stats.totalCircles} />
           <StatCard icon={Calendar} label="Plans actifs" value={stats.activePlans} />
           <StatCard icon={MessageSquare} label="Messages (7j)" value={stats.messagesLast7Days} />
           <StatCard icon={Activity} label="Membres actifs (7j)" value={stats.activeUsersLast7Days} />
+          <StatCard icon={Images} label="Albums actifs" value={stats.albums?.active ?? 0} />
+          <StatCard icon={Images} label="Photos des albums" value={stats.albums?.photos ?? 0} sub={stats.albums ? fileSize(stats.albums.size) : undefined} />
         </div>
         <p className="-mt-6 mb-8 text-xs text-slate-500">
           Utilisateurs approuvés : comptes qui peuvent utiliser EvLY (sans les administrateurs ni les réponses sans compte).
           Membres actifs : personnes qui ont utilisé EvLY ces 7 derniers jours. Messages : envoyés ces 7 derniers
           jours dans les chats des Plans et des sondages, même si le Plan a été supprimé depuis. Comptés depuis
           le 29 septembre 2026. Personnes sans compte en cours (réponses à un Plan ou sorties organisées
-          sans s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>.
+          sans s'inscrire) : <strong>{stats.lightGuests ?? 0}</strong>. Albums actifs : albums souvenirs encore ouverts (effacés 7 jours
+          après la soirée) ; la taille indiquée est celle des photos (place exacte sur le disque, miniatures comprises : Stockage).
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -540,14 +544,17 @@ export function AdminPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, highlight }: { icon: typeof Users; label: string; value: number; highlight?: boolean }) {
+const fileSize = (b: number) =>
+  b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(1)} Go` : b >= 1024 ** 2 ? `${(b / 1024 ** 2).toFixed(1)} Mo` : `${Math.round(b / 1024)} Ko`;
+
+function StatCard({ icon: Icon, label, value, highlight, sub }: { icon: typeof Users; label: string; value: number; highlight?: boolean; sub?: string }) {
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${highlight ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-slate-200'}`}>
       <div className={`flex items-center gap-1.5 mb-1.5 ${highlight ? 'text-indigo-600' : 'text-slate-400'}`}>
         <Icon size={13} />
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-800">{value}</p>
+      <p className="text-2xl font-bold text-slate-800">{value}{sub && <span className="ml-1.5 text-sm font-semibold text-slate-400">· {sub}</span>}</p>
     </div>
   );
 }

@@ -226,7 +226,7 @@ router.get('/stats', async (_req, res) => {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   // Jours civils suisses : aujourd'hui compris, 7 jours au total
   const since7Days = new Date(visitDay().getTime() - 6 * 24 * 60 * 60 * 1000);
-  const [pending, approved, rejected, totalCircles, activePlans, messagesAgg, activeUsersLast7Days, lightGuests, newUsersLast7Days] = await Promise.all([
+  const [pending, approved, rejected, totalCircles, activePlans, messagesAgg, activeUsersLast7Days, lightGuests, newUsersLast7Days, activeAlbums, albumPhotos] = await Promise.all([
     prisma.user.count({ where: { status: 'pending', isAdmin: false } }),
     prisma.user.count({ where: { status: 'approved', isAdmin: false, isLight: false } }),
     prisma.user.count({ where: { status: 'rejected' } }),
@@ -240,6 +240,9 @@ router.get('/stats', async (_req, res) => {
     prisma.user.count({ where: { isLight: true } }),
     // Inscriptions des 7 derniers jours (comptes, sans les réponses sans compte)
     prisma.user.count({ where: { isLight: false, isAdmin: false, createdAt: { gte: sevenDaysAgo } } }),
+    // Albums souvenirs encore ouverts, et leurs photos (taille des grandes photos d'après la base ; le disque exact : panneau Stockage)
+    prisma.photoAlbum.count({ where: { expiresAt: { gt: new Date() } } }),
+    prisma.albumPhoto.aggregate({ _count: true, _sum: { size: true } }),
   ]);
   res.json({
     pending, approved, rejected,
@@ -248,6 +251,7 @@ router.get('/stats', async (_req, res) => {
     activeUsersLast7Days,
     lightGuests,
     newUsersLast7Days,
+    albums: { active: activeAlbums, photos: albumPhotos._count, size: albumPhotos._sum.size ?? 0 },
   });
 });
 
