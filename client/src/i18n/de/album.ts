@@ -28,7 +28,10 @@ const album = {
     footer: "Kein Konto nötig · Album offen bis {{date}}",
     hint: "Ausdrucken und auf die Tische oder an den Eingang legen, oder während des Abends projizieren.",
     download: "Plakat herunterladen",
-    share: "Speichern oder teilen",
+    share: "Teilen",
+    saveToPhotos: "In meinen Fotos speichern",
+    saved: "Plakat in deinen Fotos gespeichert (Album «EvLY» auf Android).",
+    saveError: "Das Plakat konnte nicht gespeichert werden. Erlaube EvLY in den Einstellungen des Telefons, Fotos hinzuzufügen.",
   },
   share: {
     text: "📸 Die Fotos von «{{title}}»: Füge deine hinzu und lade das Album herunter (ohne Konto) 👉 {{link}}",

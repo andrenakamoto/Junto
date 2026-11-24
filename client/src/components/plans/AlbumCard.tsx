@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
-import { Camera, Copy, Download, Images, Link2, Loader2, MoreHorizontal, Printer, QrCode, Share2, Trash2 } from 'lucide-react';
+import { Camera, Check, Copy, Download, Images, Link2, Loader2, MoreHorizontal, Printer, QrCode, Share2, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { Modal } from '../ui/Modal';
 import { albumLink, type OwnAlbum } from '../../lib/album';
 import { albumPosterBlob, posterFileName } from '../../lib/albumPoster';
-import { saveFile } from '../../lib/saveFile';
+import { saveFile, saveImage } from '../../lib/saveFile';
 import { intlLocale, t } from '../../i18n';
 import type { Plan } from '../../types';
 
@@ -56,7 +56,21 @@ export function AlbumCard({ plan }: { plan: Plan }) {
     } catch { setError(t('common.retryError')); }
     setPosterBusy(false);
   }
-  function closePoster() { if (poster) URL.revokeObjectURL(poster.url); setPoster(null); }
+  function closePoster() { if (poster) URL.revokeObjectURL(poster.url); setPoster(null); setSavedToPhotos(false); }
+  // Apps : enregistrer l'affiche dans les photos du téléphone (album « EvLY » sur Android, Photos sur iPhone), comme la story
+  const [savedToPhotos, setSavedToPhotos] = useState(false);
+  async function savePosterToPhotos() {
+    if (!a || !poster) return;
+    setError('');
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = () => reject(r.error); r.readAsDataURL(poster.blob);
+      });
+      await saveImage(dataUrl, posterFileName(a.title));
+      setSavedToPhotos(true);
+    } catch { setError(t('album.poster.saveError')); }
+  }
+
   async function downloadPoster() {
     if (!a || !poster) return;
     try { await saveFile(poster.blob, posterFileName(a.title), t('album.poster.kicker')); } catch { setError(t('common.retryError')); }
@@ -109,8 +123,15 @@ export function AlbumCard({ plan }: { plan: Plan }) {
           <div className="text-center space-y-3">
             <img src={poster.url} alt="" className="mx-auto w-full max-w-[300px] rounded-lg border border-slate-200 shadow-sm" />
             <p className="text-sm text-slate-500">{t('album.poster.hint')}</p>
+            {savedToPhotos && <p className="text-sm font-semibold text-emerald-700">{t('album.poster.saved')}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex flex-wrap justify-center gap-2">
-              <button onClick={downloadPoster} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"><Download size={16} />{Capacitor.isNativePlatform() ? t('album.poster.share') : t('album.poster.download')}</button>
+              {Capacitor.isNativePlatform() ? (<>
+                <button onClick={savePosterToPhotos} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">{savedToPhotos ? <Check size={16} /> : <Download size={16} />}{t('album.poster.saveToPhotos')}</button>
+                <button onClick={downloadPoster} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50"><Share2 size={16} />{t('album.poster.share')}</button>
+              </>) : (
+                <button onClick={downloadPoster} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"><Download size={16} />{t('album.poster.download')}</button>
+              )}
               {!Capacitor.isNativePlatform() && (
                 <button onClick={printPoster} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50"><Printer size={16} />{t('album.card.print')}</button>
               )}

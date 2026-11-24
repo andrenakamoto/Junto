@@ -28,7 +28,10 @@ const album = {
     footer: "Pas besoin de compte · Album ouvert jusqu’au {{date}}",
     hint: "À imprimer et poser sur les tables ou à l’entrée, ou à projeter pendant la soirée.",
     download: "Télécharger l’affiche",
-    share: "Enregistrer ou partager",
+    share: "Partager",
+    saveToPhotos: "Enregistrer dans mes photos",
+    saved: "Affiche enregistrée dans tes photos (album « EvLY » sur Android).",
+    saveError: "Impossible d’enregistrer l’affiche. Autorise EvLY à ajouter des photos dans les réglages du téléphone.",
   },
   share: {
     text: "📸 Les photos de « {{title}} » : ajoute les tiennes et télécharge l’album (sans compte) 👉 {{link}}",

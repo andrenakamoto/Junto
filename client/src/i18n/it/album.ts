@@ -28,7 +28,10 @@ const album = {
     footer: "Nessun account necessario · Album aperto fino al {{date}}",
     hint: "Da stampare e mettere sui tavoli o all’ingresso, oppure da proiettare durante la serata.",
     download: "Scarica il manifesto",
-    share: "Salva o condividi",
+    share: "Condividi",
+    saveToPhotos: "Salva nelle mie foto",
+    saved: "Manifesto salvato nelle tue foto (album «EvLY» su Android).",
+    saveError: "Impossibile salvare il manifesto. Consenti a EvLY di aggiungere foto nelle impostazioni del telefono.",
   },
   share: {
     text: "📸 Le foto di «{{title}}»: aggiungi le tue e scarica l’album (senza account) 👉 {{link}}",

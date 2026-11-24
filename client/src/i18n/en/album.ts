@@ -28,7 +28,10 @@ const album = {
     footer: "No account needed · Album open until {{date}}",
     hint: "Print it and put it on the tables or at the entrance, or show it on screen during the evening.",
     download: "Download the poster",
-    share: "Save or share",
+    share: "Share",
+    saveToPhotos: "Save to my photos",
+    saved: "Poster saved to your photos (“EvLY” album on Android).",
+    saveError: "Couldn’t save the poster. Allow EvLY to add photos in your phone’s settings.",
   },
   share: {
     text: "📸 The photos from “{{title}}”: add yours and download the album (no account needed) 👉 {{link}}",
