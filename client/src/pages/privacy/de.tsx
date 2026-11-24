@@ -9,13 +9,13 @@ const processors: Processor[] = [
   { name: 'OpenStreetMap (Overpass)', role: "Ausflugsideen (Bereich Entdecken): Unser Server liest öffentliche Orte, ohne etwas über dich zu übermitteln", where: "Deutschland", safeguard: "keine Personendaten übermittelt" },
   { name: 'swisstopo (Bundesamt für Landestopografie)', role: "Hintergrund der Karte in Entdecken, nur wenn du die Karte öffnest: Dein Gerät lädt die Kartenbilder direkt bei swisstopo, das deine IP-Adresse und den angezeigten Ausschnitt sieht (sonst nichts, kein Konto)", where: "Schweiz", safeguard: "keine Übermittlung ins Ausland" },
   { name: 'Schweiz Tourismus (MySwitzerland.com)', role: "Sehenswürdigkeiten und Routen (Bereich Entdecken), Lizenz CC BY-SA: Unser Server liest die Orte, ohne etwas über dich zu übermitteln", where: "Schweiz", safeguard: "keine Personendaten übermittelt" },
-  { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst), Schriften der Website und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
+  { name: 'Google', role: 'Anmeldung mit einem Google-Konto (wenn du sie wählst; auf der Website wird der Dienst von Google erst geladen, wenn du auf «Weiter mit Google» tippst) und Zustellung der Benachrichtigungen der Apps (Firebase Cloud Messaging)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'Anmeldung mit einem Apple-Konto in der iPhone-App (wenn du sie wählst) und Zustellung der Benachrichtigungen der iPhone-App (Apple Push Notification Service)', where: 'USA', safeguard: 'zertifiziert nach Swiss-U.S. Data Privacy Framework' },
 ];
 
 const de: PrivacyText = {
   title: 'Datenschutzerklärung',
-  version: 'Fassung vom 23. November 2026',
+  version: 'Fassung vom 24. November 2026',
   translationNote: 'Übersetzung zur Information: Massgebend ist die französische Fassung.',
   body: <>
     <p className="mt-3">
@@ -24,7 +24,7 @@ const de: PrivacyText = {
     </p>
 
     <Section title="1. Wer für deine Daten verantwortlich ist">
-      <p>EvLY, Genf (Schweiz). Für alle Fragen oder Anliegen zu deinen Daten: <strong>info@evly.ch</strong>.</p>
+      <p>André Martins, Herausgeber von EvLY, Genf (Schweiz) (siehe <a href="/mentions-legales" className="underline">Impressum</a>). Für alle Fragen oder Anliegen zu deinen Daten: <strong>info@evly.ch</strong>.</p>
     </Section>
 
     <Section title="2. Bearbeitete Daten">
@@ -134,7 +134,7 @@ const de: PrivacyText = {
       <p>EvLY stützt sich auf folgende Dienstleister, die in unserem Auftrag Daten bearbeiten:</p>
       <ProcessorTable rows={processors} head={['Dienstleister', 'Aufgabe', 'Land', 'Garantie']} />
       <p>
-        Deine Daten (Konto, Nachrichten, Pläne, Fotos, Dateien) werden in der Schweiz bei Infomaniak gespeichert und verlassen die Schweiz für die Speicherung nicht. Nur die aufgeführten Dienste in den USA sind noch beteiligt: Google und Apple für die Zustellung der Benachrichtigungen an die Telefone (ohne Inhalt der Nachrichten) Google und Apple für die Anmeldung mit ihrem Konto (wenn du sie wählst) und Google für die Schriften der Website. Die USA bieten im Allgemeinen kein der Schweiz gleichwertiges Schutzniveau: Diese Übermittlungen sind entweder durch die Zertifizierung des Dienstleisters nach dem Swiss-U.S. Data Privacy Framework, das der Bundesrat seit dem 15. September 2024 anerkennt, oder durch die an das Schweizer Recht angepassten Standardvertragsklauseln seines Auftragsverarbeitungsvertrags abgesichert.
+        Deine Daten (Konto, Nachrichten, Pläne, Fotos, Dateien) werden in der Schweiz bei Infomaniak gespeichert und verlassen die Schweiz für die Speicherung nicht. Nur die aufgeführten Dienste in den USA sind noch beteiligt: Google und Apple für die Zustellung der Benachrichtigungen an die Telefone (ohne Inhalt der Nachrichten) sowie Google und Apple für die Anmeldung mit ihrem Konto (wenn du sie wählst). Die Schriften werden von unseren eigenen Servern geladen: Beim Öffnen der Website wird deine IP-Adresse nicht an Google übermittelt. Die USA bieten im Allgemeinen kein der Schweiz gleichwertiges Schutzniveau: Diese Übermittlungen sind entweder durch die Zertifizierung des Dienstleisters nach dem Swiss-U.S. Data Privacy Framework, das der Bundesrat seit dem 15. September 2024 anerkennt, oder durch die an das Schweizer Recht angepassten Standardvertragsklauseln seines Auftragsverarbeitungsvertrags abgesichert.
       </p>
     </Section>
 

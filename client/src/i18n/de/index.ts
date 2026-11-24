@@ -23,6 +23,7 @@ import org from './org';
 import equipment from './equipment';
 import landing from './landing';
 import album from './album';
+import legal from './legal';
 
-const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment, landing, album };
+const dict: Dict = { common, settings, ui, plan, auth, circle, chat, account, notif, votes, games, photos, discover, tasks, suppliers, program, ideas, noel, capsule, mystery, org, equipment, landing, album, legal };
 export default dict;

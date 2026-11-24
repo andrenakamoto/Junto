@@ -9,13 +9,13 @@ const processors: Processor[] = [
   { name: 'OpenStreetMap (Overpass)', role: "idées de sorties (rubrique Découvrir) : notre serveur lit les lieux publics, sans rien transmettre te concernant", where: "Allemagne", safeguard: "aucune donnée personnelle transmise" },
   { name: 'swisstopo (Office fédéral de topographie)', role: "fond de la carte de Découvrir, seulement si tu ouvres la carte : ton appareil télécharge les images de la carte directement chez swisstopo, qui voit ton adresse IP et la zone affichée (rien d'autre, pas de compte)", where: "Suisse", safeguard: "aucun transfert à l’étranger" },
   { name: 'Suisse Tourisme (MySwitzerland.com)', role: "attractions et itinéraires (rubrique Découvrir), sous licence CC BY-SA : notre serveur lit les lieux, sans rien transmettre te concernant", where: "Suisse", safeguard: "aucune donnée personnelle transmise" },
-  { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis), polices de caractères du site et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
+  { name: 'Google', role: 'connexion avec un compte Google (si tu la choisis ; sur le site, le service de Google n’est chargé qu’au moment où tu touches le bouton « Continuer avec Google ») et acheminement des notifications des apps (Firebase Cloud Messaging)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'connexion avec un compte Apple dans l\'app iPhone (si tu la choisis) et acheminement des notifications de l\'app iPhone (Apple Push Notification service)', where: 'États-Unis', safeguard: 'certifié Swiss-U.S. Data Privacy Framework' },
 ];
 
 const fr: PrivacyText = {
   title: 'Politique de confidentialité',
-  version: 'Version du 23 novembre 2026',
+  version: 'Version du 24 novembre 2026',
   body: <>
       <p className="mt-3">
         Cette page explique quelles données EvLY traite, pourquoi, avec qui elles sont partagées et
@@ -24,7 +24,7 @@ const fr: PrivacyText = {
       </p>
     <Section title="1. Qui est responsable de tes données">
       <p>
-        EvLY, Genève (Suisse).
+        André Martins, éditeur d'EvLY, Genève (Suisse) (voir les <a href="/mentions-legales" className="underline">mentions légales</a>).
         Pour toute question ou demande concernant tes données : <strong>info@evly.ch</strong>.
       </p>
     </Section>
@@ -141,7 +141,7 @@ const fr: PrivacyText = {
       <p>EvLY s'appuie sur les prestataires suivants, qui traitent des données pour notre compte :</p>
       <ProcessorTable rows={processors} head={['Prestataire', 'Rôle', 'Pays', 'Garantie']} />
       <p>
-        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages), Google et Apple pour la connexion avec leur compte (si tu la choisis), et Google pour les polices du site. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
+        Tes données (compte, messages, Plans, photos, fichiers) sont hébergées en Suisse, chez Infomaniak, et ne quittent pas la Suisse pour leur stockage. Seuls les services listés aux États-Unis interviennent encore : Google et Apple pour acheminer les notifications vers les téléphones (sans le contenu des messages) et Google et Apple pour la connexion avec leur compte (si tu la choisis). Les polices de caractères sont servies par nos propres serveurs : ton adresse IP n'est pas transmise à Google en ouvrant le site. Les États-Unis n’offrent pas en général un niveau de protection équivalent à la Suisse : ces transferts sont encadrés soit par la certification du prestataire au Swiss-U.S. Data Privacy Framework, reconnu par le Conseil fédéral depuis le 15 septembre 2024, soit par les clauses contractuelles types, adaptées au droit suisse, de son contrat de traitement des données.
       </p>
     </Section>
 

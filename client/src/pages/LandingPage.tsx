@@ -414,6 +414,7 @@ export function LandingPage() {
             <a href={siteUrl('/brochure')} target="_blank" rel="noopener" className="hover:text-white">{t('landing.footer.brochure')}</a>
             <a href={siteUrl('/brochure-pro')} target="_blank" rel="noopener" className="hover:text-white">{t('landing.footer.brochurePro')}</a>
             <Link to="/confidentialite" className="hover:text-white">{t('landing.footer.privacy')}</Link>
+            <Link to="/mentions-legales" className="hover:text-white">{t('legal.notice.title')}</Link>
             <Link to="/supprimer-mon-compte" className="hover:text-white">{t('landing.footer.deleteAccount')}</Link>
             <Link to="/securite-enfants" className="hover:text-white">{t('landing.footer.childSafety')}</Link>
             <a href="mailto:info@evly.ch" className="hover:text-white">{t('landing.footer.contact')}</a>

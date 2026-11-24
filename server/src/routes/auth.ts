@@ -138,6 +138,9 @@ router.post('/setup', registerLimiter, async (req, res) => {
 
 router.post('/register', registerLimiter, async (req, res) => {
   const { pseudo, password, email } = req.body;
+  // Âge minimum de 16 ans (case du formulaire depuis le 2026-11-24 ; les apps plus anciennes n'envoient rien et la
+  // fenêtre des conditions d'utilisation demande aussi de cocher la case)
+  if (req.body.ageConfirmed === false) { res.status(400).json({ error: 'Pour créer un compte, il faut avoir 16 ans ou plus.' }); return; }
 
   // Ancien flow (pseudo+password sans email) — maintenu pour compatibilité setup admin
   if (!email) {

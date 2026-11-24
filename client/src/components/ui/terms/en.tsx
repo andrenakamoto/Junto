@@ -290,6 +290,7 @@ const en: TermsText = {
   confirm: 'By clicking “I accept the terms”, you confirm that you have read and accepted these terms of use in full.',
   scroll: 'Scroll to read the terms before accepting.',
   accept: 'I accept the terms',
+  age: 'I am 16 or older',
   accepting: 'Saving…',
   close: 'Close',
 };

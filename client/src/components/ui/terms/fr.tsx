@@ -302,6 +302,7 @@ const fr: TermsText = {
   confirm: 'En cliquant sur « J’accepte les conditions », tu confirmes avoir lu et accepté l’intégralité des présentes conditions d’utilisation.',
   scroll: 'Fais défiler pour lire les conditions avant d’accepter.',
   accept: 'J’accepte les conditions',
+  age: 'J’ai 16 ans ou plus',
   accepting: 'Enregistrement…',
   close: 'Fermer',
 };

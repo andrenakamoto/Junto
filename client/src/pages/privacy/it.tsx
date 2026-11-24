@@ -9,13 +9,13 @@ const processors: Processor[] = [
   { name: 'OpenStreetMap (Overpass)', role: "idee per uscire (sezione Scopri): il nostro server legge i luoghi pubblici senza trasmettere nulla che ti riguardi", where: "Germania", safeguard: "nessun dato personale trasmesso" },
   { name: 'swisstopo (Ufficio federale di topografia)', role: "sfondo della mappa di Scopri, solo se apri la mappa: il tuo dispositivo scarica le immagini della mappa direttamente da swisstopo, che vede il tuo indirizzo IP e la zona visualizzata (nient'altro, nessun account)", where: "Svizzera", safeguard: "nessun trasferimento all'estero" },
   { name: 'Svizzera Turismo (MySwitzerland.com)', role: "attrazioni e itinerari (sezione Scopri), licenza CC BY-SA: il nostro server legge i luoghi senza trasmettere nulla che ti riguardi", where: "Svizzera", safeguard: "nessun dato personale trasmesso" },
-  { name: 'Google', role: 'accesso con un account Google (se lo scegli), caratteri del sito e consegna delle notifiche delle app (Firebase Cloud Messaging)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
+  { name: 'Google', role: 'accesso con un account Google (se lo scegli; sul sito il servizio di Google viene caricato solo quando tocchi «Continua con Google») e consegna delle notifiche delle app (Firebase Cloud Messaging)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'accesso con un account Apple nell’app iPhone (se lo scegli) e consegna delle notifiche dell’app iPhone (Apple Push Notification service)', where: 'Stati Uniti', safeguard: 'certificato Swiss-U.S. Data Privacy Framework' },
 ];
 
 const it: PrivacyText = {
   title: 'Informativa sulla privacy',
-  version: 'Versione del 23 novembre 2026',
+  version: 'Versione del 24 novembre 2026',
   translationNote: 'Traduzione a titolo informativo: fa fede la versione francese.',
   body: <>
     <p className="mt-3">
@@ -24,7 +24,7 @@ const it: PrivacyText = {
     </p>
 
     <Section title="1. Chi è responsabile dei tuoi dati">
-      <p>EvLY, Ginevra (Svizzera). Per qualsiasi domanda o richiesta sui tuoi dati: <strong>info@evly.ch</strong>.</p>
+      <p>André Martins, editore di EvLY, Ginevra (Svizzera) (vedi le <a href="/mentions-legales" className="underline">note legali</a>). Per qualsiasi domanda o richiesta sui tuoi dati: <strong>info@evly.ch</strong>.</p>
     </Section>
 
     <Section title="2. I dati trattati">
@@ -127,7 +127,7 @@ const it: PrivacyText = {
       <p>EvLY si appoggia ai seguenti fornitori, che trattano dati per nostro conto:</p>
       <ProcessorTable rows={processors} head={['Fornitore', 'Ruolo', 'Paese', 'Garanzia']} />
       <p>
-        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi), Google e Apple per l’accesso con il loro account (se lo scegli), e Google per i caratteri del sito. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
+        I tuoi dati (account, messaggi, Plan, foto, file) sono ospitati in Svizzera presso Infomaniak e non lasciano la Svizzera per l’archiviazione. Intervengono ancora solo i servizi elencati negli Stati Uniti: Google e Apple per consegnare le notifiche ai telefoni (senza il contenuto dei messaggi) e Google e Apple per l’accesso con il loro account (se lo scegli). I caratteri sono serviti dai nostri server: aprendo il sito, il tuo indirizzo IP non viene trasmesso a Google. Gli Stati Uniti non offrono in generale un livello di protezione equivalente a quello svizzero: questi trasferimenti sono regolati dalla certificazione del fornitore secondo lo Swiss-U.S. Data Privacy Framework, riconosciuto dal Consiglio federale dal 15 settembre 2024, oppure dalle clausole contrattuali tipo, adattate al diritto svizzero, del suo contratto di trattamento dei dati.
       </p>
     </Section>
 

@@ -315,6 +315,7 @@ const de: TermsText = {
   confirm: 'Mit einem Klick auf «Ich akzeptiere die Bedingungen» bestätigst du, diese Nutzungsbedingungen vollständig gelesen und akzeptiert zu haben.',
   scroll: 'Scrolle, um die Bedingungen vor dem Akzeptieren zu lesen.',
   accept: 'Ich akzeptiere die Bedingungen',
+  age: 'Ich bin 16 Jahre alt oder älter',
   accepting: 'Wird gespeichert…',
   close: 'Schliessen',
 };

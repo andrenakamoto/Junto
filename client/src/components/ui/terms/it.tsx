@@ -302,6 +302,7 @@ const it: TermsText = {
   confirm: 'Cliccando su «Accetto le condizioni», confermi di aver letto e accettato integralmente le presenti condizioni d’uso.',
   scroll: 'Scorri per leggere le condizioni prima di accettare.',
   accept: 'Accetto le condizioni',
+  age: 'Ho 16 anni o più',
   accepting: 'Salvataggio…',
   close: 'Chiudi',
 };

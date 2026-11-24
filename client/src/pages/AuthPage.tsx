@@ -55,6 +55,7 @@ export function AuthPage() {
   const [pseudo, setPseudo] = useState('');
   // Prénom déjà donné en répondant à une invitation sans compte (GuestInvitePage)
   const [firstName, setFirstName] = useState(searchParams.get('prenom') ?? '');
+  const [ageOk, setAgeOk] = useState(false);
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -89,12 +90,13 @@ export function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === 'register' && !ageOk) { setError(t('auth.page.ageRequired')); return; }
     setLoading(true);
     setError('');
     setSuccess('');
     try {
       if (mode === 'register') {
-        await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ...lightTokenField(), ...sourceField() });
+        await api.post('/auth/register', { pseudo, email, password, firstName, lastName, ageConfirmed: true, ...lightTokenField(), ...sourceField() });
         setSuccess(t('auth.page.created'));
         setEmail('');
         setPseudo('');
@@ -402,6 +404,13 @@ export function AuthPage() {
               )}
             </div>
 
+            {mode === 'register' && (
+              <label className="flex items-center gap-2.5 text-sm text-slate-300 cursor-pointer select-none">
+                <input type="checkbox" checked={ageOk} onChange={e => { setAgeOk(e.target.checked); if (e.target.checked && error === t('auth.page.ageRequired')) setError(''); }} className="w-5 h-5 rounded accent-indigo-600" />
+                {t('auth.page.ageConfirm')}
+              </label>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -478,6 +487,8 @@ export function AuthPage() {
           <a href={siteUrl('/brochure-pro')} target="_blank" rel="noopener" className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.brochurePro')}</a>
           {' · '}
           <a href={siteUrl('/confidentialite')} className="hover:text-slate-300 underline underline-offset-2">{t('auth.page.privacy')}</a>
+          {' · '}
+          <a href={siteUrl('/mentions-legales')} className="hover:text-slate-300 underline underline-offset-2">{t('legal.notice.title')}</a>
           <br />info@evly.ch
         </p>
       </div>

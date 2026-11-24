@@ -556,6 +556,8 @@ export function CircleSidebar({ circles, selectedId, onSelect, onCreated, onNewP
               <button onClick={() => { setShowMenu(false); setShowTerms(true); }} className="hover:text-indigo-700">{t('circle.sidebar.termsShort')}</button>
               <span aria-hidden>·</span>
               <a href={siteUrl('/confidentialite')} target="_blank" rel="noopener" onClick={() => setShowMenu(false)} className="hover:text-indigo-700">{t('circle.sidebar.privacyShort')}</a>
+              <span aria-hidden>·</span>
+              <a href={siteUrl('/mentions-legales')} target="_blank" rel="noopener" onClick={() => setShowMenu(false)} className="hover:text-indigo-700">{t('legal.notice.title')}</a>
               <a href="mailto:info@evly.ch" className="basis-full text-center hover:text-indigo-700">info@evly.ch</a>
             </div>
           </div>

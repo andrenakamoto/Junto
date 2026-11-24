@@ -6,6 +6,7 @@ export type TermsSection = { title: string; body: ReactNode };
 export type TermsText = {
   title: string; version: string; news: string; sections: TermsSection[];
   confirm: string; scroll: string; accept: string; accepting: string; close: string; translationNote?: string;
+  age: string;
 };
 
 export const P = ({ children }: { children: ReactNode }) => <p className="mt-2 first:mt-0">{children}</p>;

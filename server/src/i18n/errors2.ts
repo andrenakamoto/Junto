@@ -24,6 +24,7 @@ export const ERRORS_2: Record<string, [string, string, string]> = {
   'Valeur invalide': ['Ungültiger Wert', 'Valore non valido', 'Invalid value'],
   'Réservé aux organisateurs': ['Nur für die Organisation', 'Riservato agli organizzatori', 'Organisers only'],
   'Lien invalide (il doit commencer par https://)': ['Ungültiger Link (er muss mit https:// beginnen)', 'Link non valido (deve iniziare con https://)', 'Invalid link (it must start with https://)'],
+  'Pour créer un compte, il faut avoir 16 ans ou plus.': ['Für ein Konto musst du mindestens 16 Jahre alt sein.', 'Per creare un account devi avere almeno 16 anni.', 'You must be 16 or older to create an account.'],
   'Lien invalide ou expiré': ['Ungültiger oder abgelaufener Link', 'Link non valido o scaduto', 'Invalid or expired link'],
   'Lien invalide ou expiré. Recommence le changement depuis « Mon profil ».': ['Ungültiger oder abgelaufener Link. Starte die Änderung erneut unter «Mein Profil».', 'Link non valido o scaduto. Ricomincia il cambio da «Il mio profilo».', 'Invalid or expired link. Start the change again from “My profile”.'],
   'Lieu de départ requis (100 caractères max)': ['Abfahrtsort erforderlich (max. 100 Zeichen)', 'Luogo di partenza obbligatorio (max 100 caratteri)', 'Departure point required (100 characters max)'],

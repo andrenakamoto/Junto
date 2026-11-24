@@ -22,6 +22,8 @@ const TEXTS: Record<Lang, TermsText> = { fr, de, it, en };
 export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [accepting, setAccepting] = useState(false);
+  // Âge minimum (16 ans, conditions art. « Compte ») : case obligatoire pour accepter, depuis le 2026-11-24
+  const [ageOk, setAgeOk] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const T = TEXTS[currentLang()] ?? fr;
 
@@ -93,9 +95,13 @@ export function TermsModal({ onAccept, onClose, readOnly = false }: Props) {
                   {T.scroll}
                 </p>
               )}
+              <label className="flex items-center gap-2.5 mb-3 text-sm font-medium text-slate-700 cursor-pointer select-none">
+                <input type="checkbox" checked={ageOk} onChange={e => setAgeOk(e.target.checked)} className="w-5 h-5 rounded accent-indigo-600" />
+                {T.age}
+              </label>
               <Button
                 onClick={handleAccept}
-                disabled={!scrolledToBottom || accepting}
+                disabled={!scrolledToBottom || !ageOk || accepting}
                 className="w-full"
               >
                 {accepting ? T.accepting : T.accept}

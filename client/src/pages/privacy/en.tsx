@@ -9,13 +9,13 @@ const processors: Processor[] = [
   { name: 'OpenStreetMap (Overpass)', role: "outing ideas (Discover section): our server reads public places without sending anything about you", where: "Germany", safeguard: "no personal data transmitted" },
   { name: 'swisstopo (Federal Office of Topography)', role: "background of the Discover map, only if you open the map: your device downloads the map images directly from swisstopo, which sees your IP address and the area shown (nothing else, no account)", where: "Switzerland", safeguard: "no transfer abroad" },
   { name: 'Switzerland Tourism (MySwitzerland.com)', role: "attractions and routes (Discover section), CC BY-SA licence: our server reads the places without sending anything about you", where: "Switzerland", safeguard: "no personal data transmitted" },
-  { name: 'Google', role: 'sign-in with a Google account (if you choose it), website fonts and delivery of app notifications (Firebase Cloud Messaging)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
+  { name: 'Google', role: 'sign-in with a Google account (if you choose it; on the website, Google’s service is only loaded when you tap “Continue with Google”) and delivery of app notifications (Firebase Cloud Messaging)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
   { name: 'Apple', role: 'sign-in with an Apple account in the iPhone app (if you choose it) and delivery of iPhone app notifications (Apple Push Notification service)', where: 'United States', safeguard: 'certified under the Swiss-U.S. Data Privacy Framework' },
 ];
 
 const en: PrivacyText = {
   title: 'Privacy policy',
-  version: 'Version of 23 November 2026',
+  version: 'Version of 24 November 2026',
   translationNote: 'Translation provided for information: the French version prevails.',
   body: <>
     <p className="mt-3">
@@ -24,7 +24,7 @@ const en: PrivacyText = {
     </p>
 
     <Section title="1. Who is responsible for your data">
-      <p>EvLY, Geneva (Switzerland). For any question or request about your data: <strong>info@evly.ch</strong>.</p>
+      <p>André Martins, publisher of EvLY, Geneva (Switzerland) (see the <a href="/mentions-legales" className="underline">legal notice</a>). For any question or request about your data: <strong>info@evly.ch</strong>.</p>
     </Section>
 
     <Section title="2. The data processed">
@@ -125,7 +125,7 @@ const en: PrivacyText = {
       <p>EvLY relies on the following providers, who process data on our behalf:</p>
       <ProcessorTable rows={processors} head={['Provider', 'Role', 'Country', 'Safeguard']} />
       <p>
-        Your data (account, messages, Plans, photos, files) is hosted in Switzerland by Infomaniak and does not leave Switzerland for storage. Only the services listed in the United States are still involved: Google and Apple to deliver notifications to phones (without the content of messages), Google and Apple for sign-in with their account (if you choose it), and Google for the website fonts. The United States does not generally offer a level of protection equivalent to Switzerland: these transfers are safeguarded either by the provider’s certification under the Swiss-U.S. Data Privacy Framework, recognised by the Federal Council since 15 September 2024, or by the standard contractual clauses, adapted to Swiss law, of its data processing agreement.
+        Your data (account, messages, Plans, photos, files) is hosted in Switzerland by Infomaniak and does not leave Switzerland for storage. Only the services listed in the United States are still involved: Google and Apple to deliver notifications to phones (without the content of messages) and Google and Apple for sign-in with their account (if you choose it). Fonts are served from our own servers: opening the website does not send your IP address to Google. The United States does not generally offer a level of protection equivalent to Switzerland: these transfers are safeguarded either by the provider’s certification under the Swiss-U.S. Data Privacy Framework, recognised by the Federal Council since 15 September 2024, or by the standard contractual clauses, adapted to Swiss law, of its data processing agreement.
       </p>
     </Section>
 

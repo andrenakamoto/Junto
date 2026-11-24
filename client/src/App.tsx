@@ -16,6 +16,8 @@ import { Capacitor } from '@capacitor/core';
 import { DemoPage } from './pages/DemoPage';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { LegalNoticePage } from './pages/LegalNoticePage';
+import { UnsubscribePage } from './pages/UnsubscribePage';
 import { DeleteAccountInfoPage } from './pages/DeleteAccountInfoPage';
 import { ChildSafetyPage } from './pages/ChildSafetyPage';
 import { QuizScreenPage } from './pages/QuizScreenPage';
@@ -91,6 +93,8 @@ export default function App() {
         {/* Même page, sans passer par l'aperçu servi par le serveur (secours, server/src/routes/share.ts) */}
         <Route path="/invitation-plan"       element={<GuestInvitePage />} />
         <Route path="/confidentialite"       element={<PrivacyPage />} />
+        <Route path="/mentions-legales"      element={<LegalNoticePage />} />
+        <Route path="/desinscription"        element={<UnsubscribePage />} />
         <Route path="/supprimer-mon-compte"  element={<DeleteAccountInfoPage />} />
         <Route path="/securite-enfants"      element={<ChildSafetyPage />} />
         <Route path="/ecran"                 element={<QuizScreenPage />} />
