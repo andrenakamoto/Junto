@@ -56,8 +56,8 @@ function getClient(): Messaging | null {
   }
 }
 
-// Titre, texte, lien à ouvrir et clé de regroupement (une notification par Plan
-// ou sondage : la suivante remplace la précédente au lieu de s'empiler)
+// Titre, texte, lien à ouvrir et clé de regroupement (par Plan ou sondage : sert au `threadId` de l'iPhone, qui empile les
+// notifications d'un même Plan ; elles ne se remplacent plus, voir sendPush)
 export function pushContent(n: AppNotification, locale: Locale = 'fr'): { title: string; body: string; url: string; group: string } | null {
   const T = PUSH_TEXTS[locale];
   const from = n.from ? `@${n.from}` : T.someone;
@@ -179,14 +179,15 @@ export async function sendPush(userId: string, n: AppNotification, locale?: Loca
     tokens,
     notification: { title: content.title, body: content.body },
     data: { url: content.url },
+    // Chaque notification reste affichée sur l'écran verrouillé (2026-11-24) : plus de `tag` Android, de `collapseKey` ni
+    // d'`apns-collapse-id`, qui faisaient REMPLACER la notification précédente du même Plan (seule la dernière restait).
+    // iPhone : `threadId` les empile par Plan ; Android : le système les regroupe tout seul sous EvLY.
     android: {
-      collapseKey: content.group,
       priority: 'high',
       // Canal créé par l'app (client/src/lib/push.ts) : priorité haute → bannière en haut de l'écran
-      notification: { channelId: 'evly_activity', tag: content.group, color: '#ea5a2b', icon: 'ic_stat_evly', sound: 'default' },
+      notification: { channelId: 'evly_activity', color: '#ea5a2b', icon: 'ic_stat_evly', sound: 'default' },
     },
     apns: {
-      headers: { 'apns-collapse-id': content.group.slice(0, 64) },
       payload: { aps: { sound: 'default', threadId: content.group } },
     },
   });

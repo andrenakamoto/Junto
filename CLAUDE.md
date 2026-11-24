@@ -395,7 +395,7 @@ Conséquences pratiques :
     ('notification')` directement. Texte construit par `pushContent` (testé) :
     **jamais le contenu d'un message**, seulement qui / où ; `data.url` = lien
     interne (`/dashboard?planId=…`, `?circleId=…&pollId=…`, `?circleId=…`),
-    regroupement par Plan/sondage (tag Android, `apns-collapse-id`). Clé du
+    regroupement par Plan/sondage (`threadId` de l'iPhone seulement ; **depuis le 2026-11-24, plus de `tag` Android, de `collapseKey` ni d'`apns-collapse-id`** : ils faisaient remplacer la notification précédente du même Plan, et seule la dernière restait sur l'écran verrouillé). Clé du
     compte de service dans `FIREBASE_SERVICE_ACCOUNT_B64` (JSON en base64, sur
     Railway uniquement : en local, rien n'est envoyé). Table **PushToken**
     (jeton unique, rattaché au dernier compte connecté sur l'appareil) ; routes
