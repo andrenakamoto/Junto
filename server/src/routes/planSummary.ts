@@ -1,3 +1,4 @@
+import { planAlbumInfo } from '../lib/albums';
 import { Router } from 'express';
 import { stripFormatting } from '../lib/richText';
 import prisma from '../lib/prisma';
@@ -48,6 +49,7 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
     prisma.attachment.count({ where: { planId, mimeType: { startsWith: 'image/' }, matchOption: null, section: null, NOT: [{ name: { startsWith: 'match-' } }, { name: { startsWith: 'quiz-' } }] } }),
   ]);
 
+  const album = await planAlbumInfo(planId);
   const counts = { in: 0, maybe: 0, out: 0 };
   for (const m of members) counts[m.rsvp === 'maybe' ? 'maybe' : m.rsvp === 'out' ? 'out' : 'in']++;
   const pledge = pot?.pledges[0];
@@ -76,6 +78,8 @@ router.get('/:id/summary', async (req: AuthRequest, res) => {
       matches: pendingMatches(matches.map(m => ({ ...m, swipes: m.options.flatMap(o => o.swipes) })), userId),
     },
     photos,
+    // Album souvenir encore ouvert (lib/albums.ts), absent avant le 2026-11-24
+    album: album ? { token: album.token, expiresAt: album.expiresAt, photos: album.photos } : null,
   });
 });
 

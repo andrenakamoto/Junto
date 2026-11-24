@@ -198,10 +198,18 @@ const it: EmailDict = {
     text: 'Buongiorno {name},<br>l’assemblea è chiusa. In allegato trova il verbale (PDF): presenti, assenti giustificati, deleghe, quorum, risultati delle votazioni e delle elezioni.',
     keep: 'La preghiamo di rileggerlo, di farlo firmare e di conservarlo: il Plan sarà eliminato automaticamente dopo la sua data di fine. Finché il Plan esiste, può anche scaricarlo di nuovo dalla scheda Assemblea.',
   },
+  albumEnd: {
+    subject: 'Le foto di «{plan}»',
+    title: 'Le foto di «{plan}» 📸',
+    text: 'L’album ricordo della serata resta aperto fino al <b>{date}</b>. Aggiungi le tue foto, guarda quelle degli altri e scarica tutto l’album prima che venga cancellato.',
+    button: 'Vedi l’album',
+    note: 'Nessun account necessario: basta il link. Puoi condividerlo con chi c’era.',
+  },
   recap: {
     subject: 'Riepilogo — «{plan}»',
     title: 'Il Plan «{plan}» è terminato, {name} 👋',
     text: 'È appena stato eliminato automaticamente. In allegato trovi il suo riepilogo (PDF): info, partecipanti, turni, spese, voti, risultati dei giochi e colletta, se ce n’erano.',
+    album: 'L’album ricordo della serata resta aperto fino al {date}: {link}',
     why: 'Ricevi questa email perché hai attivato «Riepilogo prima dell’eliminazione». Per disattivarlo: {menu} e disattiva «Riepilogo prima dell’eliminazione».',
   },
   programPdf: {
@@ -290,6 +298,8 @@ const it: EmailDict = {
     balanced: 'I conti sono in pari.',
     votes: 'Voti',
     voices: '{count} voto/i',
+    album: 'Album ricordo',
+    albumValue: '{url} (aperto fino al {date})',
     repeat: 'Ripetizione',
     recurWeekly: 'ogni settimana',
     recurBiweekly: 'ogni due settimane',

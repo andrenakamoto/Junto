@@ -198,10 +198,18 @@ const de: EmailDict = {
     text: 'Guten Tag {name},<br>die Versammlung ist geschlossen. Im Anhang finden Sie das Protokoll (PDF): Anwesende, Entschuldigte, Vollmachten, Quorum, Ergebnisse der Abstimmungen und Wahlen.',
     keep: 'Bitte lesen Sie es durch, lassen Sie es unterschreiben und bewahren Sie es auf: Der Plan wird nach seinem Enddatum automatisch gelöscht. Solange der Plan besteht, können Sie es im Bereich Versammlung erneut herunterladen.',
   },
+  albumEnd: {
+    subject: 'Die Fotos von «{plan}»',
+    title: 'Die Fotos von «{plan}» 📸',
+    text: 'Das Erinnerungsalbum des Abends bleibt bis <b>{date}</b> offen. Lade deine Fotos hoch, sieh dir die der anderen an und lade das ganze Album herunter, bevor es gelöscht wird.',
+    button: 'Album ansehen',
+    note: 'Kein Konto nötig: Der Link genügt. Du kannst ihn mit den Leuten teilen, die dabei waren.',
+  },
   recap: {
     subject: 'Zusammenfassung — «{plan}»',
     title: 'Der Plan «{plan}» ist vorbei, {name} 👋',
     text: 'Er wurde soeben automatisch gelöscht. Im Anhang findest du seine Zusammenfassung (PDF): Infos, Teilnehmende, Einsatzplan, Ausgaben, Abstimmungen, Spielergebnisse und Geschenkkasse, falls vorhanden.',
+    album: 'Das Erinnerungsalbum des Abends bleibt bis {date} offen: {link}',
     why: 'Du erhältst diese E-Mail, weil du «Zusammenfassung vor dem Löschen» aktiviert hast. Zum Abstellen: {menu} und deaktiviere «Zusammenfassung vor dem Löschen».',
   },
   programPdf: {
@@ -290,6 +298,8 @@ const de: EmailDict = {
     balanced: 'Alles ist ausgeglichen.',
     votes: 'Abstimmungen',
     voices: '{count} Stimme(n)',
+    album: 'Erinnerungsalbum',
+    albumValue: '{url} (offen bis {date})',
     repeat: 'Wiederholung',
     recurWeekly: 'jede Woche',
     recurBiweekly: 'alle zwei Wochen',

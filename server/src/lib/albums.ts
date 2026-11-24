@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import prisma from './prisma';
 import { notifyUser } from './push';
 import { STORAGE_DIR } from './storage';
+import { APP_URL } from './mailer';
 
 // Album souvenir d'une soirée (2026-11-23, demande de l'utilisateur, pour sa soirée d'entreprise) : chacun y met ses photos par un
 // lien ou un QR code, sans compte ni app. L'album survit au Plan et reste visible 7 jours après la fin de la soirée.
@@ -17,6 +18,16 @@ export const ALBUM_UPLOAD_MAX_BYTES = 11 * 1024 * 1024; // fichier reçu (l'app 
 export const ALBUM_PHOTO_SIZE = 2048;                   // grand côté de la photo gardée
 export const ALBUM_THUMB_SIZE = 480;
 export const ALBUM_NAME_MAX = 30;
+
+/** Adresse publique d'un album (page /album du site). */
+export const albumUrl = (token: string) => `${APP_URL}/album?t=${encodeURIComponent(token)}`;
+
+/** Album encore ouvert d'un Plan, pour les résumés (récapitulatif PDF, « En bref », email de fin) ; null s'il n'y en a pas. */
+export async function planAlbumInfo(planId: string, now = new Date()) {
+  const a = await prisma.photoAlbum.findUnique({ where: { planId }, select: { token: true, expiresAt: true, _count: { select: { photos: { where: { hidden: false } } } } } });
+  if (!a || a.expiresAt <= now) return null;
+  return { token: a.token, url: albumUrl(a.token), expiresAt: a.expiresAt, photos: a._count.photos };
+}
 
 export const expiresFor = (eventEnd: Date) => new Date(eventEnd.getTime() + ALBUM_KEEP_MS);
 

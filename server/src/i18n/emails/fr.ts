@@ -198,10 +198,18 @@ const fr = {
     text: 'Bonjour {name},<br>l’assemblée est close. Vous trouverez le procès-verbal en pièce jointe (PDF) : présents, excusés, procurations, quorum, résultats des votes et des élections.',
     keep: 'Pensez à le relire, à le faire signer et à le conserver : le Plan sera supprimé automatiquement après sa date de fin. Vous pouvez aussi le télécharger à nouveau depuis l’onglet Assemblée tant que le Plan existe.',
   },
+  albumEnd: {
+    subject: 'Les photos de « {plan} »',
+    title: 'Les photos de « {plan} » 📸',
+    text: 'L’album souvenir de la soirée reste ouvert jusqu’au <b>{date}</b>. Ajoute tes photos, regarde celles des autres et télécharge tout l’album avant qu’il soit effacé.',
+    button: 'Voir l’album',
+    note: 'Pas besoin de compte : le lien suffit. Tu peux le partager avec les personnes qui étaient là.',
+  },
   recap: {
     subject: 'Récapitulatif — « {plan} »',
     title: 'Le Plan « {plan} » est terminé, {name} 👋',
     text: 'Il vient d’être supprimé automatiquement. Voici son récapitulatif en pièce jointe (PDF) : infos, participants, planning, dépenses, votes, résultats des jeux et cagnotte s’il y en avait.',
+    album: 'L’album souvenir de la soirée reste ouvert jusqu’au {date} : {link}',
     why: 'Tu reçois cet email parce que tu as activé « Récapitulatif avant suppression ». Pour l’arrêter : {menu}, et désactive « Récapitulatif avant suppression ».',
   },
   programPdf: {
@@ -290,6 +298,8 @@ const fr = {
     balanced: 'Les comptes sont équilibrés.',
     votes: 'Votes',
     voices: '{count} voix',
+    album: 'Album souvenir',
+    albumValue: '{url} (ouvert jusqu’au {date})',
     repeat: 'Répétition',
     recurWeekly: 'chaque semaine',
     recurBiweekly: 'toutes les deux semaines',

@@ -13,6 +13,7 @@ import { purgePlanFiles } from './storage';
 import { visiblePlansWhere } from './planAccess';
 import { resend, FROM_EMAIL, APP_URL, notificationFooter } from './mailer';
 import { unsubscribeLinks } from './unsubscribe';
+import { planAlbumInfo } from './albums';
 import { computeByCurrency, formatAmount } from './expenses';
 import { wantsEmail } from './notificationPrefs';
 import { sendPush } from './push';
@@ -23,6 +24,35 @@ const REMINDER_WINDOW_END_H = 25;
 // Plans terminés depuis plus de 24 h (délai de grâce, lib/planLifecycle.ts) : envoie un résumé des dépenses aux
 // membres (s'il y en a) avant suppression, puis supprime le Plan. Fait au
 // cas par cas (pas de deleteMany en masse) pour pouvoir mailer chaque Plan.
+// À la suppression d'un Plan (24 h après sa fin), son album souvenir reste encore ouvert quelques jours (lib/albums.ts) :
+// un email donne son adresse aux participants « Je suis in » et « Peut-être » qui ont un email vérifié, sauf s'ils ont mis
+// le Plan ou le Cercle en silence. Envoyé même sans photo (chacun peut encore ajouter les siennes).
+async function sendAlbumEndEmails(plan: { id: string; title: string; circleId: string; members: { userId: string; rsvp: string; user: { pseudo: string; email: string | null; emailVerified: boolean; locale: string | null } }[] }) {
+  const album = await planAlbumInfo(plan.id);
+  if (!album) return;
+  const people = plan.members.filter(x => (x.rsvp === 'in' || x.rsvp === 'maybe') && x.user.email && x.user.emailVerified);
+  if (!people.length) return;
+  const muted = await mutedAmong({ planId: plan.id, circleId: plan.circleId }, people.map(x => x.userId));
+  await Promise.all(people.filter(x => !muted.has(x.userId)).map(x => {
+    const m = mail(parseLocale(x.user.locale) ?? 'fr');
+    const date = new Intl.DateTimeFormat(m.intl, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Zurich' }).format(album.expiresAt);
+    return resend.emails.send({
+      from: FROM_EMAIL,
+      to: x.user.email!,
+      subject: m.s('albumEnd.subject', { plan: plan.title }),
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2>${m.t('albumEnd.title', { plan: plan.title })}</h2>
+          <p>${m.t('albumEnd.text', { date })}</p>
+          <a href="${album.url}" style="display:inline-block;padding:12px 24px;background:#ea5a2b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${m.t('albumEnd.button')}</a>
+          <p style="color:#64748b;font-size:13px;margin-top:16px">${m.t('albumEnd.note')}<br><a href="${album.url}" style="color:#64748b">${album.url}</a></p>
+          ${notificationFooter('notification', m.locale)}
+        </div>`,
+    }).then(r => { if (r.error) console.error('[album email]', x.user.email, r.error); })
+      .catch(e => console.error('[album email]', x.user.email, e));
+  }));
+}
+
 export async function deleteExpiredPlans() {
   try {
     const expiredPlans = await prisma.plan.findMany({
@@ -38,6 +68,8 @@ export async function deleteExpiredPlans() {
     for (const plan of expiredPlans) {
       // Récapitulatif PDF pour ceux qui l'ont demandé (avant la suppression : il lit le Plan)
       await sendRecapBeforeDeletion(plan).catch(e => console.error('[recap] Plan', plan.id, e));
+      // Album souvenir encore ouvert : son adresse aux participants « Je suis in » et « Peut-être » (2026-11-24)
+      await sendAlbumEndEmails(plan).catch(e => console.error('[album email] Plan', plan.id, e));
       if (plan.expenses.length > 0) {
         try {
           const memberIds = plan.members.map(m => m.userId);

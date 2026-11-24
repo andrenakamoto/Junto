@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Calendar, Car, Check, Copy, HandHeart, Images, ListChecks, ListTodo, MapPin, PiggyBank, Receipt, ShoppingBasket, Users, X } from 'lucide-react';
+import { AlertTriangle, Calendar, Camera, Car, Check, Copy, HandHeart, Images, ListChecks, ListTodo, MapPin, PiggyBank, Receipt, ShoppingBasket, Users, X } from 'lucide-react';
 import api from '../../services/api';
 import { intlLocale, t } from '../../i18n';
 import { shortDateTime } from '../../lib/dates';
 import { publicOrigin } from '../../lib/siteUrl';
+import { albumLink } from '../../lib/album';
+import { useNavigate } from 'react-router-dom';
 
 // « En bref » : synthèse du Plan vue par la personne (GET /plans/:id/summary, server/src/lib/planSummary.ts).
 // Ouverte depuis la carte du Plan (PlanList) et la fiche du Plan (PlanDetail), pour « Je suis in » et
@@ -31,6 +33,8 @@ interface Summary {
   tasks?: { count: number; late: number; next: { title: string; dueDate: string | null; late: boolean } } | null;
   todo: { polls: number; matches: number };
   photos: number;
+  /** Album souvenir encore ouvert, absent avant le 2026-11-24 */
+  album?: { token: string; expiresAt: string; photos: number } | null;
 }
 
 const money = (amount: number, currency: string) => amount.toLocaleString(intlLocale(), { style: 'currency', currency });
@@ -48,7 +52,7 @@ function relativeDay(start: string, end: string): string | null {
   return days === 0 ? t('plan.summary.today') : new Intl.RelativeTimeFormat(intlLocale(), { numeric: 'auto' }).format(days, 'day');
 }
 
-type Row = { key: string; Icon: typeof Users; text: string; sub?: string; tab: string; tone?: 'warn' | 'good' };
+type Row = { key: string; Icon: typeof Users; text: string; sub?: string; tab: string; tone?: 'warn' | 'good'; href?: string };
 
 function rows(s: Summary): Row[] {
   const out: Row[] = [];
@@ -104,6 +108,7 @@ function rows(s: Summary): Row[] {
   }
   if (s.todo.polls) out.push({ key: 'polls', Icon: ListTodo, text: t('plan.summary.polls', { count: s.todo.polls }), tab: 'votes', tone: 'warn' });
   if (s.todo.matches) out.push({ key: 'matches', Icon: ListTodo, text: t('plan.summary.matches', { count: s.todo.matches }), tab: 'votes', tone: 'warn' });
+  if (s.album) out.push({ key: 'album', Icon: Camera, text: t('plan.summary.album', { count: s.album.photos }), sub: t('plan.summary.albumUntil', { date: dayDate(s.album.expiresAt) }), tab: 'infos', href: `/album?t=${encodeURIComponent(s.album.token)}` });
   if (s.photos) out.push({ key: 'photos', Icon: Images, text: t('plan.summary.photos', { count: s.photos }), sub: t('plan.summary.erased', { date: dayDate(s.plan.endDate) }), tab: 'infos' });
   return out;
 }
@@ -118,6 +123,7 @@ function shareText(s: Summary, link: string | null): string {
   if (s.plan.importantInfo) lines.push(`⚠️ ${s.plan.importantInfo}`);
   for (const o of s.rideOffers.slice(0, 2)) lines.push(`🚗 ${t('plan.summary.rideOffer', { count: o.seatsFree, driver: o.driver })}`);
   if (s.bring?.missing.length) lines.push(`🛒 ${t('plan.summary.bringMissing', { items: list(s.bring.missing) })}`);
+  if (s.album) lines.push(`📸 ${t('plan.summary.albumCopy', { date: dayDate(s.album.expiresAt) })} ${albumLink(s.album.token)}`);
   if (link) lines.push('', t('plan.summary.copyRespond'), link);
   return lines.join('\n');
 }
@@ -126,6 +132,7 @@ export function PlanSummarySheet({ planId, onClose, onOpenTab }: { planId: strin
   const [data, setData] = useState<Summary | null>(null);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -182,9 +189,9 @@ export function PlanSummarySheet({ planId, onClose, onOpenTab }: { planId: strin
                 </div>
               </div>
               <ul className="px-3 pb-3">
-                {rows(data).map(({ key, Icon, text, sub, tab, tone }) => (
+                {rows(data).map(({ key, Icon, text, sub, tab, tone, href }) => (
                   <li key={key}>
-                    <button onClick={() => onOpenTab(tab)} className="w-full flex items-start gap-3 px-2 py-2.5 border-t border-slate-100 text-left rounded-lg hover:bg-slate-50 active:bg-slate-100">
+                    <button onClick={() => (href ? navigate(href) : onOpenTab(tab))} className="w-full flex items-start gap-3 px-2 py-2.5 border-t border-slate-100 text-left rounded-lg hover:bg-slate-50 active:bg-slate-100">
                       <Icon size={18} className={`mt-0.5 flex-shrink-0 ${tone === 'warn' ? 'text-amber-600' : tone === 'good' ? 'text-emerald-600' : 'text-indigo-500'}`} />
                       <span className="min-w-0">
                         <span className={`block text-sm ${tone === 'warn' ? 'text-slate-900 font-semibold' : 'text-slate-800'}`}>{text}</span>

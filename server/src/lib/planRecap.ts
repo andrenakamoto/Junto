@@ -1,3 +1,4 @@
+import { planAlbumInfo } from './albums';
 import path from 'path';
 import { stripEmojiFromPdf, writeRichText } from './pdfText';
 import { stripFormatting } from './richText';
@@ -125,6 +126,14 @@ export async function buildPlanRecapPdf(planId: string, locale: Locale = 'fr'): 
   line(m.s('recapPdf.date'), planDates(m, plan.eventDate, plan.endDate));
   if (plan.location) line(m.s('recapPdf.place'), plan.location);
   line(m.s('recapPdf.by'), who(plan.creator));
+  // Album souvenir encore ouvert (lib/albums.ts) : adresse cliquable et date d'effacement
+  const album = await planAlbumInfo(plan.id);
+  if (album) {
+    const until = zurich(m, { day: 'numeric', month: 'long', year: 'numeric' }).format(album.expiresAt);
+    doc.font('semibold').fontSize(10).fillColor(DIM).text(`${m.s('recapPdf.album')}  `, { continued: true })
+      .font('regular').fillColor(CORAL).text(m.s('recapPdf.albumValue', { url: album.url, date: until }), { link: album.url, underline: false });
+    doc.fillColor(INK);
+  }
   if (plan.recurrence) {
     const label = m.s(plan.recurrence === 'biweekly' ? 'recapPdf.recurBiweekly' : plan.recurrence === 'monthly' ? 'recapPdf.recurMonthly' : 'recapPdf.recurWeekly');
     const until = plan.recurrenceUntil ? zurich(m, { day: 'numeric', month: 'long', year: 'numeric' }).format(plan.recurrenceUntil) : null;
@@ -509,6 +518,7 @@ export async function sendRecapBeforeDeletion(plan: { id: string; title: string;
   });
   if (recipients.length === 0) return;
   const { resend, FROM_EMAIL, APP_URL } = await import('./mailer');
+  const album = await planAlbumInfo(plan.id);
   // Un PDF par langue (dans la langue de chaque destinataire)
   const pdfs = new Map<Locale, Awaited<ReturnType<typeof buildPlanRecapPdf>>>();
   for (const u of recipients) {
@@ -527,6 +537,7 @@ export async function sendRecapBeforeDeletion(plan: { id: string; title: string;
       <div style="font-family:sans-serif;max-width:480px;margin:auto">
         <h2>${m.t('recap.title', { plan: plan.title, name: u.pseudo })}</h2>
         <p>${m.t('recap.text')}</p>
+        ${album ? `<p>${m.t('recap.album', { date: new Intl.DateTimeFormat(m.intl, { day: 'numeric', month: 'long', timeZone: 'Europe/Zurich' }).format(album.expiresAt), link: { html: `<a href="${album.url}" style="color:#ea5a2b;font-weight:600">${album.url}</a>` } })}</p>` : ''}
         <p style="color:#64748b;font-size:13px">${m.t('recap.why', { menu: { html: m.t('footer.menu') } })}
         <a href="${APP_URL}/dashboard?reglages=notifications" style="color:#64748b">${m.t('common.manageNotifications')}</a></p>
       </div>`,

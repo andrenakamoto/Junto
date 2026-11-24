@@ -198,10 +198,18 @@ const en: EmailDict = {
     text: 'Dear {name},<br>the assembly is closed. Please find the minutes attached (PDF): attendees, apologies, proxies, quorum, results of the votes and elections.',
     keep: 'Please review them, have them signed and keep them: the Plan will be deleted automatically after its end date. While the Plan exists, you can also download them again from the Assembly tab.',
   },
+  albumEnd: {
+    subject: 'The photos from “{plan}”',
+    title: 'The photos from “{plan}” 📸',
+    text: 'The party’s memory album stays open until <b>{date}</b>. Add your photos, look at everyone else’s and download the whole album before it is deleted.',
+    button: 'View the album',
+    note: 'No account needed: the link is enough. You can share it with the people who were there.',
+  },
   recap: {
     subject: 'Summary — “{plan}”',
     title: 'The Plan “{plan}” is over, {name} 👋',
     text: 'It has just been deleted automatically. Attached is its summary (PDF): info, participants, schedule, expenses, votes, game results and gift pot if there were any.',
+    album: 'The party’s memory album stays open until {date}: {link}',
     why: 'You’re receiving this email because you turned on “Summary before deletion”. To stop it: {menu}, and turn off “Summary before deletion”.',
   },
   programPdf: {
@@ -290,6 +298,8 @@ const en: EmailDict = {
     balanced: 'Everyone is square.',
     votes: 'Votes',
     voices: '{count} vote(s)',
+    album: 'Memory album',
+    albumValue: '{url} (open until {date})',
     repeat: 'Repeats',
     recurWeekly: 'every week',
     recurBiweekly: 'every two weeks',
