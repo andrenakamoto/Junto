@@ -2608,6 +2608,31 @@ son Plan juste après avoir accepté l'invitation).
 - Restent (moyen, non exploitables ici) : `uuid` via firebase-admin / @capacitor/cli, et
   `react-router` (redirection par `\`, neutralisée ci-dessus) — mise à jour majeure nécessaire.
 
+## Conformité (audit du 2026-11-24)
+
+Demande de l'utilisateur après une vidéo sur les règles des apps (résiliation, emails, polices Google, session replay, âge) :
+- **Polices servies par evly.ch** : Fraunces et Inter (woff2, latin + latin-ext, SIL OFL) dans `client/public/fonts/` avec
+  `fonts.css` ; `index.html` et `decouvrir*.html` ne chargent plus rien chez Google (fonts.googleapis.com / fonts.gstatic.com retirés de
+  la CSP nginx, dans `deploy/infomaniak/nginx-evly.conf` **et à la main sur le serveur**). **Ne jamais remettre de police ou de script
+  externe chargé à l'ouverture d'une page.**
+- **Bouton Google du site chargé au toucher** (`GoogleWebButton`) : notre bouton d'abord ; au toucher, le script Google Identity Services
+  se charge, `prompt()` propose le compte, et le bouton officiel prend la place du nôtre (`auth.page.googleTapAgain`).
+- **Désinscription en un clic** des résumés envoyés sans action de la personne (résumé hebdomadaire, résumé du lundi du cockpit) :
+  `lib/unsubscribe.ts` (jeton signé `purpose: 'unsubscribe'`, sans durée, `kind` `digest` | `cockpit:<orgId>`), `routes/unsubscribe.ts`
+  sur `/api/unsubscribe` (GET `/info`, POST), page publique **`/desinscription?t=`** (`UnsubscribePage`, un bouton : les messageries
+  ouvrent parfois les liens toutes seules), en-têtes `List-Unsubscribe` / `List-Unsubscribe-Post` (RFC 8058). Lien dans le pied
+  (`notificationFooter(kind, locale, unsubscribeUrl)`, clé `common.unsubscribe` des emails). **Tout nouvel email régulier envoyé sans
+  action de la personne doit porter ce lien et ces en-têtes.**
+- **Identité de l'éditeur** : `LEGAL_LINE` (« EvLY · André Martins · Genève (Suisse) · info@evly.ch ») ajoutée en bas de **chaque**
+  email par `withLegalLine` (`lib/mailer.ts`) ; page publique **`/mentions-legales`** (`LegalNoticePage`, textes `i18n/<langue>/legal.ts` :
+  éditeur André Martins, Genève, Suisse ; contact info@evly.ch ; hébergeur Infomaniak Network SA, Les Acacias), liée depuis le pied du
+  site, la page de connexion, le menu ☰ et la politique de confidentialité (responsable nommé, version du 24 novembre 2026).
+- **Âge minimum 16 ans** : case obligatoire « J'ai 16 ans ou plus » dans le formulaire d'inscription (`ageConfirmed: true` ; le serveur
+  refuse `ageConfirmed: false`) et dans la fenêtre des conditions d'utilisation (`TermsText.age`), que voit tout nouveau compte (email,
+  Google, Apple). Pas de date de naissance demandée.
+- Pas de « résilier en 3 clics » à faire tant qu'EvLY est gratuit (suppression du compte : menu ☰ → Mon profil → Supprimer mon compte) ;
+  **à prévoir avec l'offre payante** (bouton « Résilier » direct). Aucun outil de session replay ni de statistiques externe : à garder ainsi.
+
 ## Déploiement
 
 > **Depuis le 2026-10-11, EvLY est hébergé en Suisse chez Infomaniak** (VPS Lite `evly-prod`, Ubuntu 24.04,
